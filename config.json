@@ -15,10 +15,11 @@
 
     "database": {
         "secret": "MY SECRET!",
-        "mongo_url": "mongodb://192.168.56.101:27017/mydatabase",
-        "mongo_test_url": "mongodb://192.168.56.101:27017/mytestdatabase",
-        "access_log_collection": "history",
-        "applications_collection": "applications"
+        "mongo_url": "mongodb://fvictor@mongo.dsi.ic.ac.uk:27017/itmat",
+        "mongo_test_url": "",
+        "sessions_collection": "itmat_broker_sessions",
+        "access_log_collection": "itmat_broker_log",
+        "applications_collection": "itmat_broker_applications"
     },
 
     "file_storage": {

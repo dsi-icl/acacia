@@ -92,7 +92,10 @@ class Server {
 
       sessionOptions: {
         secret: configValues.database.secret,
-        store: new MongoStore({ url: configValues.database.mongo_url }),
+        store: new MongoStore({
+          url: configValues.database.mongo_url,
+          collection: configValues.database.sessions_collection,
+        }),
         resave: false,
         saveUninitialized: true,
         cookie: { secure: true },
