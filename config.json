@@ -1,0 +1,27 @@
+{
+    "server": {
+        "port": 443,
+        "key_file": "./server.key",
+        "certificate_file": "./server.crt"
+    },
+
+    "ldap_authentication": {
+        "url": "ldap://192.168.56.101:389",
+        "bindDN": "cn=admin,dc=nodomain",
+        "bindCredentials": "admin",
+        "searchBase": "ou=unidad,cn=grupo,dc=nodomain",
+        "searchFilter": "(uid={{username}})"
+    },
+
+    "database": {
+        "secret": "MY SECRET!",
+        "mongo_url": "mongodb://192.168.56.101:27017/mydatabase",
+        "mongo_test_url": "mongodb://192.168.56.101:27017/mytestdatabase",
+        "access_log_collection": "history",
+        "applications_collection": "applications"
+    },
+
+    "file_storage": {
+        "swift_url": "http://192.168.56.101:12345/v1/AUTH_admin/files/"
+    }
+}

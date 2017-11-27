@@ -1,0 +1,84 @@
+const jsonstream = require('JSONStream');
+
+module.exports = function (database, filebase) {
+  const controller = {};
+
+  controller.mainRoute = async function (req, res, next) {
+    if (req.isAuthenticated()) {
+      try {
+        const username = req.session.passport.user.uid;
+        const applications = await database.getUserApplications(username);
+        res.render('details', { applications });
+      } catch (error) { next(error); }
+    } else {
+      res.render('login', req.flash());
+    }
+  };
+
+  controller.downloadRoute = async function (req, res) {
+    try {
+      const username = req.session.passport.user.uid;
+      const filename = req.query.file;
+      const file = await filebase.requestFile(username, filename);
+      await file.pipe(res);
+    } catch (error) { res.status(303).render('download_failed', { error }); }
+  };
+
+  controller.downloadData = async function (req, res) {
+    try {
+      const username = req.user.uid;
+      const { applicationid, key } = req.query;
+      const cursor = await database.requestDataset(username, applicationid, key);
+      cursor.pipe(jsonstream.stringify()).pipe(res);
+    } catch (error) { res.status(303).render('download_failed', { error }); }
+  };
+
+  controller.logoutRoute = function (req, res) {
+    req.logout();
+    res.redirect('/');
+  };
+
+  controller.pageNotFoundRoute = function (req, res) {
+    res.status(404).render('404');
+  };
+
+  controller.pageError = function (err, req, res) {
+    res.status(500).render('500', { error: err });
+  };
+
+  controller.ensureAuthenticated = function (req, res, next) {
+    if (req.isAuthenticated()) { next(); } else { res.redirect('/'); }
+  };
+
+  controller.ensureAuthenticatedApi = function (req, res, next) {
+    if (req.isAuthenticated()) { next(); } else { res.status(401).send('Not authenticated'); }
+  };
+
+  controller.apiApplications = async function (req, res) {
+    try {
+      const username = req.user.uid;
+      const applications = await database.getUserApplications(username);
+      res.json(applications);
+    } catch (error) { res.send(error); }
+  };
+
+  controller.apiData = async function (req, res) {
+    try {
+      const username = req.user.uid;
+      const { applicationid, key } = req.query;
+      const cursor = await database.requestDataset(username, applicationid, key);
+      cursor.pipe(jsonstream.stringify()).pipe(res);
+    } catch (error) { res.send(error); }
+  };
+
+  controller.apiDownload = async function (req, res) {
+    try {
+      const username = req.user.uid;
+      const filename = req.query.file;
+      const file = await filebase.requestFile(username, filename);
+      file.pipe(res);
+    } catch (error) { res.send(error); }
+  };
+
+  return controller;
+};

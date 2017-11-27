@@ -1,0 +1,20 @@
+<a class="centered" href="logout">Close session</a>
+<div>
+  {{#each applications}}
+    <div class="applicationCard">
+      <div class="applicationTitle">
+        <h1>{{name}}</h1>
+      </div>
+      <div class="applicationDetails">
+        {{#each data}}
+        <h3><a href="data?applicationid={{../_id}}&key={{@key}}">Download data: {{@key}}</a></h3>
+        {{/each}}
+        {{#each files}}
+          <h4><a href="download?file={{this}}">{{this}}</a></h4>
+        {{/each}}
+      </div>
+    </div>
+  {{else}}
+  <p class="centered">There aren't applications associated with this user.</p>
+  {{/each}}
+</div>
