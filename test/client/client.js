@@ -1,7 +1,8 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
+const fs = require('fs');
 
-const serverPromise = require('../src/index');
+const Server = require('../../src/client/client-server');
 
 const { expect } = chai;
 
@@ -11,9 +12,13 @@ chai.use(chaiHttp);
 
 describe('Test client', () => {
   let server;
-
+  
   before(async () => {
-    server = await serverPromise;
+    server = await new Server('ITMAT_CONFIG_TEST').start();
+  });
+
+  after(async () => {
+    if(server) await server.close();
   });
 
   it('Test root page', (done) => {

@@ -4,9 +4,11 @@
   "description": "No description yet",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/index.js",
+    "start": "node ./src/client/client-index.js",
+    "client": "node ./src/client/client-index.js",
+    "api": "node ./src/api/api-index.js",
     "lint": "./node_modules/.bin/eslint src scripts",
-    "test": "./node_modules/.bin/mocha --exit test"
+    "test": "./node_modules/.bin/mocha --exit test/client test/api"
   },
   "author": "",
   "license": "ISC",
@@ -20,8 +22,10 @@
     "cookie-parser": "1.4.3",
     "cors": "2.8.4",
     "express": "4.16.2",
+    "express-bearer-token": "2.1.0",
     "express-handlebars": "3.0.0",
     "express-session": "1.15.6",
+    "jsonwebtoken": "8.1.0",
     "mongodb": "2.2.33",
     "passport": "0.4.0",
     "passport-ldapauth": "2.0.0",

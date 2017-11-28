@@ -2,8 +2,8 @@ class Database {
   constructor(db, ObjectId, config) {
     this.db = db;
     this.ObjectId = ObjectId;
-    this.appCollection = db.collection(config.values.database.applications_collection);
-    this.logCollection = db.collection(config.values.database.access_log_collection);
+    this.appCollection = db.collection(config.database.applications_collection);
+    this.logCollection = db.collection(config.database.access_log_collection);
   }
 
   async logFileAccess(username, filename) {
@@ -24,7 +24,7 @@ class Database {
 
   async getUserApplications(username) {
     const query = { users: username };
-    const applications = await this.appCollection.find(query).toArray();
+    const applications = await this.appCollection.find(query, { users: 0 }).toArray();
     return applications;
   }
 

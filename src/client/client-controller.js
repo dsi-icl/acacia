@@ -43,41 +43,11 @@ module.exports = function (database, filebase) {
   };
 
   controller.pageError = function (err, req, res) {
-    res.status(500).render('500', { error: err });
+    res.status(500).render('500');
   };
 
   controller.ensureAuthenticated = function (req, res, next) {
     if (req.isAuthenticated()) { next(); } else { res.redirect('/'); }
-  };
-
-  controller.ensureAuthenticatedApi = function (req, res, next) {
-    if (req.isAuthenticated()) { next(); } else { res.status(401).send('Not authenticated'); }
-  };
-
-  controller.apiApplications = async function (req, res) {
-    try {
-      const username = req.user.uid;
-      const applications = await database.getUserApplications(username);
-      res.json(applications);
-    } catch (error) { res.send(error); }
-  };
-
-  controller.apiData = async function (req, res) {
-    try {
-      const username = req.user.uid;
-      const { applicationid, key } = req.query;
-      const cursor = await database.requestDataset(username, applicationid, key);
-      cursor.pipe(jsonstream.stringify()).pipe(res);
-    } catch (error) { res.send(error); }
-  };
-
-  controller.apiDownload = async function (req, res) {
-    try {
-      const username = req.user.uid;
-      const filename = req.query.file;
-      const file = await filebase.requestFile(username, filename);
-      file.pipe(res);
-    } catch (error) { res.send(error); }
   };
 
   return controller;
