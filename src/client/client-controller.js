@@ -20,7 +20,8 @@ module.exports = function (database, filebase) {
       const username = req.session.passport.user.uid;
       const filename = req.query.file;
       const file = await filebase.requestFile(username, filename);
-      await file.pipe(res);
+      if(file) file.pipe(res);
+      else throw Error('You can not access the specified file');
     } catch (error) { res.status(303).render('download_failed', { error }); }
   };
 

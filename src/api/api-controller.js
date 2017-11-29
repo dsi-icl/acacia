@@ -50,16 +50,18 @@ module.exports = function (config, database, filebase) {
   };
 
   controller.apiData = async function (req, res) {
-    const { username, applicationid, key } = req.query;
+    const { username } = req;
+    const { applicationid, key } = req.query;
     const cursor = await database.requestDataset(username, applicationid, key);
     cursor.pipe(jsonstream.stringify()).pipe(res);
   };
 
   controller.apiDownload = async function (req, res) {
     const { username } = req;
-    const filename = req.query.file;
+    const filename = req.query.name;
     const file = await filebase.requestFile(username, filename);
-    file.pipe(res);
+    if(file) file.pipe(res);
+    else res.status(403).json({ error: 'You can not access the specified file' });
   };
 
   return controller;

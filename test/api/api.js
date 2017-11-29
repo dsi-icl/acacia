@@ -10,17 +10,22 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; // Ignore unsigned ssl certifica
 chai.use(chaiHttp);
 
 describe('Test API', () => {
-  let token;
-  let token2;
-  let token3;
-  let server;
+  let usedToken, token, server, username, password, file, nofile;
 
   before(async () => {
     server = await new Server('ITMAT_CONFIG_TEST').start();
     if(!process.env.ITMAT_USERNAME_TEST)
       throw Error('The ITMAT_USERNAME_TEST environment variable must be set');
+    else username = process.env.ITMAT_USERNAME_TEST;
     if(!process.env.ITMAT_PASSWORD_TEST)
       throw Error('The ITMAT_PASSWORD_TEST environment variable must be set');
+    else password = process.env.ITMAT_PASSWORD_TEST;
+    if(!process.env.ITMAT_FILE_TEST)
+      throw Error('The ITMAT_FILE_TEST environment variable must be set');
+    else file = process.env.ITMAT_FILE_TEST;
+    if(!process.env.ITMAT_NO_FILE_TEST)
+    throw Error('The ITMAT_NO_FILE_TEST environment variable must be set');
+  else nofile = process.env.ITMAT_NO_FILE_TEST;
   });
 
   after(async () => {
@@ -59,7 +64,7 @@ describe('Test API', () => {
     it('Login with correct credentials', (done) => {
       chai.request(server)
         .post('/login')
-        .auth(process.env.ITMAT_USERNAME_TEST, process.env.ITMAT_PASSWORD_TEST)
+        .auth(username, password)
         .end((err, res) => {
           expect(res).to.have.status(200);
           token = res.text;
@@ -83,8 +88,8 @@ describe('Test API', () => {
         .set('Authorization', 'Bearer ' + token)
         .end((err, res) => {
           expect(res).to.have.status(200);
-          token = res.text;
-          token2 = res.headers['next-token'];
+          usedToken = token;
+          token = res.headers['next-token'];
           done();
         });
     });
@@ -92,10 +97,9 @@ describe('Test API', () => {
     it('Get applications with used token', (done) => {
       chai.request(server)
         .get('/applications')
-        .set('Authorization', 'Bearer ' + token)
+        .set('Authorization', 'Bearer ' + usedToken)
         .end((err, res) => {
           expect(res).to.have.status(401);
-          token = res.text;
           done();
         });
     });
@@ -103,10 +107,10 @@ describe('Test API', () => {
     it('Get applications again with next token', (done) => {
       chai.request(server)
         .get('/applications')
-        .set('Authorization', 'Bearer ' + token2)
+        .set('Authorization', 'Bearer ' + token)
         .end((err, res) => {
           expect(res).to.have.status(200);
-          token3 = res.headers['next-token'];
+          token = res.headers['next-token'];
           done();
         });
     });
@@ -124,7 +128,7 @@ describe('Test API', () => {
     it('Logout using correct token', (done) => {
       chai.request(server)
         .post('/logout')
-        .set('Authorization', 'Bearer ' + token3)
+        .set('Authorization', 'Bearer ' + token)
         .end((err, res) => {
           expect(res).to.have.status(200);
           done();
@@ -134,13 +138,62 @@ describe('Test API', () => {
     it('Get applications with invalidated token', (done) => {
       chai.request(server)
         .get('/applications')
-        .set('Authorization', 'Bearer ' + token3)
+        .set('Authorization', 'Bearer ' + token)
         .end((err, res) => {
           expect(res).to.have.status(401);
           done();
         });
     });
+  });
 
+  describe('Test file access', () => {
+    it('Login', (done) => {
+      chai.request(server)
+      .post('/login')
+      .auth(username, password)
+      .end((err, res) => {
+        token = res.text;
+        done();
+      })
+      });
 
+    it('Access non-existing file', (done) => {
+        chai.request(server)
+        .get('/file')
+        .query({name: 'thisfilenotexists'})
+        .set('Authorization', 'Bearer ' + token)
+        .end((err, res) => {
+          token = res.headers['next-token'];
+          expect(res).to.have.status(403);
+          done();
+        });
+    });
+
+    it('Access non-authorized file', (done) => {
+      chai.request(server)
+      .get('/file')
+      .query({name: nofile})
+      .set('Authorization', 'Bearer ' + token)
+      .end((err, res) => {
+        token = res.headers['next-token'];
+        expect(res).to.have.status(403);
+        done();
+      });
+    });
+
+    it('Access right file', (done) => {
+      chai.request(server)
+      .get('/file')
+      .query({name: file})
+      .set('Authorization', 'Bearer ' + token)
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+    });
+  });
+
+  describe('Test data access', () => {
+    // TODO
   });
 });
