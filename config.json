@@ -27,7 +27,9 @@
         "mongo_url": "mongodb://fvictor@mongo.dsi.ic.ac.uk:27017/itmat",
         "sessions_collection": "itmat_broker_sessions",
         "access_log_collection": "itmat_broker_log",
-        "applications_collection": "itmat_broker_applications"
+        "applications_collection": "itmat_broker_applications",
+        "token_collection": "itmat_token",
+        "token_duration_seconds": 60
     },
 
     "file_storage": {
