@@ -155,7 +155,7 @@ describe('Test API', () => {
         token = res.text;
         done();
       })
-      });
+    });
 
     it('Access non-existing file', (done) => {
         chai.request(server)
@@ -181,13 +181,35 @@ describe('Test API', () => {
       });
     });
 
-    it('Access right file', (done) => {
+    it('Access authorized file', (done) => {
       chai.request(server)
       .get('/file')
       .query({name: file})
       .set('Authorization', 'Bearer ' + token)
       .end((err, res) => {
+        token = res.headers['next-token'];
         expect(res).to.have.status(200);
+        done();
+      });
+    });
+
+    it('Login maintaining old token', (done) => {
+      chai.request(server)
+      .post('/login')
+      .auth(username, password)
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      })
+    });
+
+    it('Access authorized file with old unused token', (done) => {
+      chai.request(server)
+      .get('/file')
+      .query({name: file})
+      .set('Authorization', 'Bearer ' + token)
+      .end((err, res) => {
+        expect(res).to.have.status(401);
         done();
       });
     });
