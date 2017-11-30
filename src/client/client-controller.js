@@ -1,4 +1,5 @@
 const jsonstream = require('JSONStream');
+const { status, msg } = require('../shared/utils');
 
 module.exports = function (database, filebase) {
   const controller = {};
@@ -22,7 +23,7 @@ module.exports = function (database, filebase) {
       const file = await filebase.requestFile(username, filename);
       if(file) file.pipe(res);
       else throw Error('You can not access the specified file');
-    } catch (error) { res.status(303).render('download_failed', { error }); }
+    } catch (error) { res.status(status.FORBIDDEN).render('download_failed', { error }); }
   };
 
   controller.downloadData = async function (req, res) {
@@ -31,7 +32,7 @@ module.exports = function (database, filebase) {
       const { applicationid, key } = req.query;
       const cursor = await database.requestDataset(username, applicationid, key);
       cursor.pipe(jsonstream.stringify()).pipe(res);
-    } catch (error) { res.status(303).render('download_failed', { error }); }
+    } catch (error) { res.status(status.FORBIDDEN).render('download_failed', { error }); }
   };
 
   controller.logoutRoute = function (req, res) {
@@ -40,11 +41,11 @@ module.exports = function (database, filebase) {
   };
 
   controller.pageNotFoundRoute = function (req, res) {
-    res.status(404).render('404');
+    res.status(status.NOT_FOUND).render('404');
   };
 
   controller.pageError = function (err, req, res) {
-    res.status(500).render('500');
+    res.status(status.INTERNAL_SERVER_ERROR).render('500');
   };
 
   controller.ensureAuthenticated = function (req, res, next) {
