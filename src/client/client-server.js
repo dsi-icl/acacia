@@ -50,13 +50,13 @@ class ClientServer extends Server {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    app.get('/', controller.mainRoute);
+    app.get('/', controller.root);
     app.post('/login', passport.authenticate('ldap_auth', { successRedirect: '/', failureRedirect: '/', failureFlash: true }));
-    app.get('/logout', controller.logoutRoute);
-    app.get('/download', controller.ensureAuthenticated, controller.downloadRoute);
-    app.get('/data', controller.ensureAuthenticated, controller.downloadData);
-    app.use(controller.pageNotFoundRoute);
-    app.use(controller.pageError);
+    app.get('/logout', controller.checkAuthentication, controller.logout);
+    app.get('/file', controller.checkAuthentication, controller.file);
+    app.get('/data', controller.checkAuthentication, controller.data);
+    app.use(controller.notFound);
+    app.use(controller.internalServerError);
 
     return app;
   }

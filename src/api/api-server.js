@@ -35,13 +35,13 @@ class ApiServer extends Server {
     app.use(passport.session());
     app.use(cors());
 
-    app.post('/login', passport.authenticate('ldap_auth_with_basicauth', { session: false }), controller.apiLogin);
-    app.post('/logout', controller.checkAuthentication, controller.apiLogout);
-    app.get('/applications', controller.checkAuthentication, controller.tokenRegeneration, controller.apiApplications);
-    app.get('/file', controller.checkAuthentication, controller.tokenRegeneration, controller.apiDownload);
-    app.get('/data', controller.checkAuthentication, controller.tokenRegeneration, controller.apiData);
-    app.use(controller.pageNotFoundRoute);
-    app.use(controller.pageError);
+    app.post('/login', passport.authenticate('ldap_auth_with_basicauth', { session: false }), controller.login);
+    app.post('/logout', controller.checkToken, controller.logout);
+    app.get('/applications', controller.checkToken, controller.regenerateToken, controller.applications);
+    app.get('/file', controller.checkToken, controller.regenerateToken, controller.file);
+    app.get('/data', controller.checkToken, controller.regenerateToken, controller.data);
+    app.use(controller.notFound);
+    app.use(controller.internalServerError);
 
     return app;
   }
