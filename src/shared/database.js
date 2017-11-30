@@ -17,12 +17,13 @@ class Database {
   }
 
   async logFileAccess(username, filename) {
-    const logEntry = { user: username, file: filename };
+    const logEntry = { user: username, file: filename, date: new Date() };
     await this.logCollection.insert(logEntry);
   }
 
   async logDataAccess(username, application, key) {
-    const logEntry = { user: username, application: new this.ObjectId(application), key };
+    const logEntry = { user: username, application: new this.ObjectId(application),
+      key: key, date: new Date() };
     await this.logCollection.insert(logEntry);
   }
 
