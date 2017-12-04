@@ -14,7 +14,27 @@ describe('Test client', () => {
   let server;
   
   before(async () => {
-    server = await new Server('ITMAT_CONFIG_TEST').start();
+    let configFile, config;
+
+    if (!process.env.ITMAT_CONFIG_TEST)
+      throw Error('The ITMAT_CONFIG_TEST environment variable must be set to your config file');
+    else {
+      configFile = fs.readFileSync(process.env.ITMAT_CONFIG_TEST);
+      config = JSON.parse(configFile);
+      server = await new Server(config).start();
+    }
+    if(!process.env.ITMAT_USERNAME_TEST)
+      throw Error('The ITMAT_USERNAME_TEST environment variable must be set');
+    else username = process.env.ITMAT_USERNAME_TEST;
+    if(!process.env.ITMAT_PASSWORD_TEST)
+      throw Error('The ITMAT_PASSWORD_TEST environment variable must be set');
+    else password = process.env.ITMAT_PASSWORD_TEST;
+    if(!process.env.ITMAT_FILE_TEST)
+      throw Error('The ITMAT_FILE_TEST environment variable must be set');
+    else file = process.env.ITMAT_FILE_TEST;
+    if(!process.env.ITMAT_NO_FILE_TEST)
+      throw Error('The ITMAT_NO_FILE_TEST environment variable must be set');
+    else nofile = process.env.ITMAT_NO_FILE_TEST;
   });
 
   after(async () => {

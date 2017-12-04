@@ -4,18 +4,25 @@ const mongodb = require('mongodb');
 const os2 = require('os2');
 
 const Database = require('./database');
-const Filebase = require('./filebase');
+const Filebase = require('./file-storage');
 const Utils = require('./utils');
 
+/**
+ * Class representing an abstract server and managing logic shared by the client and the API.
+ */
 class Server {
-  constructor(environmentConfigVariable) {
-    if (!process.env[environmentConfigVariable]) {
-      throw Error(`The ${environmentConfigVariable} environment variable must be set to your config file`);
-    }
-    const configFile = fs.readFileSync(process.env[environmentConfigVariable]);
-    this.config = JSON.parse(configFile);
+  /**
+   * Abstract constructor of Server. Only should be called from a class extending Server.
+   * @param {Object} config - The object including the configuration of the server.
+   */
+  constructor(config) {
+    this.config = config;
   }
 
+  /**
+   * Starts the server.
+   * @async
+   */
   async start() {
     const serverConfig = this.getServerConfig();
     let db;

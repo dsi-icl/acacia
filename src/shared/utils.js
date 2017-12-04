@@ -9,6 +9,10 @@ const status = {
   INTERNAL_SERVER_ERROR: 500,
 };
 
+/**
+  * Shows a error message and stops the execution with an error.
+  * @param {string} message - The message describing the error.
+  */
 function fatalError(message) {
   console.error(`Fatal error: ${message}`);
   process.exit(1);

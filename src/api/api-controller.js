@@ -15,9 +15,7 @@ module.exports = function (config, database, filebase) {
   controller.checkToken = async function (req, res, next) {
     try {
       if (!req.token) throw Error('Token not found in the request');
-      const username = await database.consumeTokenAndGetUsername(req.token);
-      if (!username) throw Error('Invalid token');
-      req.username = username;
+      req.username = await database.consumeTokenAndGetUsername(req.token);
       next();
     } catch (error) {
       res.status(status.UNAUTHORIZED).send(msg[status.UNAUTHORIZED]);

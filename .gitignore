@@ -61,3 +61,6 @@ typings/
 # Certificate files
 server.crt
 server.key
+
+# Documentation
+doc/

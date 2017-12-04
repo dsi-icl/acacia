@@ -8,7 +8,8 @@
     "client": "node ./src/client/client-index.js",
     "api": "node ./src/api/api-index.js",
     "lint": "./node_modules/.bin/eslint src scripts",
-    "test": "./node_modules/.bin/mocha --exit test/client test/api"
+    "test": "./node_modules/.bin/mocha --exit test/client test/api",
+    "doc":  "./node_modules/.bin/jsdoc src/shared --destination doc"
   },
   "author": "",
   "license": "ISC",
@@ -39,6 +40,7 @@
     "eslint": "4.11.0",
     "eslint-config-airbnb-base": "12.1.0",
     "eslint-plugin-import": "2.8.0",
+    "jsdoc": "3.5.5",
     "mocha": "4.0.1"
   }
 }

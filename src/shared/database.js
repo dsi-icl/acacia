@@ -1,7 +1,16 @@
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid/v4');
 
+/**
+ * Class providing all database-related functionality.
+ */
 class Database {
+  /**
+   * Constructor of Database.
+   * @param {Object} db - The mongodb object.
+   * @param {Object} ObjectId - The ObjectId class from mongodb module.
+   * @param {Object} config - The object including the configuration of the server.
+   */
   constructor(db, ObjectId, config) {
     this.config = config;
     this.db = db;
@@ -16,11 +25,24 @@ class Database {
     );
   }
 
+  /**
+   * Add an entry to the file access log.
+   * @async
+   * @param {string} username - The name of the user.
+   * @param {string} filename - The name of the file.
+   */
   async logFileAccess(username, filename) {
     const logEntry = { user: username, file: filename, date: new Date() };
     await this.logCollection.insert(logEntry);
   }
 
+  /**
+   * Add an entry to the data access log.
+   * @async
+   * @param {string} username - The name of the user.
+   * @param {string} application - The indentifier of the application.
+   * @param {string} key - The key of the datase within the application.
+   */
   async logDataAccess(username, application, key) {
     const logEntry = {
       user: username,
@@ -31,35 +53,57 @@ class Database {
     await this.logCollection.insert(logEntry);
   }
 
+  /**
+   * Check if user can access a file.
+   * @async
+   * @param {string} username - The name of the user.
+   * @param {string} filename - The name of the file.
+   * @returns {boolean} True if the user has permissions to access the file, False otherwise.
+   */
   async canUserAccessFile(username, filename) {
     const query = { users: username, files: filename };
     const applicationCount = await this.appCollection.find(query).count();
     return applicationCount > 0;
   }
 
+  /**
+   * Get all user applications.
+   * @async
+   * @param {string} username - The name of the user.
+   * @returns {Array} The list of applications for the user.
+   */
   async getUserApplications(username) {
     const query = { users: username };
     const applications = await this.appCollection.find(query, { users: 0 }).toArray();
     return applications;
   }
 
-  async getCursorToData(username, applicationID, dataKey) {
+  /**
+   * Log access and return a cursor to a dataset.
+   * @async
+   * @param {string} username - The name of the user.
+   * @param {string} applicationID - The ID of the application.
+   * @param {string} key - The key of the data within the application.
+   * @returns {Cursor} The cursor to data.
+   */
+  async requestDataset(username, applicationID, key) {
+    await this.logDataAccess(username, applicationID, key);
     const application = await this.appCollection
       .findOne({ _id: new this.ObjectId(applicationID), users: username });
-    const dataCursor = await this.db.collection(application.data[dataKey].collection)
+    const dataCursor = await this.db.collection(application.data[key].collection)
       .find(
-        { eid: { $in: application.data[dataKey].documents } },
-        Object.assign({ _id: 0 }, ...application.data[dataKey].fields.map(i => ({ [i]: 1 }))),
+        { eid: { $in: application.data[key].documents } },
+        Object.assign({ _id: 0 }, ...application.data[key].fields.map(i => ({ [i]: 1 }))),
       );
     return dataCursor;
   }
 
-  async requestDataset(username, application, key) {
-    await this.logDataAccess(username, application, key);
-    const data = await this.getCursorToData(username, application, key);
-    return data;
-  }
-
+  /**
+   * Regenerate the currently active access token for a given user.
+   * @async
+   * @param {string} username - The name of the user.
+   * @returns {string} The generated token.
+   */
   async regenerateToken(username) {
     const tokenId = uuid();
     await this.tokenCollection
@@ -71,16 +115,25 @@ class Database {
     return token;
   }
 
+  /**
+   * Given a token, check if it is valid and active, then return the associated username.
+   * @async
+   * @param {string} token - The access token.
+   * @returns {string} The name of the user if the token is valid and active, null otherwise.
+   */
   async consumeTokenAndGetUsername(token) {
     const payload = jwt.verify(token, this.config.api.token_secret);
     const removeResult = await this.tokenCollection
       .deleteOne({ tokenId: payload.tokenId, username: payload.username });
-    if (removeResult.deletedCount !== 0) {
-      return payload.username;
-    }
-    return null;
+    if (removeResult.deletedCount === 0) throw Error('The token is valid but not active');
+    return payload.username;
   }
 
+  /**
+   * Invalidate the currently active access token for a given user.
+   * @async
+   * @param {string} username - The name of the user.
+   */
   async invalidateTokenByUsername(username) {
     this.tokenCollection.deleteOne({ username });
   }

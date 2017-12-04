@@ -1,5 +1,6 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
+const fs = require('fs');
 
 const Server = require('../../src/api/api-server');
 
@@ -13,7 +14,15 @@ describe('Test API', () => {
   let usedToken, token, server, username, password, file, nofile;
 
   before(async () => {
-    server = await new Server('ITMAT_CONFIG_TEST').start();
+    let configFile, config;
+
+    if (!process.env.ITMAT_CONFIG_TEST)
+      throw Error('The ITMAT_CONFIG_TEST environment variable must be set to your config file');
+    else {
+      configFile = fs.readFileSync(process.env.ITMAT_CONFIG_TEST);
+      config = JSON.parse(configFile);
+      server = await new Server(config).start();
+    }
     if(!process.env.ITMAT_USERNAME_TEST)
       throw Error('The ITMAT_USERNAME_TEST environment variable must be set');
     else username = process.env.ITMAT_USERNAME_TEST;
@@ -24,8 +33,8 @@ describe('Test API', () => {
       throw Error('The ITMAT_FILE_TEST environment variable must be set');
     else file = process.env.ITMAT_FILE_TEST;
     if(!process.env.ITMAT_NO_FILE_TEST)
-    throw Error('The ITMAT_NO_FILE_TEST environment variable must be set');
-  else nofile = process.env.ITMAT_NO_FILE_TEST;
+      throw Error('The ITMAT_NO_FILE_TEST environment variable must be set');
+    else nofile = process.env.ITMAT_NO_FILE_TEST;
   });
 
   after(async () => {
