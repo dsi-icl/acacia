@@ -1,9 +1,11 @@
 const fs = require('fs');
 const https = require('https');
 const mongodb = require('mongodb');
+const os2 = require('os2');
 
 const Database = require('./database');
 const Filebase = require('./filebase');
+const Utils = require('./utils');
 
 class Server {
   constructor(environmentConfigVariable) {
@@ -16,10 +18,20 @@ class Server {
 
   async start() {
     const serverConfig = this.getServerConfig();
-    const db = await mongodb.MongoClient.connect(this.config.database.mongo_url);
-
+    let db;
+    try {
+      db = await mongodb.MongoClient.connect(this.config.database.mongo_url);
+    } catch (error) { Utils.fatalError(error.message); }
     this.database = new Database(db, mongodb.ObjectId, this.config);
-    this.filebase = new Filebase(this.config, this.database);
+
+    let account;
+    try {
+      const store = new os2.Store(this.config.file_storage.swift_url);
+      account = new os2.Account(store, this.config.file_storage.user, this.config.file_storage.key);
+      await account.connect();
+    } catch (error) { Utils.fatalError(error.message); }
+
+    this.filebase = new Filebase(account, this.config, this.database);
 
     const app = await this.createApplication(this.config, this.database, this.filebase);
 

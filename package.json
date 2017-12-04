@@ -27,6 +27,7 @@
     "express-session": "1.15.6",
     "jsonwebtoken": "8.1.0",
     "mongodb": "2.2.33",
+    "os2": "0.0.11",
     "passport": "0.4.0",
     "passport-ldapauth": "2.0.0",
     "request": "2.83.0",

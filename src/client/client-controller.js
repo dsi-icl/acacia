@@ -1,5 +1,5 @@
 const jsonstream = require('JSONStream');
-const { status, msg } = require('../shared/utils');
+const { status } = require('../shared/utils');
 
 module.exports = function (database, filebase) {
   const controller = {};
@@ -38,7 +38,7 @@ module.exports = function (database, filebase) {
       const username = req.session.passport.user.uid;
       const filename = req.query.name;
       const file = await filebase.requestFile(username, filename);
-      if(file) file.pipe(res);
+      if (file) file.pipe(res);
       else throw Error('You can not access the specified file');
     } catch (error) { res.status(status.FORBIDDEN).render('download_failed', { error }); }
   };

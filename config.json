@@ -10,12 +10,12 @@
 
     "api": {
         "port": 8081,
-        "token_secret": "TOKEN SECRET!"
+        "token_secret": "token_secret"
     },
 
 
     "ldap_authentication": {
-        "url": "ldap://192.168.56.101:389",
+        "url": "ldap://ip:port",
         "bindDN": "cn=admin,dc=nodomain",
         "bindCredentials": "admin",
         "searchBase": "ou=unidad,cn=grupo,dc=nodomain",
@@ -23,8 +23,8 @@
     },
 
     "database": {
-        "secret": "MY SECRET!",
-        "mongo_url": "mongodb://fvictor@mongo.dsi.ic.ac.uk:27017/itmat",
+        "secret": "mongodb_secret",
+        "mongo_url": "mongodb_url",
         "sessions_collection": "itmat_broker_sessions",
         "access_log_collection": "itmat_broker_log",
         "applications_collection": "itmat_broker_applications",
@@ -33,7 +33,9 @@
     },
 
     "file_storage": {
-        "swift_url": "http://192.168.56.101:12345/v1/AUTH_admin/files/"
+        "swift_url": "http://ip:port",
+        "user": "admin:admin",
+        "key": "admin" 
     }
 
 }

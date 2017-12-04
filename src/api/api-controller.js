@@ -61,7 +61,7 @@ module.exports = function (config, database, filebase) {
     const { username } = req;
     const filename = req.query.name;
     const file = await filebase.requestFile(username, filename);
-    if(file) file.pipe(res);
+    if (file) file.pipe(res);
     else res.status(status.FORBIDDEN).json({ error: msg[status.FORBIDDEN] });
   };
 

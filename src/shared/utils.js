@@ -6,10 +6,16 @@ const status = {
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
   NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500
+  INTERNAL_SERVER_ERROR: 500,
 };
 
+function fatalError(message) {
+  console.error(`Fatal error: ${message}`);
+  process.exit(1);
+}
+
 module.exports = {
-    status: status,
-    msg: STATUS_CODES
+  status,
+  msg: STATUS_CODES,
+  fatalError,
 };

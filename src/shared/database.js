@@ -22,8 +22,12 @@ class Database {
   }
 
   async logDataAccess(username, application, key) {
-    const logEntry = { user: username, application: new this.ObjectId(application),
-      key: key, date: new Date() };
+    const logEntry = {
+      user: username,
+      application: new this.ObjectId(application),
+      key,
+      date: new Date(),
+    };
     await this.logCollection.insert(logEntry);
   }
 

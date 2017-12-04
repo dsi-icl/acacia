@@ -32,7 +32,6 @@ class ApiServer extends Server {
     app.use(bodyParser.json());
     app.use(bearerToken());
     app.use(passport.initialize());
-    app.use(passport.session());
     app.use(cors());
 
     app.post('/login', passport.authenticate('ldap_auth_with_basicauth', { session: false }), controller.login);
