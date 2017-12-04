@@ -1,7 +1,7 @@
 const jsonstream = require('JSONStream');
 const { status, msg } = require('../shared/utils');
 
-module.exports = function (config, database, filebase) {
+module.exports = function (config, database, fileStorage) {
   const controller = {};
 
   controller.notFound = function (req, res) {
@@ -14,12 +14,18 @@ module.exports = function (config, database, filebase) {
 
   controller.checkToken = async function (req, res, next) {
     try {
-      if (!req.token) throw Error('Token not found in the request');
-      req.username = await database.consumeTokenAndGetUsername(req.token);
-      next();
-    } catch (error) {
-      res.status(status.UNAUTHORIZED).send(msg[status.UNAUTHORIZED]);
-    }
+      if (!req.token) {
+        res.status(status.BAD_REQUEST).send('Token not found in the request');
+      } else {
+        const username = await database.consumeTokenAndGetUsername(req.token);
+        if (!username) {
+          res.status(status.UNAUTHORIZED).send('Token found but not valid or active');
+        } else {
+          req.username = username;
+          next();
+        }
+      }
+    } catch (error) { next(error); }
   };
 
   controller.regenerateToken = async function (req, res, next) {
@@ -27,40 +33,58 @@ module.exports = function (config, database, filebase) {
       const token = await database.regenerateToken(req.username);
       res.set('next-token', token);
       next();
-    } catch (error) {
-      res.status(status.BAD_REQUEST).send('Error regenerating token');
-    }
+    } catch (error) { next(error); }
   };
 
-  controller.login = async function (req, res) {
-    const token = await database.regenerateToken(req.user.uid);
-    res.status(status.OK).send(token);
+  controller.login = async function (req, res, next) {
+    try {
+      const token = await database.regenerateToken(req.user.uid);
+      res.status(status.OK).send(token);
+    } catch (error) { next(error); }
   };
 
-  controller.logout = async function (req, res) {
-    await database.invalidateTokenByUsername(req.username);
-    res.status(status.OK).send();
+  controller.logout = async function (req, res, next) {
+    try {
+      await database.invalidateTokenByUsername(req.username);
+      res.status(status.OK).send();
+    } catch (error) { next(error); }
   };
 
-  controller.applications = async function (req, res) {
-    const { username } = req;
-    const applications = await database.getUserApplications(username);
-    res.json(applications);
+  controller.applications = async function (req, res, next) {
+    try {
+      const { username } = req;
+      const applications = await database.getUserApplications(username);
+      res.json(applications);
+    } catch (error) { next(error); }
   };
 
-  controller.data = async function (req, res) {
-    const { username } = req;
-    const { applicationid, key } = req.query;
-    const cursor = await database.requestDataset(username, applicationid, key);
-    cursor.pipe(jsonstream.stringify()).pipe(res);
+  controller.data = async function (req, res, next) {
+    try {
+      const { username } = req;
+      const { applicationid, key } = req.query;
+      const cursor = await database.requestDataset(username, applicationid, key);
+      cursor.pipe(jsonstream.stringify()).pipe(res);
+    } catch (error) { next(error); }
   };
 
-  controller.file = async function (req, res) {
-    const { username } = req;
-    const filename = req.query.name;
-    const file = await filebase.requestFile(username, filename);
-    if (file) file.pipe(res);
-    else res.status(status.FORBIDDEN).send(msg[status.FORBIDDEN]);
+  controller.file = async function (req, res, next) {
+    try {
+      const { username } = req;
+      const filename = req.query.name;
+      const file = await fileStorage.requestFileContent(username, filename);
+      if (file !== null) file.pipe(res);
+      else res.status(status.FORBIDDEN).send(msg[status.FORBIDDEN]);
+    } catch (error) { next(error); }
+  };
+
+  controller.metadata = async function (req, res, next) {
+    try {
+      const { username } = req;
+      const filename = req.query.name;
+      const metadata = await fileStorage.requestPublicMetadata(username, filename);
+      if (metadata !== null) res.json(metadata);
+      else res.status(status.FORBIDDEN).send(msg[status.FORBIDDEN]);
+    } catch (error) { next(error); }
   };
 
   return controller;

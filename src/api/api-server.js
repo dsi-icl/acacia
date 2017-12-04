@@ -12,7 +12,7 @@ const Server = require('./../shared/server.js');
 
 class ApiServer extends Server {
   createApplication() {
-    const controller = createController(this.config, this.database, this.filebase);
+    const controller = createController(this.config, this.database, this.fileStorage);
     const app = express();
 
     passport.use('ldap_auth_with_basicauth', new LdapStrategy({
@@ -38,6 +38,7 @@ class ApiServer extends Server {
     app.post('/logout', controller.checkToken, controller.logout);
     app.get('/applications', controller.checkToken, controller.regenerateToken, controller.applications);
     app.get('/file', controller.checkToken, controller.regenerateToken, controller.file);
+    app.get('/metadata', controller.checkToken, controller.regenerateToken, controller.metadata);
     app.get('/data', controller.checkToken, controller.regenerateToken, controller.data);
     app.use(controller.notFound);
     app.use(controller.internalServerError);

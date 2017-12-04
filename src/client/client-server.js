@@ -13,7 +13,7 @@ const Server = require('./../shared/server.js');
 
 class ClientServer extends Server {
   createApplication() {
-    const controller = createController(this.database, this.filebase);
+    const controller = createController(this.database, this.fileStorage);
     const app = express();
 
     passport.use('ldap_auth', new LdapStrategy({

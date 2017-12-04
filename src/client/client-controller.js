@@ -1,7 +1,7 @@
 const jsonstream = require('JSONStream');
 const { status } = require('../shared/utils');
 
-module.exports = function (database, filebase) {
+module.exports = function (database, fileStorage) {
   const controller = {};
 
   controller.notFound = function (req, res) {
@@ -17,15 +17,15 @@ module.exports = function (database, filebase) {
   };
 
   controller.root = async function (req, res, next) {
-    if (req.isAuthenticated()) {
-      try {
+    try {
+      if (req.isAuthenticated()) {
         const username = req.session.passport.user.uid;
         const applications = await database.getUserApplications(username);
         res.render('details', { applications });
-      } catch (error) { next(error); }
-    } else {
-      res.render('login', req.flash());
-    }
+      } else {
+        res.render('login', req.flash());
+      }
+    } catch (error) { next(error); }
   };
 
   controller.logout = function (req, res) {
@@ -33,23 +33,24 @@ module.exports = function (database, filebase) {
     res.redirect('/');
   };
 
-  controller.file = async function (req, res) {
+  controller.file = async function (req, res, next) {
     try {
       const username = req.session.passport.user.uid;
       const filename = req.query.name;
-      const file = await filebase.requestFile(username, filename);
+      const file = await fileStorage.requestFileContent(username, filename);
       if (file) file.pipe(res);
-      else throw Error('You can not access the specified file');
-    } catch (error) { res.status(status.FORBIDDEN).render('download_failed', { error }); }
+      else res.status(status.FORBIDDEN).render('download_failed');
+    } catch (error) { next(error); }
   };
 
-  controller.data = async function (req, res) {
+  controller.data = async function (req, res, next) {
     try {
       const username = req.user.uid;
       const { applicationid, key } = req.query;
       const cursor = await database.requestDataset(username, applicationid, key);
-      cursor.pipe(jsonstream.stringify()).pipe(res);
-    } catch (error) { res.status(status.FORBIDDEN).render('download_failed', { error }); }
+      if (cursor) cursor.pipe(jsonstream.stringify()).pipe(res);
+      else res.status(status.FORBIDDEN).render('download_failed');
+    } catch (error) { next(error); }
   };
 
   return controller;

@@ -90,6 +90,7 @@ class Database {
     await this.logDataAccess(username, applicationID, key);
     const application = await this.appCollection
       .findOne({ _id: new this.ObjectId(applicationID), users: username });
+    if (!application || !application.data[key]) return null;
     const dataCursor = await this.db.collection(application.data[key].collection)
       .find(
         { eid: { $in: application.data[key].documents } },
@@ -122,10 +123,15 @@ class Database {
    * @returns {string} The name of the user if the token is valid and active, null otherwise.
    */
   async consumeTokenAndGetUsername(token) {
-    const payload = jwt.verify(token, this.config.api.token_secret);
+    let payload;
+    try {
+      payload = jwt.verify(token, this.config.api.token_secret);
+    } catch (error) {
+      return null;
+    }
     const removeResult = await this.tokenCollection
       .deleteOne({ tokenId: payload.tokenId, username: payload.username });
-    if (removeResult.deletedCount === 0) throw Error('The token is valid but not active');
+    if (removeResult.deletedCount === 0) return null;
     return payload.username;
   }
 

@@ -4,7 +4,7 @@ const mongodb = require('mongodb');
 const os2 = require('os2');
 
 const Database = require('./database');
-const Filebase = require('./file-storage');
+const FileStorage = require('./file-storage');
 const Utils = require('./utils');
 
 /**
@@ -38,9 +38,9 @@ class Server {
       await account.connect();
     } catch (error) { Utils.fatalError(error.message); }
 
-    this.filebase = new Filebase(account, this.config, this.database);
+    this.fileStorage = new FileStorage(account, this.config, this.database);
 
-    const app = await this.createApplication(this.config, this.database, this.filebase);
+    const app = await this.createApplication(this.config, this.database, this.fileStorage);
 
     const serverOptions = {
       key: fs.readFileSync(this.config.server.key_file),
