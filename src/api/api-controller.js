@@ -8,7 +8,8 @@ module.exports = function (config, database, fileStorage) {
     res.status(status.NOT_FOUND).send(msg[status.NOT_FOUND]);
   };
 
-  controller.internalServerError = function (err, req, res) {
+  controller.internalServerError = function (err, req, res, next) {
+    database.logInternalServerError(err, req);
     res.status(status.INTERNAL_SERVER_ERROR).send(msg[status.INTERNAL_SERVER_ERROR]);
   };
 

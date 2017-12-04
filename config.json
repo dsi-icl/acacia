@@ -28,6 +28,7 @@
         "access_log_collection": "itmat_broker_log",
         "applications_collection": "itmat_broker_applications",
         "token_collection": "itmat_token",
+        "errors_collection": "itmat_errors",
         "token_duration_seconds": 60
     },
 

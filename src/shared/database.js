@@ -1,3 +1,4 @@
+const util = require('util');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid/v4');
 
@@ -18,6 +19,7 @@ class Database {
     this.appCollection = db.collection(config.database.applications_collection);
     this.logCollection = db.collection(config.database.access_log_collection);
     this.tokenCollection = db.collection(config.database.token_collection);
+    this.errorCollection = db.collection(config.database.errors_collection);
 
     this.tokenCollection.createIndex(
       { tokenId: 1, username: 1 },
@@ -51,6 +53,22 @@ class Database {
       date: new Date(),
     };
     await this.logCollection.insert(logEntry);
+  }
+
+  /**
+   * Add an entry to the internal server error log.
+   * @async
+   * @param {Object} error - The object thrown by the error.
+   * @param {Object} request - The request object.
+   */
+  async logInternalServerError(error, request) {
+    const logEntry = { error: error.toString(),
+      url: request.originalUrl,
+      params: request.params,
+      query: request.query,
+      body: request.body
+    };
+    await this.errorCollection.insert(logEntry);
   }
 
   /**
