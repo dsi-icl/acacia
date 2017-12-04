@@ -54,5 +54,15 @@ module.exports = function (database, fileStorage) {
     } catch (error) { next(error); }
   };
 
+  controller.metadata = async function (req, res, next) {
+    try {
+      const username = req.user.uid;
+      const filename = req.query.name;
+      const metadata = await fileStorage.requestPublicMetadata(username, filename);
+      if (metadata !== null) res.json(metadata);
+      else res.status(status.FORBIDDEN).render('download_failed');
+    } catch (error) { next(error); }
+  };
+
   return controller;
 };

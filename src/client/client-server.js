@@ -54,6 +54,7 @@ class ClientServer extends Server {
     app.post('/login', passport.authenticate('ldap_auth', { successRedirect: '/', failureRedirect: '/', failureFlash: true }));
     app.get('/logout', controller.checkAuthentication, controller.logout);
     app.get('/file', controller.checkAuthentication, controller.file);
+    app.get('/metadata', controller.checkAuthentication, controller.metadata);
     app.get('/data', controller.checkAuthentication, controller.data);
     app.use(controller.notFound);
     app.use(controller.internalServerError);
