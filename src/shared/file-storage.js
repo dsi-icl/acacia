@@ -1,11 +1,32 @@
 const os2 = require('os2');
 
+const Utils = require('./utils');
+
 /**
  * Class providing all file-storage-related functionality.
  */
 class FileStorage {
   /**
+   * Create a FileStorage instance.
+   * @static
+   * @async
+   * @param {Object} config - The object including the configuration of the server.
+   * @param {Object} database - The currently active database.
+   * @returns {Database} The FileStorage instances.
+   */
+  static async create(config, database){
+    let account;
+    try {
+      const store = new os2.Store(config.file_storage.swift_url);
+      account = new os2.Account(store, config.file_storage.user, config.file_storage.key);
+      await account.connect();
+    } catch (error) { Utils.fatalError(error.message); }
+    return new FileStorage(account, config, database);
+  }
+
+  /**
    * Constructor of FileStorage.
+   * @private
    * @param {Object} account - The account associated to the object storage.
    * @param {Object} config - The object including the configuration of the server.
    * @param {Object} database - The currently active database.

@@ -1,21 +1,40 @@
+const mongodb = require('mongodb');
 const util = require('util');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid/v4');
+
+const Utils = require('./utils');
+
+const ObjectId = mongodb.ObjectId;
 
 /**
  * Class providing all database-related functionality.
  */
 class Database {
   /**
+   * Create a Database instance.
+   * @static
+   * @async
+   * @param {Object} config - The object including the configuration of the server.
+   * @returns {Database} The Database instances.
+   */
+  static async create(config){
+    let db;
+    try {
+      db = await mongodb.MongoClient.connect(config.database.mongo_url);
+    } catch (error) { Utils.fatalError(error.message); }
+    return new Database(db, config);
+  }
+
+  /**
    * Constructor of Database.
+   * @private
    * @param {Object} db - The mongodb object.
-   * @param {Object} ObjectId - The ObjectId class from mongodb module.
    * @param {Object} config - The object including the configuration of the server.
    */
-  constructor(db, ObjectId, config) {
+  constructor(db, config) {
     this.config = config;
     this.db = db;
-    this.ObjectId = ObjectId;
     this.appCollection = db.collection(config.database.applications_collection);
     this.logCollection = db.collection(config.database.access_log_collection);
     this.tokenCollection = db.collection(config.database.token_collection);
@@ -48,7 +67,7 @@ class Database {
   async logDataAccess(username, application, key) {
     const logEntry = {
       user: username,
-      application: new this.ObjectId(application),
+      application: new ObjectId(application),
       key,
       date: new Date(),
     };
@@ -107,7 +126,7 @@ class Database {
   async requestDataset(username, applicationID, key) {
     await this.logDataAccess(username, applicationID, key);
     const application = await this.appCollection
-      .findOne({ _id: new this.ObjectId(applicationID), users: username });
+      .findOne({ _id: new ObjectId(applicationID), users: username });
     if (!application || !application.data[key]) return null;
     const dataCursor = await this.db.collection(application.data[key].collection)
       .find(
