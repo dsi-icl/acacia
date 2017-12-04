@@ -5,11 +5,11 @@ module.exports = function (config, database, filebase) {
   const controller = {};
 
   controller.notFound = function (req, res) {
-    res.status(status.NOT_FOUND).json({ error: msg[status.NOT_FOUND] });
+    res.status(status.NOT_FOUND).send(msg[status.NOT_FOUND]);
   };
 
   controller.internalServerError = function (err, req, res) {
-    res.status(status.INTERNAL_SERVER_ERROR).json({ error: msg[status.INTERNAL_SERVER_ERROR] });
+    res.status(status.INTERNAL_SERVER_ERROR).send(msg[status.INTERNAL_SERVER_ERROR]);
   };
 
   controller.checkToken = async function (req, res, next) {
@@ -20,7 +20,7 @@ module.exports = function (config, database, filebase) {
       req.username = username;
       next();
     } catch (error) {
-      res.status(status.UNAUTHORIZED).json({ error: msg[status.UNAUTHORIZED] });
+      res.status(status.UNAUTHORIZED).send(msg[status.UNAUTHORIZED]);
     }
   };
 
@@ -30,7 +30,7 @@ module.exports = function (config, database, filebase) {
       res.set('next-token', token);
       next();
     } catch (error) {
-      res.status(status.BAD_REQUEST).json({ error: 'Error regenerating token' });
+      res.status(status.BAD_REQUEST).send('Error regenerating token');
     }
   };
 
@@ -41,7 +41,7 @@ module.exports = function (config, database, filebase) {
 
   controller.logout = async function (req, res) {
     await database.invalidateTokenByUsername(req.username);
-    res.status(status.OK).send({});
+    res.status(status.OK).send();
   };
 
   controller.applications = async function (req, res) {
@@ -62,7 +62,7 @@ module.exports = function (config, database, filebase) {
     const filename = req.query.name;
     const file = await filebase.requestFile(username, filename);
     if (file) file.pipe(res);
-    else res.status(status.FORBIDDEN).json({ error: msg[status.FORBIDDEN] });
+    else res.status(status.FORBIDDEN).send(msg[status.FORBIDDEN]);
   };
 
   return controller;
