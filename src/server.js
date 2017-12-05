@@ -8,8 +8,8 @@ const LdapStrategy = require('passport-ldapauth');
 const flash = require('connect-flash');
 const connectMongo = require('connect-mongo');
 
-const createController = require('./client-controller');
-const Server = require('./../shared/server.js');
+const createController = require('./controller');
+const Server = require('itmat-broker-core').Server;
 
 class ClientServer extends Server {
   createApplication() {

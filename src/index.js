@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const ApiServer = require('./api-server');
+const ClientServer = require('./server');
 
 const environmentConfigVariable = 'ITMAT_CONFIG';
 if (!process.env[environmentConfigVariable]) {
@@ -10,5 +10,5 @@ if (!process.env[environmentConfigVariable]) {
 const configFile = fs.readFileSync(process.env[environmentConfigVariable]);
 const config = JSON.parse(configFile);
 
-const server = new ApiServer(config);
+const server = new ClientServer(config);
 server.start();

@@ -1,5 +1,5 @@
 const jsonstream = require('JSONStream');
-const { status } = require('../shared/utils');
+const { status } = require('itmat-broker-core').Utils;
 
 module.exports = function (database, fileStorage) {
   const controller = {};
