@@ -1,0 +1,43 @@
+{
+  "test": {
+    "username": "testusername",
+    "password": "testpassword",
+    "accessible_file": "a_file_the_user_can_access.ext",
+    "forbidden_file": "a_file_the_user_can_not_access.ext"
+  },
+  "server": {
+    "key_file": "./server.key",
+      "certificate_file": "./server.crt"
+  },
+  "client": {
+    "port": 8080
+  },
+  "api": {
+    "port": 8081,
+    "token_secret": "token_secret"
+  },
+  "ldap_authentication": {
+    "url": "ldap://ip:port",
+    "bindDN": "cn=admin,dc=nodomain",
+    "bindCredentials": "admin",
+    "searchBase": "ou=unidad,cn=grupo,dc=nodomain",
+    "searchFilter": "(uid={{username}})"
+  },
+  "database": {
+    "secret": "mongodb_secret",
+    "mongo_url": "mongodb_url",
+    "sessions_collection": "itmat_broker_sessions",
+    "data_log_collection": "itmat_broker_data_log",
+    "file_log_collection": "itmat_broker_file_log",
+    "applications_collection": "itmat_broker_applications",
+    "token_collection": "itmat_token",
+    "errors_collection": "itmat_errors",
+    "token_duration_seconds": 3600
+  },
+  "file_storage": {
+    "swift_url": "http://ip:port",
+    "user": "admin:admin",
+    "key": "admin",
+    "container": "files"
+  }
+}

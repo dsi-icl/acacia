@@ -1,0 +1,197 @@
+---
+  swagger: 2.0
+  info: 
+    title: ITMAT Broker
+    description: RESTful API for the itmat-broker project.
+  securityDefinitions:
+    basicAuth:
+      type: basic
+    bearerAuth:
+      description:
+        'The token must be provided as \"Bearer *token*\", where *token* is a valid and currently active token. Example: Bearer eyJhbGc...BIdfCds'
+      type: apiKey
+      name: Authorization
+      in: header
+  produces:
+    - text/plain
+  paths:
+    /login:
+      get:
+        description: Returns a valid and active token for performing queries.
+        security:
+          - basicAuth: []
+        responses:
+          200:
+            description:  Will send a valid and active token if authentication is successful.
+            content:
+              text/plain:
+                schema:
+                  type: string
+          400:
+            description:  No credentials provided.
+          401:
+            description:  Wrong credentials provided.
+    /logout:
+      get: 
+        description: Deactivates current active token.
+        security:
+          - bearerAuth: []
+        responses:
+          200:
+            description:  Will deactivate current token.
+          400:
+            description: Token not found in the request.
+          401:
+            description: Token found in the request but not valid or active.
+    /applications:
+      get:
+        description: Returns all the applications associated with the user.
+        security:
+          - bearerAuth: []
+        produces:
+          - application/json
+        responses:
+          200:
+            description: Will return the applications associated with the user.
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/Application'
+          400:
+            description: Token not found in the request.
+          401:
+            description: Token found in the request but not valid or active.
+    /data/{application}/{key}:
+      get:
+        description: Returns the data associated to an application if the user has permission to access it.
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: application
+            schema:
+              type: string
+            required: true
+            description: The identifier of the associated application.
+          - in: path
+            name: key
+            schema:
+              type: string
+            required: true
+            description: The key of the data within the associated application.
+        responses:
+          200:
+            description:  Will provide the requested data.
+            content:
+              application/application-json:
+                schema:
+                  $ref: '#/definitions/Data'
+          400:
+            description: Token not found in the request.
+          401:
+            description: Token found in the request but not valid or active.
+          403:
+            description: The dataset can not be accessed or does not exist.
+    /file/{filename}:
+      get: 
+        description: Returns the content of a file if the user has permission to access it.
+        security:
+          - bearerAuth: []
+        produces: 
+          - application/octet-stream
+        parameters:
+          - in: path
+            name: filename
+            schema:
+              type: string
+            required: true
+            description: The name of the requested file.
+        responses:
+          200:
+            description:  Will provide the requested file content.
+            content:
+              application/octet-stream:
+                schema:
+                  type: file
+          400:
+            description: No token provided. 
+          401:
+            description: The provided token is invalid or inactive.
+          403:
+            description: The file can not be accessed or does not exist.
+    /metadata/{filename}:
+      get: 
+        description: Returns the metadata of a file if the user has permission to access it.
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: filename
+            schema:
+              type: string
+            required: true
+            description: The name of the requested file.
+        responses:
+          200:
+            description:  Will provide the requested file metadata.
+            content:
+              application/application-json:
+                schema:
+                  $ref: '#/definitions/Metadata'
+          400:
+            description: No token provided. 
+          401:
+            description: The provided token is invalid or inactive.
+          403:
+            description: The file can not be accessed or does not exist.
+  definitions: 
+    Application: 
+      type: object
+      description: The description of an application.
+      required:
+        - id
+        - name
+        - files
+      properties:
+        id: 
+          type: string
+          description: The identifier of the application.
+        name: 
+          type: string
+          description: The name of the application.
+        files:
+          type: array
+          description: The files this application grants access to.
+          items:
+            type: string
+        data:
+          type: object
+          description: The data this application grants access to.
+          properties:
+            data_key:
+              type: object
+              description: A dataset included in an application
+              $ref: '#/definitions/DatasetDescription'
+    DatasetDescription:
+      type: object
+      description: The description of a dataset within an application.
+      required:
+        - fields
+        - documents
+      properties:
+        fields:
+          type: array
+          description: The fields this application grants access to.
+          items:
+            type: string
+        documents:
+          type: array
+          description: The subjects this application grants access to.
+          items:
+            type: string
+    Data:
+      type: object
+      description: Content of a dataset.
+    Metadata: 
+      type: object
+      description: Public metadata of a specific file.
