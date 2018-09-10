@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "lint": "eslint --ext .jsx --ext .js ./",
-    "lint:fix": "eslint --ext .jsx --ext .js --fix ./"
+    "lint:fix": "eslint --ext .jsx --ext .js --fix ./",
+    "postinstall": "lerna bootstrap"
   },
   "devDependencies": {
     "lerna": "^3.3.0",

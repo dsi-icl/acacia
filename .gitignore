@@ -65,3 +65,5 @@ server.key
 doc/
 
 config.1.json
+
+.DS_Store
