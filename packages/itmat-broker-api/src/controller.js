@@ -40,6 +40,7 @@ module.exports = function (config, database, fileStorage) {
     controller.login = async function (req, res, next) {
         try {
             const token = await database.regenerateToken(req.user.cn);
+            // eslint-disable-next-line no-console
             console.log(req.user);
             res.status(status.OK).send(token);
         } catch (error) { next(error); }

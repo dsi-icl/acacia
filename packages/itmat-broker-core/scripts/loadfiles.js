@@ -33,4 +33,5 @@ try{
         }
 
     })();
+    // eslint-disable-next-line no-console
 } catch(error){ console.error(error.toString()); }

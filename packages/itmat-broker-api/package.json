@@ -21,13 +21,21 @@
     "cors": "2.8.4",
     "express": "4.16.2",
     "express-bearer-token": "2.1.0",
-    "itmat-broker-core": "^0.1.0",
+    "itmat-broker-core": "https://github.com/dsi-icl/itmat-broker-core",
     "passport": "0.4.0",
     "passport-ldapauth": "2.0.0",
     "swagger-ui-express": "2.0.11",
     "yamljs": "0.3.0"
   },
   "devDependencies": {
+    "babel-eslint": "^9.0.0",
+    "chai": "4.1.2",
+    "chai-http": "3.0.0",
+    "eslint": "4.11.0",
+    "eslint-config-airbnb-base": "12.1.0",
+    "eslint-plugin-import": "2.8.0",
+    "jsdoc": "3.5.5",
+    "mocha": "4.0.1",
     "mongodb": "2.2.33"
   }
 }

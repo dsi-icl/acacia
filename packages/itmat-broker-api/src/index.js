@@ -11,5 +11,6 @@ const configFile = fs.readFileSync(process.env[environmentConfigVariable]);
 const config = JSON.parse(configFile);
 
 const server = new ApiServer(config);
+// eslint-disable-next-line no-console
 console.log('server starting here', server.start);
 server.start();
