@@ -21,7 +21,7 @@
     "cors": "2.8.4",
     "express": "4.16.2",
     "express-bearer-token": "2.1.0",
-    "itmat-broker-core": "https://github.com/dsi-icl/itmat-broker-core",
+    "itmat-broker-core": "^0.1.0",
     "passport": "0.4.0",
     "passport-ldapauth": "2.0.0",
     "swagger-ui-express": "2.0.11",
