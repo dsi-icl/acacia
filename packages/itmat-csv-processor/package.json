@@ -1,0 +1,14 @@
+{
+    "name": "itmat-csv-processor",
+    "version": "1.0.0",
+    "description": "Process csv data file and column mapping files and upload to database",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "lint": "eslint --ext .jsx --ext .js ./",
+      "lint:fix": "eslint --ext .jsx --ext .js --fix ./"
+    },
+    "author": "Chon Sou",
+    "license": "ISC"
+  }
+  
