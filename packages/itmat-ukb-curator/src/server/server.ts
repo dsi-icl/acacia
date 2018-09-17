@@ -1,6 +1,6 @@
 import express from 'express';
-import * as UKBFieldsController from './controllers/UKBFieldsController';
 import { Server, Database, databaseConfig, CustomError } from 'itmat-utils';
+import { Router } from './router';
 
 
 interface UKBCuratorServerConfig {
@@ -29,12 +29,7 @@ export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
             process.exit(1);
         }
 
-        const app = express();
-
-        app.route('/field')
-            .get(UKBFieldsController.getFieldInfo); //get field info // req must have a 'fieldId' query string that is a number
-
-        return app;
+        return new Router() as express.Application;
     }
 
     public async start(): Promise<void> {
