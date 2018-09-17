@@ -7,7 +7,8 @@
     "publish": {
       "ignoreChanges": [
         "READEME.md",
-        ".eslintrc.json"
+        ".eslintrc.js",
+        ".eslintignore"
       ]
     }
   }

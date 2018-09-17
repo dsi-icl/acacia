@@ -37,7 +37,7 @@ module.exports = {
         'no-trailing-spaces': 'error',
         'no-irregular-whitespace': 'error',
         'no-multiple-empty-lines': ['error', { "max": 2, "maxBOF": 0 }],
-        'no-unused-vars': ['warn', { 'vars': 'all', 'args': 'after-used', 'argsIgnorePattern': '^__unused__' }],
+        'no-unused-vars': ['error', { 'vars': 'all', 'args': 'after-used', 'argsIgnorePattern': '^__unused__' }],
         'block-spacing': ['error', 'always'],
         'object-curly-spacing': ['error', 'always'],
         'prefer-template': 'warn',
