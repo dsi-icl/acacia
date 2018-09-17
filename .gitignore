@@ -64,10 +64,10 @@ server.key
 # Documentation
 doc/
 
-config.1.json
+config.json
 
 .DS_Store
 
 notes/
 
-tsccompiled/
+dist/

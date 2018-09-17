@@ -1,0 +1,11 @@
+{
+    "database": {
+        "mongo_url": "mongodb://",
+        "database": "ukbiobank",
+        "UKB_coding_collection": "clinical_coding",
+        "UKB_field_dictionary_collection": "clinical_fieldDictionary" 
+    },
+    "server": {
+        "port": 3000
+    }
+}

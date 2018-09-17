@@ -1,25 +1,21 @@
 {
-  "name": "itmat-ukb-curator",
+  "name": "itmat-utils",
   "version": "1.0.0",
-  "description": "Curator service for UKB clinical data",
-  "main": "index.js",
+  "description": "",
+  "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
     "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
   },
-  "author": "Chon Sou",
+  "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.16.3",
-    "itmat-utils": "^1.0.0",
-    "mongo": "^0.1.0",
-    "papaparse": "^4.6.0"
+    "mongodb": "^3.1.6"
   },
   "devDependencies": {
     "@types/express": "^4.16.0",
     "@types/mongodb": "^3.1.7",
-    "eslint-plugin-typescript": "^0.12.0",
-    "typescript-eslint-parser": "^18.0.0"
+    "express": "^4.16.3"
   }
 }
