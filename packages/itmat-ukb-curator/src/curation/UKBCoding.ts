@@ -4,24 +4,18 @@ import { DataEntry } from './UKBData';
 
 interface CodingEntry {
     Coding: number,
-    Value: number,
+    Value: string,
     Meaning: string
 }
 
 export class UKBCoding {
 
-    public static async getCodeMeaning(Coding: number, Value: number): Promise<string> {
-        return await Database.UKB_coding_collection.findOne({ Coding, Value });
-    }
-
-    public static async decodeEntry(dataEntry: DataEntry): Promise<DataEntry> {
-        const { fieldId } = dataEntry;
-        const field: FieldEntry = await UKBFields.getFieldInfo(fieldId);
-        if (!field.Coding) {
-            return dataEntry;
+    public static async getCodeMeaning(Coding: number, Value: string): Promise<string|null> {
+        const result: CodingEntry = await Database.UKB_coding_collection.findOne({ Coding, Value });
+        if (result) {
+            return result.Meaning;
         } else {
-            const meaning: string = await this.getCodeMeaning(field.Coding, parseInt(dataEntry.value as string));
-            return { ...dataEntry, value: meaning };
+            return null;
         }
     }
 
