@@ -4,7 +4,8 @@ export interface databaseConfig {
     mongo_url: string,
     database: string,
     UKB_coding_collection: string,
-    UKB_field_dictionary_collection: string
+    UKB_field_dictionary_collection: string,
+    UKB_data_collection: string
 }
 
 /**
@@ -17,6 +18,7 @@ export class Database {
     private static config: databaseConfig;
     public static UKB_coding_collection: mongodb.Collection;
     public static UKB_field_dictionary_collection: mongodb.Collection;
+    public static UKB_data_collection: mongodb.Collection;
 
     public static async connect(config: databaseConfig): Promise<void> {
         if (!this.db) {
@@ -26,6 +28,7 @@ export class Database {
             this.config = config;
             this.UKB_coding_collection = this.db.collection(config.UKB_coding_collection);
             this.UKB_field_dictionary_collection = this.db.collection(config.UKB_field_dictionary_collection);
+            this.UKB_data_collection = this.db.collection(config.UKB_data_collection);
         }
     }
 
