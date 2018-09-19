@@ -7,6 +7,7 @@ export abstract class Server<T> {
         this.config = config;
     }
 
-    abstract initialise(): Promise<express.Application>;
+    protected abstract initialise(): Promise<express.Application>;
+    public abstract start(): Promise<void>; //start() calls initialise();
 }
 

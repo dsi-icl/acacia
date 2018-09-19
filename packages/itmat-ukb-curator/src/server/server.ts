@@ -18,7 +18,7 @@ export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
         this.port = config.server.port;
     }
 
-    public async initialise(): Promise<express.Application> {
+    protected async initialise(): Promise<express.Application> {
         try {  //try to establish a connection to database first; if failed, exit the program
             await Database.connect(this.config.database);
         } catch (e) {

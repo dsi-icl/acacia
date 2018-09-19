@@ -15,7 +15,7 @@ export class UKBCoding {
     }
 
     public static async decodeEntry(dataEntry: DataEntry): Promise<DataEntry> {
-        const fieldId: number = parseInt(dataEntry.field.slice(0, dataEntry.field.indexOf('-')));
+        const { fieldId } = dataEntry;
         const field: FieldEntry = await UKBFields.getFieldInfo(fieldId);
         if (!field.Coding) {
             return dataEntry;
@@ -23,10 +23,6 @@ export class UKBCoding {
             const meaning: string = await this.getCodeMeaning(field.Coding, parseInt(dataEntry.value as string));
             return { ...dataEntry, value: meaning };
         }
-    }
-
-    public static async addEntry(CodingEntry: CodingEntry, update?: boolean) {
-
     }
 
 }
