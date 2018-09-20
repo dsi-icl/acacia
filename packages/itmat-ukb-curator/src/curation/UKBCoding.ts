@@ -1,11 +1,17 @@
 import { Database } from 'itmat-utils';
+import mongo from 'mongodb';
 import { FieldEntry, UKBFields } from './UKBFields';
 import { DataEntry } from './UKBData';
+import { MongoCallback } from 'itmat-utils/node_modules/@types/mongodb';
 
-interface CodingEntry {
+export interface CodingEntry {
     Coding: number,
     Value: string,
     Meaning: string
+}
+
+export interface CodingMap {
+    [property: string]: string
 }
 
 export class UKBCoding {
@@ -17,6 +23,15 @@ export class UKBCoding {
         } else {
             return null;
         }
+    }
+
+    public static async getCodeDictionary(Coding: number): Promise<CodingMap> {
+        const map: CodingMap = {};
+        const results: mongo.Cursor = Database.UKB_coding_collection.find({ Coding });
+        await results.forEach((doc: CodingEntry) => {
+            map[doc.Value] = doc.Meaning;
+        });
+        return map;
     }
 
 }
