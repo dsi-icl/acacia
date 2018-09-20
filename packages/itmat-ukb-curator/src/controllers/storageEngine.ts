@@ -39,6 +39,8 @@ const UKBiobankValueTypes = {   // 'date' are provided in yyyy-mm-dd;
     Time: 'date'
 }
 
+/* batch insert, saving codings to memory */ 
+
 class _CSVStorageEngine implements multer.StorageEngine {
     public _handleFile(req: express.Request, file: any, cb: (error?: any, info?: object) => void): void {
         const incomingStream = file.stream;
