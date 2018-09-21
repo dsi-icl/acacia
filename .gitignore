@@ -71,3 +71,5 @@ config.json
 notes/
 
 dist/
+
+launch.json

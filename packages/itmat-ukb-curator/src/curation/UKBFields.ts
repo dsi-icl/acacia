@@ -20,6 +20,10 @@ export interface FieldEntry {
     Link?: string
 }
 
+export interface FieldMap {
+    [fieldID: number]: FieldEntry
+}
+
 export class UKBFields {
     public static async getFieldInfo(FieldID: number): Promise<FieldEntry> {
         const result = await Database.UKB_field_dictionary_collection.findOne({ FieldID }, { projection: { _id: 0 } });
