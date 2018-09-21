@@ -11,7 +11,9 @@ export interface CodingEntry {
 }
 
 export interface CodingMap {
-    [property: string]: string
+    [property: number]: {
+        [property: string]: string
+    }
 }
 
 export class UKBCoding {
@@ -26,7 +28,7 @@ export class UKBCoding {
     }
 
     public static async getCodeDictionary(Coding: number): Promise<CodingMap> {
-        const map: CodingMap = {};
+        const map: any = {};
         const results: mongo.Cursor = Database.UKB_coding_collection.find({ Coding });
         await results.forEach((doc: CodingEntry) => {
             map[doc.Value] = doc.Meaning;
