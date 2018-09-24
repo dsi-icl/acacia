@@ -1,0 +1,23 @@
+{
+  "name": "itmat-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "itmat-utils": "^1.0.0",
+    "mongo": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.0",
+    "@types/mongodb": "^3.1.7",
+    "eslint-plugin-typescript": "^0.12.0",
+    "typescript-eslint-parser": "^18.0.0"
+  }
+}
