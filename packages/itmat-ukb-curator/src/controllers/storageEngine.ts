@@ -139,15 +139,17 @@ class _CSVStorageEngine implements multer.StorageEngine {
                 }
                 bulkInsert.execute((err, result) => {
                     if (err) { console.log(err); return; };
+                    if (lineNum == 502615) {
+                        endTime = Date.now();
+                        console.log(endTime - startTime);
+                    }
                     console.log('result',result.nInserted, 'lineNum', ++lineNum);
                 })
                 numOfSubj++;
             }
         });
 
-        parseStream.on('end', () => { 
-            endTime = Date.now();
-            console.log(endTime - startTime);
+        parseStream.on('end', () => {
             cb(null, { numOfSubj, fieldsWithError }); 
         } )
     }

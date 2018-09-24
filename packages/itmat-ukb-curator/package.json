@@ -2,8 +2,9 @@
   "name": "itmat-ukb-curator",
   "version": "1.0.0",
   "description": "Curator service for UKB clinical data",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
+    "start": "node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
     "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
