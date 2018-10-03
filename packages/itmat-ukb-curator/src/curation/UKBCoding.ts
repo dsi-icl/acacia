@@ -1,4 +1,4 @@
-import { Database } from 'itmat-utils';
+import { UKBCurationDatabase } from '../database/database';
 import mongo from 'mongodb';
 import { FieldEntry, UKBFields } from './UKBFields';
 import { DataEntry } from './UKBData';
@@ -19,7 +19,7 @@ export interface CodingMap {
 export class UKBCoding {
 
     public static async getCodeMeaning(Coding: number, Value: string): Promise<string|null> {
-        const result: CodingEntry = await Database.UKB_coding_collection.findOne({ Coding, Value });
+        const result: CodingEntry = await UKBCurationDatabase.UKB_coding_collection.findOne({ Coding, Value });
         if (result) {
             return result.Meaning;
         } else {
@@ -29,7 +29,7 @@ export class UKBCoding {
 
     public static async getCodeDictionary(Coding: number): Promise<CodingMap> {
         const map: any = {};
-        const results: mongo.Cursor = Database.UKB_coding_collection.find({ Coding });
+        const results: mongo.Cursor = UKBCurationDatabase.UKB_coding_collection.find({ Coding });
         await results.forEach((doc: CodingEntry) => {
             map[doc.Value] = doc.Meaning;
         });

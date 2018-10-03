@@ -2,7 +2,7 @@
 import express from 'express';
 import csvparse from 'csv-parse';
 import multer from 'multer';
-import { Database } from 'itmat-utils';
+import { UKBCurationDatabase } from '../database/database';
 import { UKBFields, FieldEntry, FieldMap } from '../curation/UKBFields';
 import { UKBCoding, CodingMap } from '../curation/UKBCoding';
 import { server } from '../index';
@@ -45,11 +45,11 @@ class _CSVStorageEngine implements multer.StorageEngine {
         let startTime: number;
         let endTime: number;
         let fieldNumber: number;
-        const fieldDict = server.FIELD_DICT;
+        const fieldDict = UKBCurationDatabase.FIELD_DICT;
         const fieldsWithError: number[] = [];
         const header: (headerArrayElement|undefined)[] = [ undefined ];  //the first element is subject id
         const parseStream: NodeJS.ReadableStream = incomingStream.pipe(csvparse(parseOptions)); //piping the incoming stream to a parser stream
-        let bulkInsert = Database.UKB_data_collection.initializeUnorderedBulkOp();
+        let bulkInsert = UKBCurationDatabase.UKB_data_collection.initializeUnorderedBulkOp();
 
         parseStream.on('data', async (line: string[]) => {
             if (isHeader) {
@@ -72,9 +72,9 @@ class _CSVStorageEngine implements multer.StorageEngine {
                             && fieldInfo.Instances >= fieldDescription.instance
                             && fieldInfo.Array >= fieldDescription.array) { //making sure the fieldid in the csv file is not bogus
                         const valueType: string = fieldInfo.ValueType;
-                        if (fieldInfo.Coding && (server.CODING_DICT as CodingMap)[fieldInfo.Coding]) {
+                        if (fieldInfo.Coding && (UKBCurationDatabase.CODING_DICT as CodingMap)[fieldInfo.Coding]) {
                             fieldToBeAdded = {
-                                coding: (server.CODING_DICT as CodingMap)[fieldInfo.Coding],
+                                coding: (UKBCurationDatabase.CODING_DICT as CodingMap)[fieldInfo.Coding],
                                 valueType: UKBiobankValueTypes[valueType],
                                 fieldId: key
                             };
@@ -124,14 +124,14 @@ class _CSVStorageEngine implements multer.StorageEngine {
                 console.log('lineNum', ++lineNum)
                 if (numOfSubj > 2000) {     //race condition?
                     numOfSubj = 0;
-                    bulkInsert.execute((err, result) => {
+                    bulkInsert.execute((err: Error, result) => {
                         if (err) { console.log((err as any).writeErrors[1].err); return; };
                         if (lineNum == 502616) {
                             endTime = Date.now();
                             console.log('time: ', endTime - startTime);
                         }
                     });
-                    bulkInsert = Database.UKB_data_collection.initializeUnorderedBulkOp();
+                    bulkInsert = UKBCurationDatabase.UKB_data_collection.initializeUnorderedBulkOp();
                 }
             }
         });

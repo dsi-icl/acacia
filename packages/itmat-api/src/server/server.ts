@@ -1,30 +1,30 @@
 import express from 'express';
-import { Server, Database, databaseConfig, CustomError } from 'itmat-utils';
+import { Server, CustomError } from 'itmat-utils';
+import { APIDatabase, APIDatabaseConfig } from '../database/database';
 import { Router } from './router';
 
 
-interface UKBCuratorServerConfig {
-    database: databaseConfig,
+interface APIServerConfig {
+    database: APIDatabaseConfig,
     server: {
         port: number
+    },
+    bcrypt: {
+        saltround: number
     }
 }
 
-export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
+export class APIServer extends Server<APIServerConfig> {
     private readonly port: number;
 
-    constructor(config: UKBCuratorServerConfig) {
+    constructor(config: APIServerConfig) {
         super(config);
         this.port = config.server.port;
     }
 
     protected async initialise(): Promise<express.Application> {
         try {  //try to establish a connection to database first; if failed, exit the program
-            console.log('Connecting to the database..');
-            await Database.connect(this.config.database);
-            console.log('Connected.');
-
-
+            await APIDatabase.connect(this.config.database);
         } catch (e) {
             const { mongo_url: mongoUri, database } = this.config.database;
             console.log(
@@ -32,6 +32,13 @@ export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
             );
             process.exit(1);
         }
+
+        if (isNaN(parseInt(this.config.bcrypt.saltround as any))) {
+            console.log(
+                new CustomError('Salt round must be a number')
+            );
+            process.exit(1);
+        } 
 
         return new Router() as express.Application;
     }

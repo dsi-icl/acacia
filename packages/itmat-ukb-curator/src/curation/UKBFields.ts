@@ -1,4 +1,4 @@
-import { Database } from 'itmat-utils';
+import { UKBCurationDatabase } from '../database/database';
 
 export interface FieldEntry {
     Path: string,
@@ -26,7 +26,7 @@ export interface FieldMap {
 
 export class UKBFields {
     public static async getFieldInfo(FieldID: number): Promise<FieldEntry> {
-        const result = await Database.UKB_field_dictionary_collection.findOne({ FieldID }, { projection: { _id: 0 } });
+        const result = await UKBCurationDatabase.UKB_field_dictionary_collection.findOne({ FieldID }, { projection: { _id: 0 } });
         return result;
     }
 
