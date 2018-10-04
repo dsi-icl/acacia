@@ -19,6 +19,10 @@ declare global {
             user: string
         }
 
+        interface CancelJobReqBody {
+            id: string
+        }
+
         interface CreateUserReqBody {
             username: string,
             password: string,
