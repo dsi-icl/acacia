@@ -8,6 +8,7 @@ export interface ItmatAPIReq<T> extends Request {
 }
 
 
+
 declare global {
     namespace requests {
         interface GetJobsByIdReqBody {

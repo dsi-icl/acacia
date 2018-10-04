@@ -120,7 +120,7 @@ export class UserController {
         
     } 
 
-    public static async editUser(req: ItmatAPIReq<User>, res: Response) {  ///LOG OUT ALL SESSIONS OF THAT USER?
+    public static async editUser(req: ItmatAPIReq<User>, res: Response, next: NextFunction) {  ///LOG OUT ALL SESSIONS OF THAT USER?
         /* admin is allow to change everything except username. user himself is allowed to change password only (e.g. not privilege) */
         if (req.user.type === userTypes.ADMIN) {
             try {
