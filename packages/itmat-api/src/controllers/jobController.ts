@@ -2,22 +2,22 @@ import { JobUtils, Job, JobEntry } from '../utils/jobUtils';
 import uuidv4 from 'uuid/v4';
 import { ItmatAPIReq } from '../server/requests';
 import { APIDatabase } from '../database/database'; 
-import { CustomError, checkIfReqKeysArePresent, APIErrorTypes, jobTypes } from 'itmat-utils';
+import { CustomError, APIErrorTypes, jobTypes, userTypes } from 'itmat-utils';
 import express from 'express';
 
 class JobController {    //requests namespace defined globally in ../server/requests.d.ts
     public static async getJobsOfAUser(req: ItmatAPIReq<requests.GetJobsByUserReqBody>, res: express.Response): Promise<void> {
-        if (!req.body || !req.body.user ) {
-            
+        if (!req.query || !req.query.user ) {
+            res.status(400).json(new CustomError(APIErrorTypes.missingQueryString`user`));
+            return;
+        }
+        if (req.query.user !== req.user.username || req.user.type !== userTypes.ADMIN) {
+            res.status(400).json(new CustomError(APIErrorTypes.authorised));
+            return;
         }
     }
 
     public static async createJobForUser(req: ItmatAPIReq<Job>, res: express.Response): Promise<void> {
-        const mustHaveKeysInBody = ['jobType'];
-        if (!checkIfReqKeysArePresent(mustHaveKeysInBody, req)) {
-            res.status(400).json(new CustomError(APIErrorTypes.missingRequestKey('body', mustHaveKeysInBody)));
-            return;
-        }
         if (!Object.keys(jobTypes).includes(req.body.jobType)) {
             res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('jobType', ...Object.keys(jobTypes))));
             return;
