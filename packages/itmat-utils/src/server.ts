@@ -55,7 +55,7 @@ declare global {
     }
 }
 
-export function bounceNonAdmin(req: express.Request, res: express.Response, next: Function): void {
+export function bounceNonAdmin(req: Request, res: Response, next: NextFunction): void {
     if (req.user.type !== userTypes.ADMIN) {
         res.status(401).json(new CustomError(APIErrorTypes.authorised));
         return;
@@ -63,7 +63,7 @@ export function bounceNonAdmin(req: express.Request, res: express.Response, next
     next();
 }
 
-export function bounceNonAdminAndNonSelf(req: express.Request, res: express.Response, next: Function): void {
+export function bounceNonAdminAndNonSelf(req: Request, res: Response, next: NextFunction): void {
     if (req.user.type === userTypes.ADMIN || req.user.username === req.body.username) {
         next();
         return;
