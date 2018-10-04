@@ -1,6 +1,7 @@
 import express from 'express';
 import { Server, DatabaseConfig, CustomError } from 'itmat-utils';
 import { UKBCurationDatabase, UKBDatabaseConfig } from '../database/database';
+import { Express, Request, Response, NextFunction } from 'express';
 import { Router } from './router';
 
 
@@ -12,7 +13,7 @@ interface UKBCuratorServerConfig {
 }
 
 export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
-    protected async initialise(): Promise<express.Application> {
+    protected async initialise(): Promise<Express> {
         try {  //try to establish a connection to database first; if failed, exit the program
             await UKBCurationDatabase.connect(this.config.database);
         } catch (e) {
@@ -23,6 +24,6 @@ export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
             process.exit(1);
         }
 
-        return new Router() as express.Application;
+        return new Router() as Express;
     }
 }

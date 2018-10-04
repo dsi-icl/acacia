@@ -2,7 +2,7 @@ import express from 'express';
 import { Server, CustomError } from 'itmat-utils';
 import { APIDatabase, APIDatabaseConfig } from '../database/database';
 import { Router } from './router';
-
+import { Express, Request, Response, NextFunction } from 'express';
 
 interface APIServerConfig {
     database: APIDatabaseConfig,
@@ -15,7 +15,7 @@ interface APIServerConfig {
 }
 
 export class APIServer extends Server<APIServerConfig> {
-    protected async initialise(): Promise<express.Application> {
+    protected async initialise(): Promise<Express> {
         try {  //try to establish a connection to database first; if failed, exit the program
             await APIDatabase.connect(this.config.database);
         } catch (e) {
@@ -33,6 +33,6 @@ export class APIServer extends Server<APIServerConfig> {
             process.exit(1);
         } 
 
-        return new Router() as express.Application;
+        return new Router() as Express;
     }
 }

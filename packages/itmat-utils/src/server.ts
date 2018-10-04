@@ -25,20 +25,23 @@ export abstract class Server<T extends { server: { port: number } }> {
     }
 }
 
-
+export const enum PlaceToCheck {
+    BODY = 'body',
+    QUERY = 'query'
+}
 interface APIReq<T> extends Request {
     body: T
 }
 
-export function checkMustaveKeysInBody<T>(keys: (keyof T)[]): RequestHandler {
+export function checkMusthaveKeysIn<T>(place: PlaceToCheck, keys: (keyof T)[]): RequestHandler {
     return function middleware(req: APIReq<T>, res: Response, next: NextFunction): void {
-        if (!req.body) {
-            res.status(400).json(new CustomError(APIErrorTypes.missingRequestKey('body', keys as string[])));
+        if (!req[place]) {
+            res.status(400).json(new CustomError(APIErrorTypes.missingRequestKey(place, keys as string[])));
             return;
         }
         for (let each of keys) {
-            if ((req.body as any)[each] === undefined) {
-                res.status(400).json(new CustomError(APIErrorTypes.missingRequestKey('body', keys as string[])));
+            if ((req[place] as any)[each] === undefined) {
+                res.status(400).json(new CustomError(APIErrorTypes.missingRequestKey(place, keys as string[])));
                 return;
             }
         }
@@ -53,6 +56,15 @@ declare global {
             user: any
         }
     }
+}
+
+
+export function bounceNotLoggedIn(req: Request, res: Response, next: NextFunction): void {
+    if (req.user === undefined) {
+        res.status(401).json(new CustomError('Unauthorised: You are not logged in.'));
+        return;
+    }
+    next();
 }
 
 export function bounceNonAdmin(req: Request, res: Response, next: NextFunction): void {
