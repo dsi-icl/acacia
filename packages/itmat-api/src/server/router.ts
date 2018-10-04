@@ -5,7 +5,8 @@ import { ItmatAPIReq } from './requests';
 import { UserUtils, UserWithoutToken, User } from '../utils/userUtils';
 import { CustomError, checkMusthaveKeysIn, PlaceToCheck, bounceNonAdmin, bounceNonAdminAndNonSelf, bounceNotLoggedIn } from 'itmat-utils';
 import { UserController } from '../controllers/userController';
-import { Job } from '../utils/jobUtils';
+import { JobController } from '../controllers/jobController';
+import { Job, JobUtils, JobEntry } from '../utils/jobUtils';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
@@ -46,14 +47,14 @@ export class Router {
 
         app.route('/jobs') //job?=1111 or /job
             .get(
-                checkMusthaveKeysIn<requests.GetJobsByUserReqBody>(PlaceToCheck.QUERY, ['user'])
+                JobController.getJobsOfAUser as any
             ) //get all the jobs the user has created or a specific job (including status)
             .post(
-                bounceNonAdmin as any,
-                checkMusthaveKeysIn<Job>(PlaceToCheck.BODY,['jobType']) as any
+                checkMusthaveKeysIn<Job>(PlaceToCheck.BODY,['jobType']),
+                JobController.createJobForUser as any
             )  //create a new job
             .delete(
-
+                checkMusthaveKeysIn<JobEntry>(PlaceToCheck.BODY,['id']),
             ) //cancel a job    //GDPR?
 
         app.route('/users')

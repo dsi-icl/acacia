@@ -53,7 +53,7 @@ export function checkMusthaveKeysIn<T>(place: PlaceToCheck, keys: (keyof T)[]): 
 declare global {
     namespace Express {
         interface Request {
-            user: any
+            user?: any
         }
     }
 }

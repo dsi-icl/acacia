@@ -1,4 +1,4 @@
-export const userTypes = {
+export const userTypes = {   //ATTENTION!: KEY AND VALUE MUST MATCH EXACTLY; KEYS ARE USED FOR TYPE CHECKING. VALUES ARE USED FOR RUN TIME
     ADMIN: 'ADMIN',
     STANDARD: 'STANDARD'
 }
