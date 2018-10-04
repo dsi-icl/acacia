@@ -117,7 +117,31 @@ export class UserController {
 
 
     public static async deleteUser(req: ItmatAPIReq<requests.DeleteUserReqBody>, res: Response) {
-        
+        let updateResult: mongodb.UpdateWriteOpResult;
+        try {
+            updateResult = await UserUtils.deleteUser(req.body.username);
+        } catch (e) {
+            res.status(500).json(new CustomError('Database error', e));
+            return;
+        }
+
+        switch (updateResult.modifiedCount) {
+            case 1:
+                break;
+            case 0:
+                res.status(404).json(new CustomError('User not found.'));
+                return;
+            default:
+                res.status(500).json(new CustomError('Server error; no entry or more than one entry has been updated.'));
+                return;
+        }
+
+        if (req.user.username === req.body.username) {
+            req.logout();
+        }
+
+        res.status(200).json({ message: `User ${req.body.username} has been deleted.`});
+        return;
     } 
 
     public static async editUser(req: ItmatAPIReq<User>, res: Response, next: NextFunction) {  ///LOG OUT ALL SESSIONS OF THAT USER?

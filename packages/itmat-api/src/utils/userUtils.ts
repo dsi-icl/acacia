@@ -1,5 +1,5 @@
 import { APIDatabase } from '../database/database';
-import mongodb from 'mongodb';
+import mongodb, { UpdateWriteOpResult } from 'mongodb';
 import { userTypes } from 'itmat-utils';
 
 
@@ -32,6 +32,10 @@ export class UserUtils {
     public static async createNewUser(user: User): Promise<mongodb.InsertOneWriteOpResult> {
         user.deleted = false;
         return await APIDatabase.users_collection.insertOne(user);
+    }
+
+    public static async deleteUser(username: string): Promise<UpdateWriteOpResult> {
+        return await APIDatabase.users_collection.updateOne( { deleted: false, username }, { $set: { deleted: true }});
     }
 
     public static serialiseUser(user: User, done: Function): void {
