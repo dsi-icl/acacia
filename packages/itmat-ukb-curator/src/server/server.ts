@@ -12,13 +12,6 @@ interface UKBCuratorServerConfig {
 }
 
 export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
-    private readonly port: number;
-
-    constructor(config: UKBCuratorServerConfig) {
-        super(config);
-        this.port = config.server.port;
-    }
-
     protected async initialise(): Promise<express.Application> {
         try {  //try to establish a connection to database first; if failed, exit the program
             await UKBCurationDatabase.connect(this.config.database);
@@ -31,10 +24,5 @@ export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
         }
 
         return new Router() as express.Application;
-    }
-
-    public async start(): Promise<void> {
-        const app: express.Application = await this.initialise();
-        app.listen(this.port, () => { console.log(`I am listening on port ${this.port}!`); });
     }
 }

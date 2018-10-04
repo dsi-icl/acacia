@@ -1,7 +1,10 @@
-import express from 'express';
+import { Request } from 'express';
+import { userTypes } from 'itmat-utils';
+import { UserWithoutToken } from '../utils/userUtils';
 
-export interface ItmatAPIReq<T> extends express.Request {
-    body: T
+export interface ItmatAPIReq<T> extends Request {
+    body: T,
+    user: UserWithoutToken
 }
 
 
@@ -15,12 +18,22 @@ declare global {
             user: string
         }
 
+        interface CreateUserReqBody {
+            username: string,
+            password: string,
+            type: keyof typeof userTypes
+        }
+
         interface LoginReqBody {
             username: string,
             password: string
         }
 
         interface LogoutReqBody {
+            username: string
+        }
+
+        interface DeleteUserReqBody {
             username: string
         }
     }

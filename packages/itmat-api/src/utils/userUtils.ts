@@ -1,19 +1,19 @@
 import { APIDatabase } from '../database/database';
 import mongodb from 'mongodb';
-import { CustomError } from 'itmat-utils';
-import config from '../config/config.json';
-import bcrypt from 'bcrypt';
+import { userTypes } from 'itmat-utils';
+
+
 
 export interface UserWithoutToken {
-    _id: mongodb.ObjectId,
+    _id?: mongodb.ObjectId,
     username: string,
-    type: string, //'ADMIN'
+    type: keyof typeof userTypes,
     deleted?: boolean,
     createdBy: string
 }
 
 export interface User extends UserWithoutToken {
-    token: string,  //password
+    password: string,  //password
 }
 
 
@@ -21,50 +21,26 @@ export interface User extends UserWithoutToken {
 /* checking for null result is not done here but in controllers */ 
 export class UserUtils {
     public static async getAllUsers(): Promise<UserWithoutToken[]> {
-        const cursor: mongodb.Cursor = APIDatabase.users_collection.find({ deleted: false }, { projection: { token: -1, _id: -1, createdBy: -1 }});
+        const cursor: mongodb.Cursor = APIDatabase.users_collection.find({ deleted: false }, { projection: { password: 0, _id: 0, createdBy: 0 }});
         return await cursor.toArray();
     }
 
     public static async getUser(username: string): Promise<UserWithoutToken> {
-        return await APIDatabase.users_collection.findOne({ deleted: false, username }, { projection: { token: -1 }});
+        return await APIDatabase.users_collection.findOne({ deleted: false, username }, { projection: { _id: 0, deleted: 0, password: 0 }});
     }
 
-    public static async createNewUser(user: User): Promise<object> {
+    public static async createNewUser(user: User): Promise<mongodb.InsertOneWriteOpResult> {
         user.deleted = false;
         return await APIDatabase.users_collection.insertOne(user);
     }
-
-    // public static async login(req) {
-    //     const result: User = await APIDatabase.users_collection.findOne({ deleted: false, username });
-    //     if (!result) {
-    //         return done(null, false, new CustomError('Incorrect username'));
-    //     }
-    //     // const passwordMatched = await bcrypt.compare(password, result.token);
-    //     const passwordMatched = password === result.token;
-    //     if (!passwordMatched) {
-    //         return done(null, false, new CustomError('Incorrect password'));
-    //     }
-    //     return done(null, result);
-    // }
 
     public static serialiseUser(user: User, done: Function): void {
         done(null, user.username);
     }
 
     public static async deserialiseUser(username: string, done: Function): Promise<void> {
-        const user: UserWithoutToken = await this.getUser(username);
+        const user: UserWithoutToken = await UserUtils.getUser(username);
         done(null, user);
     }
-
-
-    // public static async updateUser(username: string, newEntry: User): Promise<object> {
-    //     const user = await APIDatabase.users_collection.findOne({ username, deleted: false });
-    //     if (user === null) {
-    //         return { nModified: 0 };
-    //     }
-
-    //     await APIDatabase.users_collection.updateOne({ username }, { $set: { deleted: true }});
-    //     APIDatabase.users_collection.updateOne()
-    // }
 
 }
