@@ -77,7 +77,31 @@ export class JobController {    //requests namespace defined globally in ../serv
     }
 
 
-    public static async cancelJobForUser(req: ItmatAPIReq<requests.CancelJobReqBody>, res: Response): Promise<void> {
-        //
+    public static async cancelJobForUser(req: ItmatAPIReq<requests.CancelJobReqBody>, res: Response): Promise<void> {   //admin and user himself can cancel jobs
+        const requestedJob: JobEntry = await JobUtils.getJobById(req.body.id);
+        if (requestedJob === undefined || requestedJob === null) {
+            res.status(404).json(new CustomError('Job not found.'));
+            return;
+        } 
+        if (req.user.type !== userTypes.ADMIN && requestedJob.requester !== req.user.username) {
+            res.status(401).json(new CustomError(APIErrorTypes.authorised));
+            return;
+        }
+        let result: mongodb.UpdateWriteOpResult;
+        try {
+            result = await JobUtils.cancelJob(req.body.id);
+        } catch (e) {
+            res.status(500).json(new CustomError('Database error.', e));
+            return;
+        }
+        switch (result.modifiedCount) {
+            case 1:
+                break;
+            case 0: 
+                res.status(500).json(new CustomError('Server error. No job is cancelled. Please try again.'));
+            default:
+                res.status(500).json(new CustomError('weird things.....'));
+        }
+        res.status(200).json({ message: `Job with id ${req.body.id} has been cancelled.`});
     }
 }

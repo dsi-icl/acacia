@@ -55,6 +55,7 @@ export class Router {
             )  //create a new job
             .delete(
                 checkMusthaveKeysIn<JobEntry>(PlaceToCheck.BODY,['id']),
+                JobController.cancelJobForUser as any
             ) //cancel a job    //GDPR?
 
         app.route('/users')
