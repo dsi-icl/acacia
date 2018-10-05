@@ -41,6 +41,10 @@ export class JobUtils {
         return await cursor.toArray();
     }
 
+    public static async getJobById(id: string): Promise<JobEntry> {
+        return await APIDatabase.jobs_collection.findOne({ id });
+    }
+
     public static async createNewJob(jobEntry: JobEntry): Promise<mongodb.InsertOneWriteOpResult> {
         return await APIDatabase.jobs_collection.insert(jobEntry);
     }
