@@ -58,7 +58,6 @@ declare global {
     }
 }
 
-
 export function bounceNotLoggedIn(req: Request, res: Response, next: NextFunction): void {
     if (req.user === undefined) {
         res.status(401).json(new CustomError('Unauthorised: You are not logged in.'));
@@ -67,19 +66,26 @@ export function bounceNotLoggedIn(req: Request, res: Response, next: NextFunctio
     next();
 }
 
-export function bounceNonAdmin(req: Request, res: Response, next: NextFunction): void {
-    if (req.user.type !== userTypes.ADMIN) {
-        res.status(401).json(new CustomError(APIErrorTypes.authorised));
-        return;
-    }
-    next();
+export function bounceNonAdmin( target: any, methodName: string, descriptor: PropertyDescriptor ) {   //used as decorator
+    const originalFn = descriptor.value;
+    descriptor.value = (req: Request, res: Response, next: NextFunction): void => {
+        if (req.user.type !== userTypes.ADMIN) {
+            res.status(401).json(new CustomError(APIErrorTypes.authorised));
+            return;
+        }
+        originalFn.call(undefined, req, res, next);
+    };
+    return descriptor;
 }
 
-export function bounceNonAdminAndNonSelf(req: Request, res: Response, next: NextFunction): void {
-    if (req.user.type === userTypes.ADMIN || req.user.username === req.body.username) {
-        next();
-        return;
-    }
-    res.status(401).json(new CustomError(APIErrorTypes.authorised));
-    return;
+export function bounceNonAdminAndNonSelf( target: any, methodName: string, descriptor: PropertyDescriptor ) {   //used as decorator
+    const originalFn = descriptor.value;
+    descriptor.value = (req: Request, res: Response, next: NextFunction): void => {
+        if (req.user.type !== userTypes.ADMIN && req.user.username !== req.body.username) {
+            res.status(401).json(new CustomError(APIErrorTypes.authorised));
+            return;
+        }
+        originalFn.call(undefined, req, res, next);
+    };
+    return descriptor;
 }
