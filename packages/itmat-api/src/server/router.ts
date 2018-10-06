@@ -3,7 +3,7 @@ import { Express, Request, Response, NextFunction } from 'express';
 import { APIDatabase } from '../database/database';
 import { ItmatAPIReq } from './requests';
 import { UserUtils, UserWithoutToken, User } from '../utils/userUtils';
-import { CustomError, checkMusthaveKeysIn, PlaceToCheck, bounceNonAdmin, bounceNonAdminAndNonSelf, bounceNotLoggedIn } from 'itmat-utils';
+import { CustomError, checkMusthaveKeysIn, PlaceToCheck, bounceNotLoggedIn } from 'itmat-utils';
 import { UserController } from '../controllers/userController';
 import { JobController } from '../controllers/jobController';
 import { Job, JobUtils, JobEntry } from '../utils/jobUtils';
@@ -37,6 +37,9 @@ export class Router {
         passport.serializeUser(UserUtils.serialiseUser);
         passport.deserializeUser(UserUtils.deserialiseUser);
         
+        app.route('/whoAmI')
+            .get(UserController.whoAmI);
+
         app.route('/login')
             .post(UserController.login as any);
         
@@ -56,15 +59,13 @@ export class Router {
             .delete(
                 checkMusthaveKeysIn<JobEntry>(PlaceToCheck.BODY,['id']),
                 JobController.cancelJobForUser as any
-            ) //cancel a job    //GDPR?
+            ); //cancel a job    //GDPR?
 
         app.route('/users')
             .get(
-                bounceNonAdmin,
                 UserController.getUsers as any
             )  //get all users or a specific user
             .post(
-                bounceNonAdmin,
                 checkMusthaveKeysIn<requests.CreateUserReqBody>(PlaceToCheck.BODY, ['username', 'password', 'type']),
                 UserController.createNewUser as any
             )
@@ -74,10 +75,13 @@ export class Router {
                 UserController.editUser as any
             )
             .delete(
-                bounceNonAdminAndNonSelf,
                 checkMusthaveKeysIn<requests.DeleteUserReqBody>(PlaceToCheck.BODY, ['username']),
                 UserController.deleteUser as any
-            ) //delete a user
+            ); //delete a user
+        
+        app.all('/', function(err: Error, req: Request, res: Response, next: NextFunction) {
+            res.status(500).json(new CustomError('Server error.'));
+        })
 
         return app;
     }

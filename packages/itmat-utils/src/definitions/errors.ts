@@ -1,5 +1,5 @@
 export const APIErrorTypes = {
-    entryNotFound: 'Entry not found.',
+    entryNotFound: (entryName: TemplateStringsArray) => `Entry for ${entryName} not found.`,
     authorised: 'You are not authorised to be doing this request.',
     missingQueryString: (queryParam: TemplateStringsArray) => `You must provide a query parameter '${queryParam}'.`,
     duplicateQueryString: (queryParam: TemplateStringsArray) => `You must provide only one instance of this query parameter: '${queryParam}'.`,
