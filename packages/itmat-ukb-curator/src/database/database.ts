@@ -3,9 +3,7 @@ import { DatabaseConfig, Database, CustomError } from 'itmat-utils';
 import { CodingMap, CodingEntry } from '../curation/UKBCoding';
 import { FieldMap, FieldEntry } from '../curation/UKBFields';
 
-export interface UKBDatabaseConfig {
-    mongo_url: string,
-    database: string,
+export interface UKBDatabaseConfig extends DatabaseConfig {
     UKB_coding_collection: string,
     UKB_field_dictionary_collection: string,
     UKB_data_collection: string

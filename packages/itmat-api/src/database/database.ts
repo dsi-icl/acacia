@@ -1,9 +1,7 @@
 import mongodb from 'mongodb';
 import { DatabaseConfig, Database, CustomError } from 'itmat-utils';
 
-export interface APIDatabaseConfig {
-    mongo_url: string,
-    database: string,
+export interface APIDatabaseConfig extends DatabaseConfig {
     users_collection: string,
     jobs_collection: string
 }

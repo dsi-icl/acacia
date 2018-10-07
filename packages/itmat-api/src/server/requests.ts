@@ -7,8 +7,6 @@ export interface ItmatAPIReq<T> extends Request {
     user: UserWithoutToken
 }
 
-
-
 declare global {
     namespace requests {
         interface GetJobsByIdReqBody {
@@ -34,12 +32,18 @@ declare global {
             password: string
         }
 
+        interface EditUserReqBody {
+            user: string,
+            password?: string,
+            type?: userTypes
+        }
+
         interface LogoutReqBody {
-            username: string
+            user: string
         }
 
         interface DeleteUserReqBody {
-            username: string
+            user: string
         }
     }
 }

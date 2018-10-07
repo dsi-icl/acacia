@@ -1,14 +1,11 @@
 import express from 'express';
-import { Server, CustomError } from 'itmat-utils';
+import { Server, CustomError, ServerConfig } from 'itmat-utils';
 import { APIDatabase, APIDatabaseConfig } from '../database/database';
 import { Router } from './router';
 import { Express, Request, Response, NextFunction } from 'express';
 
-interface APIServerConfig {
+interface APIServerConfig extends ServerConfig {
     database: APIDatabaseConfig,
-    server: {
-        port: number
-    },
     bcrypt: {
         saltround: number
     }

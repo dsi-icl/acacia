@@ -2,7 +2,33 @@ import { Express, Request, Response, NextFunction, RequestHandler } from 'expres
 import { CustomError } from './error';
 import { APIErrorTypes } from './definitions/errors';
 import { userTypes } from './definitions/users';
-export abstract class Server<T extends { server: { port: number } }> {
+
+export interface ServerConfig {
+    server: {
+        port: number
+    }
+}
+
+export abstract class Server<T extends ServerConfig> {
+    /* USAGE IN ALL PACKAGES:
+    1. extend ServerConfig Interface:
+    // interface DerivedServerConfig extends ServerConfig {
+    //     database: {
+    //         tutu: toto
+    //     }
+    // }
+
+    2. extends class Server and add implementation for initialise():
+    // class DerivedServer extends Server<DerivedServerConfig>  {
+    //     //only implement initialise()
+    //     intialise() {
+    //         doStuffLikeConnectToDatabase
+    //         return the router;
+    //     }
+    // }
+
+    3. just call start() after; done.
+    */
     protected readonly config: T;
     protected readonly port: number;
 
@@ -25,67 +51,4 @@ export abstract class Server<T extends { server: { port: number } }> {
     }
 }
 
-export const enum PlaceToCheck {
-    BODY = 'body',
-    QUERY = 'query'
-}
-interface APIReq<T> extends Request {
-    body: T
-}
 
-export function checkMusthaveKeysIn<T>(place: PlaceToCheck, keys: (keyof T)[]): RequestHandler {
-    return function middleware(req: APIReq<T>, res: Response, next: NextFunction): void {
-        if (!req[place]) {
-            res.status(400).json(new CustomError(APIErrorTypes.missingRequestKey(place, keys as string[])));
-            return;
-        }
-        for (let each of keys) {
-            if ((req[place] as any)[each] === undefined) {
-                res.status(400).json(new CustomError(APIErrorTypes.missingRequestKey(place, keys as string[])));
-                return;
-            }
-        }
-        next();
-
-    }
-}
-
-declare global {
-    namespace Express {
-        interface Request {
-            user?: any
-        }
-    }
-}
-
-export function bounceNotLoggedIn(req: Request, res: Response, next: NextFunction): void {
-    if (req.user === undefined) {
-        res.status(401).json(new CustomError('Unauthorised: You are not logged in.'));
-        return;
-    }
-    next();
-}
-
-export function bounceNonAdmin( target: any, methodName: string, descriptor: PropertyDescriptor ) {   //used as decorator
-    const originalFn = descriptor.value;
-    descriptor.value = (req: Request, res: Response, next: NextFunction): void => {
-        if (req.user.type !== userTypes.ADMIN) {
-            res.status(401).json(new CustomError(APIErrorTypes.authorised));
-            return;
-        }
-        originalFn.call(undefined, req, res, next);
-    };
-    return descriptor;
-}
-
-export function bounceNonAdminAndNonSelf( target: any, methodName: string, descriptor: PropertyDescriptor ) {   //used as decorator
-    const originalFn = descriptor.value;
-    descriptor.value = (req: Request, res: Response, next: NextFunction): void => {
-        if (req.user.type !== userTypes.ADMIN && req.user.username !== req.body.username) {
-            res.status(401).json(new CustomError(APIErrorTypes.authorised));
-            return;
-        }
-        originalFn.call(undefined, req, res, next);
-    };
-    return descriptor;
-}
