@@ -1,24 +1,29 @@
 import { UserUtils, UserWithoutToken, User } from '../utils/userUtils';
 import { APIDatabase } from '../database/database';
 import { ItmatAPIReq } from '../server/requests';
-import { CustomError, userTypes, APIErrorTypes, bounceNonAdmin, bounceNonAdminAndNonSelf } from 'itmat-utils';
+import { CustomError, userTypes, APIErrorTypes, RequestValidationHelper, PlaceToCheck, JSDataType } from 'itmat-utils';
 import mongodb, { UpdateWriteOpResult } from 'mongodb';
 import { Express, Request, Response, NextFunction } from 'express';
-import { RequestValidationHelper } from './validationHelper';
 import bcrypt from 'bcrypt';
 import config from '../config/config.json';
 
 export class UserController {
-    @bounceNonAdmin
+    // @bounceNonAdmin
     public static async getUsers(req: ItmatAPIReq<undefined>, res: Response) {
-        if (req.query && req.query.username) {
+        const validator = new RequestValidationHelper(req, res);
+        if (validator
+            .checkForAdminPrivilege()
+            .allOkay === false) return;
+
+        if (req.query && req.query.username) {   //if there is query.username then only get that user; if not then get all users;
             let result: UserWithoutToken;
             try {
                 result = await UserUtils.getUser(req.query.username);
-                if (result === null || result === undefined) {
-                    res.status(404).json(new CustomError('user not found'));
-                    return;
-                }
+
+                if (validator
+                    .checkSearchResultIsNotDefinedNorNull(result, 'user')
+                    .allOkay === false) return;
+                
                 res.status(200).json(result);
                 return;
             } catch (e) {
@@ -38,27 +43,17 @@ export class UserController {
         }
     }
 
-    // @bounceNonAdmin
     public static async createNewUser(req: ItmatAPIReq<requests.CreateUserReqBody>, res: Response) {
-        const validate = new RequestValidationHelper(req, res);
-        validate
+        const validator = new RequestValidationHelper(req, res);
+        if (validator
             .checkForAdminPrivilege()
-            .checkKeyForValidValue('type', req.body.type, Object.keys(userTypes));
-        if (validate.allOkay === false) {
-            return;
-        }
+            .checkRequiredKeysArePresentIn<requests.CreateUserReqBody>(PlaceToCheck.BODY, ['username', 'password', 'type'])
+            .checkKeyForValidValue('type', req.body.type, Object.keys(userTypes))
+            .checkForValidDataTypeForValue(req.body.password, JSDataType.STRING, 'password')
+            .checkForValidDataTypeForValue(req.body.username, JSDataType.STRING, 'username')
+            .allOkay === false) return;
 
-
-        if (typeof req.body.password !== 'string' || typeof req.body.username !== 'string') {
-            res.status(400).json(new CustomError('username and password need to be strings.'));
-            return;
-        }
-        // if (!Object.keys(userTypes).includes(req.body.type)) {
-        //     res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('type', ...Object.keys(userTypes))));
-        //     return;
-        // }
-
-        const alreadyExist = await UserUtils.getUser(req.body.username);
+        const alreadyExist = await UserUtils.getUser(req.body.username); //since bycrypt is CPU expensive let's check the username is not taken first
         if (alreadyExist !== undefined && alreadyExist !== null) {
             res.status(400).json(new CustomError('Username already taken!'));
             return;
@@ -90,7 +85,14 @@ export class UserController {
     }
 
     public static async login(req: ItmatAPIReq<requests.LoginReqBody>, res: Response): Promise<void> {
-        const result: User = await APIDatabase.users_collection.findOne({ deleted: false, username: req.body.username });  //not getUser() before we need the pw as well
+        const validator = new RequestValidationHelper(req, res);
+        if (validator
+            .checkRequiredKeysArePresentIn<requests.LoginReqBody>(PlaceToCheck.BODY, ['password', 'username'])
+            .checkForValidDataTypeForValue(req.body.password, JSDataType.STRING, 'password')
+            .checkForValidDataTypeForValue(req.body.username, JSDataType.STRING, 'username')
+            .allOkay === false) return;
+        
+        const result: User = await APIDatabase.users_collection.findOne({ deleted: false, username: req.body.username });  //not getUser() because we need the pw as well
         if (!result) {
             res.status(401).json(new CustomError('Incorrect username'));
         }
@@ -107,60 +109,69 @@ export class UserController {
     }
 
     public static async logout(req: ItmatAPIReq<requests.LogoutReqBody>, res: Response) {
-        if (req.user.username === req.body.username) {
-            (req.session as Express.Session).destroy((err) => {
-                if (req.user === undefined || req.user === null) {
-                    res.status(401).json(new CustomError('Not logged in in the first place!'));
-                    return;
-                }
-                req.logout();
-                if (err) {
-                    res.status(500).json(new CustomError('Cannot destroy session', err));
-                }
-                else {
-                    res.status(200).json({ message: 'Successfully logged out' });
-                }
+        const validator = new RequestValidationHelper(req, res);
+        if (validator
+            .checkRequiredKeysArePresentIn<requests.LogoutReqBody>(PlaceToCheck.BODY, ['user'])
+            .checkForAdminPrivilegeOrSelf()
+            .checkForValidDataTypeForValue(req.body.user, JSDataType.STRING, 'user')
+            .allOkay === false) return;
+
+        (req.session as Express.Session).destroy((err) => {
+            if (req.user === undefined || req.user === null) {
+                res.status(401).json(new CustomError('Not logged in in the first place!'));
                 return;
-            });
-        } else {
-            res.status(401).json(new CustomError(APIErrorTypes.authorised));
-        }
+            }
+            req.logout();
+            if (err) {
+                res.status(500).json(new CustomError('Cannot destroy session', err));
+            }
+            else {
+                res.status(200).json({ message: 'Successfully logged out' });
+            }
+            return;
+        });
     }
 
-    @bounceNonAdminAndNonSelf
     public static async deleteUser(req: ItmatAPIReq<requests.DeleteUserReqBody>, res: Response) {
+        const validator = new RequestValidationHelper(req, res);
+        if (validator
+            .checkRequiredKeysArePresentIn<requests.DeleteUserReqBody>(PlaceToCheck.BODY, ['user'])
+            .checkForAdminPrivilegeOrSelf()
+            .checkForValidDataTypeForValue(req.body.user, JSDataType.STRING, 'user')
+            .allOkay === false) return;
+
         let updateResult: mongodb.UpdateWriteOpResult;
         try {
-            updateResult = await UserUtils.deleteUser(req.body.username);
+            updateResult = await UserUtils.deleteUser(req.body.user);
         } catch (e) {
             res.status(500).json(new CustomError('Database error', e));
             return;
         }
 
-        switch (updateResult.modifiedCount) {
-            case 1:
-                break;
-            case 0:
-                res.status(404).json(new CustomError('User not found.'));
-                return;
-            default:
-                res.status(500).json(new CustomError('Server error; no entry or more than one entry has been updated.'));
-                return;
-        }
+        if (validator
+            .checkSearchResultIsOne('user', updateResult.modifiedCount)
+            .allOkay === false ) return;
 
-        if (req.user.username === req.body.username) {
+        if (req.user.username === req.body.user) {
             req.logout();
         }
 
-        res.status(200).json({ message: `User ${req.body.username} has been deleted.`});
+        res.status(200).json({ message: `User ${req.body.user} has been deleted.`});
         return;
-    } 
+    }
 
-    public static async editUser(req: ItmatAPIReq<User>, res: Response, next: NextFunction) {  ///LOG OUT ALL SESSIONS OF THAT USER?
+    public static async editUser(req: ItmatAPIReq<requests.EditUserReqBody>, res: Response, next: NextFunction) {  ///LOG OUT ALL SESSIONS OF THAT USER?
         /* admin is allow to change everything except username. user himself is allowed to change password only (e.g. not privilege) */
+        const validator = new RequestValidationHelper(req, res);
+        if (validator
+            .checkRequiredKeysArePresentIn<requests.EditUserReqBody>(PlaceToCheck.BODY, ['user'])
+            .checkForAdminPrivilegeOrSelf()
+            .checkForValidDataTypeForValue(req.body.user, JSDataType.STRING, 'user')
+            .allOkay === false) return;
+
         if (req.user.type === userTypes.ADMIN) {
             try {
-                const result: UserWithoutToken = await UserUtils.getUser(req.body.username);   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                const result: UserWithoutToken = await UserUtils.getUser(req.body.user);   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     res.status(404).json(new CustomError('user not found'));
                     return;
@@ -185,9 +196,9 @@ export class UserController {
             }
 
             try {
-                const updateResult: UpdateWriteOpResult = await APIDatabase.users_collection.updateOne({ username: req.body.username, deleted: false }, { $set: fieldsToUpdate });
+                const updateResult: UpdateWriteOpResult = await APIDatabase.users_collection.updateOne({ username: req.body.user, deleted: false }, { $set: fieldsToUpdate });
                 if (updateResult.modifiedCount === 1) {
-                    res.status(200).json({ message: `User ${req.body.username} has been updated.`});
+                    res.status(200).json({ message: `User ${req.body.user} has been updated.`});
                     return;
                 } else {
                     res.status(500).json(new CustomError('Server error; no entry or more than one entry has been updated.'));
@@ -197,7 +208,7 @@ export class UserController {
                 res.status(500).json(new CustomError('Server error', e));
                 return;
             }
-        } else if (req.user.username === req.body.username){
+        } else if (req.user.username === req.body.user){
             if (req.body.type !== undefined) {
                 res.status(401).json(new CustomError('Non-admin users are not authorised to change user type.'));
                 return;
@@ -211,9 +222,9 @@ export class UserController {
             }
 
             try {
-                const updateResult: UpdateWriteOpResult = await APIDatabase.users_collection.updateOne({ username: req.body.username, deleted: false }, { $set: fieldsToUpdate });
+                const updateResult: UpdateWriteOpResult = await APIDatabase.users_collection.updateOne({ username: req.body.user, deleted: false }, { $set: fieldsToUpdate });
                 if (updateResult.modifiedCount === 1) {
-                    res.status(200).json({ message: `User ${req.body.username} has been updated.`});
+                    res.status(200).json({ message: `User ${req.body.user} has been updated.`});
                     return;
                 } else {
                     res.status(500).json(new CustomError('Server error; no entry or more than one entry has been updated.'));

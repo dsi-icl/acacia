@@ -1,5 +1,8 @@
 export const APIErrorTypes = {
+    notLoggedIn: 'Unauthorised! You are not logged in',
     entryNotFound: (entryName: string) => `Entry for ${entryName} not found.`,
+    invalidDataType: (name: string, type: string) => `${name} must be of type ${type}`,
+    resultBiggerThanOne: 'Weird things do happen. Server error.Contact admin referencing the error ID if given.',
     authorised: 'You are not authorised to be doing this request.',
     missingQueryString: (queryParams: string[]) => `You must provide the following query parameters '${queryParams.join(',')}'.`,
     duplicateQueryString: (queryParam: TemplateStringsArray) => `You must provide only one instance of this query parameter: '${queryParam}'.`,
