@@ -13,7 +13,7 @@ export class UserController {
         const validator = new RequestValidationHelper(req, res);
         if (validator
             .checkForAdminPrivilege()
-            .allOkay === false) return;
+            .checksFailed) return;
 
         if (req.query && req.query.username) {   //if there is query.username then only get that user; if not then get all users;
             let result: UserWithoutToken;
@@ -22,7 +22,7 @@ export class UserController {
 
                 if (validator
                     .checkSearchResultIsNotDefinedNorNull(result, 'user')
-                    .allOkay === false) return;
+                    .checksFailed) return;
                 
                 res.status(200).json(result);
                 return;
@@ -51,7 +51,7 @@ export class UserController {
             .checkKeyForValidValue('type', req.body.type, Object.keys(userTypes))
             .checkForValidDataTypeForValue(req.body.password, JSDataType.STRING, 'password')
             .checkForValidDataTypeForValue(req.body.username, JSDataType.STRING, 'username')
-            .allOkay === false) return;
+            .checksFailed) return;
 
         const alreadyExist = await UserUtils.getUser(req.body.username); //since bycrypt is CPU expensive let's check the username is not taken first
         if (alreadyExist !== undefined && alreadyExist !== null) {
@@ -90,7 +90,7 @@ export class UserController {
             .checkRequiredKeysArePresentIn<requests.LoginReqBody>(PlaceToCheck.BODY, ['password', 'username'])
             .checkForValidDataTypeForValue(req.body.password, JSDataType.STRING, 'password')
             .checkForValidDataTypeForValue(req.body.username, JSDataType.STRING, 'username')
-            .allOkay === false) return;
+            .checksFailed) return;
         
         const result: User = await APIDatabase.users_collection.findOne({ deleted: false, username: req.body.username });  //not getUser() because we need the pw as well
         if (!result) {
@@ -114,7 +114,7 @@ export class UserController {
             .checkRequiredKeysArePresentIn<requests.LogoutReqBody>(PlaceToCheck.BODY, ['user'])
             .checkForAdminPrivilegeOrSelf()
             .checkForValidDataTypeForValue(req.body.user, JSDataType.STRING, 'user')
-            .allOkay === false) return;
+            .checksFailed) return;
 
         (req.session as Express.Session).destroy((err) => {
             if (req.user === undefined || req.user === null) {
@@ -138,7 +138,7 @@ export class UserController {
             .checkRequiredKeysArePresentIn<requests.DeleteUserReqBody>(PlaceToCheck.BODY, ['user'])
             .checkForAdminPrivilegeOrSelf()
             .checkForValidDataTypeForValue(req.body.user, JSDataType.STRING, 'user')
-            .allOkay === false) return;
+            .checksFailed) return;
 
         let updateResult: mongodb.UpdateWriteOpResult;
         try {
@@ -150,7 +150,7 @@ export class UserController {
 
         if (validator
             .checkSearchResultIsOne('user', updateResult.modifiedCount)
-            .allOkay === false ) return;
+            .checksFailed) return;
 
         if (req.user.username === req.body.user) {
             req.logout();
@@ -167,7 +167,7 @@ export class UserController {
             .checkRequiredKeysArePresentIn<requests.EditUserReqBody>(PlaceToCheck.BODY, ['user'])
             .checkForAdminPrivilegeOrSelf()
             .checkForValidDataTypeForValue(req.body.user, JSDataType.STRING, 'user')
-            .allOkay === false) return;
+            .checksFailed) return;
 
         if (req.user.type === userTypes.ADMIN) {
             try {
