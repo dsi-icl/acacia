@@ -4,4 +4,5 @@ export { jobTypes } from './definitions/jobs';
 export { userTypes } from './definitions/users';
 export { SortBy } from './definitions/miscellaneous';
 export { CustomError } from './error';
-export { Server, checkMusthaveKeysIn, bounceNonAdmin, bounceNonAdminAndNonSelf, bounceNotLoggedIn, PlaceToCheck } from './server';
+export { Server, ServerConfig } from './server';
+export { RequestValidationHelper, JSDataType, PlaceToCheck } from './validationHelper';

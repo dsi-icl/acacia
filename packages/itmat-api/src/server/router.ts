@@ -3,7 +3,7 @@ import { Express, Request, Response, NextFunction } from 'express';
 import { APIDatabase } from '../database/database';
 import { ItmatAPIReq } from './requests';
 import { UserUtils, UserWithoutToken, User } from '../utils/userUtils';
-import { CustomError, checkMusthaveKeysIn, PlaceToCheck, bounceNotLoggedIn } from 'itmat-utils';
+import { CustomError, RequestValidationHelper } from 'itmat-utils';
 import { UserController } from '../controllers/userController';
 import { JobController } from '../controllers/jobController';
 import { Job, JobUtils, JobEntry } from '../utils/jobUtils';
@@ -12,8 +12,6 @@ import passport from 'passport';
 import session from 'express-session';
 import passportLocal from 'passport-local';
 import connectMongo from 'connect-mongo';
-import { request } from 'http';
-const LocalStrategy = passportLocal.Strategy;
 const MongoStore = connectMongo(session);
 
 
@@ -43,7 +41,7 @@ export class Router {
         app.route('/login')
             .post(UserController.login as any);
         
-        app.use(bounceNotLoggedIn);
+        app.use(RequestValidationHelper.bounceNotLoggedIn);
 
         app.route('/logout')
             .post(UserController.logout as any);
@@ -53,31 +51,16 @@ export class Router {
                 JobController.getJobsOfAUser as any
             ) //get all the jobs the user has created or a specific job (including status)
             .post(
-                checkMusthaveKeysIn<Job>(PlaceToCheck.BODY,['jobType']),
+                // checkMusthaveKeysIn<Job>(PlaceToCheck.BODY,['jobType']),
                 JobController.createJobForUser as any
             )  //create a new job
-            .delete(
-                checkMusthaveKeysIn<JobEntry>(PlaceToCheck.BODY,['id']),
-                JobController.cancelJobForUser as any
-            ); //cancel a job    //GDPR?
+            .delete(JobController.cancelJobForUser as any); //cancel a job
 
         app.route('/users')
-            .get(
-                UserController.getUsers as any
-            )  //get all users or a specific user
-            .post(
-                checkMusthaveKeysIn<requests.CreateUserReqBody>(PlaceToCheck.BODY, ['username', 'password', 'type']),
-                UserController.createNewUser as any
-            )
-            .patch(
-                checkMusthaveKeysIn<User>(PlaceToCheck.BODY, ['username']),
-                /* checking authorisation in the middleware below */ 
-                UserController.editUser as any
-            )
-            .delete(
-                checkMusthaveKeysIn<requests.DeleteUserReqBody>(PlaceToCheck.BODY, ['username']),
-                UserController.deleteUser as any
-            ); //delete a user
+            .get(UserController.getUsers as any)  //get all users or a specific user
+            .post(UserController.createNewUser as any)
+            .patch(UserController.editUser as any)
+            .delete(UserController.deleteUser as any);
         
         app.all('/', function(err: Error, req: Request, res: Response, next: NextFunction) {
             res.status(500).json(new CustomError('Server error.'));

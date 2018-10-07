@@ -1,6 +1,7 @@
 'use strict';
-const { RequestValidationHelper } = require('../dist/controllers/validationHelper.js');
-const { APIErrorTypes, CustomError } = require('itmat-utils');
+const { RequestValidationHelper } = require('../dist/validationHelper.js');
+const { APIErrorTypes } = require('../src/definitions/errors');
+const { CustomError } = require('../src/error');
 
 function MockRes() {
     this.statusCode = undefined;
@@ -8,6 +9,8 @@ function MockRes() {
     this.status = (number) => { this.statusCode = number; return this; };
     this.json = (object) => { this.response = object; return; };
 }
+
+//havent tested chaining
 
 
 describe('RequestValidationHelper Class testing', () => {
