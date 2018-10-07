@@ -81,13 +81,13 @@ export class JobController {    //requests namespace defined globally in ../serv
         const validator = new RequestValidationHelper(req, res);
         if (validator
             .checkRequiredKeysArePresentIn<requests.CancelJobReqBody>(PlaceToCheck.BODY, ['id'])
-            .allOkay === false) return;
+            .checksFailed) return;
     
         const requestedJob: JobEntry = await JobUtils.getJobById(req.body.id);
 
         if (validator
             .checkSearchResultIsNotDefinedNorNull(requestedJob, 'job')
-            .allOkay === false) return;
+            .checksFailed) return;
         
         if (req.user.type !== userTypes.ADMIN && requestedJob.requester !== req.user.username) {
             res.status(401).json(new CustomError(APIErrorTypes.authorised));
@@ -104,8 +104,8 @@ export class JobController {    //requests namespace defined globally in ../serv
 
         if (validator
             .checkSearchResultIsOne('job', result.modifiedCount)
-            .allOkay === false) return;
-
+            .checksFailed) return;
+            
         res.status(200).json({ message: `Job with id ${req.body.id} has been cancelled.`});
     }
 }
