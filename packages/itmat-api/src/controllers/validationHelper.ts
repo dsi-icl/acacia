@@ -2,6 +2,21 @@ import { Express, Request, Response, NextFunction } from 'express';
 import { CustomError, APIErrorTypes, userTypes, PlaceToCheck } from 'itmat-utils';
 
 export class RequestValidationHelper {
+    /* USAGE IN CONTROLLERS:
+    const validater = new RequestValidationHelper(req, res);
+    if (!validater.whateverMethod().whateverOtherMethod().allOkay) {
+        //res.send() would have been set here already.
+        return;
+    }
+    const result = DoYouContollerStuffHere();
+    if (!validater.someMoreChecks(result).allOkay) {
+        //res.send() would have been set here already.
+        return;
+    }
+    //seems like everything is in order!
+    res.status(200).json(whatever);
+    return;
+    */ 
     public allOkay: boolean;
 
     constructor(private readonly req: Request, private readonly res: Response) {
