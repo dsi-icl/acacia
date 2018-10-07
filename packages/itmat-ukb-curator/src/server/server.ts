@@ -1,15 +1,12 @@
 import express from 'express';
-import { Server, DatabaseConfig, CustomError } from 'itmat-utils';
+import { Server, DatabaseConfig, CustomError, ServerConfig } from 'itmat-utils';
 import { UKBCurationDatabase, UKBDatabaseConfig } from '../database/database';
 import { Express, Request, Response, NextFunction } from 'express';
 import { Router } from './router';
 
 
-interface UKBCuratorServerConfig {
-    database: UKBDatabaseConfig,
-    server: {
-        port: number
-    }
+interface UKBCuratorServerConfig extends ServerConfig{
+    database: UKBDatabaseConfig
 }
 
 export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
