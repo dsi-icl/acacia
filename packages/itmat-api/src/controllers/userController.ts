@@ -8,7 +8,6 @@ import bcrypt from 'bcrypt';
 import config from '../config/config.json';
 
 export class UserController {
-    // @bounceNonAdmin
     public static async getUsers(req: ItmatAPIReq<undefined>, res: Response) {
         const validator = new RequestValidationHelper(req, res);
         if (validator
