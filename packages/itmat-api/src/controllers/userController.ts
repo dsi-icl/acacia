@@ -1,13 +1,15 @@
 import { UserUtils, UserWithoutToken, User } from '../utils/userUtils';
 import { APIDatabase } from '../database/database';
 import { ItmatAPIReq } from '../server/requests';
-import { CustomError, userTypes, APIErrorTypes } from 'itmat-utils';
+import { CustomError, userTypes, APIErrorTypes, bounceNonAdmin, bounceNonAdminAndNonSelf } from 'itmat-utils';
 import mongodb, { UpdateWriteOpResult } from 'mongodb';
 import { Express, Request, Response, NextFunction } from 'express';
+import { RequestValidationHelper } from './validationHelper';
 import bcrypt from 'bcrypt';
 import config from '../config/config.json';
 
 export class UserController {
+    @bounceNonAdmin
     public static async getUsers(req: ItmatAPIReq<undefined>, res: Response) {
         if (req.query && req.query.username) {
             let result: UserWithoutToken;
@@ -36,15 +38,25 @@ export class UserController {
         }
     }
 
+    // @bounceNonAdmin
     public static async createNewUser(req: ItmatAPIReq<requests.CreateUserReqBody>, res: Response) {
+        const validate = new RequestValidationHelper(req, res);
+        validate
+            .checkForAdminPrivilege()
+            .checkKeyForValidValue('type', req.body.type, Object.keys(userTypes));
+        if (validate.allOkay === false) {
+            return;
+        }
+
+
         if (typeof req.body.password !== 'string' || typeof req.body.username !== 'string') {
             res.status(400).json(new CustomError('username and password need to be strings.'));
             return;
         }
-        if (!Object.keys(userTypes).includes(req.body.type)) {
-            res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('type', ...Object.keys(userTypes))));
-            return;
-        }
+        // if (!Object.keys(userTypes).includes(req.body.type)) {
+        //     res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('type', ...Object.keys(userTypes))));
+        //     return;
+        // }
 
         const alreadyExist = await UserUtils.getUser(req.body.username);
         if (alreadyExist !== undefined && alreadyExist !== null) {
@@ -115,7 +127,7 @@ export class UserController {
         }
     }
 
-
+    @bounceNonAdminAndNonSelf
     public static async deleteUser(req: ItmatAPIReq<requests.DeleteUserReqBody>, res: Response) {
         let updateResult: mongodb.UpdateWriteOpResult;
         try {
@@ -161,7 +173,7 @@ export class UserController {
             if (req.body.password) { fieldsToUpdate.password = await bcrypt.hash(req.body.password, config.bcrypt.saltround); }
             if (req.body.type) {
                 if (!Object.keys(userTypes).includes(req.body.type)) {
-                    res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('type', ...Object.keys(userTypes))));
+                    res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('type', Object.keys(userTypes))));
                     return;
                 }
                 fieldsToUpdate.type = req.body.type;
@@ -215,6 +227,15 @@ export class UserController {
                 res.status(401).json(new CustomError(APIErrorTypes.authorised));
                 return;
         }
+    }
+
+    public static whoAmI(req: Request, res: Response, next: NextFunction): void {
+        if (!req.user || req.user.username === undefined) {
+            res.status(404).json({ message: 'A unicorn, whose multitude is denominated a blessing, and which is Scotland\'s national animal.'});
+            return;
+        }
+        res.status(200).json(req.user);
+        return;
     }
 
 

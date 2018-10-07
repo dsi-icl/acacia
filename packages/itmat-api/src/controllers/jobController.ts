@@ -37,7 +37,7 @@ export class JobController {    //requests namespace defined globally in ../serv
 
     public static async createJobForUser(req: ItmatAPIReq<Job>, res: Response): Promise<void> {
         if (!Object.keys(jobTypes).includes(req.body.jobType)) {
-            res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('jobType', ...Object.keys(jobTypes))));
+            // res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('jobType', ...Object.keys(jobTypes))));
             return;
         }
 
