@@ -1,10 +1,10 @@
-import { Express, Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { APIErrorTypes } from './definitions/errors';
 import { CustomError } from './error';
 import { userTypes } from './definitions/users';
 
-declare global {
-    namespace Express {
+declare global { //eslint-disable-line
+    namespace Express { //eslint-disable-line
         interface Request {
             user?: any
         }
@@ -45,10 +45,14 @@ export class RequestValidationHelper {
     //seems like everything is in order!
     res.status(200).json(whatever);
     return;
-    */ 
+    */
     public checksFailed: boolean;
+    private readonly req: Request;
+    private readonly res: Response
 
-    constructor(private readonly req: Request, private readonly res: Response) {
+    constructor(req: Request, res: Response) {
+        this.req = req;
+        this.res = res;
         this.checksFailed = false;
     }
 
@@ -105,7 +109,7 @@ export class RequestValidationHelper {
     }
 
     public checkRequiredKeysArePresentIn<T>(where: PlaceToCheck, keys: (keyof T)[]): RequestValidationHelper {
-        /* PRECONDITION: req.body and req.query doesn't have to be checked to be defined beforehand */ 
+        /* PRECONDITION: req.body and req.query doesn't have to be checked to be defined beforehand */
         if (this.checksFailed) return this; //if previous test fails there is no need to do more
         const errorMsg = where === PlaceToCheck.BODY ? APIErrorTypes.missingRequestKey(PlaceToCheck.BODY, keys as string[]) : APIErrorTypes.missingQueryString(keys as string[]);
         if (this.req[where]) {

@@ -13,9 +13,8 @@ export interface DatabaseConfig {
 export class Database {
     /* USAGE IN PACKAGES:
     1. either extend the class and override connect or use it as is; depending on the package's needs
-    2. use the connect function in server.initialise() for setup. 
-    
-    */ 
+    2. use the connect function in server.initialise() for setup.
+    */
     protected static db: mongodb.Db;
     protected static config: DatabaseConfig;
 
