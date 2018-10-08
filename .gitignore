@@ -66,6 +66,7 @@ doc/
 
 config.json
 *.config.json
+config.test.json
 
 .DS_Store
 
