@@ -20,4 +20,4 @@ export const jobTypes: JobType = {
             4: 'TERMINATED WITH ERROR'
         }
     }
-}
+};

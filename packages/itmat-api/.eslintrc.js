@@ -29,7 +29,6 @@ module.exports = {
         'quotes': ['error', 'single'],
         'semi': ['error', 'always'],
         'strict': ['warn', 'global'],
-        'curly': 'error',
         'array-bracket-spacing': ['error', 'never'],
         'space-infix-ops': 'error',
         'space-in-parens': 'error',

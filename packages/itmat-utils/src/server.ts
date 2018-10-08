@@ -1,7 +1,4 @@
-import { Express, Request, Response, NextFunction, RequestHandler } from 'express';
-import { CustomError } from './error';
-import { APIErrorTypes } from './definitions/errors';
-import { userTypes } from './definitions/users';
+import { Express } from 'express';
 
 export interface ServerConfig {
     server: {
@@ -42,8 +39,8 @@ export abstract class Server<T extends ServerConfig> {
     public async start(): Promise<void> {
         const app: Express = await this.initialise();
 
-        app.listen(this.port, () => { 
-            console.log(`I am listening on port ${this.port}!`); 
+        app.listen(this.port, () => {
+            console.log(`I am listening on port ${this.port}!`);
         }).on('error', (err) => {
             console.log(`Cannot start server..maybe port ${this.port} is already in use?`, err);
             process.exit(1);
