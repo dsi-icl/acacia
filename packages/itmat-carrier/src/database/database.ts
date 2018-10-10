@@ -6,7 +6,7 @@ export interface CarrierDatabaseConfig extends DatabaseConfig {
     jobs_collection: string
 }
 
-export class APIDatabase extends Database {
+export class CarrierDatabase extends Database {
     protected static db: mongodb.Db;
     protected static config: CarrierDatabaseConfig;
     public static jobs_collection: mongodb.Collection;

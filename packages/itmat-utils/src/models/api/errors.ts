@@ -1,4 +1,4 @@
-export const APIErrorTypes = {
+export const Errors = {
     notLoggedIn: 'Unauthorised! You are not logged in',
     entryNotFound: (entryName: string) => `Entry for ${entryName} not found.`,
     invalidDataType: (name: string, type: string) => `${name} must be of type ${type}`,
