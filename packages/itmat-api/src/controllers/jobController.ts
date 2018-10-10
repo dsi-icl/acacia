@@ -1,16 +1,18 @@
-import { JobUtils, Job, JobEntry } from '../utils/jobUtils';
+import { JobUtils } from '../utils/jobUtils';
 import uuidv4 from 'uuid/v4';
 import { ItmatAPIReq } from '../server/requests';
 import { APIDatabase } from '../database/database'; 
 import mongodb from 'mongodb';
-import { CustomError, APIErrorTypes, jobTypes, userTypes, SortBy, RequestValidationHelper, PlaceToCheck} from 'itmat-utils';
+import { CustomError, RequestValidationHelper, Models } from 'itmat-utils';
 import { Express, Request, Response, NextFunction } from 'express';
+import { JobModels } from 'itmat-utils/dist/models';
 
 
 export class JobController {    //requests namespace defined globally in ../server/requests.d.ts
     public static async getJobsOfAUser(req: ItmatAPIReq<requests.GetJobsByUserReqBody>, res: Response): Promise<void> {
         const { query } = req;
-        let result: JobEntry[];
+        const { Enums: { SortBy } } = Models;
+        let result: Models.JobModels.IJobEntry[];
         const resultLimit = query && query.limit && !isNaN(parseInt(query.limit)) ? parseInt(query.limit) : undefined;
 
         let sortByDate = SortBy.DESC;
@@ -24,7 +26,7 @@ export class JobController {    //requests namespace defined globally in ../serv
             }
         }
 
-        if (req.user.type !== userTypes.ADMIN) {
+        if (req.user.type !== Models.UserModels.userTypes.ADMIN) {
             result = await JobUtils.getAllJobs(sortByDate, query && query.username ? query.username : undefined, resultLimit);
         } else {
             result = await JobUtils.getAllJobs(sortByDate, req.user.username, resultLimit);
@@ -35,22 +37,22 @@ export class JobController {    //requests namespace defined globally in ../serv
         res.status(200).json(result);
     }
 
-    public static async createJobForUser(req: ItmatAPIReq<Job>, res: Response): Promise<void> {
-        if (!Object.keys(jobTypes).includes(req.body.jobType)) {
+    public static async createJobForUser(req: ItmatAPIReq<Models.JobModels.IJob>, res: Response): Promise<void> {
+        if (!Object.keys(Models.JobModels.jobTypes).includes(req.body.jobType)) {
             // res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('jobType', ...Object.keys(jobTypes))));
             return;
         }
 
-        const entry: JobEntry = {
+        const entry: Models.JobModels.IJobEntry = {
             id: uuidv4(),
             type: 'UPLOAD',
-            files: jobTypes[req.body.jobType].requiredFiles,
+            files: Models.JobModels.jobTypes[req.body.jobType].requiredFiles,
             jobType: req.body.jobType,
             requester: req.user.username,
-            numberOfFilesToTransfer: jobTypes[req.body.jobType].requiredFiles.length,
+            numberOfFilesToTransfer: Models.JobModels.jobTypes[req.body.jobType].requiredFiles.length,
             numberOfTransferredFiles: 0,
             created: new Date().valueOf(),
-            status: jobTypes[req.body.jobType].status[0],
+            status: Models.JobModels.jobTypes[req.body.jobType].status[0],
             carrier: 'hardcoded CARIER URL',           ///TO_DO  
             error: null
         }
@@ -80,17 +82,17 @@ export class JobController {    //requests namespace defined globally in ../serv
     public static async cancelJobForUser(req: ItmatAPIReq<requests.CancelJobReqBody>, res: Response): Promise<void> {   //admin and user himself can cancel jobs
         const validator = new RequestValidationHelper(req, res);
         if (validator
-            .checkRequiredKeysArePresentIn<requests.CancelJobReqBody>(PlaceToCheck.BODY, ['id'])
+            .checkRequiredKeysArePresentIn<requests.CancelJobReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['id'])
             .checksFailed) return;
     
-        const requestedJob: JobEntry = await JobUtils.getJobById(req.body.id);
+        const requestedJob: Models.JobModels.IJobEntry = await JobUtils.getJobById(req.body.id);
 
         if (validator
             .checkSearchResultIsNotDefinedNorNull(requestedJob, 'job')
             .checksFailed) return;
         
-        if (req.user.type !== userTypes.ADMIN && requestedJob.requester !== req.user.username) {
-            res.status(401).json(new CustomError(APIErrorTypes.authorised));
+        if (req.user.type !== Models.UserModels.userTypes.ADMIN && requestedJob.requester !== req.user.username) {
+            res.status(401).json(new CustomError(Models.APIModels.Errors.authorised));
             return;
         }
 

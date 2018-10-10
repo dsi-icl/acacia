@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { APIErrorTypes } from './definitions/errors';
+import * as Models from './models/index';
 import { CustomError } from './error';
-import { userTypes } from './definitions/users';
 
 declare global { //eslint-disable-line
     namespace Express { //eslint-disable-line
@@ -10,18 +9,6 @@ declare global { //eslint-disable-line
         }
     }
 }
-
-export const enum PlaceToCheck {
-    BODY = 'body',
-    QUERY = 'query'
-}
-
-export const enum JSDataType {
-    STRING = 'string',
-    NUMBER = 'number',
-    BOOL = 'boolean'
-}
-
 
 /**
  * @class RequestValidationHelper
@@ -58,7 +45,7 @@ export class RequestValidationHelper {
 
     static bounceNotLoggedIn(req: Request, res: Response, next: NextFunction): void {  //statically used as a express middleware
         if (req.user === undefined || req.user.username === undefined) {
-            res.status(401).json(new CustomError(APIErrorTypes.notLoggedIn));
+            res.status(401).json(new CustomError(Models.APIModels.Errors.notLoggedIn));
             return;
         }
         next();
@@ -66,10 +53,10 @@ export class RequestValidationHelper {
 
     public checkForAdminPrivilege(): RequestValidationHelper {
         if (this.checksFailed) return this;    //if previous test fails there is no need to do more
-        if (this.req.user.type === userTypes.ADMIN) {
+        if (this.req.user.type === Models.UserModels.userTypes.ADMIN) {
             return this;
         }
-        this.res.status(401).json(new CustomError(APIErrorTypes.authorised));
+        this.res.status(401).json(new CustomError(Models.APIModels.Errors.authorised));
         this.checksFailed = true;
         return this;;
     }
@@ -77,10 +64,10 @@ export class RequestValidationHelper {
     public checkForAdminPrivilegeOrSelf(): RequestValidationHelper {
         /* PRECONDITION: req.body.user must be defined (see request body interfaces in packages) */
         if (this.checksFailed) return this; //if previous test fails there is no need to do more
-        if (this.req.user.type === userTypes.ADMIN || this.req.user.username === this.req.body.user /* Be careful this bit */) {
+        if (this.req.user.type === Models.UserModels.userTypes.ADMIN || this.req.user.username === this.req.body.user /* Be careful this bit */) {
             return this;
         }
-        this.res.status(401).json(new CustomError(APIErrorTypes.authorised));
+        this.res.status(401).json(new CustomError(Models.APIModels.Errors.authorised));
         this.checksFailed = true;
         return this;
     }
@@ -92,26 +79,27 @@ export class RequestValidationHelper {
         if (Number.isInteger(numberToBeChecked)) {
             return this;
         }
-        this.res.status(400).json(new CustomError(APIErrorTypes.invalidDataType(name, 'interger')));
+        this.res.status(400).json(new CustomError(Models.APIModels.Errors.invalidDataType(name, 'interger')));
         this.checksFailed = true;
         return this;
     }
 
-    public checkForValidDataTypeForValue(objToBeChecked: any, type: JSDataType, name: string): RequestValidationHelper {
+    public checkForValidDataTypeForValue(objToBeChecked: any, type: Models.Enums.JSDataType, name: string): RequestValidationHelper {
         /* PRECONDITION: objToBeChecked is checked beforehand to be defined */
         if (this.checksFailed) return this; //if previous test fails there is no need to do more
         if (typeof objToBeChecked === type) {
             return this;
         }
-        this.res.status(400).json(new CustomError(APIErrorTypes.invalidDataType(name, type)));
+        this.res.status(400).json(new CustomError(Models.APIModels.Errors.invalidDataType(name, type)));
         this.checksFailed = true;
         return this;
     }
 
-    public checkRequiredKeysArePresentIn<T>(where: PlaceToCheck, keys: (keyof T)[]): RequestValidationHelper {
+    public checkRequiredKeysArePresentIn<T>(where: Models.APIModels.Enums.PlaceToCheck, keys: (keyof T)[]): RequestValidationHelper {
         /* PRECONDITION: req.body and req.query doesn't have to be checked to be defined beforehand */
         if (this.checksFailed) return this; //if previous test fails there is no need to do more
-        const errorMsg = where === PlaceToCheck.BODY ? APIErrorTypes.missingRequestKey(PlaceToCheck.BODY, keys as string[]) : APIErrorTypes.missingQueryString(keys as string[]);
+        const { Enums: { PlaceToCheck } , Errors } = Models.APIModels;
+        const errorMsg = where === PlaceToCheck.BODY ? Errors.missingRequestKey(PlaceToCheck.BODY, keys as string[]) : Errors.missingQueryString(keys as string[]);
         if (this.req[where]) {
             for (let each of keys) {
                 if (this.req[where][each] === undefined) {
@@ -142,7 +130,7 @@ export class RequestValidationHelper {
         if (allowedValues.includes(value)) {
             return this;
         }
-        this.res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue(keyName, allowedValues)));
+        this.res.status(400).json(new CustomError(Models.APIModels.Errors.invalidReqKeyValue(keyName, allowedValues)));
         this.checksFailed = true;
         return this;
     }
@@ -163,12 +151,12 @@ export class RequestValidationHelper {
             case 1:
                 return this;
             case 0:
-                this.res.status(404).json(new CustomError(APIErrorTypes.entryNotFound(entryName)));
+                this.res.status(404).json(new CustomError(Models.APIModels.Errors.entryNotFound(entryName)));
                 this.checksFailed = true;
                 return this;
             default:
                 // maybe log the error somewhere with the req and give a reference number. ==> new CustomError(APIErrorTypes.resultBiggerThanOne, e, ERRORID);
-                this.res.status(500).json(new CustomError(APIErrorTypes.resultBiggerThanOne));
+                this.res.status(500).json(new CustomError(Models.APIModels.Errors.resultBiggerThanOne));
                 this.checksFailed = true;
                 return this;
         }

@@ -1,10 +1,9 @@
 import { Request } from 'express';
-import { userTypes } from 'itmat-utils';
-import { UserWithoutToken } from '../utils/userUtils';
+import { Models } from 'itmat-utils';
 
 export interface ItmatAPIReq<T> extends Request {
     body: T,
-    user: UserWithoutToken
+    user: Models.UserModels.IUserWithoutToken
 }
 
 declare global {
@@ -24,7 +23,7 @@ declare global {
         interface CreateUserReqBody {
             username: string,
             password: string,
-            type: keyof typeof userTypes
+            type: keyof typeof Models.UserModels.userTypes
         }
 
         interface LoginReqBody {
@@ -35,7 +34,7 @@ declare global {
         interface EditUserReqBody {
             user: string,
             password?: string,
-            type?: userTypes
+            type?: Models.UserModels.userTypes
         }
 
         interface LogoutReqBody {

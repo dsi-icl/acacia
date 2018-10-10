@@ -1,10 +1,9 @@
 import { Request } from 'express';
-import { userTypes } from 'itmat-utils';
-import { UserWithoutToken } from '../utils/userUtils';
+import { Models } from 'itmat-utils';
 
 export interface ItmatCarrierReq<T> extends Request {
     body: T,
-    user: UserWithoutToken
+    user: Models.UserModels.IUserWithoutToken
 }
 
 declare global {

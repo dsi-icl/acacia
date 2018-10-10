@@ -1,13 +1,11 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
-import { APIDatabase } from '../database/database';
-import { UserUtils, UserWithoutToken, User } from '../utils/userUtils';
-import { CustomError, RequestValidationHelper } from 'itmat-utils';
-import { Job, JobUtils, JobEntry } from '../utils/jobUtils';
+import { CarrierDatabase } from '../database/database';
+import { CustomError, RequestValidationHelper, UserControllerBasic } from 'itmat-utils';
 import bodyParser from 'body-parser';
 import passport from 'passport';
+import { UserUtils } from '../utils/userUtils';
 import session from 'express-session';
-import passportLocal from 'passport-local';
 import connectMongo from 'connect-mongo';
 const MongoStore = connectMongo(session);
 
@@ -21,9 +19,8 @@ export class Router {
 
         app.use(session({
             secret: 'IAmATeapot',
-            store: new MongoStore({ db: APIDatabase.getDB() } as any)
+            store: new MongoStore({ db: CarrierDatabase.getDB() } as any)
         }));
-
 
 
         app.use(passport.initialize());
@@ -31,9 +28,11 @@ export class Router {
 
         passport.serializeUser(UserUtils.serialiseUser);
         passport.deserializeUser(UserUtils.deserialiseUser);
+
+        app.use(RequestValidationHelper.bounceNotLoggedIn);
         
         app.route('/whoAmI')
-            .get(UserController.whoAmI);
+            .get(UserControllerBasic.whoAmI);
         
         app.all('/', function(err: Error, req: Request, res: Response, next: NextFunction) {
             res.status(500).json(new CustomError('Server error.'));

@@ -1,13 +1,13 @@
-import { UserUtils, UserWithoutToken, User } from '../utils/userUtils';
+import { UserUtils } from '../utils/userUtils';
 import { APIDatabase } from '../database/database';
 import { ItmatAPIReq } from '../server/requests';
-import { CustomError, userTypes, APIErrorTypes, RequestValidationHelper, PlaceToCheck, JSDataType } from 'itmat-utils';
+import { CustomError, Models, RequestValidationHelper, UserControllerBasic } from 'itmat-utils';
 import mongodb, { UpdateWriteOpResult } from 'mongodb';
 import { Express, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import config from '../config/config.json';
 
-export class UserController {
+export class UserController extends UserControllerBasic {
     public static async getUsers(req: ItmatAPIReq<undefined>, res: Response) {
         const validator = new RequestValidationHelper(req, res);
         if (validator
@@ -15,7 +15,7 @@ export class UserController {
             .checksFailed) return;
 
         if (req.query && req.query.username) {   //if there is query.username then only get that user; if not then get all users;
-            let result: UserWithoutToken;
+            let result: Models.UserModels.IUserWithoutToken;
             try {
                 result = await UserUtils.getUser(req.query.username);
 
@@ -30,7 +30,7 @@ export class UserController {
                 return;
             }
         } else {
-            let result: UserWithoutToken[];
+            let result: Models.UserModels.IUserWithoutToken[];
             try {
                 result = await UserUtils.getAllUsers();
                 res.status(200).json(result);
@@ -44,12 +44,13 @@ export class UserController {
 
     public static async createNewUser(req: ItmatAPIReq<requests.CreateUserReqBody>, res: Response) {
         const validator = new RequestValidationHelper(req, res);
+        
         if (validator
             .checkForAdminPrivilege()
-            .checkRequiredKeysArePresentIn<requests.CreateUserReqBody>(PlaceToCheck.BODY, ['username', 'password', 'type'])
-            .checkKeyForValidValue('type', req.body.type, Object.keys(userTypes))
-            .checkForValidDataTypeForValue(req.body.password, JSDataType.STRING, 'password')
-            .checkForValidDataTypeForValue(req.body.username, JSDataType.STRING, 'username')
+            .checkRequiredKeysArePresentIn<requests.CreateUserReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['username', 'password', 'type'])
+            .checkKeyForValidValue('type', req.body.type, Object.keys(Models.UserModels.userTypes))
+            .checkForValidDataTypeForValue(req.body.password, Models.Enums.JSDataType.STRING, 'password')
+            .checkForValidDataTypeForValue(req.body.username, Models.Enums.JSDataType.STRING, 'username')
             .checksFailed) return;
 
         const alreadyExist = await UserUtils.getUser(req.body.username); //since bycrypt is CPU expensive let's check the username is not taken first
@@ -59,10 +60,10 @@ export class UserController {
         }
 
         const hashedPassword: string = await bcrypt.hash(req.body.password, config.bcrypt.saltround);
-        const entry: User = {
+        const entry: Models.UserModels.IUser = {
             username: req.body.username,
             password: hashedPassword,
-            type: req.body.type,
+            type: req.body.type as Models.UserModels.userTypes,
             deleted: false,
             createdBy: req.user.username
         };
@@ -86,12 +87,12 @@ export class UserController {
     public static async login(req: ItmatAPIReq<requests.LoginReqBody>, res: Response): Promise<void> {
         const validator = new RequestValidationHelper(req, res);
         if (validator
-            .checkRequiredKeysArePresentIn<requests.LoginReqBody>(PlaceToCheck.BODY, ['password', 'username'])
-            .checkForValidDataTypeForValue(req.body.password, JSDataType.STRING, 'password')
-            .checkForValidDataTypeForValue(req.body.username, JSDataType.STRING, 'username')
+            .checkRequiredKeysArePresentIn<requests.LoginReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['password', 'username'])
+            .checkForValidDataTypeForValue(req.body.password, Models.Enums.JSDataType.STRING, 'password')
+            .checkForValidDataTypeForValue(req.body.username, Models.Enums.JSDataType.STRING, 'username')
             .checksFailed) return;
         
-        const result: User = await APIDatabase.users_collection.findOne({ deleted: false, username: req.body.username });  //not getUser() because we need the pw as well
+        const result: Models.UserModels.IUser = await APIDatabase.users_collection.findOne({ deleted: false, username: req.body.username });  //not getUser() because we need the pw as well
         if (!result) {
             res.status(401).json(new CustomError('Incorrect username'));
         }
@@ -109,12 +110,14 @@ export class UserController {
 
     public static async logout(req: ItmatAPIReq<requests.LogoutReqBody>, res: Response) {
         const validator = new RequestValidationHelper(req, res);
+        const { PlaceToCheck } = Models.APIModels.Enums;
+        const { JSDataType } = Models.Enums;
         if (validator
             .checkRequiredKeysArePresentIn<requests.LogoutReqBody>(PlaceToCheck.BODY, ['user'])
             .checkForAdminPrivilegeOrSelf()
             .checkForValidDataTypeForValue(req.body.user, JSDataType.STRING, 'user')
             .checksFailed) return;
-
+            console.log('hey');
         (req.session as Express.Session).destroy((err) => {
             if (req.user === undefined || req.user === null) {
                 res.status(401).json(new CustomError('Not logged in in the first place!'));
@@ -133,6 +136,8 @@ export class UserController {
 
     public static async deleteUser(req: ItmatAPIReq<requests.DeleteUserReqBody>, res: Response) {
         const validator = new RequestValidationHelper(req, res);
+        const { PlaceToCheck } = Models.APIModels.Enums;
+        const { JSDataType } = Models.Enums;
         if (validator
             .checkRequiredKeysArePresentIn<requests.DeleteUserReqBody>(PlaceToCheck.BODY, ['user'])
             .checkForAdminPrivilegeOrSelf()
@@ -162,15 +167,17 @@ export class UserController {
     public static async editUser(req: ItmatAPIReq<requests.EditUserReqBody>, res: Response, next: NextFunction) {  ///LOG OUT ALL SESSIONS OF THAT USER?
         /* admin is allow to change everything except username. user himself is allowed to change password only (e.g. not privilege) */
         const validator = new RequestValidationHelper(req, res);
+        const { PlaceToCheck } = Models.APIModels.Enums;
+        const { JSDataType } = Models.Enums;
         if (validator
             .checkRequiredKeysArePresentIn<requests.EditUserReqBody>(PlaceToCheck.BODY, ['user'])
             .checkForAdminPrivilegeOrSelf()
             .checkForValidDataTypeForValue(req.body.user, JSDataType.STRING, 'user')
             .checksFailed) return;
 
-        if (req.user.type === userTypes.ADMIN) {
+        if (req.user.type === Models.UserModels.userTypes.ADMIN) {
             try {
-                const result: UserWithoutToken = await UserUtils.getUser(req.body.user);   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                const result: Models.UserModels.IUserWithoutToken = await UserUtils.getUser(req.body.user);   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     res.status(404).json(new CustomError('user not found'));
                     return;
@@ -182,8 +189,8 @@ export class UserController {
             const fieldsToUpdate: any = {};
             if (req.body.password) { fieldsToUpdate.password = await bcrypt.hash(req.body.password, config.bcrypt.saltround); }
             if (req.body.type) {
-                if (!Object.keys(userTypes).includes(req.body.type)) {
-                    res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('type', Object.keys(userTypes))));
+                if (!Object.keys(Models.UserModels.userTypes).includes(req.body.type)) {
+                    res.status(400).json(new CustomError(Models.APIModels.Errors.invalidReqKeyValue('type', Object.keys(Models.UserModels.userTypes))));
                     return;
                 }
                 fieldsToUpdate.type = req.body.type;
@@ -234,19 +241,8 @@ export class UserController {
                 return;
             }
         } else {
-                res.status(401).json(new CustomError(APIErrorTypes.authorised));
+                res.status(401).json(new CustomError(Models.APIModels.Errors.authorised));
                 return;
         }
     }
-
-    public static whoAmI(req: Request, res: Response, next: NextFunction): void {
-        if (!req.user || req.user.username === undefined) {
-            res.status(404).json({ message: 'A unicorn, whose multitude is denominated a blessing, and which is Scotland\'s national animal.'});
-            return;
-        }
-        res.status(200).json(req.user);
-        return;
-    }
-
-
 } 

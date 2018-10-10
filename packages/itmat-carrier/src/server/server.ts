@@ -1,6 +1,6 @@
 import express from 'express';
 import { Server, CustomError, ServerConfig } from 'itmat-utils';
-import { APIDatabase, CarrierDatabaseConfig } from '../database/database';
+import { CarrierDatabase, CarrierDatabaseConfig } from '../database/database';
 import { Router } from './router';
 import { Express, Request, Response, NextFunction } from 'express';
 
@@ -14,7 +14,7 @@ interface CarrierServerConfig extends ServerConfig {
 export class APIServer extends Server<CarrierServerConfig> {
     protected async initialise(): Promise<Express> {
         try {  //try to establish a connection to database first; if failed, exit the program
-            await APIDatabase.connect(this.config.database);
+            await CarrierDatabase.connect(this.config.database);
         } catch (e) {
             const { mongo_url: mongoUri, database } = this.config.database;
             console.log(
