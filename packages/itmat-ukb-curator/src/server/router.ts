@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Express } from 'express';
 import bodyParser from 'body-parser';
 import multer from 'multer';
 import * as UKBFieldsController from '../controllers/UKBFieldsController';
@@ -11,7 +11,7 @@ const upload = multer({ storage: CSVStorageEngine });
 
 export class Router {
     constructor() {
-        const app = express();
+        const app: Express = express();
 
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));

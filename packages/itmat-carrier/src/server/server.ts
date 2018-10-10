@@ -3,15 +3,14 @@ import { Server, CustomError, ServerConfig } from 'itmat-utils';
 import { CarrierDatabase, CarrierDatabaseConfig } from '../database/database';
 import { Router } from './router';
 import { Express, Request, Response, NextFunction } from 'express';
+import { objectStore, IOpenSwiftObjectStoreConfig } from '../objectStore/OpenStackObjectStore';
 
 interface CarrierServerConfig extends ServerConfig {
     database: CarrierDatabaseConfig,
-    bcrypt: {
-        saltround: number
-    }
+    swift: IOpenSwiftObjectStoreConfig
 }
 
-export class APIServer extends Server<CarrierServerConfig> {
+export class CarrierServer extends Server<CarrierServerConfig> {
     protected async initialise(): Promise<Express> {
         try {  //try to establish a connection to database first; if failed, exit the program
             await CarrierDatabase.connect(this.config.database);
@@ -23,13 +22,15 @@ export class APIServer extends Server<CarrierServerConfig> {
             process.exit(1);
         }
 
-        if (isNaN(parseInt(this.config.bcrypt.saltround as any))) {
+        try {  //try to establish a connection to database first; if failed, exit the program
+            await objectStore.connect();
+        } catch (e) {
             console.log(
-                new CustomError('Salt round must be a number')
+                new CustomError(`Cannot connect to object store.`, e)
             );
             process.exit(1);
-        } 
-
+        }
+        
         return new Router() as Express;
     }
 }
