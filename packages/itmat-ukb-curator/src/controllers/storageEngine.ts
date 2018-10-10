@@ -5,7 +5,6 @@ import multer from 'multer';
 import { UKBCurationDatabase } from '../database/database';
 import { UKBFields, FieldEntry, FieldMap } from '../curation/UKBFields';
 import { UKBCoding, CodingMap } from '../curation/UKBCoding';
-import { server } from '../index';
 
 const parseOptions: csvparse.Options = {
     delimiter: ',',

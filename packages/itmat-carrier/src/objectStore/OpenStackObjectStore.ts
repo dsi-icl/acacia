@@ -1,7 +1,8 @@
 import { Store, Account, Container, Segment, DynamicLargeObject, StaticLargeObject } from 'os2';
 import { ObjectStore, IObjectStoreConfig, Models } from 'itmat-utils';
+import config from '../config/config.json';
 
-interface IOpenSwiftObjectStoreConfig extends IObjectStoreConfig {
+export interface IOpenSwiftObjectStoreConfig extends IObjectStoreConfig {
     username: string,
     password: string
 }
@@ -35,8 +36,6 @@ class OpenStackSwiftObjectStore extends ObjectStore<IOpenSwiftObjectStoreConfig>
         } catch (e) {
             throw e;
         }
-        
-        console.log('implementation');
 
     }
 
@@ -44,6 +43,7 @@ class OpenStackSwiftObjectStore extends ObjectStore<IOpenSwiftObjectStoreConfig>
         console.log('implementation');
         
     }
-
-    
 }
+
+/* singleton */
+export const objectStore = new OpenStackSwiftObjectStore(config.swift);

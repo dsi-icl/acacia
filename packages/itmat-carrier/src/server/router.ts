@@ -2,13 +2,17 @@ import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { CarrierDatabase } from '../database/database';
 import { CustomError, RequestValidationHelper, UserControllerBasic } from 'itmat-utils';
+import { FileController } from '../controllers/fileController';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import { UserUtils } from '../utils/userUtils';
 import session from 'express-session';
 import connectMongo from 'connect-mongo';
 const MongoStore = connectMongo(session);
+import multer from 'multer';
+import { storageEngine } from '../controllers/storageEngine';
 
+const upload = multer({ storage: storageEngine });
 
 export class Router {
     constructor() {
@@ -30,7 +34,19 @@ export class Router {
         passport.deserializeUser(UserUtils.deserialiseUser);
 
         app.use(RequestValidationHelper.bounceNotLoggedIn);
-        
+        // app.route('/data')
+        //     .post(upload.fields([{ name: 'UKBCSVFile', maxCount: 1 }]), (req, res) => { console.log('file', (req.files as any).UKBCSVFile ); res.send('yes'); });  //TODO: check for undefined file;
+            
+        app.route('/fileUpload')
+            .post(
+                FileController.uploadFileChecks, 
+                upload.fields([{ name: 'file', maxCount: 1 }]),
+                (req, res) => { console.log('file', req.files ); res.send('yes'); }
+            );
+
+        app.route('/fileDownload')
+            .post(FileController.downloadFile);
+
         app.route('/whoAmI')
             .get(UserControllerBasic.whoAmI);
         
