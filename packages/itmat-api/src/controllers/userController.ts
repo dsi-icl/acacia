@@ -5,7 +5,7 @@ import { CustomError, Models, RequestValidationHelper, UserControllerBasic } fro
 import mongodb, { UpdateWriteOpResult } from 'mongodb';
 import { Express, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
-import config from '../config/config.json';
+import config from '../../config/config.json';
 
 export class UserController extends UserControllerBasic {
     public static async getUsers(req: ItmatAPIReq<undefined>, res: Response) {

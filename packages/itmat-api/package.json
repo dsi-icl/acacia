@@ -2,7 +2,7 @@
   "name": "itmat-api",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "dockerbuild": "tsc && docker build -t itmat-api .",
     "test": "echo \"Error: no test specified\" && exit 1"
