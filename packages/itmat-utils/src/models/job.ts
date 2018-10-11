@@ -27,7 +27,7 @@ import mongodb from 'mongodb';
         status: string, //cancel, uploading to database, transferring file..etc, finished successfully, finished with error
         carrier: string, //endpoint to call for upload file
         error: null | object,
-        filesReceived?: object[],
+        filesReceived: string[],
         cancelled?: boolean,
         cancelledTime?: number
     }

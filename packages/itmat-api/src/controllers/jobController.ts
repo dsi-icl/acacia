@@ -49,6 +49,7 @@ export class JobController {    //requests namespace defined globally in ../serv
             files: Models.JobModels.jobTypes[req.body.jobType].requiredFiles,
             jobType: req.body.jobType,
             requester: req.user.username,
+            filesReceived: [],
             numberOfFilesToTransfer: Models.JobModels.jobTypes[req.body.jobType].requiredFiles.length,
             numberOfTransferredFiles: 0,
             created: new Date().valueOf(),
