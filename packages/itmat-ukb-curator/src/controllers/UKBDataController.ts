@@ -1,6 +1,6 @@
 import express from 'express';
 import { UKBFields } from '../curation/UKBFields';
-import { DataEntry } from '../curation/UKBData';
+import { IDataEntry } from '../models/UKBData';
 import { CustomError, Models } from 'itmat-utils';
 
 export function addData(req: express.Request, res: express.Response): void {
@@ -11,7 +11,7 @@ export function addData(req: express.Request, res: express.Response): void {
         return;
     }
     
-    const entry: DataEntry = body.entry;
+    const entry: IDataEntry = body.entry;
     if (!entry.patientId || !entry.fieldId || !entry.value) {
         res.status(400).json(new CustomError(Models.APIModels.Errors.missingRequestKey('entry', ['patientId', 'field', 'value'])));
         return;

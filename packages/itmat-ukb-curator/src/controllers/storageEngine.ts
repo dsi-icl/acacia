@@ -3,8 +3,8 @@ import express from 'express';
 import csvparse from 'csv-parse';
 import multer from 'multer';
 import { UKBCurationDatabase } from '../database/database';
-import { FieldMap } from '../models/UKBFields';
-import { CodingMap } from '../models/UKBCoding';
+import { IFieldMap } from '../models/UKBFields';
+import { ICodingMap } from '../models/UKBCoding';
 
 const parseOptions: csvparse.Options = {
     delimiter: ',',
@@ -18,7 +18,7 @@ interface fieldDescription {
 }
 
 interface headerArrayElement {
-        coding: undefined | CodingMap,
+        coding: undefined | ICodingMap,
         valueType: string
 }
 
@@ -66,14 +66,14 @@ class _CSVStorageEngine implements multer.StorageEngine {
                         array: parseInt(el.slice(el.indexOf('.')+1))
                     };
                     const key = `${fieldDescription.fieldId}-${fieldDescription.instance}-${fieldDescription.array}`;
-                    const fieldInfo = (fieldDict as FieldMap)[fieldDescription.fieldId];
+                    const fieldInfo = (fieldDict as IFieldMap)[fieldDescription.fieldId];
                     if (fieldInfo
                             && fieldInfo.Instances >= fieldDescription.instance
                             && fieldInfo.Array >= fieldDescription.array) { //making sure the fieldid in the csv file is not bogus
                         const valueType: string = fieldInfo.ValueType;
-                        if (fieldInfo.Coding && (UKBCurationDatabase.CODING_DICT as CodingMap)[fieldInfo.Coding]) {
+                        if (fieldInfo.Coding && (UKBCurationDatabase.CODING_DICT as ICodingMap)[fieldInfo.Coding]) {
                             fieldToBeAdded = {
-                                coding: (UKBCurationDatabase.CODING_DICT as CodingMap)[fieldInfo.Coding],
+                                coding: (UKBCurationDatabase.CODING_DICT as ICodingMap)[fieldInfo.Coding],
                                 valueType: UKBiobankValueTypes[valueType],
                                 fieldId: key
                             };
