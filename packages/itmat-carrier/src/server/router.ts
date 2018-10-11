@@ -10,9 +10,8 @@ import session from 'express-session';
 import connectMongo from 'connect-mongo';
 const MongoStore = connectMongo(session);
 import multer from 'multer';
-import { storageEngine } from '../controllers/storageEngine';
 
-const upload = multer({ storage: storageEngine });
+const upload = multer();
 
 export class Router {
     constructor() {
@@ -33,22 +32,18 @@ export class Router {
         passport.serializeUser(UserUtils.serialiseUser);
         passport.deserializeUser(UserUtils.deserialiseUser);
 
+        app.route('/whoAmI')
+            .get(UserControllerBasic.whoAmI);
+
         app.use(RequestValidationHelper.bounceNotLoggedIn);
         // app.route('/data')
         //     .post(upload.fields([{ name: 'UKBCSVFile', maxCount: 1 }]), (req, res) => { console.log('file', (req.files as any).UKBCSVFile ); res.send('yes'); });  //TODO: check for undefined file;
             
         app.route('/fileUpload')
-            .post(
-                FileController.uploadFileChecks, 
-                upload.fields([{ name: 'file', maxCount: 1 }]),
-                (req, res) => { console.log('file', req.files ); res.send('yes'); }
-            );
+            .post(upload.single('file'), FileController.uploadFile);
 
         app.route('/fileDownload')
             .post(FileController.downloadFile);
-
-        app.route('/whoAmI')
-            .get(UserControllerBasic.whoAmI);
         
         app.all('/', function(err: Error, req: Request, res: Response, next: NextFunction) {
             res.status(500).json(new CustomError('Server error.'));
