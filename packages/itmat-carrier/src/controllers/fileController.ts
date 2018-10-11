@@ -19,7 +19,9 @@ declare global {
 
 export class FileController {
     public static async uploadFile(req: ItmatCarrierReq<requests.FileUploadReqBody>, res: Response, next: NextFunction): Promise<void> {
-        const validator = new RequestValidationHelper(req, res);
+        const validator = new RequestValidationHelper(req, res);    //what if the person sends the same files to two carriers
+        //maybe a script for checking integrity. 
+        //this doesn't include images..
         if (validator
             .checkForAdminPrivilege()
             .checkRequiredKeysArePresentIn<requests.FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['fileName', 'jobId'])
@@ -46,10 +48,17 @@ export class FileController {
 
         try {
             await objectStore.uploadFile(req.file.stream, jobSearchResult, req.body.fileName);
-            res.status(200).json({ message: 'File successfully uploaded.'});
-            //change the transferred file count
         } catch (e) {
             res.status(500).json(new CustomError('Cannot upload file.', e));
+            return;
+        }
+
+        if (jobSearchResult.filesReceived.includes(req.body.fileName)) {
+            res.status(200).json({ message: 'File successfully replaced.'});
+            return;
+        } else {
+            await CarrierDatabase.jobs_collection.updateOne({ id: req.body.jobId }, { $inc: { numberOfTransferredFiles: 1 }, $push: { filesReceived: req.body.fileName }});
+            res.status(200).json({ message: 'File successfully uploaded.'});
             return;
         }
     }
