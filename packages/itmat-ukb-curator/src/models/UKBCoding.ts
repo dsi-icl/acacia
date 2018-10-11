@@ -1,10 +1,10 @@
-export interface CodingEntry {
+export interface ICodingEntry {
     Coding: number,
     Value: string,
     Meaning: string
 }
 
-export interface CodingMap {
+export interface ICodingMap {
     [property: number]: {
         [property: string]: string
     }

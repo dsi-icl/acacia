@@ -1,4 +1,4 @@
-export interface FieldEntry {
+export interface IFieldEntry {
     Path: string,
     Category: number,
     FieldID: number,
@@ -18,6 +18,6 @@ export interface FieldEntry {
     Link?: string
 }
 
-export interface FieldMap {
-    [fieldID: number]: FieldEntry
+export interface IFieldMap {
+    [fieldID: number]: IFieldEntry
 }
