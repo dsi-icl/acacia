@@ -2,7 +2,8 @@ import mongodb from 'mongodb';
 
 export interface DatabaseConfig {
     mongo_url: string,
-    database: string
+    database: string,
+    jobs_collection: string
 }
 
 /**
