@@ -36,9 +36,14 @@ export class FileController {
             .checksFailed) return;
 
         const user: Models.UserModels.IUserWithoutToken = req.user as Models.UserModels.IUserWithoutToken;
-        
+
         if (user.username !== jobSearchResult.requester) {
             res.status(401).json(new CustomError(Models.APIModels.Errors.authorised));
+            return;
+        }
+
+        if (jobSearchResult.cancelled === true) {
+            res.status(400).json(new CustomError('Job was cancelled.'));
             return;
         }
 
@@ -64,7 +69,35 @@ export class FileController {
     }
 
     public static async downloadFile(req: ItmatCarrierReq<requests.FileDownloadReqBody>, res: Response): Promise<void> {
+        // TO_DO: how to restrict downloadfile to other microservices .
         const user: Models.UserModels.IUserWithoutToken = req.user as Models.UserModels.IUserWithoutToken;
+        const validator = new RequestValidationHelper(req, res);
+        const { jobId, fileName } = req.params;
+
+        const jobSearchResult: Models.JobModels.IJobEntry = await CarrierDatabase.jobs_collection.findOne({ id: jobId });
+
+        if (validator
+            .checkSearchResultIsNotDefinedNorNull(jobSearchResult, 'job')
+            .checkKeyForValidValue('fileName', fileName, jobSearchResult.filesReceived)
+            .checksFailed) return;
+
+        
+        let fileStream: NodeJS.ReadableStream;
+        try {
+            fileStream = await objectStore.downloadFile(fileName, jobSearchResult);
+        } catch (e) {
+            res.status(500).json(new CustomError('Cannot download file', e));
+            return;
+        }
+        
+        fileStream.on('data', (data) => {
+            res.write(data);
+        });
+
+        fileStream.on('end', () => {
+            res.end();
+        })
+        
         return;
     }
 }

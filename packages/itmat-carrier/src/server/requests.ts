@@ -15,7 +15,8 @@ declare global {
         }
 
         interface FileDownloadReqBody {
-            there: string
+            fileName: string,
+            jobId: string
         }
     }
 }

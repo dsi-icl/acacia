@@ -35,9 +35,11 @@ class OpenStackSwiftObjectStore extends ObjectStore<IOpenSwiftObjectStoreConfig>
         return;
     }
 
-    public async downloadFile(jobEntry: Models.JobModels.IJobEntry, outgoingStream: NodeJS.WritableStream): Promise<void> {
-        console.log('implementation');
-        
+    public async downloadFile(fileName: string, job: Models.JobModels.IJobEntry): Promise<NodeJS.ReadableStream> {
+        //faltan checks 
+        const container = new Container(this.account, job.id);
+        const segment = new Segment(container, fileName);
+        return await segment.getContentStream();
     }
 }
 
