@@ -1,18 +1,18 @@
 import mongodb from 'mongodb';
-import { DatabaseConfig, Database, CustomError } from 'itmat-utils';
+import { IDatabaseConfig, Database, CustomError } from 'itmat-utils';
 
-export interface CarrierDatabaseConfig extends DatabaseConfig {
+export interface ICarrierDatabaseConfig extends IDatabaseConfig {
     users_collection: string,
     jobs_collection: string
 }
 
 export class CarrierDatabase extends Database {
     protected static db: mongodb.Db;
-    protected static config: CarrierDatabaseConfig;
+    protected static config: ICarrierDatabaseConfig;
     public static jobs_collection: mongodb.Collection;
     public static users_collection: mongodb.Collection;
 
-    public static async connect(config: CarrierDatabaseConfig): Promise<void> {
+    public static async connect(config: ICarrierDatabaseConfig): Promise<void> {
         if (!this.db) {
             /* any error throw here should be caught by the server calling this function */
             console.log('Connecting to the database..');

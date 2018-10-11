@@ -1,16 +1,16 @@
 import express from 'express';
-import { Server, CustomError, ServerConfig } from 'itmat-utils';
-import { CarrierDatabase, CarrierDatabaseConfig } from '../database/database';
+import { Server, CustomError, IServerConfig } from 'itmat-utils';
+import { CarrierDatabase, ICarrierDatabaseConfig } from '../database/database';
 import { Router } from './router';
 import { Express, Request, Response, NextFunction } from 'express';
 import { objectStore, IOpenSwiftObjectStoreConfig } from '../objectStore/OpenStackObjectStore';
 
-interface CarrierServerConfig extends ServerConfig {
-    database: CarrierDatabaseConfig,
+interface ICarrierServerConfig extends IServerConfig {
+    database: ICarrierDatabaseConfig,
     swift: IOpenSwiftObjectStoreConfig
 }
 
-export class CarrierServer extends Server<CarrierServerConfig> {
+export class CarrierServer extends Server<ICarrierServerConfig> {
     protected async initialise(): Promise<Express> {
         try {  //try to establish a connection to database first; if failed, exit the program
             await CarrierDatabase.connect(this.config.database);

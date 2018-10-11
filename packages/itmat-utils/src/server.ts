@@ -1,12 +1,12 @@
 import { Express } from 'express';
 
-export interface ServerConfig {
+export interface IServerConfig {
     server: {
         port: number
     }
 }
 
-export abstract class Server<T extends ServerConfig> {
+export abstract class Server<T extends IServerConfig> {
     /* USAGE IN ALL PACKAGES:
     1. extend ServerConfig Interface:
     // interface DerivedServerConfig extends ServerConfig {

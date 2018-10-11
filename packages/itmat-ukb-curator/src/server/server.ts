@@ -1,17 +1,17 @@
 import express from 'express';
-import { Server, DatabaseConfig, CustomError, ServerConfig, Models } from 'itmat-utils';
-import { UKBCurationDatabase, UKBDatabaseConfig } from '../database/database';
+import { Server, IDatabaseConfig, CustomError, IServerConfig, Models } from 'itmat-utils';
+import { UKBCurationDatabase, IUKBDatabaseConfig } from '../database/database';
 import { Express, Request, NextFunction } from 'express';
 import { UKBDataCurator } from '../curation/UKBData';
 import { Router } from './router';
 import fetch, { Response } from 'node-fetch';
 
 
-interface UKBCuratorServerConfig extends ServerConfig{
-    database: UKBDatabaseConfig
+interface IUKBCuratorServerConfig extends IServerConfig{
+    database: IUKBDatabaseConfig
 }
 
-export class UKBCuratorServer extends Server<UKBCuratorServerConfig> {
+export class UKBCuratorServer extends Server<IUKBCuratorServerConfig> {
     protected async initialise(): Promise<Express> {
         try {  //try to establish a connection to database first; if failed, exit the program
             await UKBCurationDatabase.connect(this.config.database);
