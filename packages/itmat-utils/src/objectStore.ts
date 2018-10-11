@@ -15,7 +15,7 @@ export abstract class ObjectStore<T extends IObjectStoreConfig> {
 
     public abstract async connect(): Promise<void>;
 
-    public abstract async uploadFile(incomingStream: NodeJS.ReadableStream, jobEntry: JobModels.IJobEntry): Promise<void>;
+    public abstract async uploadFile(incomingStream: NodeJS.ReadableStream, jobEntry: JobModels.IJobEntry, fileName: string): Promise<void>;
 
     public abstract async downloadFile(jobEntry: JobModels.IJobEntry, outgoingStream: NodeJS.WritableStream): Promise<void>;
 }

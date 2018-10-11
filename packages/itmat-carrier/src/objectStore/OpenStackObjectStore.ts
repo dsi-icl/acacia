@@ -26,17 +26,13 @@ class OpenStackSwiftObjectStore extends ObjectStore<IOpenSwiftObjectStoreConfig>
         return; //success
     }
 
-    public async uploadFile(fileStream: NodeJS.ReadableStream, job: Models.JobModels.IJobEntry): Promise<void> {
-        const container = new Container(this.account, `${job.requester}_${job.id}`);
-        const metaData = container.getMetadata();
+    public async uploadFile(fileStream: NodeJS.ReadableStream, job: Models.JobModels.IJobEntry, fileName: string): Promise<void> {
+        const container = new Container(this.account, job.id);
+        // const metaData = container.getMetadata();
         container.create();
-        const segment = new Segment(container, 'NAME');
-        try {
-            segment.createFromStream(fileStream);
-        } catch (e) {
-            throw e;
-        }
-
+        const segment = new Segment(container, fileName);
+        await segment.createFromStream(fileStream); //error if thrown is caught by controller
+        return;
     }
 
     public async downloadFile(jobEntry: Models.JobModels.IJobEntry, outgoingStream: NodeJS.WritableStream): Promise<void> {
