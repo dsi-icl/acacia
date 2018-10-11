@@ -1,17 +1,17 @@
 import express from 'express';
-import { Server, CustomError, ServerConfig } from 'itmat-utils';
-import { APIDatabase, APIDatabaseConfig } from '../database/database';
+import { Server, CustomError, IServerConfig } from 'itmat-utils';
+import { APIDatabase, IAPIDatabaseConfig } from '../database/database';
 import { Router } from './router';
 import { Express, Request, Response, NextFunction } from 'express';
 
-interface APIServerConfig extends ServerConfig {
-    database: APIDatabaseConfig,
+interface IAPIServerConfig extends IServerConfig {
+    database: IAPIDatabaseConfig,
     bcrypt: {
         saltround: number
     }
 }
 
-export class APIServer extends Server<APIServerConfig> {
+export class APIServer extends Server<IAPIServerConfig> {
     protected async initialise(): Promise<Express> {
         try {  //try to establish a connection to database first; if failed, exit the program
             await APIDatabase.connect(this.config.database);

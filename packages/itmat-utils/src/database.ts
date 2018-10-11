@@ -1,6 +1,6 @@
 import mongodb from 'mongodb';
 
-export interface DatabaseConfig {
+export interface IDatabaseConfig {
     mongo_url: string,
     database: string,
     jobs_collection: string
@@ -17,9 +17,9 @@ export class Database {
     2. use the connect function in server.initialise() for setup.
     */
     protected static db: mongodb.Db;
-    protected static config: DatabaseConfig;
+    protected static config: IDatabaseConfig;
 
-    public static async connect(config: DatabaseConfig): Promise<void> {
+    public static async connect(config: IDatabaseConfig): Promise<void> {
         if (!this.db) {
             /* any error throw here will be caught by the server */
             const client: mongodb.MongoClient = await mongodb.MongoClient.connect(config.mongo_url, { useNewUrlParser: true });

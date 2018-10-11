@@ -1,9 +1,9 @@
 import mongodb, { MongosOptions } from 'mongodb';
-import { DatabaseConfig, Database, CustomError } from 'itmat-utils';
-import { CodingMap, CodingEntry } from '../models/UKBCoding';
-import { FieldMap, FieldEntry } from '../models/UKBFields';
+import { IDatabaseConfig, Database, CustomError } from 'itmat-utils';
+import { ICodingMap, ICodingEntry } from '../models/UKBCoding';
+import { IFieldMap, IFieldEntry } from '../models/UKBFields';
 
-export interface UKBDatabaseConfig extends DatabaseConfig {
+export interface IUKBDatabaseConfig extends IDatabaseConfig {
     UKB_coding_collection: string,
     UKB_field_dictionary_collection: string,
     UKB_data_collection: string
@@ -11,16 +11,16 @@ export interface UKBDatabaseConfig extends DatabaseConfig {
 
 
 export class UKBCurationDatabase extends Database {
-    protected static config: UKBDatabaseConfig;
+    protected static config: IUKBDatabaseConfig;
     public static UKB_coding_collection: mongodb.Collection;
     public static UKB_field_dictionary_collection: mongodb.Collection;
     public static UKB_data_collection: mongodb.Collection;
     public static jobs_collection: mongodb.Collection;
     public static changeStream: mongodb.ChangeStream;
-    public static CODING_DICT: CodingMap;
-    public static FIELD_DICT:  FieldMap;
+    public static CODING_DICT: ICodingMap;
+    public static FIELD_DICT:  IFieldMap;
 
-    public static async connect(config: UKBDatabaseConfig): Promise<void> {
+    public static async connect(config: IUKBDatabaseConfig): Promise<void> {
         if (!this.db) {
             /* any error throw here should be caught by the server calling this function */
             console.log('Connecting to the database..');
@@ -53,8 +53,8 @@ export class UKBCurationDatabase extends Database {
             /* Fetching coding dictionary to memory for faster parsing later; refresh at will / periodically */
             console.log('Fetching UKB codings..');
             const codingCursor = this.UKB_coding_collection.find();
-            const codingDict: CodingMap = {};
-            await codingCursor.forEach((doc: CodingEntry) => {
+            const codingDict: ICodingMap = {};
+            await codingCursor.forEach((doc: ICodingEntry) => {
                 if(codingDict[doc.Coding]) {
                     codingDict[doc.Coding][String(doc.Value)] = doc.Meaning;
                 } else {
@@ -68,8 +68,8 @@ export class UKBCurationDatabase extends Database {
             /* Fetching field dictionary to memory for faster parsing later; refresh at will / periodically */
             console.log('Fetching UKB Field Info..');
             const fieldCursor = this.UKB_field_dictionary_collection.find();
-            const fieldDict: FieldMap = {};
-            await fieldCursor.forEach((doc: FieldEntry) => {
+            const fieldDict: IFieldMap = {};
+            await fieldCursor.forEach((doc: IFieldEntry) => {
                 fieldDict[doc.FieldID] = doc;
             });
             this.FIELD_DICT = fieldDict;

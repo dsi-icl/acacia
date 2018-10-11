@@ -1,18 +1,18 @@
 import mongodb from 'mongodb';
-import { DatabaseConfig, Database, CustomError } from 'itmat-utils';
+import { IDatabaseConfig, Database, CustomError } from 'itmat-utils';
 
-export interface APIDatabaseConfig extends DatabaseConfig {
+export interface IAPIDatabaseConfig extends IDatabaseConfig {
     users_collection: string,
     jobs_collection: string
 }
 
 export class APIDatabase extends Database {
     protected static db: mongodb.Db;
-    protected static config: APIDatabaseConfig;
+    protected static config: IAPIDatabaseConfig;
     public static jobs_collection: mongodb.Collection;
     public static users_collection: mongodb.Collection;
 
-    public static async connect(config: APIDatabaseConfig): Promise<void> {
+    public static async connect(config: IAPIDatabaseConfig): Promise<void> {
         if (!this.db) {
             /* any error throw here should be caught by the server calling this function */
             console.log('Connecting to the database..');
