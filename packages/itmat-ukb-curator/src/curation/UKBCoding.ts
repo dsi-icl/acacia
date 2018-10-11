@@ -1,20 +1,6 @@
 import { UKBCurationDatabase } from '../database/database';
+import { CodingEntry, CodingMap } from '../models/UKBCoding';
 import mongo from 'mongodb';
-import { FieldEntry, UKBFields } from './UKBFields';
-import { DataEntry } from './UKBData';
-import { MongoCallback } from 'itmat-utils/node_modules/@types/mongodb';
-
-export interface CodingEntry {
-    Coding: number,
-    Value: string,
-    Meaning: string
-}
-
-export interface CodingMap {
-    [property: number]: {
-        [property: string]: string
-    }
-}
 
 export class UKBCoding {
 
