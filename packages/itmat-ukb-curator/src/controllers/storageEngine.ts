@@ -3,8 +3,8 @@ import express from 'express';
 import csvparse from 'csv-parse';
 import multer from 'multer';
 import { UKBCurationDatabase } from '../database/database';
-import { UKBFields, FieldEntry, FieldMap } from '../curation/UKBFields';
-import { UKBCoding, CodingMap } from '../curation/UKBCoding';
+import { FieldMap } from '../models/UKBFields';
+import { CodingMap } from '../models/UKBCoding';
 
 const parseOptions: csvparse.Options = {
     delimiter: ',',

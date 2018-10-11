@@ -1,7 +1,7 @@
 import mongodb from 'mongodb';
 import { DatabaseConfig, Database, CustomError } from 'itmat-utils';
-import { CodingMap, CodingEntry } from '../curation/UKBCoding';
-import { FieldMap, FieldEntry } from '../curation/UKBFields';
+import { CodingMap, CodingEntry } from '../models/UKBCoding';
+import { FieldMap, FieldEntry } from '../models/UKBFields';
 
 export interface UKBDatabaseConfig extends DatabaseConfig {
     UKB_coding_collection: string,
