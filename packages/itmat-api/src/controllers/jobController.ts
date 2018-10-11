@@ -38,10 +38,12 @@ export class JobController {    //requests namespace defined globally in ../serv
     }
 
     public static async createJobForUser(req: ItmatAPIReq<Models.JobModels.IJob>, res: Response): Promise<void> {
-        if (!Object.keys(Models.JobModels.jobTypes).includes(req.body.jobType)) {
-            // res.status(400).json(new CustomError(APIErrorTypes.invalidReqKeyValue('jobType', ...Object.keys(jobTypes))));
-            return;
-        }
+        const validator = new RequestValidationHelper(req, res);
+        if (validator
+            .checkForAdminPrivilege()
+            .checkRequiredKeysArePresentIn<Models.JobModels.IJob>(Models.APIModels.Enums.PlaceToCheck.BODY, ['jobType'])
+            .checkKeyForValidValue('jobType', req.body.jobType, Object.keys(Models.JobModels.jobTypes))
+            .checksFailed) return;
 
         const entry: Models.JobModels.IJobEntry = {
             id: uuidv4(),
