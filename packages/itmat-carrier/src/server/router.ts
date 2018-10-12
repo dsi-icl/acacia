@@ -39,16 +39,14 @@ export class Router {
             .get(FileController.downloadFile);
 
         app.use(RequestValidationHelper.bounceNotLoggedIn);
-        // app.route('/data')
-        //     .post(upload.fields([{ name: 'UKBCSVFile', maxCount: 1 }]), (req, res) => { console.log('file', (req.files as any).UKBCSVFile ); res.send('yes'); });  //TODO: check for undefined file;
-            
+
         app.route('/fileUpload')
             .post(upload.single('file'), FileController.uploadFile);
 
         
         app.all('/', function(err: Error, req: Request, res: Response, next: NextFunction) {
             res.status(500).json(new CustomError('Server error.'));
-        })
+        });
 
         return app;
     }
