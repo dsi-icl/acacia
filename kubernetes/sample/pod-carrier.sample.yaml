@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: carrier-pod
+  labels:
+    app: itmat-carrier
+namespace: itmat-broker
+spec:
+  containers:
+  - name: itmat-carrier-container
+    image: chonsou/itmat-carrier
