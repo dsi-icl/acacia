@@ -2,7 +2,7 @@ FROM node:10
 
 MAINTAINER Chon Sou (c.sou16@imperial.ac.uk)
 
-WORKDIR /itmat-API
+WORKDIR /itmat-ukb-curator
 
 COPY ./package*.json ./
 
