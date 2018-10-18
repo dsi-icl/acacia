@@ -44,6 +44,10 @@ declare global {
         interface DeleteUserReqBody {
             user: string
         }
+
+        interface FileUploadReqBody {
+            file: Blob
+        }
     }
 }
 
