@@ -67,36 +67,36 @@ export class FileController {
         }
     }
 
-    // public static async downloadFile(req: ItmatAPIReq<requests.FileDownloadReqBody>, res: Response): Promise<void> {
-    //     // TO_DO: how to restrict downloadfile to other microservices .
-    //     const user: Models.UserModels.IUserWithoutToken = req.user as Models.UserModels.IUserWithoutToken;
-    //     const validator = new RequestValidationHelper(req, res);
-    //     const { jobId, fileName } = req.params;
+    public static async downloadFile(req: ItmatAPIReq<undefined>, res: Response): Promise<void> {
+        // TO_DO: how to restrict downloadfile to other microservices .
+        const user: Models.UserModels.IUserWithoutToken = req.user as Models.UserModels.IUserWithoutToken;
+        const validator = new RequestValidationHelper(req, res);
+        const { jobId, fileName } = req.params;
 
-    //     const jobSearchResult: Models.JobModels.IJobEntry = await CarrierDatabase.jobs_collection.findOne({ id: jobId });
+        const jobSearchResult: Models.JobModels.IJobEntry = await APIDatabase.jobs_collection.findOne({ id: jobId });
 
-    //     if (validator
-    //         .checkSearchResultIsNotDefinedNorNull(jobSearchResult, 'job')
-    //         .checkKeyForValidValue('fileName', fileName, jobSearchResult.filesReceived)
-    //         .checksFailed) return;
+        if (validator
+            .checkSearchResultIsNotDefinedNorNull(jobSearchResult, 'job')
+            .checkKeyForValidValue('fileName', fileName, jobSearchResult.filesReceived)
+            .checksFailed) return;
 
         
-    //     let fileStream: NodeJS.ReadableStream;
-    //     try {
-    //         fileStream = await objectStore.downloadFile(fileName, jobSearchResult);
-    //     } catch (e) {
-    //         res.status(500).json(new CustomError('Cannot download file', e));
-    //         return;
-    //     }
+        let fileStream: NodeJS.ReadableStream;
+        try {
+            fileStream = await objectStore.downloadFile(fileName, jobSearchResult);
+        } catch (e) {
+            res.status(500).json(new CustomError('Cannot download file', e));
+            return;
+        }
         
-    //     fileStream.on('data', (data) => {
-    //         res.write(data);
-    //     });
+        fileStream.on('data', (data) => {
+            res.write(data);
+        });
 
-    //     fileStream.on('end', () => {
-    //         res.end();
-    //     })
+        fileStream.on('end', () => {
+            res.end();
+        });
         
-    //     return;
-    // }
+        return;
+    }
 }

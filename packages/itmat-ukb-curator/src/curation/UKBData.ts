@@ -39,6 +39,7 @@ export class UKBDataCurator {
     }
 
     public async processIncomingStreamAndUploadToMongo() {
+        console.log(`uploading for job ${this.jobId}`);
         let isHeader: boolean = true;
         let fieldNumber: number;
         const fieldDict = UKBCurationDatabase.FIELD_DICT;
@@ -51,6 +52,7 @@ export class UKBDataCurator {
 
         //check for intergrity
         parseStream.on('data', (line) => {
+            console.log(line);
             if (isHeader) {
                 /* pausing the stream so all the async ops on the first line must be completed before the second line is read */
                 parseStream.pause();

@@ -40,6 +40,9 @@ export class Router {
 
         app.route('/login')
             .post(UserController.login as any);
+
+        app.route('/jobs/:jobId/:fileName/fileDownload')
+            .get(FileController.downloadFile as any);
         
         app.use(RequestValidationHelper.bounceNotLoggedIn);
 
@@ -53,9 +56,7 @@ export class Router {
 
         app.route('/jobs/:jobId/:fileName/fileUpload')
             .post(upload.single('file'), FileController.uploadFile as any);
-        
-        app.route('/jobs/:jobId/:fileName/fileDownload')
-            .get();
+    
 
         app.route('/users')
             .get(UserController.getUsers as any)  //get all users or a specific user
