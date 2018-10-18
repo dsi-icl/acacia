@@ -16,6 +16,9 @@ export class Router {
         app.use(bodyParser.urlencoded({ extended: true }));
         app.use(timeout('86400000'));
         
+        app.route('/liveness')
+            .get((req, res) => { res.status(200).json({message: 'ok'})});
+
         // app.route('/field')
         //     .get(UKBFieldsController.getFieldInfo); //get field info // req must have a 'fieldId' query string that is a number
 

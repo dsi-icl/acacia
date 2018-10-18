@@ -8,7 +8,9 @@ COPY ./package*.json ./
 
 RUN npm install --production
 
-COPY dist dist
+RUN mkdir config
+
+COPY dist/src dist/src
 
 EXPOSE 3010
 
