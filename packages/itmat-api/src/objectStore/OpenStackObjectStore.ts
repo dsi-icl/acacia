@@ -1,6 +1,6 @@
 import { Store, Account, Container, Segment, DynamicLargeObject, StaticLargeObject } from 'os2';
 import { ObjectStore, IObjectStoreConfig, Models } from 'itmat-utils';
-import config from '../config/config.json';
+import config from '../../config/config.json';
 
 export interface IOpenSwiftObjectStoreConfig extends IObjectStoreConfig {
     username: string,

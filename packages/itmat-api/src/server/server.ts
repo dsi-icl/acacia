@@ -3,12 +3,14 @@ import { Server, CustomError, IServerConfig } from 'itmat-utils';
 import { APIDatabase, IAPIDatabaseConfig } from '../database/database';
 import { Router } from './router';
 import { Express, Request, Response, NextFunction } from 'express';
+import { objectStore, IOpenSwiftObjectStoreConfig } from '../objectStore/OpenStackObjectStore';
 
 interface IAPIServerConfig extends IServerConfig {
     database: IAPIDatabaseConfig,
     bcrypt: {
         saltround: number
-    }
+    },
+    swift: IOpenSwiftObjectStoreConfig
 }
 
 export class APIServer extends Server<IAPIServerConfig> {
@@ -29,6 +31,16 @@ export class APIServer extends Server<IAPIServerConfig> {
             );
             process.exit(1);
         } 
+
+        try {  //try to establish a connection to database first; if failed, exit the program
+            await objectStore.connect();
+            console.log('connected to object store');
+        } catch (e) {
+            console.log(
+                new CustomError(`Cannot connect to object store.`, e)
+            );
+            process.exit(1);
+        }
 
         return new Router() as Express;
     }
