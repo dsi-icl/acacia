@@ -95,7 +95,7 @@ export class FileController {
 
         fileStream.on('end', () => {
             res.end();
-        });
+        })
         
         return;
     }
