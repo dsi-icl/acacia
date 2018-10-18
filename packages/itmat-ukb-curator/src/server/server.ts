@@ -30,8 +30,7 @@ export class UKBCuratorServer extends Server<IUKBCuratorServerConfig> {
             }
             const fileName = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.requiredFiles[0];
             const { id: jobId } = change.fullDocument;
-            console.log(`http://localhost:3000/jobs/${jobId}/${fileName}/fileDownload`);
-            const fetchResponse: Response = await fetch(`http://localhost:3000/jobs/${jobId}/${fileName}/fileDownload`);
+            const fetchResponse: Response = await fetch(`http://api-service/jobs/${jobId}/${fileName}/fileDownload`);
             if (fetchResponse.status !== 200) {console.log(fetchResponse.status, fetchResponse); return;}  //maybe try again?
 
             const curator = new UKBDataCurator(jobId, fileName, fetchResponse.body);

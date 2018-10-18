@@ -22,6 +22,9 @@ export class Router {
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));
 
+        app.route('/liveness')
+            .get((req, res) => { res.status(200).json({message: 'ok'})});
+
         app.use(session({
             secret: 'IAmATeapot',
             store: new MongoStore({ db: APIDatabase.getDB() } as any)

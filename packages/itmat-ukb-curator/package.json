@@ -1,6 +1,7 @@
 {
   "name": "itmat-ukb-curator",
   "version": "1.0.0",
+  "private": true,
   "description": "Curator service for UKB clinical data",
   "main": "./dist/index.js",
   "scripts": {
