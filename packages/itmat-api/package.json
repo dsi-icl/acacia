@@ -1,6 +1,7 @@
 {
 	"name": "itmat-api",
 	"version": "1.0.0",
+	"private": true,
 	"description": "",
 	"main": "dist/src/index.js",
 	"author": "",
@@ -12,7 +13,7 @@
 		"crypto": "^1.0.1",
 		"express": "^4.16.3",
 		"express-session": "^1.15.6",
-		"itmat-utils": "^1.0.0",
+		"itmat-utils": "1.0.1",
 		"mongodb": "^3.1.6",
 		"multer": "2.0.0-alpha.6",
 		"node-fetch": "^2.2.0",
