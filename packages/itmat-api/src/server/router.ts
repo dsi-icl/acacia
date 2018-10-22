@@ -1,18 +1,19 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { APIDatabase } from '../database/database';
-import { ItmatAPIReq } from './requests';
 import { UserUtils } from '../utils/userUtils';
-import { CustomError, RequestValidationHelper } from 'itmat-utils';
+import { CustomError, RequestValidationHelper, StatusControllerBasic } from 'itmat-utils';
 import { UserController } from '../controllers/userController';
 import { JobController } from '../controllers/jobController';
+import { FileController } from '../controllers/fileController';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
-import passportLocal from 'passport-local';
 import connectMongo from 'connect-mongo';
+import multer from 'multer';
 const MongoStore = connectMongo(session);
 
+const upload = multer();
 
 export class Router {
     constructor() {
@@ -20,6 +21,9 @@ export class Router {
 
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));
+
+        app.route('/healthCheck')
+            .get(StatusControllerBasic.healthCheck);
 
         app.use(session({
             secret: 'IAmATeapot',
@@ -39,6 +43,9 @@ export class Router {
 
         app.route('/login')
             .post(UserController.login as any);
+
+        app.route('/jobs/:jobId/:fileName/fileDownload')
+            .get(FileController.downloadFile as any);
         
         app.use(RequestValidationHelper.bounceNotLoggedIn);
 
@@ -46,14 +53,13 @@ export class Router {
             .post(UserController.logout as any);
 
         app.route('/jobs') //job?=1111 or /job
-            .get(
-                JobController.getJobsOfAUser as any
-            ) //get all the jobs the user has created or a specific job (including status)
-            .post(
-                // checkMusthaveKeysIn<Job>(PlaceToCheck.BODY,['jobType']),
-                JobController.createJobForUser as any
-            )  //create a new job
+            .get(JobController.getJobsOfAUser as any) //get all the jobs the user has created or a specific job (including status)
+            .post(JobController.createJobForUser as any)  //create a new job
             .delete(JobController.cancelJobForUser as any); //cancel a job
+
+        app.route('/jobs/:jobId/:fileName/fileUpload')
+            .post(upload.single('file'), FileController.uploadFile as any);
+    
 
         app.route('/users')
             .get(UserController.getUsers as any)  //get all users or a specific user

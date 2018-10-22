@@ -1,8 +1,9 @@
 import express, { Express } from 'express';
 import bodyParser from 'body-parser';
 import multer from 'multer';
-import * as UKBFieldsController from '../controllers/UKBFieldsController';
-import * as UKBDataController from '../controllers/UKBDataController';
+// import * as UKBFieldsController from '../controllers/UKBFieldsController';
+// import * as UKBDataController from '../controllers/UKBDataController';
+import { StatusControllerBasic } from 'itmat-utils';
 import timeout from 'connect-timeout';
 
 
@@ -16,6 +17,9 @@ export class Router {
         app.use(bodyParser.urlencoded({ extended: true }));
         app.use(timeout('86400000'));
         
+        app.route('/healthCheck')
+            .get(StatusControllerBasic.healthCheck);
+
         // app.route('/field')
         //     .get(UKBFieldsController.getFieldInfo); //get field info // req must have a 'fieldId' query string that is a number
 

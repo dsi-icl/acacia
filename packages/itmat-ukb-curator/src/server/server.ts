@@ -24,14 +24,14 @@ export class UKBCuratorServer extends Server<IUKBCuratorServerConfig> {
         }
 
         UKBCurationDatabase.changeStream.on('change', async (change) => {
+            console.log('register change');
             if (change.fullDocument.numberOfTransferredFiles !== change.fullDocument.numberOfFilesToTransfer) {
                 return;
             }
             const fileName = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.requiredFiles[0];
             const { id: jobId } = change.fullDocument;
-
-            const fetchResponse: Response = await fetch(`http://carrier-service/fileDownload/${jobId}/${fileName}`);
-            if (fetchResponse.status !== 200) return;  //maybe try again?
+            const fetchResponse: Response = await fetch(`http://api-service/jobs/${jobId}/${fileName}/fileDownload`);
+            if (fetchResponse.status !== 200) {console.log(fetchResponse.status, fetchResponse); return;}  //maybe try again?
 
             const curator = new UKBDataCurator(jobId, fileName, fetchResponse.body);
             curator.processIncomingStreamAndUploadToMongo();
