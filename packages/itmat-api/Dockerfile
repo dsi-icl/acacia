@@ -12,6 +12,6 @@ RUN mkdir -p dist/config
 
 COPY dist/src dist/src
 
-EXPOSE 3010
+EXPOSE 80
 
-CMD ["npm start"]
+CMD ["node", "./dist/src/index.js"]

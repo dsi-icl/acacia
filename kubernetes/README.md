@@ -15,7 +15,12 @@ kubectl get namespaces
 
 4. Create Secrets/ConfigMaps with your config files for each package. These will be mounted to /config
 ```Bash
-kubectl create secret generic {{packageName}}-config --from-file=./{{packagePath}}/config/config.json
+kubectl create secret generic {{packageName}}-config --from-file=./{{packagePath}}/config/config.json --namespace=itmat
+```
+Example:
+```Bash
+kubectl create secret generic itmat-api-config --from-file=./itmat-api/config.json --namespace=itmat
+kubectl create secret generic itmat-ukb-curator-config --from-file=./itmat-ukb-curator/config.json --namespace=itmat
 ```
 
 ```Bash
