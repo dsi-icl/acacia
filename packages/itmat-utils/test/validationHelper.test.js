@@ -1,7 +1,8 @@
 'use strict';
 const { RequestValidationHelper } = require('../dist/validationHelper.js');
-const { APIErrorTypes } = require('../src/definitions/errors');
-const { CustomError } = require('../src/error');
+const { Errors: APIErrorTypes } = require('../dist/models/api/errors.js');
+const { CustomError } = require('../dist/error.js');
+
 
 function MockRes() {
     this.statusCode = undefined;
@@ -10,17 +11,13 @@ function MockRes() {
     this.json = (object) => { this.response = object; return; };
 }
 
-//havent tested chaining
-
-
 describe('RequestValidationHelper Class testing', () => {
     test('bounces non admin', () => {
         const req = { user: { type: 'STANDARD' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkForAdminPrivilege().allOkay;
-
-        expect(allOkay).toBe(false);
+        const checksFailed = helper.checkForAdminPrivilege().checksFailed;
+        expect(checksFailed).toBe(true);
         expect(res.statusCode).toBe(401);
         expect(res.response).toEqual(new CustomError(APIErrorTypes.authorised));
     });
@@ -29,9 +26,9 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { user: { type: 'ADMIN' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkForAdminPrivilege().allOkay;
+        const checksFailed = helper.checkForAdminPrivilege().checksFailed;
 
-        expect(allOkay).toBe(true);
+        expect(checksFailed).toBe(false);
         expect(res.statusCode).toBe(undefined);
         expect(res.response).toEqual(undefined);
     });
@@ -40,9 +37,9 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { user: { type: 'ADMIN' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkForAdminPrivilegeOrSelf().allOkay;
+        const checksFailed = helper.checkForAdminPrivilegeOrSelf().checksFailed;
 
-        expect(allOkay).toBe(true);
+        expect(checksFailed).toBe(false);
         expect(res.statusCode).toBe(undefined);
         expect(res.response).toEqual(undefined);
     });
@@ -51,9 +48,9 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { user: { type: 'STANDARD', username: 'chon' }, body: { user: 'chonDouble' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkForAdminPrivilegeOrSelf().allOkay;
+        const checksFailed = helper.checkForAdminPrivilegeOrSelf().checksFailed;
 
-        expect(allOkay).toBe(false);
+        expect(checksFailed).toBe(true);
         expect(res.statusCode).toBe(401);
         expect(res.response).toEqual(new CustomError(APIErrorTypes.authorised));
     });
@@ -62,9 +59,9 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { user: { type: 'STANDARD', username: 'chon' }, body: { user: 'chon' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkForAdminPrivilegeOrSelf().allOkay;
+        const checksFailed = helper.checkForAdminPrivilegeOrSelf().checksFailed;
 
-        expect(allOkay).toBe(true);
+        expect(checksFailed).toBe(false);
         expect(res.statusCode).toBe(undefined);
         expect(res.response).toEqual(undefined);
     });
@@ -73,9 +70,9 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { body: { username: 'chon', type: 'apple' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkRequiredKeysArePresentIn('body', ['username', 'password']).allOkay;
+        const checksFailed = helper.checkRequiredKeysArePresentIn('body', ['username', 'password']).checksFailed;
 
-        expect(allOkay).toBe(false);
+        expect(checksFailed).toBe(true);
         expect(res.statusCode).toBe(400);
         expect(res.response).toEqual(new CustomError(APIErrorTypes.missingRequestKey('body', ['username', 'password'])));
     });
@@ -84,9 +81,9 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { body: { username: 'chon', password: 'apple' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkRequiredKeysArePresentIn('body', ['username', 'password']).allOkay;
+        const checksFailed = helper.checkRequiredKeysArePresentIn('body', ['username', 'password']).checksFailed;
 
-        expect(allOkay).toBe(true);
+        expect(checksFailed).toBe(false);
         expect(res.statusCode).toBe(undefined);
         expect(res.response).toEqual(undefined);
     });
@@ -95,9 +92,9 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { body: { username: 'chon', type: 'apple' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkRequiredKeysArePresentIn('query', ['username', 'password']).allOkay;
+        const checksFailed = helper.checkRequiredKeysArePresentIn('query', ['username', 'password']).checksFailed;
 
-        expect(allOkay).toBe(false);
+        expect(checksFailed).toBe(true);
         expect(res.statusCode).toBe(400);
         expect(res.response).toEqual(new CustomError(APIErrorTypes.missingQueryString(['username', 'password'])));
     });
@@ -106,9 +103,9 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { query: { username: 'chon', password: 'apple' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkRequiredKeysArePresentIn('query', ['username', 'password']).allOkay;
+        const checksFailed = helper.checkRequiredKeysArePresentIn('query', ['username', 'password']).checksFailed;
 
-        expect(allOkay).toBe(true);
+        expect(checksFailed).toBe(false);
         expect(res.statusCode).toBe(undefined);
         expect(res.response).toEqual(undefined);
     });
@@ -117,9 +114,9 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { body: { username: 'chon', type: 'apple' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkKeyForValidValue('type', req.body.type, ['ADMIN', 'STANDARD']).allOkay;
+        const checksFailed = helper.checkKeyForValidValue('type', req.body.type, ['ADMIN', 'STANDARD']).checksFailed;
 
-        expect(allOkay).toBe(false);
+        expect(checksFailed).toBe(true);
         expect(res.statusCode).toBe(400);
         expect(res.response).toEqual(new CustomError(APIErrorTypes.invalidReqKeyValue('type', ['ADMIN', 'STANDARD'])));
     });
@@ -128,46 +125,103 @@ describe('RequestValidationHelper Class testing', () => {
         const req = { body: { username: 'chon', type: 'STANDARD' } };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkKeyForValidValue('type', req.body.type, ['ADMIN', 'STANDARD']).allOkay;
+        const checksFailed = helper.checkKeyForValidValue('type', req.body.type, ['ADMIN', 'STANDARD']).checksFailed;
 
-        expect(allOkay).toBe(true);
+        expect(checksFailed).toBe(false);
         expect(res.statusCode).toBe(undefined);
         expect(res.response).toEqual(undefined);
     });
 
-    test('checkResultIsOne doesnt bounce 1', () => {
+    test('checkSearchResultIsOne doesnt bounce 1', () => {
         const mongoResult = { modifiedCount: 1 };
         const req = { };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkResultIsOne('user', mongoResult.modifiedCount).allOkay;
+        const checksFailed = helper.checkSearchResultIsOne('user', mongoResult.modifiedCount).checksFailed;
 
-        expect(allOkay).toBe(true);
+        expect(checksFailed).toBe(false);
         expect(res.statusCode).toBe(undefined);
         expect(res.response).toEqual(undefined);
     });
 
-    test('checkResultIsOne bounces > 1', () => {
+    test('checkSearchResultIsOne bounces > 1', () => {
         const mongoResult = { modifiedCount: 2 };
         const req = { };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkResultIsOne('user', mongoResult.modifiedCount).allOkay;
+        const checksFailed = helper.checkSearchResultIsOne('user', mongoResult.modifiedCount).checksFailed;
 
-        expect(allOkay).toBe(false);
+        expect(checksFailed).toBe(true);
         expect(res.statusCode).toBe(500);
-        expect(res.response).toEqual(new CustomError('Weird things happened... Please contact your admin'));
+        expect(res.response).toEqual(new CustomError(APIErrorTypes.resultBiggerThanOne));
     });
 
-    test('checkResultIsOne bounces 0', () => {
+    test('checkSearchResultIsOne bounces 0', () => {
         const mongoResult = { modifiedCount: 0 };
         const req = { };
         const res = new MockRes();
         const helper = new RequestValidationHelper(req, res);
-        const allOkay = helper.checkResultIsOne('user', mongoResult.modifiedCount).allOkay;
+        const checksFailed = helper.checkSearchResultIsOne('user', mongoResult.modifiedCount).checksFailed;
 
-        expect(allOkay).toBe(false);
+        expect(checksFailed).toBe(true);
         expect(res.statusCode).toBe(404);
         expect(res.response).toEqual(new CustomError(APIErrorTypes.entryNotFound('user')));
+    });
+
+    test('chaining multiple validations (case all pass)', () => {
+        const req = { user: { type: 'STANDARD', username: 'chon' }, body: { user: 'chon' }, query: { username: 'chon', password: 'apple' } };
+        const mongoResult = { modifiedCount: 1 };
+        const res = new MockRes();
+        const helper = new RequestValidationHelper(req, res);
+        const checksFailed = helper
+            .checkForAdminPrivilegeOrSelf()
+            .checkRequiredKeysArePresentIn('query', ['username', 'password'])
+            .checkSearchResultIsOne('user', mongoResult.modifiedCount)
+            .checksFailed;
+        expect(checksFailed).toBe(false);
+        expect(res.statusCode).toBe(undefined);
+        expect(res.response).toEqual(undefined);
+    });
+
+    test('chaining multiple validations (case one fail)', () => {
+        const req = { user: { type: 'STANDARD', username: 'chon' }, body: { user: 'chonDouble' }, query: { username: 'chon', password: 'apple' } };
+        const mongoResult = { modifiedCount: 1 };
+        const res = new MockRes();
+        const helper = new RequestValidationHelper(req, res);
+        const checksFailed = helper
+            .checkForAdminPrivilegeOrSelf()
+            .checkRequiredKeysArePresentIn('body', ['username', 'password'])
+            .checkSearchResultIsOne('user', mongoResult.modifiedCount)
+            .checksFailed;
+        expect(checksFailed).toBe(true);
+        expect(res.statusCode).toBe(401);
+        expect(res.response).toEqual(new CustomError(APIErrorTypes.authorised));
+    });
+
+    test('chaining multiple validations (case multiple fail => error message relates to first fail & the subsequent functions are not called)', () => {
+        let secondFunctionLogicEvaled;
+        const req = { user: { type: 'STANDARD', username: 'chon' }, body: { user: 'chonDouble' }, query: { username: 'chon', password: 'apple' } };
+        const mongoResult = { modifiedCount: 1 };
+        const res = new MockRes();
+        const helper = new RequestValidationHelper(req, res);
+
+        helper.checkRequiredKeysArePresentIn = function() {
+            if (this.checksFailed === true) {
+                return this;
+            }
+            secondFunctionLogicEvaled = true;
+            return this;
+        };
+
+        const checksFailed = helper
+            .checkForAdminPrivilegeOrSelf()
+            .checkRequiredKeysArePresentIn('body', ['username', 'paddddssword'])
+            .checkSearchResultIsOne('user', mongoResult.modifiedCount)
+            .checksFailed;
+
+        expect(checksFailed).toBe(true);
+        expect(res.statusCode).toBe(401);
+        expect(res.response).toEqual(new CustomError(APIErrorTypes.authorised));
+        expect(secondFunctionLogicEvaled).toBe(undefined);
     });
 });
