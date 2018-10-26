@@ -1,9 +1,9 @@
 import express from 'express';
-import { Server, CustomError, IServerConfig } from 'itmat-utils';
+import { Server, CustomError, IServerConfig, IOpenSwiftObjectStoreConfig } from 'itmat-utils';
 import { APIDatabase, IAPIDatabaseConfig } from '../database/database';
 import { Router } from './router';
 import { Express, Request, Response, NextFunction } from 'express';
-import { objectStore, IOpenSwiftObjectStoreConfig } from '../objectStore/OpenStackObjectStore';
+import { objectStore } from '../objectStore/OpenStackObjectStore';
 
 interface IAPIServerConfig extends IServerConfig {
     database: IAPIDatabaseConfig,
