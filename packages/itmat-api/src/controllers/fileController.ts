@@ -69,6 +69,7 @@ export class FileController {
 
     public static async downloadFile(req: ItmatAPIReq<undefined>, res: Response): Promise<void> {
         // TO_DO: how to restrict downloadfile to other microservices .
+        // TO_DO: check whether the job is by the user; bounce if not 
         const user: Models.UserModels.IUserWithoutToken = req.user as Models.UserModels.IUserWithoutToken;
         const validator = new RequestValidationHelper(req, res);
         const { jobId, fileName } = req.params;
