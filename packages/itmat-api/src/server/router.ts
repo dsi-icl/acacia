@@ -30,8 +30,6 @@ export class Router {
             store: new MongoStore({ db: APIDatabase.getDB() } as any)
         }));
 
-
-
         app.use(passport.initialize());
         app.use(passport.session());
 
@@ -43,9 +41,6 @@ export class Router {
 
         app.route('/login')
             .post(UserController.login as any);
-
-        app.route('/jobs/:jobId/:fileName/fileDownload')
-            .get(FileController.downloadFile as any);
         
         app.use(RequestValidationHelper.bounceNotLoggedIn);
 
@@ -59,8 +54,10 @@ export class Router {
 
         app.route('/jobs/:jobId/:fileName/fileUpload')
             .post(upload.single('file'), FileController.uploadFile as any);
-    
 
+        app.route('/jobs/:jobId/:fileName/fileDownload')
+            .get(FileController.downloadFile as any);
+    
         app.route('/users')
             .get(UserController.getUsers as any)  //get all users or a specific user
             .post(UserController.createNewUser as any)
