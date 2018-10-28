@@ -3,7 +3,7 @@ import mongodb from 'mongodb';
     export interface IJobType {
         [typename: string]: {
             name: string,
-            requiredFiles: string[],
+            requiredFiles?: string[],
             status: {
                 [name: number]: string
             },
@@ -53,6 +53,13 @@ export const jobTypes: IJobType = {
             CANNOT_PARSE_NUMERIC_VALUE: (linenumber: number, fieldnumber: number) => `Cannot parse the supposedly numeric value on line ${linenumber}, ${fieldnumber}-th field.`,
             DUPLICATED_FIELD_VALUE: (fieldValue: string /* xx-yy-zz like in UKB CSV */) => `Duplicated Field: ${fieldValue}`
 
+        }
+    },
+    UKB_IMAGE_UPLOAD: {
+        name: 'UKB_IMAGE_UPLOAD',
+        status: {
+        },
+        error: {
         }
     }
 };
