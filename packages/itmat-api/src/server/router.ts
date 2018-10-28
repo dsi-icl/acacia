@@ -2,7 +2,7 @@ import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { APIDatabase } from '../database/database';
 import { UserUtils } from '../utils/userUtils';
-import { CustomError, RequestValidationHelper, StatusControllerBasic } from 'itmat-utils';
+import { CustomError, RequestValidationHelper } from 'itmat-utils';
 import { UserController } from '../controllers/userController';
 import { JobController } from '../controllers/jobController';
 import { FileController } from '../controllers/fileController';
@@ -21,9 +21,6 @@ export class Router {
 
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));
-
-        app.route('/healthCheck')
-            .get(StatusControllerBasic.healthCheck);
 
         app.use(session({
             secret: 'IAmATeapot',

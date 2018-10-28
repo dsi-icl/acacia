@@ -1,17 +1,16 @@
 import { Express, Request, Response, NextFunction } from 'express';
+import { ConnectionChecker } from '../connectionChecker'; 
+import { OpenStackSwiftObjectStore } from '../OpenStackObjectStore';
+import mongo from 'mongodb';
 
-export class StatusControllerBasic {
-    public static getStatus(req: Request, res: Response, next: NextFunction): void {
-        if (!req.user || req.user.username === undefined) {
-            res.status(404).json({ message: 'A unicorn, whose multitude is denominated a blessing, and which is Scotland\'s national animal.'});
-            return;
+export function healthCheck(mongoClient: mongo.MongoClient, objectStore: OpenStackSwiftObjectStore) {
+    const connectionChecker = new ConnectionChecker(mongoClient, objectStore);
+    return async (req: Request, res: Response): Promise<void> => {
+        if (await connectionChecker.checkConnection()) {
+            res.status(200).json({ message: 'All good.'});
+        } else {
+            res.status(500).json({ message: 'Server is down.'})
         }
-        res.status(200).json(req.user);
-        return;
-    }
-
-    public static healthCheck(req: Request, res: Response): void {
-        res.status(200).json({ message: 'all good'});
         return;
     }
 }

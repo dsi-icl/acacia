@@ -15,6 +15,15 @@ export class OpenStackSwiftObjectStore extends ObjectStore<IOpenSwiftObjectStore
         super(config);
     }
 
+    public async isConnected(): Promise<boolean> {
+        try {
+            await (this.account as any).getMetadata();
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
     public async connect(): Promise<void> {
         const store = new Store(this.config.uri);
         const account = new Account(store, this.config.username, this.config.password);

@@ -6,6 +6,9 @@ import mongodb from 'mongodb';
             requiredFiles: string[],
             status: {
                 [name: number]: string
+            },
+            error: {
+                [name: string]: any
             }
         }
     }
@@ -43,6 +46,13 @@ export const jobTypes: IJobType = {
             2: 'UPLOADING TO DATABASE',
             3: 'FINISHED SUCCESSFULLY',
             4: 'TERMINATED WITH ERROR'
+        },
+        error: {
+            INVALID_FIELD: (fieldsWithError: string[]) => `The following fields do not exists on UK BIOBANK database therefore job is terminated: ${fieldsWithError.join(', ')}`,
+            UNEVEN_FIELD_NUMBER: (linenumber: number) => `Your CSV file has uneven field numbers. First line of problem: ${linenumber}`,
+            CANNOT_PARSE_NUMERIC_VALUE: (linenumber: number, fieldnumber: number) => `Cannot parse the supposedly numeric value on line ${linenumber}, ${fieldnumber}-th field.`,
+            DUPLICATED_FIELD_VALUE: (fieldValue: string /* xx-yy-zz like in UKB CSV */) => `Duplicated Field: ${fieldValue}`
+
         }
     }
 };
