@@ -4,8 +4,10 @@ export interface ICodingEntry {
     Meaning: string
 }
 
+export interface ICodingDictionaryForAField {
+    [property: string]: string
+}
+
 export interface ICodingMap {
-    [property: number]: {
-        [property: string]: string
-    }
+    [property: number]: ICodingDictionaryForAField
 }

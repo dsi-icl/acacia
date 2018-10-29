@@ -2,7 +2,7 @@ import express from 'express';
 import { Server, IDatabaseConfig, CustomError, IServerConfig, Models } from 'itmat-utils';
 import { UKBCurationDatabase, IUKBDatabaseConfig } from '../database/database';
 import { Express, Request, NextFunction } from 'express';
-import { UKBDataCurator } from '../curation/UKBData';
+import { changeStreamListener } from '../controllers/changeStreamListener';
 import { Router } from './router';
 import fetch, { Response } from 'node-fetch';
 import { objectStore } from '../objectStore/OpenStackObjectStore'; 
@@ -33,19 +33,7 @@ export class UKBCuratorServer extends Server<IUKBCuratorServerConfig> {
             process.exit(1);
         }
 
-        UKBCurationDatabase.changeStream.on('change', async (change) => {
-            console.log('register change');
-            if (change.fullDocument.numberOfTransferredFiles !== change.fullDocument.numberOfFilesToTransfer) {
-                return;
-            }
-            const fileName = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.requiredFiles[0];
-            const { id: jobId } = change.fullDocument;
-            const fetchResponse: Response = await fetch(`http://api-service/jobs/${jobId}/${fileName}/fileDownload`);
-            if (fetchResponse.status !== 200) {console.log(fetchResponse.status, fetchResponse); return;}  //maybe try again?
-
-            const curator = new UKBDataCurator(jobId, fileName, fetchResponse.body);
-            curator.processIncomingStreamAndUploadToMongo();
-        });
+        UKBCurationDatabase.changeStream.on('change', changeStreamListener);
 
         return new Router() as Express;
     }

@@ -3,7 +3,7 @@ import mongodb from 'mongodb';
     export interface IJobType {
         [typename: string]: {
             name: string,
-            requiredFiles?: string[],
+            requiredFiles: string[],
             status: {
                 [name: number]: string
             },
@@ -57,6 +57,7 @@ export const jobTypes: IJobType = {
     },
     UKB_IMAGE_UPLOAD: {
         name: 'UKB_IMAGE_UPLOAD',
+        requiredFiles: [],
         status: {
         },
         error: {

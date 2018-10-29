@@ -1,13 +1,13 @@
 import mongo from 'mongodb';
 import { Models, OpenStackSwiftObjectStore, IOpenSwiftObjectStoreConfig } from 'itmat-utils';
-import { UKBDataCurator } from '../curation/UKBData';
+import { UKBCSVDataCurator }from '../curation/curationImplementations/implementation1';
 import { objectStore } from '../objectStore/OpenStackObjectStore'; 
 
  
 interface IMongoChangeFeed {
 }
 
-async function changeStreamListener(change: any): Promise<void> {
+export async function changeStreamListener(change: any): Promise<void> {
     console.log('register change');
     if (change.fullDocument.numberOfTransferredFiles !== change.fullDocument.numberOfFilesToTransfer) {
         return;
@@ -17,6 +17,6 @@ async function changeStreamListener(change: any): Promise<void> {
 
     const downloadFileStream: NodeJS.ReadableStream = await objectStore.downloadFile(fileName, jobId);
 
-    const curator = new UKBDataCurator(jobId, fileName, downloadFileStream);
+    const curator = new UKBCSVDataCurator(jobId, fileName, downloadFileStream);
     curator.processIncomingStreamAndUploadToMongo();
 } 
