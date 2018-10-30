@@ -23,6 +23,8 @@
 //     case "1":
 //         chosenImplementation =  implementation1;
 //         break;
+//     case "2":
+//         chosenImplementation = implementation2;
 //     default:
 //         throw Error(errorMessage);
 // }

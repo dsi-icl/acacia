@@ -30,7 +30,7 @@ export class UKBCSVDataCurator extends UKBCSVDataCuratorBase<IDataEntry>{
         const entry: any = Object.assign(originalEntry);
 
         for (let i = 1; i < line.length; i++) {
-            if (line[i] === null || line[i] === '' || this._header[i] === undefined || this._header[i] === null) {
+            if (line[i] === '' || this._header[i] === null || line[i] === null || this._header[i] === undefined ) {
                 continue;
             }
 

@@ -78,12 +78,13 @@ export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
     }
 
     private async processValue_helper_testValueType(headerElementForField: IHeaderArrayElement, preValue: string): Promise<string|number|false> {
-        if (UKBiobankValueTypes[headerElementForField.valueType] === 'integer' || UKBiobankValueTypes[headerElementForField.valueType] === 'float') {
-            if (!isNaN(preValue as any)) {  //better ways to test isNan??..
+        if (headerElementForField.valueType === 'integer' || headerElementForField.valueType === 'float') {
+            if (!isNaN(parseFloat(preValue))) {  //better ways to test isNan??..
                 return parseFloat(preValue);
             } else {
-                console.log(headerElementForField, preValue);
-                throw new CustomError('processValue_helper');
+                return preValue;
+                // console.log(headerElementForField, preValue);
+                // throw new CustomError('processValue_helper');
                 // const error: string = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.error.FIELD_ERROR(this._fieldsWithError);
                 // await this.setJobStatusToError(error);
                 // (this.incomingWebStream as any).destroy();  //does this work?
@@ -97,22 +98,22 @@ export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
     protected async processHeader(line: string[]): Promise<void> {
         this._headerProcessCalled = true;
         this._fieldNumber = line.length; //saving the fieldNum to check each line has the same #column
-        for (let el of line) { //starting from the second column
-            const fieldDescription = this.parseFieldHeader(el);
+        for (let i = 1, length = this._fieldNumber; i < length; i++) { //starting from the second column
+            const fieldDescription = this.parseFieldHeader(line[i]);
             const fieldInfo = this._fieldDict[fieldDescription.fieldId];
             if (this.checkFieldIsValid(fieldDescription, fieldInfo)) { //making sure the fieldid in the csv file is not bogus
                 this._header.push(Object.freeze(this.formatHeaderElement(fieldDescription, fieldInfo)));
             } else {
                 this._header.push(null);
-                this._fieldsWithError.push(el);
+                this._fieldsWithError.push(line[i]);
             }
         }
-        if (this._fieldsWithError.length !== 0) {
-            const error: string = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.error.INVALID_FIELD(this._fieldsWithError);
-            await this.setJobStatusToError(error);
-            (this.incomingWebStream as any).destroy();  //does this work?
-            return;
-        }
+        // if (this._fieldsWithError.length !== 0) {
+        //     const error: string = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.error.INVALID_FIELD(this._fieldsWithError);
+        //     await this.setJobStatusToError(error);
+        //     (this.incomingWebStream as any).destroy();  //does this work?
+        //     return;
+        // }
         Object.freeze(this._header);
         this._headerProcessedSuccessfully = true;
         return;
@@ -193,32 +194,33 @@ export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
                 const currentLineNum = lineNum++;
                 /* no need to pause stream here because the calls to database don't need to follow any order */
 
-                // if (line.length !== this._fieldNumber) {
-                //     const error: string = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.error.UNEVEN_FIELD_NUMBER(currentLineNum);
-                //     await this.setJobStatusToError(error);
-                //     console.log('ERROR', 'uneven NF');
-                //     (this.incomingWebStream as any).destroy();  //does this work?
-                //     return;
-                // }
+                if (line.length !== this._fieldNumber) {
+                    const error: string = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.error.UNEVEN_FIELD_NUMBER(currentLineNum);
+                    await this.setJobStatusToError(error);
+                    console.log('ERROR', 'uneven NF');
+                    (this.incomingWebStream as any).destroy();  //does this work?
+                    return;
+                }
 
-                // const entry: entryType = await this.processLineAndFormatEntry<entryType>({ m_eid: line[0], m_jobId: this.jobId, m_study: "UKBIOBANK" }, line);
+                const entry: entryType = await this.processLineAndFormatEntry<entryType>({ m_eid: line[0], m_jobId: this.jobId, m_study: "UKBIOBANK" }, line);
 
-                // bulkInsert.insert(entry);
+                bulkInsert.insert(entry);
                 this._numOfSubj++;
                 console.log('lineNum', currentLineNum);
-                // if (this._numOfSubj > 2000) {     //race condition?   //PROBLEM: the last bit <2000 doesn't get uploaded\
-                //     this._numOfSubj = 0;
-                //     bulkInsert.execute((err: Error, result) => {
-                //         if (err) { console.log((err as any).writeErrors[1].err); return; };
-                //     });
-                //     bulkInsert = UKBCurationDatabase.UKB_data_collection.initializeUnorderedBulkOp();
-                // }
+                if (this._numOfSubj > 2000) {     //race condition?   //PROBLEM: the last bit <2000 doesn't get uploaded\
+                    this._numOfSubj = 0;
+                    bulkInsert.execute((err: Error, result) => {
+                        if (err) { console.log((err as any).writeErrors[1].err); return; };
+                    });
+                    bulkInsert = UKBCurationDatabase.UKB_data_collection.initializeUnorderedBulkOp();
+                }
             }
         });
 
         parseStream.on('end', () => {
             bulkInsert.execute((err: Error, result) => {
-                if (err) { console.log((err as any).writeErrors[1].err); return; };
+                console.log('FINSIHED LOADING');
+                if (err) { console.log(err); return; };
             });
             console.log('end');
         });
