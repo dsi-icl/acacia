@@ -14,9 +14,6 @@ export class Router {
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));
         app.use(timeout('86400000'));
-        
-        app.route('/field')
-            .get(UKBFieldsController.getFieldInfo); //get field info // req must have a 'fieldId' query string that is a number
 
         app.route('/jobs/:jobId/:fileName/test_fileUpload')
             .post(upload.single('file'), test_fileUploadController);

@@ -44,10 +44,6 @@
 	},
 	"jest": {
         "globalSetup": "<rootDir>/test/serverTests/setup.js",
-		"testEnvironment": "<rootDir>/test/serverTests/environment.js",
-		"collectCoverageFrom": [
-			"<rootDir>/dist/src/**/*.js",
-			"!<rootDir>/node_modules/"
-        ]
+		"testEnvironment": "<rootDir>/test/serverTests/environment.js"
     }
 }
