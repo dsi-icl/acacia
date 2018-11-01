@@ -49,6 +49,9 @@ export class Router {
             .post(JobController.createJobForUser as any)  //create a new job
             .delete(JobController.cancelJobForUser as any); //cancel a job
 
+        app.route('/jobs/:jobId')
+            .get(JobController.getASpecificJobForUser) //if it's not the user's, give 404
+
         app.route('/jobs/:jobId/:fileName/fileUpload')
             .post(upload.single('file'), FileController.uploadFile as any);
 

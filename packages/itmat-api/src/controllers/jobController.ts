@@ -6,6 +6,7 @@ import mongodb from 'mongodb';
 import { CustomError, RequestValidationHelper, Models } from 'itmat-utils';
 import { Express, Request, Response, NextFunction } from 'express';
 import { JobModels } from 'itmat-utils/dist/models';
+import { userTypes } from 'itmat-utils/dist/models/user';
 
 
 export class JobController {    //requests namespace defined globally in ../server/requests.d.ts
@@ -35,6 +36,22 @@ export class JobController {    //requests namespace defined globally in ../serv
         }
 
         res.status(200).json(result);
+    }
+
+    public static async getASpecificJobForUser(req: Request, res: Response): Promise<void> {
+        const validator = new RequestValidationHelper(req, res);
+        const entryName = 'job';
+        const requestedJob: Models.JobModels.IJobEntry = await JobUtils.getJobById(req.params.jobId);
+        if (validator
+            .checkSearchResultIsNotDefinedNorNull(requestedJob, entryName)
+            .checksFailed) return;
+        
+        if (requestedJob.requester !== req.user.username && req.user.type !== userTypes.ADMIN) {
+            res.status(404).json(new CustomError(Models.APIModels.Errors.entryNotFound(entryName)));
+            return;
+        }
+        res.status(200).json(requestedJob);
+        return;
     }
 
     public static async createJobForUser(req: ItmatAPIReq<Models.JobModels.IJob>, res: Response): Promise<void> {

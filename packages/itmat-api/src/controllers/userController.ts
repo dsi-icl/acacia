@@ -15,6 +15,7 @@ export class UserController extends UserControllerBasic {
             .checksFailed) return;
 
         if (req.query && req.query.username) {   //if there is query.username then only get that user; if not then get all users;
+            // check query.usernmae = []; XXXX
             let result: Models.UserModels.IUserWithoutToken;
             try {
                 result = await UserUtils.getUser(req.query.username);
@@ -95,15 +96,17 @@ export class UserController extends UserControllerBasic {
         const result: Models.UserModels.IUser = await APIDatabase.users_collection.findOne({ deleted: false, username: req.body.username });  //not getUser() because we need the pw as well
         if (!result) {
             res.status(401).json(new CustomError('Incorrect username'));
+            return;
         }
         const passwordMatched = await bcrypt.compare(req.body.password, result.password);
         // const passwordMatched = req.body.password === result.password;
         if (!passwordMatched) {
             res.status(401).json(new CustomError('Incorrect password'));
+            return;
         }
         delete result.password;
         req.login(result, (err) => {
-            if (err) { res.status(401).json(new CustomError('Username and password are correct but cannot login.')); return; }
+            if (err) { console.log(err); res.status(401).json(new CustomError('Username and password are correct but cannot login.')); return; }
             res.status(200).json({ message: 'Logged in!' });
         });
     }
@@ -165,7 +168,7 @@ export class UserController extends UserControllerBasic {
     }
 
     public static async editUser(req: ItmatAPIReq<requests.EditUserReqBody>, res: Response, next: NextFunction) {  ///LOG OUT ALL SESSIONS OF THAT USER?
-        /* admin is allow to change everything except username. user himself is allowed to change password only (e.g. not privilege) */
+        /* admin is allow to change everything except username. user himself is allowed to change password only (i.e. not privilege) */
         const validator = new RequestValidationHelper(req, res);
         const { PlaceToCheck } = Models.APIModels.Enums;
         const { JSDataType } = Models.Enums;
@@ -214,7 +217,7 @@ export class UserController extends UserControllerBasic {
                 res.status(500).json(new CustomError('Server error', e));
                 return;
             }
-        } else if (req.user.username === req.body.user){
+        } else {
             if (req.body.type !== undefined) {
                 res.status(401).json(new CustomError('Non-admin users are not authorised to change user type.'));
                 return;
@@ -240,9 +243,6 @@ export class UserController extends UserControllerBasic {
                 res.status(500).json(new CustomError('Server error', e));
                 return;
             }
-        } else {
-                res.status(401).json(new CustomError(Models.APIModels.Errors.authorised));
-                return;
         }
     }
 } 

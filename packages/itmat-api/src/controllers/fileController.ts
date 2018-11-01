@@ -84,7 +84,7 @@ export class FileController {
         
         let fileStream: NodeJS.ReadableStream;
         try {
-            fileStream = await objectStore.downloadFile(fileName, jobSearchResult);
+            fileStream = await objectStore.downloadFile(fileName, jobSearchResult.id);
         } catch (e) {
             res.status(500).json(new CustomError('Cannot download file', e));
             return;

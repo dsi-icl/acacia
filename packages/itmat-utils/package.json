@@ -12,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "mongodb": "^3.1.6",
-    "os2": "0.0.13"
+    "os2": "0.0.13",
+    "supertest": "^3.3.0"
   },
   "devDependencies": {
     "@types/express": "^4.16.0",

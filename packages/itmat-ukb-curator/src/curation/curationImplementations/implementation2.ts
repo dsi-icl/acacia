@@ -3,12 +3,9 @@
     m_jobId: j89p2fnkjk3241543q5,
     m_eid: "001",
     m_study: "ukbiobank",
-    [instance]: {
-        [field]: [value1, value2],
-        [field]: value
-    },
-    [instance]: {
-        [field]: [value1, value2, value3]
+    [field]: {
+        [instance]: [value1, value2]
+        [instance]: value1
     }
 }
 */
@@ -39,11 +36,11 @@ export class UKBCSVDataCurator extends UKBCSVDataCuratorBase<IDataEntry>{
 
             /************************HERE IS THE MAIN DIFFERENCE BETWEEN IMPLEMENTATIONS ******/
             const { field: { instance, fieldId, array }, totalArrayNumber  } = this._header[i] as IHeaderArrayElement;
-            if (entry[instance] === undefined) {
-                entry[instance] = {};
+            if (entry[fieldId] === undefined) {
+                entry[fieldId] = {};
             }
 
-            /* 
+            /* WHAT VALUE TO UPLOAD FOR EACH FIELD? (SPECIFIC TO UKB)
                 check whether the the fieldId field already exists
                     ┣ yes -> check if it's array
                     ┃       ┣ yes -> check if [][][arrayNum] already exists
@@ -56,16 +53,16 @@ export class UKBCSVDataCurator extends UKBCSVDataCuratorBase<IDataEntry>{
                         ┣ yes -> = value
                         ┗ no -> = []; [][][arrayNum] = value;
             */
-            if (entry[instance][fieldId] !== undefined) {
-                if (entry[instance][fieldId] instanceof Array) {
-                    if (entry[instance][fieldId][array] !== undefined) {
+            if (entry[fieldId][instance] !== undefined) {
+                if (entry[fieldId][instance] instanceof Array) {
+                    if (entry[fieldId][instance][array] !== undefined) {
                         console.log('error', this._header[i], this._numOfSubj);
                         // const error: string = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.error.UNEVEN_FIELD_NUMBER(currentLineNum);
                         // await this.setJobStatusToError(error);
                         // (this.incomingWebStream as any).destroy();  //does this work?
                         throw Error;
                     } else {
-                        entry[instance][fieldId][array] = value;
+                        entry[fieldId][instance][array] = value;
                     }
                 } else {
                     // const error: string = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.error.UNEVEN_FIELD_NUMBER(currentLineNum);
@@ -76,10 +73,10 @@ export class UKBCSVDataCurator extends UKBCSVDataCuratorBase<IDataEntry>{
                 }
             } else {
                 if (totalArrayNumber === 1) {
-                    entry[instance][fieldId] = value;
+                    entry[fieldId][instance] = value;
                 } else {
-                    entry[instance][fieldId] = [];
-                    entry[instance][fieldId][array] = value;
+                    entry[fieldId][instance] = [];
+                    entry[fieldId][instance][array] = value;
                 }
             }
 
