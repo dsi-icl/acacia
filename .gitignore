@@ -68,6 +68,7 @@ config.json
 *.config.json
 config._test.js
 config.test.js
+config.test.json
 
 .DS_Store
 

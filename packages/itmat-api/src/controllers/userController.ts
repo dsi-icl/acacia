@@ -169,6 +169,7 @@ export class UserController extends UserControllerBasic {
 
     public static async editUser(req: ItmatAPIReq<requests.EditUserReqBody>, res: Response, next: NextFunction) {  ///LOG OUT ALL SESSIONS OF THAT USER?
         /* admin is allow to change everything except username. user himself is allowed to change password only (i.e. not privilege) */
+
         const validator = new RequestValidationHelper(req, res);
         const { PlaceToCheck } = Models.APIModels.Enums;
         const { JSDataType } = Models.Enums;

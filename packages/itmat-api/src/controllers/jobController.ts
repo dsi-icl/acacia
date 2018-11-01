@@ -9,6 +9,7 @@ import { JobModels } from 'itmat-utils/dist/models';
 import { userTypes } from 'itmat-utils/dist/models/user';
 
 
+
 export class JobController {    //requests namespace defined globally in ../server/requests.d.ts
     public static async getJobsOfAUser(req: ItmatAPIReq<requests.GetJobsByUserReqBody>, res: Response): Promise<void> {
         const { query } = req;
@@ -37,7 +38,6 @@ export class JobController {    //requests namespace defined globally in ../serv
 
         res.status(200).json(result);
     }
-
     public static async getASpecificJobForUser(req: Request, res: Response): Promise<void> {
         const validator = new RequestValidationHelper(req, res);
         const entryName = 'job';
@@ -53,7 +53,6 @@ export class JobController {    //requests namespace defined globally in ../serv
         res.status(200).json(requestedJob);
         return;
     }
-
     public static async createJobForUser(req: ItmatAPIReq<Models.JobModels.IJob>, res: Response): Promise<void> {
         const validator = new RequestValidationHelper(req, res);
         if (validator
