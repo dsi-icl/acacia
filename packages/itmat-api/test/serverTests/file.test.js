@@ -69,13 +69,13 @@ describe('Server - Jobs API', () => {
             })
     );
 
-    // test('file count is updated', () =>
-    //     admin.get(`/jobs/${jobId}`)
-    //         .then(res => {
-    //             expect(res.status).toBe(200);
-    //             expect(res.body.numberOfTransferredFiles).toBe(1);
-    //             return true;
-    //         })
-    // );
+    test('file count is updated', () =>
+        admin.get(`/jobs/${jobId}`)
+            .then(res => {
+                expect(res.status).toBe(200);
+                expect(res.body.numberOfTransferredFiles).toBe(1);
+                return true;
+            })
+    );
 
 });
