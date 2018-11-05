@@ -6,5 +6,4 @@ export class UKBFields {
         const result = await UKBCurationDatabase.UKB_field_dictionary_collection.findOne({ FieldID }, { projection: { _id: 0 } });
         return result;
     }
-
 }

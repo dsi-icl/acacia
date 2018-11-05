@@ -56,6 +56,16 @@ const exampleHeaderElements = [
             instance: 2,
             array: 2
         }
+    },
+    {
+        coding: { '001': 'Male', '002': 'Female', '3': 'Preferred not to say' },
+        valueType: 'categorical',
+        totalArrayNumber: 1,
+        field: {
+            fieldId: 32,
+            instance: 2,
+            array: 2
+        }
     }
 ];
 
@@ -92,4 +102,17 @@ describe('UKB CSV Curator units', () => {
             array: 3
         });
     });
+
+    test('processValue; integer, integer', () => {
+        expect(curator.processValue(exampleHeaderElements[0], '42')).toEqual(42);
+    });
+
+    test('checkFieldIsValid with right field', () => {
+        expect(curator.checkFieldIsValid(exampleHeaderElements[3])).toEqual(false);
+    });
+
+    test('checkFieldIsValid with wrong field', () => {
+        expect(curator.checkFieldIsValid(exampleHeaderElements[2])).toEqual(true);
+    });
+
 });
