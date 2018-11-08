@@ -11,63 +11,68 @@ import passport from 'passport';
 import session from 'express-session';
 import connectMongo from 'connect-mongo';
 import multer from 'multer';
+import mongodb from 'mongodb'
 const MongoStore = connectMongo(session);
 
 const upload = multer();
 
 export class Router {
-    constructor() {
-        const app: Express = express();
+    private readonly app: Express;
 
-        app.use(bodyParser.json());
-        app.use(bodyParser.urlencoded({ extended: true }));
+    constructor(db: mongodb.Db /* the database to save sessions */) {
+        this.app = express();
 
-        app.use(session({
+        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.urlencoded({ extended: true }));
+
+        this.app.use(session({
             secret: 'IAmATeapot',
-            store: new MongoStore({ db: APIDatabase.getDB() } as any)
+            store: new MongoStore({ db: db } as any)
         }));
 
-        app.use(passport.initialize());
-        app.use(passport.session());
+        this.app.use(passport.initialize());
+        this.app.use(passport.session());
 
         passport.serializeUser(UserUtils.serialiseUser);
         passport.deserializeUser(UserUtils.deserialiseUser);
         
-        app.route('/whoAmI')
+        this.app.route('/whoAmI')
             .get(UserController.whoAmI);
 
-        app.route('/login')
+        this.app.route('/login')
             .post(UserController.login as any);
         
-        app.use(RequestValidationHelper.bounceNotLoggedIn);
+        this.app.use(RequestValidationHelper.bounceNotLoggedIn);
 
-        app.route('/logout')
+        this.app.route('/logout')
             .post(UserController.logout as any);
 
-        app.route('/jobs') //job?=1111 or /job
+        this.app.route('/jobs') //job?=1111 or /job
             .get(JobController.getJobsOfAUser as any) //get all the jobs the user has created or a specific job (including status)
             .post(JobController.createJobForUser as any)  //create a new job
             .delete(JobController.cancelJobForUser as any); //cancel a job
 
-        app.route('/jobs/:jobId')
+        this.app.route('/jobs/:jobId')
             .get(JobController.getASpecificJobForUser) //if it's not the user's, give 404
 
-        app.route('/jobs/:jobId/:fileName/fileUpload')
+        this.app.route('/jobs/:jobId/:fileName/fileUpload')
             .post(upload.single('file'), FileController.uploadFile as any);
 
-        app.route('/jobs/:jobId/:fileName/fileDownload')
+        this.app.route('/jobs/:jobId/:fileName/fileDownload')
             .get(FileController.downloadFile as any);
     
-        app.route('/users')
+        this.app.route('/users')
             .get(UserController.getUsers as any)  //get all users or a specific user
             .post(UserController.createNewUser as any)
             .patch(UserController.editUser as any)
             .delete(UserController.deleteUser as any);
         
-        app.all('/', function(err: Error, req: Request, res: Response, next: NextFunction) {
+        this.app.all('/', function(err: Error, req: Request, res: Response, next: NextFunction) {
             res.status(500).json(new CustomError('Server error.'));
         })
+    }
 
-        return app;
+    public getApp(): Express {
+        return this.app;
     }
 }

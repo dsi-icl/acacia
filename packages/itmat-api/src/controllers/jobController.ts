@@ -2,11 +2,12 @@ import { JobUtils } from '../utils/jobUtils';
 import uuidv4 from 'uuid/v4';
 import { ItmatAPIReq } from '../server/requests';
 import { APIDatabase } from '../database/database'; 
-import mongodb from 'mongodb';
+import mongodb, { Collection } from 'mongodb';
 import { CustomError, RequestValidationHelper, Models } from 'itmat-utils';
 import { Express, Request, Response, NextFunction } from 'express';
 import { JobModels } from 'itmat-utils/dist/models';
 import { userTypes } from 'itmat-utils/dist/models/user';
+import { server } from '../index';
 
 
 
@@ -77,7 +78,7 @@ export class JobController {    //requests namespace defined globally in ../serv
         }
         let result: mongodb.InsertOneWriteOpResult;
         try {
-            result = await APIDatabase.jobs_collection.insertOne(entry); //this adds an _id key in entry mutatably
+            result = await (server.db.jobs_collection as Collection).insertOne(entry); //this adds an _id key in entry mutatably
         } catch (e) {
             res.status(500).json(new CustomError('Database error.', e));
             return;

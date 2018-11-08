@@ -5,43 +5,19 @@ import { Router } from './router';
 import { Express, Request, Response, NextFunction } from 'express';
 import { objectStore } from '../objectStore/OpenStackObjectStore';
 
-interface IAPIServerConfig extends IServerConfig {
-    database: IAPIDatabaseConfig,
+interface IAPIServerConfig extends IServerConfig<IAPIDatabaseConfig> {
     bcrypt: {
         saltround: number
-    },
-    swift: IOpenSwiftObjectStoreConfig
+    }
 }
 
-export class APIServer extends Server<IAPIServerConfig> {
-    protected async initialise(): Promise<Express> {
-        try {  //try to establish a connection to database first; if failed, exit the program
-            await APIDatabase.connect(this.config.database);
-        } catch (e) {
-            const { mongo_url: mongoUri, database } = this.config.database;
-            console.log(
-                new CustomError(`Cannot connect to database host ${mongoUri} - db = ${database}.`, e)
-            );
-            process.exit(1);
-        }
-
+export class APIServer extends Server<IAPIDatabaseConfig, APIDatabase, IAPIServerConfig> {
+    protected async additionalChecks(): Promise<void> {
         if (isNaN(parseInt(this.config.bcrypt.saltround as any))) {
             console.log(
                 new CustomError('Salt round must be a number')
             );
             process.exit(1);
-        } 
-
-        try {  //try to establish a connection to database first; if failed, exit the program
-            await objectStore.connect();
-            console.log('connected to object store');
-        } catch (e) {
-            console.log(
-                new CustomError(`Cannot connect to object store.`, e)
-            );
-            process.exit(1);
         }
-
-        return new Router() as Express;
     }
 }

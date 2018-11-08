@@ -1,9 +1,9 @@
 import { objectStore } from '../objectStore/OpenStackObjectStore';
 import { ItmatAPIReq } from '../server/requests';
-import { APIDatabase } from '../database/database';
+import { server } from '../index'; 
+import { Collection } from 'mongodb';
 import { Models, RequestValidationHelper, CustomError } from 'itmat-utils';
 import { Express, Request, Response, NextFunction } from 'express';
-import { runInNewContext } from 'vm';
 
 
 declare global { 
@@ -28,7 +28,7 @@ export class FileController {
         //     .checkForValidDataTypeForValue(req.params.jobId, Models.Enums.JSDataType.STRING, 'jobId')
             .checksFailed) return;
 
-        const jobSearchResult: Models.JobModels.IJobEntry = await APIDatabase.jobs_collection.findOne({ id: req.params.jobId });
+        const jobSearchResult: Models.JobModels.IJobEntry = await (server.db.users_collection as Collection).findOne({ id: req.params.jobId });
 
         if (validator
             .checkSearchResultIsNotDefinedNorNull(jobSearchResult, 'job')
@@ -61,7 +61,7 @@ export class FileController {
             res.status(200).json({ message: 'File successfully replaced.'});
             return;
         } else {
-            await APIDatabase.jobs_collection.updateOne({ id: req.params.jobId }, { $inc: { numberOfTransferredFiles: 1 }, $push: { filesReceived: req.params.fileName }});
+            await (server.db.jobs_collection as Collection).updateOne({ id: req.params.jobId }, { $inc: { numberOfTransferredFiles: 1 }, $push: { filesReceived: req.params.fileName }});
             res.status(200).json({ message: 'File successfully uploaded.'});
             return;
         }
@@ -74,7 +74,7 @@ export class FileController {
         const validator = new RequestValidationHelper(req, res);
         const { jobId, fileName } = req.params;
 
-        const jobSearchResult: Models.JobModels.IJobEntry = await APIDatabase.jobs_collection.findOne({ id: jobId });
+        const jobSearchResult: Models.JobModels.IJobEntry = await (server.db.jobs_collection as Collection).findOne({ id: jobId });
 
         if (validator
             .checkSearchResultIsNotDefinedNorNull(jobSearchResult, 'job')

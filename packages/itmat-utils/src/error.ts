@@ -17,8 +17,4 @@ export class CustomError {
 
         if (applicationErrorReferenceCode) { this.applicationErrorReferenceCode = applicationErrorReferenceCode; }
     }
-
-    public toString(): string {
-        return JSON.stringify(this);
-    }
 }

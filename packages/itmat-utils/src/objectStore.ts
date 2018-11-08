@@ -1,7 +1,6 @@
 import mongodb from 'mongodb';
 import { JobModels } from './models/index';
 
-
 export interface IObjectStoreConfig {
     uri: string,
 }

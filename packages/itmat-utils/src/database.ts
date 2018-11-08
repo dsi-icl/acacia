@@ -1,30 +1,64 @@
-import mongodb from 'mongodb';
+import mongodb, { MongoClient, Db } from 'mongodb';
+import { CustomError } from './error';
 
 export interface IDatabaseConfig {
     mongo_url: string,
     database: string,
-    jobs_collection: string
+    collections: {
+        [collectionDescription: string]: string  // collection name
+    }
 }
 
-/**
- * @class Database
- * @description Database.connect() represents a single connection to mongo
- */
+export abstract class Database<configType extends IDatabaseConfig> {
+    protected client: mongodb.MongoClient;
 
-export class Database {
-    /* USAGE IN PACKAGES:
-    1. either extend the class and override connect or use it as is; depending on the package's needs
-    2. use the connect function in server.initialise() for setup.
-    */
-    protected static db: mongodb.Db;
-    protected static config: IDatabaseConfig;
+    constructor(protected readonly config: configType) {
+        this.client = new mongodb.MongoClient(config.mongo_url, { useNewUrlParser: true });
+    }
 
-    public static async connect(config: IDatabaseConfig): Promise<void> {
-        if (!this.db) {
+    public async connect(): Promise<void> {
+        if (!this.isConnected()) {
+            console.log('Connecting to the database..');
             /* any error throw here will be caught by the server */
-            const client: mongodb.MongoClient = await mongodb.MongoClient.connect(config.mongo_url, { useNewUrlParser: true });
-            this.db = client.db(config.database);
-            this.config = config;
+            await this.client.connect();
+            console.log('Connected.');
+
+            console.log('Performing basic checks..');
+            await this.checkAllCollectionsArePresent(this.getDB());
+            console.log('Done.');
+
+            this.assignCollections();
+
+            console.log('Finished with database initialisation.');
+        } else {
+            console.warn('[Warning] Called connect function on an already connected database instance.');
+        }
+    }
+
+    public getDB(): Db {
+        return this.client.db(this.config.database);
+    }
+
+    public isConnected(): boolean {
+        return this.client.isConnected();
+    }
+
+    public async closeConnection(): Promise<void> {
+        try {
+            await this.client.close();
+        } catch (e) {
+            console.log(new CustomError('Cannot close Mongo connection', e));
+        }
+    }
+
+    protected abstract assignCollections(): void;
+
+    private async checkAllCollectionsArePresent(db: mongodb.Db): Promise<void> {
+        const collectionList: string[] = (await db.listCollections({}).toArray()).map(el => el.name);
+        for (const each of Object.values(this.config.collections)) {
+            if (!collectionList.includes(each)) {
+                throw new CustomError(`Collection ${each} does not exist.`);
+            }
         }
     }
 }

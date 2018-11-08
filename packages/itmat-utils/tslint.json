@@ -33,7 +33,7 @@
         "triple-equals": true,
         "typeof-compare": true,
         "use-isnan": true,
-        "eofline": true,
+        "eofline": false,
         "linebreak-style": [true, "LF"],
         "indent": [true, "spaces", 4],
         "prefer-const": true,
@@ -44,10 +44,9 @@
         "class-name": true,
         "encoding": true,
         "no-angle-bracket-type-assertion": true,
-        "no-parameter-properties": true,
         "no-reference-import": true,
         "quotemark": [true, "single", "avoid-template"],
-        "semicolon": [true, "always"],
+        "semicolon": [false, "always"],
         "space-before-function-paren": [true, "never"],
         "switch-final-break": [true, "always"],
         "no-arg": true,
@@ -62,6 +61,10 @@
                 "timeEnd",
                 "trace"
             ]
-        }
+        },
+        "max-line-length": false,
+        "trailing-comma": false,
+        "ordered-imports": false,
+        "object-literal-sort-keys": false
     }
 }

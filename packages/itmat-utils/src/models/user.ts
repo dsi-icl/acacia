@@ -16,5 +16,3 @@ export interface IUserWithoutToken {
 export interface IUser extends IUserWithoutToken {
     password: string
 }
-
-

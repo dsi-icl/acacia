@@ -7,7 +7,7 @@ export interface IOpenSwiftObjectStoreConfig extends IObjectStoreConfig {
     password: string
 }
 
-/* Wrapper for os2 (for now); exposes a set of fixed interfaces so later we can use another kinds of object storages too */ 
+/* Wrapper for os2 (for now); exposes a set of fixed interfaces so later we can use another kinds of object storages too */
 export class OpenStackSwiftObjectStore extends ObjectStore<IOpenSwiftObjectStoreConfig> {
     private account?: Account;
 
@@ -32,7 +32,7 @@ export class OpenStackSwiftObjectStore extends ObjectStore<IOpenSwiftObjectStore
             throw connectResult;
         }
         this.account = account;
-        return; //success
+        return; // success
     }
 
     public async uploadFile(fileStream: NodeJS.ReadableStream, job: JobModels.IJobEntry, fileName: string): Promise<void> {
@@ -40,13 +40,13 @@ export class OpenStackSwiftObjectStore extends ObjectStore<IOpenSwiftObjectStore
         // const metaData = container.getMetadata();
         container.create();
         const segment = new Segment(container, fileName);
-        await segment.createFromStream(fileStream); //error if thrown is caught by controller
+        await segment.createFromStream(fileStream); // error if thrown is caught by controller
         return;
     }
 
     public async downloadFile(fileName: string, jobId: string): Promise<NodeJS.ReadableStream> {
-        //PRECONDITION: jobId and file exists (checked)
-        //faltan checks
+        // PRECONDITION: jobId and file exists (checked)
+        // faltan checks
         const container = new Container(this.account, jobId);
         const segment = new Segment(container, fileName);
         return await segment.getContentStream();

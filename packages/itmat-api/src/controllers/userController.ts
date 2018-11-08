@@ -1,8 +1,9 @@
 import { UserUtils } from '../utils/userUtils';
 import { APIDatabase } from '../database/database';
 import { ItmatAPIReq } from '../server/requests';
+import { server } from '../index';
 import { CustomError, Models, RequestValidationHelper, UserControllerBasic } from 'itmat-utils';
-import mongodb, { UpdateWriteOpResult } from 'mongodb';
+import mongodb, { UpdateWriteOpResult, Collection } from 'mongodb';
 import { Express, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import config from '../../config/config.json';
@@ -93,7 +94,7 @@ export class UserController extends UserControllerBasic {
             .checkForValidDataTypeForValue(req.body.username, Models.Enums.JSDataType.STRING, 'username')
             .checksFailed) return;
         
-        const result: Models.UserModels.IUser = await APIDatabase.users_collection.findOne({ deleted: false, username: req.body.username });  //not getUser() because we need the pw as well
+        const result: Models.UserModels.IUser = await (server.db.users_collection as Collection).findOne({ deleted: false, username: req.body.username });  //not getUser() because we need the pw as well
         if (!result) {
             res.status(401).json(new CustomError('Incorrect username'));
             return;
@@ -206,7 +207,7 @@ export class UserController extends UserControllerBasic {
             }
 
             try {
-                const updateResult: UpdateWriteOpResult = await APIDatabase.users_collection.updateOne({ username: req.body.user, deleted: false }, { $set: fieldsToUpdate });
+                const updateResult: UpdateWriteOpResult = await (server.db.users_collection as Collection).updateOne({ username: req.body.user, deleted: false }, { $set: fieldsToUpdate });
                 if (updateResult.modifiedCount === 1) {
                     res.status(200).json({ message: `User ${req.body.user} has been updated.`});
                     return;
@@ -232,7 +233,7 @@ export class UserController extends UserControllerBasic {
             }
 
             try {
-                const updateResult: UpdateWriteOpResult = await APIDatabase.users_collection.updateOne({ username: req.body.user, deleted: false }, { $set: fieldsToUpdate });
+                const updateResult: UpdateWriteOpResult = await (server.db.users_collection as Collection).updateOne({ username: req.body.user, deleted: false }, { $set: fieldsToUpdate });
                 if (updateResult.modifiedCount === 1) {
                     res.status(200).json({ message: `User ${req.body.user} has been updated.`});
                     return;
