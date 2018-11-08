@@ -30,6 +30,6 @@
     "@types/multer": "^1.3.7",
     "@types/node-fetch": "^2.1.2",
     "eslint-plugin-typescript": "^0.12.0",
-    "typescript-eslint-parser": "^18.0.0"
+    "typescript-eslint-parser": "^20.0.0"
   }
 }
