@@ -1,17 +1,15 @@
-import express from 'express';
-import { Server, CustomError, IServerConfig, IOpenSwiftObjectStoreConfig } from 'itmat-utils';
-import { APIDatabase, IAPIDatabaseConfig } from '../database/database';
+import { ServerBase, CustomError, IServerBaseConfig } from 'itmat-utils';
+import { Database, IDatabaseConfig } from '../database/database';
 import { Router } from './router';
-import { Express, Request, Response, NextFunction } from 'express';
-import { objectStore } from '../objectStore/OpenStackObjectStore';
+import express, { Express, Request, Response, NextFunction } from 'express';
 
-interface IAPIServerConfig extends IServerConfig<IAPIDatabaseConfig> {
+interface IServerConfig extends IServerBaseConfig<IDatabaseConfig> {
     bcrypt: {
         saltround: number
     }
 }
 
-export class APIServer extends Server<IAPIDatabaseConfig, APIDatabase, IAPIServerConfig> {
+export class Server extends ServerBase<IDatabaseConfig, Database, IServerConfig> {
     protected async additionalChecks(): Promise<void> {
         if (isNaN(parseInt(this.config.bcrypt.saltround as any))) {
             console.log(

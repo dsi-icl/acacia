@@ -1,14 +1,14 @@
 import { Store, Account, Container, Segment, DynamicLargeObject, StaticLargeObject } from 'os2';
-import { ObjectStore, IObjectStoreConfig } from './objectStore';
+import { ObjectStoreBase, IObjectStoreBaseConfig } from './objectStore';
 import { JobModels } from './models/index';
 
-export interface IOpenSwiftObjectStoreConfig extends IObjectStoreConfig {
+export interface IOpenSwiftObjectStoreConfig extends IObjectStoreBaseConfig {
     username: string,
     password: string
 }
 
 /* Wrapper for os2 (for now); exposes a set of fixed interfaces so later we can use another kinds of object storages too */
-export class OpenStackSwiftObjectStore extends ObjectStore<IOpenSwiftObjectStoreConfig> {
+export class OpenStackSwiftObjectStore extends ObjectStoreBase<IOpenSwiftObjectStoreConfig> {
     private account?: Account;
 
     constructor(config: IOpenSwiftObjectStoreConfig) {

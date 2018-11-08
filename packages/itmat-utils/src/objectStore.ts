@@ -1,11 +1,11 @@
 import mongodb from 'mongodb';
 import { JobModels } from './models/index';
 
-export interface IObjectStoreConfig {
+export interface IObjectStoreBaseConfig {
     uri: string,
 }
 
-export abstract class ObjectStore<T extends IObjectStoreConfig> {
+export abstract class ObjectStoreBase<T extends IObjectStoreBaseConfig> {
     protected readonly config: T;
 
     constructor(config: T) {

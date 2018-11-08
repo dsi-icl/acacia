@@ -1,7 +1,7 @@
 import mongodb, { MongoClient, Db } from 'mongodb';
 import { CustomError } from './error';
 
-export interface IDatabaseConfig {
+export interface IDatabaseBaseConfig {
     mongo_url: string,
     database: string,
     collections: {
@@ -9,7 +9,7 @@ export interface IDatabaseConfig {
     }
 }
 
-export abstract class Database<configType extends IDatabaseConfig> {
+export abstract class DatabaseBase<configType extends IDatabaseBaseConfig> {
     protected client: mongodb.MongoClient;
 
     constructor(protected readonly config: configType) {
@@ -24,7 +24,7 @@ export abstract class Database<configType extends IDatabaseConfig> {
             console.log('Connected.');
 
             console.log('Performing basic checks..');
-            await this.checkAllCollectionsArePresent(this.getDB());
+            await this.checkAllCollectionsArePresent();
             console.log('Done.');
 
             this.assignCollections();
@@ -53,8 +53,8 @@ export abstract class Database<configType extends IDatabaseConfig> {
 
     protected abstract assignCollections(): void;
 
-    private async checkAllCollectionsArePresent(db: mongodb.Db): Promise<void> {
-        const collectionList: string[] = (await db.listCollections({}).toArray()).map(el => el.name);
+    private async checkAllCollectionsArePresent(): Promise<void> {
+        const collectionList: string[] = (await this.getDB().listCollections({}).toArray()).map(el => el.name);
         for (const each of Object.values(this.config.collections)) {
             if (!collectionList.includes(each)) {
                 throw new CustomError(`Collection ${each} does not exist.`);

@@ -8,46 +8,45 @@ export interface ItmatAPIReq<T> extends Request {
 
 declare global {
     namespace requests {
-        interface GetJobsByIdReqBody {
+        interface GetJobsByIdReqBody {  // tslint:disable-line
             id: string
         }
 
-        interface GetJobsByUserReqBody {
+        interface GetJobsByUserReqBody { // tslint:disable-line
             user: string
         }
 
-        interface CancelJobReqBody {
+        interface CancelJobReqBody { // tslint:disable-line
             id: string
         }
 
-        interface CreateUserReqBody {
+        interface CreateUserReqBody { // tslint:disable-line
             username: string,
             password: string,
             type: keyof typeof Models.UserModels.userTypes
         }
 
-        interface LoginReqBody {
+        interface LoginReqBody { // tslint:disable-line
             username: string,
             password: string
         }
 
-        interface EditUserReqBody {
+        interface EditUserReqBody { // tslint:disable-line
             user: string,
             password?: string,
             type?: Models.UserModels.userTypes
         }
 
-        interface LogoutReqBody {
+        interface LogoutReqBody { // tslint:disable-line
             user: string
         }
 
-        interface DeleteUserReqBody {
+        interface DeleteUserReqBody { // tslint:disable-line
             user: string
         }
 
-        interface FileUploadReqBody {
+        interface FileUploadReqBody { // tslint:disable-line
             file: Blob
         }
     }
 }
-

@@ -1,10 +1,10 @@
 import { Express } from 'express';
-import { Database, IDatabaseConfig } from './database';
+import { DatabaseBase, IDatabaseBaseConfig } from './database';
 import { MongoClient } from 'mongodb';
 import { CustomError } from './error';
 import { IOpenSwiftObjectStoreConfig, OpenStackSwiftObjectStore } from './OpenStackObjectStore';
 
-export interface IServerConfig<D extends IDatabaseConfig> {
+export interface IServerBaseConfig<D extends IDatabaseBaseConfig> {
     server: {
         port: number
     },
@@ -12,24 +12,13 @@ export interface IServerConfig<D extends IDatabaseConfig> {
     swift: IOpenSwiftObjectStoreConfig
 }
 
-export abstract class Server<D extends IDatabaseConfig, K extends Database<D>, T extends IServerConfig<D>> {
-    constructor(protected readonly config: T, public readonly db: K, public readonly objStore: OpenStackSwiftObjectStore, private readonly router: Express) {}
+export abstract class ServerBase<D extends IDatabaseBaseConfig, K extends DatabaseBase<D>, T extends IServerBaseConfig<D>> {
+    constructor(
+        protected readonly config: T,
+        protected readonly db: K,
+        protected readonly objStore: OpenStackSwiftObjectStore) {}
 
-    public async start(): Promise<void> {
-        await this.initialise();
-        const port = this.config.server.port;
-
-        this.router.listen(port, () => {
-            console.log(`I am listening on port ${port}!`);
-        }).on('error', err => {
-            console.log(`Cannot start server..maybe port ${port} is already in use?`, err);
-            process.exit(1);
-        });
-    }
-
-    protected abstract additionalChecks(): Promise<void>;
-
-    protected async initialise(): Promise<void> {
+    public async connectToBackEnd(): Promise<void> {
         try {  // try to establish a connection to database first; if failed, exit the program
             await this.db.connect();
         } catch (e) {
@@ -52,4 +41,16 @@ export abstract class Server<D extends IDatabaseConfig, K extends Database<D>, T
             process.exit(1);
         }
     }
+
+    public async start(router: Express): Promise<void> {
+        const port = this.config.server.port;
+        router.listen(port, () => {
+            console.log(`I am listening on port ${port}!`);
+        }).on('error', err => {
+            console.log(`Cannot start server..maybe port ${port} is already in use?`, err);
+            process.exit(1);
+        });
+    }
+
+    protected abstract additionalChecks(): Promise<void>;
 }
