@@ -13,7 +13,7 @@ export class Database extends DatabaseBase<IDatabaseConfig> {
     public users_collection?: mongodb.Collection; // tslint:disable-line
 
     protected assignCollections(): void {
-        const db = this.client.db(this.config.database);
+        const db = this.getDB();
         this.jobs_collection = db.collection(this.config.collections.jobs_collection);
         this.users_collection = db.collection(this.config.collections.users_collection);
     }
