@@ -1,5 +1,6 @@
 import mongodb, { MongoClient, Db } from 'mongodb';
 import { CustomError } from './error';
+import { Logger } from './logger';
 
 export interface IDatabaseBaseConfig {
     mongo_url: string,
@@ -18,20 +19,20 @@ export abstract class DatabaseBase<configType extends IDatabaseBaseConfig> {
 
     public async connect(): Promise<void> {
         if (!this.isConnected()) {
-            console.log('Connecting to the database..');
+            Logger.log('Connecting to the database..');
             /* any error throw here will be caught by the server */
             await this.client.connect();
-            console.log('Connected.');
+            Logger.log('Connected to database.');
 
-            console.log('Performing basic checks..');
+            Logger.log('Performing basic checks..');
             await this.checkAllCollectionsArePresent();
-            console.log('Done.');
+            Logger.log('Done basic checks.');
 
             this.assignCollections();
 
-            console.log('Finished with database initialisation.');
+            Logger.log('Finished with database initialisation.');
         } else {
-            console.warn('[Warning] Called connect function on an already connected database instance.');
+            Logger.warn('Called connect function on an already connected database instance.');
         }
     }
 
@@ -47,7 +48,7 @@ export abstract class DatabaseBase<configType extends IDatabaseBaseConfig> {
         try {
             await this.client.close();
         } catch (e) {
-            console.log(new CustomError('Cannot close Mongo connection', e));
+            Logger.error(new CustomError('Cannot close Mongo connection', e));
         }
     }
 

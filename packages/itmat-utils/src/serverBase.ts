@@ -2,6 +2,7 @@ import { Express } from 'express';
 import { DatabaseBase, IDatabaseBaseConfig } from './databaseBase';
 import { MongoClient } from 'mongodb';
 import { CustomError } from './error';
+import { Logger } from './logger';
 import { IOpenSwiftObjectStoreConfig, OpenStackSwiftObjectStore } from './OpenStackObjectStore';
 
 export interface IServerBaseConfig<D extends IDatabaseBaseConfig> {
@@ -23,7 +24,7 @@ export abstract class ServerBase<D extends IDatabaseBaseConfig, K extends Databa
             await this.db.connect();
         } catch (e) {
             const { mongo_url: mongoUri, database } = this.config.database;
-            console.log(
+            Logger.error(
                 new CustomError(`Cannot connect to database host ${mongoUri} - db = ${database}.`, e)
             );
             process.exit(1);
@@ -33,9 +34,9 @@ export abstract class ServerBase<D extends IDatabaseBaseConfig, K extends Databa
 
         try {  // try to establish a connection to database first; if failed, exit the program
             await this.objStore.connect();
-            console.log('connected to object store');
+            Logger.log('connected to object store');
         } catch (e) {
-            console.log(
+            Logger.log(
                 new CustomError('Cannot connect to object store.', e)
             );
             process.exit(1);
@@ -45,9 +46,9 @@ export abstract class ServerBase<D extends IDatabaseBaseConfig, K extends Databa
     public async start(router: Express): Promise<void> {
         const port = this.config.server.port;
         router.listen(port, () => {
-            console.log(`I am listening on port ${port}!`);
+            Logger.log(`I am listening on port ${port}!`);
         }).on('error', err => {
-            console.log(`Cannot start server..maybe port ${port} is already in use?`, err);
+            Logger.error(`Cannot start server..maybe port ${port} is already in use?`);
             process.exit(1);
         });
     }
