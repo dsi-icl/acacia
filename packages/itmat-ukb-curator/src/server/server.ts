@@ -1,4 +1,4 @@
-import { ServerBase, CustomError, IServerBaseConfig } from 'itmat-utils';
+import { ServerBase, CustomError, IServerBaseConfig, Logger } from 'itmat-utils';
 import { Database, IDatabaseConfig } from '../database/database';
 import { ICodingMap, ICodingEntry } from '../models/UKBCoding';
 import { IFieldMap, IFieldEntry } from '../models/UKBFields';
@@ -9,7 +9,7 @@ export class Server extends ServerBase<IDatabaseConfig, Database, IServerBaseCon
     private firstTimeFetch: boolean = true;
 
     protected async additionalChecks(): Promise<void> {
-        console.log('Fetching UKB codings..');
+        Logger.log('Fetching UKB codings..');
         const codingCursor = this.db.UKB_coding_collection!.find();
         const codingDict: ICodingMap = {};
         await codingCursor.forEach((doc: ICodingEntry) => {
@@ -21,15 +21,17 @@ export class Server extends ServerBase<IDatabaseConfig, Database, IServerBaseCon
             }
         });
         this._CODING_DICT = codingDict;
+        Logger.log('Finished fetching UKB codings');
 
         /* Fetching field dictionary to memory for faster parsing later; refresh at will / periodically */
-        console.log('Fetching UKB Field Info..');
+        Logger.log('Fetching UKB Field Info..');
         const fieldCursor = this.db.UKB_field_dictionary_collection!.find();
         const fieldDict: IFieldMap = {};
         await fieldCursor.forEach((doc: IFieldEntry) => {
             fieldDict[doc.FieldID] = doc;
         });
         this._FIELD_DICT = fieldDict;
+        Logger.log('Finished fetching UKB fields');
 
         return;
     }
