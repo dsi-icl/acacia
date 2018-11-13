@@ -1,40 +1,46 @@
-import express from 'express';
-import { Server, IDatabaseConfig, CustomError, IServerConfig, Models } from 'itmat-utils';
-import { UKBCurationDatabase, IUKBDatabaseConfig } from '../database/database';
-import { Express, Request, NextFunction } from 'express';
-import { changeStreamListener } from '../controllers/changeStreamListener';
-import { Router } from './router';
-import fetch, { Response } from 'node-fetch';
-import { objectStore } from '../objectStore/OpenStackObjectStore'; 
+import { ServerBase, CustomError, IServerBaseConfig } from 'itmat-utils';
+import { Database, IDatabaseConfig } from '../database/database';
+import { ICodingMap, ICodingEntry } from '../models/UKBCoding';
+import { IFieldMap, IFieldEntry } from '../models/UKBFields';
 
-interface IUKBCuratorServerConfig extends IServerConfig{
-    database: IUKBDatabaseConfig
-}
+export class Server extends ServerBase<IDatabaseConfig, Database, IServerBaseConfig<IDatabaseConfig>> {
+    private _CODING_DICT?: ICodingMap;
+    private _FIELD_DICT?: IFieldMap;
+    private firstTimeFetch: boolean = true;
 
-export class UKBCuratorServer extends Server<IUKBCuratorServerConfig> {
-    protected async initialise(): Promise<Express> {
-        try {  //try to establish a connection to database first; if failed, exit the program
-            await UKBCurationDatabase.connect(this.config.database);
-        } catch (e) {
-            const { mongo_url: mongoUri, database } = this.config.database;
-            console.log(
-                new CustomError(`Cannot connect to database host ${mongoUri} - db = ${database}.`, e)
-            );
-            process.exit(1);
-        }
+    protected async additionalChecks(): Promise<void> {
+        console.log('Fetching UKB codings..');
+        const codingCursor = this.db.UKB_coding_collection!.find();
+        const codingDict: ICodingMap = {};
+        await codingCursor.forEach((doc: ICodingEntry) => {
+            if (codingDict[doc.Coding]) {
+                codingDict[doc.Coding][String(doc.Value)] = doc.Meaning;
+            } else {
+                codingDict[doc.Coding] = {};
+                codingDict[doc.Coding][String(doc.Value)] = doc.Meaning;
+            }
+        });
+        this._CODING_DICT = codingDict;
 
-        try {  //try to establish a connection to database first; if failed, exit the program
-            await objectStore.connect();
-            console.log('connected to object store');
-        } catch (e) {
-            console.log(
-                new CustomError(`Cannot connect to object store.`, e)
-            );
-            process.exit(1);
-        }
+        /* Fetching field dictionary to memory for faster parsing later; refresh at will / periodically */
+        console.log('Fetching UKB Field Info..');
+        const fieldCursor = this.db.UKB_field_dictionary_collection!.find();
+        const fieldDict: IFieldMap = {};
+        await fieldCursor.forEach((doc: IFieldEntry) => {
+            fieldDict[doc.FieldID] = doc;
+        });
+        this._FIELD_DICT = fieldDict;
 
-        UKBCurationDatabase.changeStream.on('change', changeStreamListener);
+        return;
+    }
 
-        return new Router() as Express;
+    // public setFetchCodingAndFieldsInterval
+
+    public get CODING_DICT(): ICodingMap {
+        return this._CODING_DICT!;
+    }
+
+    public get FIELD_DICT(): IFieldMap {
+        return this._FIELD_DICT!;
     }
 }

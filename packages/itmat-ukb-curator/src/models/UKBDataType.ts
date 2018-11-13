@@ -1,5 +1,5 @@
 export const UKBiobankValueTypes: any = {   // 'date' are provided in yyyy-mm-dd;
-    Integer:'integer',
+    Integer: 'integer',
     'Categorical single': 'categorical single',
     'Categorical multiple': 'categorical multiple',
     Compound: 'compound',
@@ -7,4 +7,4 @@ export const UKBiobankValueTypes: any = {   // 'date' are provided in yyyy-mm-dd
     Text: 'text',
     Continuous: 'float',
     Time: 'date'
-}
+};

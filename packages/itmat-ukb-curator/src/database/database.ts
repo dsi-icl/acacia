@@ -1,89 +1,26 @@
-import mongodb, { MongosOptions } from 'mongodb';
-import { IDatabaseConfig, Database, CustomError } from 'itmat-utils';
-import { ICodingMap, ICodingEntry } from '../models/UKBCoding';
-import { IFieldMap, IFieldEntry } from '../models/UKBFields';
+import mongodb from 'mongodb';
+import { IDatabaseBaseConfig, DatabaseBase, CustomError } from 'itmat-utils';
 
-export interface IUKBDatabaseConfig extends IDatabaseConfig {
-    UKB_coding_collection: string,
-    UKB_field_dictionary_collection: string,
-    UKB_data_collection: string
+export interface IDatabaseConfig extends IDatabaseBaseConfig {
+    collections: {
+        jobs_collection: string,
+        UKB_coding_collection: string,
+        UKB_field_dictionary_collection: string,
+        UKB_data_collection: string
+    }
 }
 
+export class Database extends DatabaseBase<IDatabaseConfig> {
+    public jobs_collection?: mongodb.Collection; // tslint:disable-line
+    public UKB_coding_collection?: mongodb.Collection; // tslint:disable-line
+    public UKB_field_dictionary_collection?: mongodb.Collection; // tslint:disable-line
+    public UKB_data_collection?: mongodb.Collection; // tslint:disable-line
 
-export class UKBCurationDatabase extends Database {
-    protected static config: IUKBDatabaseConfig;
-    public static UKB_coding_collection: mongodb.Collection;
-    public static UKB_field_dictionary_collection: mongodb.Collection;
-    public static UKB_data_collection: mongodb.Collection;
-    public static jobs_collection: mongodb.Collection;
-    public static changeStream: mongodb.ChangeStream;
-    public static CODING_DICT: ICodingMap;
-    public static FIELD_DICT:  IFieldMap;
-
-    public static async connect(config: IUKBDatabaseConfig): Promise<void> {
-        if (!this.db) {
-            /* any error throw here should be caught by the server calling this function */
-            console.log('Connecting to the database..');
-            const client: mongodb.MongoClient = await mongodb.MongoClient.connect(config.mongo_url, { useNewUrlParser: true });
-            this.db = client.db(config.database);
-            this.config = config;
-            console.log('Connected.');
-
-            /* checking the collections are already present; can change to create if not exist but gives warning */
-            let collectionList: any[] = await this.db.listCollections({}).toArray();
-            collectionList = collectionList.map(el => el.name) as string[];
-            for (let each of [config.UKB_coding_collection, config.UKB_field_dictionary_collection, config.UKB_data_collection, config.jobs_collection]) {
-                if (!collectionList.includes(each)) {
-                    throw new CustomError(`Collection ${each} does not exist.`);
-                }
-            }
-
-            /* now that everything exists let's bind them */
-            this.UKB_coding_collection = this.db.collection(config.UKB_coding_collection);
-            this.UKB_field_dictionary_collection = this.db.collection(config.UKB_field_dictionary_collection);
-            this.UKB_data_collection = this.db.collection(config.UKB_data_collection);
-            this.jobs_collection = this.db.collection(config.jobs_collection);
-
-            /* Open a changestream to listen to job collection */
-            const pipeline = [
-                { $match: { 'fullDocument.jobType': 'UKB_CSV_UPLOAD', 'updateDescription.updatedFields.numberOfTransferredFiles': { $exists: true } } }
-            ]
-            this.changeStream = this.jobs_collection.watch(pipeline, { fullDocument: 'updateLookup' });
-
-            /* Fetching coding dictionary to memory for faster parsing later; refresh at will / periodically */
-            console.log('Fetching UKB codings..');
-            const codingCursor = this.UKB_coding_collection.find();
-            const codingDict: ICodingMap = {};
-            await codingCursor.forEach((doc: ICodingEntry) => {
-                if(codingDict[doc.Coding]) {
-                    codingDict[doc.Coding][String(doc.Value)] = doc.Meaning;
-                } else {
-                    codingDict[doc.Coding] = {};
-                    codingDict[doc.Coding][String(doc.Value)] = doc.Meaning;
-                }
-            });
-            this.CODING_DICT = codingDict;
-            
-
-            /* Fetching field dictionary to memory for faster parsing later; refresh at will / periodically */
-            console.log('Fetching UKB Field Info..');
-            const fieldCursor = this.UKB_field_dictionary_collection.find();
-            const fieldDict: IFieldMap = {};
-            await fieldCursor.forEach((doc: IFieldEntry) => {
-                fieldDict[doc.FieldID] = doc;
-            });
-            this.FIELD_DICT = fieldDict;
-        }
-    }
-
-    public static async flushCodingCollection(): Promise<void> {
-        try {
-            await this.UKB_coding_collection.drop();
-            await this.db.createCollection(this.config.UKB_coding_collection);
-            this.UKB_coding_collection = this.db.collection(this.config.UKB_coding_collection);
-            await this.UKB_coding_collection.createIndex({ Coding: 1, Value: 1 });
-        } catch (e) {
-
-        }
+    protected assignCollections(): void {
+        const db = this.getDB();
+        this.jobs_collection = db.collection(this.config.collections.jobs_collection);
+        this.UKB_coding_collection = db.collection(this.config.collections.UKB_coding_collection);
+        this.UKB_field_dictionary_collection = db.collection(this.config.collections.UKB_field_dictionary_collection);
+        this.UKB_data_collection = db.collection(this.config.collections.UKB_data_collection);
     }
 }

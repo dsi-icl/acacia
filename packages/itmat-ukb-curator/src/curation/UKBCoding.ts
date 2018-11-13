@@ -1,11 +1,11 @@
-import { UKBCurationDatabase } from '../database/database';
 import { ICodingEntry, ICodingMap } from '../models/UKBCoding';
-import mongo from 'mongodb';
+import mongodb from 'mongodb';
 
 export class UKBCoding {
+    constructor(private readonly UKBCodingCollection: mongodb.Collection) {}
 
-    public static async getCodeMeaning(Coding: number, Value: string): Promise<string|null> {
-        const result: ICodingEntry = await UKBCurationDatabase.UKB_coding_collection.findOne({ Coding, Value });
+    public async getCodeMeaning(Coding: number, Value: string): Promise<string|null> {
+        const result: ICodingEntry = await this.UKBCodingCollection.findOne({ Coding, Value });
         if (result) {
             return result.Meaning;
         } else {
@@ -13,9 +13,9 @@ export class UKBCoding {
         }
     }
 
-    public static async getCodeDictionary(Coding: number): Promise<ICodingMap> {
+    public async getCodeDictionary(Coding: number): Promise<ICodingMap> {
         const map: any = {};
-        const results: mongo.Cursor = UKBCurationDatabase.UKB_coding_collection.find({ Coding });
+        const results: mongodb.Cursor = this.UKBCodingCollection.find({ Coding });
         await results.forEach((doc: ICodingEntry) => {
             map[doc.Value] = doc.Meaning;
         });
