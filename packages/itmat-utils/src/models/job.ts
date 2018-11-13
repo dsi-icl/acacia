@@ -18,7 +18,7 @@ export interface IJob {
     jobType: string,
 }
 
-export interface IJobEntry extends IJob {
+export interface IJobEntry<dataobj> extends IJob {
     _id?: mongodb.ObjectId,
     id: string,
     study: string,
@@ -28,7 +28,16 @@ export interface IJobEntry extends IJob {
     status: string,
     error: null | object,
     cancelled: boolean,
-    cancelledTime?: number
+    cancelledTime?: number,
+    claimedBy?: string,
+    lastClaimed: number,
+    data?: dataobj
+}
+
+export interface IDataobj_UKB_IMAGE_UPLOAD_job {  //tslint:disable-line
+    patientId: string,
+    objectUrl: string,
+    fieldId: string // xxxx-y.z
 }
 
 export const jobTypes: IJobType = {

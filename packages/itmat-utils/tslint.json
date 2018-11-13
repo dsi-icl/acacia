@@ -66,6 +66,7 @@
         "trailing-comma": false,
         "ordered-imports": false,
         "object-literal-sort-keys": false,
-        "radix": false
+        "radix": false,
+        "object-literal-key-quotes": [true, "as-needed"]
     }
 }

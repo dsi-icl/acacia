@@ -1,5 +1,5 @@
 import { Express } from 'express';
-import { DatabaseBase, IDatabaseBaseConfig } from './database';
+import { DatabaseBase, IDatabaseBaseConfig } from './databaseBase';
 import { MongoClient } from 'mongodb';
 import { CustomError } from './error';
 import { IOpenSwiftObjectStoreConfig, OpenStackSwiftObjectStore } from './OpenStackObjectStore';

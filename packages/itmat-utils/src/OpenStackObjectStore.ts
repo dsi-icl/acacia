@@ -1,5 +1,5 @@
 import { Store, Account, Container, Segment, DynamicLargeObject, StaticLargeObject } from 'os2';
-import { ObjectStoreBase, IObjectStoreBaseConfig } from './objectStore';
+import { ObjectStoreBase, IObjectStoreBaseConfig } from './objectStoreBase';
 import { JobModels } from './models/index';
 
 export interface IOpenSwiftObjectStoreConfig extends IObjectStoreBaseConfig {
@@ -35,7 +35,7 @@ export class OpenStackSwiftObjectStore extends ObjectStoreBase<IOpenSwiftObjectS
         return; // success
     }
 
-    public async uploadFile(fileStream: NodeJS.ReadableStream, job: JobModels.IJobEntry, fileName: string): Promise<void> {
+    public async uploadFile(fileStream: NodeJS.ReadableStream, job: JobModels.IJobEntry<undefined>, fileName: string): Promise<void> {
         const container = new Container(this.account, job.id);
         // const metaData = container.getMetadata();
         container.create();
