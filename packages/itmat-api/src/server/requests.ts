@@ -3,7 +3,7 @@ import { Models } from 'itmat-utils';
 
 export interface ItmatAPIReq<T> extends Request {
     body: T,
-    user: Models.UserModels.IUserWithoutToken
+    user?: Models.UserModels.IUserWithoutToken
 }
 
 declare global {
@@ -46,7 +46,11 @@ declare global {
         }
 
         interface FileUploadReqBody { // tslint:disable-line
-            file: Blob
+            jobType: string,
+            study: string,
+            file: Blob,
+            field?: string, // xxx-yy.z
+            patientId?: string
         }
     }
 }

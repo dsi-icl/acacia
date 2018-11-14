@@ -7,6 +7,18 @@ import bcrypt from 'bcrypt';
 export class UserController extends UserControllerBasic {
     constructor(private readonly usersCollection: mongodb.Collection, private readonly bcryptSaltRound: number = 4) {
         super();
+        this.getUsers = this.getUsers.bind(this);
+        this.createNewUser = this.createNewUser.bind(this);
+        this.deleteUser = this.deleteUser.bind(this);
+        this.editUser = this.editUser.bind(this);
+        this.login = this.login.bind(this);
+        this.logout = this.logout.bind(this);
+        this._createNewUser = this._createNewUser.bind(this);
+        this._deleteUser = this._deleteUser.bind(this);
+        this._getAllUsers = this._getAllUsers.bind(this);
+        this._getUser = this._getUser.bind(this);
+        this.serialiseUser = this.serialiseUser.bind(this);
+        this.deserialiseUser = this.deserialiseUser.bind(this);
     }
 
     public async getUsers(req: ItmatAPIReq<undefined>, res: Response) {
@@ -67,7 +79,7 @@ export class UserController extends UserControllerBasic {
             password: hashedPassword,
             type: req.body.type as Models.UserModels.userTypes,
             deleted: false,
-            createdBy: req.user.username
+            createdBy: req.user!.username
         };
 
         let result: mongodb.InsertOneWriteOpResult;
@@ -158,7 +170,7 @@ export class UserController extends UserControllerBasic {
             .checkSearchResultIsOne('user', updateResult.modifiedCount)
             .checksFailed) { return; }
 
-        if (req.user.username === req.body.user) {
+        if (req.user!.username === req.body.user) {
             req.logout();
         }
 
@@ -178,7 +190,7 @@ export class UserController extends UserControllerBasic {
             .checkForValidDataTypeForValue(req.body.user, JSDataType.STRING, 'user')
             .checksFailed) { return; }
 
-        if (req.user.type === Models.UserModels.userTypes.ADMIN) {
+        if (req.user!.type === Models.UserModels.userTypes.ADMIN) {
             try {
                 const result: Models.UserModels.IUserWithoutToken = await this._getUser(req.body.user);   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {

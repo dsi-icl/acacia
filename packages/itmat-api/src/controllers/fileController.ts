@@ -3,99 +3,129 @@ import { Database } from '../database/database';
 import { Models, RequestValidationHelper, CustomError, OpenStackSwiftObjectStore } from 'itmat-utils';
 import { Express, Request, Response, NextFunction } from 'express';
 import mongodb from 'mongodb';
-
+import uuidv4 from 'uuid/v4';
 declare global {
     namespace Express {
         namespace Multer {
             interface File { // tslint:disable-line
                 stream: NodeJS.ReadableStream;
+                originalName: string;
             }
         }
     }
 }
 
 export class FileController {
-    constructor(private readonly db: Database, private readonly objStore: OpenStackSwiftObjectStore) {}
+    constructor(private readonly db: Database, private readonly objStore: OpenStackSwiftObjectStore) {
+        this.uploadFile = this.uploadFile.bind(this);
+        this.downloadFile = this.downloadFile.bind(this);
+
+    }
 
     public async uploadFile(req: ItmatAPIReq<requests.FileUploadReqBody>, res: Response, next: NextFunction): Promise<void> {
-        const validator = new RequestValidationHelper(req, res);    // what if the person sends the same files to two carriers
-        // maybe a script for checking integrity.
-        // this doesn't include images..
+        const validator = new RequestValidationHelper(req, res);
+        // TO_DO: check study exists, check no spaces in file name
+        // TO_DO: change this to a dispatcher for different types of jobs
         if (validator
             .checkForAdminPrivilege()
-        //     .checkRequiredKeysArePresentIn<requests.FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['fileName', 'jobId'])
-        //     .checkForValidDataTypeForValue(req.params.fileName, Models.Enums.JSDataType.STRING, 'fileName')
-        //     .checkForValidDataTypeForValue(req.params.jobId, Models.Enums.JSDataType.STRING, 'jobId')
+            .checkRequiredKeysArePresentIn<requests.FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['jobType', 'study'])
+            .checkForValidDataTypeForValue(req.body.study, Models.Enums.JSDataType.STRING, 'study')
+            .checkForValidDataTypeForValue(req.body.jobType, Models.Enums.JSDataType.STRING, 'jobType')
+            .checkKeyForValidValue('jobType', req.body.jobType, Object.keys(Models.JobModels.jobTypes))
+            .checkSearchResultIsNotDefinedNorNull(req.file.originalName, 'Original file name')
+            .checkStringDoesNotHaveSpace(req.file.originalName, 'file name')
             .checksFailed) { return; }
 
-        const jobSearchResult: Models.JobModels.IJobEntry = await this.db.users_collection!.findOne({ id: req.params.jobId });
+        if (req.body.jobType === 'UKB_IMAGE_UPLOAD') {
+            if (validator
+                .checkForAdminPrivilege()
+                .checkRequiredKeysArePresentIn<requests.FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['field', 'patientId'])
+                .checkForValidDataTypeForValue(req.body.field, Models.Enums.JSDataType.STRING, 'field')
+                .checkForValidDataTypeForValue(req.body.patientId, Models.Enums.JSDataType.STRING, 'patientId')
+                .checksFailed) { return; }
+        }
 
-        if (validator
-            .checkSearchResultIsNotDefinedNorNull(jobSearchResult, 'job')
-            .checksFailed)  { return; }
-
-        const user: Models.UserModels.IUserWithoutToken = req.user as Models.UserModels.IUserWithoutToken;
-
-        if (user.username !== jobSearchResult.requester) {
-            res.status(401).json(new CustomError(Models.APIModels.Errors.authorised));
+        let studySearch: Models.Study.IStudy;
+        try {
+            studySearch = await this.db.studies_collection!.findOne({ name: req.body.study });
+        } catch (e) {
+            console.log(e);
+            res.status(500).json(new CustomError('Server error.'));
             return;
         }
 
-        if (jobSearchResult.cancelled === true) {
-            res.status(400).json(new CustomError('Job was cancelled.'));
-            return;
-        }
-
         if (validator
-            .checkKeyForValidValue('fileName', req.params.fileName, jobSearchResult.files)
-            .checksFailed)  { return; }
+            .checkSearchResultIsNotDefinedNorNull(studySearch, `study '${req.body.study}' `)
+            .checksFailed) { return; }
+
+        const jobId = uuidv4();
 
         try {
-            await this.objStore.uploadFile(req.file.stream, jobSearchResult, req.params.fileName);
+            await this.objStore.uploadFile(req.file.stream, jobId, req.file.originalName);
         } catch (e) {
             res.status(500).json(new CustomError('Cannot upload file.', e));
             return;
         }
 
-        if (jobSearchResult.filesReceived.includes(req.params.fileName)) {
-            res.status(200).json({ message: 'File successfully replaced.'});
-            return;
-        } else {
-            await this.db.jobs_collection!.updateOne({ id: req.params.jobId }, { $inc: { numberOfTransferredFiles: 1 }, $push: { filesReceived: req.params.fileName }});
-            res.status(200).json({ message: 'File successfully uploaded.'});
+        const jobEntry: Models.JobModels.IJobEntry<any> = {
+            id: jobId,
+            study: req.body.study,
+            jobType: req.body.jobType,
+            requester: req.user!.username,
+            receivedFiles: req.file.originalName,
+            status: 'RECEIVED FILE',
+            error: null,
+            cancelled: false
+        };
+
+        if (req.body.jobType === 'UKB_IMAGE_UPLOAD') {
+            jobEntry.data = {
+                patientId: req.body.patientId,
+                field: req.body.field
+            };
+        }
+
+        try {
+            await this.db.jobs_collection!.insertOne(jobEntry);
+        } catch (e) {
+            console.log(e);
+            res.status(500).json(new CustomError('Server error.'));
             return;
         }
+
+        res.status(200).json({ jobId });
+        return;
     }
 
     public async downloadFile(req: ItmatAPIReq<undefined>, res: Response): Promise<void> {
-        // TO_DO: how to restrict downloadfile to other microservices .
-        // TO_DO: check whether the job is by the user; bounce if not
-        const user: Models.UserModels.IUserWithoutToken = req.user as Models.UserModels.IUserWithoutToken;
-        const validator = new RequestValidationHelper(req, res);
-        const { jobId, fileName } = req.params;
+        // // TO_DO: how to restrict downloadfile to other microservices .
+        // // TO_DO: check whether the job is by the user; bounce if not
+        // const user: Models.UserModels.IUserWithoutToken = req.user as Models.UserModels.IUserWithoutToken;
+        // const validator = new RequestValidationHelper(req, res);
+        // const { jobId, fileName } = req.params;
 
-        const jobSearchResult: Models.JobModels.IJobEntry = await this.db.jobs_collection!.findOne({ id: jobId });
+        // const jobSearchResult: Models.JobModels.IJobEntry = await this.db.jobs_collection!.findOne({ id: jobId });
 
-        if (validator
-            .checkSearchResultIsNotDefinedNorNull(jobSearchResult, 'job')
-            .checkKeyForValidValue('fileName', fileName, jobSearchResult.filesReceived)
-            .checksFailed)  { return; }
+        // if (validator
+        //     .checkSearchResultIsNotDefinedNorNull(jobSearchResult, 'job')
+        //     .checkKeyForValidValue('fileName', fileName, jobSearchResult.filesReceived)
+        //     .checksFailed)  { return; }
 
-        let fileStream: NodeJS.ReadableStream;
-        try {
-            fileStream = await this.objStore.downloadFile(fileName, jobSearchResult.id);
-        } catch (e) {
-            res.status(500).json(new CustomError('Cannot download file', e));
-            return;
-        }
+        // let fileStream: NodeJS.ReadableStream;
+        // try {
+        //     fileStream = await this.objStore.downloadFile(fileName, jobSearchResult.id);
+        // } catch (e) {
+        //     res.status(500).json(new CustomError('Cannot download file', e));
+        //     return;
+        // }
 
-        fileStream.on('data', data => {
-            res.write(data);
-        });
+        // fileStream.on('data', data => {
+        //     res.write(data);
+        // });
 
-        fileStream.on('end', () => {
-            res.end();
-        });
+        // fileStream.on('end', () => {
+        //     res.end();
+        // });
 
         return;
     }
