@@ -136,6 +136,28 @@ export class RequestValidationHelper {
         return this;
     }
 
+    public checkStringDoesNotHaveSpace(input: string, field: string): RequestValidationHelper {
+        /// PRECONDITION: CHECK THE INPUT IS STRING TYPE FIRST.
+        if (this.checksFailed) { return this; } // if previous test fails there is no need to do more
+        if (input.indexOf(' ') === -1) {
+            return this;
+        }
+        this.res.status(400).json(new CustomError(`Value of field '${field}' cannot have space in it.`));
+        this.checksFailed = true;
+        return this;
+    }
+
+    public checkStringDoesNotHaveSpaceOrDot(input: string, field: string): RequestValidationHelper {
+        /// PRECONDITION: CHECK THE INPUT IS STRING TYPE FIRST.
+        if (this.checksFailed) { return this; } // if previous test fails there is no need to do more
+        if (input.indexOf(' ') === -1 && input.indexOf('.') === -1) {
+            return this;
+        }
+        this.res.status(400).json(new CustomError(`Value of field '${field}' cannot have space or dot in it.`));
+        this.checksFailed = true;
+        return this;
+    }
+
     public checkSearchResultIsNotDefinedNorNull(obj: any, entryName: string): RequestValidationHelper {
         if (this.checksFailed) { return this; } // if previous test fails there is no need to do more
         if (obj === null || obj === undefined) {

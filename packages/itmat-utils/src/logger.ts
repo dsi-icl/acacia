@@ -15,4 +15,9 @@ export class Logger {
         if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
         console.log(`[${new Date().toUTCString()}] ${chalk.bold.red('ERROR!')} ${message}`);
     }
+
+    // public static audit(user: string, message: any): void {
+    //     if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
+    //     console.log(`[${new Date().toUTCString()}] ${chalk.bold.blue('Audit')} ${message}`);
+    // }
 }

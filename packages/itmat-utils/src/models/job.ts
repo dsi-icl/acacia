@@ -23,21 +23,20 @@ export interface IJobEntry<dataobj> extends IJob {
     id: string,
     study: string,
     requester: string,
-    receivedFiles: [],
-    createdBy: string,
+    receivedFiles: string,
     status: string,
     error: null | object,
     cancelled: boolean,
     cancelledTime?: number,
     claimedBy?: string,
-    lastClaimed: number,
+    lastClaimed?: number,
     data?: dataobj
 }
 
 export interface IDataobj_UKB_IMAGE_UPLOAD_job {  //tslint:disable-line
     patientId: string,
     objectUrl: string,
-    fieldId: string // xxxx-y.z
+    field: string // xxxx-y.z
 }
 
 export const jobTypes: IJobType = {
