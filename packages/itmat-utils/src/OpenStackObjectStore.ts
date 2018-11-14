@@ -35,10 +35,10 @@ export class OpenStackSwiftObjectStore extends ObjectStoreBase<IOpenSwiftObjectS
         return; // success
     }
 
-    public async uploadFile(fileStream: NodeJS.ReadableStream, job: JobModels.IJobEntry<undefined>, fileName: string): Promise<void> {
-        const container = new Container(this.account, job.id);
+    public async uploadFile(fileStream: NodeJS.ReadableStream, jobId: string, fileName: string): Promise<void> {
+        const container = new Container(this.account, jobId);
         // const metaData = container.getMetadata();
-        container.create();
+        await container.create();
         const segment = new Segment(container, fileName);
         await segment.createFromStream(fileStream); // error if thrown is caught by controller
         return;
