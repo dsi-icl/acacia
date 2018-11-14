@@ -24,7 +24,7 @@ export class Server extends ServerBase<IDatabaseConfig, Database, IServerConfig>
         this._FIELD_DICT = fieldDict;
         Logger.log('Finished fetching UKB fields');
 
-        const curator = new UKBImageCurator(this._FIELD_DICT, this.db.UKB_data_collection!);
+        const curator = new UKBImageCurator(this._FIELD_DICT, this.db.UKB_data_collection!, this.db.jobs_collection!);
         const poller = new Poller(this.db.jobs_collection!, this.config.pollingInterval, curator.updateData);
         poller.setInterval();
         return;
