@@ -10,7 +10,7 @@ interface IServerConfig extends IServerBaseConfig<IDatabaseConfig> {
 }
 
 export class Server extends ServerBase<IDatabaseConfig, Database, IServerConfig> {
-    protected async additionalChecks(): Promise<void> {
+    protected async additionalChecksAndActions(): Promise<void> {
         if (isNaN(parseInt(this.config.bcrypt.saltround as any))) {
             console.log(
                 new CustomError('Salt round must be a number')

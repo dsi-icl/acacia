@@ -30,8 +30,6 @@ export abstract class ServerBase<D extends IDatabaseBaseConfig, K extends Databa
             process.exit(1);
         }
 
-        await this.additionalChecks();
-
         try {  // try to establish a connection to database first; if failed, exit the program
             await this.objStore.connect();
             Logger.log('connected to object store');
@@ -41,6 +39,8 @@ export abstract class ServerBase<D extends IDatabaseBaseConfig, K extends Databa
             );
             process.exit(1);
         }
+
+        await this.additionalChecksAndActions();
     }
 
     public async start(router: Express): Promise<void> {
@@ -53,5 +53,5 @@ export abstract class ServerBase<D extends IDatabaseBaseConfig, K extends Databa
         });
     }
 
-    protected abstract additionalChecks(): Promise<void>;
+    protected abstract additionalChecksAndActions(): Promise<void>;
 }

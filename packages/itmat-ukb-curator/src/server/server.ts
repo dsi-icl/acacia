@@ -8,7 +8,7 @@ export class Server extends ServerBase<IDatabaseConfig, Database, IServerBaseCon
     private _FIELD_DICT?: IFieldMap;
     private firstTimeFetch: boolean = true;
 
-    protected async additionalChecks(): Promise<void> {
+    protected async additionalChecksAndActions(): Promise<void> {
         Logger.log('Fetching UKB codings..');
         const codingCursor = this.db.UKB_coding_collection!.find();
         const codingDict: ICodingMap = {};
