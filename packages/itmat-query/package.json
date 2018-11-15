@@ -1,5 +1,5 @@
 {
-  "name": "itmat-ukb-image-curator",
+  "name": "itmat-query",
   "version": "1.0.0",
   "private": true,
   "description": "Curator service for UKB image data",
