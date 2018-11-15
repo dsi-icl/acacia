@@ -21,22 +21,22 @@ export class Poller {
         console.log('polling');
         let updateResult: mongodb.FindAndModifyWriteOpResultObject;
         try {
-            updateResult = await this.jobCollection.findOneAndUpdate({ jobType: 'UKB_IMAGE_UPLOAD', claimedBy: undefined /*, lastClaimed: more then 0 */}, { $set: {
-                claimedBy: 'me!',
+            updateResult = await this.jobCollection.findOneAndUpdate({ jobType: 'UKB_CSV_UPLOAD', claimedBy: undefined /*, lastClaimed: more then 0 */}, { $set: {
+                claimedBy: 'him!',
                 lastClaimed: new Date().valueOf(),
                 status: 'PROCESSING'
             }},
-            { maxTimeMS : 30 });
+            { maxTimeMS : 10 });
         } catch (e) {
             console.log(e);
             return;
         }
 
         if (updateResult !== undefined && updateResult.ok === 1 && updateResult.value !== null) {
-            Logger.log(`Claimed job UKB_IMAGE_UPLOAD id: ${updateResult.value.id}`);
+            Logger.log(`Claimed job UKB_CSV_UPLOAD id: ${updateResult.value.id}`);
             clearInterval(this.intervalObj!);
             await this.action(updateResult.value);
-            Logger.log(`Finished processing job UKB_IMAGE_UPLOAD id: ${updateResult.value.id}. Restarting polling interval.`);
+            Logger.log(`Finished processing job UKB_CSV_UPLOAD id: ${updateResult.value.id}. Restarting polling interval.`);
             this.intervalObj = setInterval(this.cb, this.pollingFrequency);
         } else if (updateResult.ok !== 1) {
             console.log(updateResult);
