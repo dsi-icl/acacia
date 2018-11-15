@@ -1,9 +1,10 @@
 import { Server } from './server/server';
 import { Router } from './server/router';
 import { Database } from './database/database';
-import { FileController, UserController, StudyController } from './controllers';
+import { FileController, UserController, StudyController, QueryController } from './controllers';
 import { OpenStackSwiftObjectStore } from 'itmat-utils';
 import config from '../config/config.json';
+import { Query } from 'itmat-utils/dist/models';
 
 const db = new Database(config.database);
 const objStore = new OpenStackSwiftObjectStore(config.swift);
@@ -13,6 +14,7 @@ server.connectToBackEnd().then(() => {
     const userController = new UserController(db.users_collection!);
     const fileController = new FileController(db, objStore);
     const studyController = new StudyController(db.studies_collection!);
-    const router = new Router(db.getDB(), userController, fileController, studyController);
+    const queryController = new QueryController(db.queries_collection!);
+    const router = new Router(db.getDB(), userController, fileController, studyController, queryController);
     server.start(router.getApp());
 });

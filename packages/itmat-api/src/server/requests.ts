@@ -52,5 +52,9 @@ declare global {
             field?: string, // xxx-yy.z
             patientId?: string
         }
+
+        interface CreateQueryBody { // tslint:disable-line
+            query: any
+        }
     }
 }

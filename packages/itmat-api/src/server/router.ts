@@ -1,7 +1,7 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { CustomError, RequestValidationHelper } from 'itmat-utils';
-import { UserController, FileController, StudyController } from '../controllers';
+import { UserController, FileController, StudyController, QueryController } from '../controllers';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
@@ -19,7 +19,8 @@ export class Router {
         db: mongodb.Db /* the database to save sessions */,
         userController: UserController,
         fileController: FileController,
-        studyController: StudyController
+        studyController: StudyController,
+        queryController: QueryController
     ) {
         this.app = express();
 
@@ -62,14 +63,19 @@ export class Router {
             .patch(userController.editUser)
             .delete(userController.deleteUser);
 
-        // this.app.route('/study')
-        //     .get()
-        //     .post()
-        //     .delete();
-
         this.app.route('/study')
             .post(studyController.createStudy)
             .get(studyController.getStudies);
+
+        // this.app.route('/query/xnat')
+        //     .post(/* translate to native */);
+
+        // this.app.route('/query/transmart')
+        //     .post();
+
+        this.app.route('/query(/xnat|/transmart)?')
+            .post(queryController.createQuery)
+            .get();
 
         this.app.route('/file')
             .get(fileController.downloadFile)
