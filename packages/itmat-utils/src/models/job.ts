@@ -1,5 +1,4 @@
 import mongodb from 'mongodb';
-import { UrlObjectCommon } from 'url';
 
 export interface IJobType {
     [typename: string]: {
