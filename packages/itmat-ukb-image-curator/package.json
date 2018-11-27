@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Curator service for UKB image data",
-  "main": "./dist/src/index.js",
+  "main": "./dist/src/curation/UKBImageCuration.js",
   "scripts": {
     "start": "node ./dist/src/index.js",
     "test": "tsc && jest",
