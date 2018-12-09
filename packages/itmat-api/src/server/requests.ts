@@ -48,7 +48,7 @@ declare global {
         interface FileUploadReqBody { // tslint:disable-line
             jobType: string,
             study: string,
-            file: Blob,
+            file: any,
             field?: string, // xxx-yy.z
             patientId?: string
         }

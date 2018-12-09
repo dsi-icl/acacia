@@ -8,8 +8,11 @@ import session from 'express-session';
 import connectMongo from 'connect-mongo';
 import multer from 'multer';
 import mongodb from 'mongodb';
-const MongoStore = connectMongo(session);
+import { ApolloServer } from 'apollo-server-express';
+import { schema } from '../graphql/schema';
+import { resolvers } from '../graphql/resolver';
 
+const MongoStore = connectMongo(session);
 const upload = multer();
 
 export class Router {
@@ -38,6 +41,14 @@ export class Router {
         passport.serializeUser(userController.serialiseUser);
         passport.deserializeUser(userController.deserialiseUser);
 
+        const gqlServer = new ApolloServer({
+            typeDefs: schema,
+            resolvers,
+            context: ({ req, res }: any) => ({ req, res, db })
+        });
+
+        gqlServer.applyMiddleware({ app: this.app });
+
         this.app.route('/whoAmI')
             .get(userController.whoAmI);
 
@@ -48,14 +59,6 @@ export class Router {
 
         this.app.route('/logout')
             .post(userController.logout);
-
-        // this.app.route('/jobs') // job?=1111 or /job
-        //     .get(jobController.getJobsOfAUser as any) // get all the jobs the user has created or a specific job (including status)
-        //     .post(jobController.createJobForUser as any)  // create a new job
-        //     .delete(jobController.cancelJobForUser as any); // cancel a job
-
-        // this.app.route('/jobs/:jobId')
-        //     .get(jobController.getASpecificJobForUser); // if it's not the user's, give 404
 
         this.app.route('/users')
             .get(userController.getUsers)  // get all users or a specific user

@@ -4,19 +4,23 @@ import { IFieldMap, IFieldEntry } from '../models/UKBFields';
 import { IFieldDescriptionObject, IHeaderArrayElement } from '../models/curationUtils';
 import { UKBiobankValueTypes } from '../models/UKBDataType';
 import { Models, CustomError } from 'itmat-utils';
-import { Database } from '../database/database';
-import mongo from 'mongodb';
+import mongo, { Collection } from 'mongodb';
 
-export interface IDataEntryBase {
+export interface IDataEntry {
     m_jobId: string,
     m_eid: string,
     m_study: string,
-    m_in_qc: boolean
+    m_in_qc: boolean,
+    [field: string]: {
+        [instance: string]: {
+            [array: number]: number | string
+        }
+    } | string | boolean
 }
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
-export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
+export class UKBCSVCurator {
     /* variables prefixed with _ are used in curation and does not define the class */
     protected _fieldNumber: number | undefined; // tslint:disable-line
     protected _header: (IHeaderArrayElement | null)[]; // tslint:disable-line
@@ -26,7 +30,9 @@ export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
     protected _headerProcessCalled: boolean; // tslint:disable-line
 
     constructor(
-        private readonly db: Database,
+        // private readonly db: Database,
+        private readonly dataCollection: Collection,
+        private readonly jobsCollection: Collection,
         protected readonly jobId: string,
         protected readonly fileName: string,
         protected readonly incomingWebStream: NodeJS.ReadableStream,
@@ -45,7 +51,7 @@ export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
         console.log(`uploading for job ${this.jobId}`);
         let lineNum = 0;
         let isHeader: boolean = true;
-        let bulkInsert = this.db.UKB_data_collection!.initializeUnorderedBulkOp();
+        let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
         const parseStream: NodeJS.ReadableStream = this.incomingWebStream.pipe(csvparse(this.parseOptions)); // piping the incoming stream to a parser stream
 
         // check for intergrity
@@ -71,7 +77,7 @@ export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
                     return;
                 }
 
-                const entry: entryType = await this.processLineAndFormatEntry({ m_in_qc: true, m_eid: line[0], m_jobId: this.jobId, m_study: 'UKBIOBANK' }, line);
+                const entry: IDataEntry = await this.processLineAndFormatEntry({ m_in_qc: true, m_eid: line[0], m_jobId: this.jobId, m_study: 'UKBIOBANK' }, line);
 
                 bulkInsert.insert(entry);
                 this._numOfSubj++;
@@ -81,7 +87,7 @@ export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
                     bulkInsert.execute((err: Error) => {
                         if (err) { console.log((err as any).writeErrors[1].err); return; }
                     });
-                    bulkInsert = this.db.UKB_data_collection!.initializeUnorderedBulkOp();
+                    bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
                 }
             }
         });
@@ -156,7 +162,7 @@ export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
     }
 
     protected async setJobStatusToError(errorMsg: string) {
-        const updateResult: mongo.UpdateWriteOpResult = await this.db.jobs_collection!.updateOne(
+        const updateResult: mongo.UpdateWriteOpResult = await this.jobsCollection.updateOne(
             { id: this.jobId },
             { $set:
                 {
@@ -173,7 +179,43 @@ export abstract class UKBCSVDataCuratorBase<entryType extends IDataEntryBase> {
         }
     }
 
-    protected abstract async processLineAndFormatEntry(originalEntry: IDataEntryBase, line: string[]): Promise<entryType>;
+    protected async processLineAndFormatEntry(originalEntry: IDataEntry, line: string[]): Promise<IDataEntry> {
+        const entry: any = Object.assign(originalEntry);
+
+        for (let i = 1; i < line.length; i++) {
+            if (line[i] === '' || this._header[i] === null || line[i] === null || this._header[i] === undefined ) {
+                continue;
+            }
+
+            const value: string | number | false = await this.processValue(this._header[i] as IHeaderArrayElement, line[i]);
+            const fieldDescription: IHeaderArrayElement = this._header[i] as IHeaderArrayElement;
+
+            /************************HERE IS THE MAIN DIFFERENCE BETWEEN IMPLEMENTATIONS ******/
+            const { field: { instance, fieldId, array }, totalArrayNumber  } = this._header[i] as IHeaderArrayElement;
+            if (entry[fieldId] === undefined) {
+                entry[fieldId] = {};
+            }
+
+            /**
+             * 1. check if entry[fieldId][instance] is defined
+             * 2. check if entry[fieldId][instance][array] is defined
+             *      if not then add the entry
+             *      if yes then error
+             */
+
+            if (entry[fieldId][instance] === undefined) {
+                entry[fieldId][instance] = { [array]: value };
+                continue;
+            } else if (entry[fieldId][instance][array] === undefined) {
+                entry[fieldId][instance][array] = value;
+            } else {
+                throw Error; // duplicate value
+            }
+            /**********************************************************************************/
+        }
+
+        return entry;
+    }
 
     private parseFieldHeader(fieldHeader: string): IFieldDescriptionObject {
         return ({
