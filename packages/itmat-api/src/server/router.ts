@@ -1,7 +1,7 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { CustomError, RequestValidationHelper } from 'itmat-utils';
-import { UserController, FileController, StudyController, QueryController } from '../controllers';
+import { UserController, FileController, StudyController, QueryController } from '../httpcontrollers';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
@@ -10,7 +10,7 @@ import multer from 'multer';
 import mongodb from 'mongodb';
 import { ApolloServer } from 'apollo-server-express';
 import { schema } from '../graphql/schema';
-import { resolvers } from '../graphql/resolver';
+import { resolvers } from '../graphql/resolvers';
 
 const MongoStore = connectMongo(session);
 const upload = multer();
