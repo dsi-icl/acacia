@@ -1,7 +1,7 @@
 import { Server } from './server/server';
 import { Router } from './server/router';
 import { Database } from './database/database';
-import { FileController, UserController, StudyController, QueryController } from './controllers';
+import { FileController, UserController, StudyController, QueryController } from './httpcontrollers';
 import { OpenStackSwiftObjectStore } from 'itmat-utils';
 import config from '../config/config.json';
 import { Query } from 'itmat-utils/dist/models';

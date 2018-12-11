@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import mongodb from 'mongodb';
 
 export class Logger {
     public static log(message: any): void {
@@ -14,6 +15,10 @@ export class Logger {
     public static error(message: any): void {
         if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
         console.log(`[${new Date().toUTCString()}] ${chalk.bold.red('ERROR!')} ${message}`);
+    }
+
+    constructor(private readonly identity: string, private readonly logCollection: mongodb.Collection) {
+
     }
 
     // public static audit(user: string, message: any): void {

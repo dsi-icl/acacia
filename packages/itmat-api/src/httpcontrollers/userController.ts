@@ -273,7 +273,7 @@ export class UserController extends UserControllerBasic {
     }
 
     private async _getUser(username: string): Promise<Models.UserModels.IUserWithoutToken> {
-        return await this.usersCollection.findOne({ deleted: false, username }, { projection: { _id: 0, deleted: 0, password: 0 }});
+        return await this.usersCollection.findOne({ deleted: false, username }, { projection: { _id: 0, deleted: 0, password: 0 }})!;
     }
 
     private async _createNewUser(user: Models.UserModels.IUser): Promise<mongodb.InsertOneWriteOpResult> {

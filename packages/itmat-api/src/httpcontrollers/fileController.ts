@@ -47,7 +47,7 @@ export class FileController {
 
         let studySearch: Models.Study.IStudy;
         try {
-            studySearch = await this.db.studies_collection!.findOne({ name: req.body.study });
+            studySearch = await this.db.studies_collection!.findOne({ name: req.body.study })!;
         } catch (e) {
             console.log(e);
             res.status(500).json(new CustomError('Server error.'));

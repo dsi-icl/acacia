@@ -6,36 +6,73 @@ enum USERTYPE {
     STANDARD
 }
 
-type User {
+enum STUDY_USER_TYPE {
+    DATA_ADMIN
+    DATA_USER
+}
+
+enum POSSIBLE_API_TRANSLATION {
+    XNAT
+    TRANSMART
+}
+
+type Notification {
+    timestamp: Int
+    comment: String
+    read: Boolean
+}
+
+input User {
     username: ID!
-    type: USERTYPE
+    type: USERTYPE!
+    realName: String
+    email: String
+    notifications: [Notification]!
+    emailNotificationsActivated: Boolean!
     createdBy: String
 }
 
 type Study {
     name: String!
     createdBy: String
-}
-
-type Query {
-    whoAmI: User,
-    getUsers(username: ID): [User]   #admin only
-    getStudies(name: ID): [Study]    #only returns the studies that the users are entitled
+    dataAdmins: [String]
+    dataUsers: [String]
 }
 
 type GenericResponse {
-    error: Boolean
-    successful: Boolean
-    errorMsg: String
+    successful: Boolean!
+    id: string
+}
+
+input QueryObjInput {
+    apiTranslation: null | POSSIBLE_API_TRANSLATION
+    # TO_DO
+}
+
+type Query {
+    # USER
+    whoAmI: User
+    getUsers(username: ID): [User]   #admin only
+
+    # STUDY
+    getStudies(name: ID): [Study]    #only returns the studies that the users are entitled
 }
 
 type Mutation {
+    # USER
     login(username: ID!, password: String!): GenericResponse
     logout: GenericResponse
-    createUser(username: ID!, password: String!): User
+    createUser(user: User): GenericResponse
     editUser(username: ID!, password: String): User
     deleteUser(username: ID!): GenericResponse
+
+    # STUDY
     createStudy(name: ID!): Study
     deleteStudy(name: ID!): GenericResponse    #admin only
+    addUserToStudy(username: ID!, study: ID!, type: STUDY_USER_TYPE): GenericResponse
+    deleteUserFromStudy(username: ID!, study: ID!): GenericResponse
+
+    # QUERY
+    createQuery(queryobj: QueryObjInput): GenericResponse
 }
 `;

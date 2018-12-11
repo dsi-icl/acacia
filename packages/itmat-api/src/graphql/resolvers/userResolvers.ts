@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
+import { UserInputError } from 'apollo-server-express';
 
-export const resolvers = {
+export const userResolvers = {
     Query: {
         whoAmI(parent: object, args: any, context: any, info: any): object {
             return context.req.user;
@@ -19,15 +20,15 @@ export const resolvers = {
     },
     Mutation: {
         login: async(parent: object, args: any, context: any, info: any): Promise<object> => {
-            const { db, req, res } = context;
+            const { db, req } = context;
             const result = await db.collection('test_users').findOne({ deleted: false, username: args.username });
             if (!result) {
-                return ({ error: true, loggedIn: false, errorMsg: 'Incorrect username' });
+                throw new UserInputError('User does not exist.');
             }
             const passwordMatched = await bcrypt.compare(args.password, result.password);
             // const passwordMatched = req.body.password === result.password;
             if (!passwordMatched) {
-                return ({ error: true, loggedIn: false, errorMsg: 'Incorrect password' });
+                throw new UserInputError('Incorrect password.');
             }
 
             return new Promise(resolve => {
