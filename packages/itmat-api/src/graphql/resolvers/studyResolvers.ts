@@ -15,7 +15,7 @@ export const studyResolvers = {
             const user: Models.UserModels.IUser = context.req.user;
             const queryObj: any = {};
             if (user.type !== Models.UserModels.userTypes.ADMIN) {
-                queryObj.$or = [{ analysts: user.username }, { curators: user.username }];
+                queryObj.$or = [{ dataAdmins: user.username }, { dataUsers: user.username }];
             }
             if (args.name !== undefined) {
                 queryObj.name = args.name;
@@ -119,7 +119,6 @@ export const studyResolvers = {
             if (!studySearchResult.dataAdmins.includes(userToBeDeleted) && !studySearchResult.dataUsers.includes(userToBeDeleted)) {
                 return makeGenericReponse();
             }
-
 
             const updateResult: UpdateWriteOpResult = await db.studies_collection!.updateOne(
                 { name: study },

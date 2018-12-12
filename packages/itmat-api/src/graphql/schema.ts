@@ -26,9 +26,10 @@ type Notification {
 input UserInput {
     username: ID!
     type: USERTYPE!
-    realName: String
-    email: String
+    realName: String!
+    email: String!
     emailNotificationsActivated: Boolean!
+    password: String!
 }
 
 type User {
@@ -69,9 +70,9 @@ type Query {
 
 type Mutation {
     # USER
-    login(username: ID!, password: String!): GenericResponse
+    login(username: ID!, password: String!): User
     logout: GenericResponse
-    createUser(user: UserInput): GenericResponse
+    createUser(user: UserInput!): GenericResponse
     editUser(username: ID!, password: String): User
     deleteUser(username: ID!): GenericResponse
 
@@ -82,6 +83,6 @@ type Mutation {
     deleteUserFromStudy(username: ID!, study: ID!): GenericResponse
 
     # QUERY
-    createQuery(queryobj: QueryObjInput): GenericResponse
+    createQuery(queryobj: QueryObjInput!): GenericResponse
 }
 `;

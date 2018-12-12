@@ -1,7 +1,7 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
-import { CustomError, RequestValidationHelper } from 'itmat-utils';
-import { UserController, FileController, StudyController, QueryController } from '../httpcontrollers';
+import { CustomError, RequestValidationHelper, Logger } from 'itmat-utils';
+import { UserController, FileController, StudyController, QueryController } from '../RESTControllers';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
@@ -44,7 +44,11 @@ export class Router {
         const gqlServer = new ApolloServer({
             typeDefs: schema,
             resolvers,
-            context: ({ req, res }: any) => ({ req, res, db })
+            context: ({ req, res }: any) => ({ req, res, db }),
+            formatError: (error: Error) => {
+                Logger.error(error);
+                return error;
+            }
         });
 
         gqlServer.applyMiddleware({ app: this.app });
