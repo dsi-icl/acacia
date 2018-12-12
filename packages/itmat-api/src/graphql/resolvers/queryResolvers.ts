@@ -9,7 +9,7 @@ export const queryResolvers = {
     },
     Mutation: {
         createQuery: async(parent: object, args: any, context: any, info: any): Promise<Models.Study.IStudy> => {
-            const db: Db = context.db;
+            const db: Database = context.db;
             const user: Models.UserModels.IUser = context.req.user;
             if (user.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ForbiddenError('Unauthorised.');
@@ -22,11 +22,11 @@ export const queryResolvers = {
             };
             let result: InsertOneWriteOpResult;
 
-            result = await db.collection('STUDY_COLLECTION').insertOne(studyEntry);
+            result = await db.studies_collection!.insertOne(studyEntry);
             if (result.insertedCount !== 1) {
                 throw new ApolloError('Error in creating study. InsertedCount is not 1 although mongo operation does not throw error.');
             }
-            return await db.collection('STUDY_COLLECTION').findOne({ _id: result.insertedId })!;
+            return await db.studies_collection!.findOne({ _id: result.insertedId })!;
         }
     }
 };

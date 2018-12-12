@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { UserInputError } from 'apollo-server-express';
+import { Database } from '../../database/database';
 
 export const userResolvers = {
     Query: {
@@ -20,8 +21,8 @@ export const userResolvers = {
     },
     Mutation: {
         login: async(parent: object, args: any, context: any, info: any): Promise<object> => {
-            const { db, req } = context;
-            const result = await db.collection('test_users').findOne({ deleted: false, username: args.username });
+            const { db, req }: { db: Database, req: Express.Request } = context;
+            const result = await db.users_collection!.findOne({ deleted: false, username: args.username });
             if (!result) {
                 throw new UserInputError('User does not exist.');
             }

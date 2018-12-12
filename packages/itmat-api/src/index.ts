@@ -15,6 +15,6 @@ server.connectToBackEnd().then(() => {
     const fileController = new FileController(db, objStore);
     const studyController = new StudyController(db.studies_collection!);
     const queryController = new QueryController(db.queries_collection!);
-    const router = new Router(db.getDB(), userController, fileController, studyController, queryController);
+    const router = new Router(db, userController, fileController, studyController, queryController);
     server.start(router.getApp());
 });

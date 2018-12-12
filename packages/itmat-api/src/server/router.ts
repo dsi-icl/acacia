@@ -11,7 +11,7 @@ import mongodb from 'mongodb';
 import { ApolloServer } from 'apollo-server-express';
 import { schema } from '../graphql/schema';
 import { resolvers } from '../graphql/resolvers';
-
+import { Database } from '../database/database';
 const MongoStore = connectMongo(session);
 const upload = multer();
 
@@ -19,7 +19,7 @@ export class Router {
     private readonly app: Express;
 
     constructor(
-        db: mongodb.Db /* the database to save sessions */,
+        db: Database /* the database to save sessions */,
         userController: UserController,
         fileController: FileController,
         studyController: StudyController,
