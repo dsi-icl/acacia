@@ -22,17 +22,6 @@ export const userResolvers = {
             const cursor = db.users_collection!.find({ deleted: false });
             return cursor.toArray();
         }
-        // getUsers(parent: object, args: any, context: any, info: any): object[] {
-        //     // check admin privilege
-        //     if (args.username) {
-
-        //     } else {
-
-        //     }
-        // },
-        // getStudies(parent: object, args: any, context: any, info: any): object[] {
-        //     // return only the studies the guy has access to.
-        // }
     },
     Mutation: {
         login: async(parent: object, args: any, context: any, info: any): Promise<object> => {

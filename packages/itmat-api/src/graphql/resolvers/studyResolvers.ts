@@ -111,7 +111,6 @@ export const studyResolvers = {
             // check whether the user is in the study // if yes then delete
 
             const studySearchResult: IStudy = await db.studies_collection!.findOne({ name: study })!;
-            console.log(studySearchResult);
             if (studySearchResult === null || studySearchResult === undefined) {
                 throw new UserInputError('Study does not exist.');
             }

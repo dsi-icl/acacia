@@ -46,6 +46,7 @@ export class Router {
             resolvers,
             context: ({ req, res }: any) => ({ req, res, db }),
             formatError: (error: Error) => {
+                // TO_DO: generate a ref uuid for errors so the clients can contact admin
                 Logger.error(error);
                 return error;
             }

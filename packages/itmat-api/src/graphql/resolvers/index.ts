@@ -1,9 +1,11 @@
 import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
+import { queryResolvers } from './queryResolvers';
 
 const modules = [
     studyResolvers,
-    userResolvers
+    userResolvers,
+    queryResolvers
 ];
 
 export const resolvers = {
