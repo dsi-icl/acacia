@@ -32,7 +32,7 @@ export class Router {
 
         this.app.use(session({
             secret: 'IAmATeapot',
-            store: new MongoStore({ db } as any)
+            store: new MongoStore({ db: db.getDB() } as any)
         }));
 
         this.app.use(passport.initialize());

@@ -14,6 +14,7 @@ enum STUDY_USER_TYPE {
 enum POSSIBLE_API_TRANSLATION {
     XNAT
     TRANSMART
+    NONE
 }
 
 type Notification {
@@ -22,7 +23,15 @@ type Notification {
     read: Boolean
 }
 
-input User {
+input UserInput {
+    username: ID!
+    type: USERTYPE!
+    realName: String
+    email: String
+    emailNotificationsActivated: Boolean!
+}
+
+type User {
     username: ID!
     type: USERTYPE!
     realName: String
@@ -41,11 +50,11 @@ type Study {
 
 type GenericResponse {
     successful: Boolean!
-    id: string
+    id: String
 }
 
 input QueryObjInput {
-    apiTranslation: null | POSSIBLE_API_TRANSLATION
+    apiTranslation: POSSIBLE_API_TRANSLATION
     # TO_DO
 }
 
@@ -62,12 +71,12 @@ type Mutation {
     # USER
     login(username: ID!, password: String!): GenericResponse
     logout: GenericResponse
-    createUser(user: User): GenericResponse
+    createUser(user: UserInput): GenericResponse
     editUser(username: ID!, password: String): User
     deleteUser(username: ID!): GenericResponse
 
     # STUDY
-    createStudy(name: ID!): Study
+    createStudy(name: ID!): GenericResponse
     deleteStudy(name: ID!): GenericResponse    #admin only
     addUserToStudy(username: ID!, study: ID!, type: STUDY_USER_TYPE): GenericResponse
     deleteUserFromStudy(username: ID!, study: ID!): GenericResponse

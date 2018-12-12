@@ -20,7 +20,9 @@ export class StudyController {
 
         const studyEntry: Models.Study.IStudy = {
             name: req.body.name,
-            createdBy: req.user!.username
+            createdBy: req.user!.username,
+            dataAdmins: [],
+            dataUsers: []
         };
 
         try {

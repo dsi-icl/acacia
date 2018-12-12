@@ -76,10 +76,14 @@ export class UserController extends UserControllerBasic {
         const hashedPassword: string = await bcrypt.hash(req.body.password, this.bcryptSaltRound);
         const entry: Models.UserModels.IUser = {
             username: req.body.username,
+            realName: '',
             password: hashedPassword,
             type: req.body.type as Models.UserModels.userTypes,
             deleted: false,
-            createdBy: req.user!.username
+            createdBy: req.user!.username,
+            email: '',
+            notifications: [],
+            emailNotificationsActivated: false,
         };
 
         let result: mongodb.InsertOneWriteOpResult;
@@ -106,8 +110,8 @@ export class UserController extends UserControllerBasic {
             .checkForValidDataTypeForValue(req.body.username, Models.Enums.JSDataType.STRING, 'username')
             .checksFailed)  { return; }
 
-        const result: Models.UserModels.IUser = await this.usersCollection.findOne({ deleted: false, username: req.body.username });  // not getUser() because we need the pw as well
-        if (!result) {
+        const result: Models.UserModels.IUser = await this.usersCollection.findOne({ deleted: false, username: req.body.username })!;  // not getUser() because we need the pw as well
+        if (result === null || result === undefined) {
             res.status(401).json(new CustomError('Incorrect username'));
             return;
         }

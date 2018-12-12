@@ -39,7 +39,6 @@ export const userResolvers = {
                     resolve({ error: false, loggedIn: true });
                 });
             });
-
         }
     }
 };
