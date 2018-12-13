@@ -1,11 +1,11 @@
-import { Db, Collection } from "mongodb";
+import { Db, Collection } from 'mongodb';
 import { ServerBase, CustomError, IServerBaseConfig, Logger } from 'itmat-utils';
 import { ICodingMap, ICodingEntry } from './models/UKBCoding';
 import { IFieldMap, IFieldEntry } from './models/UKBFields';
 import { UKBCSVCurator } from './curation/UKBCSVCurator';
 import { UKBImageCurator } from './curation/UKBImageCurator';
 
-class UKBCurator {
+export class UKBCurator {
     private CODING_MAP: ICodingMap;
     private FIELD_MAP: IFieldMap;
 
@@ -17,10 +17,10 @@ class UKBCurator {
     ) {
         this.CODING_MAP = {};
         this.FIELD_MAP = {};
-        this.updateUKBCodingAndFieldsInfo();
+        this.updateUKBCodingAndFieldsMap();
     }
 
-    public async updateUKBCodingAndFieldsInfo(): Promise<void> {
+    public async updateUKBCodingAndFieldsMap(): Promise<void> {
         /* this function should be called periodically */
         Logger.log('Fetching UKB codings..');
         const codingCursor = this.codingCollection.find();
@@ -48,16 +48,16 @@ class UKBCurator {
         return;
     }
 
-    public async uploadIncomingCSVStreamToMongo(jobId: string, fileName: string, incomingWebStream: NodeJS.ReadableStream, parseOptions?: any) {
-        const curator = new UKBCSVCurator(this.dataCollection, this.jobsCollection, jobId, fileName, incomingWebStream, this.FIELD_MAP, this.CODING_MAP, parseOptions);
+    public async uploadIncomingCSVStreamToMongo(studyName: string, jobId: string, fileName: string, incomingWebStream: NodeJS.ReadableStream, parseOptions?: any) {
+        const curator = new UKBCSVCurator(this.dataCollection, this.jobsCollection, studyName, jobId, fileName, incomingWebStream, this.FIELD_MAP, this.CODING_MAP, parseOptions);
         curator.processIncomingStreamAndUploadToMongo();
     }
 
     public async curateImagingData() {
-        const curator
+        const curator = {};
     }
 
     public async updateUKBFieldAndCodingCollection() {
-        
+        const curator = {};
     }
 }

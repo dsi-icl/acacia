@@ -8,37 +8,40 @@ import mongo, { Collection } from 'mongodb';
 
 export interface IDataEntry {
     m_jobId: string,
-    m_eid: string,
-    m_study: string,
+    m_eid: {
+        [studyName: string]: string
+    },
+    m_study: string[],
     m_in_qc: boolean,
     [field: string]: {
         [instance: string]: {
             [array: number]: number | string
         }
-    } | string | boolean
+    } | string | boolean | string []
 }
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
 export class UKBCSVCurator {
     /* variables prefixed with _ are used in curation and does not define the class */
-    protected _fieldNumber: number | undefined; // tslint:disable-line
-    protected _header: (IHeaderArrayElement | null)[]; // tslint:disable-line
-    protected _fieldsWithError: string[]; // tslint:disable-line
-    protected _numOfSubj: number; // tslint:disable-line
-    protected _headerProcessedSuccessfully: boolean; // tslint:disable-line
-    protected _headerProcessCalled: boolean; // tslint:disable-line
+    private _fieldNumber: number | undefined; // tslint:disable-line
+    private _header: (IHeaderArrayElement | null)[]; // tslint:disable-line
+    private _fieldsWithError: string[]; // tslint:disable-line
+    private _numOfSubj: number; // tslint:disable-line
+    private _headerProcessedSuccessfully: boolean; // tslint:disable-line
+    private _headerProcessCalled: boolean; // tslint:disable-line
 
     constructor(
         // private readonly db: Database,
         private readonly dataCollection: Collection,
         private readonly jobsCollection: Collection,
-        protected readonly jobId: string,
-        protected readonly fileName: string,
-        protected readonly incomingWebStream: NodeJS.ReadableStream,
+        private readonly studyName: string,
+        private readonly jobId: string,
+        private readonly fileName: string,
+        private readonly incomingWebStream: NodeJS.ReadableStream,
         private readonly _fieldDict: IFieldMap, // tslint:disable-line
         private readonly _codingDict: ICodingMap, // tslint:disable-line
-        protected readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"' }
+        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"' }
     ) {
         this._header = [ null ]; // the first element is subject id
         this._fieldsWithError = [];
@@ -77,7 +80,11 @@ export class UKBCSVCurator {
                     return;
                 }
 
-                const entry: IDataEntry = await this.processLineAndFormatEntry({ m_in_qc: true, m_eid: line[0], m_jobId: this.jobId, m_study: 'UKBIOBANK' }, line);
+                const entry: IDataEntry = await this.processLineAndFormatEntry({
+                    m_in_qc: true,
+                    m_eid: {[this.studyName]: line[0]} ,
+                    m_jobId: this.jobId,
+                    m_study: [this.studyName] }, line);
 
                 bulkInsert.insert(entry);
                 this._numOfSubj++;
@@ -101,7 +108,7 @@ export class UKBCSVCurator {
         });
     }
 
-    protected async processValue(headerElementForField: IHeaderArrayElement, preValue: string): Promise<string|number|false> {
+    private async processValue(headerElementForField: IHeaderArrayElement, preValue: string): Promise<string|number|false> {
         /* PRECONDITION: this.processHeader must be called */
         /* PRECONDITION: preValue is not null or empty string (checked in the enclosing function) */
 
@@ -137,7 +144,7 @@ export class UKBCSVCurator {
         }
     }
 
-    protected async processHeader(line: string[]): Promise<void> {
+    private async processHeader(line: string[]): Promise<void> {
         this._headerProcessCalled = true;
         this._fieldNumber = line.length; // saving the fieldNum to check each line has the same #column
         for (let i = 1, length = this._fieldNumber; i < length; i++) { // starting from the second column
@@ -161,7 +168,7 @@ export class UKBCSVCurator {
         return;
     }
 
-    protected async setJobStatusToError(errorMsg: string) {
+    private async setJobStatusToError(errorMsg: string) {
         const updateResult: mongo.UpdateWriteOpResult = await this.jobsCollection.updateOne(
             { id: this.jobId },
             { $set:
@@ -179,7 +186,7 @@ export class UKBCSVCurator {
         }
     }
 
-    protected async processLineAndFormatEntry(originalEntry: IDataEntry, line: string[]): Promise<IDataEntry> {
+    private async processLineAndFormatEntry(originalEntry: IDataEntry, line: string[]): Promise<IDataEntry> {
         const entry: any = Object.assign(originalEntry);
 
         for (let i = 1; i < line.length; i++) {
