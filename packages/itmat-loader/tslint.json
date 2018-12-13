@@ -1,0 +1,72 @@
+{
+    "extends": "tslint:recommended",
+    "rules": {
+        "adjacent-overload-signatures": true,
+        "member-access": true,
+        "no-empty-interface": true,
+        "no-namespace": true,
+        "no-reference": true,
+        "prefer-for-of": true,
+        "typedef-whitespace": [
+            true,
+            {
+              "call-signature": "nospace",
+              "index-signature": "nospace",
+              "parameter": "nospace",
+              "property-declaration": "nospace",
+              "variable-declaration": "nospace"
+            },
+            {
+              "call-signature": "onespace",
+              "index-signature": "onespace",
+              "parameter": "onespace",
+              "property-declaration": "onespace",
+              "variable-declaration": "onespace"
+            }
+        ],
+        "no-bitwise": true,
+        "new-parens": true,
+        "no-duplicate-super": true,
+        "no-for-in-array": true,
+        "no-invalid-this": true,
+        "no-string-literal": true,
+        "triple-equals": true,
+        "typeof-compare": true,
+        "use-isnan": true,
+        "eofline": false,
+        "linebreak-style": [true, "LF"],
+        "indent": [true, "spaces", 4],
+        "prefer-const": true,
+        "prefer-readonly": true,
+        "array-type": [true, "array"],
+        "arrow-parens": [true, "ban-single-arg-parens"],
+        "arrow-return-shorthand": true,
+        "class-name": true,
+        "encoding": true,
+        "no-angle-bracket-type-assertion": true,
+        "no-reference-import": true,
+        "quotemark": [true, "single", "avoid-template"],
+        "semicolon": [true, "always", "ignore-interfaces"],
+        "space-before-function-paren": [true, "never"],
+        "switch-final-break": [true, "always"],
+        "no-arg": true,
+        "no-consecutive-blank-lines": true,
+        "no-console": {
+            "severity": "warning",
+            "options": [
+                "debug",
+                "info",
+                "log",
+                "time",
+                "timeEnd",
+                "trace"
+            ]
+        },
+        "max-line-length": false,
+        "trailing-comma": false,
+        "ordered-imports": false,
+        "object-literal-sort-keys": false,
+        "radix": false,
+        "object-literal-key-quotes": [true, "as-needed"]
+    }
+}
