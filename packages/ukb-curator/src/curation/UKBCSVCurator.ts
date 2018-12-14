@@ -8,10 +8,8 @@ import mongo, { Collection } from 'mongodb';
 
 export interface IDataEntry {
     m_jobId: string,
-    m_eid: {
-        [studyName: string]: string
-    },
-    m_study: string[],
+    m_eid: string,
+    m_study: string,
     m_in_qc: boolean,
     [field: string]: {
         [instance: string]: {
@@ -82,9 +80,9 @@ export class UKBCSVCurator {
 
                 const entry: IDataEntry = await this.processLineAndFormatEntry({
                     m_in_qc: true,
-                    m_eid: {[this.studyName]: line[0]} ,
+                    m_eid: line[0],
                     m_jobId: this.jobId,
-                    m_study: [this.studyName] }, line);
+                    m_study: this.studyName }, line);
 
                 bulkInsert.insert(entry);
                 this._numOfSubj++;

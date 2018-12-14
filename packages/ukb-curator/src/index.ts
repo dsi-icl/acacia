@@ -1,5 +1,5 @@
 import { Db, Collection } from 'mongodb';
-import { ServerBase, CustomError, IServerBaseConfig, Logger } from 'itmat-utils';
+import { ServerBase, CustomError, IServerBaseConfig, Logger, Models } from 'itmat-utils';
 import { ICodingMap, ICodingEntry } from './models/UKBCoding';
 import { IFieldMap, IFieldEntry } from './models/UKBFields';
 import { UKBCSVCurator } from './curation/UKBCSVCurator';
@@ -8,6 +8,7 @@ import { UKBImageCurator } from './curation/UKBImageCurator';
 export class UKBCurator {
     private CODING_MAP: ICodingMap;
     private FIELD_MAP: IFieldMap;
+    private performedAtLeastOneFetch: boolean;
 
     constructor(
         private readonly fieldCollection: Collection,
@@ -17,7 +18,7 @@ export class UKBCurator {
     ) {
         this.CODING_MAP = {};
         this.FIELD_MAP = {};
-        this.updateUKBCodingAndFieldsMap();
+        this.performedAtLeastOneFetch = false;
     }
 
     public async updateUKBCodingAndFieldsMap(): Promise<void> {
@@ -45,16 +46,26 @@ export class UKBCurator {
         this.FIELD_MAP = fieldDict;
         Logger.log('Finished fetching UKB fields');
 
+        this.performedAtLeastOneFetch = true;
         return;
     }
 
     public async uploadIncomingCSVStreamToMongo(studyName: string, jobId: string, fileName: string, incomingWebStream: NodeJS.ReadableStream, parseOptions?: any) {
+        if (!this.performedAtLeastOneFetch) {
+            Logger.error('Trying to upload to mongo without fetching coding and field info first.');
+            return;
+        }
         const curator = new UKBCSVCurator(this.dataCollection, this.jobsCollection, studyName, jobId, fileName, incomingWebStream, this.FIELD_MAP, this.CODING_MAP, parseOptions);
-        curator.processIncomingStreamAndUploadToMongo();
+        await curator.processIncomingStreamAndUploadToMongo();
     }
 
-    public async curateImagingData() {
-        const curator = {};
+    public async curateImagingData(document: Models.JobModels.IJobEntry<Models.JobModels.IDataobj_UKB_IMAGE_UPLOAD_job>) {
+        if (!this.performedAtLeastOneFetch) {
+            Logger.error('Trying to upload to mongo without fetching coding and field info first.');
+            return;
+        }
+        const curator = new UKBImageCurator(this.FIELD_MAP, this.dataCollection, this.jobsCollection);
+        await curator.updateData(document);
     }
 
     public async updateUKBFieldAndCodingCollection() {

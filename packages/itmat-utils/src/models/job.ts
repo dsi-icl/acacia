@@ -66,5 +66,5 @@ export const jobTypes: IJobType = {
         },
         error: {
         }
-    }
+    },
 };

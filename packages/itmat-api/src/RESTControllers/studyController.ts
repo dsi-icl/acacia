@@ -18,11 +18,9 @@ export class StudyController {
             .checkForValidDataTypeForValue(req.body.name, Models.Enums.JSDataType.STRING, 'name')
             .checksFailed) { return; }
 
-        const studyEntry: Models.Study.IStudy = {
+        const studyEntry: any = {
             name: req.body.name,
-            createdBy: req.user!.username,
-            dataAdmins: [],
-            dataUsers: []
+            createdBy: req.user!.username
         };
 
         try {

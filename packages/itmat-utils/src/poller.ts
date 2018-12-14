@@ -42,10 +42,10 @@ export class Poller {
         }
 
         if (updateResult !== undefined && updateResult.ok === 1 && updateResult.value !== null) {
-            Logger.log(`Claimed job ${this.jobType} id: ${updateResult.value.id}`);
+            Logger.log(`Claimed job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}`);
             clearInterval(this.intervalObj!);
             await this.action(updateResult.value);
-            Logger.log(`Finished processing job ${this.jobType} id: ${updateResult.value.id}.`);
+            Logger.log(`Finished processing job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}.`);
             this.setInterval();
         } else if (updateResult.ok !== 1) {
             console.log(updateResult);

@@ -1,11 +1,22 @@
 export interface IStudy {
     name: string,
+    studyAndDataManagers: string[],
+    applications: {
+        name: string,
+        pendingUserApprovals: {
+            user: string,
+            type: APPLICATION_USER_TYPE
+        }[],
+        applicationAdmins: string[],
+        applicationUsers: string[],
+        approvedFields: string[]
+    }[],
     createdBy: string,
-    dataAdmins: string[],
-    dataUsers: string[]
+    lastModified: number,
+    deleted: false
 }
 
-export const enum STUDY_USER_TYPE {
-    dataAdmins = 'DATA_ADMIN',
-    dataUsers = 'DATA_USER'
+export const enum APPLICATION_USER_TYPE {
+    applicationAdmin = 'APPLICATION_ADMIN',
+    applicationUser = 'APPLICATION_USER'
 }

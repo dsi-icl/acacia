@@ -26,6 +26,7 @@ export class FileController {
         const validator = new RequestValidationHelper(req, res);
         // TO_DO: check study exists, check no spaces in file name
         // TO_DO: change this to a dispatcher for different types of jobs
+        // TO_DO: check if study exists, whetehr the requester is the dataAdmin / admin;
         if (validator
             .checkForAdminPrivilege()
             .checkRequiredKeysArePresentIn<requests.FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['jobType', 'study'])
