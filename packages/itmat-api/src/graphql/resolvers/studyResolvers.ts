@@ -1,11 +1,12 @@
 import { Models } from 'itmat-utils';
 import { Database } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError } from 'apollo-server-express';
-import { InsertOneWriteOpResult, Db, UpdateWriteOpResult } from 'itmat-utils/node_modules/@types/mongodb';
+import { InsertOneWriteOpResult, Db, UpdateWriteOpResult, WriteOpResult } from 'itmat-utils/node_modules/@types/mongodb';
 import { IStudy, APPLICATION_USER_TYPE } from 'itmat-utils/dist/models/study';
 import { makeGenericReponse } from '../responses';
 import { Aggregate } from 'mongoose';
 import config from '../../../config/config.json';
+import { google } from 'apollo-engine-reporting-protobuf';
 
 export const studyResolvers = {
     Query: {
@@ -20,9 +21,14 @@ export const studyResolvers = {
                 projectionObj[each] = 1;
             }
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-                queryObj.$or = [{ 'applications.applicationAdmins': requester.username }, { 'applications.applicationUsers': requester.username }];
+                queryObj.$or = [{ studyAndDataManagers: requester.username }, { 'applications.applicationAdmins': requester.username }, { 'applications.applicationUsers': requester.username }];
                 if (requestedFields.includes('applications')) {
-                    projectionObj.applications = { $elemMatch: { $or: queryObj.$or } };
+                    projectionObj.applications = { $filter: {
+                            input: '$applications',
+                            as: 'application',
+                            cond: { $or: [{ applicationAdmins: requester.username }, { applicationUsers: requester.username }] }
+                        }
+                    };  // TO_DO: bug?
                 }
             }
             if (args.name !== undefined) {
@@ -49,6 +55,7 @@ export const studyResolvers = {
                     { $project: projectionObj}
                 ];
             }
+            console.log(aggregatePipeline);
             const cursor = collection.aggregate(aggregatePipeline);
             return cursor.toArray();
         }
@@ -195,6 +202,29 @@ export const studyResolvers = {
             const db: Database = context.db;
             const user: Models.UserModels.IUser = context.req.user;
             // TO_DO: delete patients too?
+        },
+        applyToBeAddedToApplication: async(parent: object, args: any, context: any, info: any): Promise<void> => {
+            const db: Database = context.db;
+            const user: Models.UserModels.IUser = context.req.user;
+            const { study, type, application }: { application: string, study: string, type: APPLICATION_USER_TYPE } = args;
+            const notification = Models.Notifications.requestToBeAddedToApplication(user.username, study, application, type);
+            const studySearchResult: Models.Study.IStudy = await db.studies_collection!.findOne({ name: study, 'applications.name': application, deleted: false }, { projection: { applications: { $elemMatch: { name: application }}}})!;
+            if (studySearchResult === null || studySearchResult === undefined) {
+                throw new ApolloError('Cannot find study.');
+            }
+            const listOfApplicationAdmin: string[] = studySearchResult.applications[0].applicationAdmins;
+            const updateResult: WriteOpResult = await db.users_collection!.update(
+                { $or: [{ type: Models.UserModels.userTypes.ADMIN }, { username: { $in: listOfApplicationAdmin }}] },
+                { $push: { notifications: {
+                    $each: [notification],
+                    $position: 0
+                }}}
+            );
+            if (updateResult.result.ok !== 1) {
+                throw new ApolloError('Internal error.');
+            }
+            // TO_DO: add applications pendingUserApprovals
+            return makeGenericReponse(application);
         }
     }
 };

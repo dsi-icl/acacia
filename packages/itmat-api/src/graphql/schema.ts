@@ -20,9 +20,10 @@ enum POSSIBLE_API_TRANSLATION {
 }
 
 type Notification {
-    timestamp: Int
-    comment: String
+    timestamp: Float
+    notificationType: String
     read: Boolean
+    data: JSON
 }
 
 input CreateUserInput {
@@ -122,7 +123,7 @@ type Mutation {
     addUserToApplication(username: ID!, study: ID!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse
     deleteUserFromApplication(username: ID!, study: ID!, application: ID!): GenericResponse
     purgeUserFromStudy(username: ID!, study: ID!): GenericResponse #
-    applyToBeAddedToStudy(study: ID!, type: APPLICATION_USER_TYPE): GenericResponse #
+    applyToBeAddedToApplication(study: ID!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse #
 
     # QUERY
     createQuery(queryobj: QueryObjInput!): GenericResponse #

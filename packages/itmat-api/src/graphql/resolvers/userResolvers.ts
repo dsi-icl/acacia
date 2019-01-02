@@ -112,6 +112,46 @@ export const userResolvers = {
             } else {
                 throw new ApolloError('Cannot complete operation. Server error.');
             }
+        },
+        editUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+            const db: Database = context.db;
+            const requester: Models.UserModels.IUser = context.req.user;
+            const { username, type, realName, email, emailNotificationsActivated, password }: {
+                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string
+            } = args.user;
+            if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.username !== username) {
+                throw new ForbiddenError('Unauthorised.');
+            }
+            if (requester.type === Models.UserModels.userTypes.ADMIN) {
+                const result: Models.UserModels.IUserWithoutToken = await db.users_collection!.findOne({ username, deleted: false })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                if (result === null || result === undefined) {
+                    throw new ApolloError('User not found');
+                }
+            }
+            if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
+                throw new ApolloError('Non-admin users are not authorised to change user type.');
+            }
+
+            const fieldsToUpdate: any = {
+                type,
+                realName,
+                email,
+                emailNotificationsActivated,
+                password
+            };
+            if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
+            for (const each of Object.keys(fieldsToUpdate)) {
+                if (fieldsToUpdate[each] === undefined) {
+                    delete fieldsToUpdate[each];
+                }
+            }
+
+            const updateResult: mongodb.UpdateWriteOpResult = await db.users_collection!.updateOne({ username, deleted: false }, { $set: fieldsToUpdate });
+            if (updateResult.modifiedCount === 1) {
+                return makeGenericReponse(username);
+            } else {
+                throw new ApolloError('Server error; no entry or more than one entry has been updated.');
+            }
         }
     }
 };
