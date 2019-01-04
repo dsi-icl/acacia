@@ -27,7 +27,7 @@ type Notification {
 }
 
 input CreateUserInput {
-    username: ID!
+    username: String!
     type: USERTYPE!
     realName: String!
     email: String!
@@ -36,7 +36,7 @@ input CreateUserInput {
 }
 
 input EditUserInput {
-    username: ID!
+    username: String!
     type: USERTYPE
     realName: String
     email: String
@@ -45,7 +45,7 @@ input EditUserInput {
 }
 
 type User {
-    username: ID!
+    username: String!
     type: USERTYPE!
     realName: String
     email: String
@@ -101,29 +101,29 @@ input QueryObjInput {
 type Query {
     # USER
     whoAmI: User
-    getUsers(username: ID): [User]   # admin only
+    getUsers(username: String): [User]   # admin only
 
     # STUDY
-    getStudies(name: ID): [Study]  # only returns the studies that the users are entitled
+    getStudies(name: String): [Study]  # only returns the studies that the users are entitled
 }
 
 type Mutation {
     # USER
-    login(username: ID!, password: String!): User
+    login(username: String!, password: String!): User
     logout: GenericResponse
     createUser(user: CreateUserInput!): GenericResponse
     editUser(user: EditUserInput!): GenericResponse #
-    deleteUser(username: ID!): GenericResponse
+    deleteUser(username: String!): GenericResponse
 
     # STUDY
-    createStudy(name: ID!): GenericResponse
-    deleteStudy(name: ID!): GenericResponse #   #admin only
-    createApplication(study: ID!, application: String!, approvedFields: [String]): GenericResponse
+    createStudy(name: String!): GenericResponse
+    deleteStudy(name: String!): GenericResponse #   #admin only
+    createApplication(study: String!, application: String!, approvedFields: [String]): GenericResponse
     editApplicationApproveFields: GenericResponse #
-    addUserToApplication(username: ID!, study: ID!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse
-    deleteUserFromApplication(username: ID!, study: ID!, application: ID!): GenericResponse
-    purgeUserFromStudy(username: ID!, study: ID!): GenericResponse #
-    applyToBeAddedToApplication(study: ID!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse #
+    addUserToApplication(username: String!, study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse
+    deleteUserFromApplication(username: String!, study: String!, application: String!): GenericResponse
+    purgeUserFromStudy(username: String!, study: String!): GenericResponse #
+    applyToBeAddedToApplication(study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse #
 
     # QUERY
     createQuery(queryobj: QueryObjInput!): GenericResponse #
