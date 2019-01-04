@@ -1,4 +1,4 @@
-import mongodb, { MongoClient, Db } from 'mongodb';
+import * as mongodb from 'mongodb';
 import { CustomError } from './error';
 import { Logger } from './logger';
 
@@ -36,7 +36,7 @@ export abstract class DatabaseBase<configType extends IDatabaseBaseConfig> {
         }
     }
 
-    public getDB(): Db {
+    public getDB(): mongodb.Db {
         return this.client.db(this.config.database);
     }
 

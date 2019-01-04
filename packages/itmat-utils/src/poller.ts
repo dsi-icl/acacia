@@ -1,4 +1,4 @@
-import mongodb from 'mongodb';
+import * as mongodb from 'mongodb';
 import * as Models from './models';
 import { Logger } from './logger';
 

@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import mongodb from 'mongodb';
+import * as mongodb from 'mongodb';
 
 export class Logger {
     public static log(message: any): void {

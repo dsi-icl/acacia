@@ -1,4 +1,4 @@
-import mongodb from 'mongodb';
+import * as mongodb from 'mongodb';
 
 export interface IQueryEntry {
     _id?: mongodb.ObjectId,

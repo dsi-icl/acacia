@@ -1,4 +1,4 @@
-import mongodb from 'mongodb';
+import * as mongodb from 'mongodb';
 
 export enum userTypes {
     ADMIN = 'ADMIN',
