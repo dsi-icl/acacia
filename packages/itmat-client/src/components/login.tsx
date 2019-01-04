@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { Mutation } from "react-apollo";
-import { LOGIN } from '../graphql/mutations/user';
+import { LOGIN, WHO_AM_I } from '../graphql/user';
+import * as css from '../css/login.css';
 
-export const LoginBox: React.FunctionComponent<{refetch: Function}> = props => {
+export const LoginBox: React.FunctionComponent = props => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [passwordInput, setPasswordInput] = React.useState('');
     
@@ -14,13 +15,26 @@ export const LoginBox: React.FunctionComponent<{refetch: Function}> = props => {
         setPasswordInput(e.target.value);
     }
 
-    return (<div className='loginName'>
-        <Mutation mutation={LOGIN}>
-        {(login, { data }) =>
+    return (<div className={css.loginBox}>
+        <Mutation
+            mutation={LOGIN}
+            update={(cache, { data: { login } }) => {
+                cache.writeQuery({
+                    query: WHO_AM_I,
+                    data: { whoAmI: login }
+                })
+            }}
+        >
+        {(login, { loading, error }) =>
             <>
                 Username: <input value={usernameInput} onChange={handleUsernameChange}/> <br/>
                 Password: <input value={passwordInput} onChange={handlePasswordChange}/> <br/>
-                <button onClick={() => {login({ variables: { password: passwordInput, username: usernameInput}});}}> login</button>
+                { loading ? <p> Loading.. </p> :
+                    (
+                        <><button onClick={() => {login({ variables: { password: passwordInput, username: usernameInput }});}}> login</button>
+                        {error ? <p>{error.message}</p> : null}</>
+                    )
+                }
             </>
         }
         </Mutation>

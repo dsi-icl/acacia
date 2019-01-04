@@ -1,0 +1,51 @@
+:root {
+
+    /* stylelint-disable-next-line */
+    --font-size: 0.9rem;
+    --font-size-big: 1.5rem;
+    --font-family: 'Optimise', menu, sans-serif;
+    --color-background: 	#2F323B;
+    --color-error:rgb(255, 82, 82);
+    --color-warning: #E6D945;
+    --color-section-title: 	#00465e;
+    --color-text-blue-light: #52D3DB;
+    --color-section-dark: #272A31;
+    --color-section-light: 	#F8F8F8;
+    --color-text-title-rightpanel: 	rgb(243, 240, 240);
+    --color-text-basic-rightpanel: 	rgb(214, 212, 212);
+    --color-text-leftpanel-basic: rgb(84, 86, 88);
+    --color-text-separator: rgb(201, 201, 201);
+    --color-text-light: rgb(109, 109, 109);
+    --color-text-selected: 	#03A5E5;
+    --color-text-selected-hover: rgb(93, 162, 192);
+}
+
+
+
+* {
+    color: inherit;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    box-sizing: border-box;
+    white-space: normal;
+    text-decoration: none;
+    vertical-align: top;
+    scroll-behavior: smooth;
+    outline: none;
+}
+
+html, body {
+    color: var(--color-text-basic);
+    font-size: 12;
+    font-family: Arial, Helvetica, sans-serif;
+    background: white;
+    user-select: none;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body > div {
+    height: 100%
+}

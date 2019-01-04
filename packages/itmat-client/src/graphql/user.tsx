@@ -12,3 +12,16 @@ export const LOGIN = gql`
         }
     }
 `;
+
+export const WHO_AM_I = gql`
+    {
+        whoAmI {
+            username
+            type
+            realName
+            email
+            emailNotificationsActivated
+            createdBy
+        }
+    }
+`;

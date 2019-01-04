@@ -12,6 +12,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { schema } from '../graphql/schema';
 import { resolvers } from '../graphql/resolvers';
 import { Database } from '../database/database';
+import cors from 'cors';
 const MongoStore = connectMongo(session);
 const upload = multer();
 
@@ -26,6 +27,8 @@ export class Router {
         queryController: QueryController
     ) {
         this.app = express();
+
+        this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
 
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
@@ -52,7 +55,7 @@ export class Router {
             }
         });
 
-        gqlServer.applyMiddleware({ app: this.app });
+        gqlServer.applyMiddleware({ app: this.app, cors: { origin: 'http://localhost:3000', credentials: true } });
 
         this.app.route('/whoAmI')
             .get(userController.whoAmI);

@@ -20,6 +20,7 @@ export const studyResolvers = {
             for (const each of requestedFields) {
                 projectionObj[each] = 1;
             }
+            console.log(requester);
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 queryObj.$or = [{ studyAndDataManagers: requester.username }, { 'applications.applicationAdmins': requester.username }, { 'applications.applicationUsers': requester.username }];
                 if (requestedFields.includes('applications')) {

@@ -1,0 +1,59 @@
+.leftPanel {
+    grid-column: 1/2;
+    grid-row: 1/2;
+    color: var(--color-text-leftpanel-basic);
+    background-color: var(--color-section-light);
+    overflow: auto;
+}
+
+.leftPanel > a > .button {
+    border-bottom: 1px solid var(--color-text-separator);
+    min-height: 50px;
+    padding: 25px;
+    text-align: center;
+}
+
+.leftPanel > div {
+    border-bottom: 1px solid var(--color-text-separator);
+    min-height: 50px;
+    padding: 25px;
+    text-align: center;
+}
+
+.leftPanel > a > .button:hover {
+    background-color: var(--color-text-separator);
+}
+
+.leftPanel > a[id="logoutButton"] > .button:hover {
+    background-color: var(--color-error);
+    border-bottom: 1px solid var(--color-error);
+}
+
+.leftPanel > a > .button > svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--color-text-leftpanel-basic);
+}
+
+.leftPanel > .clickedButton > .button {
+    background-color: var(--color-section-dark);
+    color: var(--color-text-selected);
+    border-bottom: 1px solid var(--color-section-dark);
+}
+
+.leftPanel > .clickedButton > .button:hover {
+    background-color: var(--color-section-dark);
+    color: var(--color-text-selected);
+}
+
+.leftPanel > .clickedButton > .button > svg {
+    fill: var(--color-text-selected);
+}
+
+.rightPanel {
+
+}
+
+.clickedButton {
+
+}
