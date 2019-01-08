@@ -19,8 +19,8 @@ export const userResolvers = {
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ForbiddenError('Unauthorised.');
             }
-
-            const cursor = db.users_collection!.find({ deleted: false });
+            const queryObj = args.username === undefined ? { deleted: false } : { deleted: false, username: args.username };
+            const cursor = db.users_collection!.find(queryObj);
             return cursor.toArray();
         }
     },
@@ -73,8 +73,8 @@ export const userResolvers = {
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ForbiddenError('Unauthorised.');
             }
-            const { username, type, realName, email, emailNotificationsActivated, password }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string
+            const { username, type, realName, email, emailNotificationsActivated, password, description }: {
+                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string
             } = args.user;
 
             const alreadyExist = await db.users_collection!.findOne({ username, deleted: false }); // since bycrypt is CPU expensive let's check the username is not taken first
@@ -86,6 +86,7 @@ export const userResolvers = {
             const entry: Models.UserModels.IUser = {
                 username,
                 type,
+                description: description === undefined ? '' : description,
                 realName,
                 password: hashedPassword,
                 createdBy: requester.username,

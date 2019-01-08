@@ -2,58 +2,56 @@
     grid-column: 1/2;
     grid-row: 1/2;
     color: var(--color-text-leftpanel-basic);
-    background-color: var(--color-section-light);
+    background-image: linear-gradient(to bottom left, var(--color-section-light), rgb(238, 238, 238));
     overflow: auto;
 }
 
-.leftPanel > a > .button {
+.button {
     border-bottom: 1px solid var(--color-text-separator);
     min-height: 50px;
     padding: 25px;
     text-align: center;
 }
 
-.leftPanel > div {
+.leftPanel > div:not(.studyList) {
     border-bottom: 1px solid var(--color-text-separator);
     min-height: 50px;
     padding: 25px;
     text-align: center;
 }
 
-.leftPanel > a > .button:hover {
+.button:hover {
     background-color: var(--color-text-separator);
+    cursor: pointer;
 }
 
-.leftPanel > a[id="logoutButton"] > .button:hover {
+a[id="logoutButton"] > .button:hover {
     background-color: var(--color-error);
     border-bottom: 1px solid var(--color-error);
 }
 
-.leftPanel > a > .button > svg {
+.button > svg {
     width: 20px;
     height: 20px;
     fill: var(--color-text-leftpanel-basic);
 }
 
-.leftPanel > .clickedButton > .button {
+.clickedButton > .button, .studyButtonClicked {
     background-color: var(--color-section-dark);
     color: var(--color-text-selected);
     border-bottom: 1px solid var(--color-section-dark);
 }
 
-.leftPanel > .clickedButton > .button:hover {
+.clickedButton > .button:hover {
     background-color: var(--color-section-dark);
     color: var(--color-text-selected);
 }
 
-.leftPanel > .clickedButton > .button > svg {
+.clickedButton > .button > svg {
     fill: var(--color-text-selected);
 }
 
 .rightPanel {
-
-}
-
-.clickedButton {
-
+    grid-column: 2/3;
+    grid-row: 1/2;
 }

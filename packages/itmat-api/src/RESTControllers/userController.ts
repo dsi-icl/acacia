@@ -76,6 +76,7 @@ export class UserController extends UserControllerBasic {
         const hashedPassword: string = await bcrypt.hash(req.body.password, this.bcryptSaltRound);
         const entry: Models.UserModels.IUser = {
             username: req.body.username,
+            description: '',
             realName: '',
             password: hashedPassword,
             type: req.body.type as Models.UserModels.userTypes,

@@ -13,6 +13,15 @@ export const LOGIN = gql`
     }
 `;
 
+export const LOGOUT = gql`
+    mutation {
+        logout{
+            successful
+            id
+        }
+    }
+`;
+
 export const WHO_AM_I = gql`
     {
         whoAmI {

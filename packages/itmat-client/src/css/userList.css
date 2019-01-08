@@ -1,0 +1,19 @@
+.userRow:hover {
+    cursor: pointer;
+    background-color: grey
+}
+
+.pageContainer {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    display: grid;
+    height: 100%;
+}
+
+.userList {
+    grid-column: 1/2;
+}
+
+.userDetail {
+    grid-column: 2/3;
+}

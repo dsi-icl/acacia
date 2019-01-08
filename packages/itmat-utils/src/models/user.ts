@@ -17,6 +17,7 @@ export interface IUserWithoutToken {
     email: string,
     realName: string,
     type: keyof typeof userTypes,
+    description: string,
     notifications: INotification[],
     emailNotificationsActivated: boolean,
     deleted?: boolean,

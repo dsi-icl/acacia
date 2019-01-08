@@ -31,6 +31,7 @@ input CreateUserInput {
     type: USERTYPE!
     realName: String!
     email: String!
+    description: String
     emailNotificationsActivated: Boolean!
     password: String!
 }
@@ -40,6 +41,7 @@ input EditUserInput {
     type: USERTYPE
     realName: String
     email: String
+    description: String
     emailNotificationsActivated: Boolean
     password: String
 }
@@ -49,6 +51,7 @@ type User {
     type: USERTYPE!
     realName: String
     email: String
+    description: String
     notifications: [Notification!]
     emailNotificationsActivated: Boolean!
     createdBy: String
@@ -69,8 +72,8 @@ type Application {
 
 type Job {
     id: String,
-    study: String
-    application: String,
+    study: String,
+    jobType: String,
     requester: String,
     receivedFiles: String,
     status: String,

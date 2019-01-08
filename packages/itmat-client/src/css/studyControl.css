@@ -3,6 +3,7 @@
     color: var(--color-text-title-rightpanel);
     grid-row: 1/2;
     grid-column: 2/3;
+    font-size: 0.7rem;
 }
 
 .studyControl > div {
@@ -11,6 +12,7 @@
 }
 
 .studyControl > div > h3 {
+    font-size: 1.5rem;
     margin-left: -3px;
     text-transform: capitalize;
     color: var(--color-text-title-rightpanel);

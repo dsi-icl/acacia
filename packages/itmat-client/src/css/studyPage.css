@@ -1,0 +1,23 @@
+.studyRow:hover {
+    cursor: pointer;
+    background-color: grey
+}
+
+.pageContainer {
+    grid-template-columns: 1fr 2.5fr;
+    grid-template-rows: 1fr;
+    display: grid;
+    height: 100%;
+}
+
+.studyList {
+    grid-column: 1/2;
+    grid-row: 1/2;
+    height: 100%;
+}
+
+.createStudyPanel {
+    grid-column: 2/3;
+    grid-row: 1/2;
+    height: 100%;
+}
