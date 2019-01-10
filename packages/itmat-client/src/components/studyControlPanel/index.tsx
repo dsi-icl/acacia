@@ -7,7 +7,7 @@ import { Application } from './applicationsSection';
 import { JobSection } from './jobsSection';
 import { ExportSection } from './exportSection';
 import { CurationSection } from './curationSection';
-
+import { AddShortCut } from './addShortCut';
 /**
  * Sections:
  * Data update log
@@ -38,6 +38,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                         <JobSection data={study.jobs}/>
                         <CurationSection/>
                         <ExportSection/>
+                        <AddShortCut/>
                     </div>
                 );
             }}

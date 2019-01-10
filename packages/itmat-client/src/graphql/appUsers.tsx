@@ -25,7 +25,6 @@ export const GET_SPECIFIC_USER = gql`
     }
 `;
 
-
 export const CREATE_USER = gql`
     mutation CreateUser(
         $username: String!
@@ -36,6 +35,28 @@ export const CREATE_USER = gql`
         $type: USERTYPE!
     ){
         createUser(user: {
+            username: $username
+            password: $password
+            realName: $realName
+            emailNotificationsActivated: $emailNotificationsActivated
+            email: $email
+            type: $type
+        }) {
+            successful
+        }
+    }
+`;
+
+export const EDIT_USER = gql`
+    mutation EditUser(
+        $username: String!
+        $type: USERTYPE
+        $realName: String
+        $email: String
+        $emailNotificationsActivated: Boolean
+        $password: String
+    ) {
+        editUser(user: {
             username: $username
             password: $password
             realName: $realName

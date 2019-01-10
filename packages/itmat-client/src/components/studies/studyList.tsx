@@ -11,7 +11,9 @@ export const StudyListSection: React.FunctionComponent = props => {
             <NavLink to={`/studies/createNewStudy`}>
                 <button>Create new study</button>
             </NavLink>
+            <br/>
             
+            <h4>Available studies:</h4>
             <Query query={GET_STUDIES_LIST}>
                 {({loading, error, data }) => {
                     if (loading) return <p>Loading...</p>;

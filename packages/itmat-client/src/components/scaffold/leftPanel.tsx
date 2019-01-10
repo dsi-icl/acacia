@@ -20,7 +20,7 @@ export const LeftPanel: React.FunctionComponent = props => {
                 <div className={css.button}><Icons type='users'/>Users</div>
             </NavLink>
 
-            <NavLink to='/notification' title='Notifications' activeClassName={css.clickedButton}>
+            <NavLink to='/notifications' title='Notifications' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='notification'/>Messages</div>
             </NavLink>
 

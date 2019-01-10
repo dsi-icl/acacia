@@ -4,6 +4,7 @@ import { GET_USERS_LIST } from '../../graphql/appUsers';
 import { Models } from 'itmat-utils';
 import * as css from '../../css/userList.css';
 import { NavLink } from 'react-router-dom';
+import { Icons } from '../icons';
 
 export const UserListSection: React.FunctionComponent = props => {
     return (
@@ -14,7 +15,19 @@ export const UserListSection: React.FunctionComponent = props => {
                 const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
                 return (
                     <div className={css.userList}>
-                        <input name='search'/>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><Icons type='search'/><input name='search'/></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th><NavLink to={`/users/createNewUser`} activeClassName={css.showMoreButton}><button>Create new user</button></NavLink></th>
+                                </tr>
+                            </thead>
+                        </table>
+
                         <table>
                             <thead>
                                 <tr>
@@ -39,13 +52,13 @@ export const UserListSection: React.FunctionComponent = props => {
 
 const User: React.FunctionComponent<{ data: Models.UserModels.IUserWithoutToken}> = ({ data }) => {
     return (
-            <tr className={css.userRow}>
-                <td>{data.username}</td>
+            <tr>
+                <td><b>{data.username}</b></td>
                 <td>{data.realName}</td>
                 <td>{data.type}</td>
                 <td>{data.email}</td>
                 <td>''</td>
-                <td><NavLink to={`/users/${data.username}`}>Show more</NavLink></td>
+                <td><NavLink to={`/users/${data.username}`} activeClassName={css.showMoreButton}><span> Show more </span></NavLink></td>
             </tr>
     );
 };

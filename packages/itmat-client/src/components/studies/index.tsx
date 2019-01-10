@@ -3,6 +3,7 @@ import { Route, Switch } from 'react-router-dom';
 import * as css from '../../css/studyPage.css';
 import { StudyListSection } from './studyList';
 import { CreateStudyPage } from './createStudyPage';
+import { ApplyToApplicationSection } from './applyToApplication';
 
 export const StudiesPage: React.FunctionComponent = props => {
     return (
@@ -10,7 +11,7 @@ export const StudiesPage: React.FunctionComponent = props => {
             <StudyListSection/>
             <Switch>
                 <Route path='/studies/createNewStudy' render={() => <CreateStudyPage/>}/>
-                <Route path='/' render={() => <></>}/>
+                <Route path='/' render={() => <ApplyToApplicationSection studyName='HELLO FRESH'/>}/>
             </Switch>
         </div>
     );

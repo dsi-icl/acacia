@@ -6,20 +6,22 @@
     --font-family: Arial;
     --color-background: 	#2F323B;
     --color-error:rgb(255, 82, 82);
-    --color-purple: 	rgb(176, 141, 223);
+    --color-purple: 	hsl(266, 56%, 71%);
     --color-purple-shade2: rgb(200, 184, 255);
     --color-section-title: 	#00465e;
     --color-text-blue-light: #52D3DB;
-    --color-section-dark: #272A31;
+    --color-section-dark: hsl(222, 11%, 17%);
     --color-section-light: 	#F8F8F8;
     --color-text-title-rightpanel: 	rgb(243, 240, 240);
     --color-text-basic-rightpanel: 	rgb(214, 212, 212);
     --color-text-leftpanel-basic: rgb(108, 110, 119);
     --color-text-separator: rgb(201, 201, 201);
     --color-text-light: rgb(109, 109, 109);
-    --color-text-selected: 	#03A5E5;
-    --color-royal-blue: #0977E1;
+    --color-text-selected: 	hsl(197, 97%, 45%);
+    --color-royal-blue: hsl(209, 92%, 46%);
+    --color-royal-blue-dark: hsl(209, 92%, 38%);
     --color-text-selected-hover: rgb(93, 162, 192);
+    --color-input: hsl(222, 11%, 30%);
 }
 
 
@@ -71,6 +73,12 @@ button:hover {
     cursor: pointer;
 }
 
+button:active {
+    background-image: linear-gradient(to bottom right, hsl(197, 97%, 60%), rgb(222, 212, 255));
+    cursor: pointer;
+}
+
+
 table {
     border-collapse: collapse;
     border-spacing: 0;
@@ -78,12 +86,43 @@ table {
 }
 
 th, td {
-    height: 1.4em;
-    line-height: 1.4em;
+    height: 1.4rem;
+    line-height: 1.4rem;
     text-align: left;
     vertical-align: middle;
 }
 
 a {
     color: inherit;
+}
+
+input, select, label {
+    height: 1.3rem;
+    line-height: 1.3rem;
+}
+
+input, select {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+    /* background-color: var(--color-input); */
+    background-image: linear-gradient(to bottom right, hsl(222, 11%, 36%), var(--color-input));
+    border-radius: 0px;
+    margin-left: 0.3rem;
+}
+
+input:read-only {
+    background-image: linear-gradient(to bottom right, var(--color-section-dark), var(--color-section-dark));
+    cursor: default
+}
+
+label {
+    font-weight: bold
+}
+
+h4 {
+    display: block;
+    width: 100;
+    border-bottom: 1px solid rgb(77, 77, 77);
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
 }

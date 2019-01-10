@@ -54,4 +54,11 @@ a[id="logoutButton"] > .button:hover {
 .rightPanel {
     grid-column: 2/3;
     grid-row: 1/2;
+    color: var(--color-text-basic-rightpanel);
+    font-size: 0.8rem;
+    height: 100%;
+}
+
+.rightPanel > div > div {
+    padding: 1rem;
 }

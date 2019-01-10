@@ -22,7 +22,10 @@ export const CreateStudyPage: React.FunctionComponent = props => {
                 <div className={css.createStudyPanel}>
                     { loading ? <p> Loading.. </p> :
                         (<>
+                            <h4>Create New Study</h4>
+                            <label>Enter study name: </label>
                             <input onChange={e => {changeStudyNameInput(e.target.value);}} value={studyNameInput}/>
+                            <br/><br/><br/>
                             <button onClick={() => {createStudy({ variables: { name: studyNameInput }});}}>Submit</button>
                             {error ? <p>{error.message}</p> : null}
                         </>)
