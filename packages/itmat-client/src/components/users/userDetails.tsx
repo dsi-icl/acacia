@@ -72,7 +72,7 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
                     return (
                         <>
                             <label>Delete this user: </label> <p onClick={()=>{ setDeleteButtonShown(true)}} style={{cursor: 'pointer', textDecoration: 'underline'}}> click here </p> <br/>
-                            { deleteButtonShown ? <><label>Are you sure?</label><br/> <span onClick={() => { deleteUser({ variables: { username: user.username }})} } style={{ backgroundColor: 'red'}}> Delete this user </span> <span onClick={()=>{ setDeleteButtonShown(false)}}> Cancel </span></> : null }
+                            { deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br/> <span onClick={() => { deleteUser({ variables: { username: user.username }})} } style={{ backgroundColor: 'red'}}> Delete user {user.username} </span> <span onClick={()=>{ setDeleteButtonShown(false)}}> Cancel </span></> : null }
                         </>
                     );
                 }}
