@@ -68,3 +68,12 @@ export const EDIT_USER = gql`
         }
     }
 `;
+
+export const DELETE_USER = gql`
+    mutation DeleteUser($username: String!) {
+        deleteUser(username: $username) {
+            id
+            successful
+        }
+    }
+`;

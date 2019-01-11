@@ -53,10 +53,11 @@
     padding-bottom: 0px;
 }
 
-.userList span {
+.userList span, .userDetail span {
     background-color: var(--color-royal-blue);
     color: white;
     white-space: pre;
+    cursor: pointer;
 }
 
 .showMoreButton span {

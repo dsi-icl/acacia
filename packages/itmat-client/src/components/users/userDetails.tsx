@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
-import { GET_SPECIFIC_USER, EDIT_USER, GET_USERS_LIST} from '../../graphql/appUsers';
+import { GET_SPECIFIC_USER, EDIT_USER, GET_USERS_LIST, DELETE_USER } from '../../graphql/appUsers';
 import * as css from '../../css/userList.css';
 import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
 
@@ -22,6 +22,8 @@ export const UserDetailsSection: React.FunctionComponent<{ username: string }> =
 
 export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> = ({user}) => {
     const [inputs, setInputs] = React.useState({ ...user, password: '' });
+    const [deleteButtonShown, setDeleteButtonShown]  = React.useState(false);
+    const [userIsDeleted, setUserIsDeleted] = React.useState(false);
 
     if (inputs.username !== user.username) {
         setInputs({ ...user, password: '' })
@@ -36,6 +38,8 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
         delete editUserObj.description;
         return editUserObj;
     }
+
+    if (userIsDeleted) { return <p> User {user.username} is deleted. </p>}
 
     return (
         <Mutation
@@ -57,6 +61,22 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
                 <label>Description: </label> <input type='text' value={inputs.description} onChange={e => { setInputs({...inputs, description: e.target.value }) }}/> <br/><br/>
                 <label>Created by (readonly): </label ><input type='text' readOnly value={inputs.createdBy}/> <br/><br/>
                 {loading ? <button>Loading</button> : <button onClick={() => { submit({ variables: { ...formatSubmitObj() } }); }}>Save</button> }
+
+                <br/><br/><br/>
+                <Mutation
+                    mutation={DELETE_USER}
+                    refetchQueries={[ { query: GET_USERS_LIST } ]}
+                >
+                {(deleteUser, { loading, error, data: UserDeletedData }) => {
+                    if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
+                    return (
+                        <>
+                            <label>Delete this user: </label> <p onClick={()=>{ setDeleteButtonShown(true)}} style={{cursor: 'pointer', textDecoration: 'underline'}}> click here </p> <br/>
+                            { deleteButtonShown ? <><label>Are you sure?</label><br/> <span onClick={() => { deleteUser({ variables: { username: user.username }})} } style={{ backgroundColor: 'red'}}> Delete this user </span> <span onClick={()=>{ setDeleteButtonShown(false)}}> Cancel </span></> : null }
+                        </>
+                    );
+                }}
+                </Mutation>
             </div>
         }
         </Mutation>

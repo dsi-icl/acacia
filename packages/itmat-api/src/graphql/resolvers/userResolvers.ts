@@ -106,7 +106,7 @@ export const userResolvers = {
                 throw new ForbiddenError('Unauthorised.');
             }
             const username: string = args.username;
-            const result = await db.users_collection!.updateOne({ username, deleted: false }, { $set: { deleted: true } });
+            const result = await db.users_collection!.updateOne({ username, deleted: false }, { $set: { deleted: true, password: 'DeletedUserDummyPassword' } });
 
             if (result.result.ok === 1) {
                 return makeGenericReponse(username);
