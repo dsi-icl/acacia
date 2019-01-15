@@ -4,6 +4,7 @@ import { Database } from '../../database/database';
 import { Models, Logger } from 'itmat-utils';
 import config from '../../../config/config.json';
 import mongodb from 'mongodb';
+import uuidv4 from 'uuid/v4';
 import { makeGenericReponse } from '../responses';
 import { IUser } from 'itmat-utils/dist/models/user';
 import { APIModels } from 'itmat-utils/dist/models';
@@ -84,6 +85,7 @@ export const userResolvers = {
 
             const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
             const entry: Models.UserModels.IUser = {
+                id: uuidv4(),
                 username,
                 type,
                 description: description === undefined ? '' : description,
