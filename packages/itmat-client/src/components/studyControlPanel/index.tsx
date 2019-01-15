@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { Query } from "react-apollo";
 import { GET_STUDIES } from '../../graphql/study';
+import { Route, Switch } from 'react-router-dom';
 import * as css from '../../css/studyControl.css';
 import { Models } from 'itmat-utils';
-import { Application } from './applicationsSection';
+import { ApplicationListSection } from './applications/applicationsList';
 import { JobSection } from './jobsSection';
 import { ExportSection } from './exportSection';
 import { CurationSection } from './curationSection';
 import { AddShortCut } from './addShortCut';
+import { AddApplication } from './applications';
 /**
  * Sections:
  * Data update log
@@ -28,17 +30,32 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
             {({ loading, error, data }) => {
                 if (loading) return null;
                 if (error) return `Error!: ${error.message}`;
-                console.log(data);
+
                 const study: Models.Study.IStudy & { jobs: Models.JobModels.IJobEntry<any>[] } = data.getStudies[0];
+                if (study === undefined || study === null) { return `Cannot find study "${name}"`; }
+
                 return (
                     <div className={css.studyControl}>
-                        <h2>{study.name}</h2>
-                        <GenericListSection title='Study Managers' list={study.studyAndDataManagers} mapfunc={(el: string) => <p key={el}>{el}</p>} />
-                        <GenericListSection title='Applications' list={study.applications} mapfunc={(el: Models.Study.IApplication) => <Application key={el.name} data={el}/>} />
-                        <JobSection data={study.jobs}/>
-                        <CurationSection/>
-                        <ExportSection/>
-                        <AddShortCut/>
+                        <div className={css.leftPanel}>
+                        <Switch>
+                            <Route path='/studies/details/:studyName' render={({ match }) => <> 
+                                <GenericListSection title='Study Managers' list={study.studyAndDataManagers} mapfunc={(el: string) => <p key={el}>{el}</p>} />
+                                <ApplicationListSection studyName={match.params.studyName} list={study.applications}/>
+                                <JobSection data={study.jobs}/>
+                                <CurationSection/>
+                                <ExportSection/>
+                                <AddShortCut/>
+                            </>}/>
+                        </Switch>
+                        </div>
+                        <div className={css.rightPanel}>
+                        <Switch>
+                            <Route path='/studies/details/:studyName/application/addNewApplication' render={({ match }) => <AddApplication studyName={match.params.studyName}/>}/>
+                            <Route path='/studies/details/:studyName' render={({ match }) => <></>}/>
+                        </Switch>
+                        </div>
+                        
+
                     </div>
                 );
             }}
@@ -52,9 +69,5 @@ const GenericListSection: React.FunctionComponent<{ title: String, list: any[], 
         {list.map(mapfunc as any)}
     </div>
 ;
-
-
-
-
 
 

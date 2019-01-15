@@ -6,11 +6,15 @@ import { StudyControl } from '../studyControlPanel';
 import { StudiesPage } from '../studies';
 import { SettingsPage } from '../settings';
 
+// import { ClinicalDataCurationUKBSection } from '../curation/clinicalDataUKB';
+// import { AddApplication } from '../studyControlPanel/applicationsSection';
+
 export const RightPanel: React.FunctionComponent = props => {
     return (
         <div className={css.rightPanel}>
             <Switch>
                 <Route path='/settings' render={({match}) => <SettingsPage/>}/>
+                {/* <Route path='/studies/details/:studyName' render={({ match }) => <AddApplication studyName={match.params.studyName}/>}/> */}
                 <Route path='/studies/details/:studyName' render={({ match }) => <StudyControl name={match.params.studyName}/>}/>
                 <Route path='/studies' render={({match}) => <StudiesPage/>}/>
                 <Route path='/users' render={() => <UserPage/>}/>
