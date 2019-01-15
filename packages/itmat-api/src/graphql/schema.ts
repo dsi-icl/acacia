@@ -47,6 +47,7 @@ input EditUserInput {
 }
 
 type User {
+    id: String,
     username: String!
     type: USERTYPE!
     realName: String
@@ -64,6 +65,8 @@ type ApplicationPendingUserApprovals {
 
 type Application {
     name: String!,
+    study: Study,
+    id: String,
     pendingUserApprovals: [ApplicationPendingUserApprovals]
     applicationAdmins: [String]
     applicationUsers: [String]
@@ -84,6 +87,7 @@ type Job {
 }
 
 type Study {
+    id: String,
     name: String!,
     studyAndDataManagers: [String]
     applications: [Application]

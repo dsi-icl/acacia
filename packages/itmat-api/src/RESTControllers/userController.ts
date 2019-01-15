@@ -3,6 +3,7 @@ import { CustomError, Models, RequestValidationHelper, UserControllerBasic } fro
 import mongodb, { UpdateWriteOpResult, Collection } from 'mongodb';
 import { Express, Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
+import uuidv4 from 'uuid/v4';
 
 export class UserController extends UserControllerBasic {
     constructor(private readonly usersCollection: mongodb.Collection, private readonly bcryptSaltRound: number = 4) {
@@ -75,6 +76,7 @@ export class UserController extends UserControllerBasic {
 
         const hashedPassword: string = await bcrypt.hash(req.body.password, this.bcryptSaltRound);
         const entry: Models.UserModels.IUser = {
+            id: uuidv4(),
             username: req.body.username,
             description: '',
             realName: '',
