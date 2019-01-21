@@ -9,8 +9,8 @@ export const CREATE_APPLICATION = gql`
     }
 `;
 
-export const UPDATE_APPLICATION_LIST = gql`
-    query updateApplication($name: String){
+export const GET_APPLICATION = gql`
+    query getApplication($name: String){
         getStudies(name: $name) {
             applications {
                 name
@@ -22,6 +22,24 @@ export const UPDATE_APPLICATION_LIST = gql`
                 applicationUsers
                 approvedFields
             }
+        }
+    }
+`;
+
+export const DELETE_USER_FROM_APPLICATION = gql`
+    mutation deleteUserFromApplication($username: String!, $study: String!, $application: String!) {
+        deleteUserFromApplication(username: $username, study: $study, application: $application) {
+            id
+            successful
+        }
+    }
+`;
+
+export const ADD_USER_TO_APPLICATION = gql`
+    mutation addUserToApplication($username: String!, $study: String!, $application: String!, $type: APPLICATION_USER_TYPE!) {
+        addUserToApplication(username: $username, study: $study, application: $application, type: $type) {
+            id
+            successful
         }
     }
 `;

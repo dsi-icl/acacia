@@ -29,7 +29,7 @@ export class FileController {
         // TO_DO: check if study exists, whetehr the requester is the dataAdmin / admin;
         if (validator
             .checkForAdminPrivilege()
-            .checkRequiredKeysArePresentIn<requests.FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['jobType', 'study'])
+            .checkRequiredKeysArePresentIn<requests.FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['jobType', 'study', 'file'])
             .checkForValidDataTypeForValue(req.body.study, Models.Enums.JSDataType.STRING, 'study')
             .checkForValidDataTypeForValue(req.body.jobType, Models.Enums.JSDataType.STRING, 'jobType')
             .checkKeyForValidValue('jobType', req.body.jobType, Object.keys(Models.JobModels.jobTypes))

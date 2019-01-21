@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
-import { CREATE_APPLICATION, UPDATE_APPLICATION_LIST } from '../../../graphql/studyDetails';
+import { CREATE_APPLICATION, GET_APPLICATION } from '../../../graphql/studyDetails';
 
 
 export const AddApplication: React.FunctionComponent<{studyName: string}> = ({ studyName }) => {
@@ -22,7 +22,7 @@ export const AddApplication: React.FunctionComponent<{studyName: string}> = ({ s
         <div>
             <Mutation
                 mutation={CREATE_APPLICATION}
-                refetchQueries={[ { query: UPDATE_APPLICATION_LIST, variables: { name: studyName } } ]}
+                refetchQueries={[ { query: GET_APPLICATION, variables: { name: studyName } } ]}
             >
             {(createApplication, { loading, error, data }) => {
                 if (data && data.createApplication && data.createApplication.successful) { return `Created application.` }

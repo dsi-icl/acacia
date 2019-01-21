@@ -9,7 +9,7 @@ import { JobSection } from './jobsSection';
 import { ExportSection } from './exportSection';
 import { CurationSection } from './curationSection';
 import { AddShortCut } from './addShortCut';
-import { AddApplication } from './applications';
+import { AddApplication, ApplicationDetails } from './applications';
 /**
  * Sections:
  * Data update log
@@ -51,6 +51,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                         <div className={css.rightPanel}>
                         <Switch>
                             <Route path='/studies/details/:studyName/application/addNewApplication' render={({ match }) => <AddApplication studyName={match.params.studyName}/>}/>
+                            <Route path='/studies/details/:studyName/application/:applicationName' render={({ match }) => <ApplicationDetails studyName={match.params.studyName} applicationName={match.params.applicationName}/>}/>
                             <Route path='/studies/details/:studyName' render={({ match }) => <></>}/>
                         </Switch>
                         </div>
