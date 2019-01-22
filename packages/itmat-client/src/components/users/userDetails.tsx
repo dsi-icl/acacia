@@ -26,6 +26,8 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
     const [userIsDeleted, setUserIsDeleted] = React.useState(false);
 
     if (inputs.username !== user.username) {
+        setUserIsDeleted(false);
+        setDeleteButtonShown(false);
         setInputs({ ...user, password: '' })
     }
 
@@ -34,7 +36,6 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
         if (inputs.password === '') {
             delete editUserObj.password;
         }
-        console.log(editUserObj);
         delete editUserObj.description;
         return editUserObj;
     }
