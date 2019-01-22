@@ -7,7 +7,7 @@ import passport from 'passport';
 import session from 'express-session';
 import connectMongo from 'connect-mongo';
 import multer from 'multer';
-import mongodb from 'mongodb';
+import http from 'http';
 import { ApolloServer } from 'apollo-server-express';
 import { schema } from '../graphql/schema';
 import { resolvers } from '../graphql/resolvers';
@@ -18,6 +18,7 @@ const upload = multer();
 
 export class Router {
     private readonly app: Express;
+    private server: http.Server;
 
     constructor(
         db: Database /* the database to save sessions */,
@@ -56,6 +57,9 @@ export class Router {
         });
 
         gqlServer.applyMiddleware({ app: this.app, cors: { origin: 'http://localhost:3000', credentials: true } });
+
+        this.server = http.createServer(this.app);
+        gqlServer.installSubscriptionHandlers(this.server);
 
         this.app.route('/whoAmI')
             .get(userController.whoAmI);
@@ -97,7 +101,7 @@ export class Router {
         });
     }
 
-    public getApp(): Express {
-        return this.app;
+    public getApp(): any {
+        return this.server;
     }
 }
