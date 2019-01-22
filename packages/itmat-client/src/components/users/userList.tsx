@@ -8,7 +8,10 @@ import { Icons } from '../icons';
 
 export const UserListSection: React.FunctionComponent = props => {
     return (
-        <Query query={GET_USERS_LIST}>
+        <Query
+            query={GET_USERS_LIST}
+            pollInterval={5000}
+        >
             {({loading, error, data }) => {
                 if (loading) return <p>Loading...</p>;
                 if (error) return <p>Error :( {error.message}</p>;

@@ -14,7 +14,10 @@ export const StudyListSection: React.FunctionComponent = props => {
             <br/>
             
             <h4>Available studies:</h4>
-            <Query query={GET_STUDIES_LIST}>
+            <Query
+                query={GET_STUDIES_LIST}
+                pollInterval={5000}
+            >
                 {({loading, error, data }) => {
                     if (loading) return <p>Loading...</p>;
                     if (error) return <p>Error :( {error}</p>;

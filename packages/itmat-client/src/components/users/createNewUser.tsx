@@ -18,7 +18,7 @@ export const CreateNewUser: React.FunctionComponent = props => {
     return (
         <Mutation
             mutation={CREATE_USER}
-            refetchQueries={[ {query: GET_USERS_LIST }]}
+            refetchQueries={[{ query: GET_USERS_LIST }]}
         >
         {(createUser, { loading, error }) =>
             <div className={css.userDetail}>
