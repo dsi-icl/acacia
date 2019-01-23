@@ -1,7 +1,7 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { CustomError, RequestValidationHelper, Logger } from 'itmat-utils';
-import { UserController, FileController, StudyController, QueryController } from '../RESTControllers';
+import { UserController, FileController, QueryController } from '../RESTControllers';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
@@ -24,7 +24,7 @@ export class Router {
         db: Database /* the database to save sessions */,
         userController: UserController,
         fileController: FileController,
-        studyController: StudyController,
+        // studyController: StudyController,
         queryController: QueryController
     ) {
         this.app = express();
@@ -61,26 +61,26 @@ export class Router {
         this.server = http.createServer(this.app);
         gqlServer.installSubscriptionHandlers(this.server);
 
-        this.app.route('/whoAmI')
-            .get(userController.whoAmI);
+        // this.app.route('/whoAmI')
+        //     .get(userController.whoAmI);
 
-        this.app.route('/login')
-            .post(userController.login);
+        // this.app.route('/login')
+        //     .post(userController.login);
 
         this.app.use(RequestValidationHelper.bounceNotLoggedIn);
 
-        this.app.route('/logout')
-            .post(userController.logout);
+        // this.app.route('/logout')
+        //     .post(userController.logout);
 
-        this.app.route('/users')
-            .get(userController.getUsers)  // get all users or a specific user
-            .post(userController.createNewUser)
-            .patch(userController.editUser)
-            .delete(userController.deleteUser);
+        // this.app.route('/users')
+        //     .get(userController.getUsers)  // get all users or a specific user
+        //     .post(userController.createNewUser)
+        //     .patch(userController.editUser)
+        //     .delete(userController.deleteUser);
 
-        this.app.route('/study')
-            .post(studyController.createStudy)
-            .get(studyController.getStudies);
+        // this.app.route('/study')
+        //     .post(studyController.createStudy)
+        //     .get(studyController.getStudies);
 
         // this.app.route('/query/xnat')
         //     .post(/* translate to native */);
