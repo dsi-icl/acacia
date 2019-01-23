@@ -16,7 +16,7 @@ class App extends React.Component {
               {({loading, error, data }) => {
                 console.log('rendering', loading, error, data);
                 if (loading) return <p>Loading...</p>;
-                if (error) return <p>Error :( {error}</p>;
+                if (error) return <p>Error :( {error.message}</p>;
                 if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) return <Router><><LeftPanel/><RightPanel/></></Router>;
                 return <LoginBox/>;
               }}
