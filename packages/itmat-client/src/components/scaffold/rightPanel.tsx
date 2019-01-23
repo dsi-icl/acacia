@@ -6,7 +6,6 @@ import { StudyControl } from '../studyControlPanel';
 import { StudiesPage } from '../studies';
 import { SettingsPage } from '../settings';
 
-// import { ClinicalDataCurationUKBSection } from '../curation/clinicalDataUKB';
 // import { AddApplication } from '../studyControlPanel/applicationsSection';
 
 export const RightPanel: React.FunctionComponent = props => {

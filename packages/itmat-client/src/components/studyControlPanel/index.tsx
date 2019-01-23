@@ -10,6 +10,7 @@ import { ExportSection } from './exportSection';
 import { CurationSection } from './curationSection';
 import { AddShortCut } from './addShortCut';
 import { AddApplication, ApplicationDetails } from './applications';
+import { ClinicalDataCurationUKBSection } from '../curation/clinicalDataUKB';
 /**
  * Sections:
  * Data update log
@@ -42,7 +43,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                                 <GenericListSection title='Study Managers' list={study.studyAndDataManagers} mapfunc={(el: string) => <p key={el}>{el}</p>} />
                                 <ApplicationListSection studyName={match.params.studyName} list={study.applications}/>
                                 <JobSection data={study.jobs}/>
-                                <CurationSection/>
+                                <CurationSection studyName={match.params.studyName}/>
                                 <ExportSection/>
                                 <AddShortCut/>
                             </>}/>
@@ -52,6 +53,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                         <Switch>
                             <Route path='/studies/details/:studyName/application/addNewApplication' render={({ match }) => <AddApplication studyName={match.params.studyName}/>}/>
                             <Route path='/studies/details/:studyName/application/:applicationName' render={({ match }) => <ApplicationDetails studyName={match.params.studyName} applicationName={match.params.applicationName}/>}/>
+                            <Route path='/studies/details/:studyName/curation/uploadData' render={({ match }) => <ClinicalDataCurationUKBSection studyName={match.params.studyName}/>}/>
                             <Route path='/studies/details/:studyName' render={({ match }) => <></>}/>
                         </Switch>
                         </div>
