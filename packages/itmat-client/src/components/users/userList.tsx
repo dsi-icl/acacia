@@ -10,7 +10,7 @@ export const UserListSection: React.FunctionComponent = props => {
     return (
         <Query
             query={GET_USERS_LIST}
-            pollInterval={5000}
+            pollInterval={10000}
         >
             {({loading, error, data }) => {
                 if (loading) return <p>Loading...</p>;

@@ -99,7 +99,12 @@ export const userResolvers = {
             };
 
             const result = await db.users_collection!.insertOne(entry);
-            return makeGenericReponse(username);
+            if (result.result.ok === 1) {
+                delete entry.password;
+                return entry;
+            } else {
+                throw new ApolloError('Database error');
+            }
         },
         deleteUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
             const db: Database = context.db;
@@ -149,9 +154,9 @@ export const userResolvers = {
                 }
             }
 
-            const updateResult: mongodb.UpdateWriteOpResult = await db.users_collection!.updateOne({ username, deleted: false }, { $set: fieldsToUpdate });
-            if (updateResult.modifiedCount === 1) {
-                return makeGenericReponse(username);
+            const updateResult: mongodb.FindAndModifyWriteOpResultObject = await db.users_collection!.findOneAndUpdate({ username, deleted: false }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            if (updateResult.ok === 1) {
+                return updateResult.value;
             } else {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }

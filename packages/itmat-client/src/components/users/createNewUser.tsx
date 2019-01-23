@@ -10,26 +10,39 @@ export const CreateNewUser: React.FunctionComponent = props => {
         username: '',
         password: '',
         realName: '',
+        description: '',
         emailNotificationsActivated: false,
         email: '',
         type: 'STANDARD'
     });
 
+    const inputControl = (property: string) => ({
+        value: inputs[property],
+        onChange: (e: any) => { setInputs({...inputs, [property]: e.target.value }); }
+    });
+
     return (
         <Mutation
             mutation={CREATE_USER}
-            refetchQueries={[{ query: GET_USERS_LIST }]}
+            update={(cache, { data: { createUser } }) => {
+                const { getUsers } = cache.readQuery({ query: GET_USERS_LIST }) as { getUsers: any[]};
+                cache.writeQuery({
+                    query: GET_USERS_LIST,
+                    data: { getUsers: getUsers.concat([createUser]) },
+                });
+            }}
         >
         {(createUser, { loading, error }) =>
             <div className={css.userDetail}>
                 <h4>Create New User</h4>
                 <form>
-                    <label>Username: </label><input type='text' value={inputs.username} onChange={e => { setInputs({...inputs, username: e.target.value }); }}/> <br/><br/>
-                    <label>Password: </label><input type='password' value={inputs.password} onChange={e => { setInputs({...inputs, password: e.target.value }); }}/> <br/><br/>
-                    <label>Real name: </label><input type='text' value={inputs.realName} onChange={e => { setInputs({...inputs, realName: e.target.value }); }}/> <br/><br/>
+                    <label>Username: </label><input type='text' {...inputControl('username')}/> <br/><br/>
+                    <label>Password: </label><input type='password' {...inputControl('password')} /> <br/><br/>
+                    <label>Real name: </label><input type='text' {...inputControl('realName')}/> <br/><br/>
+                    <label>Description: </label><input type='text' {...inputControl('description')}/> <br/><br/>
                     <label>Email notification: </label><input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({...inputs, emailNotificationsActivated: e.target.checked }); }}/> <br/><br/>
-                    <label>Email: </label><input type='text' value={inputs.email} onChange={e => { setInputs({...inputs, email: e.target.value }); }}/> <br/><br/>
-                    <label>Type: </label><select value={inputs.type} onChange={e => { setInputs({...inputs, type: e.target.value }); }}>
+                    <label>Email: </label><input type='text' {...inputControl('email')}/> <br/><br/>
+                    <label>Type: </label><select {...inputControl('type')}>
                         <option value="STANDARD">System user</option>
                         <option value="ADMIN">System admin</option>
                     </select>

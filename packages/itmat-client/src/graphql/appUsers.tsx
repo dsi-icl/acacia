@@ -3,6 +3,7 @@ import gql from "graphql-tag";
 export const GET_USERS_LIST = gql`
     {
         getUsers {
+            id
             username
             type
             realName
@@ -14,6 +15,7 @@ export const GET_USERS_LIST = gql`
 export const GET_SPECIFIC_USER = gql`
     query getSpecificUser($username: String){
         getUsers(username: $username) {
+            id
             username
             type
             realName
@@ -30,6 +32,7 @@ export const CREATE_USER = gql`
         $username: String!
         $password: String!
         $realName: String!
+        $description: String!
         $emailNotificationsActivated: Boolean!
         $email: String!
         $type: USERTYPE!
@@ -38,11 +41,19 @@ export const CREATE_USER = gql`
             username: $username
             password: $password
             realName: $realName
+            description: $description
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
             type: $type
         }) {
-            successful
+            id
+            username
+            type
+            realName
+            description
+            email
+            emailNotificationsActivated
+            createdBy
         }
     }
 `;
@@ -64,7 +75,13 @@ export const EDIT_USER = gql`
             email: $email
             type: $type
         }) {
-            successful
+            id
+            username
+            type
+            realName
+            description
+            email
+            emailNotificationsActivated
         }
     }
 `;

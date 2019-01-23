@@ -45,7 +45,6 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
     return (
         <Mutation
             mutation={EDIT_USER}
-            refetchQueries={[ { query: GET_USERS_LIST } ]}
         >
         {(submit, { loading, error, data }) =>
             <div className={css.userDetail}>
@@ -66,13 +65,20 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
                 <br/><br/><br/>
                 <Mutation
                     mutation={DELETE_USER}
-                    refetchQueries={[ { query: GET_USERS_LIST } ]}
+                    update={(cache, { data: { deleteUser } }) => {
+                        const { getUsers } = cache.readQuery({ query: GET_USERS_LIST }) as { getUsers: any[]};
+                        cache.writeQuery({
+                            query: GET_USERS_LIST,
+                            data: { getUsers: getUsers.filter(el => el.username !== deleteUser.id) },
+                        });
+                    }}
                 >
                 {(deleteUser, { loading, error, data: UserDeletedData }) => {
                     if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
+                    if (error) return <p>{error.message}</p>
                     return (
                         <>
-                            <label>Delete this user: </label> <p onClick={()=>{ setDeleteButtonShown(true)}} style={{cursor: 'pointer', textDecoration: 'underline'}}> click here </p> <br/>
+                            <label>Delete this user: </label> { loading ? <p style={{cursor: 'pointer', textDecoration: 'underline'}}> click here </p> : <p onClick={()=>{ setDeleteButtonShown(true)}} style={{cursor: 'pointer', textDecoration: 'underline'}}> click here </p> }<br/>
                             { deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br/> <span onClick={() => { deleteUser({ variables: { username: user.username }})} } style={{ backgroundColor: 'red'}}> Delete user {user.username} </span> <span onClick={()=>{ setDeleteButtonShown(false)}}> Cancel </span></> : null }
                         </>
                     );

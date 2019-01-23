@@ -31,7 +31,7 @@ input CreateUserInput {
     type: USERTYPE!
     realName: String!
     email: String!
-    description: String
+    description: String!
     emailNotificationsActivated: Boolean!
     password: String!
 }
@@ -118,8 +118,8 @@ type Mutation {
     # USER
     login(username: String!, password: String!): User
     logout: GenericResponse
-    createUser(user: CreateUserInput!): GenericResponse
-    editUser(user: EditUserInput!): GenericResponse #
+    createUser(user: CreateUserInput!): User
+    editUser(user: EditUserInput!): User #
     deleteUser(username: String!): GenericResponse
 
     # STUDY

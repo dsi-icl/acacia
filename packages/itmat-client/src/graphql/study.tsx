@@ -3,6 +3,7 @@ import gql from "graphql-tag";
 export const GET_STUDIES_LIST = gql`
     {
         getStudies {
+            id
             name
         }
     }
