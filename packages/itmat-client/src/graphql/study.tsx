@@ -40,10 +40,9 @@ export const GET_STUDIES = gql`
 `;
 
 export const CREATE_STUDY = gql`
-    mutation createStudy($name: String!){
-        createStudy(name: $name) {
-            id
-            successful
+    mutation createStudy($name: String!, $isUkbiobank: Boolean!){
+        createStudy(name: $name, isUkbiobank: $isUkbiobank) {
+            name
         }
     }
 `;

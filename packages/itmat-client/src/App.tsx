@@ -3,7 +3,7 @@ import { ApolloProvider, Query } from "react-apollo";
 import { client } from './components/apolloClient';
 import { LoginBox } from './components/login';
 import { WHO_AM_I } from './graphql/user';
-import * as css from './css/app.css';
+import * as css from './css/app.module.css';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { RightPanel } from './components/scaffold/rightPanel';
 import { LeftPanel } from './components/scaffold/leftPanel';

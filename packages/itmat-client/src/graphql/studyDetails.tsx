@@ -3,8 +3,7 @@ import gql from "graphql-tag";
 export const CREATE_APPLICATION = gql`
     mutation CreateApplication($study: String!, $application: String!, $approvedFields: [String]){
         createApplication(study: $study, application: $application, approvedFields: $approvedFields) {
-            id
-            successful
+            applications
         }
     }
 `;

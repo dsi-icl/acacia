@@ -1,6 +1,7 @@
 export interface IStudy {
     id: string,
     name: string,
+    isUkbiobank: boolean,
     studyAndDataManagers: string[],
     applications: IApplication[],
     createdBy: string,

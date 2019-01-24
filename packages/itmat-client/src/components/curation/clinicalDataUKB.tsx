@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FilePond, File } from 'react-filepond';
-import '!style-loader!css-loader!filepond/dist/filepond.min.css';
+import 'filepond/dist/filepond.min.css';
 
 // import { Models } from 'itmat-utils';
 

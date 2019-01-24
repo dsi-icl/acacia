@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import * as css from '../../css/scaffold.css';
+import * as css from '../../css/scaffold.module.css';
 import { Icons } from '../icons';
 import { LOGOUT, WHO_AM_I } from '../../graphql/user';
 

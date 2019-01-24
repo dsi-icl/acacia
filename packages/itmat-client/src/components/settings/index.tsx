@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import * as css from '../../css/userList.css';
+import * as css from '../../css/userList.module.css';
 import { SettingOptions } from './options';
 
 export const SettingsPage: React.FunctionComponent = props => {

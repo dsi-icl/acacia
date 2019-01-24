@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import * as css from '../../css/userList.css';
+import * as css from '../../css/userList.module.css';
 import { UserDetailsSection } from './userDetails';
 import { UserListSection } from './userList';
 import { CreateNewUser } from './createNewUser';

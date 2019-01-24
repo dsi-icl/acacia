@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { CREATE_USER, GET_USERS_LIST } from '../../graphql/appUsers';
-import * as css from '../../css/userList.css';
+import * as css from '../../css/userList.module.css';
 
 // import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
 
@@ -17,7 +17,7 @@ export const CreateNewUser: React.FunctionComponent = props => {
     });
 
     const inputControl = (property: string) => ({
-        value: inputs[property],
+        value: (inputs as any)[property],
         onChange: (e: any) => { setInputs({...inputs, [property]: e.target.value }); }
     });
 

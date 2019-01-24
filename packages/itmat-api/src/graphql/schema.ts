@@ -89,6 +89,7 @@ type Job {
 type Study {
     id: String,
     name: String!,
+    isUkbiobank: Boolean!,
     studyAndDataManagers: [String]
     applications: [Application]
     createdBy: String
@@ -123,9 +124,9 @@ type Mutation {
     deleteUser(username: String!): GenericResponse
 
     # STUDY
-    createStudy(name: String!): GenericResponse
+    createStudy(name: String!, isUkbiobank: Boolean!): Study
     deleteStudy(name: String!): GenericResponse #   #admin only
-    createApplication(study: String!, application: String!, approvedFields: [String]): GenericResponse
+    createApplication(study: String!, application: String!, approvedFields: [String]): Study
     editApplicationApproveFields: GenericResponse #
     addUserToApplication(username: String!, study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse
     deleteUserFromApplication(username: String!, study: String!, application: String!): GenericResponse

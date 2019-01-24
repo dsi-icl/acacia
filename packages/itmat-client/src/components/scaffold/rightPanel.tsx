@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import * as css from '../../css/scaffold.css';
+import * as css from '../../css/scaffold.module.css';
 import { UserPage } from '../users';
 import { StudyControl } from '../studyControlPanel';
 import { StudiesPage } from '../studies';

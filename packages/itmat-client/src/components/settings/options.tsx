@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
-import * as css from '../../css/userList.css';
+import * as css from '../../css/userList.module.css';
 
 export const SettingOptions: React.FunctionComponent = props =>
     <div className={css.userList}>

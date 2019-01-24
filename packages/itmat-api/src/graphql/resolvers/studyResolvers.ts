@@ -19,7 +19,6 @@ export const studyResolvers = {
             for (const each of requestedFields) {
                 projectionObj[each] = 1;
             }
-            console.log(requester);
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 queryObj.$or = [{ studyAndDataManagers: requester.username }, { 'applications.applicationAdmins': requester.username }, { 'applications.applicationUsers': requester.username }];
                 if (requestedFields.includes('applications')) {
@@ -70,6 +69,7 @@ export const studyResolvers = {
             const studyEntry: Models.Study.IStudy = {
                 id: uuidv4(),
                 name: args.name,
+                isUkbiobank: args.isUkbiobank,
                 studyAndDataManagers: [],
                 applications: [],
                 createdBy: requester.username,
@@ -81,8 +81,10 @@ export const studyResolvers = {
             result = await db.studies_collection!.insertOne(studyEntry);
             if (result.insertedCount !== 1) {
                 throw new ApolloError('Error in creating study. InsertedCount is not 1 although mongo operation does not throw error.');
+            } else {
+                delete studyEntry.deleted;
+                return studyEntry;
             }
-            return makeGenericReponse(args.name);
         },
         createApplication: async(parent: object, args: any, context: any, info: any): Promise<Models.Study.IStudy> => {
             const db: Database = context.db;
@@ -104,13 +106,12 @@ export const studyResolvers = {
                 applicationUsers: [],
                 approvedFields: approvedFields === undefined ? [] : approvedFields
             };
-            let result: UpdateWriteOpResult;
 
-            result = await db.studies_collection!.updateOne({ name: studyName, deleted: false }, { $push: { applications: application } });
-            if (result.result.ok !== 1) {
+            const result = await db.studies_collection!.findOneAndUpdate({ name: studyName, deleted: false }, { $push: { applications: application }, $set: { lastModified: new Date().valueOf() } }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
+            if (result.ok !== 1) {
                 throw new ApolloError('Error in creating study. InsertedCount is not 1 although mongo operation does not throw error.');
             }
-            return makeGenericReponse(applicationName);
+            return result.value;
         },
         addUserToApplication: async(parent: object, args: any, context: any, info: any): Promise<void> => {
             const db: Database = context.db;

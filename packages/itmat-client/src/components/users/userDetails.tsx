@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { GET_SPECIFIC_USER, EDIT_USER, GET_USERS_LIST, DELETE_USER } from '../../graphql/appUsers';
-import * as css from '../../css/userList.css';
+import * as css from '../../css/userList.module.css';
 import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
 
 export const UserDetailsSection: React.FunctionComponent<{ username: string }> = ({ username }) => {

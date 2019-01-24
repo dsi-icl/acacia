@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Query } from "react-apollo";
 import { GET_STUDIES } from '../../graphql/study';
 import { Route, Switch } from 'react-router-dom';
-import * as css from '../../css/studyControl.css';
+import * as css from '../../css/studyControl.module.css';
 import { Models } from 'itmat-utils';
 import { ApplicationListSection } from './applications/applicationsList';
 import { JobSection } from './jobsSection';

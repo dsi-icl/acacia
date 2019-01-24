@@ -96,3 +96,5 @@ dist/
 diagnostics/
 
 kubernetes/*.yaml
+
+itmat-client-old/
