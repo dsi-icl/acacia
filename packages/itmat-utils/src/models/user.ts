@@ -13,10 +13,12 @@ export interface INotification {
 
 export interface IUserWithoutToken {
     _id?: mongodb.ObjectId,
+    id: string,
     username: string,
     email: string,
     realName: string,
     type: keyof typeof userTypes,
+    description: string,
     notifications: INotification[],
     emailNotificationsActivated: boolean,
     deleted?: boolean,

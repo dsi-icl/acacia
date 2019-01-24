@@ -28,7 +28,7 @@ export const LoginBox: React.FunctionComponent = props => {
         {(login, { loading, error }) =>
             <>
                 Username: <input value={usernameInput} onChange={handleUsernameChange}/> <br/>
-                Password: <input value={passwordInput} onChange={handlePasswordChange}/> <br/>
+                Password: <input type='password' value={passwordInput} onChange={handlePasswordChange}/> <br/>
                 { loading ? <p> Loading.. </p> :
                     (
                         <><button onClick={() => {login({ variables: { password: passwordInput, username: usernameInput }});}}> login</button>
