@@ -1,12 +1,11 @@
 import { Models } from 'itmat-utils';
 import { Database } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError } from 'apollo-server-express';
-import { InsertOneWriteOpResult, Db, UpdateWriteOpResult, WriteOpResult } from 'itmat-utils/node_modules/@types/mongodb';
-import { IStudy, APPLICATION_USER_TYPE } from 'itmat-utils/dist/models/study';
+import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult } from 'itmat-utils/node_modules/@types/mongodb';
+import { IStudy, APPLICATION_USER_TYPE, IApplication } from 'itmat-utils/dist/models/study';
 import { makeGenericReponse } from '../responses';
-import { Aggregate } from 'mongoose';
+import uuidv4 from 'uuid/v4';
 import config from '../../../config/config.json';
-import { google } from 'apollo-engine-reporting-protobuf';
 
 export const studyResolvers = {
     Query: {
@@ -69,6 +68,7 @@ export const studyResolvers = {
                 throw new ForbiddenError('Unauthorised.');
             }
             const studyEntry: Models.Study.IStudy = {
+                id: uuidv4(),
                 name: args.name,
                 studyAndDataManagers: [],
                 applications: [],
@@ -95,7 +95,9 @@ export const studyResolvers = {
             if (requester.type !== Models.UserModels.userTypes.ADMIN && !studySearchResult.studyAndDataManagers.includes(requester.username)) {
                 throw new ForbiddenError('Unauthorised.');
             }
-            const application: any = {
+            const application: IApplication = {
+                study: studyName,
+                id: uuidv4(),
                 name: applicationName,
                 pendingUserApprovals: [],
                 applicationAdmins: [],

@@ -33,6 +33,7 @@ export class FileController {
             .checkForValidDataTypeForValue(req.body.study, Models.Enums.JSDataType.STRING, 'study')
             .checkForValidDataTypeForValue(req.body.jobType, Models.Enums.JSDataType.STRING, 'jobType')
             .checkKeyForValidValue('jobType', req.body.jobType, Object.keys(Models.JobModels.jobTypes))
+            .checkSearchResultIsNotDefinedNorNull(req.file, 'file')
             .checkSearchResultIsNotDefinedNorNull(req.file.originalName, 'Original file name')
             .checkStringDoesNotHaveSpace(req.file.originalName, 'file name')
             .checksFailed) { return; }
