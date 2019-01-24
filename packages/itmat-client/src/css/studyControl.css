@@ -1,0 +1,30 @@
+.studyControl {
+    color: var(--color-text-title-rightpanel);
+    font-size: 0.7rem;
+    overflow: auto;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    grid-template-rows: 1fr
+}
+
+.leftPanel {
+    grid-column: 1/2;
+    border-right: 1px solid rgb(77, 77, 77);
+}
+
+.rightPanel {
+    grid-column: 2/3
+}
+
+
+.studyControl > div > div {
+    padding: 1% 2%;
+}
+
+.studyControl div h3 {
+    font-size: 1.5rem;
+    margin-left: -3px;
+    text-transform: capitalize;
+    color: var(--color-text-title-rightpanel);
+}

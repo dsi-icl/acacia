@@ -20,34 +20,39 @@ enum POSSIBLE_API_TRANSLATION {
 }
 
 type Notification {
-    timestamp: Int
-    comment: String
+    timestamp: Float
+    notificationType: String
     read: Boolean
+    data: JSON
 }
 
 input CreateUserInput {
-    username: ID!
+    username: String!
     type: USERTYPE!
     realName: String!
     email: String!
+    description: String!
     emailNotificationsActivated: Boolean!
     password: String!
 }
 
 input EditUserInput {
-    username: ID!
+    username: String!
     type: USERTYPE
     realName: String
     email: String
+    description: String
     emailNotificationsActivated: Boolean
     password: String
 }
 
 type User {
-    username: ID!
+    id: String,
+    username: String!
     type: USERTYPE!
     realName: String
     email: String
+    description: String
     notifications: [Notification!]
     emailNotificationsActivated: Boolean!
     createdBy: String
@@ -60,6 +65,8 @@ type ApplicationPendingUserApprovals {
 
 type Application {
     name: String!,
+    study: Study,
+    id: String,
     pendingUserApprovals: [ApplicationPendingUserApprovals]
     applicationAdmins: [String]
     applicationUsers: [String]
@@ -68,8 +75,8 @@ type Application {
 
 type Job {
     id: String,
-    study: String
-    application: String,
+    study: String,
+    jobType: String,
     requester: String,
     receivedFiles: String,
     status: String,
@@ -80,6 +87,7 @@ type Job {
 }
 
 type Study {
+    id: String,
     name: String!,
     studyAndDataManagers: [String]
     applications: [Application]
@@ -100,29 +108,29 @@ input QueryObjInput {
 type Query {
     # USER
     whoAmI: User
-    getUsers(username: ID): [User]   # admin only
+    getUsers(username: String): [User]   # admin only
 
     # STUDY
-    getStudies(name: ID): [Study]  # only returns the studies that the users are entitled
+    getStudies(name: String): [Study]  # only returns the studies that the users are entitled
 }
 
 type Mutation {
     # USER
-    login(username: ID!, password: String!): User
+    login(username: String!, password: String!): User
     logout: GenericResponse
-    createUser(user: CreateUserInput!): GenericResponse
-    editUser(user: EditUserInput!): GenericResponse #
-    deleteUser(username: ID!): GenericResponse
+    createUser(user: CreateUserInput!): User
+    editUser(user: EditUserInput!): User #
+    deleteUser(username: String!): GenericResponse
 
     # STUDY
-    createStudy(name: ID!): GenericResponse
-    deleteStudy(name: ID!): GenericResponse #   #admin only
-    createApplication(study: ID!, application: String!, approvedFields: [String]): GenericResponse
+    createStudy(name: String!): GenericResponse
+    deleteStudy(name: String!): GenericResponse #   #admin only
+    createApplication(study: String!, application: String!, approvedFields: [String]): GenericResponse
     editApplicationApproveFields: GenericResponse #
-    addUserToApplication(username: ID!, study: ID!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse
-    deleteUserFromApplication(username: ID!, study: ID!, application: ID!): GenericResponse
-    purgeUserFromStudy(username: ID!, study: ID!): GenericResponse #
-    applyToBeAddedToStudy(study: ID!, type: APPLICATION_USER_TYPE): GenericResponse #
+    addUserToApplication(username: String!, study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse
+    deleteUserFromApplication(username: String!, study: String!, application: String!): GenericResponse
+    purgeUserFromStudy(username: String!, study: String!): GenericResponse #
+    applyToBeAddedToApplication(study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse #
 
     # QUERY
     createQuery(queryobj: QueryObjInput!): GenericResponse #

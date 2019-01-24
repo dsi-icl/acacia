@@ -1,6 +1,6 @@
 import { Express, Request, Response, NextFunction } from 'express';
 import { OpenStackSwiftObjectStore } from '../OpenStackObjectStore';
-import mongo from 'mongodb';
+import * as mongo from 'mongodb';
 
 export function healthCheck(mongoClient: mongo.MongoClient, objectStore: OpenStackSwiftObjectStore) {
     // const connectionChecker = new ConnectionChecker(mongoClient, objectStore);

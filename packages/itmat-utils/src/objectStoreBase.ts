@@ -1,4 +1,4 @@
-import mongodb from 'mongodb';
+import * as mongodb from 'mongodb';
 import { JobModels } from './models/index';
 
 export interface IObjectStoreBaseConfig {

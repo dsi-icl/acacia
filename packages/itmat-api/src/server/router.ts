@@ -1,31 +1,35 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { CustomError, RequestValidationHelper, Logger } from 'itmat-utils';
-import { UserController, FileController, StudyController, QueryController } from '../RESTControllers';
+import { UserController, FileController, QueryController } from '../RESTControllers';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
 import connectMongo from 'connect-mongo';
 import multer from 'multer';
-import mongodb from 'mongodb';
+import http from 'http';
 import { ApolloServer } from 'apollo-server-express';
 import { schema } from '../graphql/schema';
 import { resolvers } from '../graphql/resolvers';
 import { Database } from '../database/database';
+import cors from 'cors';
 const MongoStore = connectMongo(session);
 const upload = multer();
 
 export class Router {
     private readonly app: Express;
+    private server: http.Server;
 
     constructor(
         db: Database /* the database to save sessions */,
         userController: UserController,
         fileController: FileController,
-        studyController: StudyController,
+        // studyController: StudyController,
         queryController: QueryController
     ) {
         this.app = express();
+
+        this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
 
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
@@ -52,28 +56,31 @@ export class Router {
             }
         });
 
-        gqlServer.applyMiddleware({ app: this.app });
+        gqlServer.applyMiddleware({ app: this.app, cors: { origin: 'http://localhost:3000', credentials: true } });
 
-        this.app.route('/whoAmI')
-            .get(userController.whoAmI);
+        this.server = http.createServer(this.app);
+        gqlServer.installSubscriptionHandlers(this.server);
 
-        this.app.route('/login')
-            .post(userController.login);
+        // this.app.route('/whoAmI')
+        //     .get(userController.whoAmI);
+
+        // this.app.route('/login')
+        //     .post(userController.login);
 
         this.app.use(RequestValidationHelper.bounceNotLoggedIn);
 
-        this.app.route('/logout')
-            .post(userController.logout);
+        // this.app.route('/logout')
+        //     .post(userController.logout);
 
-        this.app.route('/users')
-            .get(userController.getUsers)  // get all users or a specific user
-            .post(userController.createNewUser)
-            .patch(userController.editUser)
-            .delete(userController.deleteUser);
+        // this.app.route('/users')
+        //     .get(userController.getUsers)  // get all users or a specific user
+        //     .post(userController.createNewUser)
+        //     .patch(userController.editUser)
+        //     .delete(userController.deleteUser);
 
-        this.app.route('/study')
-            .post(studyController.createStudy)
-            .get(studyController.getStudies);
+        // this.app.route('/study')
+        //     .post(studyController.createStudy)
+        //     .get(studyController.getStudies);
 
         // this.app.route('/query/xnat')
         //     .post(/* translate to native */);
@@ -94,7 +101,7 @@ export class Router {
         });
     }
 
-    public getApp(): Express {
-        return this.app;
+    public getApp(): any {
+        return this.server;
     }
 }

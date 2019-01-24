@@ -4,5 +4,6 @@ import * as UserModels from './user';
 import * as Enums from './miscellaneous';
 import * as Study from './study';
 import * as Query from './query';
+import * as Notifications from './notifications';
 
-export { APIModels, JobModels, UserModels, Enums, Study, Query };
+export { APIModels, JobModels, UserModels, Enums, Study, Query, Notifications };
