@@ -44,7 +44,7 @@
 		"eslint-plugin-typescript": "^0.14.0",
 		"jest": "^23.6.0",
 		"cors": "^2.8.5",
-		"mongodb-memory-server": "^2.6.2",
+		"mongodb-memory-server": "^3.0.0",
 		"supertest": "^3.3.0",
 		"typescript-eslint-parser": "^21.0.0"
 	},
