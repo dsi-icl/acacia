@@ -31,6 +31,7 @@ input CreateUserInput {
     type: USERTYPE!
     realName: String!
     email: String!
+    description: String!
     emailNotificationsActivated: Boolean!
     password: String!
 }
@@ -40,15 +41,18 @@ input EditUserInput {
     type: USERTYPE
     realName: String
     email: String
+    description: String
     emailNotificationsActivated: Boolean
     password: String
 }
 
 type User {
+    id: String,
     username: String!
     type: USERTYPE!
     realName: String
     email: String
+    description: String
     notifications: [Notification!]
     emailNotificationsActivated: Boolean!
     createdBy: String
@@ -61,6 +65,8 @@ type ApplicationPendingUserApprovals {
 
 type Application {
     name: String!,
+    study: Study,
+    id: String,
     pendingUserApprovals: [ApplicationPendingUserApprovals]
     applicationAdmins: [String]
     applicationUsers: [String]
@@ -69,8 +75,8 @@ type Application {
 
 type Job {
     id: String,
-    study: String
-    application: String,
+    study: String,
+    jobType: String,
     requester: String,
     receivedFiles: String,
     status: String,
@@ -81,6 +87,7 @@ type Job {
 }
 
 type Study {
+    id: String,
     name: String!,
     studyAndDataManagers: [String]
     applications: [Application]
@@ -111,8 +118,8 @@ type Mutation {
     # USER
     login(username: String!, password: String!): User
     logout: GenericResponse
-    createUser(user: CreateUserInput!): GenericResponse
-    editUser(user: EditUserInput!): GenericResponse #
+    createUser(user: CreateUserInput!): User
+    editUser(user: EditUserInput!): User #
     deleteUser(username: String!): GenericResponse
 
     # STUDY

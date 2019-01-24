@@ -1,4 +1,5 @@
 export interface IStudy {
+    id: string,
     name: string,
     studyAndDataManagers: string[],
     applications: IApplication[],
@@ -8,6 +9,8 @@ export interface IStudy {
 }
 
 export interface IApplication {
+    id: string,
+    study: string,
     name: string,
     pendingUserApprovals: {
         user: string,
