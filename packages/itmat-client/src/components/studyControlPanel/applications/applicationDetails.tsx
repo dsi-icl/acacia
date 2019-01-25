@@ -1,16 +1,15 @@
-// import * as React from 'react';
-// import { Query, Mutation } from 'react-apollo';
-// import { GET_APPLICATION, DELETE_USER_FROM_APPLICATION } from '../../../graphql/studyDetails';
-// import { GET_USERS_LIST } from '../../../graphql/appUsers';
-// import { IApplication } from 'itmat-utils/dist/models/study';
-// import { IUser } from 'itmat-utils/dist/models/user';
-
 import * as React from 'react';
-import { Query } from 'react-apollo';
-import { GET_APPLICATION } from '../../../graphql/studyDetails';
-import { IApplication } from 'itmat-utils/dist/models/study';
+import { Query, Mutation } from 'react-apollo';
+import { GET_APPLICATION, ADD_USER_TO_APPLICATION, DELETE_USER_FROM_APPLICATION, DELETE_APPLICATION } from '../../../graphql/studyDetails';
+import { IApplication, IPendingApproval, APPLICATION_USER_TYPE } from 'itmat-utils/dist/models/study';
+import { GenericUserList, SECTIONTYPE } from '../genericUserList';
+
 
 export const ApplicationDetails: React.FunctionComponent<{ studyName: string, applicationName: string }> = ({ studyName, applicationName }) => {
+    const [applicationDeleted, setApplicationDeleted] = React.useState(false);
+
+    if (applicationDeleted) return <>{`Application "${applicationName}" of study "${studyName}" has been successfully deleted.`}</>;
+
     return (
         <Query
             query={GET_APPLICATION}
@@ -30,10 +29,14 @@ export const ApplicationDetails: React.FunctionComponent<{ studyName: string, ap
 
             return <>
                 <h4>{applicationName}</h4>
-                {/* <AdminsSection adminList={application[0].applicationAdmins} studyName={studyName} applicationName={applicationName}/>
-                <UsersSection userList={application[0].applicationUsers} studyName={studyName} applicationName={applicationName}/> */}
-                Pending approvals: {application[0].pendingUserApprovals.map(el => <span key={`User_${el.user}_${el.type}`}>{el.user} | {el.type} </span>)} <br/>
+                <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.ADMINS} listOfUsers={application[0] ? application[0].applicationAdmins : []} {...{applicationName, studyName}} submitButtonString='add user to admins'/>
+                <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.USERS} listOfUsers={application[0] ? application[0].applicationUsers : []} {...{applicationName, studyName}} submitButtonString='add user'/>                
+                <PendingUserApprovalsSection listOfPendingApprovals={application[0] ? application[0].pendingUserApprovals : []} {...{applicationName, studyName}}/>
                 Approved fields: {application[0].approvedFields.map(el => <span key={`User_${el}`}>{el}</span>)}
+                <button>Export CSV</button>
+                <DeleteApplicationSection {...{studyName, applicationName, setApplicationDeleted}}/>
+                
+
             </>;
 
         }}
@@ -41,66 +44,66 @@ export const ApplicationDetails: React.FunctionComponent<{ studyName: string, ap
     );
 };
 
-// const UsersSection: React.FunctionComponent<{ userList: string[], studyName: string, applicationName: string }> = ({ userList, studyName, applicationName }) => {
-//     return (
-//         <>
-//         <h3>Application users</h3>
-//         {userList.map(el => <OneUserOrAdmin key={`User_${el}`} applicationName={applicationName} username={el} studyName={studyName}/>)}
-//         </>
-//     );
-// };
+const PendingUserApprovalsSection: React.FunctionComponent<{listOfPendingApprovals: IPendingApproval[], studyName: string, applicationName: string }> = ({ listOfPendingApprovals, studyName, applicationName }) => {
+    return (
+        <>
+        <h3>Pending approvals</h3>
+        {listOfPendingApprovals.map(el => <OnePendingApproval key={el.user} pendingApproval={el} {...{applicationName, studyName}}/>)}
+        </>
+    );
+};
 
-// const AdminsSection: React.FunctionComponent<{ adminList: string[], studyName: string, applicationName: string }> = ({ adminList, studyName, applicationName }) => {
-//     return (
-//         <>
-//         <h3>Application admins</h3>
-//         {adminList.map(el => <OneUserOrAdmin key={`Admin_${el}`} applicationName={applicationName} username={el} studyName={studyName}/>)}
+const OnePendingApproval: React.FunctionComponent<{ pendingApproval: IPendingApproval, studyName: string, applicationName: string }> = ({ pendingApproval, studyName: study, applicationName: application }) => {
+    const [typeInput, setTypeInput] = React.useState(pendingApproval.type);
 
-//         </>
-//     );
-// };
+    return (
+        <div>
+            <span>{pendingApproval.user}</span>
+            <select value={typeInput} onChange={e => { setTypeInput(e.target.value as any);}}>
+                <option value={APPLICATION_USER_TYPE.applicationAdmin}>admin</option>
+                <option value={APPLICATION_USER_TYPE.applicationUser}>user</option>
+            </select>
+            <Mutation
+                mutation={ADD_USER_TO_APPLICATION}
+            >
+                {(addUserToApplication, { loading: loadingMutation, error }) => {
+                    return ( loadingMutation  ? 
+                        <span style={{ cursor: 'pointer'}}>YES</span> : 
+                        <span style={{ cursor: 'pointer'}} onClick={e => { addUserToApplication({ variables: { username: pendingApproval.user, study, application, type: typeInput }}) }}>
+                            YES
+                        </span>
+                    );
+                }}
+            </Mutation>
+            <span>NO</span>
+        </div>
+    );
+};
 
-// const AddUserSection: React.FunctionComponent<{ type: USER_TYPE }> = ({ type }) => {
-//     <Query
-//         query={GET_USERS_LIST}
-//     >
-//     {({loading, error, data }) => {
-//         if (loading) return <p>Loading...</p>;
-//         if (error) return <p>Error :( {error}</p>;
-//         return data.getStudies.map((el: Models.Study.IStudy) => <StudyButton key={el.name} data={el}/>);
-//     }}
-//     </Query>
-// };
+const DeleteApplicationSection: React.FunctionComponent<{ studyName: string, applicationName: string, setApplicationDeleted: Function }> = ({ setApplicationDeleted, studyName, applicationName }) => {
+    const [showDeleteButton, setShowDeleteButton] = React.useState(false);
 
-// const AddUserInput: React.FunctionComponent<{ availableUsers: IUser[]}> = ({ availableUsers }) => {
-//     const [nameInput, setNameInput] = React.useState('');
-    
-//     return (
-//         <input value={nameInput}/>
-//     );
-// };
+    return (
+        <>
+        Delete this application:
+        <span onClick={() => setShowDeleteButton(!showDeleteButton)}>Click here</span>
 
-// const OneUserOrAdmin: React.FunctionComponent<{ username: string, studyName: string, applicationName: string }> = ({ username, applicationName, studyName }) => {
-//     return (
-//         <Mutation
-//             mutation={DELETE_USER_FROM_APPLICATION}
-//             // TO_DO: update store
-//         >
-//         {(deleteUseFromApplication, { loading, error, data }) => {
-//                 if (data && data.deleteUserFromApplication && data.deleteUserFromApplication.successful) { return null; }
-
-//                 return (
-//                     <>
-//                         <span><b>{username}</b>{ loading ? 'remove' : <span onClick={() => { deleteUseFromApplication({ variables: { username, study: studyName, application: applicationName }})}}>remove</span> }</span><br/><br/>
-//                     </>
-//                 );
-//         }}
-//         </Mutation>
-        
-//     );
-// };
-
-// const enum USER_TYPE {
-//     admin = 'admin',
-//     user = 'user'
-// }
+        { showDeleteButton ? 
+            <Mutation mutation={DELETE_APPLICATION}>
+                {(deleteApplication, { loading, error }) => {
+                    return ( 
+                        <>
+                        {
+                        loading  ? 
+                        <span style={{ cursor: 'pointer'}}>{`Delete ${applicationName}`}</span> : 
+                        <span style={{ cursor: 'pointer'}} onClick={e => { deleteApplication({ variables: { study: studyName, application: applicationName }}) && setApplicationDeleted(true); }}>
+                            {`Delete ${applicationName}`}
+                        </span>}
+                        <span onClick={() => { setShowDeleteButton(false); }}>Cancel</span>
+                        </>
+                    );
+                }}
+            </Mutation> : null}
+        </>
+    );
+};

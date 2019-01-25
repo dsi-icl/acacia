@@ -12,17 +12,13 @@ export const GET_STUDIES_LIST = gql`
 export const GET_STUDIES = gql`
     query getStudies($name: String){
         getStudies(name: $name) {
+            id
             name
+            isUkbiobank
             studyAndDataManagers
             applications {
+                id
                 name
-                pendingUserApprovals {
-                    user
-                    type
-                }
-                applicationAdmins
-                applicationUsers
-                approvedFields
             }
             createdBy
             jobs {
@@ -42,6 +38,7 @@ export const GET_STUDIES = gql`
 export const CREATE_STUDY = gql`
     mutation createStudy($name: String!, $isUkbiobank: Boolean!){
         createStudy(name: $name, isUkbiobank: $isUkbiobank) {
+            id
             name
         }
     }

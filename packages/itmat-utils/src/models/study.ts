@@ -13,16 +13,19 @@ export interface IApplication {
     id: string,
     study: string,
     name: string,
-    pendingUserApprovals: {
-        user: string,
-        type: APPLICATION_USER_TYPE
-    }[],
+    pendingUserApprovals: IPendingApproval[],
     applicationAdmins: string[],
     applicationUsers: string[],
     approvedFields: string[]
 }
 
-export const enum APPLICATION_USER_TYPE {
+export enum APPLICATION_USER_TYPE {
     applicationAdmin = 'APPLICATION_ADMIN',
     applicationUser = 'APPLICATION_USER'
+}
+
+export interface IPendingApproval {
+    id: string,
+    user: string,
+    type: APPLICATION_USER_TYPE
 }

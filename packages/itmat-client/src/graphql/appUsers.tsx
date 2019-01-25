@@ -12,6 +12,15 @@ export const GET_USERS_LIST = gql`
     }
 `;
 
+export const GET_USERS_LIST_ONLY_USERNAME = gql`
+    {
+        getUsers {
+            id
+            username
+        }
+    }
+`;
+
 export const GET_SPECIFIC_USER = gql`
     query getSpecificUser($username: String){
         getUsers(username: $username) {

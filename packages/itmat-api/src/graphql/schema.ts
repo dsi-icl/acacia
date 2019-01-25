@@ -59,6 +59,7 @@ type User {
 }
 
 type ApplicationPendingUserApprovals {
+    id: String!
     user: String!
     type: String!
 }
@@ -126,10 +127,13 @@ type Mutation {
     # STUDY
     createStudy(name: String!, isUkbiobank: Boolean!): Study
     deleteStudy(name: String!): GenericResponse #   #admin only
+    addUserToStudyManagers(username: String!, study: String!): Study
+    removeUserFromStudyManagers(username: String!, study: String!): Study
     createApplication(study: String!, application: String!, approvedFields: [String]): Study
-    editApplicationApproveFields: GenericResponse #
-    addUserToApplication(username: String!, study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse
-    deleteUserFromApplication(username: String!, study: String!, application: String!): GenericResponse
+    deleteApplication(study: String!, application: String!): Study
+    editApplicationApproveFields: Application #
+    addUserToApplication(username: String!, study: String!, application: String!, type: APPLICATION_USER_TYPE!): Application
+    deleteUserFromApplication(username: String!, study: String!, application: String!): Application
     purgeUserFromStudy(username: String!, study: String!): GenericResponse #
     applyToBeAddedToApplication(study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse #
 

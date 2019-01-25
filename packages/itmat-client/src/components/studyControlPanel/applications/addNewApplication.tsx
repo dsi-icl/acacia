@@ -22,7 +22,6 @@ export const AddApplication: React.FunctionComponent<{studyName: string}> = ({ s
         <div>
             <Mutation
                 mutation={CREATE_APPLICATION}
-                refetchQueries={[ { query: GET_APPLICATION, variables: { name: studyName } } ]}
             >
             {(createApplication, { loading, error, data }) => {
                 if (data && data.createApplication && data.createApplication.successful) { return `Created application.` }

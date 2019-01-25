@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CREATE_STUDY } from '../../graphql/study';
+import { CREATE_STUDY, GET_STUDIES_LIST} from '../../graphql/study';
 import { Mutation } from "react-apollo";
 import * as css from '../../css/studyPage.module.css';
 
@@ -10,13 +10,13 @@ export const CreateStudyPage: React.FunctionComponent = props => {
     return (
         <Mutation
             mutation={CREATE_STUDY}
-            // update={(cache, { data: { id, successful } }) => {
-            //     const { getStudies } = cache.readQuery({ query: GET_STUDIES_LIST }) as any;
-            //     cache.writeQuery({
-            //         query: GET_STUDIES_LIST,
-            //         data: { getStudies: getStudies.concat([ { name: studyNameInput, __typename:'Study' }]) }
-            //     })
-            // }}
+            update={(cache, { data: { createStudy } }) => {
+                const { getStudies } = cache.readQuery({ query: GET_STUDIES_LIST }) as any;
+                cache.writeQuery({
+                    query: GET_STUDIES_LIST,
+                    data: { getStudies: getStudies.concat([ createStudy ]) }
+                })
+            }}
         >
             {(createStudy, { loading, error }) =>
                 <div className={css.createStudyPanel}>
@@ -27,7 +27,7 @@ export const CreateStudyPage: React.FunctionComponent = props => {
                             <input onChange={e => {changeStudyNameInput(e.target.value);}} value={studyNameInput}/>
                             <br/><br/>
                             <label>Is this a UK Biobank Study?*</label>
-                            <input type='checkbox' checked={isUkbiobank} onClick={() => { setIsUKBStudy(!isUkbiobank);}}/>
+                            <input type='checkbox' checked={isUkbiobank} onChange={e => { setIsUKBStudy(e.target.checked);}}/>
                             <br/><br/><br/>
                             <button onClick={() => {createStudy({ variables: { name: studyNameInput, isUkbiobank }});}}>Submit</button>
 

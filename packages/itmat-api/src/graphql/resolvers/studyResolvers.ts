@@ -113,6 +113,24 @@ export const studyResolvers = {
             }
             return result.value;
         },
+        deleteApplication: async(parent: object, args: any, context: any, info: any): Promise<Models.Study.IStudy> => {
+            const db: Database = context.db;
+            const requester: Models.UserModels.IUser = context.req.user;
+            const { study: studyName, application: applicationName }: { study: string, application: string } = args;
+            const studySearchResult: Models.Study.IStudy = await db.studies_collection!.findOne({ name: studyName, deleted: false })!;
+            if (studySearchResult === null || studySearchResult === undefined) {
+                throw new ApolloError('Study does not exist.');
+            }
+            if (requester.type !== Models.UserModels.userTypes.ADMIN && !studySearchResult.studyAndDataManagers.includes(requester.username)) {
+                throw new ForbiddenError('Unauthorised.');
+            }
+
+            const result = await db.studies_collection!.findOneAndUpdate({ name: studyName, deleted: false }, { $pull: { applications: { name: applicationName } }, $set: { lastModified: new Date().valueOf() } }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
+            if (result.ok !== 1) {
+                throw new ApolloError('Error in creating study. InsertedCount is not 1 although mongo operation does not throw error.');
+            }
+            return result.value;
+        },
         addUserToApplication: async(parent: object, args: any, context: any, info: any): Promise<void> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;

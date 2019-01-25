@@ -11,6 +11,7 @@ import { CurationSection } from './curationSection';
 import { AddShortCut } from './addShortCut';
 import { AddApplication, ApplicationDetails } from './applications';
 import { ClinicalDataCurationUKBSection } from '../curation/clinicalDataUKB';
+import { StudyManagersSections } from './studyManagers';
 /**
  * Sections:
  * Data update log
@@ -31,7 +32,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
             {({ loading, error, data }) => {
                 if (loading) return null;
                 if (error) return `Error!: ${error.message}`;
-
+                console.log(data);
                 const study: Models.Study.IStudy & { jobs: Models.JobModels.IJobEntry<any>[] } = data.getStudies[0];
                 if (study === undefined || study === null) { return `Cannot find study "${name}"`; }
 
@@ -40,7 +41,8 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                         <div className={css.leftPanel}>
                         <Switch>
                             <Route path='/studies/details/:studyName' render={({ match }) => <> 
-                                <GenericListSection title='Study Managers' list={study.studyAndDataManagers} mapfunc={(el: string) => <p key={el}>{el}</p>} />
+                                <h2>{match.params.studyName}</h2>
+                                <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={match.params.studyName}/>
                                 <ApplicationListSection studyName={match.params.studyName} list={study.applications}/>
                                 <JobSection data={study.jobs}/>
                                 <CurationSection studyName={match.params.studyName}/>
