@@ -11,11 +11,11 @@ export interface INotification {
     read: boolean
 }
 
-// export interface IShortCut {
-//     id: string,
-//     name: string,
-//     url: string
-// }
+export interface IShortCut {
+    id: string,
+    study: string,
+    application?: string
+}
 
 export interface IUserWithoutToken {
     _id?: mongodb.ObjectId,
@@ -23,7 +23,7 @@ export interface IUserWithoutToken {
     username: string,
     email: string,
     realName: string,
-    // shortcuts: IShortCut[],
+    shortcuts: IShortCut[],
     type: keyof typeof userTypes,
     description: string,
     notifications: INotification[],

@@ -47,15 +47,22 @@ input EditUserInput {
 }
 
 type User {
-    id: String,
+    id: String
     username: String!
     type: USERTYPE!
     realName: String
     email: String
+    shortcuts: [ShortCut]
     description: String
     notifications: [Notification!]
     emailNotificationsActivated: Boolean!
     createdBy: String
+}
+
+type ShortCut {
+    id: String!
+    study: String!
+    application: String
 }
 
 type ApplicationPendingUserApprovals {
@@ -120,6 +127,10 @@ type Mutation {
     # USER
     login(username: String!, password: String!): User
     logout: GenericResponse
+    addShortCut(study: String!, application: String): User
+    removeShortCut(shortCutId: String!): User
+
+    # APP USERS
     createUser(user: CreateUserInput!): User
     editUser(user: EditUserInput!): User #
     deleteUser(username: String!): GenericResponse
@@ -136,6 +147,7 @@ type Mutation {
     deleteUserFromApplication(username: String!, study: String!, application: String!): Application
     purgeUserFromStudy(username: String!, study: String!): GenericResponse #
     applyToBeAddedToApplication(study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse #
+    rejectPendingApproval(username: String!, study: String!, application: String!): Application
 
     # QUERY
     createQuery(queryobj: QueryObjInput!): GenericResponse #

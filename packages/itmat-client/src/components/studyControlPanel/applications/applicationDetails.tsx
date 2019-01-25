@@ -3,7 +3,7 @@ import { Query, Mutation } from 'react-apollo';
 import { GET_APPLICATION, ADD_USER_TO_APPLICATION, DELETE_USER_FROM_APPLICATION, DELETE_APPLICATION } from '../../../graphql/studyDetails';
 import { IApplication, IPendingApproval, APPLICATION_USER_TYPE } from 'itmat-utils/dist/models/study';
 import { GenericUserList, SECTIONTYPE } from '../genericUserList';
-
+import { AddOrDeleteShortCut } from '../addShortCut';
 
 export const ApplicationDetails: React.FunctionComponent<{ studyName: string, applicationName: string }> = ({ studyName, applicationName }) => {
     const [applicationDeleted, setApplicationDeleted] = React.useState(false);
@@ -34,6 +34,7 @@ export const ApplicationDetails: React.FunctionComponent<{ studyName: string, ap
                 <PendingUserApprovalsSection listOfPendingApprovals={application[0] ? application[0].pendingUserApprovals : []} {...{applicationName, studyName}}/>
                 Approved fields: {application[0].approvedFields.map(el => <span key={`User_${el}`}>{el}</span>)}
                 <button>Export CSV</button>
+                <AddOrDeleteShortCut {...{applicationName, studyName}}/>
                 <DeleteApplicationSection {...{studyName, applicationName, setApplicationDeleted}}/>
                 
 
@@ -79,6 +80,7 @@ const OnePendingApproval: React.FunctionComponent<{ pendingApproval: IPendingApp
         </div>
     );
 };
+
 
 const DeleteApplicationSection: React.FunctionComponent<{ studyName: string, applicationName: string, setApplicationDeleted: Function }> = ({ setApplicationDeleted, studyName, applicationName }) => {
     const [showDeleteButton, setShowDeleteButton] = React.useState(false);

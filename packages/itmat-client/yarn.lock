@@ -5699,10 +5699,10 @@ iterall@^1.2.2:
   resolved "https://registry.yarnpkg.com/iterall/-/iterall-1.2.2.tgz#92d70deb8028e0c39ff3164fdbf4d8b088130cd7"
   integrity sha512-yynBb1g+RFUPY64fTrFv7nsjRrENBQJaX2UL+2Szc9REFrSNm1rpSXHGzhmAy7a9uv3vlvgBlXnf9RqmPH1/DA==
 
-itmat-utils@1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/itmat-utils/-/itmat-utils-1.1.2.tgz#54acab06e1c3634f1ce35d2cb6a02692888cdf3d"
-  integrity sha512-7C9Hw9nOWz3tK0kmo14JfBcBFeYDB8wDc5swbTiUXbAJZMva9AfXW0a1F/xI8MQ8+x9/9WIi4OJe4NmGYtVWtA==
+itmat-utils@1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/itmat-utils/-/itmat-utils-1.1.4.tgz#a5131cd34c300470b5b933f0d4ceaf6239bcbaf3"
+  integrity sha512-NV0/ZS4KZSCIHoXkmbxpJnkuhj7lDm9FaAdCWySgp2WoS214+tSi6CZiYkVPo6o2GK4sS4XitxAAYzSRN0yI5Q==
   dependencies:
     chalk "^2.4.1"
     mongodb "3.1.12"

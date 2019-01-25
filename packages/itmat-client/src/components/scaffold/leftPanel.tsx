@@ -4,8 +4,9 @@ import { NavLink } from 'react-router-dom';
 import * as css from '../../css/scaffold.module.css';
 import { Icons } from '../icons';
 import { LOGOUT, WHO_AM_I } from '../../graphql/user';
+import { IShortCut } from 'itmat-utils/dist/models/user';
 
-export const LeftPanel: React.FunctionComponent = props => {
+export const LeftPanel: React.FunctionComponent<{ shortcuts: IShortCut[]}> = ({ shortcuts }) => {
     return (
         <div className={css.leftPanel}>
             <div>
@@ -27,6 +28,12 @@ export const LeftPanel: React.FunctionComponent = props => {
             <NavLink to='/settings' title='Settings' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='settings'/>Settings</div>
             </NavLink>
+
+            {shortcuts.map(el => 
+                <NavLink key={el.id} to={ el.application ? `/studies/details/${el.study}/application/${el.application}` : `/studies/details/${el.study}`} title={el.application || el.study}>
+                    <div className={css.button}><Icons type='settings'/>{el.application || el.study}</div>
+                </NavLink>
+            )}
 
             <NavLink title='Logout' to='/logout' id='logoutButton' activeClassName={css.clickedButton}>
                 <Mutation

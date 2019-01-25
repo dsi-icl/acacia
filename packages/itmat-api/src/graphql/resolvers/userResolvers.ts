@@ -6,7 +6,7 @@ import config from '../../../config/config.json';
 import mongodb from 'mongodb';
 import uuidv4 from 'uuid/v4';
 import { makeGenericReponse } from '../responses';
-import { IUser } from 'itmat-utils/dist/models/user';
+import { IUser, IShortCut } from 'itmat-utils/dist/models/user';
 import { APIModels } from 'itmat-utils/dist/models';
 
 export const userResolvers = {
@@ -68,6 +68,42 @@ export const userResolvers = {
                 });
             });
         },
+        addShortCut: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+            const db: Database = context.db;
+            const requester: Models.UserModels.IUser = context.req.user;
+            const { study, application }: { study: string, application: string } = args;
+
+            if (requester === undefined || requester === null) {
+                throw new ForbiddenError('Not logged in!');
+            }
+
+            const shortcut: IShortCut = {
+                id: uuidv4(),
+                application: application || undefined,
+                study
+            };
+
+            const result = await db.users_collection!.findOneAndUpdate({ username: requester.username, deleted: false }, { $push: { shortcuts: shortcut } }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
+            if (result.ok !== 1) {
+                throw new ApolloError('Error in creating shortcut.');
+            }
+            return result.value;
+        },
+        removeShortCut: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+            const db: Database = context.db;
+            const requester: Models.UserModels.IUser = context.req.user;
+            const { shortCutId }: { shortCutId: string } = args;
+
+            if (requester === undefined || requester === null) {
+                throw new ForbiddenError('Not logged in!');
+            }
+
+            const result = await db.users_collection!.findOneAndUpdate({ username: requester.username, deleted: false }, { $pull: { shortcuts: { id: shortCutId }} }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
+            if (result.ok !== 1) {
+                throw new ApolloError('Error in creating shortcut.');
+            }
+            return result.value;
+        },
         createUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
@@ -86,6 +122,7 @@ export const userResolvers = {
             const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
             const entry: Models.UserModels.IUser = {
                 id: uuidv4(),
+                shortcuts: [],
                 username,
                 type,
                 description: description === undefined ? '' : description,

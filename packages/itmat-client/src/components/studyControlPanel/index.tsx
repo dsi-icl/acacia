@@ -8,7 +8,7 @@ import { ApplicationListSection } from './applications/applicationsList';
 import { JobSection } from './jobsSection';
 import { ExportSection } from './exportSection';
 import { CurationSection } from './curationSection';
-import { AddShortCut } from './addShortCut';
+import { AddOrDeleteShortCut } from './addShortCut';
 import { AddApplication, ApplicationDetails } from './applications';
 import { ClinicalDataCurationUKBSection } from '../curation/clinicalDataUKB';
 import { StudyManagersSections } from './studyManagers';
@@ -42,12 +42,12 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                         <Switch>
                             <Route path='/studies/details/:studyName' render={({ match }) => <> 
                                 <h2>{match.params.studyName}</h2>
+                                <AddOrDeleteShortCut studyName={match.params.studyName}/>
                                 <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={match.params.studyName}/>
                                 <ApplicationListSection studyName={match.params.studyName} list={study.applications}/>
                                 <JobSection data={study.jobs}/>
                                 <CurationSection studyName={match.params.studyName}/>
                                 <ExportSection/>
-                                <AddShortCut/>
                             </>}/>
                         </Switch>
                         </div>
