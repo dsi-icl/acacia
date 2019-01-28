@@ -295,6 +295,36 @@ export const studyResolvers = {
             }
             // TO_DO: add applications pendingUserApprovals
             return makeGenericReponse(application);
-        }
+        },
+        addUserToStudyManagers: updateStudyManagers('$addToSet'),
+        removeUserFromStudyManagers: updateStudyManagers('$pull')
     }
 };
+
+function updateStudyManagers(operation: string) {
+    return async(parent: object, args: any, context: any, info: any): Promise<void> => {
+        const db: Database = context.db;
+        const requester: Models.UserModels.IUser = context.req.user;
+        const { username, study }: { study: string, username: string } = args;
+
+        if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            throw new ForbiddenError('Unauthorised.');
+        }
+
+        const studySearchResult: IStudy = await db.studies_collection!.findOne({ name: study, deleted: false })!;
+        if (studySearchResult === null || studySearchResult === undefined) {
+            throw new UserInputError('Study does not exist or you do not have authorisation.');
+        }
+
+        const userSearchResult: Models.UserModels.IUser = await db.users_collection!.findOne({ username, deleted: false })!;
+        if (userSearchResult === null || userSearchResult === undefined) {
+            throw new UserInputError('User does not exist.');
+        }
+
+        const updateResult: FindAndModifyWriteOpResultObject = await db.studies_collection!.findOneAndUpdate({ name: study, deleted: false }, { [operation]: { studyAndDataManagers: username } }, { returnOriginal: false })!;
+        if (updateResult.ok !== 1) {
+            throw new ApolloError('Cannot update record.');
+        }
+        return updateResult.value;
+    };
+}
