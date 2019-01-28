@@ -14,25 +14,56 @@ export const studyResolvers = {
             const collection = db.studies_collection!;
             const requester: Models.UserModels.IUser = context.req.user;
             const requestedFields: string[] = info.fieldNodes[0].selectionSet.selections.map((el: any) => el.name.value);
+
+            // standard users are not allowed to query jobs;
+            if (requestedFields.includes('jobs') && args.name === undefined && requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ForbiddenError('Non-admins cannot query \'jobs\'.');
+            }
+
+            // standard users are not allowed to query pendingUserApprovals, applicationUsers, approvedFields of applications;
+            if (requestedFields.includes('applications') && args.name === undefined && requester.type !== Models.UserModels.userTypes.ADMIN) {
+                const forbiddenFields = ['pendingUserApprovals', 'applicationUsers', 'approvedFields'];
+                const subApplicationRequestedFields = info.fieldNodes[0].selectionSet.selections.filter((el: any) => el.name.value === 'applications')[0].selectionSet.selections.map((el: any) => el.name.value);
+                for (const each of subApplicationRequestedFields) {
+                    if (forbiddenFields.includes(each)) {
+                        throw new ForbiddenError(`Non-admins cannot query ${forbiddenFields.toString()} on 'applications'.`);
+                    }
+                }
+            }
+
             const queryObj: any = { deleted: false };
-            const projectionObj: any = { _id: 0 };
+            const projectionObj: any = { _id: 0, iHaveAcess: 1 };
             for (const each of requestedFields) {
                 projectionObj[each] = 1;
             }
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-                queryObj.$or = [{ studyAndDataManagers: requester.username }, { 'applications.applicationAdmins': requester.username }, { 'applications.applicationUsers': requester.username }];
-                if (requestedFields.includes('applications')) {
-                    projectionObj.applications = { $filter: {
-                            input: '$applications',
-                            as: 'application',
-                            cond: { $or: [{ applicationAdmins: requester.username }, { applicationUsers: requester.username }] }
-                        }
-                    };  // TO_DO: bug?
-                }
-            }
+
+            // if the user is not admin and he is looking for a specific study. He can only see that if he's an admin or user of that study.
+            // if (args.name !== undefined && requester.type !== Models.UserModels.userTypes.ADMIN) {
+            //     queryObj.$or = [{ studyAndDataManagers: requester.username }, { 'applications.applicationAdmins': requester.username }, { 'applications.applicationUsers': requester.username }];
+            // }
+
             if (args.name !== undefined) {
                 queryObj.name = args.name;
             }
+
+            const addFieldStage1 = {
+                $addFields: {
+                    allUsers: {
+                        $reduce: {
+                            input: '$applications',
+                            initialValue: '$studyAndDataManagers',
+                            in: { $concatArrays: ['$$value', '$$this.applicationAdmins', '$$this.applicationUsers'] }
+                        }
+                    }
+                }
+            };
+
+            const addFieldStage2 = {
+                $addFields: { iHaveAccess: requester.type !== Models.UserModels.userTypes.ADMIN ?
+                    { $in: [requester.username, '$allUsers'] }
+                    : true
+                }
+            };
 
             let aggregatePipeline: any;
             if (requestedFields.includes('jobs')) {
@@ -46,15 +77,18 @@ export const studyResolvers = {
                             as: 'jobs'
                         }
                     },
-                    { $project: projectionObj}
+                    addFieldStage1,
+                    addFieldStage2,
+                    { $project: projectionObj }
                 ];
             } else {
                 aggregatePipeline = [
                     { $match: queryObj },
-                    { $project: projectionObj}
+                    addFieldStage1,
+                    addFieldStage2,
+                    { $project: projectionObj }
                 ];
             }
-            console.log(aggregatePipeline);
             const cursor = collection.aggregate(aggregatePipeline);
             return cursor.toArray();
         }

@@ -17,9 +17,9 @@ export const userResolvers = {
         getUsers: async(parent: object, args: any, context: any, info: any): Promise<IUser[]> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-                throw new ForbiddenError('Unauthorised.');
-            }
+            // if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            //     throw new ForbiddenError('Unauthorised.');
+            // }
             const queryObj = args.username === undefined ? { deleted: false } : { deleted: false, username: args.username };
             const cursor = db.users_collection!.find(queryObj);
             return cursor.toArray();

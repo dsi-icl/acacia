@@ -5,6 +5,27 @@ export const GET_STUDIES_LIST = gql`
         getStudies {
             id
             name
+            iHaveAccess
+            studyAndDataManagers
+            applications {
+                id
+                name
+                applicationAdmins
+            }
+        }
+    }
+`;
+
+export const GET_STUDIES_APPLICATIONS_NAME = gql`
+    query getStudiesApplicationsName($name: String){
+        getStudies(name: $name) {
+            id
+            studyAndDataManagers
+            applications {
+                id
+                name
+                applicationAdmins
+            }
         }
     }
 `;

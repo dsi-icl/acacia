@@ -11,7 +11,7 @@ export const StudiesPage: React.FunctionComponent = props => {
             <StudyListSection/>
             <Switch>
                 <Route path='/studies/createNewStudy' render={() => <CreateStudyPage/>}/>
-                <Route path='/' render={() => <ApplyToApplicationSection studyName='HELLO FRESH'/>}/>
+                <Route path='/studies/apply/:studyName' render={({ match }) => <ApplyToApplicationSection studyName={match.params.studyName}/>}/>
             </Switch>
         </div>
     );

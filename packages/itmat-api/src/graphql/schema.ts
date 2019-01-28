@@ -72,9 +72,9 @@ type ApplicationPendingUserApprovals {
 }
 
 type Application {
-    name: String!,
-    study: Study,
-    id: String,
+    name: String!
+    id: String
+    study: String
     pendingUserApprovals: [ApplicationPendingUserApprovals]
     applicationAdmins: [String]
     applicationUsers: [String]
@@ -96,11 +96,13 @@ type Job {
 
 type Study {
     id: String,
-    name: String!,
-    isUkbiobank: Boolean!,
+    name: String!
+    allUsers: [String]!
+    isUkbiobank: Boolean!
     studyAndDataManagers: [String]
     applications: [Application]
     createdBy: String
+    iHaveAccess: Boolean!
     jobs: [Job]
 }
 

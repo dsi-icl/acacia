@@ -13,7 +13,6 @@ export const StudyListSection: React.FunctionComponent = props => {
             </NavLink>
             <br/>
             
-            <h4>Available studies:</h4>
             <Query
                 query={GET_STUDIES_LIST}
                 pollInterval={5000}
@@ -24,7 +23,24 @@ export const StudyListSection: React.FunctionComponent = props => {
                     if (data.getStudies === null || data.getStudies === undefined || data.getStudies.length === 0) {
                         return 'There is no study.'
                     }
-                    return data.getStudies.map((el: Models.Study.IStudy) => <StudyButton key={el.name} data={el}/>);
+
+                    const yourStudies = data.getStudies.filter((el: any) => el.iHaveAccess);
+                    const otherStudies = data.getStudies.filter((el: any) => !el.iHaveAccess);
+
+                    return (
+                        <>
+                        <h4>Your studies:</h4>
+                        { yourStudies.length !== 0 ?
+                            yourStudies.map((el: Models.Study.IStudy) => <StudyButton iHaveAccess={true} key={el.name} data={el}/>)
+                            : <span>You haven't been added to any study.</span>
+                        }
+                        { otherStudies.length !== 0 ?
+                            <><h4>Other studies:</h4>
+                            {otherStudies.map((el: Models.Study.IStudy) => <StudyButton iHaveAccess={false} key={el.name} data={el}/>) } </>
+                            : null
+                        }
+                        </>
+                    );
                 }}
             </Query>
 
@@ -32,7 +48,7 @@ export const StudyListSection: React.FunctionComponent = props => {
     );
 };
 
-export const StudyButton: React.FunctionComponent<{ data: Models.Study.IStudy }> = ({data}) =>
-    <NavLink to={`/studies/details/${data.name}`}>
+export const StudyButton: React.FunctionComponent<{ data: Models.Study.IStudy, iHaveAccess: boolean }> = ({data, iHaveAccess}) =>
+    <NavLink to={ iHaveAccess ? `/studies/details/${data.name}` : `/studies/apply/${data.name}` }>
         <button>{data.name}</button>
     </NavLink>;

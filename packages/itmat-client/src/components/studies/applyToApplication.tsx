@@ -1,5 +1,6 @@
 import * as React from 'react';
-// import { Mutation } from "react-apollo";
+import { Query } from "react-apollo";
+import { GET_STUDIES_APPLICATIONS_NAME } from '../../graphql/study';
 // import * as css from '../../css/studyPage.css';
 
 export const ApplyToApplicationSection: React.FunctionComponent<{ studyName: string }> = ({ studyName }) => {
@@ -11,10 +12,15 @@ export const ApplyToApplicationSection: React.FunctionComponent<{ studyName: str
             <br/><br/>
             <h3>Apply to an application</h3> <br/>
             <label>Select an application: </label>
-            <select>
-                <option>application1</option>
-                <option>application2</option>
-            </select><br/><br/>
+            <Query query={GET_STUDIES_APPLICATIONS_NAME} variables={{ name: studyName }}>
+                {({ loading, data, error}) => {
+                    if (loading) return <select></select>
+                    if (!data || !data.getStudies || !data.getStudies[0]) return `Cannot find study "${studyName}"`;
+                return <select>{data.getStudies[0].applications.map((el:any) => <option key={el.id} value={el.name}>{el.name}</option>)}</select>;
+                }}
+            </Query>
+            
+            <br/><br/>
             <button>Apply to the selected application</button>
             <br/><br/><br/>
             <h3>Send a message to the study managers</h3>
