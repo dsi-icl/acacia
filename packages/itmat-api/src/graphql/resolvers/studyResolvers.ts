@@ -1,7 +1,7 @@
 import { Models } from 'itmat-utils';
 import { Database } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError } from 'apollo-server-express';
-import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult } from 'itmat-utils/node_modules/@types/mongodb';
+import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndUpdateOption } from 'itmat-utils/node_modules/@types/mongodb';
 import { IStudy, APPLICATION_USER_TYPE, IApplication } from 'itmat-utils/dist/models/study';
 import { makeGenericReponse } from '../responses';
 import uuidv4 from 'uuid/v4';
@@ -165,7 +165,7 @@ export const studyResolvers = {
             }
             return result.value;
         },
-        addUserToApplication: async(parent: object, args: any, context: any, info: any): Promise<void> => {
+        addUserToApplication: async(parent: object, args: any, context: any, info: any): Promise<IApplication> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const { username: userToBeAdded, study, type, application: applicationName }: { application: string, username: string, study: string, type: string } =  args;
@@ -199,13 +199,13 @@ export const studyResolvers = {
                 if (!typeToBeAddedIsAdmin) {
                     updateObj = { $pull: { 'applications.$.applicationAdmins': userToBeAdded }, $push: { 'applications.$.applicationUsers': userToBeAdded } };
                 } else {
-                    return makeGenericReponse(applicationName);
+                    return studySearchResult.applications[0];
                 }
             } else if (userIsDataUser) {
                 if (typeToBeAddedIsAdmin) {
                     updateObj = { $push: { 'applications.$.applicationAdmins': userToBeAdded }, $pull: { 'applications.$.applicationUsers': userToBeAdded } };
                 } else {
-                    return makeGenericReponse(applicationName);
+                    return studySearchResult.applications[0];
                 }
             } else if (!userIsDataAdmin && !userIsDataAdmin) {
                 if (typeToBeAddedIsAdmin) {
@@ -215,18 +215,26 @@ export const studyResolvers = {
                 }
             }
 
-            const updateResult: UpdateWriteOpResult = await db.studies_collection!.updateOne(
+            const updateResult: FindAndModifyWriteOpResultObject = await db.studies_collection!.findOneAndUpdate(
                 { name: study, applications: { $elemMatch: { name: applicationName } }},
-                updateObj
+                updateObj,
+                { projection: { applications: { $elemMatch: { name: applicationName } } }, returnOriginal: false }
             );
-            return makeGenericReponse(applicationName);
+            if (updateResult.ok !== 1) {
+                throw new ApolloError('Cannot update record.');
+            }
+            if (updateResult.value.applications && updateResult.value.applications[0]) {
+                return updateResult.value.applications[0];
+            } else {
+                throw new ApolloError('Cannot update record.');
+            }
         },
-        deleteUserFromApplication: async(parent: object, args: any, context: any, info: any): Promise<void> => {
+        deleteUserFromApplication: async(parent: object, args: any, context: any, info: any): Promise<IApplication> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const { study, username: userToBeDeleted, application: applicationName }: { application: string, study: string, username: string } = args;
             // check whether the user is in the study // if yes then delete
-
+            // check permission TO_DO
             const studySearchResult: IStudy = await db.studies_collection!.findOne({
                 name: study,
                 deleted: false,
@@ -238,21 +246,27 @@ export const studyResolvers = {
             }
 
             if (!studySearchResult.applications[0].applicationAdmins.includes(userToBeDeleted) && !studySearchResult.applications[0].applicationUsers.includes(userToBeDeleted)) {
-                return makeGenericReponse(applicationName);
+                return studySearchResult.applications[0];
             }
 
-            const updateResult: UpdateWriteOpResult = await db.studies_collection!.updateOne(
+            const updateResult: FindAndModifyWriteOpResultObject = await db.studies_collection!.findOneAndUpdate(
                 {
                     name: study,
                     deleted: false,
                     applications: { $elemMatch: { name: applicationName } }
                 },
-                { $pull: { 'applications.$.applicationAdmins': userToBeDeleted, 'applications.$.applicationUsers': userToBeDeleted } }
+                { $pull: { 'applications.$.applicationAdmins': userToBeDeleted, 'applications.$.applicationUsers': userToBeDeleted } },
+                { projection: { applications: { $elemMatch: { name: applicationName } } }, returnOriginal: false }
             );
-            if (updateResult.result.ok !== 1) {
+            if (updateResult.ok !== 1) {
                 throw new ApolloError('Cannot update record.');
             }
-            return makeGenericReponse(applicationName);
+            if (updateResult.value.applications && updateResult.value.applications[0]) {
+                return updateResult.value.applications[0];
+            } else {
+                throw new ApolloError('Cannot update record.');
+            }
+
         },
         deleteStudy: async(parent: object, args: any, context: any, info: any): Promise<void> => {
             const db: Database = context.db;
