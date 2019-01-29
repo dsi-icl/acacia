@@ -16,6 +16,15 @@ export const GET_STUDIES_LIST = gql`
     }
 `;
 
+export const DELETE_STUDY = gql`
+    mutation deleteStudy($name: String!) {
+        deleteStudy(name: $name) {
+            id
+            successful
+        }
+    }
+`;
+
 export const GET_STUDIES_APPLICATIONS_NAME = gql`
     query getStudiesApplicationsName($name: String){
         getStudies(name: $name) {

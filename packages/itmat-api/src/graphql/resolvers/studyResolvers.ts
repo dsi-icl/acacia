@@ -270,8 +270,22 @@ export const studyResolvers = {
         },
         deleteStudy: async(parent: object, args: any, context: any, info: any): Promise<void> => {
             const db: Database = context.db;
-            const user: Models.UserModels.IUser = context.req.user;
+            const requester: Models.UserModels.IUser = context.req.user;
+            const study: string = args.name;
             // TO_DO: delete patients too?
+            const queryObj = requester.type === Models.UserModels.userTypes.ADMIN ? { name: study, deleted: false } : { name: study, deleted: false, studyAndDataManagers: requester.username };
+            const updateResult: UpdateWriteOpResult = await db.studies_collection!.updateOne(queryObj, { $set: { deleted: true } })!;
+            if (updateResult.modifiedCount === 1) {
+                return makeGenericReponse(study);
+            } else if (updateResult.modifiedCount === 0) {
+                if (requester.type === Models.UserModels.userTypes.ADMIN) {
+                    return makeGenericReponse(study);
+                } else {
+                    throw new ForbiddenError('Study does not exist or you do not have permission to delete it.');
+                }
+            } else {
+                throw new ApolloError('Server error.');
+            }
         },
         applyToBeAddedToApplication: async(parent: object, args: any, context: any, info: any): Promise<void> => {
             const db: Database = context.db;

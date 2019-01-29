@@ -12,6 +12,8 @@ import { AddOrDeleteShortCut } from './addShortCut';
 import { AddApplication, ApplicationDetails } from './applications';
 import { ClinicalDataCurationUKBSection } from '../curation/clinicalDataUKB';
 import { StudyManagersSections } from './studyManagers';
+import { DeleteStudyButton, ReallyDeleteStudy } from './deleteStudy';
+
 /**
  * Sections:
  * Data update log
@@ -27,6 +29,10 @@ import { StudyManagersSections } from './studyManagers';
  */
 
 export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }) => {
+    const [successfullyDeleted, setSuccessfullyDeleted] = React.useState(false);
+
+    if (successfullyDeleted) return <p>{`Study ${name} has been successfully deleted.`}</p>;
+
     return (
         <Query query={GET_STUDIES} variables={{ name }}>
             {({ loading, error, data }) => {
@@ -42,6 +48,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                         <Switch>
                             <Route path='/studies/details/:studyName' render={({ match }) => <> 
                                 <h2>{match.params.studyName}</h2>
+                                <DeleteStudyButton studyName={match.params.studyName}/>
                                 <AddOrDeleteShortCut studyName={match.params.studyName}/>
                                 <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={match.params.studyName}/>
                                 <ApplicationListSection studyName={match.params.studyName} list={study.applications}/>
@@ -56,6 +63,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                             <Route path='/studies/details/:studyName/application/addNewApplication' render={({ match }) => <AddApplication studyName={match.params.studyName}/>}/>
                             <Route path='/studies/details/:studyName/application/:applicationName' render={({ match }) => <ApplicationDetails studyName={match.params.studyName} applicationName={match.params.applicationName}/>}/>
                             <Route path='/studies/details/:studyName/curation/uploadData' render={({ match }) => <ClinicalDataCurationUKBSection studyName={match.params.studyName}/>}/>
+                            <Route path='/studies/details/:studyName/delete' render={({ match }) => <ReallyDeleteStudy setDeletedStateHandler={setSuccessfullyDeleted} studyName={match.params.studyName}/>}/>
                             <Route path='/studies/details/:studyName' render={({ match }) => <></>}/>
                         </Switch>
                         </div>
@@ -67,12 +75,4 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
         </Query>
     );
 };
-
-const GenericListSection: React.FunctionComponent<{ title: String, list: any[], mapfunc: Function }> = ({title, list, mapfunc}) =>
-    <div>
-        <h3>{title}</h3>
-        {list.map(mapfunc as any)}
-    </div>
-;
-
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import * as css from '../../css/scaffold.module.css';
 import { Icons } from '../icons';
@@ -12,6 +12,14 @@ export const LeftPanel: React.FunctionComponent<{ shortcuts: IShortCut[]}> = ({ 
             <div>
                 ITMAT-BROKER
             </div>
+
+            <Query query={WHO_AM_I}>
+            {({ data, loading, error}) => {
+                if (loading) return <div></div>;
+                return <div>Welcome, {data.whoAmI.realName || data.whoAmI.username}</div>;
+            }}
+            </Query>
+
 
             <NavLink to='/studies' title='Studies' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='studies'/>Studies</div>
