@@ -8,7 +8,7 @@ import session from 'express-session';
 import connectMongo from 'connect-mongo';
 import multer from 'multer';
 import http from 'http';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, gql } from 'apollo-server-express';
 import { schema } from '../graphql/schema';
 import { resolvers } from '../graphql/resolvers';
 import { Database } from '../database/database';

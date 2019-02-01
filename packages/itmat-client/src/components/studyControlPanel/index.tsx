@@ -49,21 +49,10 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                         <Switch>
                             <Route path='/studies/details/:studyName' render={({ match }) => <> 
                                 <h2>{match.params.studyName}</h2>
-
-
-                                <Subscription subscription={SUBSCRIPTION_NEW_APPLICATION} variables={{ name }}>
-                                {({ data, loading }) => {
-                                    if (loading) return 'loading';
-                                    if (!data || !data.newApplicationCreated) return 'null';
-                                    return JSON.stringify(data.newApplicationCreated);
-                                }}
-                                </Subscription>
-
-
                                 <DeleteStudyButton studyName={match.params.studyName}/>
                                 <AddOrDeleteShortCut studyName={match.params.studyName}/>
                                 <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={match.params.studyName}/>
-                                {/* <ApplicationListSection
+                                <ApplicationListSection
                                     studyName={match.params.studyName}
                                     list={study.applications}
                                     subscribeToNewApplication={() => {
@@ -73,12 +62,12 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                                             updateQuery: (prev, { subscriptionData }) => {
                                                 console.log(prev, subscriptionData);
                                                 if (!subscriptionData.data || !subscriptionData.data.newApplicationCreated) return prev;
-                                                prev.applications.push(subscriptionData.data.newApplicationCreated);
+                                                prev.getStudies[0].applications.push(subscriptionData.data.newApplicationCreated);
                                                 return prev;
                                             }
                                         })
                                     }}
-                                /> */}
+                                />
                                 <JobSection data={study.jobs}/>
                                 <CurationSection studyName={match.params.studyName}/>
                                 <ExportSection/>
