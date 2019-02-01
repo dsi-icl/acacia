@@ -10,13 +10,7 @@ export const CreateStudyPage: React.FunctionComponent = props => {
     return (
         <Mutation
             mutation={CREATE_STUDY}
-            update={(cache, { data: { createStudy } }) => {
-                const { getStudies } = cache.readQuery({ query: GET_STUDIES_LIST }) as any;
-                cache.writeQuery({
-                    query: GET_STUDIES_LIST,
-                    data: { getStudies: getStudies.concat([ createStudy ]) }
-                })
-            }}
+            refetchQueries={GET_STUDIES_LIST}
         >
             {(createStudy, { loading, error }) =>
                 <div className={css.createStudyPanel}>

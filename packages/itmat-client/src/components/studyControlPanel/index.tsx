@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { Query } from "react-apollo";
+import { Query, Subscription } from "react-apollo";
 import { GET_STUDIES } from '../../graphql/study';
+import { SUBSCRIPTION_NEW_APPLICATION } from '../../graphql/studyDetails';
 import { Route, Switch } from 'react-router-dom';
 import * as css from '../../css/studyControl.module.css';
 import { Models } from 'itmat-utils';
@@ -35,7 +36,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
 
     return (
         <Query query={GET_STUDIES} variables={{ name }}>
-            {({ loading, error, data }) => {
+            {({ loading, error, data, subscribeToMore }) => {
                 if (loading) return null;
                 if (error) return `Error!: ${error.message}`;
                 console.log(data);
@@ -48,10 +49,36 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                         <Switch>
                             <Route path='/studies/details/:studyName' render={({ match }) => <> 
                                 <h2>{match.params.studyName}</h2>
+
+
+                                <Subscription subscription={SUBSCRIPTION_NEW_APPLICATION} variables={{ name }}>
+                                {({ data, loading }) => {
+                                    if (loading) return 'loading';
+                                    if (!data || !data.newApplicationCreated) return 'null';
+                                    return JSON.stringify(data.newApplicationCreated);
+                                }}
+                                </Subscription>
+
+
                                 <DeleteStudyButton studyName={match.params.studyName}/>
                                 <AddOrDeleteShortCut studyName={match.params.studyName}/>
                                 <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={match.params.studyName}/>
-                                <ApplicationListSection studyName={match.params.studyName} list={study.applications}/>
+                                {/* <ApplicationListSection
+                                    studyName={match.params.studyName}
+                                    list={study.applications}
+                                    subscribeToNewApplication={() => {
+                                        subscribeToMore({
+                                            document: SUBSCRIPTION_NEW_APPLICATION,
+                                            variables: { name: match.params.studyName },
+                                            updateQuery: (prev, { subscriptionData }) => {
+                                                console.log(prev, subscriptionData);
+                                                if (!subscriptionData.data || !subscriptionData.data.newApplicationCreated) return prev;
+                                                prev.applications.push(subscriptionData.data.newApplicationCreated);
+                                                return prev;
+                                            }
+                                        })
+                                    }}
+                                /> */}
                                 <JobSection data={study.jobs}/>
                                 <CurationSection studyName={match.params.studyName}/>
                                 <ExportSection/>

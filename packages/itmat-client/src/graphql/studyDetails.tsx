@@ -24,6 +24,15 @@ export const DELETE_APPLICATION = gql`
     }
 `;
 
+export const SUBSCRIPTION_NEW_APPLICATION = gql`
+    subscription newApplicationCreated($name: String!) {
+        newApplicationCreated(studyName: $name) {
+            id
+            name
+        }
+    }
+`; 
+
 export const GET_APPLICATION = gql`
     query getApplication($name: String){
         getStudies(name: $name) {

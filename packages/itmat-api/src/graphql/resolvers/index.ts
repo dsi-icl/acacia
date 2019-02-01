@@ -12,5 +12,6 @@ const modules = [
 export const resolvers = {
     JSON: GraphQLJSON,
     Query: modules.reduce((a, e) => { a = { ...a, ...e.Query }; return a; }, {}),
-    Mutation: modules.reduce((a, e) => { a = { ...a, ...e.Mutation }; return a; }, {})
+    Mutation: modules.reduce((a, e) => { a = { ...a, ...e.Mutation }; return a; }, {}),
+    Subscription: modules.reduce((a, e) => { a = { ...a, ...e.Subscription }; return a; }, {}),
 };

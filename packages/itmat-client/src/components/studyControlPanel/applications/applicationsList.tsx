@@ -2,8 +2,13 @@ import { Models } from 'itmat-utils';
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
 
-export const ApplicationListSection: React.FunctionComponent<{ studyName: string, list: Models.Study.IApplication[]}> = ({list, studyName}) => {
+export const ApplicationListSection: React.FunctionComponent<{ subscribeToNewApplication: Function, studyName: string, list: Models.Study.IApplication[]}> = ({ subscribeToNewApplication, list, studyName}) => {
     // const [addNewApplicationShown, setAddNewApplicationShown] = React.useState(false);
+    React.useEffect(() => {
+        console.log('starting subscription');
+        subscribeToNewApplication();
+    }, [studyName]);
+
     return (
         <div>
             <h3>Applications</h3>

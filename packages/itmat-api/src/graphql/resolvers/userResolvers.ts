@@ -198,5 +198,6 @@ export const userResolvers = {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }
         }
-    }
+    },
+    Subscription: {}
 };

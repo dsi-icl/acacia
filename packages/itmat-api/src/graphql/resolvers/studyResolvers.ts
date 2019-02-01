@@ -1,11 +1,12 @@
 import { Models } from 'itmat-utils';
 import { Database } from '../../database/database';
-import { ForbiddenError, ApolloError, UserInputError } from 'apollo-server-express';
+import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
 import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndUpdateOption } from 'itmat-utils/node_modules/@types/mongodb';
 import { IStudy, APPLICATION_USER_TYPE, IApplication } from 'itmat-utils/dist/models/study';
 import { makeGenericReponse } from '../responses';
 import uuidv4 from 'uuid/v4';
 import config from '../../../config/config.json';
+import { pubsub, subscriptionEvents } from '../pubsub';
 
 export const studyResolvers = {
     Query: {
@@ -145,6 +146,7 @@ export const studyResolvers = {
             if (result.ok !== 1) {
                 throw new ApolloError('Error in creating study. InsertedCount is not 1 although mongo operation does not throw error.');
             }
+            pubsub.publish(subscriptionEvents.study.NEW_APPLICATION_CREATED, { newApplicationCreated: application });
             return result.value;
         },
         deleteApplication: async(parent: object, args: any, context: any, info: any): Promise<Models.Study.IStudy> => {
@@ -312,6 +314,17 @@ export const studyResolvers = {
         },
         addUserToStudyManagers: updateStudyManagers('$addToSet'),
         removeUserFromStudyManagers: updateStudyManagers('$pull')
+    },
+    Subscription: {
+        newApplicationCreated: {
+            subscribe: withFilter(
+                () => pubsub.asyncIterator(subscriptionEvents.study.NEW_APPLICATION_CREATED),
+                (payload, arg) => {
+                    console.log(payload, arg, payload.newApplicationCreated.study === arg.studyName);
+                    return payload.newApplicationCreated.study === arg.studyName;
+                }
+            )
+        }
     }
 };
 

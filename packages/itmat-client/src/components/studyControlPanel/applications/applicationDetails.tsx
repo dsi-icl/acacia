@@ -7,6 +7,15 @@ import { AddOrDeleteShortCut } from '../addShortCut';
 
 export const ApplicationDetails: React.FunctionComponent<{ studyName: string, applicationName: string }> = ({ studyName, applicationName }) => {
     const [applicationDeleted, setApplicationDeleted] = React.useState(false);
+    const [currentStudyName, setCurrentStudyName] = React.useState(studyName);
+    const [currentApplicationName, setCurrentApplicationName] = React.useState(applicationName);
+    console.log(studyName, currentStudyName);
+
+    if (applicationName !== currentApplicationName || studyName !== currentStudyName) {
+        setApplicationDeleted(false);
+        setCurrentApplicationName(applicationName);
+        setCurrentStudyName(studyName);
+    }
 
     if (applicationDeleted) return <>{`Application "${applicationName}" of study "${studyName}" has been successfully deleted.`}</>;
 

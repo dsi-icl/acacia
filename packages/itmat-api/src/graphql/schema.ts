@@ -154,4 +154,10 @@ type Mutation {
     # QUERY
     createQuery(queryobj: QueryObjInput!): GenericResponse #
 }
+
+type Subscription {
+    newApplicationCreated(studyName: String!): Application
+    applicationDeleted(studyName: String!): String # this is the id of the application
+}
+
 `;
