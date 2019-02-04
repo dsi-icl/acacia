@@ -1,5 +1,6 @@
 //External node module imports
-const mongodb = require('mongodb').MongoClient;
+const MongoClient = require('mongodb').MongoClient;
+const redis = require("redis");
 const express = require('express');
 const body_parser = require('body-parser');
 const { ErrorHelper, StatusHelper, Constants } =  require('eae-utils');
@@ -14,31 +15,13 @@ function ItmatCache(config) {
     global.itmat_cache_config = config;
 
     // Bind public member functions
-    this.start = EaeCompute.prototype.start.bind(this);
-    this.stop = EaeCompute.prototype.stop.bind(this);
+    this.start = ItmatCache.prototype.start.bind(this);
+    this.stop = ItmatCache.prototype.stop.bind(this);
 
     // Bind private member functions
-    this._connectDb = EaeCompute.prototype._connectDb.bind(this);
-    this._setupStatusController = EaeCompute.prototype._setupStatusController.bind(this);
-    this._setupJobController = EaeCompute.prototype._setupJobController.bind(this);
-
-    this._tryExperiment = EaeCompute.prototype._tryExperiment.bind(this);
-
-
-    // Remove unwanted express headers
-    this.app.set('x-powered-by', false);
-
-    // Allow CORS requests when enabled
-    if (this.config.enableCors === true) {
-        this.app.use(function (__unused__req, res, next) {
-            res.header('Access-Control-Allow-Origin', '*');
-            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-            next();
-        });
-    }
-    // Init third party middleware
-    this.app.use(body_parser.urlencoded({ extended: true }));
-    this.app.use(body_parser.json());
+    this._connectDbs = ItmatCache.prototype._connectDbs.bind(this);
+    this._setupStatusController = ItmatCache.prototype._setupStatusController.bind(this);
+    this._setupCacheControllers = ItmatCache.prototype._setupCacheControllers.bind(this);
 }
 
 /**
@@ -47,14 +30,13 @@ function ItmatCache(config) {
  * @return {Promise} Resolves to a Express.js Application router on success,
  * rejects an error stack otherwise
  */
-EaeCompute.prototype.start = function() {
+ItmatCache.prototype.start = function() {
     let _this = this;
     return new Promise(function (resolve, reject) {
-        _this._connectDb().then(function () {
+        _this._connectDbs().then(function () {
             // Setup route using controllers
             _this._setupStatusController();
-            _this._setupJobController();
-            _this._tryExperiment();
+            _this._setupCacheControllers();
 
             // Start status periodic update
             _this.status_helper.startPeriodicUpdate(5 * 1000); // Update status every 5 seconds
@@ -72,13 +54,13 @@ EaeCompute.prototype.start = function() {
  * @return {Promise} Resolves to true on success,
  * rejects an error stack otherwise
  */
-EaeCompute.prototype.stop = function() {
+ItmatCache.prototype.stop = function() {
     let _this = this;
     return new Promise(function (resolve, reject) {
         // Stop status update
         _this.status_helper.stopPeriodicUpdate();
         // Disconnect DB --force
-        _this.client.close(true).then(function(error) {
+        _this.mongo_client.close(true).then(function(error) {
             if (error)
                 reject(ErrorHelper('Closing mongoDB connection failed', error));
             else
@@ -93,16 +75,21 @@ EaeCompute.prototype.stop = function() {
  * @return {Promise} Resolves to true on success
  * @private
  */
-EaeCompute.prototype._connectDb = function () {
+ItmatCache.prototype._connectDbs = function () {
     let _this = this;
     return new Promise(function (resolve, reject) {
-        mongodb.connect(_this.config.mongoURL, {}, function (err, client) {
+        // Create a new MongoClient
+        const mongo_client = new MongoClient(_this.config.mongoURL);
+        mongo_client.connect(function (err) {
             if (err !== null && err !== undefined) {
                 reject(ErrorHelper('Failed to connect to mongoDB', err));
                 return;
             }
-            _this.client = client;
-            _this.db = _this.client.db();
+            _this.mongo_client = client;
+            _this.mongo_db = _this.client.db(_this.config.mongoDb);
+
+            // Create a new Redis client
+            _this.redis_client = redis.createClient();
             resolve(true);
         });
     });
@@ -112,7 +99,7 @@ EaeCompute.prototype._connectDb = function () {
  * @fn _setupStatusController
  * @desc Initialize status service routes and controller
  */
-EaeCompute.prototype._setupStatusController = function () {
+ItmatCache.prototype._setupStatusController = function () {
     let _this = this;
 
     let statusOpts = {
@@ -132,7 +119,7 @@ EaeCompute.prototype._setupStatusController = function () {
  * @fn _setupJobController
  * @desc Initialize job execution service routes and controller
  */
-EaeCompute.prototype._setupJobController = function () {
+ItmatCache.prototype._setupCacheControllers = function () {
     let _this = this;
 
     _this.jobController = new JobController(_this.db.collection(Constants.EAE_COLLECTION_JOBS), _this.status_helper);
@@ -140,11 +127,6 @@ EaeCompute.prototype._setupJobController = function () {
     _this.app.post('/cancel', _this.jobController.cancelJob); // POST cancel current job
 };
 
-EaeCompute.prototype._tryExperiment = function () {
-    let _this = this;
-    _this.swiftController = new SwiftController(_this.config);
 
-    _this.swiftController.runExperiment();
-};
 
-module.exports = EaeCompute;
+module.exports = ItmatCache;

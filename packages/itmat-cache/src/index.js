@@ -3,7 +3,7 @@ let os = require('os');
 let app = express();
 
 let config = require('../config/itmat.cache.config.js');
-let EaeCompute = require('./eaeCompute.js');
+let ItmatCache = require('./itmatCache.js');
 
 //Remove unwanted express headers
 app.set('x-powered-by', false);
