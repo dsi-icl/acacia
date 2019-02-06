@@ -7,8 +7,22 @@
     text-align: center;
     transform: translate(-50%,-50%);
     height: 300px;
-    background: var(--color-section-light);
+    background: white;
     box-shadow: 8px 10px black;
+    z-index: 99;
+    mix-blend-mode: multiply;
+}
+
+#image {
+    z-index: 1;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: ease-in-out 0.7s;
+    max-width:100%;
+    height:auto;
 }
 
 .loginBox h1 {
@@ -27,7 +41,7 @@
 
 .loginBox input {
     background-image: none;
-    background-color: var(--color-section-light);
+    background-color: inherit;
     border-bottom: 2px solid black;
     height: 1.4rem;
     color: black;
@@ -36,6 +50,15 @@
 
 
 .wrapper{
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 99;
+}
+
+.page {
     position: relative;
     height: 100%;
     width: 100%;

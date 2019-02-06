@@ -16,8 +16,18 @@ export const LoginBox: React.FunctionComponent = props => {
     }
 
     return (
+        <div className={css.page}>
+        <img src={`${process.env.PUBLIC_URL}/graph.png`} id={css.image}/>
         <div className={css.wrapper}>
-        <div className={css.loginBox}>
+        <div
+            className={css.loginBox} 
+            onMouseOver={() => {
+                document.getElementById(css.image)!.style.opacity = '1';
+            }}
+            onMouseOut={() => {
+                document.getElementById(css.image)!.style.opacity = '0';
+            }}
+        >
         <Mutation
             mutation={LOGIN}
             update={(cache, { data: { login } }) => {
@@ -48,5 +58,7 @@ export const LoginBox: React.FunctionComponent = props => {
         }
         </Mutation>
     </div>
-    </div>);
+    </div>
+    </div>
+    );
 };
