@@ -13,7 +13,11 @@ export const ApplicationListSection: React.FunctionComponent<{ subscribeToNewApp
     return (
         <div style={{ gridArea: 'applicationList'}}>
             <h4>Applications</h4>
-            {list.map(el => <Application key={el.name} name={el.name} studyName={studyName}/>)}
+            {
+                list.length === 0 ?
+                <p>No application has been created.</p> : 
+                list.map(el => <Application key={el.name} name={el.name} studyName={studyName}/>)
+            }
             <NavLink to={`/studies/details/${studyName}/application/addNewApplication`}><span> Add new application </span></NavLink>
         </div>
     );

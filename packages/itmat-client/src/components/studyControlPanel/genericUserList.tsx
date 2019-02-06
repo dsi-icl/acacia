@@ -23,7 +23,11 @@ export const GenericUserList: React.FunctionComponent<{
 
     return <div>
         <h4>{title ? title : type}</h4>
-        {listOfUsers.map(el => <OneUserOrAdmin key={el} user={el} {...{mutationToDeleteUser, application, study}}/>)}
+        {
+            listOfUsers.length === 0 ?
+            <span>There is no user added currently.</span> :
+            listOfUsers.map(el => <OneUserOrAdmin key={el} user={el} {...{mutationToDeleteUser, application, study}}/>)
+        }
             <div className={css.addUserSectionWrapper}>
             <Query query={GET_USERS_LIST_ONLY_USERNAME}>
                 {({ data, loading: loadingQuery, error}) => {
