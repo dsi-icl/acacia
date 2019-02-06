@@ -37,7 +37,7 @@ export const ApplicationDetails: React.FunctionComponent<{ studyName: string, ap
             }
 
             return <>
-                <h4>{applicationName}</h4>
+                <h1>{applicationName}</h1>
                 <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.ADMINS} listOfUsers={application[0] ? application[0].applicationAdmins : []} {...{applicationName, studyName}} submitButtonString='add user to admins'/>
                 <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.USERS} listOfUsers={application[0] ? application[0].applicationUsers : []} {...{applicationName, studyName}} submitButtonString='add user'/>                
                 <PendingUserApprovalsSection listOfPendingApprovals={application[0] ? application[0].pendingUserApprovals : []} {...{applicationName, studyName}}/>
@@ -54,10 +54,10 @@ export const ApplicationDetails: React.FunctionComponent<{ studyName: string, ap
 
 const PendingUserApprovalsSection: React.FunctionComponent<{listOfPendingApprovals: IPendingApproval[], studyName: string, applicationName: string }> = ({ listOfPendingApprovals, studyName, applicationName }) => {
     return (
-        <>
+        <div>
         <h3>Pending approvals</h3>
         {listOfPendingApprovals.map(el => <OnePendingApproval key={el.user} pendingApproval={el} {...{applicationName, studyName}}/>)}
-        </>
+        </div>
     );
 };
 
@@ -93,8 +93,9 @@ const DeleteApplicationSection: React.FunctionComponent<{ studyName: string, app
     const [showDeleteButton, setShowDeleteButton] = React.useState(false);
 
     return (
-        <>
-        Delete this application:
+        <div>
+        <h3>Delete this application:</h3>
+        
         <span onClick={() => setShowDeleteButton(!showDeleteButton)}>Click here</span>
 
         { showDeleteButton ? 
@@ -113,6 +114,6 @@ const DeleteApplicationSection: React.FunctionComponent<{ studyName: string, app
                     );
                 }}
             </Mutation> : null}
-        </>
+        </div>
     );
 };

@@ -1,6 +1,5 @@
 .studyControl {
     color: var(--color-text-title-rightpanel);
-    font-size: 0.7rem;
     height: 100%;
     display: grid;
     grid-template-columns: 1.5fr 1fr;

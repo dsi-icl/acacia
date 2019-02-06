@@ -3,7 +3,9 @@ import { Query, Mutation } from 'react-apollo';
 import { GET_USERS_LIST_ONLY_USERNAME } from '../../graphql/appUsers';
 import { IUser } from 'itmat-utils/dist/models/user';
 import { Select } from 'antd';
+import css from '../../css/genericUserList.module.css';
 import 'antd/lib/select/style/css';
+import '../../css/antdOverride.css';
 import { DocumentNode } from 'graphql';
 
 export const GenericUserList: React.FunctionComponent<{ 
@@ -22,11 +24,12 @@ export const GenericUserList: React.FunctionComponent<{
     return <div>
         <h4>{title ? title : type}</h4>
         {listOfUsers.map(el => <OneUserOrAdmin key={el} user={el} {...{mutationToDeleteUser, application, study}}/>)}
-        <div style={{ position: 'relative' }}>
+            <div className={css.addUserSectionWrapper}>
             <Query query={GET_USERS_LIST_ONLY_USERNAME}>
                 {({ data, loading: loadingQuery, error}) => {
                     if (loadingQuery) return (
                     <>
+                    <div className={css.selectionWrapper}>
                     <Select 
                         showSearch
                         getPopupContainer={ev => ev!.parentElement!}
@@ -35,10 +38,11 @@ export const GenericUserList: React.FunctionComponent<{
                         value={addUserInput}
                         onChange={e => { setAddUserInput(e)}}
                         notFoundContent='Loading users..'
-                    ></Select><button>{submitButtonString}</button></>);
+                    ></Select></div><div className={css.button}>{submitButtonString}</div></>);
                     if (!data.getUsers) return null;
                     return (
                         <>
+                        <div className={css.selectionWrapper}>
                         <Select
                             showSearch
                             getPopupContainer={ev => ev!.parentElement!}
@@ -50,6 +54,7 @@ export const GenericUserList: React.FunctionComponent<{
                         >
                         {data.getUsers.map((el: IUser) => <Select.Option key={el.id} value={el.username}>{el.username}</Select.Option>)}
                         </Select>
+                        </div>
                         <Mutation
                             mutation={mutationToAddUser}
                         >
@@ -59,10 +64,10 @@ export const GenericUserList: React.FunctionComponent<{
                             if (type !== undefined) variables.type = type === SECTIONTYPE.ADMINS ? 'APPLICATION_ADMIN' : 'APPLICATION_USER';
                             return (
                                 <>
-                                    { loadingMutation  ? <button>Loading...</button> : 
-                                        <button onClick={e => { addUserInput && addUser({ variables }); }}>
+                                    { loadingMutation  ? <div className={css.button}>Loading...</div> : 
+                                        <div className={css.button} onClick={e => { addUserInput && addUser({ variables }) && setAddUserInput(undefined); }}>
                                             {submitButtonString}
-                                        </button> }
+                                        </div> }
                                 </>
                             );
                         }}
@@ -72,7 +77,7 @@ export const GenericUserList: React.FunctionComponent<{
                 }}
             </Query>
         </div>
-    </div>;
+        </div>;
 };
 
 const OneUserOrAdmin: React.FunctionComponent<{ mutationToDeleteUser: DocumentNode, user: string, application?: string, study: string }> = ({ mutationToDeleteUser, user, application, study }) => {
@@ -80,7 +85,7 @@ const OneUserOrAdmin: React.FunctionComponent<{ mutationToDeleteUser: DocumentNo
     if (application !== undefined) variables.application = application;
 
     return (
-        <div>
+        <div className={css.userSpan}>
             <span>{user}</span>
             <Mutation
                 mutation={mutationToDeleteUser}
@@ -88,10 +93,10 @@ const OneUserOrAdmin: React.FunctionComponent<{ mutationToDeleteUser: DocumentNo
                 {(deleteUserFromList, { loading, error }) => {
                     return (
                         <>
-                            { loading  ? <span style={{ marginLeft: '1rem', cursor: 'pointer' }}>x</span> : 
-                                <span style={{ marginLeft: '1rem', cursor: 'pointer' }} onClick={e => { deleteUserFromList({ variables }) }}>
+                            { loading  ? <div className={css.deleteButton}>x</div> : 
+                                <div className={css.deleteButton} onClick={e => { deleteUserFromList({ variables }) }}>
                                     x
-                                </span> }
+                                </div> }
                         </>
                     );
                 }}
