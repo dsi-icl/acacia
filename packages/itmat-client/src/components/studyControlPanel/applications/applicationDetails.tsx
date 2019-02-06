@@ -94,7 +94,7 @@ const DeleteApplicationSection: React.FunctionComponent<{ studyName: string, app
 
     return (
         <div>
-        <h3>Delete this application:</h3>
+        <h3>Delete this application</h3>
         
         <span onClick={() => setShowDeleteButton(!showDeleteButton)}>Click here</span>
 
