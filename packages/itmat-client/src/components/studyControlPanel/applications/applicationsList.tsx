@@ -1,6 +1,7 @@
 import { Models } from 'itmat-utils';
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
+import css from '../../../css/studyPage.module.css';
 
 export const ApplicationListSection: React.FunctionComponent<{ subscribeToNewApplication: Function, studyName: string, list: Models.Study.IApplication[]}> = ({ subscribeToNewApplication, list, studyName}) => {
     // const [addNewApplicationShown, setAddNewApplicationShown] = React.useState(false);
@@ -21,9 +22,6 @@ export const ApplicationListSection: React.FunctionComponent<{ subscribeToNewApp
 
 const Application: React.FunctionComponent<{ name: string, studyName: string }> = ({ name, studyName }) => {
     return (
-        <div>
-            <p>{name}</p> <br/>
-            <NavLink to={`/studies/details/${studyName}/application/${name}`}><span>'Show more'</span></NavLink>
-        </div>
+        <NavLink to={`/studies/details/${studyName}/application/${name}`}><button className={css.applicatonButton}>{name}</button></NavLink>
     );
 };
