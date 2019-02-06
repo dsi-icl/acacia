@@ -20,6 +20,7 @@ export const AddApplication: React.FunctionComponent<{studyName: string}> = ({ s
 
     return (
         <>
+            <h1>Add New Application</h1>
             <Mutation
                 mutation={CREATE_APPLICATION}
             >

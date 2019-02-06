@@ -18,21 +18,24 @@ export const JobSection: React.FunctionComponent<{ data: Models.JobModels.IJobEn
     return (
         <div>
         <h4>Past jobs</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Requested by</th>
-                    <th>Received files</th>
-                    <th>Status</th>
-                    <th>Metadata</th>
-                </tr>
-            </thead>
-            <tbody>
-                {data.map(el => <Job key={el.id} job={el}/>)}
-            </tbody>
-        </table>
+
+        { data.length === 0 ? <p>There has been no job associated with this study.</p> :
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Requested by</th>
+                        <th>Received files</th>
+                        <th>Status</th>
+                        <th>Metadata</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.map(el => <Job key={el.id} job={el}/>)}
+                </tbody>
+            </table>
+        }
     </div>
     );
 }

@@ -17,6 +17,7 @@
 
 .extraActionPanel {
     grid-area: extraActionPanel;
+    padding: 2%;
 }
 
 
