@@ -1,8 +1,102 @@
+.app {
+    height: 100%;
+    width: 100%;
+    background-color: var(--color-background);
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: 31px 1fr;
+    grid-template-areas:
+        "mainMenuBar" "mainPanel"
+}
+
 .mainMenuBar {
     grid-area: mainMenuBar;
     color: var(--color-text-leftpanel-basic);
     background-image: linear-gradient(to bottom left, var(--color-section-light), rgb(238, 238, 238));
     overflow: auto;
+    display: inline-flex;
+    width: 100%;
+}
+
+.mainMenuBar > div {
+    width: 100%;
+    line-height: 30px;
+}
+
+.mainMenuBar > .hiddenIfTooNarrow {
+    display: none;
+    border-bottom: 0px;
+}
+
+.button {
+    display: block;
+    border-bottom: 0px;
+    border-right: 1px solid var(--color-text-separator);
+    min-height: 30px;
+    text-align: center;
+    width: 100%;
+}
+
+.mainMenuBar > div:last-child > a > .button {
+    border-right: 0;
+}
+
+.button > svg {
+    display: none;
+}
+
+@media only screen and (min-width: 980px) {
+    .app {
+        grid-template-columns: 1fr 6.7fr;
+        grid-template-rows: 100%;
+        grid-template-areas:
+            "mainMenuBar mainPanel";
+    }
+
+    .mainMenuBar {
+        display: block;
+    }
+
+    .mainMenuBar > .hiddenIfTooNarrow {
+        display: block;
+        border-bottom: 1px solid var(--color-text-separator);
+        border-right: 0;
+        min-height: 50px;
+        padding: 25px;
+        text-align: center;
+    }
+
+    .button {
+        display: block;
+        border-bottom: 1px solid var(--color-text-separator);
+        border-right: 0;
+        min-height: 50px;
+        padding: 25px;
+        text-align: center;
+    }
+
+    .mainMenuBar > div:last-child > a > .button {
+        border-bottom: 1px solid var(--color-text-separator);
+    }
+
+    .button > svg {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        fill: var(--color-text-leftpanel-basic);
+    }
+
+}
+
+
+.button:hover {
+    background-color: var(--color-text-separator);
+    cursor: pointer;
+}
+
+a[id="logoutButton"] > .button:hover {
+    background-color: var(--color-error);
+    border-bottom: 1px solid var(--color-error);
 }
 
 .mainPanel {
@@ -16,35 +110,6 @@
     padding: 1rem;
 }
 
-.button {
-    border-bottom: 1px solid var(--color-text-separator);
-    min-height: 50px;
-    padding: 25px;
-    text-align: center;
-}
-
-.mainMenuBar > div:not(.studyList) {
-    border-bottom: 1px solid var(--color-text-separator);
-    min-height: 50px;
-    padding: 25px;
-    text-align: center;
-}
-
-.button:hover {
-    background-color: var(--color-text-separator);
-    cursor: pointer;
-}
-
-a[id="logoutButton"] > .button:hover {
-    background-color: var(--color-error);
-    border-bottom: 1px solid var(--color-error);
-}
-
-.button > svg {
-    width: 20px;
-    height: 20px;
-    fill: var(--color-text-leftpanel-basic);
-}
 
 .clickedButton > .button, .studyButtonClicked {
     background-color: var(--color-section-dark);

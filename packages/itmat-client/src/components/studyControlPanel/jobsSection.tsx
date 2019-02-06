@@ -16,7 +16,7 @@ const Job: React.FunctionComponent<{ job: Models.JobModels.IJobEntry<any> }> = (
 
 export const JobSection: React.FunctionComponent<{ data: Models.JobModels.IJobEntry<any>[] }> = ({ data }) => {
     return (
-        <div>
+        <div style={{ gridArea: 'jobs'}}>
         <h4>Past jobs</h4>
 
         { data.length === 0 ? <p>There has been no job associated with this study.</p> :

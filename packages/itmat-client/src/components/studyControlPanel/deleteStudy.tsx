@@ -5,7 +5,7 @@ import { DELETE_STUDY, GET_STUDIES_LIST } from '../../graphql/study';
 
 export const DeleteStudyButton: React.FunctionComponent<{ studyName: string }> = ({ studyName }) => {
     return (
-        <div>
+        <div style={{ gridArea: 'deleteStudy'}}>
             <h4>Delete this study</h4>
             <NavLink to={`/studies/details/${studyName}/delete`}><button>
                 Click here

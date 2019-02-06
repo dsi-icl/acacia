@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export const ExportSection: React.FunctionComponent = props => {
     return (
-        <div>
+        <div style={{ gridArea: 'export'}}>
             <h4>Data export</h4>
             <button>
                 Download clinical data as csv

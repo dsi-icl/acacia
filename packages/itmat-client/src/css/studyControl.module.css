@@ -15,6 +15,17 @@
     border-right: 1px solid rgb(77, 77, 77);
 }
 
+@media only screen and (min-width: 1550px) {
+    .studyDashboard {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        grid-template-areas: 
+            "jobs jobs addShortcut"
+            "applicationList curation deleteStudy"
+    }
+}
+
 .extraActionPanel {
     grid-area: extraActionPanel;
     padding: 2%;

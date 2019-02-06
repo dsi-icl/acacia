@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 
 export const CurationSection: React.FunctionComponent<{ studyName: string }> = ({ studyName }) => {
     return (
-        <div>
+        <div style={{ gridArea: 'curation'}}>
             <h4>Curation</h4>
             <button>
                 Manually trigger update UKB field dictionary

@@ -9,40 +9,49 @@ import { IShortCut } from 'itmat-utils/dist/models/user';
 export const MainMenuBar: React.FunctionComponent<{ shortcuts: IShortCut[]}> = ({ shortcuts }) => {
     return (
         <div className={css.mainMenuBar}>
-            <div>
+            <div className={css.hiddenIfTooNarrow}>
                 ITMAT-BROKER
             </div>
 
             <Query query={WHO_AM_I}>
             {({ data, loading, error}) => {
                 if (loading) return <div></div>;
-                return <div>Welcome, {data.whoAmI.realName || data.whoAmI.username}</div>;
+                return <div className={css.hiddenIfTooNarrow}>Welcome, {data.whoAmI.realName || data.whoAmI.username}</div>;
             }}
             </Query>
 
-
+            <div>
             <NavLink to='/studies' title='Studies' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='studies'/>Studies</div>
             </NavLink>
+            </div>
 
+            <div>
             <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='users'/>Users</div>
             </NavLink>
+            </div>
 
+            <div>
             <NavLink to='/notifications' title='Notifications' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='notification'/>Messages</div>
             </NavLink>
+            </div>
 
+            <div>
             <NavLink to='/settings' title='Settings' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='settings'/>Settings</div>
             </NavLink>
+            </div>
 
             {shortcuts.map(el => 
-                <NavLink key={el.id} to={ el.application ? `/studies/details/${el.study}/application/${el.application}` : `/studies/details/${el.study}`} title={el.application || el.study}>
+                <div key={el.id}>
+                <NavLink to={ el.application ? `/studies/details/${el.study}/application/${el.application}` : `/studies/details/${el.study}`} title={el.application || el.study}>
                     <div className={css.button}><Icons type='settings'/>{el.application || el.study}</div>
                 </NavLink>
+                </div>
             )}
-
+            <div>
             <NavLink title='Logout' to='/logout' id='logoutButton'>
                 <Mutation
                     mutation={LOGOUT}
@@ -60,6 +69,7 @@ export const MainMenuBar: React.FunctionComponent<{ shortcuts: IShortCut[]}> = (
                     )}
                 </Mutation>
             </NavLink>
+            </div>
         </div>
     );
 };

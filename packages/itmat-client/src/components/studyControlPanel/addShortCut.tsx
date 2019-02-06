@@ -5,7 +5,7 @@ import { IShortCut } from 'itmat-utils/dist/models/user';
 
 export const AddOrDeleteShortCut: React.FunctionComponent<{studyName: string, applicationName?: string}> = ({ studyName, applicationName }) => {
     return (
-        <div>
+        <div style={{ gridArea: 'addShortcut'}}>
         <h4>Add Shortcut</h4>
         <p>You can add a shortcut button to your menu for easy access of this { applicationName ? 'application' : 'study' }.</p>
         <Query query={SHORTCUTS_LIST}>
