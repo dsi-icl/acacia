@@ -7,6 +7,7 @@ export const AddOrDeleteShortCut: React.FunctionComponent<{studyName: string, ap
     return (
         <div>
         <h4>Add Shortcut</h4>
+        <p>You can add a shortcut button to your menu for easy access of this { applicationName ? 'application' : 'study' }.</p>
         <Query query={SHORTCUTS_LIST}>
             {({ data, loading, error }) => {
                 if (loading) return null;
