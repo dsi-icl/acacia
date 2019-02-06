@@ -1,3 +1,3 @@
 export const studyControl: string;
-export const leftPanel: string;
-export const rightPanel: string;
+export const studyDashboard: string;
+export const extraActionPanel: string;

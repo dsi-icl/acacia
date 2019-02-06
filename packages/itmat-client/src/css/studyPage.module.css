@@ -5,14 +5,15 @@
 
 .pageContainer {
     grid-template-columns: 1fr 1.5fr;
-    grid-template-rows: 1fr;
+    grid-template-rows: 100%;
+    grid-template-areas: 
+        "studyListPanel extraActionPanel";
     display: grid;
     height: 100%;
 }
 
 .studyList {
-    grid-column: 1/2;
-    grid-row: 1/2;
+    grid-area: studyListPanel;
     height: 100%;
     border-right: 1px solid rgb(77, 77, 77);
 }
@@ -25,8 +26,7 @@
     background-color: var(--color-input)
 }
 
-.createStudyPanel {
-    grid-column: 2/3;
-    grid-row: 1/2;
+.extraActionPanel {
+    grid-area: extraActionPanel;
     height: 100%;
 }

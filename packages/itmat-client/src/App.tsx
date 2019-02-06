@@ -5,8 +5,8 @@ import { LoginBox } from './components/login';
 import { WHO_AM_I } from './graphql/user';
 import * as css from './css/app.module.css';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { RightPanel } from './components/scaffold/rightPanel';
-import { LeftPanel } from './components/scaffold/leftPanel';
+import { MainMenuBar } from './components/scaffold/mainMenuBar';
+import { MainPanel } from './components/scaffold/mainPanel';
 class App extends React.Component {
   public render() {
     return (
@@ -14,11 +14,11 @@ class App extends React.Component {
           <div className={css.app}>
             <Query query={WHO_AM_I}>
               {({loading, error, data }) => {
-                console.log('rendering', loading, error, data);
                 if (loading) return <p>Loading...</p>;
                 if (error) return <p>Error :( {error.message}</p>;
-                if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) return <Router><><LeftPanel shortcuts={data.whoAmI.shortcuts || []}/><RightPanel/></></Router>;
-                return <LoginBox/>;
+                if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) // if logged in return the app
+                  return <Router><><MainMenuBar shortcuts={data.whoAmI.shortcuts || []}/><MainPanel/></></Router>;
+                return <LoginBox/>; // if not logged in return the login boxs
               }}
             </Query>
           </div>

@@ -4,7 +4,7 @@
 
 .pageContainer {
     grid-template-columns: 1.4fr 1fr;
-    grid-template-rows: 1fr;
+    grid-template-rows: 100%;
     display: grid;
     height: 100%;
 }

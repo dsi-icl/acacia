@@ -1,9 +1,19 @@
-.leftPanel {
-    grid-column: 1/2;
-    grid-row: 1/2;
+.mainMenuBar {
+    grid-area: mainMenuBar;
     color: var(--color-text-leftpanel-basic);
     background-image: linear-gradient(to bottom left, var(--color-section-light), rgb(238, 238, 238));
     overflow: auto;
+}
+
+.mainPanel {
+    grid-area: mainPanel;
+    color: var(--color-text-basic-rightpanel);
+    font-size: 1rem;
+    height: 100%;
+}
+
+.mainPanel > div > div {
+    padding: 1rem;
 }
 
 .button {
@@ -13,7 +23,7 @@
     text-align: center;
 }
 
-.leftPanel > div:not(.studyList) {
+.mainMenuBar > div:not(.studyList) {
     border-bottom: 1px solid var(--color-text-separator);
     min-height: 50px;
     padding: 25px;
@@ -49,16 +59,4 @@ a[id="logoutButton"] > .button:hover {
 
 .clickedButton > .button > svg {
     fill: var(--color-text-selected);
-}
-
-.rightPanel {
-    grid-column: 2/3;
-    grid-row: 1/2;
-    color: var(--color-text-basic-rightpanel);
-    font-size: 0.8rem;
-    height: 100%;
-}
-
-.rightPanel > div > div {
-    padding: 1rem;
 }

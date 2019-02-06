@@ -11,7 +11,7 @@ export const ApplicationListSection: React.FunctionComponent<{ subscribeToNewApp
 
     return (
         <div>
-            <h3>Applications</h3>
+            <h4>Applications</h4>
             {list.map(el => <Application key={el.name} name={el.name} studyName={studyName}/>)}
             <NavLink to={`/studies/details/${studyName}/application/addNewApplication`}><span> Add new application </span></NavLink>
         </div>

@@ -17,7 +17,7 @@ const Job: React.FunctionComponent<{ job: Models.JobModels.IJobEntry<any> }> = (
 export const JobSection: React.FunctionComponent<{ data: Models.JobModels.IJobEntry<any>[] }> = ({ data }) => {
     return (
         <div>
-        <h3>Past jobs</h3>
+        <h4>Past jobs</h4>
         <table>
             <thead>
                 <tr>

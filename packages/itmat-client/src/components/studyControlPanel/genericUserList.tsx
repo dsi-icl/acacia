@@ -19,8 +19,8 @@ export const GenericUserList: React.FunctionComponent<{
 
     const [addUserInput, setAddUserInput]: [string|undefined, Function] = React.useState(undefined);
 
-    return <>
-        <h3>{title ? title : type}</h3>
+    return <div>
+        <h4>{title ? title : type}</h4>
         {listOfUsers.map(el => <OneUserOrAdmin key={el} user={el} {...{mutationToDeleteUser, application, study}}/>)}
         <div style={{ position: 'relative' }}>
             <Query query={GET_USERS_LIST_ONLY_USERNAME}>
@@ -72,7 +72,7 @@ export const GenericUserList: React.FunctionComponent<{
                 }}
             </Query>
         </div>
-    </>;
+    </div>;
 };
 
 const OneUserOrAdmin: React.FunctionComponent<{ mutationToDeleteUser: DocumentNode, user: string, application?: string, study: string }> = ({ mutationToDeleteUser, user, application, study }) => {

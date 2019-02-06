@@ -45,43 +45,39 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
 
                 return (
                     <div className={css.studyControl}>
-                        <div className={css.leftPanel}>
-                        <Switch>
-                            <Route path='/studies/details/:studyName' render={({ match }) => <> 
-                                <h2>{match.params.studyName}</h2>
-                                <DeleteStudyButton studyName={match.params.studyName}/>
-                                <AddOrDeleteShortCut studyName={match.params.studyName}/>
-                                <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={match.params.studyName}/>
-                                <ApplicationListSection
-                                    studyName={match.params.studyName}
-                                    list={study.applications}
-                                    subscribeToNewApplication={() => {
-                                        subscribeToMore({
-                                            document: SUBSCRIPTION_NEW_APPLICATION,
-                                            variables: { name: match.params.studyName },
-                                            updateQuery: (prev, { subscriptionData }) => {
-                                                console.log(prev, subscriptionData);
-                                                if (!subscriptionData.data || !subscriptionData.data.newApplicationCreated) return prev;
-                                                prev.getStudies[0].applications.push(subscriptionData.data.newApplicationCreated);
-                                                return prev;
-                                            }
-                                        })
-                                    }}
-                                />
-                                <JobSection data={study.jobs}/>
-                                <CurationSection studyName={match.params.studyName}/>
-                                <ExportSection/>
-                            </>}/>
-                        </Switch>
+                        <div className={css.studyDashboard}>
+                            <div><h1>{name}</h1></div>
+                            <DeleteStudyButton studyName={name}/>
+                            <AddOrDeleteShortCut studyName={name}/>
+                            <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={name}/>
+                            <ApplicationListSection
+                                studyName={name}
+                                list={study.applications}
+                                subscribeToNewApplication={() => {
+                                    subscribeToMore({
+                                        document: SUBSCRIPTION_NEW_APPLICATION,
+                                        variables: { name: name },
+                                        updateQuery: (prev, { subscriptionData }) => {
+                                            console.log(prev, subscriptionData);
+                                            if (!subscriptionData.data || !subscriptionData.data.newApplicationCreated) return prev;
+                                            prev.getStudies[0].applications.push(subscriptionData.data.newApplicationCreated);
+                                            return prev;
+                                        }
+                                    })
+                                }}
+                            />
+                            <JobSection data={study.jobs}/>
+                            <CurationSection studyName={name}/>
+                            <ExportSection/>
                         </div>
-                        <div className={css.rightPanel}>
-                        <Switch>
-                            <Route path='/studies/details/:studyName/application/addNewApplication' render={({ match }) => <AddApplication studyName={match.params.studyName}/>}/>
-                            <Route path='/studies/details/:studyName/application/:applicationName' render={({ match }) => <ApplicationDetails studyName={match.params.studyName} applicationName={match.params.applicationName}/>}/>
-                            <Route path='/studies/details/:studyName/curation/uploadData' render={({ match }) => <ClinicalDataCurationUKBSection studyName={match.params.studyName}/>}/>
-                            <Route path='/studies/details/:studyName/delete' render={({ match }) => <ReallyDeleteStudy setDeletedStateHandler={setSuccessfullyDeleted} studyName={match.params.studyName}/>}/>
-                            <Route path='/studies/details/:studyName' render={({ match }) => <></>}/>
-                        </Switch>
+                        <div className={css.extraActionPanel}>
+                            <Switch>
+                                <Route path='/studies/details/:studyName/application/addNewApplication' render={({ match }) => <AddApplication studyName={match.params.studyName}/>}/>
+                                <Route path='/studies/details/:studyName/application/:applicationName' render={({ match }) => <ApplicationDetails studyName={match.params.studyName} applicationName={match.params.applicationName}/>}/>
+                                <Route path='/studies/details/:studyName/curation/uploadData' render={({ match }) => <ClinicalDataCurationUKBSection studyName={match.params.studyName}/>}/>
+                                <Route path='/studies/details/:studyName/delete' render={({ match }) => <ReallyDeleteStudy setDeletedStateHandler={setSuccessfullyDeleted} studyName={match.params.studyName}/>}/>
+                                <Route path='/studies/details/:studyName' render={({ match }) => <></>}/>
+                            </Switch>
                         </div>
                         
 

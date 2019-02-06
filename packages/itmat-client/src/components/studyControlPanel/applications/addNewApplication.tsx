@@ -19,7 +19,7 @@ export const AddApplication: React.FunctionComponent<{studyName: string}> = ({ s
     }
 
     return (
-        <div>
+        <>
             <Mutation
                 mutation={CREATE_APPLICATION}
             >
@@ -35,6 +35,6 @@ export const AddApplication: React.FunctionComponent<{studyName: string}> = ({ s
                 );
             }}
             </Mutation>
-        </div>
+        </>
     );
 };

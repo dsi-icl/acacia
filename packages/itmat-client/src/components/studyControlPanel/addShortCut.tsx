@@ -5,8 +5,8 @@ import { IShortCut } from 'itmat-utils/dist/models/user';
 
 export const AddOrDeleteShortCut: React.FunctionComponent<{studyName: string, applicationName?: string}> = ({ studyName, applicationName }) => {
     return (
-        <>
-        <h4>ADD SHORTCUT</h4>
+        <div>
+        <h4>Add Shortcut</h4>
         <Query query={SHORTCUTS_LIST}>
             {({ data, loading, error }) => {
                 if (loading) return null;
@@ -44,6 +44,6 @@ export const AddOrDeleteShortCut: React.FunctionComponent<{studyName: string, ap
                 }
             }}
         </Query>
-        </>
+        </div>
     );
 };

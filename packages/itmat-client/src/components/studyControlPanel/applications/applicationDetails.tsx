@@ -45,8 +45,6 @@ export const ApplicationDetails: React.FunctionComponent<{ studyName: string, ap
                 <button>Export CSV</button>
                 <AddOrDeleteShortCut {...{applicationName, studyName}}/>
                 <DeleteApplicationSection {...{studyName, applicationName, setApplicationDeleted}}/>
-                
-
             </>;
 
         }}

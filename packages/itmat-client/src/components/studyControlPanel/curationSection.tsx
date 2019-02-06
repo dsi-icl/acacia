@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 export const CurationSection: React.FunctionComponent<{ studyName: string }> = ({ studyName }) => {
     return (
         <div>
-            <h3>Curation</h3>
+            <h4>Curation</h4>
             <button>
                 Manually trigger update UKB field dictionary
             </button>

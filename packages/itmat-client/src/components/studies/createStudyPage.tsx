@@ -13,7 +13,7 @@ export const CreateStudyPage: React.FunctionComponent = props => {
             refetchQueries={GET_STUDIES_LIST}
         >
             {(createStudy, { loading, error }) =>
-                <div className={css.createStudyPanel}>
+                <>
                     { loading ? <p> Loading.. </p> :
                         (<>
                             <h4>Create New Study</h4>
@@ -30,7 +30,7 @@ export const CreateStudyPage: React.FunctionComponent = props => {
                             {error ? <p>{error.message}</p> : null}
                         </>)
                     }
-                </div>
+                </>
             }
         </Mutation>
     );

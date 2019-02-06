@@ -7,7 +7,7 @@ import { NavLink } from 'react-router-dom';
 
 export const StudyListSection: React.FunctionComponent = props => {
     return (
-        <div className={css.studyList}>
+        <>
             <NavLink to={`/studies/createNewStudy`}>
                 <button>Create new study</button>
             </NavLink>
@@ -43,8 +43,7 @@ export const StudyListSection: React.FunctionComponent = props => {
                     );
                 }}
             </Query>
-
-        </div>
+        </>
     );
 };
 

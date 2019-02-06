@@ -6,9 +6,9 @@ import { Icons } from '../icons';
 import { LOGOUT, WHO_AM_I } from '../../graphql/user';
 import { IShortCut } from 'itmat-utils/dist/models/user';
 
-export const LeftPanel: React.FunctionComponent<{ shortcuts: IShortCut[]}> = ({ shortcuts }) => {
+export const MainMenuBar: React.FunctionComponent<{ shortcuts: IShortCut[]}> = ({ shortcuts }) => {
     return (
-        <div className={css.leftPanel}>
+        <div className={css.mainMenuBar}>
             <div>
                 ITMAT-BROKER
             </div>

@@ -8,11 +8,15 @@ import { ApplyToApplicationSection } from './applyToApplication';
 export const StudiesPage: React.FunctionComponent = props => {
     return (
         <div className={css.pageContainer}>
-            <StudyListSection/>
-            <Switch>
-                <Route path='/studies/createNewStudy' render={() => <CreateStudyPage/>}/>
-                <Route path='/studies/apply/:studyName' render={({ match }) => <ApplyToApplicationSection studyName={match.params.studyName}/>}/>
-            </Switch>
+            <div className={css.studyList}>
+                <StudyListSection/>
+            </div>
+            <div className={css.extraActionPanel}>
+                <Switch>
+                    <Route path='/studies/createNewStudy' render={() => <CreateStudyPage/>}/>
+                    <Route path='/studies/apply/:studyName' render={({ match }) => <ApplyToApplicationSection studyName={match.params.studyName}/>}/>
+                </Switch>
+            </div>
         </div>
     );
 };
