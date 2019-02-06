@@ -11,17 +11,15 @@ class App extends React.Component {
   public render() {
     return (
       <ApolloProvider client={client}>
-          <div className={css.app}>
             <Query query={WHO_AM_I}>
               {({loading, error, data }) => {
                 if (loading) return <p>Loading...</p>;
                 if (error) return <p>Error :( {error.message}</p>;
                 if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) // if logged in return the app
-                  return <Router><><MainMenuBar shortcuts={data.whoAmI.shortcuts || []}/><MainPanel/></></Router>;
+                  return <div className={css.app}><Router><><MainMenuBar shortcuts={data.whoAmI.shortcuts || []}/><MainPanel/></></Router></div>;
                 return <LoginBox/>; // if not logged in return the login boxs
               }}
             </Query>
-          </div>
       </ApolloProvider>
     );
   }

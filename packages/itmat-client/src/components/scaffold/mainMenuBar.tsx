@@ -43,7 +43,7 @@ export const MainMenuBar: React.FunctionComponent<{ shortcuts: IShortCut[]}> = (
                 </NavLink>
             )}
 
-            <NavLink title='Logout' to='/logout' id='logoutButton' activeClassName={css.clickedButton}>
+            <NavLink title='Logout' to='/logout' id='logoutButton'>
                 <Mutation
                     mutation={LOGOUT}
                     update={(cache, { data: { logout } }) => {

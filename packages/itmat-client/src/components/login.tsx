@@ -15,7 +15,9 @@ export const LoginBox: React.FunctionComponent = props => {
         setPasswordInput(e.target.value);
     }
 
-    return (<div className={css.loginBox}>
+    return (
+        <div className={css.wrapper}>
+        <div className={css.loginBox}>
         <Mutation
             mutation={LOGIN}
             update={(cache, { data: { login } }) => {
@@ -27,8 +29,15 @@ export const LoginBox: React.FunctionComponent = props => {
         >
         {(login, { loading, error }) =>
             <>
-                Username: <input value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode == 13 && document.getElementById('loginButton')!.click() }/> <br/>
-                Password: <input type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode == 13 && document.getElementById('loginButton')!.click() }/> <br/>
+                <h1>ITMAT Broker</h1>
+                <br/><br/>
+                <div>
+                    <label>Username: </label><input value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode == 13 && document.getElementById('loginButton')!.click() }/> <br/>
+                </div>
+                <div>
+                    <label>Password: </label><input type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode == 13 && document.getElementById('loginButton')!.click() }/> <br/>
+                </div>
+                <br/>
                 { loading ? <button> login</button> :
                     (
                         <><button id='loginButton' onClick={() => {login({ variables: { password: passwordInput, username: usernameInput }});}}> login</button>
@@ -38,5 +47,6 @@ export const LoginBox: React.FunctionComponent = props => {
             </>
         }
         </Mutation>
+    </div>
     </div>);
 };
