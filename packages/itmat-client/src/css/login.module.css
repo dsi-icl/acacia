@@ -21,8 +21,16 @@
     left: 0;
     opacity: 0;
     transition: ease-in-out 0.7s;
-    max-width:100%;
-    height:auto;
+    max-width: auto;
+    height: 100%;
+
+}
+
+@media only screen and (min-width: 1300px) {
+    #image {
+        max-width:100%;
+        height:auto;
+    }
 }
 
 .loginBox h1 {

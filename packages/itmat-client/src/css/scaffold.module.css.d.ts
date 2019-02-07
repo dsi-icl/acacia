@@ -5,3 +5,4 @@ export const clickedButton: string;
 export const studyButtonClicked: string;
 export const mainPanel: string;
 export const app: string;
+export const warning: string;
