@@ -26,6 +26,13 @@ export const MainMenuBar: React.FunctionComponent<{ shortcuts: IShortCut[]}> = (
             </NavLink>
             </div>
 
+
+            <div>
+            <NavLink to='/queries' title='Queries' activeClassName={css.clickedButton}>
+                <div className={css.button}><Icons type='query'/>Queries</div>
+            </NavLink>
+            </div>
+
             <div>
             <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='users'/>Users</div>

@@ -12,7 +12,7 @@
 .mainMenuBar {
     grid-area: mainMenuBar;
     color: var(--color-text-leftpanel-basic);
-    background-image: linear-gradient(to bottom left, var(--color-section-light), rgb(238, 238, 238));
+    background-color: var(--color-section-light);
     overflow: auto;
     display: inline-flex;
     width: 100%;

@@ -47,8 +47,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                     <div className={css.studyControl}>
                         <div className={css.studyDashboard}>
                             <div><h1>{name}</h1></div>
-                            <DeleteStudyButton studyName={name}/>
-                            <AddOrDeleteShortCut studyName={name}/>
+                            <JobSection data={study.jobs}/>
                             <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={name}/>
                             <ApplicationListSection
                                 studyName={name}
@@ -66,9 +65,10 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                                     })
                                 }}
                             />
-                            <JobSection data={study.jobs}/>
                             <CurationSection studyName={name}/>
                             <ExportSection/>
+                            <AddOrDeleteShortCut studyName={name}/>
+                            <DeleteStudyButton studyName={name}/>
                         </div>
                         <div className={css.extraActionPanel}>
                             <Switch>

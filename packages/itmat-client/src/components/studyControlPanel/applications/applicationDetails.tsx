@@ -4,6 +4,8 @@ import { GET_APPLICATION, ADD_USER_TO_APPLICATION, DELETE_USER_FROM_APPLICATION,
 import { IApplication, IPendingApproval, APPLICATION_USER_TYPE } from 'itmat-utils/dist/models/study';
 import { GenericUserList, SECTIONTYPE } from '../genericUserList';
 import { AddOrDeleteShortCut } from '../addShortCut';
+import { ExploreData } from '../applications/exploreData';
+
 
 export const ApplicationDetails: React.FunctionComponent<{ studyName: string, applicationName: string }> = ({ studyName, applicationName }) => {
     const [applicationDeleted, setApplicationDeleted] = React.useState(false);
@@ -38,6 +40,7 @@ export const ApplicationDetails: React.FunctionComponent<{ studyName: string, ap
 
             return <>
                 <h1>{applicationName}</h1>
+                <ExploreData {...{applicationName, studyName}}/>
                 <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.ADMINS} listOfUsers={application[0] ? application[0].applicationAdmins : []} {...{applicationName, studyName}} submitButtonString='add user to admins'/>
                 <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.USERS} listOfUsers={application[0] ? application[0].applicationUsers : []} {...{applicationName, studyName}} submitButtonString='add user'/>                
                 <PendingUserApprovalsSection listOfPendingApprovals={application[0] ? application[0].pendingUserApprovals : []} {...{applicationName, studyName}}/>
