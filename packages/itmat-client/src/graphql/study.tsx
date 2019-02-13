@@ -6,11 +6,14 @@ export const GET_STUDIES_LIST = gql`
             id
             name
             iHaveAccess
+            allUsers
             studyAndDataManagers
             applications {
                 id
                 name
                 applicationAdmins
+                applicationAdmins
+                applicationUsers
             }
         }
     }

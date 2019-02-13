@@ -5,7 +5,7 @@ export const ExploreData: React.FunctionComponent<{ studyName: string, applicati
     return (
         <div>
             <h3>Explore data</h3>
-            <NavLink to={`/query/${studyName}/${applicationName}`}><button>
+            <NavLink to={`/queries/${studyName}/${applicationName}`}><button>
                 Go to query
             </button></NavLink>
         </div>

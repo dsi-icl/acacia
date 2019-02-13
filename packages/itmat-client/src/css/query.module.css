@@ -1,0 +1,26 @@
+.pageContainer {
+    height: inherit;
+    width: 100%;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: 30% 70%;
+    grid-template-areas:
+        "list editor"
+        "pastQueries editor";
+    display: grid;
+}
+
+.list {
+    grid-area: list;
+    padding: 1rem;
+    height: 100%;
+    border-right: 1px solid rgb(77, 77, 77);
+    border-bottom: 1px solid rgb(77, 77, 77);
+    overflow: auto;
+}
+
+.pastQueries {
+    grid-area: pastQueries;
+    padding: 1rem;
+    height: 100%;
+    border-right: 1px solid rgb(77, 77, 77);
+}
