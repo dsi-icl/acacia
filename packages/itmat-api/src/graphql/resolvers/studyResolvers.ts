@@ -1,7 +1,7 @@
 import { Models } from 'itmat-utils';
 import { Database } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
-import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndUpdateOption } from 'itmat-utils/node_modules/@types/mongodb';
+import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndUpdateOption } from 'mongodb';
 import { IStudy, APPLICATION_USER_TYPE, IApplication } from 'itmat-utils/dist/models/study';
 import { makeGenericReponse } from '../responses';
 import uuidv4 from 'uuid/v4';
