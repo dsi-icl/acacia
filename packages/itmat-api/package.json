@@ -9,6 +9,9 @@
 	},
 	"author": "",
 	"license": "ISC",
+    "engines": {
+    "node": ">=10.0.0"
+    },
 	"dependencies": {
 		"apollo-server-express": "^2.2.3",
 		"bcrypt": "^3.0.1",
