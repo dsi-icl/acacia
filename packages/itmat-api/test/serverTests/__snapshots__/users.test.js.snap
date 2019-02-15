@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`USERS API Who am I (admin) 1`] = `
+Object {
+  "data": Object {
+    "whoAmI": Object {
+      "createdBy": "chon",
+      "email": "souc@ic.ac.uk",
+      "emailNotificationsActivated": false,
+      "id": "ffdsfioir4jiofpjsidnvkxzjcklas;",
+      "realName": "admin",
+      "shortcuts": Array [],
+      "type": "ADMIN",
+      "username": "admin",
+    },
+  },
+}
+`;
+
+exports[`USERS API Who am I (user) 1`] = `
+Object {
+  "data": Object {
+    "whoAmI": Object {
+      "createdBy": "admin",
+      "email": "souchon@icloud.com",
+      "emailNotificationsActivated": false,
+      "id": "11234234231dsfajkdsjhflkdsla",
+      "realName": "Chon Sou",
+      "shortcuts": Array [],
+      "type": "STANDARD",
+      "username": "chon",
+    },
+  },
+}
+`;

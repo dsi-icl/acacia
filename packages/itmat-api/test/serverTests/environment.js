@@ -11,10 +11,11 @@ const { Database } = require('../../dist/src/database/database');
 const { OpenStackSwiftObjectStore } = require('itmat-utils');
 const { FileController, UserController, QueryController } = require('../../dist/src/RESTControllers');
 const { Router } = require('../../dist/src/server/router');
-
+const users = require('../seed/users');
 
 let app;
-let mongodb;
+let mongo;
+let db;
 
 class ItmatNodeEnvironment extends NodeEnvironment {
 
@@ -28,14 +29,15 @@ class ItmatNodeEnvironment extends NodeEnvironment {
         console.log(await mongodb.getConnectionString());
         config.database.mongo_url = await mongodb.getConnectionString();
         config.database.database = await mongodb.getDbName();
-        const client = new MongoClient(config.database.mongo_url, { useNewUrlParser: true });
-        await client.connect();
-        mongodb = client.db(config.database.database);
+        mongo = new MongoClient(config.database.mongo_url, { useNewUrlParser: true });
+        await mongo.connect();
+        const database = mongo.db(config.database.database);
         for (let each in config.database.collections) {
             await database.createCollection(config.database.collections[each]);
         }
+        await database.collection(config.database.collections.users_collection).insert(users);
 
-        const db = new Database(config.database);
+        db = new Database(config.database);
         const objStore = new OpenStackSwiftObjectStore(config.swift);
 
         return new server(config, db, objStore)
@@ -52,10 +54,16 @@ class ItmatNodeEnvironment extends NodeEnvironment {
             });
     }
 
+    static async globalTeardown() {
+        await mongo.close();
+        await db.closeConnection();
+        await mongodb.stop();
+    }
+
     async setup() {
         super.setup();
         this.global._APP_ = app;
-        this.global._MONGODB_ = mongodb;
+        this.global._MONGODB_ = mongo;
     }
 
     async teardown() {

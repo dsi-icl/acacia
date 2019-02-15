@@ -1,20 +1,50 @@
 // originally from dsi-icl/optimise-core
 'use strict';
+const gql = require('graphql-tag');
+const { print } = require('graphql');
+
+const LOGIN = print(gql`
+mutation Login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+        id
+        username
+        type
+        realName
+        shortcuts {
+            id
+            application
+            study
+        }
+        email
+        emailNotificationsActivated
+        createdBy
+    }
+}
+`);
+
+const LOGOUT = print(gql`
+    mutation {
+        logout{
+            successful
+            id
+        }
+    }
+`);
 
 function connectAdmin(agent) {
     return connectAgent(agent, 'admin', 'admin');
 }
 
 function connectUser(agent) {
-    return connectAgent(agent, 'user', 'user');
+    return connectAgent(agent, 'chon', 'admin');
 }
 
 function connectAgent(agent, user, pw) {
-    return new Promise((resolve, reject) => agent.post('/login')
+    return new Promise((resolve, reject) => agent.post('/graphql')
         .set('Content-type', 'application/json')
         .send({
-            username: user,
-            password: pw
+            query: LOGIN,
+            variables: { username: user, password: pw }
         })
         .then(res => {
             if (res.statusCode === 200)
@@ -24,7 +54,10 @@ function connectAgent(agent, user, pw) {
 }
 
 function disconnectAgent(agent) {
-    return new Promise((resolve, reject) => agent.post('/logout')
+    return new Promise((resolve, reject) => agent.post('/graphql')
+        .send({
+            query: LOGOUT,
+        })
         .then(res => {
             if (res.statusCode === 200)
                 return resolve();

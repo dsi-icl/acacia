@@ -49,6 +49,7 @@
 	},
 	"jest": {
 		"globalSetup": "<rootDir>/test/serverTests/setup.js",
-		"testEnvironment": "<rootDir>/test/serverTests/environment.js"
+		"testEnvironment": "<rootDir>/test/serverTests/environment.js",
+		"globalTeardown": "<rootDir>/test//serverTests/teardown.js"
 	}
 }
