@@ -1,78 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`USERS API Add shortcut (study + application) (admin) 1`] = `
+exports[`USERS API Remove shortcut that doesnt exist (user) 1`] = `
 Object {
   "data": Object {
-    "addShortCut": Object {
-      "id": "ffdsfioir4jiofpjsidnvkxzjcklas;",
-      "shortcuts": Array [
-        Object {
-          "application": "youtube",
-          "id": "0cd0a970-2966-4699-990b-4d732976f8c0",
-          "study": "study001",
-        },
-      ],
-      "username": "admin",
-    },
-  },
-}
-`;
-
-exports[`USERS API Add shortcut (study + application) (user) 1`] = `
-Object {
-  "data": Object {
-    "addShortCut": Object {
+    "removeShortCut": Object {
       "id": "11234234231dsfajkdsjhflkdsla",
       "shortcuts": Array [
         Object {
           "application": null,
-          "id": "a0679b38-008d-4a1f-8fd3-373f75a8a85d",
+          "id": "1c110bdb-640f-4d4a-a7ce-b6465c4dfe01",
           "study": "study001",
         },
         Object {
           "application": null,
-          "id": "39d7c656-a3b0-44bf-9061-1055298169af",
-          "study": "study001",
-        },
-      ],
-      "username": "chon",
-    },
-  },
-}
-`;
-
-exports[`USERS API Add shortcut (study) (admin) 1`] = `
-Object {
-  "data": Object {
-    "addShortCut": Object {
-      "id": "ffdsfioir4jiofpjsidnvkxzjcklas;",
-      "shortcuts": Array [
-        Object {
-          "application": "youtube",
-          "id": "0cd0a970-2966-4699-990b-4d732976f8c0",
-          "study": "study001",
-        },
-        Object {
-          "application": "youtube",
-          "id": "b5d7f215-e1a8-4d90-a8b1-dcf0adc57780",
-          "study": "study001",
-        },
-      ],
-      "username": "admin",
-    },
-  },
-}
-`;
-
-exports[`USERS API Add shortcut (study) (user) 1`] = `
-Object {
-  "data": Object {
-    "addShortCut": Object {
-      "id": "11234234231dsfajkdsjhflkdsla",
-      "shortcuts": Array [
-        Object {
-          "application": null,
-          "id": "a0679b38-008d-4a1f-8fd3-373f75a8a85d",
+          "id": "668510ec-2dfb-4104-bcd4-7cdd436b1b6d",
           "study": "study001",
         },
       ],

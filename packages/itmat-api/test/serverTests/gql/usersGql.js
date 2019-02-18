@@ -34,10 +34,11 @@ const ADD_SHORT_CUT = print(gql`
     }
 `);
 
-const REMOVE_SHORT_CUT = gql`
+const REMOVE_SHORT_CUT = print(gql`
     mutation removeShortCut($shortCutId: String!) {
         removeShortCut(shortCutId: $shortCutId) {
             id
+            username
             shortcuts {
                 id
                 application
@@ -45,6 +46,6 @@ const REMOVE_SHORT_CUT = gql`
             }
         }
     }
-`;
+`);
 
 module.exports = { WHO_AM_I, ADD_SHORT_CUT, REMOVE_SHORT_CUT };
