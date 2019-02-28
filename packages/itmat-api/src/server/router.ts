@@ -1,7 +1,7 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { CustomError, RequestValidationHelper, Logger } from 'itmat-utils';
-import { UserController, FileController, QueryController } from '../RESTControllers';
+import { UserController, FileController } from '../RESTControllers';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
@@ -25,7 +25,7 @@ export class Router {
         userController: UserController,
         fileController: FileController,
         // studyController: StudyController,
-        queryController: QueryController
+        // queryController: QueryController
     ) {
         this.app = express();
 
@@ -88,9 +88,9 @@ export class Router {
         // this.app.route('/query/transmart')
         //     .post();
 
-        this.app.route('/query(/xnat|/transmart)?')
-            .post(queryController.createQuery)
-            .get();
+        // this.app.route('/query(/xnat|/transmart)?')
+        //     .post(queryController.createQuery)
+        //     .get();
 
         this.app.route('/file')
             .get(fileController.downloadFile)

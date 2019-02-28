@@ -8,5 +8,8 @@ export const subscriptionEvents = {
         APPLICATION_DELETED: 'APPLICATION_DELETED',
         APPLICATION_EDITED: 'APPLICATION_EDITED',
         USER_LIST_CHANGED: 'USER_LIST_CHANGED'
+    },
+    query: {
+        QUERY_STATUS_UPDATE: 'QUERY_STATUS_UPDATE'
     }
 };

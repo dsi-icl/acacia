@@ -106,14 +106,32 @@ type Study {
     jobs: [Job]
 }
 
+type QueryEntry {
+    id: String!
+    queryString: String!
+    study: String!
+    application: String!
+    requester: String!
+    claimedBy: String
+    lastClaimed: Int
+    status: String!
+    error: JSON
+    cancelled: Boolean
+    cancelledTime: Int
+    queryResult: String
+}
+
 type GenericResponse {
     successful: Boolean!
     id: String
 }
 
 input QueryObjInput {
-    apiTranslation: POSSIBLE_API_TRANSLATION
-    # TO_DO
+    # apiTranslation: POSSIBLE_API_TRANSLATION,
+    queryString: String!
+    returnFieldSelection: [String]
+    study: String!
+    application: String!
 }
 
 type Query {
@@ -123,6 +141,9 @@ type Query {
 
     # STUDY
     getStudies(name: String): [Study]  # only returns the studies that the users are entitled
+
+    # QUERY
+    getQueries(study: String, application: String, id: String): [QueryEntry]
 }
 
 type Mutation {
@@ -152,12 +173,13 @@ type Mutation {
     rejectPendingApproval(username: String!, study: String!, application: String!): Application
 
     # QUERY
-    createQuery(queryobj: QueryObjInput!): GenericResponse #
+    createQuery(query: QueryObjInput!): QueryEntry #
 }
 
 type Subscription {
     newApplicationCreated(studyName: String!): Application
     applicationDeleted(studyName: String!): String # this is the id of the application
+    # queryStatusUpdate(studyName: String!, application: String!): QueryEntry 
 }
 
 `;

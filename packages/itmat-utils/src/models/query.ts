@@ -5,6 +5,7 @@ export interface IQueryEntry {
     id: string,
     queryString: string,
     study: string,
+    application: string,
     requester: string,
     claimedBy?: string,
     lastClaimed?: number,

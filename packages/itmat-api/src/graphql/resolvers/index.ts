@@ -1,12 +1,12 @@
 import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
-// import { queryResolvers } from './queryResolvers';
+import { queryResolvers } from './queryResolvers';
 import GraphQLJSON from 'graphql-type-json';
 
 const modules = [
     studyResolvers,
     userResolvers,
-    // queryResolvers
+    queryResolvers
 ];
 
 export const resolvers = {
