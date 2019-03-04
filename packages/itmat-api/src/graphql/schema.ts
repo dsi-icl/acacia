@@ -26,6 +26,28 @@ type Notification {
     data: JSON
 }
 
+type FieldInfo {
+    id: String!
+    study: String!
+    Path: String!
+    Category: Int!
+    FieldID: Int!
+    Field: String!
+    Participants: Int
+    Items: Int!
+    Stability: String!
+    ValueType: String!
+    Units: String
+    ItemType: String!
+    Strata: String!
+    Sexed: String!
+    Instances: Int!
+    Array: Int!
+    Coding: Int
+    Notes: String
+    Link: String
+}
+
 input CreateUserInput {
     username: String!
     type: USERTYPE!
@@ -144,6 +166,9 @@ type Query {
 
     # QUERY
     getQueries(study: String, application: String, id: String): [QueryEntry]
+
+    # FIELDS
+    getAvailableFields(study: String!, application: String): [FieldInfo]
 }
 
 type Mutation {

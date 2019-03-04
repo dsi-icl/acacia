@@ -7,7 +7,8 @@
       "users_collection": "USER_COLLECTION",
       "studies_collection": "STUDY_COLLECTION",
       "queries_collection": "QUERY_COLLECTION",
-      "log_collection": "LOG_COLLECTION"
+      "log_collection": "LOG_COLLECTION",
+      "field_dictionary_collection": "clinical_fieldDictionary"
     }
   },
   "server": {

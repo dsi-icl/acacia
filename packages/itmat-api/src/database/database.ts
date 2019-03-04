@@ -6,15 +6,17 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
         users_collection: string,
         jobs_collection: string,
         studies_collection: string,
-        queries_collection: string
+        queries_collection: string,
+        field_dictionary_collection: string
     }
 }
 
 export class Database extends DatabaseBase<IDatabaseConfig> {
-    public jobs_collection?: mongodb.Collection; // tslint:disable-line
-    public users_collection?: mongodb.Collection; // tslint:disable-line
-    public studies_collection?: mongodb.Collection; // tslint:disable-line
-    public queries_collection?: mongodb.Collection; // tslint:disable-line
+    public jobs_collection?: mongodb.Collection;
+    public users_collection?: mongodb.Collection;
+    public studies_collection?: mongodb.Collection;
+    public queries_collection?: mongodb.Collection;
+    public field_dictionary_collection?: mongodb.Collection;
 
     protected assignCollections(): void {
         const database = this.getDB();
@@ -22,6 +24,7 @@ export class Database extends DatabaseBase<IDatabaseConfig> {
         this.users_collection = database.collection(this.config.collections.users_collection);
         this.studies_collection = database.collection(this.config.collections.studies_collection);
         this.queries_collection = database.collection(this.config.collections.queries_collection);
+        this.field_dictionary_collection = database.collection(this.config.collections.field_dictionary_collection);
     }
 }
 
