@@ -2,10 +2,10 @@
     height: inherit;
     width: 100%;
     grid-template-columns: 1fr 2fr;
-    grid-template-rows: 30% 70%;
+    grid-template-rows: 35% 65%;
     grid-template-areas:
         "list editor"
-        "pastQueries editor";
+        "pastQueries pastQueries";
     display: grid;
 }
 
@@ -23,4 +23,8 @@
     padding: 1rem;
     height: 100%;
     border-right: 1px solid rgb(77, 77, 77);
+}
+
+.pastQueries > div {
+    background: white;
 }

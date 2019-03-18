@@ -11,11 +11,14 @@ export const Query: React.FunctionComponent = props => {
             <div className={css.list}>
                 <StudyListSection/>
             </div>
-            <div className={css.pastQueries}>
-                <PastQueries/>
-            </div>
             <Switch>
-                <Route path='/queries/:studyName/:applicationName' render={({match}) => <Editor studyName={match.params.studyName} applicationName={match.params.applicationName}/>}/>                
+                <Route path='/queries/:studyName/:applicationName' render={({match}) => <>
+                    <div className={css.pastQueries}>
+                        <PastQueries studyName={match.params.studyName} applicationName={match.params.applicationName}/>
+                    </div>
+                    <Editor studyName={match.params.studyName} applicationName={match.params.applicationName}/>
+                    </>
+                }/>          
             </Switch>
         </div>
     );

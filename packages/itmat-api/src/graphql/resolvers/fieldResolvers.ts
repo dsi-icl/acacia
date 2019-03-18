@@ -21,8 +21,8 @@ export const fieldResolvers = {
             }
 
             let queryObj: any = { study };
-
-            if (application) {
+            console.log('application', application);
+            if ( !(application === undefined || application === null) ) {
                 const applicationsFiltered = studySearchResult.applications.filter(el => el.name === application);
                 if (applicationsFiltered.length !== 1) {
                     throw new UserInputError('Application does not exist.');

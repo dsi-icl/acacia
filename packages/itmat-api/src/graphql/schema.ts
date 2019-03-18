@@ -180,7 +180,7 @@ type Mutation {
 
     # APP USERS
     createUser(user: CreateUserInput!): User
-    editUser(user: EditUserInput!): User #
+    editUser(user: EditUserInput!): User
     deleteUser(username: String!): GenericResponse
 
     # STUDY
@@ -190,15 +190,15 @@ type Mutation {
     removeUserFromStudyManagers(username: String!, study: String!): Study
     createApplication(study: String!, application: String!, approvedFields: [String]): Study
     deleteApplication(study: String!, application: String!): Study
-    editApplicationApproveFields: Application #
+    editApplicationApproveFields: Application
     addUserToApplication(username: String!, study: String!, application: String!, type: APPLICATION_USER_TYPE!): Application
     deleteUserFromApplication(username: String!, study: String!, application: String!): Application
-    purgeUserFromStudy(username: String!, study: String!): GenericResponse #
-    applyToBeAddedToApplication(study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse #
+    purgeUserFromStudy(username: String!, study: String!): GenericResponse
+    applyToBeAddedToApplication(study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse
     rejectPendingApproval(username: String!, study: String!, application: String!): Application
 
     # QUERY
-    createQuery(query: QueryObjInput!): QueryEntry #
+    createQuery(query: QueryObjInput!): QueryEntry
 }
 
 type Subscription {

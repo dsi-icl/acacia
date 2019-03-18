@@ -50,6 +50,10 @@ export const queryResolvers = {
                 }
             }
 
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                queryObj.requester = requester.username;
+            }
+
             const cursor = db.queries_collection!.find(queryObj, { projection: { _id: 0 } });
             const result = await cursor.toArray();
             return result;
