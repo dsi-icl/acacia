@@ -45,7 +45,7 @@ const OneStudy: React.FunctionComponent<{el: Models.Study.IStudy, whoAmI: Models
         <h3>{el.name}</h3>
         {el.applications.map(app => {
             if (whoAmI.type === 'ADMIN' || app.applicationAdmins.includes(whoAmI.username) || app.applicationUsers.includes(whoAmI.username)) {
-                return (<NavLink to={`/queries/${el.name}/${app.name}`}>
+                return (<NavLink key={`/queries/${el.name}/${app.name}`} to={`/queries/${el.name}/${app.name}`}>
                     <button className={css.applicatonButton}>{app.name}</button>
                 </NavLink>);
             } else {
