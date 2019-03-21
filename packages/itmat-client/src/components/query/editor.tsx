@@ -1,6 +1,7 @@
 import * as monaco from 'monaco-editor';
 import * as React from 'react';
 import { Models } from 'itmat-utils';
+import css from '../../css/query.module.css';
 
 export class Editor extends React.Component<{ studyName: string, applicationName: string, fieldList: Models.Field.IFieldEntry[]  }> {
     shouldComponentUpdate(nextProps: { studyName: string, applicationName: string }){
@@ -94,6 +95,6 @@ export class Editor extends React.Component<{ studyName: string, applicationName
     }
 
     render() {
-        return <div id='container'></div>;
+        return <><div id='container'></div><div className={css.submitButton}>Submit</div></>;
     }
 }
