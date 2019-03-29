@@ -32,7 +32,7 @@
     box-sizing: border-box;
     white-space: normal;
     text-decoration: none;
-    vertical-align: top;
+    /* vertical-align: top; */
     scroll-behavior: smooth;
     outline: none;
 }
