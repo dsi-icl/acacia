@@ -5,11 +5,31 @@ const { TreeNode } = Tree;
 const { Search } = Input;
 import 'antd/lib/tree/style/css';
 import '../../css/antdOverride.css';
+import Title from 'antd/lib/skeleton/Avatar';
+
+// class DraggableTreeNode extends TreeNode {
+//     constructor(props: any) {
+//         super(props);
+//     }
+
+//     transformRender = (def: string) => {
+//         console.log(def);
+//         def = def.replace('function render() {', '');
+//         const lastParenthesisIndex = def.lastIndexOf('}');
+//         def = def.substring(0, lastParenthesisIndex);
+//         const returnindex = def.indexOf('return ');
+//         const newRenderFunction = new Function(`${def.substring(0, returnindex)}\n draggable = true;\n${def.substring(returnindex, def.length)}`);
+//         console.log(newRenderFunction);
+//         return newRenderFunction;
+//     }
+
+//     render = this.transformRender(super.render.toString()) as any;
+// }
+
 
 export const FieldListSection: React.FunctionComponent<{ fieldList: Models.Field.IFieldEntry[] }> = ({ fieldList }) => {
     // const sortedList = fieldList.sort((a, b) => `${a.Path} > ${a.Field}`.localeCompare(`${b.Path} > ${b.Field}`));
     const transformedList = fieldList.map(el => `${el.Path} > ${el.FieldID}|${el.Field}`);
-
     const makeTree = (paths: string[]) => {
         const output: any = [];
         for (let i = 0; i < paths.length; i++) {
@@ -30,7 +50,6 @@ export const FieldListSection: React.FunctionComponent<{ fieldList: Models.Field
         return output;
     };
 
-
     const renderTreeNodes = (fieldList: any[]) => fieldList.map(item => {
         if (item.children.length !== 0) {
             return (
@@ -39,7 +58,7 @@ export const FieldListSection: React.FunctionComponent<{ fieldList: Models.Field
             </TreeNode>
             );
         }
-        return <TreeNode title={item.name} key={item.fieldId} dataRef={item} isLeaf={true} selectable={false} />;
+        return <TreeNode title={item.name} key={item.fieldId} dataRef={item} isLeaf={true} selectable={false}/>;
     });
 
     return (
