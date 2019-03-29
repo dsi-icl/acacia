@@ -6,11 +6,21 @@ import css from '../../css/query.module.css';
 import { CREATE_QUERY } from '../../graphql/query';
 import { providerFactory, tokeniser, theme } from './languageDefinition';
 
-export class Editor extends React.Component<{ studyName: string, applicationName: string, fieldList: Models.Field.IFieldEntry[] }, { monaco: any }> {
+class IEditor extends React.Component<{ studyName: string, applicationName: string, fieldList: Models.Field.IFieldEntry[] }, { monaco: any }> {
+    protected editor?: monaco.editor.IStandaloneCodeEditor
+}
+
+export class Editor extends IEditor  {
     constructor(props: any) {
         super(props);
+        this.editor = undefined;
         this.state = { monaco };
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.updateDimensions = this.updateDimensions.bind(this);
+    }
+
+    updateDimensions(){
+        this.editor!.layout();
     }
 
     shouldComponentUpdate(nextProps: { studyName: string, applicationName: string }){
@@ -28,12 +38,18 @@ export class Editor extends React.Component<{ studyName: string, applicationName
         monaco.languages.setMonarchTokensProvider('itmat-query-language', tokeniser as any);
         monaco.languages.registerCompletionItemProvider('itmat-query-language', providerFactory(this.props.fieldList));
 
-        monaco.editor.create(document.getElementById('container')!, {
+        this.editor = monaco.editor.create(document.getElementById('container')!, {
             value: '',
             language: 'itmat-query-language',
             theme: 'itmat-query-theme',
-            automaticLayout: true
-          });
+            // automaticLayout: true
+        });
+
+        window.addEventListener("resize", this.updateDimensions);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.updateDimensions);
     }
 
     handleSubmit() {
