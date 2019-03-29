@@ -20,7 +20,7 @@ export const GET_QUERY = gql`
 
 
 export const CREATE_QUERY = gql`
-    query createQuery($query: QueryObjInput!) {
+    mutation createQuery($query: QueryObjInput!) {
         createQuery(query: $query) {
             id
             queryString

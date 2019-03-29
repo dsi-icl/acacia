@@ -47,7 +47,7 @@
     margin: 0px;
     padding: 0px;
     border: 0px;
-    grid-template-rows: 90% 10%;
+    grid-template-rows: 1fr 3rem;
     grid-template-areas: "editorCore" "submitButton"
 }
 
@@ -68,6 +68,13 @@
     color: white;
     cursor: pointer;
 }
+
+.submitButton:active {
+    background-color: var(--color-royal-blue-dark);
+    color: white;
+    cursor: pointer;
+}
+
 
 .fields {
     grid-area: fields;
