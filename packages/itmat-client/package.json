@@ -10,7 +10,7 @@
     "apollo-link-error": "^1.1.5",
     "apollo-link-http": "^1.5.9",
     "apollo-link-ws": "^1.0.12",
-    "filepond": "^3.7.6",
+    "filepond": "^4.0.0",
     "graphql": "^14.0.2",
     "graphql-tag": "^2.10.1",
     "itmat-utils": "1.1.4",
