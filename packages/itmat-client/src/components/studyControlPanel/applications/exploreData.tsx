@@ -8,6 +8,7 @@ export const ExploreData: React.FunctionComponent<{ studyName: string, applicati
             <NavLink to={`/queries/${studyName}/${applicationName}`}><button>
                 Go to query
             </button></NavLink>
+            <button>Export CSV</button>
         </div>
     );
 };

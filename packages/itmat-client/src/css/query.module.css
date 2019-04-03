@@ -1,11 +1,22 @@
-.pageContainer {
+.pageContainer_list {
     height: inherit;
     width: 100%;
     grid-template-columns: 1fr 2fr;
     grid-template-rows: 35% 65%;
     grid-template-areas:
-        "list editor"
-        "pastQueries pastQueries";
+        "list"
+        "list";
+    display: grid;
+}
+
+.pageContainer_query {
+    height: inherit;
+    width: 100%;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: 35% 65%;
+    grid-template-areas:
+        "editor fields"
+        "pastQueries fields";
     display: grid;
 }
 
@@ -26,5 +37,60 @@
 }
 
 .pastQueries > div {
-    background: white;
+    background: inherit;
+}
+
+.editor {
+    grid-area: editor;
+    display: grid;
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+    grid-template-rows: 1fr 3rem;
+    grid-template-areas: "editorCore" "submitButton"
+}
+
+.submitButton {
+    height: 100%;
+    background-color: var(--color-royal-blue-dark);
+    grid-area: submitButton;
+    text-align: center;
+    line-height: 3rem;
+    box-shadow: 2px;
+    color: rgb(241, 241, 241);
+    font-weight: bold;
+
+}
+
+.submitButton:hover {
+    background-color: var(--color-royal-blue);
+    color: white;
+    cursor: pointer;
+}
+
+.submitButton:active {
+    background-color: var(--color-royal-blue-dark);
+    color: white;
+    cursor: pointer;
+}
+
+
+.fields {
+    grid-area: fields;
+    height: 100%;
+    overflow: auto;
+}
+
+.fields > div {
+    height: 35px;
+    line-height: 35px;
+    text-align: left;
+    padding-left: 2rem;
+    border-bottom: 1px solid rgb(77, 77, 77);
+}
+
+.fields > div:hover {
+    background-color: grey;
+    cursor: pointer;
 }

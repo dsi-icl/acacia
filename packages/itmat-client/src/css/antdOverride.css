@@ -41,3 +41,11 @@
 .ant-select-dropdown-menu-item {
     transition: 0s;
 }
+
+.ant-tree {
+    color: white;
+}
+
+.ant-tree li .ant-tree-node-content-wrapper {
+    color: white;
+}

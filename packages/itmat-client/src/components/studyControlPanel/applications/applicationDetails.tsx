@@ -40,14 +40,13 @@ export const ApplicationDetails: React.FunctionComponent<{ studyName: string, ap
 
             return <>
                 <h1>{applicationName}</h1>
-                <ExploreData {...{applicationName, studyName}}/>
-                <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.ADMINS} listOfUsers={application[0] ? application[0].applicationAdmins : []} {...{applicationName, studyName}} submitButtonString='add user to admins'/>
-                <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.USERS} listOfUsers={application[0] ? application[0].applicationUsers : []} {...{applicationName, studyName}} submitButtonString='add user'/>                
-                <PendingUserApprovalsSection listOfPendingApprovals={application[0] ? application[0].pendingUserApprovals : []} {...{applicationName, studyName}}/>
-                Approved fields: {application[0].approvedFields.map(el => <span key={`User_${el}`}>{el}</span>)}
-                <button>Export CSV</button>
-                <AddOrDeleteShortCut {...{applicationName, studyName}}/>
-                <DeleteApplicationSection {...{studyName, applicationName, setApplicationDeleted}}/>
+                <ExploreData {...{applicationName, studyName}}/><br/>
+                <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.ADMINS} listOfUsers={application[0] ? application[0].applicationAdmins : []} {...{applicationName, studyName}} submitButtonString='add user to admins'/><br/>
+                <GenericUserList mutationToDeleteUser={DELETE_USER_FROM_APPLICATION} mutationToAddUser={ADD_USER_TO_APPLICATION} type={SECTIONTYPE.USERS} listOfUsers={application[0] ? application[0].applicationUsers : []} {...{applicationName, studyName}} submitButtonString='add user'/><br/>       
+                <PendingUserApprovalsSection listOfPendingApprovals={application[0] ? application[0].pendingUserApprovals : []} {...{applicationName, studyName}}/><br/>
+                {/* Approved fields: {application[0].approvedFields.map(el => <span key={`User_${el}`}>{el}</span>)} */}
+                <AddOrDeleteShortCut {...{applicationName, studyName}}/><br/>
+                <DeleteApplicationSection {...{studyName, applicationName, setApplicationDeleted}}/><br/>
             </>;
 
         }}
@@ -59,7 +58,7 @@ const PendingUserApprovalsSection: React.FunctionComponent<{listOfPendingApprova
     return (
         <div>
         <h3>Pending approvals</h3>
-        {listOfPendingApprovals.map(el => <OnePendingApproval key={el.user} pendingApproval={el} {...{applicationName, studyName}}/>)}
+        {listOfPendingApprovals.length !== 0 ? listOfPendingApprovals.map(el => <OnePendingApproval key={el.user} pendingApproval={el} {...{applicationName, studyName}}/>) : <p>There is no pending approval.</p>}
         </div>
     );
 };
