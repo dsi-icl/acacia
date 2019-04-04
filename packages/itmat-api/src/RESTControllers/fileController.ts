@@ -1,18 +1,27 @@
-import { ItmatAPIReq } from '../server/requests';
+import { ItmatAPIReq } from './requestInterface';
 import { Database } from '../database/database';
 import { Models, RequestValidationHelper, CustomError, OpenStackSwiftObjectStore } from 'itmat-utils';
 import { Express, Request, Response, NextFunction } from 'express';
 import mongodb from 'mongodb';
 import uuidv4 from 'uuid/v4';
+
 declare global {
     namespace Express {
         namespace Multer {
-            interface File { // tslint:disable-line
+            interface File {
                 stream: NodeJS.ReadableStream;
                 originalName: string;
             }
         }
     }
+}
+
+interface FileUploadReqBody {
+    jobType: string,
+    study: string,
+    file: any,
+    field?: string, // xxx-yy.z
+    patientId?: string
 }
 
 export class FileController {
@@ -22,14 +31,14 @@ export class FileController {
 
     }
 
-    public async uploadFile(req: ItmatAPIReq<requests.FileUploadReqBody>, res: Response, next: NextFunction): Promise<void> {
+    public async uploadFile(req: ItmatAPIReq<FileUploadReqBody>, res: Response, next: NextFunction): Promise<void> {
         const validator = new RequestValidationHelper(req, res);
         // TO_DO: check study exists, check no spaces in file name
         // TO_DO: change this to a dispatcher for different types of jobs
         // TO_DO: check if study exists, whetehr the requester is the dataAdmin / admin;
         if (validator
             .checkForAdminPrivilege()
-            .checkRequiredKeysArePresentIn<requests.FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['jobType', 'study'])
+            .checkRequiredKeysArePresentIn<FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['jobType', 'study'])
             .checkForValidDataTypeForValue(req.body.study, Models.Enums.JSDataType.STRING, 'study')
             .checkForValidDataTypeForValue(req.body.jobType, Models.Enums.JSDataType.STRING, 'jobType')
             .checkKeyForValidValue('jobType', req.body.jobType, Object.keys(Models.JobModels.jobTypes))
@@ -41,7 +50,7 @@ export class FileController {
         if (req.body.jobType === 'UKB_IMAGE_UPLOAD') {
             if (validator
                 .checkForAdminPrivilege()
-                .checkRequiredKeysArePresentIn<requests.FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['field', 'patientId'])
+                .checkRequiredKeysArePresentIn<FileUploadReqBody>(Models.APIModels.Enums.PlaceToCheck.BODY, ['field', 'patientId'])
                 .checkForValidDataTypeForValue(req.body.field, Models.Enums.JSDataType.STRING, 'field')
                 .checkForValidDataTypeForValue(req.body.patientId, Models.Enums.JSDataType.STRING, 'patientId')
                 .checksFailed) { return; }

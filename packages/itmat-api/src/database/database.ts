@@ -1,5 +1,5 @@
 import mongodb from 'mongodb';
-import { IDatabaseBaseConfig, DatabaseBase, CustomError } from 'itmat-utils';
+import { IDatabaseBaseConfig, DatabaseBase } from 'itmat-utils';
 import config from '../../config/config.json';
 export interface IDatabaseConfig extends IDatabaseBaseConfig {
     collections: {
