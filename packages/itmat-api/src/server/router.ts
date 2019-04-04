@@ -2,6 +2,7 @@ import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { CustomError, RequestValidationHelper, Logger } from 'itmat-utils';
 import { UserController, FileController } from '../RESTControllers';
+import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
@@ -48,8 +49,13 @@ export class Router {
         const gqlServer = new ApolloServer({
             typeDefs: schema,
             resolvers,
-            context: ({ req, res }: any) => ({ req, res, db }),
-            formatError: (error: Error) => {
+            context: ({ req, res }: any) => {
+                if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
+                    throw new ForbiddenError('not logged in');
+                }
+                return ({ req, res, db });
+            },
+            formatError: (error: ApolloError) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
                 Logger.error(error);
                 return error;
