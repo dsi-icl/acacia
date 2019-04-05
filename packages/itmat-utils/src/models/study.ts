@@ -2,30 +2,23 @@ export interface IStudy {
     id: string,
     name: string,
     isUkbiobank: boolean,
-    studyAndDataManagers: string[],
-    applications: IApplication[],
+    roles: IRole[],
     createdBy: string,
     lastModified: number,
     deleted: false
 }
 
-export interface IApplication {
+export interface IRole {
+    name: string,
+    permissions: string[],
+    users: string[]
+}
+
+export interface IProject {
     id: string,
     study: string,
     name: string,
-    pendingUserApprovals: IPendingApproval[],
-    applicationAdmins: string[],
-    applicationUsers: string[],
+    roles: IRole[],
+    patientMapping: { [originalId: string]: string },
     approvedFields: string[]
-}
-
-export enum APPLICATION_USER_TYPE {
-    applicationAdmin = 'APPLICATION_ADMIN',
-    applicationUser = 'APPLICATION_USER'
-}
-
-export interface IPendingApproval {
-    id: string,
-    user: string,
-    type: APPLICATION_USER_TYPE
 }

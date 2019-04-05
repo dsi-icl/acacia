@@ -10,8 +10,9 @@ export interface IDatabaseBaseConfig {
     }
 }
 
-export abstract class DatabaseBase<configType extends IDatabaseBaseConfig> {
+export class Database<configType extends IDatabaseBaseConfig, C = {[name in keyof configType['collections']]: mongodb.Collection} > {
     protected client: mongodb.MongoClient;
+    public collections?: C;
 
     constructor(protected readonly config: configType) {
         this.client = new mongodb.MongoClient(config.mongo_url, { useNewUrlParser: true });
@@ -52,7 +53,13 @@ export abstract class DatabaseBase<configType extends IDatabaseBaseConfig> {
         }
     }
 
-    protected abstract assignCollections(): void;
+    private assignCollections(): void {
+        const collections: C = Object.entries(this.config.collections).reduce((a: any, e: [string, string]) => {
+            a[e[0]] = this.getDB().collection(e[1]);
+            return a;
+        }, {});
+        this.collections = collections;
+    }
 
     private async checkAllCollectionsArePresent(): Promise<void> {
         const collectionList: string[] = (await this.getDB().listCollections({}).toArray()).map(el => el.name);

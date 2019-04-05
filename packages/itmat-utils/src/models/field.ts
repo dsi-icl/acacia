@@ -1,19 +1,24 @@
 export interface IFieldEntry {
-    Path: string,
-    Category: number,
-    FieldID: number,
-    Field: string,
-    Participants?: number,
-    Items?: number,
-    Stability?: string,
-    ValueType: string,
-    Units?: string | null,
-    ItemType?: string,
-    Strata?: string
-    Sexed?: string,
-    Instances: number,
-    Array: number,
-    Coding?: number | null,
-    Notes?: string | null,
-    Link?: string
+    id: string,
+    study: string,
+    path: string,
+    fieldId: number,
+    fieldName: string,
+    valueType: enumValueType,
+    possibleValues: string[],
+    unit?: string,
+    itemType: enumItemType,
+    numOfTimePoints: number,
+    numOfMeasurements: number,
+    notes?: string
+}
+
+export enum enumItemType {
+    IMAGE = 'I',
+    CLINICAL = 'C'
+}
+
+export enum enumValueType {
+    NUMBER = 'N',
+    CATEGORICAL = 'C'
 }

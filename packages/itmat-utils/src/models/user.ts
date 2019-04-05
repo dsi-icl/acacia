@@ -1,5 +1,3 @@
-import * as mongodb from 'mongodb';
-
 export enum userTypes {
     ADMIN = 'ADMIN',
     STANDARD = 'STANDARD'
@@ -18,17 +16,16 @@ export interface IShortCut {
 }
 
 export interface IUserWithoutToken {
-    _id?: mongodb.ObjectId,
     id: string,
     username: string,
     email: string,
     realName: string,
     shortcuts: IShortCut[],
-    type: keyof typeof userTypes,
+    type: userTypes,
     description: string,
     notifications: INotification[],
     emailNotificationsActivated: boolean,
-    deleted?: boolean,
+    deleted: boolean,
     createdBy: string
 }
 
