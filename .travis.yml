@@ -24,6 +24,7 @@ before_install: |
 install:
   - npm --version
   - npm ci
+  - lerna exec tsc
   - lerna bootstrap
 
 cache:
