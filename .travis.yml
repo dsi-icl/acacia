@@ -24,6 +24,7 @@ before_install: |
 install:
   - npm --version
   - npm ci
+  - lerna bootstrap
 
 cache:
   directories:
@@ -35,11 +36,11 @@ env:
 
 jobs:
   include:
-    - script: npm test -- --coverage
-      after_script: cat ./coverage/lcov.info | codacy-coverage --token $CODACY_COVERAGE_TOKEN
+    - stage: test
+      script: lerna run test --coverage
 
     - stage: lint
-      script: npm run lint
+      script: lerna run lint
 
     # smoke tests use default npm.
     - stage: smoke
