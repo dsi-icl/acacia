@@ -1,11 +1,11 @@
 export interface IFieldEntry {
     id: string,
-    study: string,
+    studyId: string,
     path: string,
     fieldId: number,
     fieldName: string,
     valueType: enumValueType,
-    possibleValues: string[],
+    possibleValues?: string[],
     unit?: string,
     itemType: enumItemType,
     numOfTimePoints: number,

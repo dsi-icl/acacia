@@ -4,5 +4,6 @@ export { ServerBase, IServerBaseConfig } from './serverBase';
 export { OpenStackSwiftObjectStore, IOpenSwiftObjectStoreConfig } from './OpenStackObjectStore';
 export { Logger } from './logger';
 export { Poller } from './poller';
+export { permissions } from './permissions';
 import * as Models from './models/index';
 export { Models };

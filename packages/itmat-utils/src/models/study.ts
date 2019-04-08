@@ -2,23 +2,28 @@ export interface IStudy {
     id: string,
     name: string,
     isUkbiobank: boolean,
-    roles: IRole[],
     createdBy: string,
     lastModified: number,
-    deleted: false
+    deleted: boolean
 }
 
 export interface IRole {
+    id: string
+    projectId?: string,
+    studyId?: string,
     name: string,
     permissions: string[],
-    users: string[]
-}
+    users: string[],
+    deleted: boolean
+};
 
 export interface IProject {
     id: string,
-    study: string,
+    studyId: string,
+    createdBy: string,
     name: string,
-    roles: IRole[],
     patientMapping: { [originalId: string]: string },
-    approvedFields: string[]
+    approvedFields: string[],
+    lastModified: number,
+    deleted: boolean
 }

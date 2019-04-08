@@ -1,8 +1,8 @@
 export interface IQueryEntry {
     id: string,
     queryString: string,
-    study: string,
-    application: string,
+    studyId: string,
+    projectId?: string,
     requester: string,
     claimedBy?: string,
     lastClaimed?: number,
