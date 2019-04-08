@@ -6,6 +6,8 @@
       "jobs_collection": "JOB_COLLECTION",
       "users_collection": "USER_COLLECTION",
       "studies_collection": "STUDY_COLLECTION",
+      "roles_collection": "ROLE_COLLECTION",
+      "projects_collection": "PROJECT_COLLECTION",
       "queries_collection": "QUERY_COLLECTION",
       "log_collection": "LOG_COLLECTION",
       "field_dictionary_collection": "clinical_fieldDictionary"

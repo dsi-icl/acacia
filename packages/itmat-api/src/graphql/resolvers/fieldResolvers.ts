@@ -4,31 +4,34 @@ import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-
 import { IFieldEntry } from 'itmat-utils/dist/models/field';
 import uuid from 'uuid/v4';
 import mongodb from 'mongodb';
+import { studyCore} from '../core/studyCore';
+import { IProject, IStudy } from 'itmat-utils/dist/models/study';
+import { errorCodes } from '../errors';
 
 
 export const fieldResolvers = {
     Query: {
-        getAvailableFields: async(parent: object, args: any, context: any, info: any): Promise<IFieldEntry[]> => {
+        getAvailableFields: async(parent: object, args: { projectId?: string, studyId?: string}, context: any, info: any): Promise<IFieldEntry[]> => {
             const db: Database = context.db;
-            const studyCollection = db.studies_collection!;
-            const fieldCollection = db.field_dictionary_collection!;
+            const fieldCollection = db.collections!.field_dictionary_collection;
             const requester: Models.UserModels.IUser = context.req.user;
-            const { study, application } = args; 
 
-            const studySearchResult: Models.Study.IStudy = await studyCollection.findOne({ name: study, deleted: false })!;
-            if (studySearchResult === null || studySearchResult === undefined) {
-                throw new UserInputError('Study does not exist.');
+            const { studyId, projectId } = args; 
+
+            /* check whether user has at least provided one id */
+            if (studyId === undefined && projectId === undefined) {
+                throw new ApolloError('Please provide either study id or project id.', errorCodes.CLIENT_MALFORMED_INPUT);
             }
 
-            let queryObj: any = { study };
-            console.log('application', application);
-            if ( !(application === undefined || application === null) ) {
-                const applicationsFiltered = studySearchResult.applications.filter(el => el.name === application);
-                if (applicationsFiltered.length !== 1) {
-                    throw new UserInputError('Application does not exist.');
+            /* constructing queryObj; if projectId is provided then only those in the approved fields are returned */
+            let queryObj: any = { studyId };
+            if (studyId && projectId) {  // if both study id and project id are provided then just make sure they belong to each other
+                const projectSearchResult = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
+                if (projectSearchResult.studyId !== studyId) {
+                    throw new ApolloError('The project provided does not belong to the study provided', errorCodes.CLIENT_MALFORMED_INPUT);
                 }
-                const approvedFields = applicationsFiltered[0].approvedFields;
-                queryObj = { study, FieldID: { $in: approvedFields } };
+                const approvedFields = projectSearchResult.approvedFields;
+                queryObj = { studyId, fieldId: { $in: approvedFields } };
             }
 
             const cursor = fieldCollection.find(queryObj, { projection: { _id: 0 } });

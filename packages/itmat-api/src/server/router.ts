@@ -1,6 +1,6 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
-import { CustomError, RequestValidationHelper, Logger } from 'itmat-utils';
+import { CustomError, Logger } from 'itmat-utils';
 import { UserController, FileController } from '../RESTControllers';
 import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
 import bodyParser from 'body-parser';
@@ -33,21 +33,27 @@ export class Router {
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
 
+
+        /* save persistent sessions in mongo */
         this.app.use(session({
             secret: 'IAmATeapot',
             store: new MongoStore({ db: db.getDB() } as any)
         }));
 
+
+        /* authenticating user of the request */
         this.app.use(passport.initialize());
         this.app.use(passport.session());
-
         passport.serializeUser(userController.serialiseUser);
         passport.deserializeUser(userController.deserialiseUser);
 
+
+        /* register apolloserver for graphql requests */
         const gqlServer = new ApolloServer({
             typeDefs: schema,
             resolvers,
             context: ({ req, res }: any) => {
+                /* Bounce all unauthenticated graphql requests */
                 if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
                     throw new ForbiddenError('not logged in');
                 }
@@ -59,13 +65,23 @@ export class Router {
                 return error;
             }
         });
-
         gqlServer.applyMiddleware({ app: this.app, cors: { origin: 'http://localhost:3000', credentials: true } });
 
+
+        /* register the graphql subscription functionalities */
         this.server = http.createServer(this.app);
         gqlServer.installSubscriptionHandlers(this.server);
 
-        this.app.use(RequestValidationHelper.bounceNotLoggedIn);
+
+        /* Bounce all unauthenticated non-graphql HTTP requests */
+        this.app.use((req: Request, res: Response, next: NextFunction) => {
+            if (req.user === undefined || req.user.username === undefined) {
+                res.status(401).json(new CustomError('Please log in first.'));
+                return;
+            }
+            next();
+        });
+
 
         this.app.route('/file')
             .get(fileController.downloadFile)

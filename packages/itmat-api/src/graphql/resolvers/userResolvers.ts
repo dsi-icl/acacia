@@ -7,7 +7,6 @@ import mongodb from 'mongodb';
 import uuidv4 from 'uuid/v4';
 import { makeGenericReponse } from '../responses';
 import { IUser, IShortCut } from 'itmat-utils/dist/models/user';
-import { APIModels } from 'itmat-utils/dist/models';
 
 export const userResolvers = {
     Query: {
@@ -21,14 +20,14 @@ export const userResolvers = {
             //     throw new ForbiddenError('Unauthorised.');
             // }
             const queryObj = args.username === undefined ? { deleted: false } : { deleted: false, username: args.username };
-            const cursor = db.users_collection!.find(queryObj);
+            const cursor = db.collections!.users_collection.find(queryObj);
             return cursor.toArray();
         }
     },
     Mutation: {
         login: async(parent: object, args: any, context: any, info: any): Promise<object> => {
             const { db, req }: { db: Database, req: Express.Request } = context;
-            const result = await db.users_collection!.findOne({ deleted: false, username: args.username });
+            const result = await db.collections!.users_collection.findOne({ deleted: false, username: args.username });
             if (!result) {
                 throw new UserInputError('User does not exist.');
             }
@@ -83,7 +82,7 @@ export const userResolvers = {
                 study
             };
 
-            const result = await db.users_collection!.findOneAndUpdate({ username: requester.username, deleted: false }, { $push: { shortcuts: shortcut } }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
+            const result = await db.collections!.users_collection.findOneAndUpdate({ username: requester.username, deleted: false }, { $push: { shortcuts: shortcut } }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
             if (result.ok !== 1) {
                 throw new ApolloError('Error in creating shortcut.');
             }
@@ -98,7 +97,7 @@ export const userResolvers = {
                 throw new ForbiddenError('Not logged in!');
             }
 
-            const result = await db.users_collection!.findOneAndUpdate({ username: requester.username, deleted: false }, { $pull: { shortcuts: { id: shortCutId }} }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
+            const result = await db.collections!.users_collection.findOneAndUpdate({ username: requester.username, deleted: false }, { $pull: { shortcuts: { id: shortCutId }} }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
             if (result.ok !== 1) {
                 throw new ApolloError('Error in creating shortcut.');
             }
@@ -114,7 +113,7 @@ export const userResolvers = {
                 username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string
             } = args.user;
 
-            const alreadyExist = await db.users_collection!.findOne({ username, deleted: false }); // since bycrypt is CPU expensive let's check the username is not taken first
+            const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: false }); // since bycrypt is CPU expensive let's check the username is not taken first
             if (alreadyExist !== null && alreadyExist !== undefined) {
                 throw new UserInputError('User already exists.');
             }
@@ -135,7 +134,7 @@ export const userResolvers = {
                 deleted: false
             };
 
-            const result = await db.users_collection!.insertOne(entry);
+            const result = await db.collections!.users_collection.insertOne(entry);
             if (result.result.ok === 1) {
                 delete entry.password;
                 return entry;
@@ -150,7 +149,7 @@ export const userResolvers = {
                 throw new ForbiddenError('Unauthorised.');
             }
             const username: string = args.username;
-            const result = await db.users_collection!.updateOne({ username, deleted: false }, { $set: { deleted: true, password: 'DeletedUserDummyPassword' } });
+            const result = await db.collections!.users_collection.updateOne({ username, deleted: false }, { $set: { deleted: true, password: 'DeletedUserDummyPassword' } });
 
             if (result.result.ok === 1) {
                 return makeGenericReponse(username);
@@ -168,7 +167,7 @@ export const userResolvers = {
                 throw new ForbiddenError('Unauthorised.');
             }
             if (requester.type === Models.UserModels.userTypes.ADMIN) {
-                const result: Models.UserModels.IUserWithoutToken = await db.users_collection!.findOne({ username, deleted: false })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ username, deleted: false })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     throw new ApolloError('User not found');
                 }
@@ -191,7 +190,7 @@ export const userResolvers = {
                 }
             }
 
-            const updateResult: mongodb.FindAndModifyWriteOpResultObject = await db.users_collection!.findOneAndUpdate({ username, deleted: false }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            const updateResult: mongodb.FindAndModifyWriteOpResultObject = await db.collections!.users_collection.findOneAndUpdate({ username, deleted: false }, { $set: fieldsToUpdate }, { returnOriginal: false });
             if (updateResult.ok === 1) {
                 return updateResult.value;
             } else {

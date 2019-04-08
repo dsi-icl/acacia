@@ -1,6 +1,6 @@
 import { ItmatAPIReq } from './requestInterface';
 import { Database } from '../database/database';
-import { Models, RequestValidationHelper, CustomError, OpenStackSwiftObjectStore } from 'itmat-utils';
+import { Models, CustomError, OpenStackSwiftObjectStore } from 'itmat-utils';
 import { Express, Request, Response, NextFunction } from 'express';
 import mongodb from 'mongodb';
 import uuidv4 from 'uuid/v4';

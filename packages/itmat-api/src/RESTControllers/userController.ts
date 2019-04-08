@@ -1,10 +1,9 @@
-import { Models, UserControllerBasic } from 'itmat-utils';
+import { Models } from 'itmat-utils';
 import mongodb from 'mongodb';
 
 
-export class UserController extends UserControllerBasic {
+export class UserController {
     constructor(private readonly usersCollection: mongodb.Collection) {
-        super();
         this.serialiseUser = this.serialiseUser.bind(this);
         this.deserialiseUser = this.deserialiseUser.bind(this);
     }

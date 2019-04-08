@@ -26,10 +26,13 @@ class ItmatNodeEnvironment extends NodeEnvironment {
     static async globalSetup() {
         process.env.NODE_ENV = 'test';
 
+        /* Creating a in-memory MongoDB instance for testing */
         console.log(await mongodb.getConnectionString());
         config.database.mongo_url = await mongodb.getConnectionString();
         config.database.database = await mongodb.getDbName();
         mongo = new MongoClient(config.database.mongo_url, { useNewUrlParser: true });
+
+        /* Setting up the collections and seeds in the database */
         await mongo.connect();
         const database = mongo.db(config.database.database);
         for (let each in config.database.collections) {
@@ -37,6 +40,8 @@ class ItmatNodeEnvironment extends NodeEnvironment {
         }
         await database.collection(config.database.collections.users_collection).insert(users);
 
+
+        /* Setting up the app (webserver) */
         db = new Database(config.database);
         const objStore = new OpenStackSwiftObjectStore(config.swift);
 
@@ -62,8 +67,8 @@ class ItmatNodeEnvironment extends NodeEnvironment {
 
     async setup() {
         super.setup();
-        this.global._APP_ = app;
-        this.global._MONGODB_ = mongo;
+        this.global._APP_ = app;  // binding the app to jest global object 
+        this.global._MONGODB_ = mongo; // binding the mongo instance to jest global object
     }
 
     async teardown() {

@@ -8,17 +8,6 @@ enum USERTYPE {
     STANDARD
 }
 
-enum APPLICATION_USER_TYPE {
-    APPLICATION_ADMIN
-    APPLICATION_USER
-}
-
-enum POSSIBLE_API_TRANSLATION {
-    XNAT
-    TRANSMART
-    NONE
-}
-
 type Notification {
     timestamp: Float
     notificationType: String
@@ -26,26 +15,127 @@ type Notification {
     data: JSON
 }
 
+enum FIELD_ITEM_TYPE {
+    I  #image
+    C  #clinical
+}
+
+enum FIELD_VALUE_TYPE {
+    N  #numeric
+    C  #categorical
+}
+
 type FieldInfo {
     id: String!
     study: String!
-    Path: String!
-    Category: Int!
-    FieldID: Int!
-    Field: String!
-    Participants: Int
-    Items: Int!
-    Stability: String!
-    ValueType: String!
-    Units: String
-    ItemType: String!
-    Strata: String!
-    Sexed: String!
-    Instances: Int!
-    Array: Int!
-    Coding: Int
-    Notes: String
-    Link: String
+    path: String!
+    fieldId: Int!
+    fieldName: String!
+    valueType: FIELD_VALUE_TYPE!,
+    possibleValues: [String],
+    unit: String,
+    itemType: FIELD_ITEM_TYPE!,
+    numOfTimePoints: Int!,
+    numOfMeasurements: Int!,
+    notes: String?
+}
+
+type User {
+    id: String!
+    username: String!
+    type: USERTYPE!
+    realName: String
+    email: String
+    shortcuts: [ShortCut]
+    description: String
+    notifications: [Notification!]
+    emailNotificationsActivated: Boolean!
+    createdBy: String
+}
+
+type ShortCut {
+    id: String!
+    study: String!
+    application: String
+}
+
+
+type StudyOrProjectUserRole {
+    id: String!,
+    name: String!,
+    studyId: String,
+    projectId: String,
+    permissions: [String]!,
+    users: [String]!
+}
+
+type Project {
+    id: String!
+    studyId: String!
+    name: String!
+    patientMapping: JSON!
+    approvedFields: [String]!
+
+    # external to mongo documents:
+    jobs: [Job]
+    projects: [Project]
+    roles: [StudyOrProjectUserRole]
+}
+
+type Job {
+    id: String,
+    study: String,
+    jobType: String,
+    requester: String,
+    receivedFiles: String,
+    status: String,
+    error: String,
+    cancelled: Boolean,
+    cancelledTime: Int,
+    data: JSON
+}
+
+type Study {
+    id: String!,
+    name: String!,
+    isUkbiobank: Boolean!,
+    createdBy: String!,
+    lastModified: Int,
+    deleted: Boolean
+    iHaveAccess: Boolean!
+
+    # external to mongo documents:
+    jobs: [Job]
+    projects: [Project]
+    roles: [StudyOrProjectUserRole]
+}
+
+type QueryEntry {
+    id: String!,
+    queryString: String!,
+    studyId: String!,
+    projectId: String,
+    requester: String!,
+    status: String!,
+    error: null | JSON,
+    cancelled: Boolean,
+    cancelledTime: Int,
+    queryResult: String,
+    data_requested: [String],
+    cohort: JSON,
+    new_fields: JSON
+}
+
+type GenericResponse {
+    successful: Boolean!
+    id: String
+}
+
+input QueryObjInput {
+    queryString: String!
+    returnFieldSelection: [String]
+    study: String!
+    project: String!
 }
 
 input CreateUserInput {
@@ -68,114 +158,29 @@ input EditUserInput {
     password: String
 }
 
-type User {
-    id: String
-    username: String!
-    type: USERTYPE!
-    realName: String
-    email: String
-    shortcuts: [ShortCut]
-    description: String
-    notifications: [Notification!]
-    emailNotificationsActivated: Boolean!
-    createdBy: String
-}
-
-type ShortCut {
-    id: String!
-    study: String!
-    application: String
-}
-
-type ApplicationPendingUserApprovals {
-    id: String!
-    user: String!
-    type: String!
-}
-
-type Application {
-    name: String!
-    id: String
-    study: String
-    pendingUserApprovals: [ApplicationPendingUserApprovals]
-    applicationAdmins: [String]
-    applicationUsers: [String]
-    approvedFields: [String]
-}
-
-type Job {
-    id: String,
-    study: String,
-    jobType: String,
-    requester: String,
-    receivedFiles: String,
-    status: String,
-    error: String,
-    cancelled: Boolean,
-    cancelledTime: Int,
-    data: JSON
-}
-
-type Study {
-    id: String,
-    name: String!
-    allUsers: [String]!
-    isUkbiobank: Boolean!
-    studyAndDataManagers: [String]
-    applications: [Application]
-    createdBy: String
-    iHaveAccess: Boolean!
-    jobs: [Job]
-}
-
-type QueryEntry {
-    id: String!
-    queryString: String!
-    study: String!
-    application: String!
-    requester: String!
-    claimedBy: String
-    lastClaimed: Int
-    status: String!
-    error: JSON
-    cancelled: Boolean
-    cancelledTime: Int
-    queryResult: String
-}
-
-type GenericResponse {
-    successful: Boolean!
-    id: String
-}
-
-input QueryObjInput {
-    # apiTranslation: POSSIBLE_API_TRANSLATION,
-    queryString: String!
-    returnFieldSelection: [String]
-    study: String!
-    application: String!
-}
-
 type Query {
     # USER
     whoAmI: User
-    getUsers(username: String): [User]   # admin only
+    getUsers(userId: String): [User]   # admin only
 
     # STUDY
-    getStudies(name: String): [Study]  # only returns the studies that the users are entitled
+    getStudies(studyId: String): [Study]  # only returns the studies that the users are entitled
 
     # QUERY
-    getQueries(study: String, application: String, id: String): [QueryEntry]
+    getQueries(studyId: String, projectId: String, id: String): [QueryEntry]
 
     # FIELDS
-    getAvailableFields(study: String!, application: String): [FieldInfo]
+    getAvailableFields(studyId: String, projectId: String): [FieldInfo]
+
+    # PERMISSION
+    getMyPermissions(): []
 }
 
 type Mutation {
     # USER
     login(username: String!, password: String!): User
     logout: GenericResponse
-    addShortCut(study: String!, application: String): User
+    addShortCut(study: String!, project: String): User
     removeShortCut(shortCutId: String!): User
 
     # APP USERS
@@ -185,26 +190,19 @@ type Mutation {
 
     # STUDY
     createStudy(name: String!, isUkbiobank: Boolean!): Study
-    deleteStudy(name: String!): GenericResponse #   #admin only
-    addUserToStudyManagers(username: String!, study: String!): Study
-    removeUserFromStudyManagers(username: String!, study: String!): Study
-    createApplication(study: String!, application: String!, approvedFields: [String]): Study
-    deleteApplication(study: String!, application: String!): Study
-    editApplicationApproveFields: Application
-    addUserToApplication(username: String!, study: String!, application: String!, type: APPLICATION_USER_TYPE!): Application
-    deleteUserFromApplication(username: String!, study: String!, application: String!): Application
-    purgeUserFromStudy(username: String!, study: String!): GenericResponse
-    applyToBeAddedToApplication(study: String!, application: String!, type: APPLICATION_USER_TYPE!): GenericResponse
-    rejectPendingApproval(username: String!, study: String!, application: String!): Application
+    deleteStudy(studyId: String!): GenericResponse  #admin only
+
+    # PROJECT
+    createProject(study: String!, project: String!, approvedFields: [String]): Study
+    deleteProject(study: String!, project: String!): Study
+    editProjectApproveFields: Project
+
+    # ACCESS MANAGEMENT
+    addRoleToStudyOrProject(studyId: String, projectId: String, roleName: String!, permissions: [String]!): StudyOrProjectUserRole
+    editRole(roleId: String!, name: String, permissionChanges: { add: [String]!, remove: [String]!}, userChanges: { add: [String]!, remove: [String]!}): StudyOrProjectUserRole
+    removeRoleFromStudyOrProject(roleId: String!): GenericResponse
 
     # QUERY
     createQuery(query: QueryObjInput!): QueryEntry
 }
-
-type Subscription {
-    newApplicationCreated(studyName: String!): Application
-    applicationDeleted(studyName: String!): String # this is the id of the application
-    # queryStatusUpdate(studyName: String!, application: String!): QueryEntry 
-}
-
 `;

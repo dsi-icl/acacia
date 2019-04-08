@@ -1,18 +1,21 @@
-import { Models } from 'itmat-utils';
+import { Models, permissions } from 'itmat-utils';
 import { Database } from '../../database/database';
-import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
+import { ForbiddenError, ApolloError, UserInputError, withFilter, defaultMergedResolver } from 'apollo-server-express';
 import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndUpdateOption } from 'mongodb';
-import { IStudy, APPLICATION_USER_TYPE, IApplication } from 'itmat-utils/dist/models/study';
-import { makeGenericReponse } from '../responses';
+import { IStudy, IProject, IRole } from 'itmat-utils/dist/models/study';
+import { makeGenericReponse, IGenericResponse } from '../responses';
 import uuidv4 from 'uuid/v4';
 import config from '../../../config/config.json';
 import { pubsub, subscriptionEvents } from '../pubsub';
+import { permissionCore } from '../core/permissionCore';
+import { Request, Response } from 'express';
+import uuid = require('uuid');
 
 export const studyResolvers = {
     Query: {
         getStudies: async(parent: object, args: any, context: any, info: any): Promise<Models.Study.IStudy[]> => {
             const db: Database = context.db;
-            const collection = db.studies_collection!;
+            const collection = db.collections!.studies_collection;
             const requester: Models.UserModels.IUser = context.req.user;
             const requestedFields: string[] = info.fieldNodes[0].selectionSet.selections.map((el: any) => el.name.value);
 
@@ -98,22 +101,23 @@ export const studyResolvers = {
         createStudy: async(parent: object, args: any, context: any, info: any): Promise<Models.Study.IStudy> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
+
+            /* only admins are able to create study */
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ForbiddenError('Unauthorised.');
             }
+
             const studyEntry: Models.Study.IStudy = {
                 id: uuidv4(),
                 name: args.name,
                 isUkbiobank: args.isUkbiobank,
-                studyAndDataManagers: [],
-                applications: [],
+                roles: [],
                 createdBy: requester.username,
                 lastModified: new Date().valueOf(),
                 deleted: false
             };
-            let result: InsertOneWriteOpResult;
 
-            result = await db.studies_collection!.insertOne(studyEntry);
+            const result: InsertOneWriteOpResult = await db.collections!.studies_collection.insertOne(studyEntry);
             if (result.insertedCount !== 1) {
                 throw new ApolloError('Error in creating study. InsertedCount is not 1 although mongo operation does not throw error.');
             } else {
@@ -121,162 +125,63 @@ export const studyResolvers = {
                 return studyEntry;
             }
         },
-        createApplication: async(parent: object, args: any, context: any, info: any): Promise<Models.Study.IStudy> => {
+        createProject: async(parent: object, args: any, context: any, info: any): Promise<Models.Study.IProject> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const { study: studyName, application: applicationName, approvedFields }: { study: string, application: string, approvedFields: string[] } = args;
-            const studySearchResult: Models.Study.IStudy = await db.studies_collection!.findOne({ name: studyName, deleted: false })!;
+
+            await permissionCore.bounceUnauthorizedUsers(
+                [
+                    permissions.all_studies_manage_projects,
+                    permissions.specific_study_projects_existence_management
+                ],
+                requester.username, studyName
+            );
+            
+            /* making sure that the study exists first */
+            const studySearchResult: Models.Study.IStudy = await db.collections!.studies_collection.findOne({ name: studyName, deleted: false })!;
             if (studySearchResult === null || studySearchResult === undefined) {
                 throw new ApolloError('Study does not exist.');
             }
-            if (requester.type !== Models.UserModels.userTypes.ADMIN && !studySearchResult.studyAndDataManagers.includes(requester.username)) {
-                throw new ForbiddenError('Unauthorised.');
-            }
-            const application: IApplication = {
+
+            /* if the study exists then create the project */
+            const project: IProject = {
+                roles: [],
+                patientMapping: {},  // mapping created lazily by query service (first time query from the application)
+                lastModified: new Date().valueOf(),
+                deleted: false,
+                createdBy: requester.createdBy,
                 study: studyName,
                 id: uuidv4(),
                 name: applicationName,
-                pendingUserApprovals: [],
-                applicationAdmins: [],
-                applicationUsers: [],
                 approvedFields: approvedFields === undefined ? [] : approvedFields
             };
 
-            const result = await db.studies_collection!.findOneAndUpdate({ name: studyName, deleted: false }, { $push: { applications: application }, $set: { lastModified: new Date().valueOf() } }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
-            if (result.ok !== 1) {
-                throw new ApolloError('Error in creating study. InsertedCount is not 1 although mongo operation does not throw error.');
+            const result = await db.collections!.projects_collection.insertOne(project);
+            if (result.result.ok !== 1) {
+                throw new ApolloError('Error in creating project. InsertedCount is not 1 although mongo operation does not throw error.');
             }
-            pubsub.publish(subscriptionEvents.study.NEW_APPLICATION_CREATED, { newApplicationCreated: application });
-            return result.value;
+            return project;
         },
-        deleteApplication: async(parent: object, args: any, context: any, info: any): Promise<Models.Study.IStudy> => {
+        deleteProject: async(parent: object, args: any, context: any, info: any): Promise<IGenericResponse> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
-            const { study: studyName, application: applicationName }: { study: string, application: string } = args;
-            const studySearchResult: Models.Study.IStudy = await db.studies_collection!.findOne({ name: studyName, deleted: false })!;
-            if (studySearchResult === null || studySearchResult === undefined) {
-                throw new ApolloError('Study does not exist.');
-            }
-            if (requester.type !== Models.UserModels.userTypes.ADMIN && !studySearchResult.studyAndDataManagers.includes(requester.username)) {
-                throw new ForbiddenError('Unauthorised.');
-            }
+            const { study: studyName, project: projectName }: { study: string, project: string } = args;
 
-            const result = await db.studies_collection!.findOneAndUpdate({ name: studyName, deleted: false }, { $pull: { applications: { name: applicationName } }, $set: { lastModified: new Date().valueOf() } }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
-            if (result.ok !== 1) {
-                throw new ApolloError('Error in creating study. InsertedCount is not 1 although mongo operation does not throw error.');
-            }
-            return result.value;
-        },
-        addUserToApplication: async(parent: object, args: any, context: any, info: any): Promise<IApplication> => {
-            const db: Database = context.db;
-            const requester: Models.UserModels.IUser = context.req.user;
-            const { username: userToBeAdded, study, type, application: applicationName }: { application: string, username: string, study: string, type: string } =  args;
-            const studyQueryObj: any = { name: study, applications: { $elemMatch: { name: applicationName }} };
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-                studyQueryObj.applications = { $elemMatch: { name: applicationName, applicationAdmins: requester.username }};
-            }
-            const studySearchResult: IStudy = await db.studies_collection!.findOne(studyQueryObj, { projection: { applications: { $elemMatch: { name: applicationName }}}})!;
-            if (studySearchResult === null || studySearchResult === undefined) {
-                throw new UserInputError('Study does not exist or you do not have authorisation.');
-            }
-
-            const userSearchResult: Models.UserModels.IUser = await db.users_collection!.findOne({ username: userToBeAdded, deleted: false })!;
-            if (userSearchResult === null || userSearchResult === undefined) {
-                throw new UserInputError('User does not exist.');
-            }
-
-            const userIsDataAdmin = studySearchResult.applications[0].applicationAdmins.includes(userToBeAdded);
-            const userIsDataUser = studySearchResult.applications[0].applicationUsers.includes(userToBeAdded);
-            const typeToBeAddedIsAdmin = type === Models.Study.APPLICATION_USER_TYPE.applicationAdmin;
-            let updateObj: any;
-
-            // doing these else-ifs to avoid having to do multiple updates
-            if (userIsDataAdmin && userIsDataUser) {  // shouldn't be true at any time if data is integral. but just in case
-                if (typeToBeAddedIsAdmin) {
-                    updateObj = { $pull: { dataUsers: userToBeAdded } };
-                } else {
-                    updateObj = { $pull: { 'applications.$.applicationAdmins': userToBeAdded } };
-                }
-            } else if (userIsDataAdmin) {
-                if (!typeToBeAddedIsAdmin) {
-                    updateObj = { $pull: { 'applications.$.applicationAdmins': userToBeAdded }, $push: { 'applications.$.applicationUsers': userToBeAdded } };
-                } else {
-                    return studySearchResult.applications[0];
-                }
-            } else if (userIsDataUser) {
-                if (typeToBeAddedIsAdmin) {
-                    updateObj = { $push: { 'applications.$.applicationAdmins': userToBeAdded }, $pull: { 'applications.$.applicationUsers': userToBeAdded } };
-                } else {
-                    return studySearchResult.applications[0];
-                }
-            } else if (!userIsDataAdmin && !userIsDataAdmin) {
-                if (typeToBeAddedIsAdmin) {
-                    updateObj = { $push: { 'applications.$.applicationAdmins': userToBeAdded } };
-                } else {
-                    updateObj = { $push: { 'applications.$.applicationUsers': userToBeAdded } };
-                }
-            }
-
-            const updateResult: FindAndModifyWriteOpResultObject = await db.studies_collection!.findOneAndUpdate(
-                { name: study, applications: { $elemMatch: { name: applicationName } }},
-                updateObj,
-                { projection: { applications: { $elemMatch: { name: applicationName } } }, returnOriginal: false }
-            );
-            if (updateResult.ok !== 1) {
-                throw new ApolloError('Cannot update record.');
-            }
-            if (updateResult.value.applications && updateResult.value.applications[0]) {
-                return updateResult.value.applications[0];
+            const projectUpdateResult = await db.collections!.projects_collection.updateOne({ name: projectName, study: studyName, deleted: false }, { $set: { deleted: true } });
+            if (projectUpdateResult.result.ok === 1 && projectUpdateResult.result.nModified === 1) {
+                return makeGenericReponse();
             } else {
-                throw new ApolloError('Cannot update record.');
+                throw new ApolloError('Error in deleting project. It may not have existed or an internal error may have occured.');
             }
         },
-        deleteUserFromApplication: async(parent: object, args: any, context: any, info: any): Promise<IApplication> => {
-            const db: Database = context.db;
-            const requester: Models.UserModels.IUser = context.req.user;
-            const { study, username: userToBeDeleted, application: applicationName }: { application: string, study: string, username: string } = args;
-            // check whether the user is in the study // if yes then delete
-            // check permission TO_DO
-            const studySearchResult: IStudy = await db.studies_collection!.findOne({
-                name: study,
-                deleted: false,
-                'applications.name': applicationName
-            }, { projection: { applications: { $elemMatch: { name: applicationName } } }})!;
-
-            if (studySearchResult === null || studySearchResult === undefined) {
-                throw new UserInputError('Study or application does not exist.');
-            }
-
-            if (!studySearchResult.applications[0].applicationAdmins.includes(userToBeDeleted) && !studySearchResult.applications[0].applicationUsers.includes(userToBeDeleted)) {
-                return studySearchResult.applications[0];
-            }
-
-            const updateResult: FindAndModifyWriteOpResultObject = await db.studies_collection!.findOneAndUpdate(
-                {
-                    name: study,
-                    deleted: false,
-                    applications: { $elemMatch: { name: applicationName } }
-                },
-                { $pull: { 'applications.$.applicationAdmins': userToBeDeleted, 'applications.$.applicationUsers': userToBeDeleted } },
-                { projection: { applications: { $elemMatch: { name: applicationName } } }, returnOriginal: false }
-            );
-            if (updateResult.ok !== 1) {
-                throw new ApolloError('Cannot update record.');
-            }
-            if (updateResult.value.applications && updateResult.value.applications[0]) {
-                return updateResult.value.applications[0];
-            } else {
-                throw new ApolloError('Cannot update record.');
-            }
-
-        },
-        deleteStudy: async(parent: object, args: any, context: any, info: any): Promise<void> => {
+        deleteStudy: async(parent: object, args: any, context: any, info: any): Promise<IGenericResponse> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const study: string = args.name;
             // TO_DO: delete patients too?
             const queryObj = requester.type === Models.UserModels.userTypes.ADMIN ? { name: study, deleted: false } : { name: study, deleted: false, studyAndDataManagers: requester.username };
-            const updateResult: UpdateWriteOpResult = await db.studies_collection!.updateOne(queryObj, { $set: { deleted: true } })!;
+            const updateResult: UpdateWriteOpResult = await db.collections!.studies_collection.updateOne(queryObj, { $set: { deleted: true } })!;
             if (updateResult.modifiedCount === 1) {
                 return makeGenericReponse(study);
             } else if (updateResult.modifiedCount === 0) {
@@ -288,70 +193,7 @@ export const studyResolvers = {
             } else {
                 throw new ApolloError('Server error.');
             }
-        },
-        applyToBeAddedToApplication: async(parent: object, args: any, context: any, info: any): Promise<void> => {
-            const db: Database = context.db;
-            const user: Models.UserModels.IUser = context.req.user;
-            const { study, type, application }: { application: string, study: string, type: APPLICATION_USER_TYPE } = args;
-            const notification = Models.Notifications.requestToBeAddedToApplication(user.username, study, application, type);
-            const studySearchResult: Models.Study.IStudy = await db.studies_collection!.findOne({ name: study, 'applications.name': application, deleted: false }, { projection: { applications: { $elemMatch: { name: application }}}})!;
-            if (studySearchResult === null || studySearchResult === undefined) {
-                throw new ApolloError('Cannot find study.');
-            }
-            const listOfApplicationAdmin: string[] = studySearchResult.applications[0].applicationAdmins;
-            const updateResult: WriteOpResult = await db.users_collection!.update(
-                { $or: [{ type: Models.UserModels.userTypes.ADMIN }, { username: { $in: listOfApplicationAdmin }}] },
-                { $push: { notifications: {
-                    $each: [notification],
-                    $position: 0
-                }}}
-            );
-            if (updateResult.result.ok !== 1) {
-                throw new ApolloError('Internal error.');
-            }
-            // TO_DO: add applications pendingUserApprovals
-            return makeGenericReponse(application);
-        },
-        addUserToStudyManagers: updateStudyManagers('$addToSet'),
-        removeUserFromStudyManagers: updateStudyManagers('$pull')
+        }
     },
-    Subscription: {
-        newApplicationCreated: {
-            subscribe: withFilter(
-                () => pubsub.asyncIterator(subscriptionEvents.study.NEW_APPLICATION_CREATED),
-                (payload, arg) => {
-                    console.log(payload, arg, payload.newApplicationCreated.study === arg.studyName);
-                    return payload.newApplicationCreated.study === arg.studyName;
-                }
-            )
-        }
-    }
+    Subscription: {}
 };
-
-function updateStudyManagers(operation: string) {
-    return async(parent: object, args: any, context: any, info: any): Promise<void> => {
-        const db: Database = context.db;
-        const requester: Models.UserModels.IUser = context.req.user;
-        const { username, study }: { study: string, username: string } = args;
-
-        if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-            throw new ForbiddenError('Unauthorised.');
-        }
-
-        const studySearchResult: IStudy = await db.studies_collection!.findOne({ name: study, deleted: false })!;
-        if (studySearchResult === null || studySearchResult === undefined) {
-            throw new UserInputError('Study does not exist or you do not have authorisation.');
-        }
-
-        const userSearchResult: Models.UserModels.IUser = await db.users_collection!.findOne({ username, deleted: false })!;
-        if (userSearchResult === null || userSearchResult === undefined) {
-            throw new UserInputError('User does not exist.');
-        }
-
-        const updateResult: FindAndModifyWriteOpResultObject = await db.studies_collection!.findOneAndUpdate({ name: study, deleted: false }, { [operation]: { studyAndDataManagers: username } }, { returnOriginal: false })!;
-        if (updateResult.ok !== 1) {
-            throw new ApolloError('Cannot update record.');
-        }
-        return updateResult.value;
-    };
-}

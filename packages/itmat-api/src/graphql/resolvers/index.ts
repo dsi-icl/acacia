@@ -2,13 +2,15 @@ import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
 import { queryResolvers } from './queryResolvers';
 import { fieldResolvers } from './fieldResolvers';
+import { permissionResolvers } from './permissionResolvers';
 import GraphQLJSON from 'graphql-type-json';
 
 const modules = [
     studyResolvers,
     userResolvers,
     queryResolvers,
-    fieldResolvers
+    fieldResolvers,
+    permissionResolvers
 ];
 
 export const resolvers = {
