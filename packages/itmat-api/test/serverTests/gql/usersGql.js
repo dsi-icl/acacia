@@ -10,7 +10,7 @@ const WHO_AM_I = print(gql`
         realName
         shortcuts {
             id
-            application
+            project
             study
         }
         email
@@ -21,8 +21,8 @@ const WHO_AM_I = print(gql`
 `);
 
 const ADD_SHORT_CUT = print(gql`
-    mutation addShortCut($study: String!, $application: String) {
-        addShortCut(study: $study, application: $application) {
+    mutation addShortCut($study: String!, $project: String) {
+        addShortCut(study: $study, project: $project) {
             id
             username
             shortcuts {
