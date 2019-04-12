@@ -6,7 +6,7 @@ const users = [{
     "createdBy" : "admin", 
     "email" : "standard@user.io", 
     "notifications" : [], 
-    "emailNotificationsActivated" : false, 
+    "emailNotificationsActivated" : true, 
     "deleted" : false, 
     "id" : "replaced_at_runtime",
     "shortcuts" : []

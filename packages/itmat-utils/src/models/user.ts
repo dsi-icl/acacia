@@ -12,7 +12,7 @@ export interface INotification {
 export interface IShortCut {
     id: string,
     study: string,
-    application?: string
+    project?: string
 }
 
 export interface IUserWithoutToken {

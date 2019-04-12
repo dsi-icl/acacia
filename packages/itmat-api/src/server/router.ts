@@ -37,7 +37,7 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(session({
             secret: 'IAmATeapot',
-            store: new MongoStore({ db: db.getDB() } as any)
+            store: new MongoStore({ db: db.db } as any)
         }));
 
 
@@ -61,6 +61,7 @@ export class Router {
             },
             formatError: (error: ApolloError) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
+                // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
                 Logger.error(error);
                 return error;
             }

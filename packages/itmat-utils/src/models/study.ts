@@ -10,7 +10,7 @@ export interface IStudy {
 export interface IRole {
     id: string
     projectId?: string,
-    studyId?: string,
+    studyId: string,
     name: string,
     permissions: string[],
     users: string[],

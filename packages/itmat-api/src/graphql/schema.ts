@@ -8,13 +8,6 @@ enum USERTYPE {
     STANDARD
 }
 
-type Notification {
-    timestamp: Float
-    notificationType: String
-    read: Boolean
-    data: JSON
-}
-
 enum FIELD_ITEM_TYPE {
     I  #image
     C  #clinical
@@ -37,7 +30,7 @@ type FieldInfo {
     itemType: FIELD_ITEM_TYPE!,
     numOfTimePoints: Int!,
     numOfMeasurements: Int!,
-    notes: String?
+    notes: String
 }
 
 type User {
@@ -48,7 +41,6 @@ type User {
     email: String
     shortcuts: [ShortCut]
     description: String
-    notifications: [Notification!]
     emailNotificationsActivated: Boolean!
     createdBy: String
 }
@@ -56,7 +48,7 @@ type User {
 type ShortCut {
     id: String!
     study: String!
-    application: String
+    project: String
 }
 
 
@@ -78,7 +70,6 @@ type Project {
 
     # external to mongo documents:
     jobs: [Job]
-    projects: [Project]
     roles: [StudyOrProjectUserRole]
 }
 
@@ -117,7 +108,7 @@ type QueryEntry {
     projectId: String,
     requester: String!,
     status: String!,
-    error: null | JSON,
+    error: JSON,
     cancelled: Boolean,
     cancelledTime: Int,
     queryResult: String,
@@ -158,6 +149,16 @@ input EditUserInput {
     password: String
 }
 
+input IntArrayChangesInput {
+    add: [Int]! 
+    remove: [Int]!
+} 
+
+input StringArrayChangesInput {
+    add: [String]!
+    remove: [String]!
+}
+
 type Query {
     # USER
     whoAmI: User
@@ -165,6 +166,7 @@ type Query {
 
     # STUDY
     getStudies(studyId: String): [Study]  # only returns the studies that the users are entitled
+    getProjects(projectId: String): Project
 
     # QUERY
     getQueries(studyId: String, projectId: String, id: String): [QueryEntry]
@@ -173,7 +175,7 @@ type Query {
     getAvailableFields(studyId: String, projectId: String): [FieldInfo]
 
     # PERMISSION
-    getMyPermissions(): []
+    getMyPermissions: [String]
 }
 
 type Mutation {
@@ -190,17 +192,17 @@ type Mutation {
 
     # STUDY
     createStudy(name: String!, isUkbiobank: Boolean!): Study
-    deleteStudy(studyId: String!): GenericResponse  #admin only
+    deleteStudy(studyId: String!): GenericResponse
 
     # PROJECT
-    createProject(study: String!, project: String!, approvedFields: [String]): Study
-    deleteProject(study: String!, project: String!): Study
-    editProjectApproveFields: Project
+    createProject(studyId: String!, projectName: String!, approvedFields: [String]): Study
+    deleteProject(projectId: String!): GenericResponse
+    editProjectApprovedFields(projectId: String!, changes: IntArrayChangesInput): Project
 
     # ACCESS MANAGEMENT
     addRoleToStudyOrProject(studyId: String, projectId: String, roleName: String!, permissions: [String]!): StudyOrProjectUserRole
-    editRole(roleId: String!, name: String, permissionChanges: { add: [String]!, remove: [String]!}, userChanges: { add: [String]!, remove: [String]!}): StudyOrProjectUserRole
-    removeRoleFromStudyOrProject(roleId: String!): GenericResponse
+    editRole(roleId: String!, name: String, permissionChanges: StringArrayChangesInput, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
+    removeRole(roleId: String!): GenericResponse
 
     # QUERY
     createQuery(query: QueryObjInput!): QueryEntry

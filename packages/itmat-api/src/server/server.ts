@@ -1,7 +1,5 @@
 import { ServerBase, CustomError, IServerBaseConfig } from 'itmat-utils';
-import { Database, IDatabaseConfig } from '../database/database';
-import { Router } from './router';
-import express, { Express, Request, Response, NextFunction } from 'express';
+import { IDatabaseConfig } from '../database/database';
 
 interface IServerConfig extends IServerBaseConfig<IDatabaseConfig> {
     bcrypt: {
@@ -9,7 +7,7 @@ interface IServerConfig extends IServerBaseConfig<IDatabaseConfig> {
     }
 }
 
-export class Server extends ServerBase<IDatabaseConfig, Database, IServerConfig> {
+export class Server extends ServerBase<IDatabaseConfig, IServerConfig> {
     protected async additionalChecksAndActions(): Promise<void> {
         if (isNaN(parseInt(this.config.bcrypt.saltround as any))) {
             console.log(

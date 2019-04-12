@@ -10,7 +10,7 @@ const objStore = new OpenStackSwiftObjectStore(config.swift);
 const server = new Server(config, db, objStore);
 
 server.connectToBackEnd().then(() => {
-    const userController = new UserController(db.users_collection!);
+    const userController = new UserController(db.collections!.users_collection);
     const fileController = new FileController(db, objStore);
     // const studyController = new StudyController(db.studies_collection!);
     // const queryController = new QueryController(db.queries_collection!);

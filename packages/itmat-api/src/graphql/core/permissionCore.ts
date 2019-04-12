@@ -8,7 +8,7 @@ import uuidv4 from 'uuid/v4';
 import { IUser, userTypes } from 'itmat-utils/dist/models/user';
 
 interface ICreateRoleInput {
-    studyId?: string,
+    studyId: string,
     projectId?: string,
     roleName: string,
     permissions: string[]
@@ -21,7 +21,7 @@ interface IUserToRoleInput {
 
 export class PermissionCore {
     private readonly hardCodedAdminPrivileges: string[];
-    constructor(private readonly studyCollection: mongodb.Collection, private readonly projectCollection: mongodb.Collection, private readonly roleCollection: mongodb.Collection) {
+    constructor(private readonly roleCollection: mongodb.Collection) {
         this.hardCodedAdminPrivileges = [...Object.values(permissions)]; // admin has all privileges 
     }
 
@@ -33,6 +33,10 @@ export class PermissionCore {
             }
         }
         return;
+    }
+
+    async getAllRolesOfStudyOrProject(studyId: string, projectId?: string): Promise<IRole[]> {
+        return this.roleCollection.find({ studyId, projectId }).toArray();
     }
 
     async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, study: string, project?: string): Promise<boolean> {
@@ -66,12 +70,32 @@ export class PermissionCore {
         return false;
     }
 
-    async removeRoleFromStudyOrProject(roleId: string): Promise<IRole> {
+    async removeRole(roleId: string): Promise<void> {
         const updateResult = await this.roleCollection.findOneAndUpdate({ id: roleId, deleted: false }, { $set: { deleted: true } });
         if (updateResult.ok === 1) {
-            return updateResult.value;
+            return;
         } else {
             throw new ApolloError(`Cannot delete role.`, errorCodes.DATABASE_ERROR);
+        }
+    }
+
+    async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string, projectId?: string } | { studyId?: string, projectId: string } ): Promise<void> {
+        if (studyId === undefined && projectId === undefined) {
+            throw new ApolloError('Neither studyId nor projectId is provided');
+        }
+        let queryObj = {};
+        if (studyId !== undefined && projectId !== undefined) {
+            queryObj = { studyId, projectId, deleted: false };
+        } else if (studyId !== undefined) {
+            queryObj = { studyId, deleted: false };
+        } else if (projectId !== undefined) {
+            queryObj = { projectId, deleted: false };
+        }
+        const updateResult = await this.roleCollection.updateMany(queryObj, { $set: { deleted: true } });
+        if (updateResult.result.ok === 1) {
+            return;
+        } else {
+            throw new ApolloError(`Cannot delete role(s).`, errorCodes.DATABASE_ERROR);
         }
     }
 
@@ -114,7 +138,8 @@ export class PermissionCore {
             permissions: opt.permissions,
             users: [],
             studyId: opt.studyId,
-            projectId: opt.projectId
+            projectId: opt.projectId,
+            deleted: false
         };
         const updateResult = await this.roleCollection.insertOne(role);
         if (updateResult.result.ok === 1 && updateResult.insertedCount === 1) {
@@ -145,4 +170,4 @@ export class PermissionCore {
     }
 }
 
-export const permissionCore = Object.freeze(new PermissionCore(db.collections!.studies_collection, db.collections!.projects_collection, db.collections!.roles_collection));
+export const permissionCore = new PermissionCore(db.collections!.roles_collection);

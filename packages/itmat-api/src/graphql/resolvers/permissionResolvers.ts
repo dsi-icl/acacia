@@ -34,7 +34,7 @@ export const permissionResolvers = {
                 await studyCore.findOneProject_throwErrorIfNotExist(projectId);
             }
 
-            const result = await permissionCore.addRoleToStudyOrProject({ permissions, studyId, projectId, roleName });
+            const result = await permissionCore.addRoleToStudyOrProject({ permissions, studyId: studyId!, projectId, roleName });
             return result;
         },
         editRole: async(parent: object, args: {roleId: string, name: string, userChanges: { add: string[], remove: string[]}, permissionChanges: { add: string[], remove: string[]}}, context: any, info: any): Promise<IRole> => {
@@ -55,14 +55,14 @@ export const permissionResolvers = {
             const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, permissionChanges, userChanges);
             return modifiedRole;
         },
-        removeRoleFromStudyOrProject: async(parent: object, args: {roleId: string}, context: any, info: any): Promise<IGenericResponse> => {
+        removeRole: async(parent: object, args: {roleId: string}, context: any, info: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
             const { roleId } = args;
 
             /* check permission */
 
             /* remove the role */
-            await permissionCore.removeRoleFromStudyOrProject(roleId);
+            await permissionCore.removeRole(roleId);
             return makeGenericReponse(roleId);
         }
     },

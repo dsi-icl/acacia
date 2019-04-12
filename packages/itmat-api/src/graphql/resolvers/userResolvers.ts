@@ -67,10 +67,10 @@ export const userResolvers = {
                 });
             });
         },
-        addShortCut: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+        addShortCut: async(parent: object, args: { study: string, project?: string }, context: any, info: any): Promise<object> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
-            const { study, application }: { study: string, application: string } = args;
+            const { study, project }  = args;
 
             if (requester === undefined || requester === null) {
                 throw new ForbiddenError('Not logged in!');
@@ -78,7 +78,7 @@ export const userResolvers = {
 
             const shortcut: IShortCut = {
                 id: uuidv4(),
-                application: application || undefined,
+                project,
                 study
             };
 
