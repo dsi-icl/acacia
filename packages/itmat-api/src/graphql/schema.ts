@@ -207,4 +207,8 @@ type Mutation {
     # QUERY
     createQuery(query: QueryObjInput!): QueryEntry
 }
+
+type Subscription {
+    stub: GenericResponse
+}
 `;
