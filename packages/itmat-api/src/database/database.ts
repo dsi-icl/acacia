@@ -10,7 +10,8 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
         projects_collection: string,
         queries_collection: string,
         field_dictionary_collection: string,
-        roles_collection: string
+        roles_collection: string,
+        log_collection: string
     }
 }
 

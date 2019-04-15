@@ -1,50 +1,22 @@
 import { Express } from 'express';
-import { Database, IDatabaseBaseConfig } from './database';
+import { Database, IDatabaseBaseConfig, IDatabase } from './database';
 import { MongoClient } from 'mongodb';
 import { CustomError } from './error';
 import { Logger } from './logger';
 import { IOpenSwiftObjectStoreConfig, OpenStackSwiftObjectStore } from './OpenStackObjectStore';
 
-export interface IServerBaseConfig<D extends IDatabaseBaseConfig> {
-    server: {
-        port: number
-    },
-    database: D,
-    swift: IOpenSwiftObjectStoreConfig
+export interface IServerBaseConfig {
+    port: number
 }
 
-export abstract class ServerBase<D extends IDatabaseBaseConfig, T extends IServerBaseConfig<D>> {
+export abstract class ServerBase<T extends IServerBaseConfig> {
     constructor(
         protected readonly config: T,
-        protected readonly db: Database<D>,
-        protected readonly objStore: OpenStackSwiftObjectStore) {}
-
-    public async connectToBackEnd(): Promise<void> {
-        try {  // try to establish a connection to database first; if failed, exit the program
-            await this.db.connect();
-        } catch (e) {
-            const { mongo_url: mongoUri, database } = this.config.database;
-            Logger.error(
-                new CustomError(`Cannot connect to database host ${mongoUri} - db = ${database}.`, e)
-            );
-            process.exit(1);
-        }
-
-        try {  // try to establish a connection to database first; if failed, exit the program
-            await this.objStore.connect();
-            Logger.log('connected to object store');
-        } catch (e) {
-            Logger.log(
-                new CustomError('Cannot connect to object store.', e)
-            );
-            process.exit(1);
-        }
-
-        await this.additionalChecksAndActions();
-    }
+        protected readonly db: IDatabase, // db is connected
+        protected readonly objStore: OpenStackSwiftObjectStore) {} // objStore is connected
 
     public async start(router: Express): Promise<void> {
-        const port = this.config.server.port;
+        const port = this.config.port;
         router.listen(port, () => {
             Logger.log(`I am listening on port ${port}!`);
         }).on('error', err => {

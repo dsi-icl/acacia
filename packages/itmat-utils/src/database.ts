@@ -1,6 +1,7 @@
 import * as mongodb from 'mongodb';
 import { CustomError } from './error';
 import { Logger } from './logger';
+import { connect } from 'tls';
 
 export interface IDatabaseBaseConfig {
     mongo_url: string,
@@ -10,7 +11,16 @@ export interface IDatabaseBaseConfig {
     }
 }
 
-export class Database<configType extends IDatabaseBaseConfig, C = {[name in keyof configType['collections']]: mongodb.Collection} > {
+export interface IDatabase {
+    collections?: any,
+    connect: () => Promise<void>,
+    db: mongodb.Db,
+    client: mongodb.MongoClient,
+    isConnected: () => boolean,
+    closeConnection: () => Promise<void>
+}
+
+export class Database<configType extends IDatabaseBaseConfig, C = {[name in keyof configType['collections']]: mongodb.Collection} > implements IDatabase {
     private _client: mongodb.MongoClient;
     public collections?: C;
 
