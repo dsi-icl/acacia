@@ -13,7 +13,7 @@ export interface IDatabaseBaseConfig {
 
 export interface IDatabase {
     collections?: any,
-    connect: () => Promise<void>,
+    connect: (config: any) => Promise<void>,
     db: mongodb.Db,
     client: mongodb.MongoClient,
     isConnected: () => boolean,
@@ -21,14 +21,13 @@ export interface IDatabase {
 }
 
 export class Database<configType extends IDatabaseBaseConfig, C = {[name in keyof configType['collections']]: mongodb.Collection} > implements IDatabase {
-    private _client: mongodb.MongoClient;
+    private _client?: mongodb.MongoClient;
+    private config?: configType;
     public collections?: C;
 
-    constructor(protected readonly config: configType) {
+    public async connect(config: configType): Promise<void> {
         this._client = new mongodb.MongoClient(config.mongo_url, { useNewUrlParser: true });
-    }
-
-    public async connect(): Promise<void> {
+        this.config = config;
         if (!this.isConnected()) {
             Logger.log('Connecting to the database..');
             /* any error throw here will be caught by the server */
@@ -48,27 +47,27 @@ export class Database<configType extends IDatabaseBaseConfig, C = {[name in keyo
     }
 
     get db(): mongodb.Db {
-        return this._client.db(this.config.database);
+        return this._client!.db(this.config!.database);
     }
 
     get client(): mongodb.MongoClient {
-        return this._client;
+        return this._client!;
     }
 
     public isConnected(): boolean {
-        return this._client.isConnected();
+        return this._client!.isConnected();
     }
 
     public async closeConnection(): Promise<void> {
         try {
-            await this._client.close();
+            await this._client!.close();
         } catch (e) {
             Logger.error(new CustomError('Cannot close Mongo connection', e));
         }
     }
 
     private assignCollections(): void {
-        const collections: C = Object.entries(this.config.collections).reduce((a: any, e: [string, string]) => {
+        const collections: C = Object.entries(this.config!.collections).reduce((a: any, e: [string, string]) => {
             a[e[0]] = this.db.collection(e[1]);
             return a;
         }, {});
@@ -77,7 +76,7 @@ export class Database<configType extends IDatabaseBaseConfig, C = {[name in keyo
 
     private async checkAllCollectionsArePresent(): Promise<void> {
         const collectionList: string[] = (await this.db.listCollections({}).toArray()).map(el => el.name);
-        for (const each of Object.values(this.config.collections)) {
+        for (const each of Object.values(this.config!.collections)) {
             if (!collectionList.includes(each)) {
                 throw new CustomError(`Collection ${each} does not exist.`);
             }

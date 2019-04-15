@@ -8,3 +8,12 @@ import { Query } from 'itmat-utils/dist/models';
 
 const objStore = new OpenStackSwiftObjectStore(config.swift);
 const server = new Server(config, db, objStore);
+
+db.connect(config.database)
+    .then(() => objStore.connect())
+    .then(() => {
+        const userController = new UserController(db.collections!.users_collection);
+        const fileController = new FileController(db, objStore);
+        const router = new Router(db, userController, fileController);
+        server.start(router.getApp());
+});

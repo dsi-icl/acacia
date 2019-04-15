@@ -7,15 +7,15 @@ const NodeEnvironment = require('jest-environment-node');
 const config = require('./config');
 const mongodb = require('./inMemoryMongo');
 const { MongoClient } = require('mongodb');
-const { Database } = require('../../dist/src/database/database');
+const { db } = require('../../dist/src/database/database');
 const { OpenStackSwiftObjectStore } = require('itmat-utils');
 const { FileController, UserController, QueryController } = require('../../dist/src/RESTControllers');
 const { Router } = require('../../dist/src/server/router');
-const users = require('../seed/users');
+const users = require('../../seed/users');
 
 let app;
+let objStore;
 let mongo;
-let db;
 
 class ItmatNodeEnvironment extends NodeEnvironment {
 
@@ -42,16 +42,14 @@ class ItmatNodeEnvironment extends NodeEnvironment {
 
 
         /* Setting up the app (webserver) */
-        db = new Database(config.database);
-        const objStore = new OpenStackSwiftObjectStore(config.swift);
+        objStore = new OpenStackSwiftObjectStore(config.swift);
 
-        return new server(config, db, objStore)
-            .connectToBackEnd()
+        return db.connect(config.database)
+            .then(() => objStore.connect())
             .then(() => {
-                const userController = new UserController(db.users_collection);
+                const userController = new UserController(db.collections.users_collection);
                 const fileController = new FileController(db, objStore);
-                const queryController = new QueryController(db.queries_collection);
-                const router = new Router(db, userController, fileController, queryController);
+                const router = new Router(db, userController, fileController);
                 app = router.getApp();
                 return true;
             }).catch(err => {
@@ -61,6 +59,7 @@ class ItmatNodeEnvironment extends NodeEnvironment {
 
     static async globalTeardown() {
         await mongo.close();
+        await objStore.disconnect();
         await db.closeConnection();
         await mongodb.stop();
     }

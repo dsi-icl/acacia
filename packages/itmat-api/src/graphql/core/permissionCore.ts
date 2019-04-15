@@ -21,7 +21,7 @@ interface IUserToRoleInput {
 
 export class PermissionCore {
     private readonly hardCodedAdminPrivileges: string[];
-    constructor(private readonly roleCollection: mongodb.Collection) {
+    constructor() {
         this.hardCodedAdminPrivileges = [...Object.values(permissions)]; // admin has all privileges 
     }
 
@@ -36,7 +36,7 @@ export class PermissionCore {
     }
 
     async getAllRolesOfStudyOrProject(studyId: string, projectId?: string): Promise<IRole[]> {
-        return this.roleCollection.find({ studyId, projectId }).toArray();
+        return db.collections!.roles_collection.find({ studyId, projectId }).toArray();
     }
 
     async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, study: string, project?: string): Promise<boolean> {
@@ -55,7 +55,7 @@ export class PermissionCore {
             { $group: {  _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } }  },
             { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: [ '$$this', '$$value' ] }  } } } }
         ];
-        const result: { _id: string, arrPrivileges: string[] }[] = await this.roleCollection.aggregate(aggregationPipeline).toArray();
+        const result: { _id: string, arrPrivileges: string[] }[] = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
         if (result.length !== 1) {
             throw new ApolloError(`Internal error occurred when checking user privileges.`, errorCodes.DATABASE_ERROR);
         }
@@ -71,7 +71,7 @@ export class PermissionCore {
     }
 
     async removeRole(roleId: string): Promise<void> {
-        const updateResult = await this.roleCollection.findOneAndUpdate({ id: roleId, deleted: false }, { $set: { deleted: true } });
+        const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, { $set: { deleted: true } });
         if (updateResult.ok === 1) {
             return;
         } else {
@@ -91,7 +91,7 @@ export class PermissionCore {
         } else if (projectId !== undefined) {
             queryObj = { projectId, deleted: false };
         }
-        const updateResult = await this.roleCollection.updateMany(queryObj, { $set: { deleted: true } });
+        const updateResult = await db.collections!.roles_collection.updateMany(queryObj, { $set: { deleted: true } });
         if (updateResult.result.ok === 1) {
             return;
         } else {
@@ -100,7 +100,7 @@ export class PermissionCore {
     }
 
     async editRoleFromStudyOrProject(roleId: string, permissionChanges: { add: string[], remove: string[] }, userChanges: { add: string[], remove: string[] }): Promise<IRole> {
-        const updateResult = await this.roleCollection.findOneAndUpdate({ id: roleId, deleted: false }, {
+        const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, {
             $addToSet: { permissions: { $each: permissionChanges.add }, users: { $each: userChanges.add } },
             $pullAll: { permissions: permissionChanges.remove, users: userChanges.remove }
         });
@@ -141,7 +141,7 @@ export class PermissionCore {
             projectId: opt.projectId,
             deleted: false
         };
-        const updateResult = await this.roleCollection.insertOne(role);
+        const updateResult = await db.collections!.roles_collection.insertOne(role);
         if (updateResult.result.ok === 1 && updateResult.insertedCount === 1) {
             return role;
         } else {
@@ -151,7 +151,7 @@ export class PermissionCore {
 
     async addUserToRole(opt: IUserToRoleInput): Promise<IRole> {
         const { roleId, userId } = opt;
-        const updateResult = await this.roleCollection.findOneAndUpdate({ id: roleId, deleted: false }, { $addToSet: { users: userId } });
+        const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, { $addToSet: { users: userId } });
         if (updateResult.ok === 1) {
             return updateResult.value;
         } else {
@@ -161,7 +161,7 @@ export class PermissionCore {
 
     async removeUserFromRole(opt: IUserToRoleInput): Promise<IRole> {
         const { roleId, userId } = opt;
-        const updateResult = await this.roleCollection.findOneAndUpdate({ id: roleId, deleted: false }, { $pull: { users: userId } });
+        const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, { $pull: { users: userId } });
         if (updateResult.ok === 1) {
             return updateResult.value;
         } else {
@@ -170,4 +170,4 @@ export class PermissionCore {
     }
 }
 
-export const permissionCore = new PermissionCore(db.collections!.roles_collection);
+export const permissionCore = new PermissionCore();

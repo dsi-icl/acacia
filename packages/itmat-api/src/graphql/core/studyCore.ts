@@ -9,10 +9,10 @@ import { IUser, userTypes } from 'itmat-utils/dist/models/user';
 import { PermissionCore, permissionCore } from './permissionCore';
 
 export class StudyCore {
-    constructor(private readonly studyCollection: mongodb.Collection, private readonly projectCollection: mongodb.Collection, private readonly mongoClient: mongodb.MongoClient, private readonly permissionCore: PermissionCore){}
+    constructor(private readonly permissionCore: PermissionCore){}
 
     async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
-        const studySearchResult: IStudy = await this.studyCollection.findOne({ id: studyId, deleted: false })!;
+        const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
         if (studySearchResult === null || studySearchResult === undefined) {
             throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
@@ -20,7 +20,7 @@ export class StudyCore {
     }
 
     async findOneProject_throwErrorIfNotExist(projectId: string): Promise<IProject> {
-        const projectSearchResult: IProject = await this.projectCollection.findOne({ id: projectId, deleted: false })!;
+        const projectSearchResult: IProject = await db.collections!.projects_collection.findOne({ id: projectId, deleted: false })!;
         if (projectSearchResult === null || projectSearchResult === undefined) {
             throw new ApolloError('Project does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
@@ -36,7 +36,7 @@ export class StudyCore {
             lastModified: new Date().valueOf(),
             deleted: false
         };
-        await this.studyCollection.insertOne(study);
+        await db.collections!.studies_collection.insertOne(study);
         return study;
     }
 
@@ -51,21 +51,21 @@ export class StudyCore {
             lastModified: new Date().valueOf(),
             deleted: false
         };
-        await this.projectCollection.insertOne(project);
+        await db.collections!.projects_collection.insertOne(project);
         return project;
     }
 
     async deleteStudy(studyId: string): Promise<void> {
-        const session = this.mongoClient.startSession();
+        const session = db.client.startSession();
         session.startTransaction();
 
         try {
             const opts = { session, returnOriginal: false };
             /* delete the study */
-            await this.studyCollection.findOneAndUpdate({ id: studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true   }});
+            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true   }});
 
             /* delete all projects related to the study */
-            await this.projectCollection.updateMany({ studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
+            await db.collections!.projects_collection.updateMany({ studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
 
             /* delete all roles related to the study */
             await this.permissionCore.removeRoleFromStudyOrProject({ studyId });
@@ -86,14 +86,14 @@ export class StudyCore {
     }
 
     async deleteProject(projectId: string): Promise<void> {
-        const session = this.mongoClient.startSession();
+        const session = db.client.startSession();
         session.startTransaction();
 
         try {
             const opts = { session, returnOriginal: false };
 
             /* delete all projects related to the study */
-            await this.projectCollection.updateMany({ id: projectId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } }, opts);
+            await db.collections!.projects_collection.updateMany({ id: projectId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } }, opts);
 
             /* delete all roles related to the study */
             await this.permissionCore.removeRoleFromStudyOrProject({ projectId });
@@ -112,7 +112,7 @@ export class StudyCore {
 
     async editProjectApprovedFields(projectId: string, changes: { add: number[], remove: number[] } ) {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await this.projectCollection.findOneAndUpdate({ id: projectId }, { $push: { approvedFields: { $each: changes.add } }, $pull: { approvedFields: { $each: changes.remove }} });
+        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $push: { approvedFields: { $each: changes.add } }, $pull: { approvedFields: { $each: changes.remove }} });
         if (result.ok === 1) {
             return result.value;
         } else {
@@ -121,4 +121,4 @@ export class StudyCore {
     }
 }
 
-export const studyCore = Object.freeze(new StudyCore(db.collections!.studies_collection, db.collections!.projects_collection, db.client, permissionCore));
+export const studyCore = Object.freeze(new StudyCore(permissionCore));

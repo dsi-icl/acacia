@@ -27,7 +27,7 @@ const ADD_SHORT_CUT = print(gql`
             username
             shortcuts {
                 id
-                application
+                project
                 study
             }
         }
@@ -41,7 +41,7 @@ const REMOVE_SHORT_CUT = print(gql`
             username
             shortcuts {
                 id
-                application
+                project
                 study
             }
         }

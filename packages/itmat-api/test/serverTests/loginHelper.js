@@ -4,7 +4,7 @@ const gql = require('graphql-tag');
 const { print } = require('graphql');
 
 const LOGIN = print(gql`
-mutation Login($username: String!, $password: String!) {
+mutation login($username: String!, $password: String!) {
     login(username: $username, password: $password) {
         id
         username
@@ -12,7 +12,7 @@ mutation Login($username: String!, $password: String!) {
         realName
         shortcuts {
             id
-            application
+            project
             study
         }
         email
@@ -36,7 +36,7 @@ function connectAdmin(agent) {
 }
 
 function connectUser(agent) {
-    return connectAgent(agent, 'chon', 'admin');
+    return connectAgent(agent, 'standardUser', 'admin');
 }
 
 function connectAgent(agent, user, pw) {

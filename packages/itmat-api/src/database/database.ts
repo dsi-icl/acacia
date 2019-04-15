@@ -1,6 +1,5 @@
 import mongodb from 'mongodb';
 import { IDatabaseBaseConfig, Database } from 'itmat-utils';
-import config from '../../config/config.json';
 
 export interface IDatabaseConfig extends IDatabaseBaseConfig {
     collections: {
@@ -16,4 +15,4 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
 }
 
 export type Database = Database<IDatabaseBaseConfig>;
-export const db = new Database(config.database);
+export const db = new Database();

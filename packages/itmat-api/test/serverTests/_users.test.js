@@ -195,24 +195,24 @@ describe('USERS API', () => {
                 return true;
         }));
 
-        test('Get all users only id and username (user)',  () => user
-            .post('/graphql')
-            .send({ query: GET_USERS_LIST_ONLY_USERNAME })
-            .then(res => {
-                expect(res.status).toBe(200);
-                expect(res.body.data.getUsers.length).toBe(2);
-                expect(res.body.data.getUsers[0].username).toBe('admin');
-                expect(res.body.data.getUsers[0].id).toBeDefined();
-                expect(res.body.data.getUsers[0].type).toBeUndefined();
-                expect(res.body.data.getUsers[0].realName).toBeUndefined();
-                expect(res.body.data.getUsers[0].email).toBeUndefined();
-                expect(res.body.data.getUsers[1].username).toBe('standardUser');
-                expect(res.body.data.getUsers[1].id).toBeDefined();
-                expect(res.body.data.getUsers[1].type).toBeUndefined();
-                expect(res.body.data.getUsers[1].realName).toBeUndefined();
-                expect(res.body.data.getUsers[1].email).toBeUndefined();
-                return true;
-        }));
+        // test('Get all users only id and username (user)',  () => user
+        //     .post('/graphql')
+        //     .send({ query: GET_USERS_LIST_ONLY_USERNAME })
+        //     .then(res => {
+        //         expect(res.status).toBe(200);
+        //         expect(res.body.data.getUsers.length).toBe(2);
+        //         expect(res.body.data.getUsers[0].username).toBe('admin');
+        //         expect(res.body.data.getUsers[0].id).toBeDefined();
+        //         expect(res.body.data.getUsers[0].type).toBeUndefined();
+        //         expect(res.body.data.getUsers[0].realName).toBeUndefined();
+        //         expect(res.body.data.getUsers[0].email).toBeUndefined();
+        //         expect(res.body.data.getUsers[1].username).toBe('standardUser');
+        //         expect(res.body.data.getUsers[1].id).toBeDefined();
+        //         expect(res.body.data.getUsers[1].type).toBeUndefined();
+        //         expect(res.body.data.getUsers[1].realName).toBeUndefined();
+        //         expect(res.body.data.getUsers[1].email).toBeUndefined();
+        //         return true;
+        // }));
 
         test('Get a specific user (admin)',  () => admin
             .post('/graphql')

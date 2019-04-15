@@ -24,6 +24,15 @@ export class OpenStackSwiftObjectStore {
         }
     }
 
+    public async disconnect(): Promise<boolean> {
+        try {
+            await (this.account as any).disconnect();
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
     public async connect(): Promise<void> {
         const store = new Store(this.config.uri);
         const account = new Account(store, this.config.username, this.config.password);

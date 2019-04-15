@@ -54,9 +54,9 @@ export class Router {
             resolvers,
             context: ({ req, res }: any) => {
                 /* Bounce all unauthenticated graphql requests */
-                if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
-                    throw new ForbiddenError('not logged in');
-                }
+                // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
+                //     throw new ForbiddenError('not logged in');
+                // }
                 return ({ req, res, db });
             },
             formatError: (error: ApolloError) => {

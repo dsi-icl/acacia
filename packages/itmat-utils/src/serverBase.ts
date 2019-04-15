@@ -6,7 +6,9 @@ import { Logger } from './logger';
 import { IOpenSwiftObjectStoreConfig, OpenStackSwiftObjectStore } from './OpenStackObjectStore';
 
 export interface IServerBaseConfig {
-    port: number
+    server: {
+        port: number
+    }
 }
 
 export abstract class ServerBase<T extends IServerBaseConfig> {
@@ -16,7 +18,7 @@ export abstract class ServerBase<T extends IServerBaseConfig> {
         protected readonly objStore: OpenStackSwiftObjectStore) {} // objStore is connected
 
     public async start(router: Express): Promise<void> {
-        const port = this.config.port;
+        const port = this.config.server.port;
         router.listen(port, () => {
             Logger.log(`I am listening on port ${port}!`);
         }).on('error', err => {
