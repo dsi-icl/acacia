@@ -1,7 +1,7 @@
 const { print } = require('graphql');
 const gql = require('graphql-tag');
 
-const GET_USERS_LIST = gql`
+const GET_USERS_LIST = print(gql`
     {
         getUsers {
             id
@@ -11,18 +11,18 @@ const GET_USERS_LIST = gql`
             email
         }
     }
-`;
+`);
 
-const GET_USERS_LIST_ONLY_USERNAME = gql`
+const GET_USERS_LIST_ONLY_USERNAME = print(gql`
     {
         getUsers {
             id
             username
         }
     }
-`;
+`);
 
-const GET_SPECIFIC_USER = gql`
+const GET_SPECIFIC_USER = print(gql`
     query getSpecificUser($username: String){
         getUsers(username: $username) {
             id
@@ -35,9 +35,9 @@ const GET_SPECIFIC_USER = gql`
             createdBy
         }
     }
-`;
+`);
 
-const CREATE_USER = gql`
+const CREATE_USER = print(gql`
     mutation CreateUser(
         $username: String!
         $password: String!
@@ -66,9 +66,9 @@ const CREATE_USER = gql`
             createdBy
         }
     }
-`;
+`);
 
-const EDIT_USER = gql`
+const EDIT_USER = print(gql`
     mutation EditUser(
         $username: String!
         $type: USERTYPE
@@ -94,15 +94,15 @@ const EDIT_USER = gql`
             emailNotificationsActivated
         }
     }
-`;
+`);
 
-const DELETE_USER = gql`
+const DELETE_USER = print(gql`
     mutation DeleteUser($username: String!) {
         deleteUser(username: $username) {
             id
             successful
         }
     }
-`;
+`);
 
 module.exports = { DELETE_USER, EDIT_USER, GET_SPECIFIC_USER, GET_USERS_LIST, GET_USERS_LIST_ONLY_USERNAME, CREATE_USER }

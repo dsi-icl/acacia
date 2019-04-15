@@ -108,8 +108,7 @@ describe('USERS API', () => {
             .then(res => {
                 expect(res.status).toBe(200);
                 expect(res.body.data.addShortCut.username).toBe('admin');
-                expect(res.body.data.addShortCut.shortcuts.length).toBe(2);
-                throw Error('');
+                expect(res.body.data.addShortCut.shortcuts.length).toBe(3);
                 return true;
         }));
 
@@ -119,7 +118,7 @@ describe('USERS API', () => {
             .then(res => {
                 expect(res.status).toBe(200);
                 expect(res.body.data.addShortCut.username).toBe('standardUser');
-                expect(res.body.data.addShortCut.shortcuts.length).toBe(2);
+                expect(res.body.data.addShortCut.shortcuts.length).toBe(3);
                 throw Error('');
                 return true;
         }));
@@ -130,7 +129,7 @@ describe('USERS API', () => {
             .then(res => {
                 expect(res.status).toBe(200);
                 expect(res.body.data.removeShortCut.username).toBe('standardUser');
-                expect(res.body.data.removeShortCut.shortcuts.length).toBe(2);
+                expect(res.body.data.removeShortCut.shortcuts.length).toBe(3);
                 return true;
         }));
 
@@ -140,7 +139,7 @@ describe('USERS API', () => {
             .then(res => {
                 expect(res.status).toBe(200);
                 expect(res.body.data.removeShortCut.username).toBe('admin');
-                expect(res.body.data.removeShortCut.shortcuts.length).toBe(2);
+                expect(res.body.data.removeShortCut.shortcuts.length).toBe(3);
                 return true;
         }));
 
@@ -150,7 +149,7 @@ describe('USERS API', () => {
             .then(res => {
                 expect(res.status).toBe(200);
                 expect(res.body.data.removeShortCut.username).toBe('standardUser');
-                expect(res.body.data.removeShortCut.shortcuts.length).toBe(1);
+                expect(res.body.data.removeShortCut.shortcuts.length).toBe(2);
                 return true;
         }));
 
@@ -160,7 +159,7 @@ describe('USERS API', () => {
             .then(res => {
                 expect(res.status).toBe(200);
                 expect(res.body.data.removeShortCut.username).toBe('admin');
-                expect(res.body.data.removeShortCut.shortcuts.length).toBe(1);
+                expect(res.body.data.removeShortCut.shortcuts.length).toBe(2);
                 return true;
         }));
     });
