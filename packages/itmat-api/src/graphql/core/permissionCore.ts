@@ -20,13 +20,8 @@ interface IUserToRoleInput {
 }
 
 export class PermissionCore {
-    private readonly hardCodedAdminPrivileges: string[];
-    constructor() {
-        this.hardCodedAdminPrivileges = [...Object.values(permissions)]; // admin has all privileges 
-    }
-
     validatePermissionInput_throwErrorIfNot(inputPermissions: string[]): void {
-        const allPermissions = Object.values(permissions);
+        const allPermissions = Object.entries(permissions).reduce((a: string[], e: any) => a.concat(Object.values(e[1])), []);
         for (let each of inputPermissions) {
             if (!allPermissions.includes(each)) {
                 throw new ApolloError(`"${each}" is not a valid permission.`, errorCodes.CLIENT_MALFORMED_INPUT);
@@ -39,14 +34,10 @@ export class PermissionCore {
         return db.collections!.roles_collection.find({ studyId, projectId }).toArray();
     }
 
-    async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, study: string, project?: string): Promise<boolean> {
+    async userHasTheNeccessaryPermission_throwErrorIfNot(needOneOfThesePermissions: string[], user: IUser, study: string, project?: string): Promise<void> {
         /* if user is an admin then return true if admin privileges includes needed permissions */
         if (user.type === userTypes.ADMIN) {
-            for (let i = 0, length = needOneOfThesePermissions.length; i < length; i++) {
-                if (this.hardCodedAdminPrivileges.includes(needOneOfThesePermissions[i])) {
-                    return true;
-                }
-            }
+            return;
         }
 
         /* aggregationPipeline to return a list of the privileges the user has in this study / project */
@@ -59,15 +50,15 @@ export class PermissionCore {
         if (result.length !== 1) {
             throw new ApolloError(`Internal error occurred when checking user privileges.`, errorCodes.DATABASE_ERROR);
         }
-        const hisPrivileges = result[0].arrPrivileges;
+        const hisPrivileges = result[0].arrPrivileges;   //example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
 
         /* checking privileges */
         for (let i = 0, length = needOneOfThesePermissions.length; i < length; i++) {
             if (hisPrivileges.includes(needOneOfThesePermissions[i])) {
-                return true;
+                return;
             }
         }
-        return false;
+        throw new ApolloError('You do not have the necessary permission.', errorCodes.NO_PERMISSION_ERROR);
     }
 
     async removeRole(roleId: string): Promise<void> {

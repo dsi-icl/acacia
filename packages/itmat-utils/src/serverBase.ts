@@ -13,9 +13,7 @@ export interface IServerBaseConfig {
 
 export abstract class ServerBase<T extends IServerBaseConfig> {
     constructor(
-        protected readonly config: T,
-        protected readonly db: IDatabase, // db is connected
-        protected readonly objStore: OpenStackSwiftObjectStore) {} // objStore is connected
+        protected readonly config: T){}
 
     public async start(router: Express): Promise<void> {
         const port = this.config.server.port;

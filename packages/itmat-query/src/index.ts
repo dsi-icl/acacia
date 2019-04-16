@@ -1,14 +1,17 @@
 import { Server } from './server/server';
 import { Router } from './server/router';
-import { Database } from './database/database';
-import { OpenStackSwiftObjectStore } from 'itmat-utils';
+import { db } from './database/database';
 import config from '../config/config.json';
+import { Poller } from 'itmat-utils';
+import { queryHandler } from './query/queryHandler';
 
-const db = new Database(config.database);
-const objStore = new OpenStackSwiftObjectStore(config.swift);
-const server = new Server(config, db, objStore);
+const server = new Server(config);
 
-server.connectToBackEnd().then(() => {
-    const router = new Router();
-    server.start(router.getApp());
+db.connect(config.database)
+    .then(() => {
+        const router = new Router();
+        server.start(router.getApp());
+        const poller = new Poller('me', 'QUERY', db.collections!.queries_collection, config.pollingInterval, queryHandler.actOnDocument);
+        poller.setInterval();
+        return;
 });

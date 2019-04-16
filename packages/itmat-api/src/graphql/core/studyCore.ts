@@ -51,6 +51,19 @@ export class StudyCore {
             lastModified: new Date().valueOf(),
             deleted: false
         };
+
+        const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
+            { $match: { m_study: studyId } },
+            { $group: {  _id: null, array: { $addToSet: '$m_eid' } }  },
+            { $project: { array: 1 }}
+        ]).toArray();
+
+        if (getListOfPatientsResult === null || getListOfPatientsResult === undefined) {
+            throw new ApolloError('Cannot get list of patients', errorCodes.DATABASE_ERROR);
+        }
+
+        project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+
         await db.collections!.projects_collection.insertOne(project);
         return project;
     }
@@ -118,6 +131,40 @@ export class StudyCore {
         } else {
             throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
         }
+    }
+
+    private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string} { 
+        let rangeArray: (string| number)[] = [...Array(listOfPatientId.length).keys()];
+        if (prefix === undefined) {
+            prefix = uuidv4().substring(0,2);
+        }
+        rangeArray = rangeArray.map(e => `${prefix}${e}`);
+        rangeArray = this.shuffle(rangeArray);
+        const mapping: { [originalPatientId: string]: string} = {};
+        for (let i = 0, length = listOfPatientId.length; i < length; i++) {
+            mapping[listOfPatientId[i]] = (rangeArray as string[])[i];
+        }
+        return mapping;
+    
+    }
+    
+    private shuffle(array: (number|string)[]) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
+        let currentIndex = array.length, temporaryValue, randomIndex;
+        
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
+        
+            // Pick a remaining element...
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+        
+            // And swap it with the current element.
+            temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+        }
+        
+        return array;
     }
 }
 

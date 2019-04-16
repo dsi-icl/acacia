@@ -7,6 +7,8 @@ import config from '../../../config/config.json';
 
 import { studyCore } from '../core/studyCore';
 import { IUser, userTypes } from 'itmat-utils/dist/models/user';
+import { fieldCore } from '../core/fieldCore';
+import { errorCodes } from '../errors';
 
 export const studyResolvers = {
     Query: {
@@ -77,7 +79,15 @@ export const studyResolvers = {
 
             /* check privileges */
 
+            /* check study id for the project */
+            const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
+            const studyId = project.studyId;
+
             /* check all the adds are valid */
+            const resultFields: string[] = fieldCore.getFieldsOfStudy(studyId, false, changes.add);
+            if (resultFields.length !== changes.add.length) {
+                throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
+            }
 
             /* edit approved fields */
             const resultingProject = await studyCore.editProjectApprovedFields(projectId, changes);

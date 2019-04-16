@@ -1,12 +1,14 @@
-import bcrypt from 'bcrypt';
 import { UserInputError, ForbiddenError, ApolloError } from 'apollo-server-express';
 import { Database } from '../../database/database';
 import { Models, Logger } from 'itmat-utils';
 import config from '../../../config/config.json';
 import mongodb from 'mongodb';
+import bcrypt from 'bcrypt';
 import uuidv4 from 'uuid/v4';
 import { makeGenericReponse } from '../responses';
 import { IUser, IShortCut } from 'itmat-utils/dist/models/user';
+import { studyCore } from '../core/studyCore';
+import { userCore } from '../core/userCore';
 
 export const userResolvers = {
     Query: {
@@ -72,36 +74,15 @@ export const userResolvers = {
             const requester: Models.UserModels.IUser = context.req.user;
             const { study, project }  = args;
 
-            if (requester === undefined || requester === null) {
-                throw new ForbiddenError('Not logged in!');
-            }
-
-            const shortcut: IShortCut = {
-                id: uuidv4(),
-                project,
-                study
-            };
-
-            const result = await db.collections!.users_collection.findOneAndUpdate({ username: requester.username, deleted: false }, { $push: { shortcuts: shortcut } }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
-            if (result.ok !== 1) {
-                throw new ApolloError('Error in creating shortcut.');
-            }
-            return result.value;
+            const modifiedUser = await userCore.addShortCutToUser(requester.username, study, project);
+            return modifiedUser;
         },
         removeShortCut: async(parent: object, args: any, context: any, info: any): Promise<object> => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const { shortCutId }: { shortCutId: string } = args;
-
-            if (requester === undefined || requester === null) {
-                throw new ForbiddenError('Not logged in!');
-            }
-
-            const result = await db.collections!.users_collection.findOneAndUpdate({ username: requester.username, deleted: false }, { $pull: { shortcuts: { id: shortCutId }} }, { returnOriginal: false, projection: { _id: 0, deleted: 0 } });
-            if (result.ok !== 1) {
-                throw new ApolloError('Error in creating shortcut.');
-            }
-            return result.value;
+            const modifiedUser = await userCore.removeShortCutFromUser(requester.username, shortCutId);
+            return modifiedUser;
         },
         createUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
             const db: Database = context.db;
@@ -118,29 +99,17 @@ export const userResolvers = {
                 throw new UserInputError('User already exists.');
             }
 
-            const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
-            const entry: Models.UserModels.IUser = {
-                id: uuidv4(),
-                shortcuts: [],
+            const createdUser = await userCore.createUser(requester.username, {
+                password,
                 username,
                 type,
-                description: description === undefined ? '' : description,
+                description,
                 realName,
-                password: hashedPassword,
-                createdBy: requester.username,
                 email,
-                notifications: [],
-                emailNotificationsActivated,
-                deleted: false
-            };
+                emailNotificationsActivated
+            });
 
-            const result = await db.collections!.users_collection.insertOne(entry);
-            if (result.result.ok === 1) {
-                delete entry.password;
-                return entry;
-            } else {
-                throw new ApolloError('Database error');
-            }
+            return createdUser;
         },
         deleteUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
             const db: Database = context.db;
@@ -148,14 +117,8 @@ export const userResolvers = {
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ForbiddenError('Unauthorised.');
             }
-            const username: string = args.username;
-            const result = await db.collections!.users_collection.updateOne({ username, deleted: false }, { $set: { deleted: true, password: 'DeletedUserDummyPassword' } });
-
-            if (result.result.ok === 1) {
-                return makeGenericReponse(username);
-            } else {
-                throw new ApolloError('Cannot complete operation. Server error.');
-            }
+            await userCore.deleteUser(args.username);
+            return makeGenericReponse(args.username);
         },
         editUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
             const db: Database = context.db;

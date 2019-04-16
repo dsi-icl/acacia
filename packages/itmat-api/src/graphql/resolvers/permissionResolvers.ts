@@ -43,7 +43,7 @@ export const permissionResolvers = {
 
             /* check permission */
 
-            /* check whether all the permissions are valid */
+            /* check whether all the permissions are valid */  //TO_DO: permission changes are valid or invalid depending on project.
             const allRequestedPermissionChanges: string[] = [...permissionChanges.add, ...permissionChanges.remove];
             permissionCore.validatePermissionInput_throwErrorIfNot(allRequestedPermissionChanges);
 

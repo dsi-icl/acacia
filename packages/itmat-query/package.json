@@ -17,7 +17,7 @@
     "connect-timeout": "^1.9.0",
     "csv-parse": "^4.0.0",
     "express": "^4.16.3",
-    "itmat-utils": "1.0.1",
+    "itmat-utils": "1.1.8",
     "mongodb": "^3.1.6",
     "multer": "2.0.0-alpha.6",
     "node-fetch": "^2.2.0",

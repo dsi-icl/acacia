@@ -7,7 +7,7 @@ export interface IQueryEntry {
     claimedBy?: string,
     lastClaimed?: number,
     status: string,
-    error: null | object,
+    error: null | string,
     cancelled: boolean,
     cancelledTime?: number,
     queryResult?: string,

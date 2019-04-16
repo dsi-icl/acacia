@@ -6,17 +6,32 @@ import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
 import { errorCodes } from '../errors';
 import uuidv4 from 'uuid/v4';
 import { IUser, userTypes } from 'itmat-utils/dist/models/user';
+import { IFieldEntry } from 'itmat-utils/dist/models/field';
 
 export class FieldCore {
     constructor(){}
 
-    async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
-        const studySearchResult: IStudy = await db.collections!.studyCollection.findOne({ id: studyId, deleted: false })!;
-        if (studySearchResult === null || studySearchResult === undefined) {
-            throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+    async getFieldsOfStudy(studyId: string, detailed: boolean, getOnlyTheseFields?: string[]): Promise<IFieldEntry[]|string[]> {
+        /* ASSUMING projectId and studyId match*/
+        /* if detailed=false, only returns the fieldid in an array */ 
+        /* constructing queryObj; if projectId is provided then only those in the approved fields are returned */
+        let queryObj: any = { studyId };
+        if (getOnlyTheseFields) {  // if both study id and project id are provided then just make sure they belong to each other
+            queryObj = { studyId, fieldId: { $in: getOnlyTheseFields } };
         }
-        return studySearchResult;
+
+        const aggregatePipeline: any = [
+            { $match: queryObj }
+        ];
+        /* if detailed=false, only returns the fieldid in an array */ 
+        if (detailed === false ){
+            aggregatePipeline.concat( [ { $group: {  _id: null, array: { $addToSet: '$fieldId' } } } ]);
+        }
+
+        const cursor = db.collections!.fields_collection.aggregate(aggregatePipeline);
+        return cursor.toArray();
     }
+
 }
 
 export const fieldCore = Object.freeze(new FieldCore());

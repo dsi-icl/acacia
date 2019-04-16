@@ -7,6 +7,7 @@ import mongodb from 'mongodb';
 import { studyCore} from '../core/studyCore';
 import { IProject, IStudy } from 'itmat-utils/dist/models/study';
 import { errorCodes } from '../errors';
+import { fieldCore } from '../core/fieldCore';
 
 
 export const fieldResolvers = {
@@ -25,18 +26,18 @@ export const fieldResolvers = {
 
             /* constructing queryObj; if projectId is provided then only those in the approved fields are returned */
             let queryObj: any = { studyId };
+            let approvedFields;
             if (studyId && projectId) {  // if both study id and project id are provided then just make sure they belong to each other
                 const projectSearchResult = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
                 if (projectSearchResult.studyId !== studyId) {
                     throw new ApolloError('The project provided does not belong to the study provided', errorCodes.CLIENT_MALFORMED_INPUT);
                 }
-                const approvedFields = projectSearchResult.approvedFields;
+                approvedFields = projectSearchResult.approvedFields;
                 queryObj = { studyId, fieldId: { $in: approvedFields } };
             }
 
-            const cursor = fieldCollection.find(queryObj, { projection: { _id: 0 } });
-            const result = await cursor.toArray();
-            return result;
+            /* getting the fields */
+            return fieldCore.getFieldsOfStudy(studyId, true, projectId && approvedFields);
         }
     },
     Mutation: {},
