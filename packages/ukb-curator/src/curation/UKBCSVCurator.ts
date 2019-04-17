@@ -89,7 +89,7 @@ export class UKBCSVCurator {
                 console.log('lineNum', currentLineNum);
                 if (this._numOfSubj > 2000) {     // race condition?   // PROBLEM: the last bit <2000 doesn't get uploaded\
                     this._numOfSubj = 0;
-                    bulkInsert.execute((err: Error) => {
+                    await bulkInsert.execute((err: Error) => {
                         if (err) { console.log((err as any).writeErrors[1].err); return; }
                     });
                     bulkInsert = this.dataCollection.initializeUnorderedBulkOp();

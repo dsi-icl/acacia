@@ -2,7 +2,7 @@ import * as mongodb from 'mongodb';
 import * as Models from './models';
 import { Logger } from './logger';
 
-export class Poller {
+export class JobPoller {
     private intervalObj?: NodeJS.Timer;
     private readonly matchObj: any;
 

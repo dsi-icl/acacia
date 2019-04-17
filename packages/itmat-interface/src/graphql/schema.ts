@@ -126,7 +126,7 @@ input QueryObjInput {
     queryString: String!
     returnFieldSelection: [String]
     study: String!
-    project: String!
+    project: String
 }
 
 input CreateUserInput {
@@ -169,7 +169,8 @@ type Query {
     getProjects(projectId: String): Project
 
     # QUERY
-    getQueries(studyId: String, projectId: String, id: String): [QueryEntry]
+    getQueries(studyId: String!, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
+    getQueryById(queryId: String!): QueryEntry
 
     # FIELDS
     getAvailableFields(studyId: String, projectId: String): [FieldInfo]
