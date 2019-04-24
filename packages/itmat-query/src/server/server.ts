@@ -1,6 +1,4 @@
-import { ServerBase, CustomError, IServerBaseConfig, Logger } from 'itmat-utils';
-import { Database, IDatabaseConfig } from '../database/database';
-import { Poller } from 'itmat-utils';
+import { ServerBase, IServerBaseConfig } from 'itmat-utils';
 
 
 interface IServerConfig extends IServerBaseConfig {

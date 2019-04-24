@@ -71,4 +71,16 @@ export const jobTypes: IJobType = {
         error: {
         }
     },
+    UKB_FIELD_INFO_UPLOAD: {
+        name: 'UKB_FIELD_INFO_UPLOAD',
+        requiredFiles: ['fieldInfo.csv'],
+        status: {
+            0: 'QUEUEING FOR UPLOAD',
+            1: 'UPLOADING TO DATABASE',
+            2: 'FINISHED SUCCESSFULLY',
+            3: 'TERMINATED WITH ERROR'
+        },
+        error: {
+        }
+    },
 };

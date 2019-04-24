@@ -10,7 +10,12 @@ export interface IFieldEntry {
     itemType: enumItemType,
     numOfTimePoints: number,
     numOfMeasurements: number,
-    notes?: string
+    startingTimePoint: number,
+    startingMeasurement: number,
+    notes?: string,
+    jobId: string,
+    dateAdded: number,
+    deleted: boolean
 }
 
 export enum enumItemType {

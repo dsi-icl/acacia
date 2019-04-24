@@ -1,14 +1,20 @@
 import { Server } from './server/server';
 import { Router } from './server/router';
-import { Database } from './database/database';
+import { db } from './database/database';
 import config from '../config/config.json';
 import { OpenStackSwiftObjectStore } from 'itmat-utils';
+import { JobPoller } from 'itmat-utils';
+import { JobDispatcher } from './jobDispatch/dispatcher';
 
-const db = new Database(config.database);
+const server = new Server(config);
 const objStore = new OpenStackSwiftObjectStore(config.swift);
-const server = new Server(config, db, objStore);
 
-server.connectToBackEnd().then(() => {
-    const router = new Router();
-    server.start(router.getApp());
+db.connect(config.database)
+    .then(() => objStore.connect())
+    .then(() => {
+        const router = new Router();
+        server.start(router.getApp());
+        const poller = new JobPoller('me', 'UKB_FIELD_INFO_UPLOAD', db.collections!.jobs_collection, config.pollingInterval, new JobDispatcher(db, objStore).dispatch);
+        poller.setInterval();
+        return;
 });
