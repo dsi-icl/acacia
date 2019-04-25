@@ -5,8 +5,8 @@ import { FileController, UserController } from './RESTControllers';
 import { OpenStackSwiftObjectStore } from 'itmat-utils';
 import config from '../config/config.json';
 import { Query } from 'itmat-utils/dist/models';
+import { objStore } from './objStore/objStore';
 
-const objStore = new OpenStackSwiftObjectStore(config.swift);
 const server = new Server(config);
 
 db.connect(config.database)

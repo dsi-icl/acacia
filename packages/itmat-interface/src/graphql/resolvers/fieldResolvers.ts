@@ -12,33 +12,33 @@ import { fieldCore } from '../core/fieldCore';
 
 export const fieldResolvers = {
     Query: {
-        getAvailableFields: async(parent: object, args: { projectId?: string, studyId?: string}, context: any, info: any): Promise<IFieldEntry[]> => {
-            const db: Database = context.db;
-            const fieldCollection = db.collections!.field_dictionary_collection;
-            const requester: Models.UserModels.IUser = context.req.user;
+        // getAvailableFields: async(parent: object, args: { projectId?: string, studyId?: string}, context: any, info: any): Promise<IFieldEntry[]> => {
+        //     const db: Database = context.db;
+        //     const fieldCollection = db.collections!.field_dictionary_collection;
+        //     const requester: Models.UserModels.IUser = context.req.user;
 
-            const { studyId, projectId } = args; 
+        //     const { studyId, projectId } = args; 
 
-            /* check whether user has at least provided one id */
-            if (studyId === undefined && projectId === undefined) {
-                throw new ApolloError('Please provide either study id or project id.', errorCodes.CLIENT_MALFORMED_INPUT);
-            }
+        //     /* check whether user has at least provided one id */
+        //     if (studyId === undefined && projectId === undefined) {
+        //         throw new ApolloError('Please provide either study id or project id.', errorCodes.CLIENT_MALFORMED_INPUT);
+        //     }
 
-            /* constructing queryObj; if projectId is provided then only those in the approved fields are returned */
-            let queryObj: any = { studyId };
-            let approvedFields;
-            if (studyId && projectId) {  // if both study id and project id are provided then just make sure they belong to each other
-                const projectSearchResult = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
-                if (projectSearchResult.studyId !== studyId) {
-                    throw new ApolloError('The project provided does not belong to the study provided', errorCodes.CLIENT_MALFORMED_INPUT);
-                }
-                approvedFields = projectSearchResult.approvedFields;
-                queryObj = { studyId, fieldId: { $in: approvedFields } };
-            }
+        //     /* constructing queryObj; if projectId is provided then only those in the approved fields are returned */
+        //     let queryObj: any = { studyId };
+        //     let approvedFields;
+        //     if (studyId && projectId) {  // if both study id and project id are provided then just make sure they belong to each other
+        //         const projectSearchResult = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
+        //         if (projectSearchResult.studyId !== studyId) {
+        //             throw new ApolloError('The project provided does not belong to the study provided', errorCodes.CLIENT_MALFORMED_INPUT);
+        //         }
+        //         approvedFields = projectSearchResult.approvedFields;
+        //         queryObj = { studyId, fieldId: { $in: approvedFields } };
+        //     }
 
-            /* getting the fields */
-            return fieldCore.getFieldsOfStudy(studyId, true, projectId && approvedFields);
-        }
+        //     /* getting the fields */
+        //     return fieldCore.getFieldsOfStudy(studyId, true, projectId && approvedFields);
+        // }
     },
     Mutation: {},
     Subscription: {}

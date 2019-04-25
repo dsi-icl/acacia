@@ -74,25 +74,25 @@ export const studyResolvers = {
             await studyCore.deleteStudy(studyId);
             return makeGenericReponse(studyId);
         },
-        editProjectApprovedFields: async(parent: object, { projectId, changes }: { projectId: string, changes: {add: number[], remove: number[]} }, context: any, info: any): Promise<IProject> => {
-            const requester: IUser = context.req.user;
+        // editProjectApprovedFields: async(parent: object, { projectId, changes }: { projectId: string, changes: {add: number[], remove: number[]} }, context: any, info: any): Promise<IProject> => {
+        //     const requester: IUser = context.req.user;
 
-            /* check privileges */
+        //     /* check privileges */
 
-            /* check study id for the project */
-            const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
-            const studyId = project.studyId;
+        //     /* check study id for the project */
+        //     const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
+        //     const studyId = project.studyId;
 
-            /* check all the adds are valid */
-            const resultFields: string[] = fieldCore.getFieldsOfStudy(studyId, false, changes.add);
-            if (resultFields.length !== changes.add.length) {
-                throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
-            }
+        //     /* check all the adds are valid */
+        //     const resultFields: string[] = fieldCore.getFieldsOfStudy(studyId, false, changes.add);
+        //     if (resultFields.length !== changes.add.length) {
+        //         throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
+        //     }
 
-            /* edit approved fields */
-            const resultingProject = await studyCore.editProjectApprovedFields(projectId, changes);
-            return resultingProject;
-        },
+        //     /* edit approved fields */
+        //     const resultingProject = await studyCore.editProjectApprovedFields(projectId, changes);
+        //     return resultingProject;
+        // },
     },
     Subscription: {}
 };

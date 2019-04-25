@@ -86,7 +86,6 @@ export class Router {
 
         this.app.route('/file')
             .get(fileController.downloadFile)
-            .post(upload.single('file'), fileController.uploadFile);
 
         this.app.all('/', (err: Error, req: Request, res: Response, next: NextFunction) => {
             res.status(500).json(new CustomError('Server error.'));

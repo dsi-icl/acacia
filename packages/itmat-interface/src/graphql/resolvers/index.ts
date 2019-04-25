@@ -3,6 +3,7 @@ import { userResolvers } from './userResolvers';
 import { queryResolvers } from './queryResolvers';
 import { fieldResolvers } from './fieldResolvers';
 import { permissionResolvers } from './permissionResolvers';
+import { dataResolvers } from './dataResolvers';
 import GraphQLJSON from 'graphql-type-json';
 
 const modules = [
@@ -10,7 +11,8 @@ const modules = [
     userResolvers,
     queryResolvers,
     fieldResolvers,
-    permissionResolvers
+    permissionResolvers,
+    dataResolvers
 ];
 
 export const resolvers = {

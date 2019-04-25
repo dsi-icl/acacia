@@ -207,6 +207,11 @@ type Mutation {
 
     # QUERY
     createQuery(query: QueryObjInput!): QueryEntry
+
+    # CURATION
+    createUploadDataJob(file: Upload!, studyId: String!): Job
+    createDataExportJob(studyId: String!, projectId: String): Job
+    
 }
 
 type Subscription {
