@@ -1,9 +1,9 @@
 import { Models } from 'itmat-utils';
 import mongodb from 'mongodb';
+import { db } from '../database/database';
 
-
-export class UserController {
-    constructor(private readonly usersCollection: mongodb.Collection) {
+export class UserLoginUtils {
+    constructor() {
         this.serialiseUser = this.serialiseUser.bind(this);
         this.deserialiseUser = this.deserialiseUser.bind(this);
     }
@@ -18,6 +18,8 @@ export class UserController {
     }
 
     private async _getUser(username: string): Promise<Models.UserModels.IUserWithoutToken> {
-        return await this.usersCollection.findOne({ deleted: false, username }, { projection: { _id: 0, deleted: 0, password: 0 }})!;
+        return await db.collections!.users_collection.findOne({ deleted: false, username }, { projection: { _id: 0, deleted: 0, password: 0 }})!;
     }
 }
+
+export const userLoginUtils = Object.freeze(new UserLoginUtils());

@@ -1,7 +1,7 @@
 import express from 'express';
 import { Express, Request, Response, NextFunction } from 'express';
 import { CustomError, Logger } from 'itmat-utils';
-import { UserController, FileController } from '../RESTControllers';
+import { userLoginUtils } from '../utils/userLoginUtils';
 import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
 import bodyParser from 'body-parser';
 import passport from 'passport';
@@ -23,8 +23,6 @@ export class Router {
 
     constructor(
         db: Database /* the database to save sessions */,
-        userController: UserController,
-        fileController: FileController
     ) {
         this.app = express();
 
@@ -44,8 +42,8 @@ export class Router {
         /* authenticating user of the request */
         this.app.use(passport.initialize());
         this.app.use(passport.session());
-        passport.serializeUser(userController.serialiseUser);
-        passport.deserializeUser(userController.deserialiseUser);
+        passport.serializeUser(userLoginUtils.serialiseUser);
+        passport.deserializeUser(userLoginUtils.deserialiseUser);
 
 
         /* register apolloserver for graphql requests */
@@ -57,7 +55,7 @@ export class Router {
                 // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
                 //     throw new ForbiddenError('not logged in');
                 // }
-                return ({ req, res, db });
+                return ({ req, res });
             },
             formatError: (error: ApolloError) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
@@ -82,10 +80,6 @@ export class Router {
             }
             next();
         });
-
-
-        this.app.route('/file')
-            .get(fileController.downloadFile)
 
         this.app.all('/', (err: Error, req: Request, res: Response, next: NextFunction) => {
             res.status(500).json(new CustomError('Server error.'));
