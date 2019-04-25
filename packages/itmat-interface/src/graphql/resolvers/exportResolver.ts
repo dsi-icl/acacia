@@ -16,7 +16,7 @@ export const queryResolvers = {
     Query: {
     },
     Mutation: {
-        createExportJob: async(parent: object, args: { studyId: string, projectId?: string }, context: any, info: any): Promise<IJobEntry<undefined>> => {
+        createDataExportJob: async(parent: object, args: { studyId: string, projectId?: string }, context: any, info: any): Promise<IJobEntry<undefined>> => {
             const requester: IUser = context.req.user;
             const { studyId, projectId } = args;
 

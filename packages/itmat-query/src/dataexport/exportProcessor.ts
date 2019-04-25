@@ -6,11 +6,11 @@ import { Transform } from 'json2csv';
 import { Readable } from 'stream';
 
 export class ExportProcessor {
-    /* document from mongo cursor -> flatten document -> input stream -> json2csv -> output stream -> swift */
+    /* document from [ mongo cursor -> flatten document -> input stream -> json2csv -> output stream ] -> swift */
     private fieldInfo?: IFieldEntry[];
     private fieldCSVHeaderList?: string[]; // [32-0-0, 32-1-0]
-    private outputStream?: NodeJS.WritableStream;
     private inputStream?: Readable;
+    private outputParseStream?: Readable;
     constructor(private readonly dataCursor: mongodb.Cursor, private readonly studyId: string, private readonly wantedFields?: string[], private readonly projectId?: string, private readonly patientIdMap?: { [originalId: string] : string}) {}
 
     async fetchFieldInfo() {
@@ -28,20 +28,18 @@ export class ExportProcessor {
         this.fieldCSVHeaderList = tmp;
     }
 
-    public setOutputStream(outputStream: NodeJS.WritableStream) {
+    public getOutputParseStream() {
         if (!this.fieldInfo || !this.fieldCSVHeaderList) { throw new Error('Cannot set output stream before fetching field info.')}
-        this.outputStream = outputStream;
         this.inputStream = new Readable({ objectMode: true });
-        this.inputStream._read = () => {};
-
         const opts = { fields: ['eid', 'study', ...this.fieldCSVHeaderList!]};
         const transformOpts = { objectMode: true };
         const json2csv = new Transform(opts, transformOpts);
-        this.inputStream.pipe(json2csv).pipe(this.outputStream);
+        this.outputParseStream = this.inputStream.pipe(json2csv);
+        return this.outputParseStream;
     }
 
-    public async createExportFile() {
-        if (!this.fieldInfo || !this.outputStream) { throw new Error('Cannot create export file before fetching field info and setting output stream.')}
+    public async startStreamParsing() {
+        if (!this.fieldInfo) { throw new Error('Cannot create export file before fetching field info and setting output stream.')}
         let nextDocument: Object | null;
         while (nextDocument = await this.dataCursor.next()) {
             const flattenedData = this.formatDataIntoJSON(nextDocument);
@@ -50,7 +48,6 @@ export class ExportProcessor {
             }
             this.writeOneLineToCSV(flattenedData);
         }
-        this.writeOneLineToCSV({});
         this.writeOneLineToCSV(null);
     }
 
