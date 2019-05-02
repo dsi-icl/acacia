@@ -12,7 +12,7 @@ import { errorCodes } from '../errors';
 export const dataResolvers = {
     Query: {},
     Mutation: {
-        createUploadDataJob: async(parent: object, args: { studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>}, context: any, info: any) => {
+        createCurationJob: async(parent: object, args: { jobType: string, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>}, context: any, info: any) => {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const file = await args.file;
@@ -25,7 +25,7 @@ export const dataResolvers = {
                 });
             
                 file.stream.on('end', async () => {
-                    const job = await jobCore.createJob(requester.username, 'DATA_UPLOAD', [file.filename], args.studyId, undefined, jobId);
+                    const job = await jobCore.createJob(requester.username, args.jobType, [file.filename], args.studyId, undefined, jobId);
                     resolve(job);
                 });
 
@@ -35,7 +35,6 @@ export const dataResolvers = {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }
             });
-
         }
     },
     Subscription: {}

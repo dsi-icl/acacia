@@ -18,6 +18,11 @@ enum FIELD_VALUE_TYPE {
     C  #categorical
 }
 
+enum CURATION_JOB_TYPE {
+    FIELD_INFO_UPLOAD
+    DATA_UPLOAD
+}
+
 type FieldInfo {
     id: String!
     study: String!
@@ -209,7 +214,7 @@ type Mutation {
     createQuery(query: QueryObjInput!): QueryEntry
 
     # CURATION
-    createUploadDataJob(file: Upload!, studyId: String!): Job
+    createCurationJob(file: Upload!, studyId: String!, jobType: CURATION_JOB_TYPE): Job
     createDataExportJob(studyId: String!, projectId: String): Job
     
 }
