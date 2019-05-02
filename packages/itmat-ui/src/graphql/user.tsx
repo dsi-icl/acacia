@@ -9,7 +9,7 @@ export const LOGIN = gql`
             realName
             shortcuts {
                 id
-                application
+                project
                 study
             }
             email
@@ -37,7 +37,7 @@ export const WHO_AM_I = gql`
             realName
             shortcuts {
                 id
-                application
+                project
                 study
             }
             email
@@ -53,7 +53,7 @@ export const SHORTCUTS_LIST = gql`
             id
             shortcuts {
                 id
-                application
+                project
                 study
             }
         }
@@ -61,12 +61,12 @@ export const SHORTCUTS_LIST = gql`
 `;
 
 export const ADD_SHORT_CUT = gql`
-    mutation addShortCut($study: String!, $application: String) {
-        addShortCut(study: $study, application: $application) {
+    mutation addShortCut($study: String!, $project: String) {
+        addShortCut(study: $study, project: $project) {
             id
             shortcuts {
                 id
-                application
+                project
                 study
             }
         }
@@ -79,7 +79,7 @@ export const REMOVE_SHORT_CUT = gql`
             id
             shortcuts {
                 id
-                application
+                project 
                 study
             }
         }
