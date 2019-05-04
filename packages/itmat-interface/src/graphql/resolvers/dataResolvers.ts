@@ -19,6 +19,7 @@ export const dataResolvers = {
 
             return new Promise(async (resolve, reject) => {
                 const jobId = uuidv4();
+                /* if the client cancelled the request mid-stream it will throw an error */
                 file.stream.on('error', (e) => {
                     Logger.error(e);
                     reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
