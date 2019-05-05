@@ -6,7 +6,5 @@ interface IServerConfig extends IServerBaseConfig {
 }
 
 export class Server extends ServerBase<IServerConfig> {
-    protected async additionalChecksAndActions(): Promise<void> {
-
-    }
+    protected async additionalChecksAndActions(): Promise<void> { }
 }

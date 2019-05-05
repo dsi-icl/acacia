@@ -1,24 +1,8 @@
 import * as mongodb from 'mongodb';
 
-export interface IJobType {
-    [typename: string]: {
-        name: string,
-        requiredFiles: string[],
-        status: {
-            [name: number]: string
-        },
-        error: {
-            [name: string]: any
-        }
-    }
-}
-
-export interface IJob {
-    jobType: string,
-}
-
-export interface IJobEntry<dataobj> extends IJob {
+export interface IJobEntry<dataobj> {
     _id?: mongodb.ObjectId,
+    jobType: string,
     id: string,
     projectId?: string,
     studyId: string,
@@ -33,54 +17,54 @@ export interface IJobEntry<dataobj> extends IJob {
     data?: dataobj
 }
 
-export interface IDataobj_UKB_IMAGE_UPLOAD_job {  //tslint:disable-line
-    patientId: string,
-    objectUrl: string,
-    field: string // xxxx-y.z
-}
+// export interface IDataobj_UKB_IMAGE_UPLOAD_job {  //tslint:disable-line
+//     patientId: string,
+//     objectUrl: string,
+//     field: string // xxxx-y.z
+// }
 
-export interface IDataobj_EXPORT_DATA_job {
-}
+// export interface IDataobj_EXPORT_DATA_job {
+// }
 
-export const jobTypes: IJobType = {
-    UKB_CSV_UPLOAD: {
-        name: 'UKB_CSV_UPLOAD',
-        requiredFiles: ['phenotype.csv'],
-        status: {
-            0: 'QUEUEING FOR UPLOAD',
-            1: 'UPLOADING TO DATABASE',
-            2: 'FINISHED SUCCESSFULLY',
-            3: 'TERMINATED WITH ERROR'
-        },
-        error: {
-            INVALID_FIELD: (fieldsWithError: string[]) => `The following fields do not exists on UK BIOBANK database therefore job is terminated: ${fieldsWithError.join(', ')}`,
-            UNEVEN_FIELD_NUMBER: (linenumber: number) => `Your CSV file has uneven field numbers. First line of problem: ${linenumber}`,
-            CANNOT_PARSE_NUMERIC_VALUE: (linenumber: number, fieldnumber: number) => `Cannot parse the supposedly numeric value on line ${linenumber}, ${fieldnumber}-th field.`,
-            DUPLICATED_FIELD_VALUE: (fieldValue: string /* xx-yy-zz like in UKB CSV */) => `Duplicated Field: ${fieldValue}`
-        }
-    },
-    UKB_IMAGE_UPLOAD: {
-        name: 'UKB_IMAGE_UPLOAD',
-        requiredFiles: ['imageFile'],
-        status: {
-            0: 'QUEUEING FOR UPLOAD',
-            1: 'UPLOADING TO DATABASE',
-            2: 'FINISHED SUCCESSFULLY',
-            3: 'TERMINATED WITH ERROR'
-        },
-        error: {
-        }
-    },
-    UKB_FIELD_INFO_UPLOAD: {
-        name: 'UKB_FIELD_INFO_UPLOAD',
-        requiredFiles: ['fieldInfo.csv'],
-        status: {
-            0: 'QUEUEING FOR UPLOAD',
-            1: 'UPLOADING TO DATABASE',
-            2: 'FINISHED SUCCESSFULLY',
-            3: 'TERMINATED WITH ERROR'
-        },
-        error: {
-        }
-    },
-};
+// export const jobTypes = {
+//     UKB_CSV_UPLOAD: {
+//         name: 'UKB_CSV_UPLOAD',
+//         requiredFiles: ['phenotype.csv'],
+//         status: {
+//             0: 'QUEUEING FOR UPLOAD',
+//             1: 'UPLOADING TO DATABASE',
+//             2: 'FINISHED SUCCESSFULLY',
+//             3: 'TERMINATED WITH ERROR'
+//         },
+//         error: {
+//             INVALID_FIELD: (fieldsWithError: string[]) => `The following fields do not exists on UK BIOBANK database therefore job is terminated: ${fieldsWithError.join(', ')}`,
+//             UNEVEN_FIELD_NUMBER: (linenumber: number) => `Your CSV file has uneven field numbers. First line of problem: ${linenumber}`,
+//             CANNOT_PARSE_NUMERIC_VALUE: (linenumber: number, fieldnumber: number) => `Cannot parse the supposedly numeric value on line ${linenumber}, ${fieldnumber}-th field.`,
+//             DUPLICATED_FIELD_VALUE: (fieldValue: string /* xx-yy-zz like in UKB CSV */) => `Duplicated Field: ${fieldValue}`
+//         }
+//     },
+//     UKB_IMAGE_UPLOAD: {
+//         name: 'UKB_IMAGE_UPLOAD',
+//         requiredFiles: ['imageFile'],
+//         status: {
+//             0: 'QUEUEING FOR UPLOAD',
+//             1: 'UPLOADING TO DATABASE',
+//             2: 'FINISHED SUCCESSFULLY',
+//             3: 'TERMINATED WITH ERROR'
+//         },
+//         error: {
+//         }
+//     },
+//     UKB_FIELD_INFO_UPLOAD: {
+//         name: 'UKB_FIELD_INFO_UPLOAD',
+//         requiredFiles: ['fieldInfo.csv'],
+//         status: {
+//             0: 'QUEUEING FOR UPLOAD',
+//             1: 'UPLOADING TO DATABASE',
+//             2: 'FINISHED SUCCESSFULLY',
+//             3: 'TERMINATED WITH ERROR'
+//         },
+//         error: {
+//         }
+//     },
+// };
