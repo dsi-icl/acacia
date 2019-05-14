@@ -1,5 +1,5 @@
 {
-  "name": "itmat-loader",
+  "name": "itmat-job-executor",
   "version": "1.0.0",
   "private": true,
   "description": "Curator service for UKB image data",
