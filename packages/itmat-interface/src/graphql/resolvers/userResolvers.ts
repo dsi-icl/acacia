@@ -1,6 +1,6 @@
 import { UserInputError, ForbiddenError, ApolloError } from 'apollo-server-express';
-import { Database } from '../../database/database';
 import { Models, Logger } from 'itmat-utils';
+import { db } from '../../database/database';
 import config from '../../../config/config.json';
 import mongodb from 'mongodb';
 import bcrypt from 'bcrypt';
@@ -16,7 +16,6 @@ export const userResolvers = {
             return context.req.user;
         },
         getUsers: async(parent: object, args: any, context: any, info: any): Promise<IUser[]> => {
-            const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             // if (requester.type !== Models.UserModels.userTypes.ADMIN) {
             //     throw new ForbiddenError('Unauthorised.');
@@ -28,7 +27,7 @@ export const userResolvers = {
     },
     Mutation: {
         login: async(parent: object, args: any, context: any, info: any): Promise<object> => {
-            const { db, req }: { db: Database, req: Express.Request } = context;
+            const { req }: { req: Express.Request } = context;
             const result = await db.collections!.users_collection.findOne({ deleted: false, username: args.username });
             if (!result) {
                 throw new UserInputError('User does not exist.');
@@ -51,7 +50,6 @@ export const userResolvers = {
             });
         },
         logout: async(parent: object, args: any, context: any, info: any): Promise<object> => {
-            const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const req: Express.Request = context.req;
             if (requester === undefined || requester === null) {
@@ -69,23 +67,7 @@ export const userResolvers = {
                 });
             });
         },
-        addShortCut: async(parent: object, args: { study: string, project?: string }, context: any, info: any): Promise<object> => {
-            const db: Database = context.db;
-            const requester: Models.UserModels.IUser = context.req.user;
-            const { study, project }  = args;
-
-            const modifiedUser = await userCore.addShortCutToUser(requester.username, study, project);
-            return modifiedUser;
-        },
-        removeShortCut: async(parent: object, args: any, context: any, info: any): Promise<object> => {
-            const db: Database = context.db;
-            const requester: Models.UserModels.IUser = context.req.user;
-            const { shortCutId }: { shortCutId: string } = args;
-            const modifiedUser = await userCore.removeShortCutFromUser(requester.username, shortCutId);
-            return modifiedUser;
-        },
         createUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
-            const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ForbiddenError('Unauthorised.');
@@ -112,7 +94,6 @@ export const userResolvers = {
             return createdUser;
         },
         deleteUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
-            const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ForbiddenError('Unauthorised.');
@@ -121,7 +102,6 @@ export const userResolvers = {
             return makeGenericReponse(args.username);
         },
         editUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
-            const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const { username, type, realName, email, emailNotificationsActivated, password }: {
                 username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string

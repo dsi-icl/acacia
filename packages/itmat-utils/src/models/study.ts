@@ -1,7 +1,6 @@
 export interface IStudy {
     id: string,
     name: string,
-    isUkbiobank: boolean,
     createdBy: string,
     lastModified: number,
     deleted: boolean

@@ -94,7 +94,6 @@ type Job {
 type Study {
     id: String!,
     name: String!,
-    isUkbiobank: Boolean!,
     createdBy: String!,
     lastModified: Int,
     deleted: Boolean
@@ -188,8 +187,6 @@ type Mutation {
     # USER
     login(username: String!, password: String!): User
     logout: GenericResponse
-    addShortCut(study: String!, project: String): User
-    removeShortCut(shortCutId: String!): User
 
     # APP USERS
     createUser(user: CreateUserInput!): User

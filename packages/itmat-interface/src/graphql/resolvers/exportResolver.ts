@@ -10,7 +10,7 @@ import { pubsub, subscriptionEvents } from '../pubsub';
 import { IUser } from 'itmat-utils/dist/models/user';
 import { exportCore } from '../core/exportCore';
 import { permissionCore } from '../core/permissionCore';
-import { IJob, IJobEntry } from 'itmat-utils/dist/models/job';
+import { IJobEntry } from 'itmat-utils/dist/models/job';
 
 export const queryResolvers = {
     Query: {

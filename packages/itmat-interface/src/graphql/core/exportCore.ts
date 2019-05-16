@@ -1,15 +1,9 @@
-import mongodb from 'mongodb';
 import { db } from '../../database/database';
-import { permissions } from 'itmat-utils';
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
-import { IJob, IJobEntry, jobTypes } from 'itmat-utils/dist/models/job';
+import { IJobEntry } from 'itmat-utils/dist/models/job';
 import { errorCodes } from '../errors';
 import uuidv4 from 'uuid/v4';
-import { IUser, userTypes } from 'itmat-utils/dist/models/user';
-import { fieldCore, FieldCore } from './fieldCore';
-import { PermissionCore } from './permissionCore';
-import { request } from 'https';
+import { IUser } from 'itmat-utils/dist/models/user';
 
 export class ExportCore {
     constructor(){}

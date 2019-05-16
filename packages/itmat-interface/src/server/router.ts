@@ -19,7 +19,7 @@ const upload = multer();
 
 export class Router {
     private readonly app: Express;
-    private server: http.Server;
+    private readonly server: http.Server;
 
     constructor(
         db: Database /* the database to save sessions */,
