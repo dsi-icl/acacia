@@ -6,9 +6,10 @@ import mongodb from 'mongodb';
 import bcrypt from 'bcrypt';
 import uuidv4 from 'uuid/v4';
 import { makeGenericReponse } from '../responses';
-import { IUser, IShortCut } from 'itmat-utils/dist/models/user';
+import { IUser, IShortCut, userTypes } from 'itmat-utils/dist/models/user';
 import { studyCore } from '../core/studyCore';
 import { userCore } from '../core/userCore';
+import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
 
 export const userResolvers = {
     Query: {
@@ -23,6 +24,33 @@ export const userResolvers = {
             const queryObj = args.username === undefined ? { deleted: false } : { deleted: false, username: args.username };
             const cursor = db.collections!.users_collection.find(queryObj);
             return cursor.toArray();
+        }
+    },
+    User: {
+        access: async (user: IUser): Promise<{ projects: IProject[], studies: IStudy[] }> => {
+            if (user.type === userTypes.ADMIN) {
+                const allprojects: IProject[] = await db.collections!.projects_collection.find({ deleted: false }).toArray();
+                const allstudies: IStudy[] = await db.collections!.studies_collection.find({ deleted: false }).toArray();
+                return { projects: allprojects, studies: allstudies };
+            }
+
+            /* find all the roles a user has */
+            const roles: IRole[] = await db.collections!.roles_collection.find({ users: user.id, deleted: false }).toArray();
+            const init: { projects: string[], studies: string[] } = { projects: [], studies: [] };
+            const studiesAndProjectThatUserCanSee: { projects: string[], studies: string[] } = roles.reduce(
+                (a, e) => {
+                    if (e.projectId) {
+                        a.projects.push(e.projectId);
+                    } else {
+                        a.studies.push(e.studyId);
+                    }
+                    return a;
+                }, init
+            );
+
+            const projects: IProject[] = await db.collections!.projects_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: false }).toArray();
+            const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: false }).toArray();
+            return { projects, studies };
         }
     },
     Mutation: {

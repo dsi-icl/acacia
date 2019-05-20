@@ -30,7 +30,7 @@ export const queryResolvers = {
             ], requester, studyId, projectId);
 
             /* check whether project/study exists */
-            
+
             /* create export job */
             const job = await exportCore.createExportJob(studyId, requester, projectId);
             return job;

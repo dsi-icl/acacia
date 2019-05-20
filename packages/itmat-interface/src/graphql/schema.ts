@@ -38,16 +38,23 @@ type FieldInfo {
     notes: String
 }
 
+type UserAccess {
+    projects: [Project]
+    studies: [Study]
+}
+
 type User {
     id: String!
     username: String!
     type: USERTYPE!
     realName: String
     email: String
-    shortcuts: [ShortCut]
     description: String
     emailNotificationsActivated: Boolean!
     createdBy: String
+
+    # external to mongo documents:
+    access: UserAccess
 }
 
 type ShortCut {
@@ -66,21 +73,38 @@ type StudyOrProjectUserRole {
     users: [String]!
 }
 
+type Study {
+    id: String!,
+    name: String!,
+    createdBy: String!,
+    lastModified: Int,
+    deleted: Boolean
+
+    # external to mongo documents:
+    jobs: [Job]
+    projects: [Project]
+    roles: [StudyOrProjectUserRole]
+}
+
 type Project {
     id: String!
     studyId: String!
     name: String!
-    patientMapping: JSON!
-    approvedFields: [String]!
 
-    # external to mongo documents:
+    #only admin
+    patientMapping: JSON
+    approvedFields: [String]
+
+    #external to mongo documents:
     jobs: [Job]
     roles: [StudyOrProjectUserRole]
+    iCanEdit: Boolean
 }
 
 type Job {
     id: String,
-    study: String,
+    studyId: String,
+    projectId: String,
     jobType: String,
     requester: String,
     receivedFiles: String,
@@ -89,20 +113,6 @@ type Job {
     cancelled: Boolean,
     cancelledTime: Int,
     data: JSON
-}
-
-type Study {
-    id: String!,
-    name: String!,
-    createdBy: String!,
-    lastModified: Int,
-    deleted: Boolean
-    iHaveAccess: Boolean!
-
-    # external to mongo documents:
-    jobs: [Job]
-    projects: [Project]
-    roles: [StudyOrProjectUserRole]
 }
 
 type QueryEntry {
@@ -169,8 +179,8 @@ type Query {
     getUsers(userId: String): [User]   # admin only
 
     # STUDY
-    getStudies(studyId: String): [Study]  # only returns the studies that the users are entitled
-    getProjects(projectId: String): Project
+    getStudy(studyId: String!): Study
+    getProject(projectId: String!): Project
 
     # QUERY
     getQueries(studyId: String!, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
@@ -213,7 +223,6 @@ type Mutation {
     # CURATION
     createCurationJob(file: Upload!, studyId: String!, jobType: CURATION_JOB_TYPE): Job
     createDataExportJob(studyId: String!, projectId: String): Job
-    
 }
 
 type Subscription {

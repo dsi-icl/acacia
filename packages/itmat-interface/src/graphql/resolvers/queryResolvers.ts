@@ -18,7 +18,6 @@ export const queryResolvers = {
 
         getQueryById: async(parent: object, args: { queryId: string }, context: any, info: any): Promise<IQueryEntry> => {
             const queryId = args.queryId;
-            
             /* check permission */
 
             /* check if the client wants the result */

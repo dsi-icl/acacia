@@ -1,4 +1,4 @@
-import { Database } from '../../database/database';
+import { Database, db } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError, withFilter, defaultMergedResolver } from 'apollo-server-express';
 import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndUpdateOption } from 'mongodb';
 import { IStudy, IProject, IRole } from 'itmat-utils/dist/models/study';
@@ -9,29 +9,72 @@ import { studyCore } from '../core/studyCore';
 import { IUser, userTypes } from 'itmat-utils/dist/models/user';
 import { fieldCore } from '../core/fieldCore';
 import { errorCodes } from '../errors';
+import { permissionCore } from '../core/permissionCore';
+import { permissions } from 'itmat-utils';
 
 export const studyResolvers = {
     Query: {
-        getStudies: async(parent: object, args: any, context: any, info: any): Promise<IStudy[]> => {
+        getStudy: async(parent: object, args: any, context: any, info: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
-            const requestedFields: string[] = info.fieldNodes[0].selectionSet.selections.map((el: any) => el.name.value);
+            const studyId: string = args.studyId;
 
-            // standard users are not allowed to query jobs;
-            if (requestedFields.includes('jobs') && args.name === undefined && requester.type !== userTypes.ADMIN) {
-                throw new ForbiddenError('Non-admins cannot query \'jobs\'.');
-            }
+            /* check if user has permission */
 
-            // standard users are not allowed to query pendingUserApprovals, applicationUsers, approvedFields of applications;
-            if (requestedFields.includes('applications') && args.name === undefined && requester.type !== userTypes.ADMIN) {
-                const forbiddenFields = ['pendingUserApprovals', 'applicationUsers', 'approvedFields'];
-                const subApplicationRequestedFields = info.fieldNodes[0].selectionSet.selections.filter((el: any) => el.name.value === 'applications')[0].selectionSet.selections.map((el: any) => el.name.value);
-                for (const each of subApplicationRequestedFields) {
-                    if (forbiddenFields.includes(each)) {
-                        throw new ForbiddenError(`Non-admins cannot query ${forbiddenFields.toString()} on 'applications'.`);
-                    }
-                }
+            /* get study */
+            return await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
+        },
+        getProject: async(parent: object, args: any, context: any, info: any): Promise<IProject> => {
+            const requester: IUser = context.req.user;
+            const projectId: string = args.projectId;
+
+            /* check if user has permission */
+
+            /* get study */
+            return await db.collections!.projects_collection.findOne({ id: projectId, deleted: false }, { projection: { patientMapping: 0, approvedFields: 0 } })!;
+        }
+    },
+    Study: {
+        projects: async(study: IStudy) => {
+            return await db.collections!.projects_collection.find({ studyId: study.id, deleted: false }).toArray();
+        },
+        jobs: async(study: IStudy) => {
+            return await db.collections!.jobs_collection.find({ studyId: study.id, deleted: false }).toArray();
+        },
+        roles: async(study: IStudy) => {
+            return await db.collections!.roles_collection.find({ studyId: study.id, deleted: false }).toArray();
+        }
+    },
+    Project: {
+        patientMapping: async(project: IProject) => {
+            /* check permission */
+
+            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { patientMapping: 1 }});
+            if (result && result.patientMapping) {
+                return result.patientMapping;
+            } else {
+                return null;
             }
-            return [];
+        },
+        approvedFields: async(project: IProject) => {
+            /* check permission */
+
+            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { approvedFields: 1 }});
+            if (result && result.approvedFields) {
+                return result.approvedFields;
+            } else {
+                return null;
+            }
+        },
+        roles: async(project: IProject) => {
+            return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: false }).toArray();
+        },
+        iCanEdit: async(project: IProject) => { // TO_DO
+            const result = await db.collections!.roles_collection.findOne({
+                studyId: project.studyId,
+                projectId: project.id,
+                // permissions: permissions.specific_project.specifi
+            });
+            return true;
         }
     },
     Mutation: {

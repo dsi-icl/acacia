@@ -15,9 +15,14 @@ const modules = [
     dataResolvers
 ];
 
-export const resolvers = {
-    JSON: GraphQLJSON,
-    Query: modules.reduce((a, e) => { a = { ...a, ...e.Query }; return a; }, {}),
-    Mutation: modules.reduce((a, e) => { a = { ...a, ...e.Mutation }; return a; }, {}),
-    Subscription: modules.reduce((a, e) => { a = { ...a, ...e.Subscription }; return a; }, {}),
-};
+const reduceInit: any = { JSON: GraphQLJSON };
+export const resolvers = modules.reduce((a, e) => {
+    const types = Object.keys(e);
+    for (const each of types) {
+        if (a[each] === undefined) {
+            a[each] = {};
+        }
+        a[each] = { ...a[each], ...(e as any)[each] };
+    }
+    return a;
+}, reduceInit);
