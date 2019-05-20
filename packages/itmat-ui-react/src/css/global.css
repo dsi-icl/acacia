@@ -72,7 +72,7 @@ html, body, #root {
     color: white;
     font-size: var(--font-size-root);
     font-family: var(--font-family);
-    background: rgb(26, 26, 26);
+    background-color: rgb(17, 17, 17);
     /* background: linear-gradient(180deg, #606060 0%, rgba(0, 0, 0, 0) 100%), #282828; */
     user-select: none;
     width: 100%;
