@@ -1,7 +1,7 @@
 import { Models } from 'itmat-utils';
 import * as React from 'react';
 import { Query } from "react-apollo";
-import * as css from '../../css/studyPage.module.css';
+import * as css from '../studies/studyPage.module.css';
 import { GET_STUDIES_LIST } from '../../graphql/study';
 import { NavLink } from 'react-router-dom';
 import { WHO_AM_I } from '../../graphql/user';

@@ -1,10 +1,12 @@
 :root {
     /* stylelint-disable-next-line */
-    --font-size-root: 12px;
+    --font-size-root: 13px;
     --font-size: 0.9rem;
     --font-size-big: 1.5rem;
-    --font-family: Arial;
+    --font-family: 'Chivo';
     --color-background: 	#2F323B;
+    --color-that-orange: #FF5F3C;
+    --color-that-red: #FF3C3C;
     --color-error:rgb(255, 82, 82);
     --color-purple: 	hsl(266, 56%, 71%);
     --color-purple-shade2: rgb(200, 184, 255);
@@ -24,6 +26,33 @@
     --color-input: hsl(222, 11%, 30%);
 }
 
+@font-face {
+    font-family: "Chivo";
+    src: url("../font/Chivo/Chivo-Regular.ttf");
+}
+
+@font-face {
+    font-family: "Chivo";
+    src: url("../font/Chivo/Chivo-Bold.ttf");
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: "Chivo";
+    src: url("../font/Chivo/Chivo-Light.ttf");
+    font-weight: lighter;
+}
+
+@font-face {
+    font-family: "Cairo";
+    src: url("../font/Cairo/Cairo-Regular.ttf");
+}
+@font-face {
+    font-family: "Cairo";
+    src: url("../font/Cairo/Cairo-Bold.ttf");
+    font-weight: bold;
+}
+
 * {
     color: inherit;
     padding: 0;
@@ -40,10 +69,11 @@
 html, body, #root {
     position: fixed;
     scroll-behavior: smooth;
-    color: var(--color-text-basic);
+    color: white;
     font-size: var(--font-size-root);
     font-family: var(--font-family);
-    background: var(--color-section-dark);
+    background: rgb(26, 26, 26);
+    /* background: linear-gradient(180deg, #606060 0%, rgba(0, 0, 0, 0) 100%), #282828; */
     user-select: none;
     width: 100%;
     height: 100%;
@@ -57,20 +87,21 @@ body > div {
 
 button {
     display: block;
-    border-radius: 1.5rem;
     padding: 0.5rem 0.7rem;
     font-size: 0.95rem;
     margin: 3px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
+    border-radius: 0.25rem;
     width: 100%;
     min-height: 20px;
     font-weight: bold;
     line-height: 20px;
-    color: var(--color-text-title-rightpanel);
-    background-image: linear-gradient(to bottom right, var(--color-royal-blue), var(--color-purple));
+    background-color: var(--color-that-orange);
 }
 
 button:hover {
-    background-image: linear-gradient(to bottom right, var(--color-text-selected), var(--color-purple-shade2));
+    background-image: linear-gradient(to bottom right, var(--color-royal-blue), var(--color-purple));
+    /* background-image: linear-gradient(to bottom right, var(--color-text-selected), var(--color-purple-shade2)); */
     cursor: pointer;
 }
 
@@ -79,6 +110,15 @@ button:active {
     cursor: pointer;
 }
 
+.button_grey {
+    background-image: none;
+    background-color: #4A4A4A;
+}
+
+.button_grey:hover{
+    background-image: none;
+    background-color: rgb(53, 53, 53);
+}
 
 table {
     border-collapse: collapse;
@@ -109,10 +149,18 @@ input, select, label {
 input, select {
     padding-left: 0.4rem;
     padding-right: 0.4rem;
-    /* background-color: var(--color-input); */
-    background-image: linear-gradient(to bottom right, hsl(222, 11%, 36%), var(--color-input));
     border-radius: 0px;
     margin-left: 0.3rem;
+}
+
+input {
+    border-bottom: 1px solid #969696;
+    background-color: rgba(0,0,0,0);
+}
+
+input:focus {
+    border-bottom: 1px solid var(--color-that-orange);
+    color: var(--color-that-orange)
 }
 
 textarea {
@@ -129,13 +177,38 @@ input:read-only {
     cursor: default
 }
 
-label {
-    font-weight: bold
+.page_section {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 100%; 
+    grid-template-rows: 80px calc(100% - 80px); 
+    grid-template-areas: 
+        "ariane"
+        "content";
 }
+
+.page_ariane {
+    grid-area: ariane;
+    padding: 2rem 2rem 2.5rem 2rem;
+    line-height: calc(80px - 2rem - 2.5rem);
+    font-size: 2.5rem;
+    font-weight: lighter;
+    overflow: hidden;
+    height: 100%;
+}
+
+.page_content {
+    padding: 0rem 2rem 1rem 2rem;
+    grid-area: content;
+    height: 100%;
+    font-size: 1rem;
+    overflow: auto;
+}
+
+
 
 h1 {
     display: block;
-    width: 100;
     color: var(--color-text-title-rightpanel);
     font-size: 2rem;
     margin-bottom: 1rem;
@@ -143,16 +216,14 @@ h1 {
 
 h4 {
     display: block;
-    width: 100;
-    border-bottom: 1px solid rgb(77, 77, 77);
-    color: var(--color-text-title-rightpanel);
-    font-size: 1.7rem;
-    margin-bottom: 1rem;
+    height: 100%;
+    line-height: 100%;
+    color: white;
+    font-size: 2.5rem;
 }
 
 h3 {
     display: block;
-    width: 100;
     color: var(--color-text-title-rightpanel);
     border-bottom: 1px solid rgb(77, 77, 77);
     font-size: 1.4rem;

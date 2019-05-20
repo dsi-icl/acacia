@@ -1,0 +1,34 @@
+.login_and_error_wrapper {
+    position: absolute;
+    top: 30%;
+}
+
+.login_box {
+    border-left: 100px solid var(--color-that-orange);
+    padding-left: 3rem;
+    /* height: 30%; */
+}
+
+.login_box input {
+    text-align:center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    height: 1.2rem;
+    line-height: 1.2rem;
+    padding-bottom: 0.2rem;
+}
+
+.login_box h1 {
+    font-family: 'Cairo';
+    font-size: 5rem;
+    color: var(--color-that-orange);
+    margin-top: 0px;
+}
+
+.error_message {
+    width: 100%;
+    min-height: 20%;
+    border-left: calc(100px + 3rem) solid rgba(0,0,0,0);
+    color: var(--color-that-red);
+}

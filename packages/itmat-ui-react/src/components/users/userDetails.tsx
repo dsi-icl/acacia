@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { GET_SPECIFIC_USER, EDIT_USER, GET_USERS_LIST, DELETE_USER } from '../../graphql/appUsers';
-import * as css from '../../css/userList.module.css';
+import * as css from './userList.module.css';
 import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
 
 export const UserDetailsSection: React.FunctionComponent<{ username: string }> = ({ username }) => {
@@ -47,7 +47,7 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
             mutation={EDIT_USER}
         >
         {(submit, { loading, error, data }) =>
-            <div className={css.userDetail}>
+            <div className={css.user_detail}>
                 <h4>{user.username}</h4>
                 <label>Type: </label>
                     <select value={inputs.type} onChange={e => { setInputs({...inputs, type: e.target.value } as any); }}>

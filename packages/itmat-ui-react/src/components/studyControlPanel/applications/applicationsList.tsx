@@ -1,7 +1,7 @@
 import { Models } from 'itmat-utils';
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
-import css from '../../../css/studyPage.module.css';
+import css from '../../studies/studyPage.module.css';
 
 export const ApplicationListSection: React.FunctionComponent<{ subscribeToNewApplication: Function, studyName: string, list: Models.Study.IApplication[]}> = ({ subscribeToNewApplication, list, studyName}) => {
     // const [addNewApplicationShown, setAddNewApplicationShown] = React.useState(false);

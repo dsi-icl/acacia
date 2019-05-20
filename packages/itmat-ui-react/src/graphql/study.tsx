@@ -5,15 +5,10 @@ export const GET_STUDIES_LIST = gql`
         getStudies {
             id
             name
-            iHaveAccess
-            allUsers
-            studyAndDataManagers
-            applications {
+            projects {
                 id
+                studyId
                 name
-                applicationAdmins
-                applicationAdmins
-                applicationUsers
             }
         }
     }

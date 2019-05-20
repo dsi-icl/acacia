@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { CREATE_USER, GET_USERS_LIST } from '../../graphql/appUsers';
-import * as css from '../../css/userList.module.css';
+import * as css from './userList.module.css';
+import { NavLink } from 'react-router-dom';
 
 // import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
 
@@ -33,23 +34,20 @@ export const CreateNewUser: React.FunctionComponent = props => {
             }}
         >
         {(createUser, { loading, error }) =>
-            <div className={css.userDetail}>
-                <h4>Create New User</h4>
-                <form>
-                    <label>Username: </label><input type='text' {...inputControl('username')}/> <br/><br/>
-                    <label>Password: </label><input type='password' {...inputControl('password')} /> <br/><br/>
-                    <label>Real name: </label><input type='text' {...inputControl('realName')}/> <br/><br/>
-                    <label>Description: </label><input type='text' {...inputControl('description')}/> <br/><br/>
-                    <label>Email notification: </label><input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({...inputs, emailNotificationsActivated: e.target.checked }); }}/> <br/><br/>
-                    <label>Email: </label><input type='text' {...inputControl('email')}/> <br/><br/>
-                    <label>Type: </label><select {...inputControl('type')}>
-                        <option value="STANDARD">System user</option>
-                        <option value="ADMIN">System admin</option>
-                    </select>
-                    <br/><br/>
-                { loading ? <button>Loading...</button> : <button onClick={e => {e.preventDefault(); createUser({variables: inputs})}}>Submit</button> }
-                </form>
-            </div>
+            <form>
+                <label>Username: </label><input type='text' {...inputControl('username')}/> <br/><br/>
+                <label>Password: </label><input type='password' {...inputControl('password')} /> <br/><br/>
+                <label>Real name: </label><input type='text' {...inputControl('realName')}/> <br/><br/>
+                <label>Description: </label><input type='text' {...inputControl('description')}/> <br/><br/>
+                <label>Email: </label><input type='text' {...inputControl('email')}/> <br/><br/>
+                <label>Type: </label><select {...inputControl('type')}>
+                    <option value="STANDARD">System user</option>
+                    <option value="ADMIN">System admin</option>
+                </select>
+                <br/><br/><br/><br/>
+                <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
+            { loading ? <button>Loading...</button> : <button onClick={e => {e.preventDefault(); createUser({variables: inputs})}}>Submit</button> }
+            </form>
         }
         </Mutation>
     );

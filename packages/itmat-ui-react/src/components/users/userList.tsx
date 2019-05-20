@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Query } from 'react-apollo';
 import { GET_USERS_LIST } from '../../graphql/appUsers';
 import { Models } from 'itmat-utils';
-import * as css from '../../css/userList.module.css';
+import * as css from './userList.module.css';
 import { NavLink } from 'react-router-dom';
 import { Icons } from '../icons';
 
@@ -27,12 +27,11 @@ export const UserListSection: React.FunctionComponent = props => {
 const User: React.FunctionComponent<{ data: Models.UserModels.IUserWithoutToken}> = ({ data }) => {
     return (
             <tr>
-                <td><b>{data.username}</b></td>
+                <td>{data.username}</td>
                 <td>{data.realName}</td>
                 <td>{data.type}</td>
                 <td>{data.email}</td>
-                <td>''</td>
-                <td><NavLink to={`/users/${data.username}`} activeClassName={css.showMoreButton}><span> Show more </span></NavLink></td>
+                <td><NavLink to={`/users/${data.username}`} activeClassName={css.button_clicked}><button>More/Edit</button></NavLink></td>
             </tr>
     );
 };
@@ -60,7 +59,7 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
     }
 
     return (
-        <div className={css.userList}>
+        <div className={css.user_list}>
             <table>
                 <thead>
                     <tr>
@@ -68,8 +67,7 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
                         <th></th>
                         <th></th>
                         <th></th>
-                        <th></th>
-                        <th><NavLink to={`/users/createNewUser`} activeClassName={css.showMoreButton}><button>Create new user</button></NavLink></th>
+                        <th><NavLink to={`/users/createNewUser`} activeClassName={css.button_clicked}><button>Create new user</button></NavLink></th>
                     </tr>
                 </thead>
             </table>
@@ -81,12 +79,12 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
                         <th>Real Name</th>
                         <th>Type</th>
                         <th>Email</th>
-                        <th>#Studies</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {list.map(highermappingfunction())}
+                    {[...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list].map(highermappingfunction())}
+                    {/* {list.map(highermappingfunction())} */}
                 </tbody>
             </table>
         </div>

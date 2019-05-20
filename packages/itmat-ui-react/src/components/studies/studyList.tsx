@@ -1,7 +1,6 @@
 import { Models } from 'itmat-utils';
 import * as React from 'react';
 import { Query } from "react-apollo";
-import * as css from '../../css/studyPage.module.css';
 import { GET_STUDIES_LIST } from '../../graphql/study';
 import { NavLink } from 'react-router-dom';
 
@@ -29,7 +28,7 @@ export const StudyListSection: React.FunctionComponent = props => {
 
                     return (
                         <>
-                        <h4>Your studies:</h4>
+                        <h4></h4>
                         { yourStudies.length !== 0 ?
                             yourStudies.map((el: Models.Study.IStudy) => <StudyButton iHaveAccess={true} key={el.name} data={el}/>)
                             : <span>You haven't been added to any study.</span>
