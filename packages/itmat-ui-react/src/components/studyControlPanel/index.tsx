@@ -5,12 +5,11 @@ import { SUBSCRIPTION_NEW_APPLICATION } from '../../graphql/studyDetails';
 import { Route, Switch } from 'react-router-dom';
 import * as css from '../../css/studyControl.module.css';
 import { Models } from 'itmat-utils';
-import { ApplicationListSection } from './applications/applicationsList';
+// import { ApplicationListSection } from './applications/applicationsList';
 import { JobSection } from './jobsSection';
 import { ExportSection } from './exportSection';
 import { CurationSection } from './curationSection';
-import { AddOrDeleteShortCut } from './addShortCut';
-import { AddApplication, ApplicationDetails } from './applications';
+// import { AddApplication, ApplicationDetails } from './applications';
 import { ClinicalDataCurationUKBSection } from '../curation/clinicalDataUKB';
 import { StudyManagersSections } from './studyManagers';
 import { DeleteStudyButton, ReallyDeleteStudy } from './deleteStudy';
@@ -48,7 +47,7 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                         <div className={css.studyDashboard}>
                             <div><h1>{name}</h1></div>
                             <JobSection data={study.jobs}/>
-                            <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={name}/>
+                            {/* <StudyManagersSections listOfManagers={study.studyAndDataManagers} studyName={name}/>
                             <ApplicationListSection
                                 studyName={name}
                                 list={study.applications}
@@ -64,16 +63,15 @@ export const StudyControl: React.FunctionComponent<{ name: string }> = ({ name }
                                         }
                                     })
                                 }}
-                            />
+                            /> */}
                             <CurationSection studyName={name}/>
                             <ExportSection/>
-                            <AddOrDeleteShortCut studyName={name}/>
                             <DeleteStudyButton studyName={name}/>
                         </div>
                         <div className={css.extraActionPanel}>
                             <Switch>
-                                <Route path='/studies/details/:studyName/application/addNewApplication' render={({ match }) => <AddApplication studyName={match.params.studyName}/>}/>
-                                <Route path='/studies/details/:studyName/application/:applicationName' render={({ match }) => <ApplicationDetails studyName={match.params.studyName} applicationName={match.params.applicationName}/>}/>
+                                {/* <Route path='/studies/details/:studyName/application/addNewApplication' render={({ match }) => <AddApplication studyName={match.params.studyName}/>}/>
+                                <Route path='/studies/details/:studyName/application/:applicationName' render={({ match }) => <ApplicationDetails studyName={match.params.studyName} applicationName={match.params.applicationName}/>}/> */}
                                 <Route path='/studies/details/:studyName/curation/uploadData' render={({ match }) => <ClinicalDataCurationUKBSection studyName={match.params.studyName}/>}/>
                                 <Route path='/studies/details/:studyName/delete' render={({ match }) => <ReallyDeleteStudy setDeletedStateHandler={setSuccessfullyDeleted} studyName={match.params.studyName}/>}/>
                                 <Route path='/studies/details/:studyName' render={({ match }) => <></>}/>

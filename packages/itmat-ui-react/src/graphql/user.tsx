@@ -1,22 +1,45 @@
 import gql from "graphql-tag";
 
-export const LOGIN = gql`
-    mutation Login($username: String!, $password: String!) {
-        login(username: $username, password: $password) {
-            id
-            username
-            type
-            realName
-            shortcuts {
+
+export const user_fragment = gql`
+    fragment ALL on User {
+        id
+        username
+        type
+        realName
+        email
+        createdBy
+        description
+        access {
+            projects {
                 id
-                project
-                study
+                name
+                studyId
             }
-            email
-            emailNotificationsActivated
-            createdBy
+            studies {
+                id
+                name
+            }
         }
     }
+`;
+
+export const LOGIN = gql`
+mutation login($username: String!, $password: String!) {
+  login(username: $username, password: $password) {
+      ...ALL
+  }
+}
+${user_fragment}
+`;
+
+export const WHO_AM_I = gql`
+    query {
+        whoAmI {
+            ...ALL
+        }
+    }
+    ${user_fragment}
 `;
 
 export const LOGOUT = gql`
@@ -24,64 +47,6 @@ export const LOGOUT = gql`
         logout{
             successful
             id
-        }
-    }
-`;
-
-export const WHO_AM_I = gql`
-    {
-        whoAmI {
-            id
-            username
-            type
-            realName
-            shortcuts {
-                id
-                project
-                study
-            }
-            email
-            emailNotificationsActivated
-            createdBy
-        }
-    }
-`;
-
-export const SHORTCUTS_LIST = gql`
-    {
-        whoAmI {
-            id
-            shortcuts {
-                id
-                project
-                study
-            }
-        }
-    }
-`;
-
-export const ADD_SHORT_CUT = gql`
-    mutation addShortCut($study: String!, $project: String) {
-        addShortCut(study: $study, project: $project) {
-            id
-            shortcuts {
-                id
-                project
-                study
-            }
-        }
-    }
-`;
-
-export const REMOVE_SHORT_CUT = gql`
-    mutation removeShortCut($shortCutId: String!) {
-        removeShortCut(shortCutId: $shortCutId) {
-            id
-            shortcuts {
-                id
-                project 
-                study
-            }
         }
     }
 `;

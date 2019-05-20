@@ -4,7 +4,7 @@ import { Models } from 'itmat-utils';
 import { Mutation } from "react-apollo";
 import css from '../../css/query.module.css';
 import { CREATE_QUERY } from '../../graphql/query';
-import { providerFactory, tokeniser, theme } from './languageDefinition';
+import {  tokeniser, theme } from './languageDefinition';
 
 class IEditor extends React.Component<{ studyName: string, applicationName: string, fieldList: Models.Field.IFieldEntry[] }, { monaco: any }> {
     protected editor?: monaco.editor.IStandaloneCodeEditor
@@ -36,7 +36,7 @@ export class Editor extends IEditor  {
 
         monaco.languages.register({ id: 'itmat-query-language'});
         monaco.languages.setMonarchTokensProvider('itmat-query-language', tokeniser as any);
-        monaco.languages.registerCompletionItemProvider('itmat-query-language', providerFactory(this.props.fieldList));
+        // monaco.languages.registerCompletionItemProvider('itmat-query-language', providerFactory(this.props.fieldList));
 
         this.editor = monaco.editor.create(document.getElementById('container')!, {
             value: '',

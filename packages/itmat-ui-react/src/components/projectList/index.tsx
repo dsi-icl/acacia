@@ -3,7 +3,7 @@ import { Route, Switch } from 'react-router-dom';
 import * as css from './projectPage.module.css';
 import { ProjectList } from './projectList';
 
-export const ProjectsPage: React.FunctionComponent = props => {
+export const ProjectListPage: React.FunctionComponent = props => {
     return (
         <div className={css.page_container}>
             <div className={css.project_list + ' page_section'}>

@@ -83,8 +83,7 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
                     </tr>
                 </thead>
                 <tbody>
-                    {[...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list, ...list].map(highermappingfunction())}
-                    {/* {list.map(highermappingfunction())} */}
+                    {list.map(highermappingfunction())}
                 </tbody>
             </table>
         </div>

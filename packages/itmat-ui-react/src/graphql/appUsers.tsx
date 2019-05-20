@@ -1,4 +1,5 @@
 import gql from "graphql-tag";
+import { user_fragment } from './user';
 
 export const GET_USERS_LIST = gql`
     {
@@ -12,6 +13,17 @@ export const GET_USERS_LIST = gql`
     }
 `;
 
+
+export const GET_SPECIFIC_USER = gql`
+    query getSpecificUser($userId: String){
+        getUsers(userId: $userId) {
+            ...ALL
+        }
+    }
+    ${user_fragment}
+`;
+
+
 export const GET_USERS_LIST_ONLY_USERNAME = gql`
     {
         getUsers {
@@ -21,20 +33,6 @@ export const GET_USERS_LIST_ONLY_USERNAME = gql`
     }
 `;
 
-export const GET_SPECIFIC_USER = gql`
-    query getSpecificUser($username: String){
-        getUsers(username: $username) {
-            id
-            username
-            type
-            realName
-            description
-            email
-            emailNotificationsActivated
-            createdBy
-        }
-    }
-`;
 
 export const CREATE_USER = gql`
     mutation CreateUser(
