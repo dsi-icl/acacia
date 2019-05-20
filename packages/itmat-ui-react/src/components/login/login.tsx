@@ -38,7 +38,7 @@ export const LoginBox: React.FunctionComponent = props => {
                     <input placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode == 13 && document.getElementById('loginButton')!.click() }/> <br/>
                 </div>
                 <br/>
-                { loading ? <button>loging in..</button> :
+                { loading ? <button>logging in..</button> :
                     (
                         <button id='loginButton' onClick={() => {login({ variables: { password: passwordInput, username: usernameInput }});}}> login</button>
                     )
