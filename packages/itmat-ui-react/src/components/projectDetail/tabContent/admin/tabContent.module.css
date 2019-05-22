@@ -1,0 +1,44 @@
+.tab_page_wrapper {
+    padding: 2rem;
+    height: 100%;
+    overflow: auto;
+}
+
+
+.one_role > .role_name {
+    color: var(--color-that-orange);
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: block;
+    margin: 0 0 0.3rem 0;
+}
+
+.add_new_role_button {
+    text-decoration: underline;
+    cursor: pointer;
+    color: var(--color-that-orange);
+}
+
+.add_new_role_button:hover {
+    color: var(--color-that-red);
+}
+
+.add_new_role_section {
+    background: repeating-linear-gradient(
+        -40deg,
+        rgb(37, 37, 37),
+        rgb(37, 37, 37) 10px,
+        rgba(255, 96, 61, 0) 10px,
+        rgba(255, 96, 61, 0) 20px
+    );
+    border-radius: 0.6rem;
+    padding: 0.8rem;
+    width: 80%;
+}
+
+.add_new_role_section .add_new_role_buttons_wrapper {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+}

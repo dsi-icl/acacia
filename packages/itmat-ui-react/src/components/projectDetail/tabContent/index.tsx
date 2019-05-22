@@ -1,0 +1,1 @@
+export { AdminTabContent } from './admin/adminTab'; 
