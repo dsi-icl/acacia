@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
-import { GET_USERS_LIST_ONLY_USERNAME } from '../../graphql/appUsers';
+import { GET_USERS } from '../../graphql/appUsers';
 import { IUser } from 'itmat-utils/dist/models/user';
 import { Select } from 'antd';
 import css from './genericUserList.module.css';
@@ -28,12 +28,12 @@ export const GenericUserList: React.FunctionComponent<{
             listOfUsers.map(el => <OneUserOrAdmin key={el} user={el} {...{mutationToDeleteUser, application, study}}/>)
         }
             <div className={css.addUserSectionWrapper}>
-            <Query query={GET_USERS_LIST_ONLY_USERNAME}>
+            <Query query={GET_USERS} variables={{ fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }}>
                 {({ data, loading: loadingQuery, error}) => {
                     if (loadingQuery) return (
                     <>
                     <div className={css.selectionWrapper}>
-                    <Select 
+                    <Select
                         showSearch
                         getPopupContainer={ev => ev!.parentElement!}
                         dropdownStyle={{ maxHeight: 250, overflow: 'auto' }}
@@ -55,7 +55,7 @@ export const GenericUserList: React.FunctionComponent<{
                             onChange={e => { setAddUserInput(e)}}
                             notFoundContent='No user matches your search'
                         >
-                        {data.getUsers.map((el: IUser) => <Select.Option key={el.id} value={el.username}>{el.username}</Select.Option>)}
+                        {data.getUsers.map((el: IUser) => <Select.Option key={el.id} value={el.id}>{`${el.realName} (${el.organisation || 'unknown organisation'})`}</Select.Option>)}
                         </Select>
                         </div>
                         <Mutation

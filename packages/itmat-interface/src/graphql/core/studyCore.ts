@@ -27,11 +27,10 @@ export class StudyCore {
         return projectSearchResult;
     }
 
-    async createNewStudy(studyName: string, requestedBy: string, isUkbiobank: boolean): Promise<IStudy> {
+    async createNewStudy(studyName: string, requestedBy: string): Promise<IStudy> {
         const study: IStudy = {
             id: uuidv4(),
             name: studyName,
-            isUkbiobank,
             createdBy: requestedBy,
             lastModified: new Date().valueOf(),
             deleted: false

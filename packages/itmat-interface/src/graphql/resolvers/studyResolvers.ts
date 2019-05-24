@@ -78,13 +78,13 @@ export const studyResolvers = {
         }
     },
     Mutation: {
-        createStudy: async(parent: object, args: { name: string, isUkbiobank: boolean}, context: any, info: any): Promise<IStudy> => {
+        createStudy: async(parent: object, args: { name: string }, context: any, info: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
 
             /* create study */
-            const study = await studyCore.createNewStudy(args.name, requester.id, args.isUkbiobank);
+            const study = await studyCore.createNewStudy(args.name, requester.id);
             return study;
         },
         createProject: async(parent: object, { studyId, projectName, approvedFields }: { studyId: string, projectName: string, approvedFields?: string[] }, context: any, info: any): Promise<IProject> => {

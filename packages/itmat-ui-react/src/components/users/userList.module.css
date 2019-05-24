@@ -59,3 +59,24 @@
 .button_clicked button {
     background-color: red;
 }
+
+.submit_cancel_button_wrapper {
+    display: flex;
+    width: 100%;
+}
+
+.submit_cancel_button_wrapper a {
+    width: 50%;
+    margin-right: 0.5rem;
+}
+
+.submit_cancel_button_wrapper button {
+    width: 100%;
+    margin: 0px;
+}
+
+.really_delete_button {
+    background-color: red;
+    cursor: pointer;
+    margin-right: 1rem;
+}

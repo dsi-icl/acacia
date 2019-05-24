@@ -39,22 +39,24 @@ type FieldInfo {
 }
 
 type UserAccess {
-    projects: [Project]
-    studies: [Study]
+    id: String!
+    projects: [Project]!
+    studies: [Study]!
 }
 
 type User {
     id: String!
-    username: String!
+    username: String! # admin only
     type: USERTYPE!
     realName: String
-    email: String
-    description: String
+    organisation: String
+    email: String # admin only
+    description: String # admin only
     emailNotificationsActivated: Boolean!
     createdBy: String
 
     # external to mongo documents:
-    access: UserAccess
+    access: UserAccess # admin or self only
 }
 
 type ShortCut {
@@ -149,16 +151,19 @@ input CreateUserInput {
     realName: String!
     email: String!
     description: String!
+    organisation: String!
     emailNotificationsActivated: Boolean!
     password: String!
 }
 
 input EditUserInput {
-    username: String!
+    id: String!
+    username: String
     type: USERTYPE
     realName: String
     email: String
     description: String
+    organisation: String
     emailNotificationsActivated: Boolean
     password: String
 }
@@ -176,7 +181,7 @@ input StringArrayChangesInput {
 type Query {
     # USER
     whoAmI: User
-    getUsers(userId: String): [User]   # admin only
+    getUsers(userId: String): [User]
 
     # STUDY
     getStudy(studyId: String!): Study
@@ -201,7 +206,7 @@ type Mutation {
     # APP USERS
     createUser(user: CreateUserInput!): User
     editUser(user: EditUserInput!): User
-    deleteUser(username: String!): GenericResponse
+    deleteUser(userId: String!): GenericResponse
 
     # STUDY
     createStudy(name: String!, isUkbiobank: Boolean!): Study

@@ -1,38 +1,31 @@
 import gql from "graphql-tag";
-import { user_fragment } from './user';
 
-export const GET_USERS_LIST = gql`
-    {
-        getUsers {
+export const GET_USERS = gql`
+    query getUsers($fetchDetailsAdminOnly: Boolean!, $fetchAccessPrivileges: Boolean!, $userId: String) {
+        getUsers (userId: $userId) {
             id
-            username
+            username @include (if: $fetchDetailsAdminOnly)
             type
             realName
-            email
+            email @include (if: $fetchDetailsAdminOnly)
+            createdBy
+            organisation
+            description @include (if: $fetchDetailsAdminOnly)
+            access  @include (if: $fetchAccessPrivileges) {
+                id
+                projects {
+                    id
+                    name
+                    studyId
+                }
+                studies {
+                    id
+                    name
+                }
+            }
         }
     }
 `;
-
-
-export const GET_SPECIFIC_USER = gql`
-    query getSpecificUser($userId: String){
-        getUsers(userId: $userId) {
-            ...ALL
-        }
-    }
-    ${user_fragment}
-`;
-
-
-export const GET_USERS_LIST_ONLY_USERNAME = gql`
-    {
-        getUsers {
-            id
-            username
-        }
-    }
-`;
-
 
 export const CREATE_USER = gql`
     mutation CreateUser(
@@ -40,6 +33,7 @@ export const CREATE_USER = gql`
         $password: String!
         $realName: String!
         $description: String!
+        $organisation: String!
         $emailNotificationsActivated: Boolean!
         $email: String!
         $type: USERTYPE!
@@ -49,6 +43,7 @@ export const CREATE_USER = gql`
             password: $password
             realName: $realName
             description: $description
+            organisation: $organisation
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
             type: $type
@@ -67,19 +62,25 @@ export const CREATE_USER = gql`
 
 export const EDIT_USER = gql`
     mutation EditUser(
-        $username: String!
+        $id: String!
+        $username: String
         $type: USERTYPE
         $realName: String
         $email: String
         $emailNotificationsActivated: Boolean
         $password: String
+        $description: String
+        $organisation: String
     ) {
         editUser(user: {
+            id: $id
             username: $username
             password: $password
             realName: $realName
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
+            description: $description
+            organisation: $organisation
             type: $type
         }) {
             id
@@ -94,8 +95,8 @@ export const EDIT_USER = gql`
 `;
 
 export const DELETE_USER = gql`
-    mutation DeleteUser($username: String!) {
-        deleteUser(username: $username) {
+    mutation DeleteUser($userId: String!) {
+        deleteUser(userId: $userId) {
             id
             successful
         }

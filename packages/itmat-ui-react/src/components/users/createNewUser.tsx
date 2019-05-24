@@ -1,16 +1,19 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
-import { CREATE_USER, GET_USERS_LIST } from '../../graphql/appUsers';
+import { CREATE_USER, GET_USERS } from '../../graphql/appUsers';
 import * as css from './userList.module.css';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Redirect } from 'react-router-dom';
 
 // import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
 
 export const CreateNewUser: React.FunctionComponent = props => {
-    const [inputs, setInputs] = React.useState({
+    const [completedCreationId, setCompletedCreationId] = React.useState(undefined);
+    const [inputError, setError] = React.useState('');
+    const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
         username: '',
         password: '',
         realName: '',
+        organisation: '',
         description: '',
         emailNotificationsActivated: false,
         email: '',
@@ -18,26 +21,41 @@ export const CreateNewUser: React.FunctionComponent = props => {
     });
 
     const inputControl = (property: string) => ({
-        value: (inputs as any)[property],
-        onChange: (e: any) => { setInputs({...inputs, [property]: e.target.value }); }
+        value: inputs[property],
+        onChange: (e: any) => {
+            setInputs({...inputs, [property]: e.target.value });
+            setError('');
+        }
     });
+
+    function clickedSubmit(mutationFunc: (data: { variables: any }) => {}) {
+        return function (e: any) {
+            e.preventDefault();
+            const allFields = Object.keys(inputs);
+            for (let each of allFields) {
+                if (inputs[each] === undefined || inputs[each] === '') {
+                    setError('None of the fields can be empty!');
+                    return;
+                }
+            }
+            mutationFunc({ variables: inputs })
+        }
+    }
+
+    if (completedCreationId) return <Redirect to={`/users/${completedCreationId}`}/>;
 
     return (
         <Mutation
             mutation={CREATE_USER}
-            update={(cache, { data: { createUser } }) => {
-                const { getUsers } = cache.readQuery({ query: GET_USERS_LIST }) as { getUsers: any[]};
-                cache.writeQuery({
-                    query: GET_USERS_LIST,
-                    data: { getUsers: getUsers.concat([createUser]) },
-                });
-            }}
+            refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false} }]}
+            onCompleted={data => setCompletedCreationId(data.createUser.id)}
         >
         {(createUser, { loading, error }) =>
             <form>
                 <label>Username: </label><input type='text' {...inputControl('username')}/> <br/><br/>
                 <label>Password: </label><input type='password' {...inputControl('password')} /> <br/><br/>
                 <label>Real name: </label><input type='text' {...inputControl('realName')}/> <br/><br/>
+                <label>Organisation: </label><input type='text' {...inputControl('organisation')}/> <br/><br/>
                 <label>Description: </label><input type='text' {...inputControl('description')}/> <br/><br/>
                 <label>Email: </label><input type='text' {...inputControl('email')}/> <br/><br/>
                 <label>Type: </label><select {...inputControl('type')}>
@@ -45,8 +63,11 @@ export const CreateNewUser: React.FunctionComponent = props => {
                     <option value="ADMIN">System admin</option>
                 </select>
                 <br/><br/><br/><br/>
-                <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
-            { loading ? <button>Loading...</button> : <button onClick={e => {e.preventDefault(); createUser({variables: inputs})}}>Submit</button> }
+                <div className={css.submit_cancel_button_wrapper}>
+                    <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
+                    { loading ? <button>Loading...</button> : <button onClick={clickedSubmit(createUser)}>Submit</button> }
+                </div>
+            { inputError !== '' ? <div className='error_banner'>{inputError}</div> : null }
             </form>
         }
         </Mutation>

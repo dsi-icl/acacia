@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
-import { GET_USERS_LIST_ONLY_USERNAME } from '../../graphql/appUsers';
+import { GET_USERS} from '../../graphql/appUsers';
 import { IUser } from 'itmat-utils/dist/models/user';
 import { Select } from 'antd';
 import css from '../../css/genericUserList.module.css';
@@ -29,7 +29,7 @@ export const GenericUserList: React.FunctionComponent<{
             listOfUsers.map(el => <OneUserOrAdmin key={el} user={el} {...{mutationToDeleteUser, application, study}}/>)
         }
             <div className={css.addUserSectionWrapper}>
-            <Query query={GET_USERS_LIST_ONLY_USERNAME}>
+            <Query query={GET_USERS}>
                 {({ data, loading: loadingQuery, error}) => {
                     if (loadingQuery) return (
                     <>

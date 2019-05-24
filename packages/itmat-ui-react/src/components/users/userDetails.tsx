@@ -1,31 +1,48 @@
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
-import { GET_SPECIFIC_USER, EDIT_USER, GET_USERS_LIST, DELETE_USER } from '../../graphql/appUsers';
+import { EDIT_USER, GET_USERS, DELETE_USER } from '../../graphql/appUsers';
 import * as css from './userList.module.css';
 import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
+import { NavLink } from 'react-router-dom';
+import { Subsection } from '../reusable';
+import { ProjectSection } from './projectSection';
 
-export const UserDetailsSection: React.FunctionComponent<{ username: string }> = ({ username }) => {
+export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
     return (
-        <Query query={GET_SPECIFIC_USER} variables={{ username }}>
+        <Query query={GET_USERS} variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId }}>
             {({loading, error, data }) => {
                 if (loading) return <p>Loading...</p>;
                 if (error) return <p>Error :( {error.message}</p>;
                 const user: IUserWithoutToken = data.getUsers[0];
-                if (user === null || user === undefined) { return `Oops! Cannot find user with username "${username}".` };
+                if (user === null || user === undefined) { return 'Oops! Cannot find user.' };
                 return (
-                    <EditUserForm user={user}/>
+                    <>
+                        <div className='page_ariane'>{data.getUsers[0].username}</div>
+                        <div className='page_content'>
+                            <Subsection title='Account Information'>
+                                <EditUserForm user={user}/>
+                            </Subsection>
+                            <Subsection title='Projects'>
+                                <ProjectSection projects={data.getUsers[0].access.projects}/>
+                            </Subsection> 
+                            <Subsection title='Datasets'>
+                                <ProjectSection projects={data.getUsers[0].access.studies}/>
+                            </Subsection> 
+                        </div>
+                    </>
                 );
             }}
         </Query>
     );
 };
 
-export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> = ({user}) => {
+export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: object }) }> = ({user}) => {
     const [inputs, setInputs] = React.useState({ ...user, password: '' });
     const [deleteButtonShown, setDeleteButtonShown]  = React.useState(false);
     const [userIsDeleted, setUserIsDeleted] = React.useState(false);
-
-    if (inputs.username !== user.username) {
+    const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
+    console.log(inputs);
+    if (inputs.id !== user.id) {
         setUserIsDeleted(false);
         setDeleteButtonShown(false);
         setInputs({ ...user, password: '' })
@@ -36,7 +53,9 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
         if (inputs.password === '') {
             delete editUserObj.password;
         }
-        delete editUserObj.description;
+        if (inputs.access !== undefined) {
+            delete editUserObj.access;
+        }
         return editUserObj;
     }
 
@@ -45,10 +64,11 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
     return (
         <Mutation
             mutation={EDIT_USER}
+            onCompleted={() => setSavedSuccessfully(true)}
         >
         {(submit, { loading, error, data }) =>
-            <div className={css.user_detail}>
-                <h4>{user.username}</h4>
+            <>
+                <label>Username: </label> <input type='text' value={inputs.username} onChange={e => { setInputs({...inputs, username: e.target.value }) }}/> <br/><br/>
                 <label>Type: </label>
                     <select value={inputs.type} onChange={e => { setInputs({...inputs, type: e.target.value } as any); }}>
                         <option value="STANDARD">System user</option>
@@ -59,32 +79,38 @@ export const EditUserForm: React.FunctionComponent<{ user: IUserWithoutToken }> 
                 <label>Email: </label> <input type='text' value={inputs.email} onChange={e => { setInputs({...inputs, email: e.target.value }) }}/><br/><br/>
                 <label>Email Notification: </label> <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({...inputs, emailNotificationsActivated: e.target.checked }) }}/><br/><br/>
                 <label>Description: </label> <input type='text' value={inputs.description} onChange={e => { setInputs({...inputs, description: e.target.value }) }}/> <br/><br/>
+                <label>Organisation: </label> <input type='text' value={inputs.organisation} onChange={e => setInputs({...inputs, organisation: e.target.value })} /> <br/><br/>
                 <label>Created by (readonly): </label ><input type='text' readOnly value={inputs.createdBy}/> <br/><br/>
-                {loading ? <button>Loading</button> : <button onClick={() => { submit({ variables: { ...formatSubmitObj() } }); }}>Save</button> }
+                <div className={css.submit_cancel_button_wrapper}>
+                    <NavLink to={'/users'}><button className='button_grey'>Cancel</button></NavLink>
+                    {loading ? <button>Loading</button> : <button onClick={() => { submit({ variables: { ...formatSubmitObj() } }); }}>Save</button> }
+                </div>
+                {
+                    error ? <div className='error_banner'>{JSON.stringify(error)}</div> : null
+                }
+
+                {
+                    savedSuccessfully ? <div className='saved_banner'>Saved!</div> : null
+                }
 
                 <br/><br/><br/>
                 <Mutation
                     mutation={DELETE_USER}
-                    update={(cache, { data: { deleteUser } }) => {
-                        const { getUsers } = cache.readQuery({ query: GET_USERS_LIST }) as { getUsers: any[]};
-                        cache.writeQuery({
-                            query: GET_USERS_LIST,
-                            data: { getUsers: getUsers.filter(el => el.username !== deleteUser.id) },
-                        });
-                    }}
+                    refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
                 >
+                
                 {(deleteUser, { loading, error, data: UserDeletedData }) => {
                     if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
                     if (error) return <p>{error.message}</p>
                     return (
                         <>
                             <label>Delete this user: </label> { loading ? <p style={{cursor: 'pointer', textDecoration: 'underline'}}> click here </p> : <p onClick={()=>{ setDeleteButtonShown(true)}} style={{cursor: 'pointer', textDecoration: 'underline'}}> click here </p> }<br/>
-                            { deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br/> <span onClick={() => { deleteUser({ variables: { username: user.username }})} } style={{ backgroundColor: 'red'}}> Delete user {user.username} </span> <span onClick={()=>{ setDeleteButtonShown(false)}}> Cancel </span></> : null }
+                            { deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br/> <span onClick={() => { deleteUser({ variables: { userId: user.id }})} } className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={()=>{ setDeleteButtonShown(false)}} style={{ cursor: 'pointer'}}> Cancel </span></> : null }
                         </>
                     );
                 }}
                 </Mutation>
-            </div>
+            </>
         }
         </Mutation>
     );

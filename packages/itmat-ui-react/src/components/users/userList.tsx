@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { GET_USERS_LIST } from '../../graphql/appUsers';
+import { GET_USERS} from '../../graphql/appUsers';
 import { Models } from 'itmat-utils';
 import * as css from './userList.module.css';
 import { NavLink } from 'react-router-dom';
@@ -9,7 +9,8 @@ import { Icons } from '../icons';
 export const UserListSection: React.FunctionComponent = props => {
     return (
         <Query
-            query={GET_USERS_LIST}
+            query={GET_USERS}
+            variables={{fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
             pollInterval={10000}
         >
             {({loading, error, data }) => {
@@ -31,7 +32,7 @@ const User: React.FunctionComponent<{ data: Models.UserModels.IUserWithoutToken}
                 <td>{data.realName}</td>
                 <td>{data.type}</td>
                 <td>{data.email}</td>
-                <td><NavLink to={`/users/${data.username}`} activeClassName={css.button_clicked}><button>More/Edit</button></NavLink></td>
+                <td><NavLink to={`/users/${data.id}`} activeClassName={css.button_clicked}><button>More/Edit</button></NavLink></td>
             </tr>
     );
 };
@@ -42,7 +43,7 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
     function highermappingfunction() {
         if (searchString === '') {
             return function(el: Models.UserModels.IUserWithoutToken) {
-                return <User key={el.username} data={el}/>;
+                return <User key={el.id} data={el}/>;
             }
         }
         return function(el: Models.UserModels.IUserWithoutToken) {
@@ -52,7 +53,7 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
                 el.type.toLowerCase().indexOf(searchString.toLowerCase()) !== -1 ||
                 el.realName.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
             ) {
-                return <User key={el.username} data={el}/>;
+                return <User key={el.id} data={el}/>;
             }
             return null;
         }

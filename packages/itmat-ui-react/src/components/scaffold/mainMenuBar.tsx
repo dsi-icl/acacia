@@ -4,7 +4,6 @@ import { NavLink } from 'react-router-dom';
 import * as css from './scaffold.module.css';
 import { Icons } from '../icons';
 import { LOGOUT, WHO_AM_I } from '../../graphql/user';
-import { IShortCut } from 'itmat-utils/dist/models/user';
 
 export const MainMenuBar: React.FunctionComponent = () => {
     return (

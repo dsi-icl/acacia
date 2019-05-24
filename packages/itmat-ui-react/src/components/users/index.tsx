@@ -26,7 +26,9 @@ export const UserPage: React.FunctionComponent = props => {
                         </div>
                         </>
                     }/>                
-                    <Route path='/users/:username' render={({ match }) => <UserDetailsSection username={match.params.username}/>}/>
+                    <Route path='/users/:userId' render={({ match }) => 
+                        <UserDetailsSection userId={match.params.userId}/>
+                    }/>
                     <Route path='/' render={() => <></>}/>
                 </Switch>
             </div>

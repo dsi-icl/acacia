@@ -6,10 +6,11 @@ import mongodb from 'mongodb';
 import bcrypt from 'bcrypt';
 import uuidv4 from 'uuid/v4';
 import { makeGenericReponse } from '../responses';
-import { IUser, IShortCut, userTypes } from 'itmat-utils/dist/models/user';
+import { IUser, userTypes } from 'itmat-utils/dist/models/user';
 import { studyCore } from '../core/studyCore';
 import { userCore } from '../core/userCore';
 import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
+import { errorCodes } from '../errors';
 
 export const userResolvers = {
     Query: {
@@ -21,17 +22,22 @@ export const userResolvers = {
             // if (requester.type !== Models.UserModels.userTypes.ADMIN) {
             //     throw new ForbiddenError('Unauthorised.');
             // }
-            const queryObj = args.username === undefined ? { deleted: false } : { deleted: false, username: args.username };
-            const cursor = db.collections!.users_collection.find(queryObj);
+            const queryObj = args.userId === undefined ? { deleted: false } : { deleted: false, id: args.userId };
+            const cursor = db.collections!.users_collection.find(queryObj, { projection: { username: 0, email: 0, description: 0, _id: 0 }});
             return cursor.toArray();
         }
     },
     User: {
-        access: async (user: IUser): Promise<{ projects: IProject[], studies: IStudy[] }> => {
+        access: async (user: IUser, arg: any, context: any): Promise<{ projects: IProject[], studies: IStudy[], id: string }> => {
+            const requester: Models.UserModels.IUser = context.req.user;
+            if (requester.type !== userTypes.ADMIN && user.id !== requester.id){
+               throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
             if (user.type === userTypes.ADMIN) {
                 const allprojects: IProject[] = await db.collections!.projects_collection.find({ deleted: false }).toArray();
                 const allstudies: IStudy[] = await db.collections!.studies_collection.find({ deleted: false }).toArray();
-                return { projects: allprojects, studies: allstudies };
+                return { id: `user_access_obj_user_id_${user.id}`, projects: allprojects, studies: allstudies };
             }
 
             /* find all the roles a user has */
@@ -50,8 +56,38 @@ export const userResolvers = {
 
             const projects: IProject[] = await db.collections!.projects_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: false }).toArray();
             const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: false }).toArray();
-            return { projects, studies };
-        }
+            return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
+        },
+        username: async(user: IUser, arg: any, context: any): Promise<string | null> => {
+            if (context.req.user.type !== userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+            const result: IUser | null = await db.collections!.users_collection.findOne({ id: user.id, deleted: false }, { projection: { username: 1 }});
+            if (result === null || result === undefined) {
+                return null;
+            }
+            return result.username;
+        },
+        description: async(user: IUser, arg: any, context: any): Promise<string | null> => {
+            if (context.req.user.type !== userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+            const result: IUser | null = await db.collections!.users_collection.findOne({ id: user.id, deleted: false }, { projection: { description: 1 }});
+            if (result === null || result === undefined) {
+                return null;
+            }
+            return result.description;
+        },
+        email: async(user: IUser, arg: any, context: any): Promise<string | null> => {
+            if (context.req.user.type !== userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+            const result: IUser | null = await db.collections!.users_collection.findOne({ id: user.id, deleted: false }, { projection: { email: 1 }});
+            if (result === null || result === undefined) {
+                return null;
+            }
+            return result.email;
+        },
     },
     Mutation: {
         login: async(parent: object, args: any, context: any, info: any): Promise<object> => {
@@ -100,8 +136,8 @@ export const userResolvers = {
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ForbiddenError('Unauthorised.');
             }
-            const { username, type, realName, email, emailNotificationsActivated, password, description }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string
+            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
+                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
 
             const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: false }); // since bycrypt is CPU expensive let's check the username is not taken first
@@ -116,6 +152,7 @@ export const userResolvers = {
                 description,
                 realName,
                 email,
+                organisation,
                 emailNotificationsActivated
             });
 
@@ -126,19 +163,19 @@ export const userResolvers = {
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ForbiddenError('Unauthorised.');
             }
-            await userCore.deleteUser(args.username);
-            return makeGenericReponse(args.username);
+            await userCore.deleteUser(args.userId);
+            return makeGenericReponse(args.userId);
         },
         editUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            const { username, type, realName, email, emailNotificationsActivated, password }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string
+            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
+                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
             } = args.user;
-            if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.username !== username) {
+            if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ForbiddenError('Unauthorised.');
             }
             if (requester.type === Models.UserModels.userTypes.ADMIN) {
-                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ username, deleted: false })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ id, deleted: false })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     throw new ApolloError('User not found');
                 }
@@ -150,9 +187,12 @@ export const userResolvers = {
             const fieldsToUpdate: any = {
                 type,
                 realName,
+                username,
                 email,
                 emailNotificationsActivated,
-                password
+                password,
+                description,
+                organisation
             };
             if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
             for (const each of Object.keys(fieldsToUpdate)) {
@@ -160,8 +200,7 @@ export const userResolvers = {
                     delete fieldsToUpdate[each];
                 }
             }
-
-            const updateResult: mongodb.FindAndModifyWriteOpResultObject = await db.collections!.users_collection.findOneAndUpdate({ username, deleted: false }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            const updateResult: mongodb.FindAndModifyWriteOpResultObject = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: false }, { $set: fieldsToUpdate }, { returnOriginal: false });
             if (updateResult.ok === 1) {
                 return updateResult.value;
             } else {

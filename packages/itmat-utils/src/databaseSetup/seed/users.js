@@ -5,11 +5,11 @@ const users = [{
     "password" : "$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi", 
     "createdBy" : "admin", 
     "email" : "standard@user.io", 
-    "notifications" : [], 
+    "description": "I am a standard user.",
     "emailNotificationsActivated" : true, 
+    "organisation":  "DSI",
     "deleted" : false, 
     "id" : "replaced_at_runtime",
-    "shortcuts" : []
 },
 { 
     "username" : "admin", 
@@ -17,12 +17,12 @@ const users = [{
     "realName" : "admin", 
     "password" : "$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi", 
     "createdBy" : "chon", 
+    "organisation":  "DSI",
     "email" : "admin@user.io", 
-    "notifications" : [], 
+    "description": "I am an admin user.",
     "emailNotificationsActivated" : false, 
     "deleted" : false, 
     "id" : "replaced_at_runtime", 
-    "shortcuts" : []
 }];
 
 module.exports = users;

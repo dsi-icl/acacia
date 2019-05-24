@@ -8,6 +8,7 @@ export interface IUserWithoutToken {
     username: string,
     email: string,
     realName: string,
+    organisation: string,
     type: userTypes,
     description: string,
     emailNotificationsActivated: boolean,

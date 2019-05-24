@@ -9,8 +9,10 @@ export const user_fragment = gql`
         realName
         email
         createdBy
+        organisation
         description
         access {
+            id
             projects {
                 id
                 name
