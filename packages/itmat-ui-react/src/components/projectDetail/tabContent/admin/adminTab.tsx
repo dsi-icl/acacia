@@ -50,7 +50,7 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole }> = ({
                         availableUserList={data.getUsers}
                         onClickAddButton={loadingAddUser ? () => {} : (studyId, projectId, user) => { addUserToRole(); }}
                     > 
-                    {role.users.map(el => <UserListPicker.User user={el as any} onClickCross={loadingRemoveUser ? () => {} : (user) => removeUserFromRole() }/>)}
+                    {role.users.map(el => <UserListPicker.User key={(el as any).id} user={el as any} onClickCross={loadingRemoveUser ? () => {} : (user) => removeUserFromRole() }/>)}
                     {/* {role.users.map(el => <UserListPicker.User user={el as any} onClickCross={loadingRemoveUser ? () => {} : (user) => removeUserFromRole() }/>)} */}
                     </UserListPicker.UserList>
                 }
