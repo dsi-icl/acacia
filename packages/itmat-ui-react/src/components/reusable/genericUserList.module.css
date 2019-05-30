@@ -44,12 +44,12 @@
     background-color: var(--color-that-orange);
 }
 
-.button:hover  {
+.addUserSectionWrapper > .button:hover  {
     background-image: linear-gradient(to bottom right, var(--color-text-selected), var(--color-purple-shade2));
     cursor: pointer;
 }
 
-.button:active  {
+.addUserSectionWrapper > .button:active  {
     background-image: linear-gradient(to bottom right, hsl(197, 97%, 60%), rgb(222, 212, 255));
     cursor: pointer;
 }
