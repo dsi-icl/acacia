@@ -20,7 +20,12 @@ export const GET_PROJECT = gql`
                 permissions
                 projectId
                 studyId
-                users
+                users {
+                    id
+                    realName
+                    organisation
+                    username
+                }
             }
             iCanEdit
         }

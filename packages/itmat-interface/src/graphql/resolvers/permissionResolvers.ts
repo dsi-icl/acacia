@@ -5,9 +5,18 @@ import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { studyCore } from '../core/studyCore';
 import { IUser } from 'itmat-utils/dist/models/user';
+import { db } from '../../database/database';
+
 
 export const permissionResolvers = {
-    Query: {},
+    Query: {
+    },
+    StudyOrProjectUserRole: {
+        users: async(role: IRole): Promise<IUser[]> => {
+            const listOfUsers = role.users;
+            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers }}, { projection: { _id: 0, password: 0 } }).toArray());
+        }
+    },
     Mutation: {
         addRoleToStudyOrProject: async(parent: object, args: {studyId?: string, projectId?: string, roleName: string, permissions: string[]}, context: any, info: any): Promise<IRole> => {
             const requester: IUser = context.req.user;

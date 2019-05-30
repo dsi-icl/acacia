@@ -72,7 +72,7 @@ type StudyOrProjectUserRole {
     studyId: String,
     projectId: String,
     permissions: [String]!,
-    users: [String]!
+    users: [User]!
 }
 
 type Study {

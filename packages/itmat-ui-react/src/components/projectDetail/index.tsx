@@ -25,7 +25,7 @@ export const ProjectDetailPage: React.FunctionComponent<{ projectId: string }> =
                 >
                 {({loading, error, data }) => {
                     if (loading) return <p>Loading...</p>;
-                    if (error) return <p>Error :( {error}</p>;
+                    if (error) return <p>Error :( {JSON.stringify(error)}</p>;
                     return <Switch>
                         <Route path='/projects/:projectId/dashboard' render={() => <></>}/>
                         <Route path='/projects/:projectId/admin' render={() => <AdminTabContent roles={data.getProject.roles}/>}/>
