@@ -2,10 +2,10 @@ import { Models } from 'itmat-utils';
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { GET_PROJECT } from '../../../../graphql/projects';
-import { CREATE_USER } from '../../../../graphql/appUsers';
+import { CREATE_USER, GET_USERS } from '../../../../graphql/appUsers';
 import * as css from './tabContent.module.css';
 import { NavLink, Redirect } from 'react-router-dom';
-import { Subsection, GenericUserList, SECTIONTYPE } from '../../../reusable';
+import { Subsection, UserListPicker } from '../../../reusable';
 
 export const AdminTabContent: React.FunctionComponent<{roles: Models.Study.IRole[]}> = ({ roles }) => {
     return <div className={css.tab_page_wrapper}>
@@ -33,15 +33,32 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole }> = ({
         {role.permissions.map(el => <React.Fragment key={el}>{el}<br/><br/></React.Fragment>)}
         <label>Users of this role: </label>
         <br/> <br/>
-        <GenericUserList
-            title='ot'
-            mutationToAddUser={CREATE_USER}
-            mutationToDeleteUser={CREATE_USER}
-            type={SECTIONTYPE.ADMINS}
-            listOfUsers={role.users}
-            studyName='fsdafds'
-            submitButtonString='fsdfdsa'
-        />
+        <Query query={GET_USERS} variables={{ fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }}>
+        {({ data, error, loading }) => {
+            if (error) return null;
+            if (loading) return null;
+            return <Mutation
+                mutation={CREATE_USER}
+            >
+            {(addUserToRole, { loading: loadingAddUser }) =>
+                <Mutation mutation={CREATE_USER}>
+                {(removeUserFromRole, { loading: loadingRemoveUser } ) =>
+                    <UserListPicker.UserList
+                        studyId={role.studyId}
+                        projectId={role.projectId}
+                        submitButtonString='Add user'
+                        availableUserList={data.getUsers}
+                        onClickAddButton={loadingAddUser ? () => {} : (studyId, projectId, user) => { addUserToRole(); }}
+                    > 
+                    {role.users.map(el => <UserListPicker.User user={el as any} onClickCross={loadingRemoveUser ? () => {} : (user) => removeUserFromRole() }/>)}
+                    {/* {role.users.map(el => <UserListPicker.User user={el as any} onClickCross={loadingRemoveUser ? () => {} : (user) => removeUserFromRole() }/>)} */}
+                    </UserListPicker.UserList>
+                }
+                </Mutation>
+            }
+            </Mutation>;
+        }}
+        </Query>
         <br/><br/>
     </div>
 };
