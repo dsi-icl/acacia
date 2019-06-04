@@ -169,9 +169,9 @@ input EditUserInput {
 }
 
 input IntArrayChangesInput {
-    add: [Int]! 
+    add: [Int]!
     remove: [Int]!
-} 
+}
 
 input StringArrayChangesInput {
     add: [String]!
@@ -218,7 +218,7 @@ type Mutation {
     editProjectApprovedFields(projectId: String!, changes: IntArrayChangesInput): Project
 
     # ACCESS MANAGEMENT
-    addRoleToStudyOrProject(studyId: String, projectId: String, roleName: String!, permissions: [String]!): StudyOrProjectUserRole
+    addRoleToStudyOrProject(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole
     editRole(roleId: String!, name: String, permissionChanges: StringArrayChangesInput, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
     removeRole(roleId: String!): GenericResponse
 

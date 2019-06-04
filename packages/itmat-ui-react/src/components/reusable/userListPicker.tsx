@@ -45,7 +45,7 @@ const UserList: React.FunctionComponent<{
                         {availableUserList.map((el: IUser) => <Select.Option key={el.id} value={el.id}>{`${el.realName} (${el.organisation || 'unknown organisation'})`}</Select.Option>)}
                     </Select>
                 </div>
-                <div className={css.button} onClick={selectedUser ? () => onClickAddButton(studyId, projectId, selectedUser) : () => {} }>
+                <div className={css.button} onClick={selectedUser ? () => { onClickAddButton(studyId, projectId, selectedUser); setAddUserInput(undefined); } : () => {} }>
                     {submitButtonString}
                 </div>
             </div>

@@ -18,13 +18,11 @@ export const permissionResolvers = {
         }
     },
     Mutation: {
-        addRoleToStudyOrProject: async(parent: object, args: {studyId?: string, projectId?: string, roleName: string, permissions: string[]}, context: any, info: any): Promise<IRole> => {
+        addRoleToStudyOrProject: async(parent: object, args: {studyId?: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
-            const { studyId, projectId, roleName, permissions } = args;
+            const { studyId, projectId, roleName } = args;
             /* check the requester has privilege */
 
-            /* check whether all the permissions are valid */
-            permissionCore.validatePermissionInput_throwErrorIfNot(permissions);
 
             /* check whether user has at least provided one id */
             if (studyId === undefined && projectId === undefined) {
@@ -43,25 +41,25 @@ export const permissionResolvers = {
                 await studyCore.findOneProject_throwErrorIfNotExist(projectId);
             }
 
-            const result = await permissionCore.addRoleToStudyOrProject({ permissions, studyId: studyId!, projectId, roleName });
+            const result = await permissionCore.addRoleToStudyOrProject({ studyId: studyId!, projectId, roleName });
             return result;
         },
-        editRole: async(parent: object, args: {roleId: string, name: string, userChanges: { add: string[], remove: string[]}, permissionChanges: { add: string[], remove: string[]}}, context: any, info: any): Promise<IRole> => {
+        editRole: async(parent: object, args: {roleId: string, name?: string, userChanges?: { add: string[], remove: string[]}, permissionChanges?: { add: string[], remove: string[]}}, context: any, info: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { roleId, name, permissionChanges, userChanges } = args;
 
             /* check permission */
 
             /* check whether all the permissions are valid */  //TO_DO: permission changes are valid or invalid depending on project.
-            const allRequestedPermissionChanges: string[] = [...permissionChanges.add, ...permissionChanges.remove];
-            permissionCore.validatePermissionInput_throwErrorIfNot(allRequestedPermissionChanges);
+            // const allRequestedPermissionChanges: string[] = [...permissionChanges.add, ...permissionChanges.remove];
+            // permissionCore.validatePermissionInput_throwErrorIfNot(allRequestedPermissionChanges);
 
-            /* check whether all the users exists */
-            const allRequestedUserChanges: string[] = [...userChanges.add, ...permissionChanges.remove];
+            // /* check whether all the users exists */
+            // const allRequestedUserChanges: string[] = [...userChanges.add, ...permissionChanges.remove];
             // TO_OD
 
             /* edit the role */
-            const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, permissionChanges, userChanges);
+            const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, name, permissionChanges, userChanges);
             return modifiedRole;
         },
         removeRole: async(parent: object, args: {roleId: string}, context: any, info: any): Promise<IGenericResponse> => {

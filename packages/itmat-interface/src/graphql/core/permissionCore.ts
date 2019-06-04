@@ -1,4 +1,4 @@
-import mongodb from 'mongodb';
+import mongodb, { BulkWriteResult } from 'mongodb';
 import { db } from '../../database/database';
 import { permissions } from 'itmat-utils';
 import { ApolloError } from 'apollo-server-core';
@@ -10,8 +10,7 @@ import { IUser, userTypes } from 'itmat-utils/dist/models/user';
 interface ICreateRoleInput {
     studyId: string,
     projectId?: string,
-    roleName: string,
-    permissions: string[]
+    roleName: string
 }
 
 interface IUserToRoleInput {
@@ -20,7 +19,7 @@ interface IUserToRoleInput {
 }
 
 export class PermissionCore {
-    validatePermissionInput_throwErrorIfNot(inputPermissions: string[]): void {
+    public validatePermissionInput_throwErrorIfNot(inputPermissions: string[]): void {
         const allPermissions = Object.entries(permissions).reduce((a: string[], e: any) => a.concat(Object.values(e[1])), []);
         for (let each of inputPermissions) {
             if (!allPermissions.includes(each)) {
@@ -30,11 +29,11 @@ export class PermissionCore {
         return;
     }
 
-    async getAllRolesOfStudyOrProject(studyId: string, projectId?: string): Promise<IRole[]> {
+    public async getAllRolesOfStudyOrProject(studyId: string, projectId?: string): Promise<IRole[]> {
         return db.collections!.roles_collection.find({ studyId, projectId }).toArray();
     }
 
-    async userHasTheNeccessaryPermission_throwErrorIfNot(needOneOfThesePermissions: string[], user: IUser, study: string, project?: string): Promise<void> {
+    public async userHasTheNeccessaryPermission_throwErrorIfNot(needOneOfThesePermissions: string[], user: IUser, study: string, project?: string): Promise<void> {
         /* if user is an admin then return true if admin privileges includes needed permissions */
         if (user.type === userTypes.ADMIN) {
             return;
@@ -61,16 +60,16 @@ export class PermissionCore {
         throw new ApolloError('You do not have the necessary permission.', errorCodes.NO_PERMISSION_ERROR);
     }
 
-    async removeRole(roleId: string): Promise<void> {
+    public async removeRole(roleId: string): Promise<void> {
         const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, { $set: { deleted: true } });
         if (updateResult.ok === 1) {
             return;
         } else {
-            throw new ApolloError(`Cannot delete role.`, errorCodes.DATABASE_ERROR);
+            throw new ApolloError('Cannot delete role.', errorCodes.DATABASE_ERROR);
         }
     }
 
-    async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string, projectId?: string } | { studyId?: string, projectId: string } ): Promise<void> {
+    public async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string, projectId?: string } | { studyId?: string, projectId: string } ): Promise<void> {
         if (studyId === undefined && projectId === undefined) {
             throw new ApolloError('Neither studyId nor projectId is provided');
         }
@@ -86,23 +85,43 @@ export class PermissionCore {
         if (updateResult.result.ok === 1) {
             return;
         } else {
-            throw new ApolloError(`Cannot delete role(s).`, errorCodes.DATABASE_ERROR);
+            throw new ApolloError('Cannot delete role(s).', errorCodes.DATABASE_ERROR);
         }
     }
 
-    async editRoleFromStudyOrProject(roleId: string, permissionChanges: { add: string[], remove: string[] }, userChanges: { add: string[], remove: string[] }): Promise<IRole> {
-        const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, {
-            $addToSet: { permissions: { $each: permissionChanges.add }, users: { $each: userChanges.add } },
-            $pullAll: { permissions: permissionChanges.remove, users: userChanges.remove }
-        });
-        if (updateResult.ok === 1) {
-            return updateResult.value;
+    public async editRoleFromStudyOrProject(roleId: string, name?: string, permissionChanges?: { add: string[], remove: string[] }, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
+        if (permissionChanges === undefined) { permissionChanges = { add: [], remove: [] }; }
+        if (userChanges === undefined) { userChanges = { add: [], remove: [] }; }
+
+        // const updateObj: any = {
+        //     $addToSet: { permissions: { $each: permissionChanges.add }, users: { $each: userChanges.add } },
+        //     $pullAll: { permissions: permissionChanges.remove, users: userChanges.remove }
+        // };
+        // if (name) {
+        //     updateObj.$set = { name };
+        // }
+
+        const bulkop = db.collections!.roles_collection.initializeUnorderedBulkOp();
+        bulkop.find({ id: roleId, deleted: false }).updateOne({ $addToSet: { permissions: { $each: permissionChanges.add }, users: { $each: userChanges.add } } });
+        bulkop.find({ id: roleId, deleted: false }).updateOne({ $pullAll: { permissions: permissionChanges.remove, users: userChanges.remove } });
+        if (name) {
+            bulkop.find({ id: roleId, deleted: false }).updateOne({ $set: { name } });
+        }
+        const result: BulkWriteResult = await bulkop.execute();
+        if (result.ok === 1) {
+            return await db.collections!.roles_collection.findOne({ id: roleId, deleted: false })!;
         } else {
-            throw new ApolloError(`Cannot edit role.`, errorCodes.DATABASE_ERROR);
+            throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
         }
+
+        // const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, updateObj, { returnOriginal: false });
+        // if (updateResult.ok === 1) {
+        //     return updateResult.value;
+        // } else {
+        // }
     }
 
-    async addRoleToStudyOrProject(opt: ICreateRoleInput): Promise<IRole> {
+    public async addRoleToStudyOrProject(opt: ICreateRoleInput): Promise<IRole> {
         // /* check that all the permissions really exist */
         // const possiblePermissions = Object.values(permissions);
         // opt.permissions.forEach(el => {
@@ -126,7 +145,7 @@ export class PermissionCore {
         const role: IRole = {
             id: uuidv4(),
             name: opt.roleName,
-            permissions: opt.permissions,
+            permissions: [],
             users: [],
             studyId: opt.studyId,
             projectId: opt.projectId,
@@ -137,26 +156,6 @@ export class PermissionCore {
             return role;
         } else {
             throw new ApolloError(`Cannot create role. nInserted: ${updateResult.insertedCount}`, errorCodes.DATABASE_ERROR);
-        }
-    }
-
-    async addUserToRole(opt: IUserToRoleInput): Promise<IRole> {
-        const { roleId, userId } = opt;
-        const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, { $addToSet: { users: userId } });
-        if (updateResult.ok === 1) {
-            return updateResult.value;
-        } else {
-            throw new ApolloError(`Cannot update role. ${updateResult.lastErrorObject}`, errorCodes.DATABASE_ERROR);
-        }
-    }
-
-    async removeUserFromRole(opt: IUserToRoleInput): Promise<IRole> {
-        const { roleId, userId } = opt;
-        const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, { $pull: { users: userId } });
-        if (updateResult.ok === 1) {
-            return updateResult.value;
-        } else {
-            throw new ApolloError(`Cannot update role. ${updateResult.lastErrorObject}`, errorCodes.DATABASE_ERROR);
         }
     }
 }
