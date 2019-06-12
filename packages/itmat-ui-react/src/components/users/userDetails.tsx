@@ -6,12 +6,13 @@ import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
 import { NavLink } from 'react-router-dom';
 import { Subsection } from '../reusable';
 import { ProjectSection } from './projectSection';
+import { LoadingBalls } from '../reusable/loadingBalls';
 
 export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
     return (
         <Query query={GET_USERS} variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId }}>
             {({loading, error, data }) => {
-                if (loading) return <p>Loading...</p>;
+                if (loading) return <LoadingBalls/>;
                 if (error) return <p>Error :( {error.message}</p>;
                 const user: IUserWithoutToken = data.getUsers[0];
                 if (user === null || user === undefined) { return 'Oops! Cannot find user.' };

@@ -1,3 +1,8 @@
+.ant-tree li .ant-tree-node-content-wrapper:hover {
+    background-color: #525252 !important;
+}
+
+
 .ant-select {
     color: var(--color-text-basic-rightpanel);
     line-height: inherit;
@@ -48,4 +53,12 @@
 
 .ant-tree li .ant-tree-node-content-wrapper {
     color: white;
+}
+
+.ant-tree-title {
+    color: white;
+}
+
+.anticon > svg {
+    fill: var(--color-that-orange);
 }

@@ -8,23 +8,33 @@ import { NavLink, Redirect } from 'react-router-dom';
 import { Subsection, UserListPicker } from '../../../reusable';
 import { EDIT_ROLE, ADD_NEW_ROLE, REMOVE_ROLE } from '../../../../graphql/permission';
 import { IRole } from 'itmat-utils/dist/models/study';
+import { LoadingBalls } from '../../../reusable/loadingBalls';
 
 export const AdminTabContent: React.FunctionComponent<{studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
-    return <div className={css.tab_page_wrapper}>
-        <Subsection title='Roles'>
-            <div>
-                {
-                    roles.map((el, ind) => <OneRole key={el.id} role={el}/>)
-                }
-                <AddRole studyId={studyId} projectId={projectId}/>
-            </div>
-        </Subsection>
-        <Subsection title='Patient ID Mapping'>
-            <div>
-                <button>Fetch mapping</button>
-            </div>
-        </Subsection>
-    </div>;
+    return <div className={css.tab_page_wrapper_grid}>
+        <div className={css.tab_page_wrapper + ' ' + css.main_page}>
+            <Subsection title='Roles'>
+                <div>
+                    {
+                        roles.map((el, ind) => <OneRole key={el.id} role={el}/>)
+                    }
+                    <AddRole studyId={studyId} projectId={projectId}/>
+                </div>
+            </Subsection>
+            <Subsection title='Patient ID Mapping'>
+                <div>
+                    <button>Fetch mapping</button>
+                </div>
+            </Subsection>
+        </div>
+        <div className={css.tab_page_wrapper + ' ' + css.sub_page}>
+            <Subsection title='User Access Log'>
+                <div>
+
+                </div>
+            </Subsection>
+        </div>
+    </div>
 };
 
 
@@ -42,7 +52,7 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole }> = ({
                 }}
             >
             {(removeRole, { loading }) => {
-                if (loading) return <span className={css.right_aligned}>Loading..</span>;
+                if (loading) return <span className={css.right_aligned}><LoadingBalls/></span>;
                 return <span className={css.delete_role_button + ' ' + css.right_aligned} onClick={() => removeRole({ variables: { roleId: role.id }})}>X</span>;
             }}
             </Mutation>

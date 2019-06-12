@@ -1,4 +1,7 @@
 export const tab_page_wrapper: string;
+export const tab_page_wrapper_grid: string;
+export const sub_page: string;
+export const main_page: string;
 export const one_role: string;
 export const role_name: string;
 export const add_new_role_button: string;

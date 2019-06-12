@@ -14,8 +14,12 @@ enum FIELD_ITEM_TYPE {
 }
 
 enum FIELD_VALUE_TYPE {
-    N  #numeric
-    C  #categorical
+    N # numeric
+    SC  # categorical single
+    MC  # categorical multiple
+    D # date-time
+    T # free text
+
 }
 
 enum CURATION_JOB_TYPE {
@@ -25,7 +29,7 @@ enum CURATION_JOB_TYPE {
 
 type FieldInfo {
     id: String!
-    study: String!
+    studyId: String!
     path: String!
     fieldId: Int!
     fieldName: String!
@@ -192,7 +196,7 @@ type Query {
     getQueryById(queryId: String!): QueryEntry
 
     # FIELDS
-    getAvailableFields(studyId: String, projectId: String): [FieldInfo]
+    getAvailableFields(studyId: String, projectId: String): [FieldInfo]!
 
     # PERMISSION
     getMyPermissions: [String]

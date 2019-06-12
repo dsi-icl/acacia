@@ -5,16 +5,16 @@ import { Models } from 'itmat-utils';
 import * as css from './userList.module.css';
 import { NavLink } from 'react-router-dom';
 import { Icons } from '../icons';
+import { LoadingBalls } from '../reusable/loadingBalls';
 
 export const UserListSection: React.FunctionComponent = props => {
     return (
         <Query
             query={GET_USERS}
             variables={{fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
-            pollInterval={10000}
         >
             {({loading, error, data }) => {
-                if (loading) return <p>Loading...</p>;
+                if (loading) return <LoadingBalls/>;
                 if (error) return <p>Error :( {error.message}</p>;
                 const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
                 return (

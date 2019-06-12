@@ -4,12 +4,19 @@ import { NavLink } from 'react-router-dom';
 import * as css from './scaffold.module.css';
 import { Icons } from '../icons';
 import { LOGOUT, WHO_AM_I } from '../../graphql/user';
+import { IProject } from 'itmat-utils/dist/models/study';
 
-export const MainMenuBar: React.FunctionComponent = () => {
+export const MainMenuBar: React.FunctionComponent<{ projects: IProject[]}> = ({ projects }) => {
     return (
         <div className={css.main_menubar}>
             <div>
-            <NavLink to='/projects' title='Studies' activeClassName={css.clickedButton}>
+            <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}/`: '/projects'} title='Projects' activeClassName={css.clickedButton}>
+                <div className={css.button}><Icons type='studies'/></div>
+            </NavLink>
+            </div>
+
+            <div>
+            <NavLink to='/datasets' title='Datasets' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='studies'/></div>
             </NavLink>
             </div>

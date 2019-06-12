@@ -9,9 +9,7 @@ import { IUser, userTypes } from 'itmat-utils/dist/models/user';
 import { IFieldEntry } from 'itmat-utils/dist/models/field';
 
 export class FieldCore {
-    constructor(){}
-
-    async getFieldsOfStudy(studyId: string, detailed: boolean, getOnlyTheseFields?: string[]): Promise<IFieldEntry[]|string[]> {
+    public async getFieldsOfStudy(studyId: string, detailed: boolean, getOnlyTheseFields?: string[]): Promise<IFieldEntry[]> {
         /* ASSUMING projectId and studyId match*/
         /* if detailed=false, only returns the fieldid in an array */ 
         /* constructing queryObj; if projectId is provided then only those in the approved fields are returned */
@@ -24,11 +22,11 @@ export class FieldCore {
             { $match: queryObj }
         ];
         /* if detailed=false, only returns the fieldid in an array */ 
-        if (detailed === false ){
+        if (detailed === false ) {
             aggregatePipeline.concat( [ { $group: {  _id: null, array: { $addToSet: '$fieldId' } } } ]);
         }
 
-        const cursor = db.collections!.fields_collection.aggregate(aggregatePipeline);
+        const cursor = db.collections!.field_dictionary_collection.aggregate(aggregatePipeline);
         return cursor.toArray();
     }
 

@@ -29,6 +29,12 @@
     box-shadow:inset 0px -1px 0px 0px var(--color-that-orange);
 }
 
+.tabs > div > a > div:hover {
+    -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-that-orange);
+    -moz-box-shadow:inset 0px -3px 0px 0px var(--color-that-orange);
+    box-shadow:inset 0px -3px 0px 0px var(--color-that-orange);
+}
+
 .tabs > div > .active > div {
     background-color: var(--color-that-orange);
 }
