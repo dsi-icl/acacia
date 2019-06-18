@@ -10,7 +10,7 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[]}> = ({ 
     return (
         <div className={css.main_menubar}>
             <div>
-            <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}/`: '/projects'} title='Projects' activeClassName={css.clickedButton}>
+            <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}/dashboard`: '/projects'} title='Projects' activeClassName={css.clickedButton}>
                 <div className={css.button}><Icons type='studies'/></div>
             </NavLink>
             </div>

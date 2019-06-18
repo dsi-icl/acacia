@@ -23,41 +23,31 @@ export const DELETE_STUDY = gql`
     }
 `;
 
-export const GET_STUDIES_APPLICATIONS_NAME = gql`
-    query getStudiesApplicationsName($name: String){
-        getStudies(name: $name) {
-            id
-            studyAndDataManagers
-            applications {
-                id
-                name
-                applicationAdmins
-            }
-        }
-    }
-`;
-
-export const GET_STUDIES = gql`
-    query getStudies($name: String){
-        getStudies(name: $name) {
+export const GET_STUDY = gql`
+    query getStudy($studyId: String!) {
+        getStudy(studyId: $studyId) {
             id
             name
-            isUkbiobank
-            studyAndDataManagers
-            applications {
-                id
-                name
-            }
             createdBy
+            deleted
             jobs {
                 id
-                requester
-                jobType
-                receivedFiles
+                studyId
                 status
-                cancelled
-                cancelledTime
-                data
+                requester
+                receivedFiles
+            }
+            projects {
+                id
+                studyId
+                name
+            }
+            roles {
+                id
+                users {
+                    id
+                    username
+                }
             }
         }
     }

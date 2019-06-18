@@ -34,7 +34,7 @@ const PickProjectSection: React.FunctionComponent<{projects: Models.Study.IProje
     return <>
         You have access to two or more projects. Please pick the one you would like to access: <br/><br/><br/>
         {projects.map(el => 
-            <NavLink key={el.id} to={`/projects/${el.id}`}>
+            <NavLink key={el.id} to={`/projects/${el.id}/dashboard`}>
                 <button>{el.name}</button>
             </NavLink>
         )}
