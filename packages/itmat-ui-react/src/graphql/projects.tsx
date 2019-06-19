@@ -39,3 +39,12 @@ export const GET_PROJECT_PATIENT_MAPPING = gql`
         }
     }
 `;
+
+export const EDIT_PROJECT_APPROVED_FIELDS = gql`
+    mutation editProjectApprovedFields($projectId: String!, $approvedFields: [String]!) {
+        editProjectApprovedFields(projectId: $projectId, approvedFields: $approvedFields) {
+            id
+            approvedFields
+        }
+    }
+`; 

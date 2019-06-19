@@ -43,7 +43,7 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId
             </div>
             <div className={css.project_detail_right}>
                 <Subsection title='Granted Fields'>
-                        <GrantedFieldListSection studyId={studyId} originalCheckedList={data.getProject.approvedFields}/>
+                        <GrantedFieldListSection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFields}/>
                 </Subsection>
             </div>
         </div>;

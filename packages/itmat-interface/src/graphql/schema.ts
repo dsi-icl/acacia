@@ -219,7 +219,7 @@ type Mutation {
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Study
     deleteProject(projectId: String!): GenericResponse
-    editProjectApprovedFields(projectId: String!, changes: IntArrayChangesInput): Project
+    editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
 
     # ACCESS MANAGEMENT
     addRoleToStudyOrProject(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole

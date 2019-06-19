@@ -122,9 +122,9 @@ export class StudyCore {
         }
     }
 
-    async editProjectApprovedFields(projectId: string, changes: { add: number[], remove: number[] } ) {
+    async editProjectApprovedFields(projectId: string, approvedFields: string[] ) {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $push: { approvedFields: { $each: changes.add } }, $pull: { approvedFields: { $each: changes.remove }} });
+        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields } }, { returnOriginal: false });
         if (result.ok === 1) {
             return result.value;
         } else {

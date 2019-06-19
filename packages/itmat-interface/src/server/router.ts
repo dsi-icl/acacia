@@ -28,7 +28,7 @@ export class Router {
 
         this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
 
-        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.json({ limit: '50mb' }));
         this.app.use(bodyParser.urlencoded({ extended: true }));
 
 
