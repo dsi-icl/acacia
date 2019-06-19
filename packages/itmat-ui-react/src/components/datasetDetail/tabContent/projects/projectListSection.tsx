@@ -7,7 +7,6 @@ export const ProjectListSection: React.FunctionComponent<{ studyId: string, proj
         <thead>
             <tr>
                 <th>Name</th>
-                <th>PI</th>
                 <th></th>
             </tr>
         </thead>
@@ -25,7 +24,6 @@ export const ProjectListSection: React.FunctionComponent<{ studyId: string, proj
 const OneProject: React.FunctionComponent<{ studyId: string, id: string, name: string }> = ({ id, name, studyId }) => 
     <tr>
         <td>{name}</td>
-        <td>pi name</td>
         <td><NavLink to={`/datasets/${studyId}/projects/${id}`}><button>more/edit</button></NavLink></td>
     </tr>
 ;

@@ -7,7 +7,6 @@ export const GET_PROJECT = gql`
             id
             studyId
             name
-            patientMapping @include(if: $admin)
             approvedFields
             jobs {
                 id
@@ -28,6 +27,15 @@ export const GET_PROJECT = gql`
                 }
             }
             iCanEdit
+        }
+    }
+`;
+
+export const GET_PROJECT_PATIENT_MAPPING = gql`
+    query getProject($projectId: String!) {
+        getProject(projectId: $projectId) {
+            id
+            patientMapping
         }
     }
 `;

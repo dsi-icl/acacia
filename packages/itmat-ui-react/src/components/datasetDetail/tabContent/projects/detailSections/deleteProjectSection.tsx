@@ -5,12 +5,12 @@ export const DeleteProjectSection: React.FunctionComponent<{ projectId: string, 
     const [inputText, setInput] = React.useState('');
 
     if (!isExpanded) {
-        return <span onClick={() => { setIsExpanded(true); setInput(''); } }>Click to delete</span>;
+        return <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => { setIsExpanded(true); setInput(''); } }>Click to delete</span>;
     }
 
     return <>
-        <p>Warning! This is irreversible! If you really want to delete this project, please type the name of the project ({projectName}) below to confirm.</p>
-        <input type='text' value={inputText} onChange={e => setInput(e.target.value)}/>
-        <span>Really delete this project!</span> <span>Cancel</span>
+        <p style={{ color: 'red' }}>Warning! This is irreversible! If you really want to delete this project, please type the name of the project ({projectName}) below to confirm.</p>
+        <input type='text' placeholder={projectName} value={inputText} onChange={e => setInput(e.target.value)}/> <br/><br/>
+        <button style={{ display: 'inline-block', width: '20%' }}>Really delete this project!</button> <button style={{ display: 'inline-block', width: '20%' }} className='button_grey' onClick={() => setIsExpanded(false)}>Cancel</button>
     </>;
 };

@@ -12,7 +12,7 @@ export const ProjectsTabContent:React.FunctionComponent<{ studyId: string, proje
             <ProjectListSection studyId={studyId} projectList={projectList}/>
         </Subsection>
         </div>
-        <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
+        <div className={css.right_panel}>
             <Switch>
                 <Route path='/datasets/:studyId/projects/:projectId' render={({ match }) => <ProjectDetail projectId={match.params.projectId}  studyId={match.params.studyId}/>}/>
                 <Route path='/' render={() => <></>}/>

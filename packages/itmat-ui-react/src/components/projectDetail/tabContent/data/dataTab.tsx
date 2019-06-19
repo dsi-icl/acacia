@@ -19,7 +19,7 @@ export const DataTabContent:React.FunctionComponent<{ studyId: string, projectId
                 if (loading) return <LoadingBalls/>;
                 if (error) return <p>Error :( {JSON.stringify(error)}</p>; 
 
-                return <FieldListSection fieldList={data.getAvailableFields}/>;
+                return <FieldListSection checkable={false} fieldList={data.getAvailableFields}/>;
             }}
             </Query>
             
