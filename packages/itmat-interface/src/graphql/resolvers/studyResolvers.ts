@@ -30,7 +30,7 @@ export const studyResolvers = {
             /* check if user has permission */
 
             /* get study */
-            return await db.collections!.projects_collection.findOne({ id: projectId, deleted: false }, { projection: { patientMapping: 0, approvedFields: 0 } })!;
+            return await db.collections!.projects_collection.findOne({ id: projectId, deleted: false }, { projection: { patientMapping: 0 } })!;
         }
     },
     Study: {
@@ -42,9 +42,15 @@ export const studyResolvers = {
         },
         roles: async(study: IStudy) => {
             return await db.collections!.roles_collection.find({ studyId: study.id, deleted: false }).toArray();
+        },
+        fields: async(study: IStudy) => {
+            return await db.collections!.field_dictionary_collection.find({ studyId: study.id, deleted: false }).toArray();
         }
     },
     Project: {
+        fields: async(project: IProject) => {
+            return await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: project.approvedFields }, deleted: false }).toArray();
+        },
         patientMapping: async(project: IProject) => {
             /* check permission */
 

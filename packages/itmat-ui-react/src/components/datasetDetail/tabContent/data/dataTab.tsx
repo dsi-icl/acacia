@@ -8,18 +8,18 @@ import { NavLink, Redirect } from 'react-router-dom';
 import { FieldListSection } from './fieldList';
 import { Subsection } from '../../../reusable/subsection';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
-import { GET_AVAILABLE_FIELDS } from '../../../../graphql/fields';
+import { GET_STUDY } from '../../../../graphql/study';
 
 export const DataTabContent:React.FunctionComponent<{ studyId: string, projectId: string }> = ({ studyId, projectId }) => {
     return <div className={css.scaffold_wrapper}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
         <Subsection title='Variables'>
-            <Query query={GET_AVAILABLE_FIELDS} variables={{ studyId }}>
+            <Query query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
                 if (loading) return <LoadingBalls/>;
                 if (error) return <p>Error :( {JSON.stringify(error)}</p>; 
 
-                return <FieldListSection fieldList={data.getAvailableFields}/>;
+                return <FieldListSection fieldList={data.getStudy.fields}/>;
             }}
             </Query>
             

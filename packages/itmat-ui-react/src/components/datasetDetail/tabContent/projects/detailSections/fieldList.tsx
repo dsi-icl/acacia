@@ -1,9 +1,9 @@
 import React from 'react';
 import { Query, Mutation } from 'react-apollo';
-import { GET_AVAILABLE_FIELDS } from '../../../../../graphql/fields';
 import { LoadingBalls } from '../../../../reusable/loadingBalls';
 import { FieldListSection } from '../../../../projectDetail/tabContent/data/fieldList';
-import { EDIT_PROJECT_APPROVED_FIELDS } from '../../../../../graphql/projects';
+import { EDIT_PROJECT_APPROVED_FIELDS, GET_PROJECT } from '../../../../../graphql/projects';
+import { GET_STUDY } from '../../../../../graphql/study';
 
 export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: string[], studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);
@@ -13,13 +13,13 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
         setCheckedList(checkedList);
     };
 
-    return <Query query={GET_AVAILABLE_FIELDS} variables={{ studyId }}>
+    return <Query query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data: fieldData, error }) => {
             if (loading) return <LoadingBalls/>;
             if (error) return <p>Error :( {JSON.stringify(error)}</p>; 
 
             return <>
-                    <FieldListSection onCheck={onCheck} checkedList={checkedList} checkable={true} fieldList={fieldData.getAvailableFields}/>
+                    <FieldListSection onCheck={onCheck} checkedList={checkedList} checkable={true} fieldList={fieldData.getStudy.fields}/>
                     <Mutation
                         mutation={EDIT_PROJECT_APPROVED_FIELDS}
                         onCompleted={() => setSavedSuccessfully(true)}

@@ -5,7 +5,7 @@ import { Editor } from './editor';
 import { PastQueries } from './pastQuery';
 import css from '../../css/query.module.css';
 import { Query } from "react-apollo";
-import { GET_AVAILABLE_FIELDS } from '../../graphql/fields';
+import { GET_STUDY } from '../../graphql/study';
 // import { FieldListSection } from './fields';
 
 export const AppQuery: React.FunctionComponent = props => {
@@ -17,7 +17,7 @@ export const AppQuery: React.FunctionComponent = props => {
                         <div className={css.pastQueries}>
                             <PastQueries studyName={match.params.studyName} applicationName={match.params.applicationName}/>
                         </div>
-                        <Query query={GET_AVAILABLE_FIELDS} variables={{ study: "UKBIOBANK" }}>
+                        <Query query={GET_STUDY} variables={{ study: "UKBIOBANK" }}>
                             {({ data, loading, error}) => {
                                 if (loading) return <div></div>;
                                 return <>

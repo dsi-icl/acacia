@@ -27,3 +27,12 @@
     border: none;
     margin: 0px;
 }
+
+.project_badge {
+    border-radius: 0px;
+}
+
+.active_project button, .active_project button:hover {
+    background-color: #b5b5b5;
+    color: #464646
+}

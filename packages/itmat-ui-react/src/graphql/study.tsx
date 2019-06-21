@@ -29,7 +29,6 @@ export const GET_STUDY = gql`
             id
             name
             createdBy
-            deleted
             jobs {
                 id
                 studyId
@@ -41,6 +40,20 @@ export const GET_STUDY = gql`
                 id
                 studyId
                 name
+            }
+            fields {
+                id
+                studyId
+                path
+                fieldId
+                fieldName
+                valueType
+                possibleValues
+                unit
+                itemType
+                numOfTimePoints
+                numOfMeasurements
+                notes
             }
             roles {
                 id

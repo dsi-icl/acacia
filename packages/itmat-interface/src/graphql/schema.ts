@@ -71,25 +71,25 @@ type ShortCut {
 
 
 type StudyOrProjectUserRole {
-    id: String!,
-    name: String!,
-    studyId: String,
-    projectId: String,
-    permissions: [String]!,
+    id: String!
+    name: String!
+    studyId: String
+    projectId: String
+    permissions: [String]!
     users: [User]!
 }
 
 type Study {
-    id: String!,
-    name: String!,
-    createdBy: String!,
-    lastModified: Int,
-    deleted: Boolean
+    id: String!
+    name: String!
+    createdBy: String!
+    lastModified: Int!
 
     # external to mongo documents:
-    jobs: [Job]
-    projects: [Project]
-    roles: [StudyOrProjectUserRole]
+    jobs: [Job]!
+    projects: [Project]!
+    roles: [StudyOrProjectUserRole]!
+    fields: [FieldInfo]!
 }
 
 type Project {
@@ -98,13 +98,14 @@ type Project {
     name: String!
 
     #only admin
-    patientMapping: JSON
-    approvedFields: [String]
+    patientMapping: JSON!
+    approvedFields: [String]!
 
     #external to mongo documents:
     jobs: [Job]
-    roles: [StudyOrProjectUserRole]
+    roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
+    fields: [FieldInfo]! # fields of the study but filtered to be only those in Project.approvedFields
 }
 
 type Job {
@@ -217,7 +218,7 @@ type Mutation {
     deleteStudy(studyId: String!): GenericResponse
 
     # PROJECT
-    createProject(studyId: String!, projectName: String!, approvedFields: [String]): Study
+    createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
     deleteProject(projectId: String!): GenericResponse
     editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
 
