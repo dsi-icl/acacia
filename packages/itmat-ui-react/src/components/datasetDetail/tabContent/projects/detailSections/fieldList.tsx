@@ -8,6 +8,13 @@ import { GET_STUDY } from '../../../../../graphql/study';
 export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: string[], studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);
     const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
+    const [currentProjectId, setCurrentProjectId] = React.useState(projectId);
+
+    if (currentProjectId !== projectId) {
+        setCheckedList(originalCheckedList);
+        setSavedSuccessfully(false);
+        setCurrentProjectId(projectId);
+    }
 
     const onCheck = (checkedList: string[]) => {
         setCheckedList(checkedList);
