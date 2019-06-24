@@ -74,3 +74,14 @@ export const CREATE_STUDY = gql`
         }
     }
 `;
+
+export const CREATE_PROJECT = gql`
+    mutation createProject($studyId: String!, $projectName: String!, $approvedFields: [String]) {
+        createProject(studyId: $studyId, projectName: $projectName, approvedFields: $approvedFields) {
+            id
+            studyId
+            name 
+            approvedFields
+        }
+    }
+`;
