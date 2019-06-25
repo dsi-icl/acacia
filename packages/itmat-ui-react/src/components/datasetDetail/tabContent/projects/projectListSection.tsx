@@ -18,9 +18,10 @@ const OneProject: React.FunctionComponent<{ studyId: string, id: string, name: s
 
 const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [input, setInput] = React.useState('');
+    const [error, setError] = React.useState('');
 
     return <div>
-        <input value={input} onChange={e => setInput(e.target.value)} type='text' placeholder='Enter name'/>
+        <input value={input} onChange={e => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name'/>
         <Mutation mutation={CREATE_PROJECT} refetchQueries={[{ query: GET_STUDY, variables: { studyId }}]}>
             {(addNewProject, { loading, data }) =>
                 {
@@ -28,10 +29,19 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
                     return (
                         loading ?
                         <button>Loading...</button> :
-                        <button onClick={() => addNewProject({ variables: { studyId, projectName: input, approvedFields: []}})}>Add new project</button>
+                        <button onClick={() => {
+                            if (!input) {
+                                setError('Please enter project name.');
+                                return;
+                            }
+                            addNewProject({ variables: { studyId, projectName: input, approvedFields: []}});
+                        }}>Add new project</button>
                     );
                 }
             }
         </Mutation>
+        {
+            error ? <div className='error_banner'>{error}</div> : null
+        }
     </div>;
 };
