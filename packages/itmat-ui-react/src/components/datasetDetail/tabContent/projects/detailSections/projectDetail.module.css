@@ -28,6 +28,7 @@
     overflow: hidden;
     padding-left: 1.2rem;
     grid-area: ariane;
+    border-bottom: 1px solid rgb(77, 77, 77);
     line-height: 50px;
     font-size: 1.5rem;
     color: white;

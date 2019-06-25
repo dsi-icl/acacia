@@ -14,7 +14,8 @@
 
 .left_panel {
     grid-area: leftPanel;
-    border-right: 1px solid rgb(77, 77, 77);
+    border-right: 2px solid rgb(92, 92, 92);
+    /* box-shadow: 10px 10px 8px rgba(0,0,0,0.1); */
     padding-right: 1rem;
 }
 
@@ -30,6 +31,7 @@
 
 .project_badge {
     border-radius: 0px;
+    margin: 0 0 1rem 0;
 }
 
 .active_project button, .active_project button:hover {
