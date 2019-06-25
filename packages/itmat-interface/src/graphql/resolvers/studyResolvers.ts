@@ -84,17 +84,27 @@ export const studyResolvers = {
         }
     },
     Mutation: {
-        createStudy: async(parent: object, args: { name: string }, context: any, info: any): Promise<IStudy> => {
+        createStudy: async(parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
+
+            /* reject undefined project name */
+            if (!name) {
+                throw new ApolloError('Study name is not given or undefined.');
+            }
 
             /* check privileges */
 
             /* create study */
-            const study = await studyCore.createNewStudy(args.name, requester.id);
+            const study = await studyCore.createNewStudy(name, requester.id);
             return study;
         },
         createProject: async(parent: object, { studyId, projectName, approvedFields }: { studyId: string, projectName: string, approvedFields?: string[] }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
+
+            /* reject undefined project name */
+            if (!projectName) {
+                throw new ApolloError('Project name is not given or undefined.');
+            }
 
             /* check privileges */
 
