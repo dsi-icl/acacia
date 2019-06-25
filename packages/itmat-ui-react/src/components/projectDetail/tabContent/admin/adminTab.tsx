@@ -21,11 +21,6 @@ export const AdminTabContent: React.FunctionComponent<{studyId: string, projectI
                     <AddRole studyId={studyId} projectId={projectId}/>
                 </div>
             </Subsection>
-            <Subsection title='Patient ID Mapping'>
-                <div>
-                    <button>Fetch mapping</button>
-                </div>
-            </Subsection>
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.sub_page}>
             <Subsection title='User Access Log'>
