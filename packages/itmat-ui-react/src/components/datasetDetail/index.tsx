@@ -3,7 +3,7 @@ import { Route, Switch, NavLink, Redirect } from 'react-router-dom';
 import * as css from './projectPage.module.css';
 import { Query } from 'react-apollo';
 import { GET_PROJECT } from '../../graphql/projects';
-import { DashboardTabContent, ProjectsTabContent } from './tabContent';
+import { DashboardTabContent, ProjectsTabContent, DataManagementTabContent } from './tabContent';
 import { LoadingBalls } from '../reusable/loadingBalls';
 import { GET_STUDY } from '../../graphql/study';
 
@@ -30,7 +30,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                 <div className={css.content}>
                         <Switch>
                             <Route path='/datasets/:studyId/dashboard' render={() => <DashboardTabContent jobs={data.getStudy.jobs}/>}/>
-                            <Route path='/datasets/:studyId/data_management' render={() => <></>}/>
+                            <Route path='/datasets/:studyId/data_management' render={({ match }) => <DataManagementTabContent studyId={match.params.studyId}/>}/>
                             <Route path='/datasets/:studyId/projects' render={({ match }) => <ProjectsTabContent studyId={match.params.studyId} projectList={data.getStudy.projects}/>}/>
                             <Route path='/datasets/:studyId/admin' render={() => <></>}/>
                             <Route path='/datasets/:studyId/' render={() => <></>}/>

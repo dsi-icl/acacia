@@ -1,7 +1,7 @@
 import React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { LoadingBalls } from '../../../../reusable/loadingBalls';
-import { FieldListSection } from '../../../../projectDetail/tabContent/data/fieldList';
+import { FieldListSection } from '../../../../reusable/fieldList';
 import { EDIT_PROJECT_APPROVED_FIELDS, GET_PROJECT } from '../../../../../graphql/projects';
 import { GET_STUDY } from '../../../../../graphql/study';
 

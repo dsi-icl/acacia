@@ -5,7 +5,7 @@ import { GET_PROJECT } from '../../../../graphql/projects';
 import { CREATE_USER } from '../../../../graphql/appUsers';
 import * as css from './tabContent.module.css';
 import { NavLink, Redirect } from 'react-router-dom';
-import { FieldListSection } from './fieldList';
+import { FieldListSection } from '../../../reusable/fieldList';
 import { Subsection } from '../../../reusable/subsection';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 

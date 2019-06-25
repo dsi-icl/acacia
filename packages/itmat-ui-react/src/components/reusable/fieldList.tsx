@@ -4,8 +4,8 @@ import { Tree, Input } from 'antd';
 const { TreeNode } = Tree;
 const { Search } = Input;
 import 'antd/lib/tree/style/css';
-import '../../../../css/antdOverride.css';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
+import '../../css/antdOverride.css';
+import { LoadingBalls } from './loadingBalls';
 
 class DraggableTreeNode extends TreeNode {
     // constructor(props: any, context: any) {
