@@ -23,6 +23,7 @@ export const ProjectDetailPage: React.FunctionComponent<{ projectId: string }> =
                         <NavLink to={`/projects/${projectId}/dashboard`} activeClassName={css.active}><div>DASHBOARD</div></NavLink>
                         <NavLink to={`/projects/${projectId}/samples`} activeClassName={css.active}><div>SAMPLE</div></NavLink> 
                         <NavLink to={`/projects/${projectId}/data`} activeClassName={css.active}><div>DATA</div></NavLink>
+                        <NavLink to={`/projects/${projectId}/files`} activeClassName={css.active}><div>FILE REPOSITORY</div></NavLink>
                         <NavLink to={`/projects/${projectId}/admin`} activeClassName={css.active}><div>ADMINISTRATION</div></NavLink>
                     </div>
                 </div>
@@ -32,6 +33,7 @@ export const ProjectDetailPage: React.FunctionComponent<{ projectId: string }> =
                             <Route path='/projects/:projectId/admin' render={({ match }) => <AdminTabContent studyId={data.getProject.studyId} projectId={match.params.projectId} roles={data.getProject.roles}/>}/>
                             <Route path='/projects/:projectId/samples' render={() => <></>}/>
                             <Route path='/projects/:projectId/data' render={() => <DataTabContent studyId={data.getProject.studyId} projectId={projectId}/>}/>
+                            <Route path='/projects/:projectId/files' render={() => <></>}/>
                             <Route path='/projects/:projectId/' render={() => <Redirect to={`/projects/${projectId}/dashboard`}/>}/>
                         </Switch>
                 </div>

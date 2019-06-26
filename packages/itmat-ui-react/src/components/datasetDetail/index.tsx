@@ -23,6 +23,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                     <div>
                         <NavLink to={`/datasets/${studyId}/dashboard`} activeClassName={css.active}><div>DASHBOARD</div></NavLink>
                         <NavLink to={`/datasets/${studyId}/data_management`} activeClassName={css.active}><div>DATA MANAGEMENT</div></NavLink> 
+                        <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}><div>FILES REPOSITORY</div></NavLink> 
                         <NavLink to={`/datasets/${studyId}/projects`} activeClassName={css.active}><div>PROJECTS</div></NavLink>
                         <NavLink to={`/datasets/${studyId}/admin`} activeClassName={css.active}><div>ADMINISTRATION</div></NavLink>
                     </div>
@@ -31,6 +32,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                         <Switch>
                             <Route path='/datasets/:studyId/dashboard' render={() => <DashboardTabContent jobs={data.getStudy.jobs}/>}/>
                             <Route path='/datasets/:studyId/data_management' render={({ match }) => <DataManagementTabContent studyId={match.params.studyId}/>}/>
+                            <Route path='/datasets/:studyId/files' render={({ match }) => <></>}/>
                             <Route path='/datasets/:studyId/projects' render={({ match }) => <ProjectsTabContent studyId={match.params.studyId} projectList={data.getStudy.projects}/>}/>
                             <Route path='/datasets/:studyId/admin' render={() => <></>}/>
                             <Route path='/datasets/:studyId/' render={() => <></>}/>
