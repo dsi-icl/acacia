@@ -98,28 +98,13 @@ export class StudyCore {
     }
 
     async deleteProject(projectId: string): Promise<void> {
-        const session = db.client.startSession();
-        session.startTransaction();
+        const opts = { returnOriginal: false };
 
-        try {
-            const opts = { session, returnOriginal: false };
+        /* delete all projects related to the study */
+        await db.collections!.projects_collection.findOneAndUpdate({ id: projectId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } }, opts);
 
-            /* delete all projects related to the study */
-            await db.collections!.projects_collection.updateMany({ id: projectId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } }, opts);
-
-            /* delete all roles related to the study */
-            await this.permissionCore.removeRoleFromStudyOrProject({ projectId });
-
-            await session.commitTransaction();
-            session.endSession();
-
-        } catch (error) {
-            // If an error occurred, abort the whole transaction and
-            // undo any changes that might have happened
-            await session.abortTransaction();
-            session.endSession();
-            throw error; // Rethrow so calling function sees error
-        }
+        /* delete all roles related to the study */
+        await this.permissionCore.removeRoleFromStudyOrProject({ projectId });
     }
 
     async editProjectApprovedFields(projectId: string, approvedFields: string[] ) {
