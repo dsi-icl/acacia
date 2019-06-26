@@ -85,3 +85,11 @@ export const CREATE_PROJECT = gql`
         }
     }
 `;
+
+export const DELETE_PROJECT = gql`
+    mutation deleteProject($projectId: String!) {
+        deleteProject(projectId: $projectId) {
+            id
+        }
+    }
+`;
