@@ -32,6 +32,7 @@
 .project_badge {
     border-radius: 0px;
     margin: 0 0 1rem 0;
+    overflow: hidden;
 }
 
 .active_project button, .active_project button:hover {
