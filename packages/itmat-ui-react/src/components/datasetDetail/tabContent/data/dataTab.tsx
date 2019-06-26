@@ -9,6 +9,7 @@ import { FieldListSection } from '../../../reusable/fieldList';
 import { Subsection } from '../../../reusable/subsection';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { GET_STUDY } from '../../../../graphql/study';
+import { UploadNewFields } from './uploadNewFields';
 
 export const DataManagementTabContent:React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>
@@ -18,14 +19,22 @@ export const DataManagementTabContent:React.FunctionComponent<{ studyId: string 
             {({ loading, data, error }) => {
                 if (loading) return <LoadingBalls/>;
                 if (error) return <p>Error :( {JSON.stringify(error)}</p>; 
-
-                return <FieldListSection checkable={false} fieldList={data.getStudy.fields}/>;
+                return <>
+                    {
+                       data.getStudy.fields ? <FieldListSection checkable={false} fieldList={data.getStudy.fields}/> :
+                        <p>There is no field annotations uploaded for this study yet.</p> 
+                    }
+                    <UploadNewFields studyId={studyId}/>
+                </>;
             }}
             </Query>
             
         </Subsection>
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
+            <Subsection title='Data'>
+
+            </Subsection>
         </div>
     </div>;
 };
