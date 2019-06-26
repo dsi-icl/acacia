@@ -16,6 +16,7 @@ export const dataResolvers = {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const file = await args.file;
+            console.log('yoooo', file);
 
             return new Promise(async (resolve, reject) => {
                 const jobId = uuidv4();

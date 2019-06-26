@@ -2,6 +2,7 @@ import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { HttpLink } from 'apollo-link-http';
 import { onError } from 'apollo-link-error';
+import { createUploadLink } from 'apollo-upload-client';
 import { ApolloLink, from, split } from 'apollo-link';
 import { WebSocketLink } from 'apollo-link-ws';
 import { getMainDefinition } from 'apollo-utilities';
@@ -18,6 +19,11 @@ const httpLink = new HttpLink({
   credentials: 'include'
 });
 
+const uploadLink = createUploadLink({
+  uri: 'http://localhost:3003/graphql',
+  credentials: 'include'
+});
+
 const link = split(
   // split based on operation type
   ({ query }) => {
@@ -25,7 +31,7 @@ const link = split(
     return kind === 'OperationDefinition' && operation === 'subscription';
   },
   wsLink,
-  httpLink,
+  uploadLink
 );
 
 const cache = new InMemoryCache({

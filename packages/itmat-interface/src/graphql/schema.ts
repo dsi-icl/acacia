@@ -109,13 +109,13 @@ type Project {
 }
 
 type Job {
-    id: String,
-    studyId: String,
+    id: String!,
+    studyId: String!,
     projectId: String,
-    jobType: String,
-    requester: String,
-    receivedFiles: String,
-    status: String,
+    jobType: String!,
+    requester: String!,
+    receivedFiles: [String]!,
+    status: String!,
     error: String,
     cancelled: Boolean,
     cancelledTime: Int,

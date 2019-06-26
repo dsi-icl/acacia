@@ -1,9 +1,13 @@
 import React from 'react';
 import * as css from './tabContent.module.css';
+import { Mutation } from 'react-apollo';
+import { CREATE_CURATION_JOB } from '../../../../graphql/curation';
 
 export const UploadNewFields: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [expanded, setExpanded] = React.useState(false);
+    const [error, setError] = React.useState('');
     const [uploadFileTabSelected, setUploadFileTabSelected] = React.useState(true);
+    const fileRef = React.createRef();
 
     if (!expanded) {
         return <button onClick={() => setExpanded(true)}>Upload new annotations</button>
@@ -18,8 +22,29 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string }> = ({ 
                 uploadFileTabSelected ? 
                 <>
                     <br/>
-                    <input type='file'/>
-                    <button>Upload</button><button onClick={() => setExpanded(false)} className='button_grey'>Cancel</button>
+                    <input type='file' ref={fileRef as any}/>
+                    <Mutation mutation={CREATE_CURATION_JOB}>
+                        {(createCurationJob, { loading }) => {
+                            if (loading) return <button>Loading...</button>;
+                            return (
+                                <button onClick={() => {
+                                    if ((fileRef.current as any).files.length === 1) {
+                                        console.log((fileRef.current as any).files[0], typeof (fileRef.current as any).files[0]);
+                                        setError('');
+                                        createCurationJob({ variables: {
+                                            file: (fileRef.current as any).files[0],
+                                            studyId,
+                                            jobType: 'FIELD_INFO_UPLOAD'
+                                        }});
+                                    } else {
+                                        setError('Please select file.');
+                                    }
+                                }}>Upload</button>
+                            );
+                        }}
+                    </Mutation>
+                    <button onClick={() => setExpanded(false)} className='button_grey'>Cancel</button>
+                    { error ? <div className='error_banner'>{error}</div> : null }
                 </>
                 :
                 <>
