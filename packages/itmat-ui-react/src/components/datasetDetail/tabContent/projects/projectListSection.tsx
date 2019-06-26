@@ -22,11 +22,15 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
 
     return <div>
         <input value={input} onChange={e => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name'/>
-        <Mutation mutation={CREATE_PROJECT} refetchQueries={[{ query: GET_STUDY, variables: { studyId }}]}>
+        <Mutation
+            mutation={CREATE_PROJECT}
+            refetchQueries={[{ query: GET_STUDY, variables: { studyId }}]}
+            onCompleted={() => { setInput(''); }}
+        >
             {(addNewProject, { loading, data }) =>
-                {
-                    if (data) return <Redirect to={`/datasets/${studyId}/projects/${data.createProject.id}`}/>;
-                    return (
+                <> 
+                    { data ? <Redirect to={`/datasets/${studyId}/projects/${data.createProject.id}`}/> : null }
+                    { 
                         loading ?
                         <button>Loading...</button> :
                         <button onClick={() => {
@@ -36,8 +40,8 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
                             }
                             addNewProject({ variables: { studyId, projectName: input, approvedFields: []}});
                         }}>Add new project</button>
-                    );
-                }
+                    }
+                </>
             }
         </Mutation>
         {
