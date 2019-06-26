@@ -3,6 +3,7 @@ import { NavLink, Redirect } from 'react-router-dom';
 import * as css from './tabContent.module.css';
 import { Mutation } from 'react-apollo';
 import { CREATE_PROJECT, GET_STUDY } from '../../../../graphql/study';
+import { WHO_AM_I } from '../../../../graphql/user';
 
 export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: { id: string, name: string }[] }> = ({ studyId, projectList }) => {
     return <div>
@@ -24,7 +25,23 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
         <input value={input} onChange={e => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name'/>
         <Mutation
             mutation={CREATE_PROJECT}
-            refetchQueries={[{ query: GET_STUDY, variables: { studyId }}]}
+            update={(store, { data: { createProject }})=> {
+                // Read the data from our cache for this query.
+                const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId, admin: true } });
+                // Add our comment from the mutation to the end.
+                const newProjects = data.getStudy.projects.concat(createProject);
+                data.getStudy.projects = newProjects;
+                // Write our data back to the cache.
+                store.writeQuery({ query: GET_STUDY, variables: { studyId, admin: true }, data });
+
+                // Read the data from our cache for this query.
+                const whoAmI: any = store.readQuery({ query: WHO_AM_I });
+                // Add our comment from the mutation to the end.
+                const newWhoAmIProjects = whoAmI.whoAmI.access.projects.concat(createProject);
+                whoAmI.whoAmI.access.projects = newProjects;
+                // Write our data back to the cache.
+                store.writeQuery({ query: WHO_AM_I, data: whoAmI });
+            }}
             onCompleted={() => { setInput(''); }}
         >
             {(addNewProject, { loading, data }) =>

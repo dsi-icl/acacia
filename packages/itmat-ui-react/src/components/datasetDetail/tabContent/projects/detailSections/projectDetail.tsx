@@ -38,7 +38,7 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId
                     <PatientIdMappingSection projectId={projectId}/>
                 </Subsection>
                 <Subsection title='Delete this project'>
-                        <DeleteProjectSection projectId={projectId} projectName={data.getProject.name}/>
+                        <DeleteProjectSection studyId={studyId} projectId={projectId} projectName={data.getProject.name}/>
                 </Subsection>
             </div>
             <div className={css.project_detail_right}>
