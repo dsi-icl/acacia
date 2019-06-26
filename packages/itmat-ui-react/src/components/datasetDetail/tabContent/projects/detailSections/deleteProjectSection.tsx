@@ -17,7 +17,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ projectId: string, 
         <Mutation mutation={DELETE_PROJECT}>
         {(deleteProject, { data, loading }) => 
             loading ?
-            <button>Loading...</button> : 
+            <button style={{ display: 'inline-block', width: '30%' }}>Loading...</button> : 
             <button onClick={() => {
                     if (inputText !== projectName) {
                         setError('Project name not matched.');
