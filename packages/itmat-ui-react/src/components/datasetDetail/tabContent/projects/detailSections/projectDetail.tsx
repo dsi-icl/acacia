@@ -38,12 +38,14 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId
                     <PatientIdMappingSection projectId={projectId}/>
                 </Subsection>
                 <Subsection title='Delete this project'>
-                        <DeleteProjectSection studyId={studyId} projectId={projectId} projectName={data.getProject.name}/>
+                    <DeleteProjectSection studyId={studyId} projectId={projectId} projectName={data.getProject.name}/>
                 </Subsection>
             </div>
             <div className={css.project_detail_right}>
                 <Subsection title='Granted Fields'>
-                        <GrantedFieldListSection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFields}/>
+                    <GrantedFieldListSection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFields}/>
+                </Subsection>
+                <Subsection title='Granted Files'>
                 </Subsection>
             </div>
         </div>;
