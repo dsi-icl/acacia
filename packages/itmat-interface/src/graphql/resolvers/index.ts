@@ -4,6 +4,7 @@ import { queryResolvers } from './queryResolvers';
 import { fieldResolvers } from './fieldResolvers';
 import { permissionResolvers } from './permissionResolvers';
 import { dataResolvers } from './dataResolvers';
+import { fileResolvers } from './fileResolvers';
 import GraphQLJSON from 'graphql-type-json';
 
 const modules = [
@@ -12,7 +13,8 @@ const modules = [
     queryResolvers,
     fieldResolvers,
     permissionResolvers,
-    dataResolvers
+    dataResolvers,
+    fileResolvers
 ];
 
 const loggingDecorator = (reducerFunction: Function) => {

@@ -45,6 +45,9 @@ export const studyResolvers = {
         },
         fields: async(study: IStudy) => {
             return await db.collections!.field_dictionary_collection.find({ studyId: study.id, deleted: false }).toArray();
+        },
+        files: async(study: IStudy) => {
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: false }).toArray();
         }
     },
     Project: {

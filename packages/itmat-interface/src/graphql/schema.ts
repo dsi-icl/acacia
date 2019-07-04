@@ -79,6 +79,16 @@ type StudyOrProjectUserRole {
     users: [User]!
 }
 
+type File {
+    id: String!,
+    fileName: String!,
+    studyId: String!,
+    projectId: String,
+    fileSize: Int!,
+    description: String!,
+    uploadedBy: String!
+}
+
 type Study {
     id: String!
     name: String!
@@ -90,6 +100,7 @@ type Study {
     projects: [Project]!
     roles: [StudyOrProjectUserRole]!
     fields: [FieldInfo]!
+    files: [File]!
 }
 
 type Project {
@@ -106,6 +117,7 @@ type Project {
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
     fields: [FieldInfo]! # fields of the study but filtered to be only those in Project.approvedFields
+    files: [File]!
 }
 
 type Job {
@@ -226,6 +238,11 @@ type Mutation {
     addRoleToStudyOrProject(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole
     editRole(roleId: String!, name: String, permissionChanges: StringArrayChangesInput, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
     removeRole(roleId: String!): GenericResponse
+
+    # FILES
+    uploadFile(studyId: String!, projectId: String, description: String!, file: Upload!): File
+    deleteFile(studyId: String!, projectId: String, fileId: String!): GenericResponse
+
 
     # QUERY
     createQuery(query: QueryObjInput!): QueryEntry

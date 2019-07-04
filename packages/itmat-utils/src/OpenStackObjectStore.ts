@@ -1,5 +1,4 @@
 import { Store, Account, Container, Segment, DynamicLargeObject, StaticLargeObject } from 'os2';
-import { JobModels } from './models/index';
 
 export interface IOpenSwiftObjectStoreConfig {
     uri: string
@@ -44,20 +43,24 @@ export class OpenStackSwiftObjectStore {
         return; // success
     }
 
-    public async uploadFile(fileStream: NodeJS.ReadableStream, jobId: string, fileName: string): Promise<void> {
-        const container = new Container(this.account, jobId);
-        // const metaData = container.getMetadata();
-        await container.create();
-        const segment = new Segment(container, fileName);
+    public async uploadFile(fileStream: NodeJS.ReadableStream, studyId: string, uri: string): Promise<string> {
+        const containerList = await (this.account as any).listContainers();
+        console.log('containerList', containerList);
+        const container = new Container(this.account, studyId);
+
+        if (!containerList.includes(studyId)) {
+            await container.create();
+        }
+        const segment = new Segment(container, uri);
         await segment.createFromStream(fileStream); // error if thrown is caught by controller
-        return;
+        return uri;
     }
 
-    public async downloadFile(fileName: string, jobId: string): Promise<NodeJS.ReadableStream> {
+    public async downloadFile(studyId: string, uri: string): Promise<NodeJS.ReadableStream> {
         // PRECONDITION: jobId and file exists (checked)
         // faltan checks
-        const container = new Container(this.account, jobId);
-        const segment = new Segment(container, fileName);
+        const container = new Container(this.account, studyId);
+        const segment = new Segment(container, uri);
         return await segment.getContentStream();
     }
 }

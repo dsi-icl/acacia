@@ -16,7 +16,6 @@ export const dataResolvers = {
             const db: Database = context.db;
             const requester: Models.UserModels.IUser = context.req.user;
             const file = await args.file;
-            console.log('yoooo', file);
 
             return new Promise(async (resolve, reject) => {
                 const jobId = uuidv4();
@@ -25,14 +24,14 @@ export const dataResolvers = {
                     Logger.error(e);
                     reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
                 });
-            
+
                 file.stream.on('end', async () => {
                     const job = await jobCore.createJob(requester.username, args.jobType, [file.filename], args.studyId, undefined, jobId);
                     resolve(job);
                 });
 
                 try {
-                    await objStore.uploadFile(file.stream, jobId, file.filename);
+                    await objStore.uploadFile(file.stream, args.studyId, jobId);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }

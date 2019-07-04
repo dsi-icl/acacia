@@ -62,6 +62,15 @@ export const GET_STUDY = gql`
                     username
                 }
             }
+            files {
+                id
+                fileName
+                studyId
+                projectId
+                fileSize
+                description
+                uploadedBy
+            }
         }
     }
 `;

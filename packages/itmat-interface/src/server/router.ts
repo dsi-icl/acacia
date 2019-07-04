@@ -14,6 +14,7 @@ import { schema } from '../graphql/schema';
 import { resolvers } from '../graphql/resolvers';
 import { Database } from '../database/database';
 import cors from 'cors';
+import { fileDownloadController } from '../rest/fileDownload';
 const MongoStore = connectMongo(session);
 const upload = multer();
 
@@ -73,13 +74,15 @@ export class Router {
 
 
         /* Bounce all unauthenticated non-graphql HTTP requests */
-        this.app.use((req: Request, res: Response, next: NextFunction) => {
-            if (req.user === undefined || req.user.username === undefined) {
-                res.status(401).json(new CustomError('Please log in first.'));
-                return;
-            }
-            next();
-        });
+        // this.app.use((req: Request, res: Response, next: NextFunction) => {
+        //     if (req.user === undefined || req.user.username === undefined) {
+        //         res.status(401).json(new CustomError('Please log in first.'));
+        //         return;
+        //     }
+        //     next();
+        // });
+
+        this.app.get('/file/:fileId', fileDownloadController);
 
         this.app.all('/', (err: Error, req: Request, res: Response, next: NextFunction) => {
             res.status(500).json(new CustomError('Server error.'));
