@@ -17,7 +17,7 @@ export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async(parent: object, args: { projectId?: string, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
+        uploadFile: async(parent: object, args: { fileLength?: number, projectId?: string, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const file = await args.file;
 
@@ -35,7 +35,7 @@ export const fileResolvers = {
                         fileName: file.filename,
                         studyId: args.studyId,
                         projectId: args.projectId,
-                        fileSize: 0,
+                        fileSize: args.fileLength || undefined,
                         description: args.description,
                         uploadedBy: requester.id,
                         uri: fileUri,

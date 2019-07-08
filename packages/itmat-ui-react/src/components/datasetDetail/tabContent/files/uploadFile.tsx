@@ -35,7 +35,7 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
 
                     const file = (fileRef.current! as any).files[0];
                     console.log(file);
-                    uploadFile({ variables: { file, studyId, description }});
+                    uploadFile({ variables: { file, studyId, description, fileLength: file.size }});
                 }}>Upload</button>;
             }}
         </Mutation>

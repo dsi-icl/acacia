@@ -84,7 +84,7 @@ type File {
     fileName: String!,
     studyId: String!,
     projectId: String,
-    fileSize: Int!,
+    fileSize: Int,
     description: String!,
     uploadedBy: String!
 }
@@ -240,7 +240,7 @@ type Mutation {
     removeRole(roleId: String!): GenericResponse
 
     # FILES
-    uploadFile(studyId: String!, projectId: String, description: String!, file: Upload!): File
+    uploadFile(studyId: String!, projectId: String, description: String!, file: Upload!, fileLength: Int): File
     deleteFile(studyId: String!, projectId: String, fileId: String!): GenericResponse
 
 
