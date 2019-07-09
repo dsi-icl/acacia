@@ -71,6 +71,7 @@ export const GET_STUDY = gql`
                 description
                 uploadedBy
             }
+            numOfSubjects
         }
     }
 `;

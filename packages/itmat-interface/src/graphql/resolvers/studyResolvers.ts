@@ -48,7 +48,10 @@ export const studyResolvers = {
         },
         files: async(study: IStudy) => {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: false }).toArray();
-        }
+        },
+        numOfSubjects: async(study: IStudy) => {
+            return await db.collections!.data_collection.countDocuments({ m_study: study.id });
+        },
     },
     Project: {
         fields: async(project: IProject) => {

@@ -35,7 +35,7 @@ export const DataManagementTabContent:React.FunctionComponent<{ studyId: string 
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
             <Subsection title='Data'>
-                <DataSummary/>
+                <DataSummary studyId={studyId}/>
             </Subsection>
             <Subsection title='Upload new data'>
                 <UploadNewData studyId={studyId}/>

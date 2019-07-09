@@ -12,7 +12,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
     return (
         <Query
             query={GET_STUDY}
-            variables={{ studyId, admin: true }}
+            variables={{ studyId }}
         >
         {({loading, error, data }) => {
             if (loading) return <LoadingBalls/>;

@@ -22,7 +22,7 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string }> = ({ st
                     if (!data.getStudy || !data.getStudy.files || data.getStudy.files.length === 0) {
                         return <p>There seems to be no files for this study. You can start uploading files.</p>;
                     }
-                    return <><select>{data.getStudy.files.map((el: IFile) => <option value={el.id}>{el.fileName}</option>)}</select><br/><br/></>;
+                    return <><select>{data.getStudy.files.map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br/><br/></>;
                 }}
         </Query>
         <label>Version number:</label> <input type='text'/><br/><br/>

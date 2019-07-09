@@ -1,14 +1,15 @@
 import React from 'react';
-import { Query, Mutation } from 'react-apollo';
+import { Mutation, Query } from 'react-apollo';
 import * as css from './tabContent.module.css';
+import { GET_STUDY } from '../../../../graphql/study';
 // number of patients 
 // newest version of data - date / tag
 // download data
 // data curation pipeline
 // upload new sets of data
-export const DataSummary: React.FunctionComponent = () => {
+export const DataSummary: React.FunctionComponent<{studyId: string}> = ({ studyId }) => {
     return <div className={css.data_summary_section}>
-        <NumberOfPatients numpatients={10000000}/>
+        <NumberOfPatients studyId={studyId}/>
         <NewestVersionOfData version={0.4}/>
         <VersionTag tag='init'/>
         <DateOfUpload date={10000000000000}/>
@@ -20,10 +21,18 @@ export const DataSummary: React.FunctionComponent = () => {
 
 
 //////////////////////////COMPONENTS WITHIN THE PAGE//////////////////////////////////////
-const NumberOfPatients: React.FunctionComponent<{ numpatients: number }> = ({ numpatients }) => {
+const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div style={{  gridArea: 'patients'}}>
         <p>Number of subjects in this dataset</p>
-        <span className={css.number_highlight}>{numpatients}</span>
+        <span className={css.number_highlight}>
+            <Query query={GET_STUDY} variables={{ studyId }}>
+            {({ loading, data, error }) => {
+                if (loading) return '...';
+                if (error || !data || !data.getStudy || data.getStudy.numOfSubjects === undefined) return 'n/a';
+                return data.getStudy.numOfSubjects;
+            }}
+            </Query>
+        </span>
     </div>;
 };
 
