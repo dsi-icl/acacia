@@ -54,6 +54,9 @@ export const studyResolvers = {
         fields: async(project: IProject) => {
             return await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: project.approvedFields }, deleted: false }).toArray();
         },
+        files: async(project: IProject) => {
+            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: false }).toArray();
+        },
         patientMapping: async(project: IProject) => {
             /* check permission */
 
@@ -74,6 +77,11 @@ export const studyResolvers = {
                 return null;
             }
         },
+        approvedFiles: async(project: IProject) => {
+            /* check permission */
+
+            return project.approvedFiles;
+        },
         roles: async(project: IProject) => {
             return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: false }).toArray();
         },
@@ -84,7 +92,7 @@ export const studyResolvers = {
                 // permissions: permissions.specific_project.specifi
             });
             return true;
-        }
+        },
     },
     Mutation: {
         createStudy: async(parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
@@ -153,6 +161,25 @@ export const studyResolvers = {
 
             /* edit approved fields */
             const resultingProject = await studyCore.editProjectApprovedFields(projectId, approvedFields);
+            return resultingProject;
+        },
+        editProjectApprovedFiles: async(parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+
+            /* check study id for the project */
+            const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
+            const studyId = project.studyId;
+
+            /* check all the adds are valid */
+            // const resultFields: string[] = fieldCore.getFieldsOfStudy(studyId, false, changes.add);
+            // if (resultFields.length !== changes.add.length) {
+            //     throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
+            // }
+
+            /* edit approved fields */
+            const resultingProject = await studyCore.editProjectApprovedFiles(projectId, approvedFiles);
             return resultingProject;
         },
     },

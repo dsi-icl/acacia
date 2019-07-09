@@ -111,6 +111,7 @@ type Project {
     #only admin
     patientMapping: JSON!
     approvedFields: [String]!
+    approvedFiles: [String]!
 
     #external to mongo documents:
     jobs: [Job]
@@ -233,6 +234,7 @@ type Mutation {
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
     deleteProject(projectId: String!): GenericResponse
     editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
+    editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project
 
     # ACCESS MANAGEMENT
     addRoleToStudyOrProject(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole

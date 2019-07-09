@@ -10,7 +10,7 @@ import { Subsection } from '../../../reusable/subsection';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { GET_STUDY } from '../../../../graphql/study';
 import { UploadFileSection } from './uploadFile';
-import { FileList } from './fileList';
+import { FileList } from '../../../reusable/fileList';
 
 export const FileRepositoryTabContent:React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>

@@ -7,7 +7,8 @@ export const GET_PROJECT = gql`
             id
             studyId
             name
-            approvedFields
+            approvedFields @include(if: $admin)
+            approvedFiles @include(if: $admin)
             jobs {
                 id
                 jobType
@@ -41,6 +42,15 @@ export const GET_PROJECT = gql`
                 numOfMeasurements
                 notes
             }
+            files {
+                id
+                fileName
+                studyId
+                projectId
+                fileSize
+                description
+                uploadedBy
+            }
         }
     }
 `;
@@ -72,6 +82,24 @@ export const EDIT_PROJECT_APPROVED_FIELDS = gql`
                 numOfTimePoints
                 numOfMeasurements
                 notes 
+            }
+        }
+    }
+`; 
+
+export const EDIT_PROJECT_APPROVED_FILES = gql`
+    mutation editProjectApprovedFiles($projectId: String!, $approvedFiles: [String]!) {
+        editProjectApprovedFiles(projectId: $projectId, approvedFiles: $approvedFiles) {
+            id
+            approvedFiles
+            files {
+                id
+                fileName
+                studyId
+                projectId
+                fileSize
+                description
+                uploadedBy
             }
         }
     }

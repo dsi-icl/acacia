@@ -23,6 +23,7 @@ export interface IProject {
     name: string,
     patientMapping: { [originalId: string]: string },
     approvedFields: string[],
+    approvedFiles: string[],
     lastModified: number,
     deleted: boolean
 }

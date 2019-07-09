@@ -39,7 +39,7 @@ export class StudyCore {
         return study;
     }
 
-    async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[]): Promise<IProject> {
+    async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuidv4(),
             studyId,
@@ -47,6 +47,7 @@ export class StudyCore {
             name: projectName,
             patientMapping: {},
             approvedFields: approvedFields ? approvedFields : [],
+            approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
             deleted: false
         };
@@ -110,6 +111,16 @@ export class StudyCore {
     async editProjectApprovedFields(projectId: string, approvedFields: string[] ) {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
         const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields } }, { returnOriginal: false });
+        if (result.ok === 1) {
+            return result.value;
+        } else {
+            throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
+        }
+    }
+
+    async editProjectApprovedFiles(projectId: string, approvedFiles: string[] ) {
+        /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
+        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFiles } }, { returnOriginal: false });
         if (result.ok === 1) {
             return result.value;
         } else {

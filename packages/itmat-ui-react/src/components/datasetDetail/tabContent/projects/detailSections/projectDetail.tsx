@@ -10,6 +10,7 @@ import { DeleteProjectSection } from './deleteProjectSection';
 import { PatientIdMappingSection } from './patientIdMapping';
 import { GrantedFieldListSection } from './fieldList';
 import * as css from './projectDetail.module.css';
+import { GrantedFileListSelection } from './fileList';
 
 export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId: string }> = ({ projectId, studyId }) => {
     return <Query
@@ -45,7 +46,9 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId
                 <Subsection title='Granted Fields'>
                     <GrantedFieldListSection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFields}/>
                 </Subsection>
+                <br/><br/>
                 <Subsection title='Granted Files'>
+                    <GrantedFileListSelection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFiles}/>
                 </Subsection>
             </div>
         </div>;

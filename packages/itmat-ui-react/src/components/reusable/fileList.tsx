@@ -1,5 +1,5 @@
 import React from 'react';
-import { UPLOAD_FILE } from '../../../../graphql/files';
+import { UPLOAD_FILE } from '../../graphql/files';
 import { Mutation } from 'react-apollo';
 import { IFile } from 'itmat-utils/dist/models/file';
 
