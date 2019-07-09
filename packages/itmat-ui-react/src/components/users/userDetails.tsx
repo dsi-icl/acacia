@@ -27,7 +27,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
                                 <ProjectSection projects={data.getUsers[0].access.projects}/>
                             </Subsection> 
                             <Subsection title='Datasets'>
-                                <ProjectSection projects={data.getUsers[0].access.studies}/>
+                                <ProjectSection study={true} projects={data.getUsers[0].access.studies}/>
                             </Subsection> 
                         </div>
                     </>
