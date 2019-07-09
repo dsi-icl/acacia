@@ -101,6 +101,7 @@ type Study {
     roles: [StudyOrProjectUserRole]!
     fields: [FieldInfo]!
     files: [File]!
+    numOfSubjects: Int!
 }
 
 type Project {

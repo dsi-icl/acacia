@@ -22,14 +22,14 @@ export const DataSummary: React.FunctionComponent = () => {
 //////////////////////////COMPONENTS WITHIN THE PAGE//////////////////////////////////////
 const NumberOfPatients: React.FunctionComponent<{ numpatients: number }> = ({ numpatients }) => {
     return <div style={{  gridArea: 'patients'}}>
-        <p>patients in this dataset</p>
+        <p>Number of subjects in this dataset</p>
         <span className={css.number_highlight}>{numpatients}</span>
     </div>;
 };
 
 const NewestVersionOfData: React.FunctionComponent<{ version: number }> = ({ version }) => {
     return <div style={{  gridArea: 'version'}}>
-        <p>Current version of the data is</p>
+        <p>Current version of the data</p>
         <span className={css.number_highlight}>{`v${version}`}</span>
     </div>;
 };
@@ -37,7 +37,7 @@ const NewestVersionOfData: React.FunctionComponent<{ version: number }> = ({ ver
 const VersionTag: React.FunctionComponent<{ tag: string }> = ({ tag }) => {
     if (!tag) return <div style={{  gridArea: 'tag'}} >Current version of data is not tagged.</div>;
     return <div style={{  gridArea: 'tag'}}>
-        <p>Current dataset tag:</p>
+        <p>Current dataset version tag</p>
         <span className={css.number_highlight}>{tag}</span>
     </div>;
 };
