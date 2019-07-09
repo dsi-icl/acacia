@@ -10,6 +10,8 @@ import { Subsection } from '../../../reusable/subsection';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { GET_STUDY } from '../../../../graphql/study';
 import { UploadNewFields } from './uploadNewFields';
+import { DataSummary } from './dataSummary';
+import { UploadNewData } from './uploadNewData';
 
 export const DataManagementTabContent:React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>
@@ -33,7 +35,10 @@ export const DataManagementTabContent:React.FunctionComponent<{ studyId: string 
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
             <Subsection title='Data'>
-
+                <DataSummary/>
+            </Subsection>
+            <Subsection title='Upload new data'>
+                <UploadNewData studyId={studyId}/>
             </Subsection>
         </div>
     </div>;
