@@ -78,6 +78,13 @@
     background-color: rgba(228, 228, 228, 0.1);
     color: #b9b9b9;
     cursor: pointer;
+    /* box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3); */
+}
+
+.data_version_cube:hover {
+    -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-that-orange);
+    -moz-box-shadow:inset 0px -2px 0px 0px var(--color-that-orange);
+    box-shadow:inset 0px -2px 0px 0px var(--color-that-orange);
 }
 
 .data_version_cube_current {
