@@ -3,7 +3,7 @@ import { userResolvers } from './userResolvers';
 import { queryResolvers } from './queryResolvers';
 import { fieldResolvers } from './fieldResolvers';
 import { permissionResolvers } from './permissionResolvers';
-import { dataResolvers } from './dataResolvers';
+import { jobResolvers } from './jobResolvers';
 import { fileResolvers } from './fileResolvers';
 import GraphQLJSON from 'graphql-type-json';
 
@@ -13,7 +13,7 @@ const modules = [
     queryResolvers,
     fieldResolvers,
     permissionResolvers,
-    dataResolvers,
+    jobResolvers,
     fileResolvers
 ];
 
