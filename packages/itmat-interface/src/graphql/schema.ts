@@ -97,6 +97,8 @@ type Study {
     currentDatasetId: String,
     currentDatasetVersion: String,
     currentDatasetTag: String,
+    currentDataFileSize: Int,
+    currentDataIsFromJob: String,
     currentDataIsUploadedOn: String,
     currentDataIsExtractedFrom: String,
 

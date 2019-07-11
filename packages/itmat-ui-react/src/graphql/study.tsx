@@ -72,6 +72,13 @@ export const GET_STUDY = gql`
                 uploadedBy
             }
             numOfSubjects
+            currentDatasetId
+            currentDatasetVersion
+            currentDatasetTag
+            currentDataFileSize
+            currentDataIsFromJob
+            currentDataIsUploadedOn
+            currentDataIsExtractedFrom
         }
     }
 `;

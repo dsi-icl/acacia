@@ -8,6 +8,7 @@ export interface IStudy {
     currentDatasetVersion?: string, // user provided
     currentDatasetTag?: string, // user provided
     currentDataIsUploadedOn?: number,
+    currentDataIsFromJob?: string,
     currentDataIsExtractedFrom?: string, // file name
     pastDataVersions: {
         id: string,
