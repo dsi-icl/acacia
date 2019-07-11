@@ -70,3 +70,22 @@
     color: var(--color-that-orange);
     font-weight: bold;
 }
+
+.data_version_cube {
+    display: inline-block;
+    margin-bottom: 1.3rem;
+    padding: 0.7rem;
+    background-color: rgba(228, 228, 228, 0.1);
+    color: #b9b9b9;
+    cursor: pointer;
+}
+
+.data_version_cube_current {
+    background-color: var(--color-that-orange);
+    color: white;
+}
+
+.arrow {
+    font-weight: bold;
+    color: #d2d2d2;
+}

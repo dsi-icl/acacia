@@ -12,6 +12,7 @@ import { GET_STUDY } from '../../../../graphql/study';
 import { UploadNewFields } from './uploadNewFields';
 import { DataSummary } from './dataSummary';
 import { UploadNewData } from './uploadNewData';
+import { DataVersions } from './dataVersions';
 
 export const DataManagementTabContent:React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>
@@ -37,6 +38,7 @@ export const DataManagementTabContent:React.FunctionComponent<{ studyId: string 
             <Subsection title='Data'>
                 <DataSummary studyId={studyId}/>
             </Subsection>
+            <DataVersions studyId={studyId}/> {/* <Subsection> wrap is inside <DataVersion> because if versions num < 2 the whole section doesnt show */}
             <Subsection title='Upload new data'>
                 <UploadNewData studyId={studyId}/>
             </Subsection>

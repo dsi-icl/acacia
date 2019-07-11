@@ -52,6 +52,9 @@ export const studyResolvers = {
         numOfSubjects: async(study: IStudy) => {
             return await db.collections!.data_collection.countDocuments({ m_study: study.id });
         },
+        currentDataVersion: async(study: IStudy) => {
+            return study.currentDataVersion === -1 ? null : study.currentDataVersion;
+        }
     },
     Project: {
         fields: async(project: IProject) => {

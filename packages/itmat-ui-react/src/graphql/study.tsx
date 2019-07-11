@@ -72,13 +72,16 @@ export const GET_STUDY = gql`
                 uploadedBy
             }
             numOfSubjects
-            currentDatasetId
-            currentDatasetVersion
-            currentDatasetTag
-            currentDataFileSize
-            currentDataIsFromJob
-            currentDataIsUploadedOn
-            currentDataIsExtractedFrom
+            currentDataVersion
+            dataVersions {
+                id
+                version
+                tag
+                uploadDate
+                jobId
+                extractedFrom
+                fileSize
+            }
         }
     }
 `;

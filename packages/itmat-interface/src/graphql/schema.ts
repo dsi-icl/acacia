@@ -89,18 +89,23 @@ type File {
     uploadedBy: String!
 }
 
+type DataVersion {
+    id: String!,
+    version: String!,
+    tag: String,
+    uploadDate: String!,
+    jobId: String!,
+    extractedFrom: String!
+    fileSize: String!
+}
+
 type Study {
     id: String!
     name: String!
     createdBy: String!
     lastModified: Int!
-    currentDatasetId: String,
-    currentDatasetVersion: String,
-    currentDatasetTag: String,
-    currentDataFileSize: Int,
-    currentDataIsFromJob: String,
-    currentDataIsUploadedOn: String,
-    currentDataIsExtractedFrom: String,
+    currentDataVersion: Int
+    dataVersions: [DataVersion]!
 
     # external to mongo documents:
     jobs: [Job]!

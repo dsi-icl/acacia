@@ -15,15 +15,15 @@ export const DataSummary: React.FunctionComponent<{studyId: string }> = ({ study
             {({ loading, data, error }) => {
                 if (loading) return <LoadingBalls/>;
                 if (error) return <p>Error :( {JSON.stringify(error)}</p>; 
-                if (data.getStudy && data.getStudy.currentDatasetVersion) {
-                    const {id, currentDataFileSize, currentDataIsExtractedFrom, currentDataIsUploadedOn, currentDatasetTag, currentDatasetVersion} = data.getStudy;
+                if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
+                    const {id, version, tag, uploadDate, jobId, fileSize, extractedFrom} = data.getStudy.dataVersions[data.getStudy.currentDataVersion];
                     return <div className={css.data_summary_section}>
-                        <NumberOfPatients studyId={id}/>
-                        <NewestVersionOfData version={currentDatasetVersion || 'n/a'}/>
-                        <VersionTag tag={currentDatasetTag || 'n/a'}/>
-                        <DateOfUpload date={currentDataIsUploadedOn!}/>
-                        <FileSize size={ (currentDataFileSize && formatBytes(currentDataFileSize)) || 'n/a' }/>
-                        <OriginalFile fileName={currentDataIsExtractedFrom || 'n/a'}/>
+                        <NumberOfPatients studyId={studyId}/>
+                        <NewestVersionOfData version={version || 'n/a'}/>
+                        <VersionTag tag={tag || 'n/a'}/>
+                        <DateOfUpload date={uploadDate}/>
+                        <FileSize size={ (fileSize && formatBytes(fileSize)) || 'n/a' }/>
+                        <OriginalFile fileName={extractedFrom || 'n/a'}/>
                     </div>;
                 }
                 return <p>There is no data uploaded for this study yet.</p>; 

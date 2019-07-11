@@ -4,17 +4,14 @@ export interface IStudy {
     createdBy: string,
     lastModified: number,
     deleted: boolean,
-    currentDatasetId?: string, // generated id
-    currentDatasetVersion?: string, // user provided
-    currentDatasetTag?: string, // user provided
-    currentDataIsUploadedOn?: number,
-    currentDataIsFromJob?: string,
-    currentDataIsExtractedFrom?: string, // file name
-    pastDataVersions: {
+    currentDataVersion: number, // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
+    dataVersions: {
         id: string,
         version: string,
-        tag: string,
+        tag?: string,
+        fileSize: number,
         uploadDate: number,
+        jobId: string,
         extractedFrom: string
     }[]
 }

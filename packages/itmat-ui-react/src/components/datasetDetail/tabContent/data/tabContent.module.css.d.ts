@@ -8,3 +8,6 @@ export const add_new_fields_section: string;
 export const selected_tab: string;
 export const number_highlight: string;
 export const data_summary_section: string;
+export const data_version_cube: string;
+export const data_version_cube_current: string;
+export const arrow: st
