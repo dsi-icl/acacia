@@ -71,6 +71,7 @@ const DataSumaryVisual: React.FunctionComponent<{ studyId: string, showSaveVersi
 //////////////////////////COMPONENTS WITHIN THE PAGE//////////////////////////////////////
 const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div style={{  gridArea: 'patients'}}>
+        <div>
         <p>Number of subjects in this dataset</p>
         <span className={css.number_highlight}>
             <Query query={GET_STUDY} variables={{ studyId }}>
@@ -81,42 +82,49 @@ const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyI
             }}
             </Query>
         </span>
+        </div>
     </div>;
 };
 
 const NewestVersionOfData: React.FunctionComponent<{ version: string }> = ({ version }) => {
-    return <div style={{  gridArea: 'version'}}>
+    return <div style={{  gridArea: 'version'}}><div>
         <p>Dataset version</p>
         <span className={css.number_highlight}>{version}</span>
+        </div>
     </div>;
 };
 
 const VersionTag: React.FunctionComponent<{ tag: string }> = ({ tag }) => {
     if (!tag) return <div style={{  gridArea: 'tag'}} >Current version of data is not tagged.</div>;
-    return <div style={{  gridArea: 'tag'}}>
+    return <div style={{  gridArea: 'tag'}}><div>
         <p>Dataset version tag</p>
         <span className={css.number_highlight}>{tag}</span>
+        </div>
     </div>;
 };
 
 const OriginalFile: React.FunctionComponent<{ fileName: string }> = ({ fileName }) => {
     return <div style={{  gridArea: 'filename'}}>
+        <div>
         <p>Data were extracted from</p>
         <span className={css.number_highlight}>{fileName}</span>
+        </div>
     </div>;
 };
 
 const DateOfUpload: React.FunctionComponent<{ date: string /* UNIX timestamp */}> = ({ date }) => {
-    return <div style={{ gridArea: 'date'}}>
+    return <div style={{ gridArea: 'date'}}><div>
         <p>Data were uploaded on</p>
         <span className={css.number_highlight}>{date ? (new Date(parseInt(date))).toLocaleString() : 'n/a'}</span>
-    </div>
+        </div></div>
 };
 
 const FileSize: React.FunctionComponent<{size: string}> = ({ size }) => {
     return <div style={{ gridArea: 'dummy'}}>
+        <div>
         <p>Original data file size</p>
         <span className={css.number_highlight}>{size}</span>
+        </div>
     </div>;
 };
 

@@ -62,7 +62,13 @@
     background-color: rgba(156,156,156,0.1);
     padding: 1rem;
     margin-bottom: 2rem;
+    overflow: hidden;
+}
 
+.data_summary_section > div > div {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
 }
 
 .data_summary_section + h5 {
