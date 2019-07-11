@@ -94,6 +94,11 @@ type Study {
     name: String!
     createdBy: String!
     lastModified: Int!
+    currentDatasetId: String,
+    currentDatasetVersion: String,
+    currentDatasetTag: String,
+    currentDataIsUploadedOn: String,
+    currentDataIsExtractedFrom: String,
 
     # external to mongo documents:
     jobs: [Job]!
@@ -251,7 +256,7 @@ type Mutation {
     createQuery(query: QueryObjInput!): QueryEntry
 
     # CURATION
-    createCurationJob(file: Upload!, studyId: String!, jobType: CURATION_JOB_TYPE): Job
+    createCurationJob(file: String!, studyId: String!, jobType: CURATION_JOB_TYPE!, tag: String, version: String!): Job
     createDataExportJob(studyId: String!, projectId: String): Job
 }
 

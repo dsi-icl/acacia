@@ -3,7 +3,19 @@ export interface IStudy {
     name: string,
     createdBy: string,
     lastModified: number,
-    deleted: boolean
+    deleted: boolean,
+    currentDatasetId?: string, // generated id
+    currentDatasetVersion?: string, // user provided
+    currentDatasetTag?: string, // user provided
+    currentDataIsUploadedOn?: number,
+    currentDataIsExtractedFrom?: string, // file name
+    pastDataVersions: {
+        id: string,
+        version: string,
+        tag: string,
+        uploadDate: number,
+        extractedFrom: string
+    }[]
 }
 
 export interface IRole {

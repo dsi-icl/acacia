@@ -33,6 +33,7 @@ export class StudyCore {
             name: studyName,
             createdBy: requestedBy,
             lastModified: new Date().valueOf(),
+            pastDataVersions: [],
             deleted: false
         };
         await db.collections!.studies_collection.insertOne(study);

@@ -2,20 +2,32 @@ import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import * as css from './tabContent.module.css';
 import { GET_STUDY } from '../../../../graphql/study';
+import { IStudy } from 'itmat-utils/dist/models/study';
+import { LoadingBalls } from '../../../reusable/loadingBalls';
 // number of patients 
 // newest version of data - date / tag
 // download data
 // data curation pipeline
 // upload new sets of data
-export const DataSummary: React.FunctionComponent<{studyId: string}> = ({ studyId }) => {
-    return <div className={css.data_summary_section}>
-        <NumberOfPatients studyId={studyId}/>
-        <NewestVersionOfData version={0.4}/>
-        <VersionTag tag='init'/>
-        <DateOfUpload date={10000000000000}/>
-        <Dummy/>
-        <OriginalFile fileName='biteMeEatShorts.tsv'/>
-    </div>;
+export const DataSummary: React.FunctionComponent<{studyId: string }> = ({ studyId }) => {
+    return   <Query query={GET_STUDY} variables={{ studyId }}>
+            {({ loading, data, error }) => {
+                if (loading) return <LoadingBalls/>;
+                if (error) return <p>Error :( {JSON.stringify(error)}</p>; 
+                if (data.getStudy && data.getStudy.currentDatasetVersion) {
+                    const {id, currentDataIsExtractedFrom, currentDataIsUploadedOn, currentDatasetTag, currentDatasetVersion} = data.getStudy;
+                    return <div className={css.data_summary_section}>
+                        <NumberOfPatients studyId={id}/>
+                        <NewestVersionOfData version={currentDatasetVersion || 'n/a'}/>
+                        <VersionTag tag={currentDatasetTag || 'n/a'}/>
+                        <DateOfUpload date={currentDataIsUploadedOn!}/>
+                        <Dummy/>
+                        <OriginalFile fileName={currentDataIsExtractedFrom || 'n/a'}/>
+                    </div>;
+                }
+                return <p>There is no data uploaded for this study yet.</p>; 
+            }}
+        </Query>;
 };
 
 
@@ -36,10 +48,10 @@ const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyI
     </div>;
 };
 
-const NewestVersionOfData: React.FunctionComponent<{ version: number }> = ({ version }) => {
+const NewestVersionOfData: React.FunctionComponent<{ version: string }> = ({ version }) => {
     return <div style={{  gridArea: 'version'}}>
         <p>Current version of the data</p>
-        <span className={css.number_highlight}>{`v${version}`}</span>
+        <span className={css.number_highlight}>{version}</span>
     </div>;
 };
 
@@ -61,7 +73,7 @@ const OriginalFile: React.FunctionComponent<{ fileName: string }> = ({ fileName 
 const DateOfUpload: React.FunctionComponent<{ date: number /* UNIX timestamp */}> = ({ date }) => {
     return <div style={{ gridArea: 'date'}}>
         <p>Current data is uploaded on</p>
-        <span className={css.number_highlight}>{(new Date(date)).toLocaleString()}</span>
+        <span className={css.number_highlight}>{date ? (new Date(date)).toLocaleString() : 'n/a'}</span>
     </div>
 };
 
@@ -69,11 +81,5 @@ const Dummy: React.FunctionComponent = () => {
     return <div style={{ gridArea: 'dummy'}}>
         <p>I am a</p>
         <span className={css.number_highlight}>tea pot</span>
-    </div>;
-};
-
-const UploadNewSetsOfData: React.FunctionComponent = () => {
-    return <div>
-        
     </div>;
 };
