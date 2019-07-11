@@ -10,4 +10,4 @@ export const number_highlight: string;
 export const data_summary_section: string;
 export const data_version_cube: string;
 export const data_version_cube_current: string;
-export const arrow: st
+export const arrow: string;
