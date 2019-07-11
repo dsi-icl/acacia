@@ -65,6 +65,11 @@
 
 }
 
+.data_summary_section + h5 {
+    font-size: 1rem;
+    color: #7d7d7d;
+}
+
 .number_highlight{
     font-size: 3rem;
     color: var(--color-that-orange);
@@ -90,6 +95,11 @@
 .data_version_cube_current {
     background-color: var(--color-that-orange);
     color: white;
+}
+
+.data_version_cube_selected_not_current {
+    background-color: #c1c1c1;
+    color: black;
 }
 
 .arrow {

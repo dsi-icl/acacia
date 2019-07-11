@@ -13,7 +13,7 @@ import { DataSummary } from '../../../datasetDetail/tabContent/data/dataSummary'
 export const DashboardTabContent: React.FunctionComponent<{ studyId: string, jobs: IJobEntry<any>[] }> = ({ studyId, jobs }) => {
     return <div className={css.tab_page_wrapper}>
         <Subsection title='Data summary'>
-            <DataSummary studyId={studyId}/>
+            <DataSummary showSaveVersionButton={false} studyId={studyId}/>
         </Subsection>
         <Subsection title='Past Jobs'>
             <JobSection jobs={jobs}/>
