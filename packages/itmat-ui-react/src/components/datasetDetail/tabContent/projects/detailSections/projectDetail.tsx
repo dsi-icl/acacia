@@ -3,14 +3,12 @@ import { GET_PROJECT } from '../../../../../graphql/projects';
 import { LoadingBalls } from '../../../../reusable/loadingBalls';
 import { Query } from 'react-apollo';
 import { Subsection } from '../../../../reusable';
-import { IRole, IProject } from 'itmat-utils/dist/models/study';
-import { OneRole } from '../../admin/adminTab';
-import { AddRole } from '../../../../projectDetail/tabContent/admin/adminTab';
 import { DeleteProjectSection } from './deleteProjectSection';
 import { PatientIdMappingSection } from './patientIdMapping';
 import { GrantedFieldListSection } from './fieldList';
 import * as css from './projectDetail.module.css';
 import { GrantedFileListSelection } from './fileList';
+import { RoleControlSection } from '../../../../reusable/roleControlSection';
 
 export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId: string }> = ({ projectId, studyId }) => {
     return <Query
@@ -28,12 +26,7 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId
             </div>
             <div className={css.project_detail_left}>
                 <Subsection title='Role'>
-                    <div>
-                        {
-                            data.getProject.roles.map((el: IRole) => <OneRole key={el.id} role={el}/>)
-                        }
-                        <AddRole studyId={studyId} projectId={projectId}/>
-                    </div>
+                    <RoleControlSection studyId={studyId} projectId={projectId} roles={data.getProject.roles}/>
                 </Subsection>
                 <Subsection title='Patient ID Mapping'>
                     <PatientIdMappingSection projectId={projectId}/>
