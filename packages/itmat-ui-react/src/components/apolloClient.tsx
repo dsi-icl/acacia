@@ -1,6 +1,5 @@
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
-import { HttpLink } from 'apollo-link-http';
 import { onError } from 'apollo-link-error';
 import { createUploadLink } from 'apollo-upload-client';
 import { ApolloLink, from, split } from 'apollo-link';
@@ -12,11 +11,6 @@ const wsLink = new WebSocketLink({
   options: {
     reconnect: true
   }
-});
-
-const httpLink = new HttpLink({
-  uri: 'http://localhost:3003/graphql',
-  credentials: 'include'
 });
 
 const uploadLink = createUploadLink({

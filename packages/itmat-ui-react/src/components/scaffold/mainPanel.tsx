@@ -4,7 +4,6 @@ import * as css from './scaffold.module.css';
 import { UserPage } from '../users';
 import { ProjectListPage } from '../projectList';
 import { DatasetListPage } from '../datasetList';
-import { AppQuery } from '../query';
 import { ProjectDetailPage } from '../projectDetail';
 import { DatasetDetailPage } from '../datasetDetail';
 
@@ -16,7 +15,6 @@ export const MainPanel: React.FunctionComponent = props => {
                 <Route path='/projects' render={({match}) => <ProjectListPage/>}/>
                 <Route path='/datasets/:studyId' render={({ match }) => <DatasetDetailPage studyId={match.params.studyId}/>}/>
                 <Route path='/datasets' render={() => <DatasetListPage/>}/>
-                <Route path='/queries' render={({match}) => <AppQuery/>}/>
                 <Route path='/users' render={() => <UserPage/>}/>
                 <Route path='/' render={() => <></>}/>
             </Switch>

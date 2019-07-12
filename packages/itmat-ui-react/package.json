@@ -9,38 +9,32 @@
     "apollo-client": "^2.4.12",
     "apollo-link": "^1.2.6",
     "apollo-link-error": "^1.1.5",
-    "apollo-link-http": "^1.5.9",
     "apollo-link-ws": "^1.0.12",
     "apollo-upload-client": "^10.0.1",
-    "filepond": "^3.7.6",
     "graphql": "^14.0.2",
     "graphql-tag": "^2.10.1",
     "itmat-utils": "1.1.8",
-    "monaco-editor": "0.15.6",
-    "monaco-editor-webpack-plugin": "^1.7.0",
     "react": "16.8.0-alpha.0",
     "react-apollo": "^2.4.0",
     "react-dom": "16.8.0-alpha.0",
-    "react-filepond": "^5.0.0",
     "react-router-dom": "^4.3.1",
     "react-scripts": "2.1.0",
-    "subscriptions-transport-ws": "^0.9.15",
-    "typescript": "3.2.4"
+    "subscriptions-transport-ws": "^0.9.15"
   },
   "devDependencies": {
+    "typescript": "3.2.4",
     "@types/graphql": "^14.0.4",
     "@types/jest": "23.3.13",
     "@types/node": "10.12.18",
     "@types/react": "16.7.20",
     "@types/react-dom": "16.0.11",
-    "@types/react-router-dom": "^4.3.1",
-    "react-app-rewired": "2.1.0"
+    "@types/react-router-dom": "^4.3.1"
   },
   "scripts": {
-    "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
-    "test": "react-app-rewired test",
-    "eject": "react-app-rewired eject"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"
