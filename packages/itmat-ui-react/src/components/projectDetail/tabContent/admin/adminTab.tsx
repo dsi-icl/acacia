@@ -1,4 +1,4 @@
-import { Models } from 'itmat-utils';
+import { Models, permissions } from 'itmat-utils';
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { GET_PROJECT } from '../../../../graphql/projects';
@@ -16,7 +16,7 @@ export const AdminTabContent: React.FunctionComponent<{studyId: string, projectI
             <Subsection title='Roles'>
                 <div>
                     {
-                        roles.map((el, ind) => <OneRole key={el.id} role={el}/>)
+                        roles.map((el, ind) => <OneRole key={el.id} role={el} availablePermissions={Object.values(permissions.specific_project)}/>)
                     }
                     <AddRole studyId={studyId} projectId={projectId}/>
                 </div>
@@ -33,7 +33,7 @@ export const AdminTabContent: React.FunctionComponent<{studyId: string, projectI
 };
 
 
-export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole }> = ({ role }) => {
+export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availablePermissions: string[] }> = ({ role, availablePermissions }) => {
     return <div className={css.one_role}>
         <div className={css.role_header}>
             <label className={css.role_name}>{role.name}</label>
@@ -52,8 +52,9 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole }> = ({
             }}
             </Mutation>
         </div>
-        <label>Permissions: </label>
-        {role.permissions.map(el => <React.Fragment key={el}>{el}<br/><br/></React.Fragment>)}
+        <label>Permissions: </label><br/><br/>
+        <PermissionsControlPanel roleId={role.id} availablePermissions={availablePermissions} originallySelectedPermissions={role.permissions}/>
+        <br/>
         <label>Users of this role: </label>
         <br/> <br/>
         <Query query={GET_USERS} variables={{ fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }}>
@@ -114,3 +115,47 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId: stri
         </div>
     </div>;
 }
+
+
+const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availablePermissions: string[], originallySelectedPermissions: string[] }> = ({ roleId, availablePermissions, originallySelectedPermissions}) => {
+    return <div className={css.permissions_section}>
+        {availablePermissions.map(el =>
+            originallySelectedPermissions.includes(el) ?
+            <React.Fragment key={el}>
+            <Mutation mutation={EDIT_ROLE}>
+            {(editRole, { loading }) => {
+                if (loading) return <div key={el} className={css.permission_selected + ' button_loading'}>{el}</div>;
+
+                return <div onClick={() => {
+                    editRole({ variables: {
+                        roleId,
+                        permissionChanges: {
+                            add: [],
+                            remove: [el]
+                        }
+                    }});
+                }} key={el} className={css.permission_selected}>{el}</div>
+            }}
+            </Mutation>
+            </React.Fragment>
+            :
+            <React.Fragment key={el}>
+            <Mutation mutation={EDIT_ROLE}>
+            {(editRole, { loading }) => {
+                if (loading) return <div key={el} className='button_loading'>{el}</div>;
+
+                return <div onClick={() => {
+                    editRole({ variables: {
+                        roleId,
+                        permissionChanges: {
+                            add: [el],
+                            remove: []
+                        }
+                    }});
+                }} key={el}>{el}</div>
+            }}
+            </Mutation>
+            </React.Fragment>
+        )}
+    </div>;
+};

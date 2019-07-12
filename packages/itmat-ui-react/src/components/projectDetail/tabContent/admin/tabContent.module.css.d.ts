@@ -10,3 +10,5 @@ export const add_new_role_buttons_wrapper: string;
 export const role_header: string;
 export const delete_role_button: string;
 export const right_aligned: string;
+export const permission_selected: string;
+export const permissions_section: string;

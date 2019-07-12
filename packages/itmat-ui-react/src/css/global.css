@@ -110,6 +110,10 @@ button:active {
     cursor: pointer;
 }
 
+.button_loading {
+    cursor: progress !important;
+}
+
 .button_grey {
     background-image: none;
     background-color: #4A4A4A;
