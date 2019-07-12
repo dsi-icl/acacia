@@ -1,6 +1,5 @@
 import csvparse from 'csv-parse';
 import { ICodingMap } from '../models/UKBCoding';
-import { IFieldMap, IFieldEntry } from '../models/UKBFields';
 import { IFieldDescriptionObject, IHeaderArrayElement } from '../models/curationUtils';
 import { UKBiobankValueTypes } from '../models/UKBDataType';
 import { Models, CustomError } from 'itmat-utils';
@@ -10,7 +9,7 @@ export interface IDataEntry {
     m_jobId: string,
     m_eid: string,
     m_study: string,
-    m_in_qc: boolean,
+    m_versionId: string,
     [field: string]: {
         [instance: string]: {
             [array: number]: number | string
@@ -171,7 +170,7 @@ export class UKBCSVCurator {
             { id: this.jobId },
             { $set:
                 {
-                    status: Models.JobModels.jobTypes.UKB_CSV_UPLOAD.status[4],
+                    status: 'Finished',
                     error: errorMsg
                 }
             }
