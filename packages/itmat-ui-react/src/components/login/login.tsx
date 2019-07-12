@@ -32,10 +32,10 @@ export const LoginBox: React.FunctionComponent = props => {
                 <h1>ITMAT - BROKER</h1>
                 <br/><br/>
                 <div>
-                    <input placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode == 13 && document.getElementById('loginButton')!.click() }/> <br/>
+                    <input placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
                 </div>
                 <div>
-                    <input placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode == 13 && document.getElementById('loginButton')!.click() }/> <br/>
+                    <input placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
                 </div>
                 <br/>
                 { loading ? <button>logging in..</button> :

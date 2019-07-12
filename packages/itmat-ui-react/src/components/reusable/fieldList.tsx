@@ -1,11 +1,11 @@
 import { Models } from 'itmat-utils';
 import * as React from 'react';
 import { Tree, Input } from 'antd';
-const { TreeNode } = Tree;
-const { Search } = Input;
 import 'antd/lib/tree/style/css';
 import '../../css/antdOverride.css';
 import { LoadingBalls } from './loadingBalls';
+const { TreeNode } = Tree;
+const { Search } = Input;
 
 class DraggableTreeNode extends TreeNode {
     // constructor(props: any, context: any) {
