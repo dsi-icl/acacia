@@ -32,6 +32,7 @@ export class StudyCore {
             id: uuidv4(),
             name: studyName,
             createdBy: requestedBy,
+            currentDataVersion: -1,
             lastModified: new Date().valueOf(),
             dataVersions: [],
             deleted: false

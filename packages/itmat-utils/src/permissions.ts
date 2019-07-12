@@ -27,4 +27,4 @@ export const permissions = {
         specific_project_data_access: 'specific_project_data_access', // query data from project (eid is mapped, fields and patients subset)
         specific_project_user_management: 'specific_project_user_management' // add or delete users from access list to this project
     }
-}
+};
