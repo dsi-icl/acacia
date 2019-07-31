@@ -4,6 +4,7 @@ import { objStore } from '../objStore/objStore';
 import { db } from '../database/database';
 // import { UKBCurator } from 'ukb-curator';
 import { IFile } from 'itmat-utils/dist/models/file';
+import { IStudyDataVersion } from 'itmat-utils/dist/models/study';
 import uuid from 'uuid/v4';
 
 export class UKB_CSV_UPLOAD_Handler extends JobHandler {
@@ -42,18 +43,18 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
         //     fileStream
         // );
         await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
+        const newDataVersion: IStudyDataVersion = {
+            id: datasetId,
+            jobId: job.id,
+            version: job.data!.dataVersion,
+            tag: job.data!.versionTag,
+            uploadDate: new Date().valueOf(),
+            fileSize: file.fileSize!,
+            extractedFrom: file.fileName,
+            fieldTrees: []
+        };
         await db.collections!.studies_collection.updateOne({ id: job.studyId }, {
-            $push: {
-                dataVersions: {
-                    id: datasetId,
-                    jobId: job.id,
-                    version: job.data!.dataVersion,
-                    tag: job.data!.versionTag,
-                    uploadDate: new Date().valueOf(),
-                    fileSize: file.fileSize,
-                    extractedFrom: file.fileName
-                }
-            },
+            $push: { dataVersions: newDataVersion },
             $inc: {
                 currentDataVersion: 1
             }

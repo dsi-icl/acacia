@@ -5,16 +5,20 @@ export interface IStudy {
     lastModified: number,
     deleted: boolean,
     currentDataVersion: number, // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
-    dataVersions: {
-        id: string,
-        version: string,
-        tag?: string,
-        fileSize: number,
-        uploadDate: number,
-        jobId: string,
-        extractedFrom: string
-    }[]
+    dataVersions: IStudyDataVersion[]
 }
+
+export interface IStudyDataVersion {
+    id: string,
+    version: string,
+    tag?: string,
+    fileSize: number,
+    uploadDate: number,
+    jobId: string,
+    extractedFrom: string,
+    fieldTrees: string[]
+}
+
 
 export interface IRole {
     id: string

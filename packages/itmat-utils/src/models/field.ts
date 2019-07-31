@@ -15,7 +15,8 @@ export interface IFieldEntry {
     notes?: string,
     jobId: string,
     dateAdded: number,
-    deleted: boolean
+    deleted: boolean,
+    fieldTreeId: string
 }
 
 export enum enumItemType {
