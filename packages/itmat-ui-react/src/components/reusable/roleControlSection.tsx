@@ -13,10 +13,10 @@ import { LoadingBalls } from '../reusable/loadingBalls';
 
 export const RoleControlSection: React.FunctionComponent<{studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
     return <div>
-                    {
-                        roles.map((el, ind) => <OneRole key={el.id} role={el} availablePermissions={Object.values(permissions.specific_project)}/>)
-                    }
-                    <AddRole studyId={studyId} projectId={projectId}/>
+        {
+            roles.map((el, ind) => <OneRole key={el.id} role={el} availablePermissions={Object.values(permissions.specific_project)}/>)
+        }
+        <AddRole studyId={studyId} projectId={projectId}/>
     </div>;
 };
 
@@ -83,13 +83,13 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId: stri
     return <div className={css.add_new_role_section}>
         <span>Create new role</span><br/><br/>
         <label>Name: </label><input placeholder='Role name' value={inputNameString} onChange={e => setInputNameString(e.target.value)}/> <br/>
-        <label>Permissions: </label><input placeholder='Role name' value={inputNameString} onChange={e => setInputNameString(e.target.value)}/> <br/>
         <div className={css.add_new_role_buttons_wrapper}>
             <button className='button_grey' onClick={() => setIsExpanded(false)}>Cancel</button>
             <Mutation
                 mutation={ADD_NEW_ROLE}
                 update={( store, { data: { addRoleToStudyOrProject } }) => {
                     const cachedata = store.readQuery({ query: GET_PROJECT, variables: { projectId, admin: true } }) as any;
+                    console.log(cachedata);
                     if (!cachedata) return;
                     cachedata.getProject.roles.push(addRoleToStudyOrProject);
                     store.writeQuery({ query: GET_PROJECT, variables: { projectId, admin: true }, data: cachedata });

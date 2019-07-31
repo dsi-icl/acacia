@@ -100,7 +100,6 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId: stri
     return <div className={css.add_new_role_section}>
         <span>Create new role</span><br/><br/>
         <label>Name: </label><input placeholder='Role name' value={inputNameString} onChange={e => setInputNameString(e.target.value)}/> <br/>
-        <label>Permissions: </label><input placeholder='Role name' value={inputNameString} onChange={e => setInputNameString(e.target.value)}/> <br/>
         <div className={css.add_new_role_buttons_wrapper}>
             <button className='button_grey' onClick={() => setIsExpanded(false)}>Cancel</button>
             <Mutation
