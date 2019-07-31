@@ -2,7 +2,7 @@ import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import * as css from './tabContent.module.css';
 import { GET_STUDY } from '../../../../graphql/study';
-import { IStudy } from 'itmat-utils/dist/models/study';
+import { IStudy, IStudyDataVersion } from 'itmat-utils/dist/models/study';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { formatBytes } from '../../../reusable/fileList';
 import { Subsection } from '../../../reusable';
@@ -12,29 +12,9 @@ import { Subsection } from '../../../reusable';
 // data curation pipeline
 // upload new sets of data
 
-export const DataSummary: React.FunctionComponent<{ studyId: string, showSaveVersionButton: boolean }> = ({ showSaveVersionButton, studyId }) => {
-    return   <Query query={GET_STUDY} variables={{ studyId }}>
-            {({ loading, data, error }) => {
-                if (loading) return <LoadingBalls/>;
-                if (error) return <p>Error :( {JSON.stringify(error)}</p>; 
-                if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
-                    return <DataSumaryVisual showSaveVersionButton={showSaveVersionButton} studyId={studyId} currentVersion={data.getStudy.currentDataVersion} versions={data.getStudy.dataVersions} key={data.getStudy.id}/>;
-                }
-                return <p>There is no data uploaded for this study yet.</p>; 
-            }}
-        </Query>;
-};
 
+export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
 
-const DataSumaryVisual: React.FunctionComponent<{ studyId: string, showSaveVersionButton: boolean, currentVersion: number, versions: { 
-    id: string,
-    version: string,
-    tag?: string,
-    fileSize: number,
-    uploadDate: string,
-    jobId: string,
-    extractedFrom: string}[] }> = ({ studyId, currentVersion, versions, showSaveVersionButton }) => {
-    const [selectedVersion, setSelectedVersion] = React.useState(currentVersion);
 
     const {id, version, tag, uploadDate, jobId, fileSize, extractedFrom} = versions[selectedVersion];
 
@@ -48,20 +28,7 @@ const DataSumaryVisual: React.FunctionComponent<{ studyId: string, showSaveVersi
         <FileSize size={ (fileSize && formatBytes(fileSize)) || 'n/a' }/>
         <OriginalFile fileName={extractedFrom || 'n/a'}/>
         </div>
-        { versions.length >= 2 ? <><h5>Data versioning</h5>
-            { versions.map((el, ind) =>
-                <React.Fragment key={el.id}>
-                    <div 
-                        key={el.id}
-                        onClick={() => setSelectedVersion(ind)}
-                        className={css.data_version_cube + ( ind === selectedVersion ? ( ind === currentVersion ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '' )}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
-                    </div>
-                    {ind === versions.length - 1 ? null : <span className={css.arrow}>⟶</span>}
-                </React.Fragment>
-            )}
-            <br/><br/>
-            { showSaveVersionButton ? <button>Save version</button> : null }<br/>
-        </> : null }
+
     </>;
 };
 
@@ -72,7 +39,7 @@ const DataSumaryVisual: React.FunctionComponent<{ studyId: string, showSaveVersi
 const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div style={{  gridArea: 'patients'}}>
         <div>
-        <p>Number of subjects in this dataset</p>
+        <p>Number of subjects</p>
         <span className={css.number_highlight}>
             <Query query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
@@ -112,10 +79,10 @@ const OriginalFile: React.FunctionComponent<{ fileName: string }> = ({ fileName 
     </div>;
 };
 
-const DateOfUpload: React.FunctionComponent<{ date: string /* UNIX timestamp */}> = ({ date }) => {
+const DateOfUpload: React.FunctionComponent<{ date: string | number /* UNIX timestamp */}> = ({ date }) => {
     return <div style={{ gridArea: 'date'}}><div>
         <p>Data were uploaded on</p>
-        <span className={css.number_highlight}>{date ? (new Date(parseInt(date))).toLocaleString() : 'n/a'}</span>
+        <span className={css.number_highlight}>{date ? (new Date(parseInt(date as any))).toLocaleString() : 'n/a'}</span>
         </div></div>
 };
 

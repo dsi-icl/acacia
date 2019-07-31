@@ -8,7 +8,7 @@ import { IFile } from 'itmat-utils/dist/models/file';
 import { CREATE_CURATION_JOB } from '../../../../graphql/curation';
 import { version } from 'moment';
 
-export const UploadNewData: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
     return <div>
         <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-that-orange)', textDecoration: 'underline'}}>uploaded the data file to the file repository</span></NavLink>.</p>
         <br/><br/>
@@ -20,14 +20,14 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string }> = ({ st
                     if (!data.getStudy || !data.getStudy.files || data.getStudy.files.length === 0) {
                         return null;
                     }
-                    return <UploadNewDataForm studyId={studyId} files={data.getStudy.files}/>;
+                    return <UploadNewDataForm cancelButton={cancelButton} studyId={studyId} files={data.getStudy.files}/>;
                 }}
         </Query>
 
     </div>;
 };
 
-const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile[] }> = ({ files, studyId }) => {
+const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile[], cancelButton: (shown: boolean) => void  }> = ({ cancelButton, files, studyId }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above
@@ -44,8 +44,8 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
 
         <Mutation mutation={CREATE_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
         {(createCurationJob, { loading }) => {
-            if (loading) return <button>Loading..</button>
-            return <button onClick={() => {
+            if (loading) return <button style={{ width: '45%', display: 'inline-block'}}>Loading..</button>
+            return <button style={{ width: '45%', display: 'inline-block'}} onClick={() => {
                 if (!selectedFile) {
                     setError('Please select a file.');
                     setSuccessfullySaved(false);
@@ -73,6 +73,7 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
             }}>Submit</button>;
         }}
         </Mutation>
+        <button style={{ width: '45%', display: 'inline-block'}} className='button_grey' onClick={() => cancelButton(false)}>Cancel</button>
 
         { error ? <div className='error_banner'>{error}</div> : null }
         { successfullySaved ? <div className='saved_banner'>Job created and queued.</div> : null }
