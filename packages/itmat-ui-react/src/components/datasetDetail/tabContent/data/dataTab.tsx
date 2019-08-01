@@ -13,6 +13,7 @@ import { UploadNewFields } from './uploadNewFields';
 import { DataSummaryVisual } from './dataSummary';
 import { UploadNewData } from './uploadNewData';
 import { IStudy } from 'itmat-utils/dist/models/study';
+import { FieldListSelectionSection } from './fieldListSelection';
 
 export const DataManagementTabContent:React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>
@@ -66,20 +67,14 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
 
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title='Fields & Variables'>
-                <Query query={GET_STUDY} variables={{ studyId: data.id }}>
-                {({ loading, data, error }) => {
-                    if (loading) return <LoadingBalls/>;
-                    if (error) return <p>Error :( {JSON.stringify(error)}</p>; 
-                    return <>
-                        {
-                        data.getStudy.fields ? <FieldListSection checkable={false} fieldList={data.getStudy.fields}/> :
-                            <p>There is no field annotations uploaded for this study yet.</p> 
-                        }
-                        <UploadNewFields studyId={data.id}/>
-                    </>;
-                }}
-                </Query>
-                
+                <FieldListSelectionSection
+                    studyId={data.id}
+                    selectedVersion={selectedVersion}
+                    currentVersion={data.currentDataVersion}
+                    versions={data.dataVersions}
+                    key={data.id}
+                />
+                <UploadNewFields studyId={data.id}/>
             </Subsection>
         </div>
         

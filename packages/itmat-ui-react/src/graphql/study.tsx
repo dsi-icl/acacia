@@ -41,20 +41,6 @@ export const GET_STUDY = gql`
                 studyId
                 name
             }
-            fields {
-                id
-                studyId
-                path
-                fieldId
-                fieldName
-                valueType
-                possibleValues
-                unit
-                itemType
-                numOfTimePoints
-                numOfMeasurements
-                notes
-            }
             roles {
                 id
                 users {
@@ -81,6 +67,7 @@ export const GET_STUDY = gql`
                 jobId
                 extractedFrom
                 fileSize
+                fieldTrees
             }
         }
     }

@@ -73,7 +73,7 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
             }}>Submit</button>;
         }}
         </Mutation>
-        <button style={{ width: '45%', display: 'inline-block'}} className='button_grey' onClick={() => cancelButton(false)}>Cancel</button>
+        <button style={{ width: '45%', display: 'inline-block' }} className='button_grey' onClick={() => cancelButton(false)}>Cancel</button>
 
         { error ? <div className='error_banner'>{error}</div> : null }
         { successfullySaved ? <div className='saved_banner'>Job created and queued.</div> : null }

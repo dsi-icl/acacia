@@ -11,6 +11,7 @@ import { fieldCore } from '../core/fieldCore';
 import { errorCodes } from '../errors';
 import { permissionCore } from '../core/permissionCore';
 import { permissions } from 'itmat-utils';
+import { IFieldEntry } from 'itmat-utils/dist/models/field';
 
 export const studyResolvers = {
     Query: {
@@ -31,6 +32,15 @@ export const studyResolvers = {
 
             /* get study */
             return await db.collections!.projects_collection.findOne({ id: projectId, deleted: false }, { projection: { patientMapping: 0 } })!;
+        },
+        getStudyFields: async(parent: object, { fieldTreeId, studyId }: { fieldTreeId: string, studyId: string }, context: any): Promise<IFieldEntry[]> => {
+            const requester: IUser = context.req.user;
+
+            // checks permission and other checks
+
+            const result = await db.collections!.field_dictionary_collection.find({ studyId, fieldTreeId }).toArray();
+
+            return result;
         }
     },
     Study: {
@@ -43,9 +53,9 @@ export const studyResolvers = {
         roles: async(study: IStudy) => {
             return await db.collections!.roles_collection.find({ studyId: study.id, deleted: false }).toArray();
         },
-        fields: async(study: IStudy) => {
-            return await db.collections!.field_dictionary_collection.find({ studyId: study.id, deleted: false }).toArray();
-        },
+        // fields: async(study: IStudy) => {
+            // return await db.collections!.field_dictionary_collection.find({ studyId: study.id, deleted: false }).toArray();
+        // },
         files: async(study: IStudy) => {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: false }).toArray();
         },

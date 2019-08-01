@@ -40,6 +40,7 @@ type FieldInfo {
     numOfTimePoints: Int!,
     numOfMeasurements: Int!,
     notes: String
+    fieldTreeId: String!
 }
 
 type UserAccess {
@@ -80,23 +81,24 @@ type StudyOrProjectUserRole {
 }
 
 type File {
-    id: String!,
-    fileName: String!,
-    studyId: String!,
-    projectId: String,
-    fileSize: Int,
-    description: String!,
+    id: String!
+    fileName: String!
+    studyId: String!
+    projectId: String
+    fileSize: Int
+    description: String!
     uploadedBy: String!
 }
 
 type DataVersion {
-    id: String!,
-    version: String!,
-    tag: String,
-    uploadDate: String!,
-    jobId: String!,
+    id: String!
+    version: String!
+    tag: String
+    uploadDate: String!
+    jobId: String!
     extractedFrom: String!
     fileSize: String!
+    fieldTrees: [String]!
 }
 
 type Study {
@@ -111,7 +113,7 @@ type Study {
     jobs: [Job]!
     projects: [Project]!
     roles: [StudyOrProjectUserRole]!
-    fields: [FieldInfo]!
+    # fields: [FieldInfo]!
     files: [File]!
     numOfSubjects: Int!
 }
@@ -217,13 +219,11 @@ type Query {
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
+    getStudyFields(fieldTreeId: String!, studyId: String!): [FieldInfo]
 
     # QUERY
     getQueries(studyId: String!, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
     getQueryById(queryId: String!): QueryEntry
-
-    # FIELDS
-    getAvailableFields(studyId: String, projectId: String): [FieldInfo]!
 
     # PERMISSION
     getMyPermissions: [String]
