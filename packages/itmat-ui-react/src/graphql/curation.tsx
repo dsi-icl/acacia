@@ -1,19 +1,35 @@
 import gql from "graphql-tag";
 
-export const CREATE_CURATION_JOB = gql`
-    mutation createCurationJob($file: String!, $studyId: String!, $jobType: CURATION_JOB_TYPE!, $tag: String, $version: String!) {
-        createCurationJob(file: $file, studyId: $studyId, jobType: $jobType, tag: $tag, version: $version) {
-            id
-            studyId
-            projectId
-            jobType
-            requester
-            receivedFiles
-            status
-            error
-            cancelled
-            cancelledTime
-            data
+export const job_fragment = gql`
+    fragment ALL on Job {
+        id
+        studyId
+        projectId
+        jobType
+        requester
+        receivedFiles
+        status
+        error
+        cancelled
+        cancelledTime
+        data
+    }
+`;
+
+export const CREATE_DATA_CURATION_JOB = gql`
+    mutation createDataCurationJob($file: String!, $studyId: String!, $tag: String, $version: String!) {
+        createDataCurationJob(file: $file, studyId: $studyId, tag: $tag, version: $version) {
+            ...ALL
         }
     }
+    ${job_fragment}
+`; 
+
+export const CREATE_FIELD_CURATION_JOB = gql`
+    mutation createDataCurationJob($file: String!, $studyId: String!, $tag: String!, $dataVersionId: String!) {
+        createFieldCurationJob(file: $file, studyId: $studyId, tag: $tag, dataVersionId: $dataVersionId) {
+            ...ALL
+        }
+    }
+    ${job_fragment}
 `; 

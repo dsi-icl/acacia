@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom';
 import { GET_STUDY } from '../../../../graphql/study';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { IFile } from 'itmat-utils/dist/models/file';
-import { CREATE_CURATION_JOB } from '../../../../graphql/curation';
+import { CREATE_DATA_CURATION_JOB } from '../../../../graphql/curation';
 import { version } from 'moment';
 
 export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
@@ -17,7 +17,7 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelBut
                 {({ loading, data, error }) => {
                     if (loading) return <LoadingBalls/>;
                     if (error) return <p>{error.toString()}</p>
-                    if (!data.getStudy || !data.getStudy.files || data.getStudy.files.length === 0) {
+                    if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
                         return null;
                     }
                     return <UploadNewDataForm cancelButton={cancelButton} studyId={studyId} files={data.getStudy.files}/>;
@@ -42,7 +42,7 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
         <label>Tag:</label>
         <input value={tag} onChange={e => { setTag(e.target.value); setError(''); setSuccessfullySaved(false);}} placeholder='e.g. finalised (optional)' type='text'/><br/><br/>
 
-        <Mutation mutation={CREATE_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
+        <Mutation mutation={CREATE_DATA_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
         {(createCurationJob, { loading }) => {
             if (loading) return <button style={{ width: '45%', display: 'inline-block'}}>Loading..</button>
             return <button style={{ width: '45%', display: 'inline-block'}} onClick={() => {
@@ -65,7 +65,6 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
                 createCurationJob({ variables: {
                     file: selectedFile,
                     studyId,
-                    jobType: 'DATA_UPLOAD',
                     tag: tag === '' ? undefined : tag,
                     version: versionNumber
                 }});

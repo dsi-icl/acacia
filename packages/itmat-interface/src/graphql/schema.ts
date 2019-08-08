@@ -22,11 +22,6 @@ enum FIELD_VALUE_TYPE {
 
 }
 
-enum CURATION_JOB_TYPE {
-    FIELD_INFO_UPLOAD
-    DATA_UPLOAD
-}
-
 type FieldInfo {
     id: String!
     studyId: String!
@@ -263,7 +258,8 @@ type Mutation {
     createQuery(query: QueryObjInput!): QueryEntry
 
     # CURATION
-    createCurationJob(file: String!, studyId: String!, jobType: CURATION_JOB_TYPE!, tag: String, version: String!): Job
+    createDataCurationJob(file: String!, studyId: String!, tag: String, version: String!): Job
+    createFieldCurationJob(file: String!, studyId: String!, dataVersionId: String!, tag: String!): Job
     createDataExportJob(studyId: String!, projectId: String): Job
 }
 

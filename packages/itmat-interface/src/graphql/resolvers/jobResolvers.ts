@@ -22,7 +22,7 @@ enum JOB_TYPE {
 export const jobResolvers = {
     Query: {},
     Mutation: {
-        createCurationJob: async(parent: object, args: { file: string, studyId: string, jobType: JOB_TYPE, tag?: string, version: string }, context: any, info: any): Promise<IJobEntry<{ dataVersion: string, versionTag?: string }>> => {
+        createDataCurationJob: async(parent: object, args: { file: string, studyId: string, jobType: JOB_TYPE, tag?: string, version: string }, context: any, info: any): Promise<IJobEntry<{ dataVersion: string, versionTag?: string }>> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -49,6 +49,37 @@ export const jobResolvers = {
                 data: {
                     dataVersion: args.version,
                     versionTag: args.tag
+                }
+            };
+
+            const result = await db.collections!.jobs_collection.insertOne(job);
+            if (result.result.ok !== 1) {
+                throw new ApolloError(errorCodes.DATABASE_ERROR);
+            }
+            return job;
+        },
+        createFieldCurationJob: async(parent: object, args: { file: string, studyId: string, tag: string, dataVersionId: string }, context: any, info: any): Promise<IJobEntry<{ dataVersionId: string, tag: string }>> => {
+            const requester: Models.UserModels.IUser = context.req.user;
+
+            /* check permission */
+
+            /* check if the file exists */
+
+            /* check study exists */
+
+            /* create job */
+            const job: IJobEntry<{ dataVersionId: string, tag: string }> = {
+                id: uuid(),
+                jobType: 'FIELD_ANNOTATION_UPLOAD',
+                studyId: args.studyId,
+                requester: requester.id,
+                receivedFiles: [args.file],
+                error: null,
+                status: 'QUEUED',
+                cancelled: false,
+                data: {
+                    dataVersionId: args.dataVersionId,
+                    tag: args.tag
                 }
             };
 

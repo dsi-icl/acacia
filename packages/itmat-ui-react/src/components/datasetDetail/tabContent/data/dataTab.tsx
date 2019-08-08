@@ -74,7 +74,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                     versions={data.dataVersions}
                     key={data.id}
                 />
-                <UploadNewFields studyId={data.id}/>
+                <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id}/>
             </Subsection>
         </div>
         
