@@ -1,4 +1,5 @@
 import gql from "graphql-tag";
+import { job_fragment } from "./curation";
 
 export const GET_STUDIES_LIST = gql`
     {
@@ -30,11 +31,7 @@ export const GET_STUDY = gql`
             name
             createdBy
             jobs {
-                id
-                studyId
-                status
-                requester
-                receivedFiles
+                ...ALL
             }
             projects {
                 id
@@ -71,6 +68,7 @@ export const GET_STUDY = gql`
             }
         }
     }
+    ${job_fragment}
 `;
 
 export const CREATE_STUDY = gql`

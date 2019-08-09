@@ -124,7 +124,7 @@ type Project {
     approvedFiles: [String]!
 
     #external to mongo documents:
-    jobs: [Job]
+    jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
     fields: [FieldInfo]! # fields of the study but filtered to be only those in Project.approvedFields

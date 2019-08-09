@@ -1,4 +1,5 @@
 import gql from "graphql-tag";
+import { job_fragment } from "./curation";
 
 
 export const GET_PROJECT = gql`
@@ -10,9 +11,7 @@ export const GET_PROJECT = gql`
             approvedFields @include(if: $admin)
             approvedFiles @include(if: $admin)
             jobs {
-                id
-                jobType
-                requester
+                ...ALL
             }
             roles @include(if: $admin) {
                 id
@@ -53,6 +52,7 @@ export const GET_PROJECT = gql`
             }
         }
     }
+    ${job_fragment}
 `;
 
 export const GET_PROJECT_PATIENT_MAPPING = gql`

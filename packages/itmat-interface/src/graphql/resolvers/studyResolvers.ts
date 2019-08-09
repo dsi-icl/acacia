@@ -48,7 +48,7 @@ export const studyResolvers = {
             return await db.collections!.projects_collection.find({ studyId: study.id, deleted: false }).toArray();
         },
         jobs: async(study: IStudy) => {
-            return await db.collections!.jobs_collection.find({ studyId: study.id, deleted: false }).toArray();
+            return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
         },
         roles: async(study: IStudy) => {
             return await db.collections!.roles_collection.find({ studyId: study.id, deleted: false }).toArray();
@@ -69,6 +69,9 @@ export const studyResolvers = {
     Project: {
         fields: async(project: IProject) => {
             return await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: project.approvedFields }, deleted: false }).toArray();
+        },
+        jobs: async(project: IProject) => {
+            return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
         files: async(project: IProject) => {
             return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: false }).toArray();
