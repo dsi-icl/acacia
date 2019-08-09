@@ -132,16 +132,17 @@ type Project {
 }
 
 type Job {
-    id: String!,
-    studyId: String!,
-    projectId: String,
-    jobType: String!,
-    requester: String!,
-    receivedFiles: [String]!,
-    status: String!,
-    error: String,
-    cancelled: Boolean,
-    cancelledTime: Int,
+    id: String!
+    studyId: String!
+    projectId: String
+    jobType: String!
+    requester: String!
+    receivedFiles: [String]!
+    requestTime: Float!
+    status: String!
+    error: String
+    cancelled: Boolean
+    cancelledTime: Int
     data: JSON
 }
 

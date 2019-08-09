@@ -7,6 +7,7 @@ export interface IJobEntry<dataobj> {
     projectId?: string,
     studyId: string,
     requester: string,
+    requestTime: number,
     receivedFiles: string[],
     status: string,
     error: null | object,

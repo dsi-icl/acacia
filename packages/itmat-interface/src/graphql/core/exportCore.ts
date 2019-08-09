@@ -16,6 +16,7 @@ export class ExportCore {
             projectId,
             studyId,
             requester: requester.id,
+            requestTime: new Date().valueOf(),
             receivedFiles: [],
             status: 'WAITING',
             error: null,

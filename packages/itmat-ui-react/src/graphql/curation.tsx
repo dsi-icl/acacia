@@ -7,6 +7,7 @@ export const job_fragment = gql`
         projectId
         jobType
         requester
+        requestTime
         receivedFiles
         status
         error

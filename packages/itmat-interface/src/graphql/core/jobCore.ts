@@ -10,6 +10,7 @@ export class JobCore {
             studyId,
             jobType,
             projectId,
+            requestTime: new Date().valueOf(),
             receivedFiles: files,
             status: 'QUEUED',
             error: null,

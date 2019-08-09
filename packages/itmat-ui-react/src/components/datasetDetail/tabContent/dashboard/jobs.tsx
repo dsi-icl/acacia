@@ -1,18 +1,32 @@
 import * as React from 'react';
 import { IJobEntry } from 'itmat-utils/dist/models/job';
+import { InfoCircle } from '../../../reusable/infoCircle';
+import * as css from './tabContent.module.css';
+
+const STATUSES: { [status: string]: any } = {
+    finished: <span className={css.finishedStatus_span}>Finished</span>,
+    error: <><span className={css.errorStatus_span}>Errored</span><InfoCircle/></>,
+    QUEUED: <span className={css.errorStatus_span}>Queued</span>,
+    CLAIMED: <span className={css.processingStatus_span}>Processing<InfoCircle/></span>,
+    CANCELLED: <span className={css.cancelledStatus_span}>Cancelled<InfoCircle/></span>
+};
+
+const JOBTYPES: { [type: string]: any } = {
+    DATA_UPLOAD: <span>Data upload</span>,
+    FIELD_ANNOTATION_UPLOAD: <span>Field annotation upload</span>
+};
 
 export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = ({ jobs }) => {
     return <div>
         { jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p> :
-            <table>
+            <table className={css.job_table}>
                 <thead>
                     <tr>
                         <th>Date</th>
                         <th>Type</th>
-                        <th>Requested by</th>
-                        <th>Received files</th>
                         <th>Status</th>
                         <th>Metadata</th>
+                        <th>Cancel</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,12 +40,11 @@ export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = (
 const OneJob: React.FunctionComponent<{ job: IJobEntry<any> }> = ({ job }) => {
     return (
         <tr>
-            <td></td>
-            <td>{job.jobType}</td>
-            <td>{job.requester}</td>
-            <td>{job.receivedFiles}</td>
-            <td>{job.status}</td>
-            <td>{JSON.stringify(job.data)}</td>
+            <td>{new Date(job.requestTime).toLocaleString()}</td>
+            <td>{JOBTYPES[job.jobType]}</td>
+            <td className={css.status_td}>{job.cancelled ? STATUSES.CANCELLED : STATUSES[job.status]}</td>
+            <td>{JSON.stringify(job.data, null, 4)}</td>
+            <td className={css.cancelButton}>x</td>
         </tr>
     );
-}
+};
