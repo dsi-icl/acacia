@@ -23,7 +23,7 @@ export const ProjectList: React.FunctionComponent = props => {
                         }
                     }
                     console.log('error: ', data);
-                    return 'There is no project or you have not been added to any. Please contact admin.';
+                    return <p>There is no project or you have not been added to any. Please contact admin.</p>;
                 }
             }
             </Query>

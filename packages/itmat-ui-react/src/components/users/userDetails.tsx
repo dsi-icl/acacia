@@ -15,7 +15,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
                 if (loading) return <LoadingBalls/>;
                 if (error) return <p>Error :( {error.message}</p>;
                 const user: IUserWithoutToken = data.getUsers[0];
-                if (user === null || user === undefined) { return 'Oops! Cannot find user.' };
+                if (user === null || user === undefined) { return <p>Oops! Cannot find user.</p>; };
                 return (
                     <>
                         <div className='page_ariane'>{data.getUsers[0].username}</div>

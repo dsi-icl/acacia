@@ -23,7 +23,7 @@ export const DatasetList: React.FunctionComponent = props => {
                         }
                     }
                     console.log('error: ', data);
-                    return 'There is no dataset or you have not been added to any. Please contact admin.';
+                    return <p>There is no dataset or you have not been added to any. Please contact admin.</p>;
                 }
             }
             </Query>
