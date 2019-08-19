@@ -88,6 +88,7 @@ type File {
 type DataVersion {
     id: String!
     version: String!
+    contentId: String!
     tag: String
     uploadDate: String!
     jobId: String!

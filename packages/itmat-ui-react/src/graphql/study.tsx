@@ -64,6 +64,7 @@ export const GET_STUDY = gql`
                 jobId
                 extractedFrom
                 fileSize
+                contentId
                 fieldTrees
             }
         }
@@ -111,6 +112,7 @@ export const SET_DATAVERSION_AS_CURRENT = gql`
                 uploadDate
                 jobId
                 extractedFrom
+                contentId
                 fileSize
                 fieldTrees
             } 
