@@ -23,6 +23,9 @@ class DraggableTreeNode extends TreeNode {
 
 export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedList?: string[], checkable: boolean, fieldList: Models.Field.IFieldEntry[] }> = ({ onCheck, checkedList, checkable, fieldList }) => {
 
+    // TEMPORARY
+    return <p>PLACEHOLER</p>;
+
     if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p> }
     const transformedList = fieldList.map(el => `${el.path}>>${el.id}|${el.fieldName}`);
     const makeTree = (paths: string[]) => {

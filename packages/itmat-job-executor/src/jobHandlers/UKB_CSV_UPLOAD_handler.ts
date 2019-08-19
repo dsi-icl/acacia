@@ -45,6 +45,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
         await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
         const newDataVersion: IStudyDataVersion = {
             id: datasetId,
+            contentId: uuid(),
             jobId: job.id,
             version: job.data!.dataVersion,
             tag: job.data!.versionTag,

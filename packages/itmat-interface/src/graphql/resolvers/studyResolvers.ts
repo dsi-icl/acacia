@@ -1,10 +1,10 @@
 import { Database, db } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError, withFilter, defaultMergedResolver } from 'apollo-server-express';
 import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndUpdateOption } from 'mongodb';
-import { IStudy, IProject, IRole } from 'itmat-utils/dist/models/study';
+import { IStudy, IProject, IRole, IStudyDataVersion } from 'itmat-utils/dist/models/study';
 import { makeGenericReponse, IGenericResponse } from '../responses';
 import config from '../../../config/config.json';
-
+import uuid from 'uuid/v4';
 import { studyCore } from '../core/studyCore';
 import { IUser, userTypes } from 'itmat-utils/dist/models/user';
 import { fieldCore } from '../core/fieldCore';
@@ -201,6 +201,38 @@ export const studyResolvers = {
             const resultingProject = await studyCore.editProjectApprovedFiles(projectId, approvedFiles);
             return resultingProject;
         },
+        setDataversionAsCurrent: async(parent: object, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context: any, info: any): Promise<IStudy> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+
+
+            /* check whether the dataversion exists */
+            const selectedataVersionFiltered = study.dataVersions.filter(el => el.id === dataVersionId);
+            if (selectedataVersionFiltered.length !== 1) {
+                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+
+            /* create a new dataversion with the same contentId */
+            const newDataVersion: IStudyDataVersion = {
+                ...selectedataVersionFiltered[0],
+                id: uuid()
+            };
+            console.log(newDataVersion);
+
+            /* add this to the database */
+            const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, {
+                $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 }
+            }, { returnOriginal: false });
+
+            if (result.ok === 1) {
+                return result.value;
+            } else {
+                throw new ApolloError(errorCodes.DATABASE_ERROR);
+            }
+        }
     },
     Subscription: {}
 };

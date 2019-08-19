@@ -98,3 +98,22 @@ export const DELETE_PROJECT = gql`
         }
     }
 `;
+
+export const SET_DATAVERSION_AS_CURRENT = gql`
+    mutation setDataversionAsCurrent($studyId: String!, $dataVersionId: String!) {
+        setDataversionAsCurrent(studyId: $studyId, dataVersionId: $dataVersionId) {
+            id
+            currentDataVersion
+            dataVersions {
+                id
+                version
+                tag
+                uploadDate
+                jobId
+                extractedFrom
+                fileSize
+                fieldTrees
+            } 
+        }
+    }
+`;

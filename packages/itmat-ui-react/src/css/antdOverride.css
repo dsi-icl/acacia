@@ -62,3 +62,7 @@
 .anticon > svg {
     fill: var(--color-that-orange);
 }
+
+.ant-switch-checked {
+    background-color: var(--color-that-orange) !important;
+}

@@ -14,3 +14,5 @@ export const data_version_cube_selected_not_current: string;
 export const arrow: string;
 export const top_panel: string;
 export const versioning_section_button: string;
+export const switchButton: string;
+export const switchButtonWrapper: string;

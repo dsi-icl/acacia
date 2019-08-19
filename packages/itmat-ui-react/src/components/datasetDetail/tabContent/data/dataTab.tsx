@@ -1,6 +1,6 @@
 import { Models } from 'itmat-utils';
 import * as React from 'react';
-import { Query, Mutation } from 'react-apollo';
+import { Query, Mutation, useMutation } from 'react-apollo';
 import { GET_PROJECT } from '../../../../graphql/projects';
 import { CREATE_USER } from '../../../../graphql/appUsers';
 import * as css from './tabContent.module.css';
@@ -8,12 +8,14 @@ import { NavLink, Redirect } from 'react-router-dom';
 import { FieldListSection } from '../../../reusable/fieldList';
 import { Subsection } from '../../../reusable/subsection';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
-import { GET_STUDY } from '../../../../graphql/study';
+import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from '../../../../graphql/study';
 import { UploadNewFields } from './uploadNewFields';
 import { DataSummaryVisual } from './dataSummary';
 import { UploadNewData } from './uploadNewData';
 import { IStudy } from 'itmat-utils/dist/models/study';
 import { FieldListSelectionSection } from './fieldListSelection';
+import { Switch } from 'antd';
+import 'antd/lib/switch/style/css';
 
 export const DataManagementTabContent:React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>
@@ -36,10 +38,12 @@ export const DataManagementTabContent:React.FunctionComponent<{ studyId: string 
 export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
     const [selectedVersion, setSelectedVersion] = React.useState(data.currentDataVersion);
     const [addNewDataSectionShown, setAddNewDataSectionShown] = React.useState(false);
+    const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
 
     return <>
         <div className={css.top_panel}>
-            { data.dataVersions.length >= 2 ? <><h5>Data versions</h5>
+            { data.dataVersions.length >= 2 ? <>
+                <div><h5>Data versions</h5>  <h5>Linear history:  <Switch className={css.switchButton}/></h5></div>
                 { data.dataVersions.map((el, ind) =>
                     <React.Fragment key={el.id}>
                         <div 
@@ -52,7 +56,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                 )}
                 <div key='new data' className={css.data_version_cube + ' ' + css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</div>
                 { showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ? 
-                    <div key='save version' className={css.data_version_cube + ' ' + css.versioning_section_button} >Revert to this version</div>
+                    <div key='save version'  onClick={() => { if (loading) {return;} setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id }}); }} className={css.data_version_cube + ' ' + css.versioning_section_button}>{ loading ? 'Loading...' : 'Set as current version'}</div>
                   : null 
                 }<br/>
             </> : null }

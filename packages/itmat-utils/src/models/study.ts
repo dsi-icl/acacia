@@ -9,7 +9,8 @@ export interface IStudy {
 }
 
 export interface IStudyDataVersion {
-    id: string,
+    id: string, // uuid
+    contentId: string, // same contentId = same data
     version: string,
     tag?: string,
     fileSize: number,
