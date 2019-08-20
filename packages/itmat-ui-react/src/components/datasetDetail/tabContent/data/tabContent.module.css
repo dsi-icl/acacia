@@ -162,3 +162,7 @@
 .switchButton:hover{
     background: rgb(90, 90, 90)
 }
+
+.infocircle {
+    height: 1rem;
+}

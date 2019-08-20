@@ -16,3 +16,4 @@ export const top_panel: string;
 export const versioning_section_button: string;
 export const switchButton: string;
 export const switchButtonWrapper: string;
+export const infocircle: string;

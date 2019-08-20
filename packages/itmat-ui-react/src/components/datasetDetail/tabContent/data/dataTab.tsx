@@ -16,6 +16,7 @@ import { IStudy, IStudyDataVersion } from 'itmat-utils/dist/models/study';
 import { FieldListSelectionSection } from './fieldListSelection';
 import { Switch } from 'antd';
 import 'antd/lib/switch/style/css';
+import { InfoCircle } from '../../../reusable/infoCircle';
 
 
 function removeDuplicateVersion(versions: IStudyDataVersion[]) {
@@ -68,7 +69,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
 
 
             { data.dataVersions.length >= 2 ? <>
-                <div><h5>Data versions</h5>  <h5>Linear history:  <Switch onChange={(checked) => setUseLinearHistory(checked) } checked={useLinearHistory} className={css.switchButton}/></h5></div>
+                <div><h5>Data versions</h5>  <h5>Linear history<InfoCircle className={css.infocircle}/>:  <Switch onChange={(checked) => setUseLinearHistory(checked) } checked={useLinearHistory} className={css.switchButton}/></h5></div>
 
                 {
                     useLinearHistory ?
