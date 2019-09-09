@@ -48,7 +48,7 @@
 		"jest": "23.6.0",
 		"mongodb-memory-server": "3.1.1",
 		"supertest": "3.3.0",
-		"typescript": "3.3.3",
+		"typescript": "3.6.2",
 		"typescript-eslint-parser": "21.0.2"
 	},
 	"jest": {
