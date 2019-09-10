@@ -28,7 +28,7 @@
 		"os2": "0.0.13",
 		"passport": "0.4.0",
 		"passport-local": "1.0.0",
-		"uuid": "3.3.2"
+		"uuid": "3.3.3"
 	},
 	"devDependencies": {
 		"@types/bcrypt": "3.0.0",
@@ -42,7 +42,7 @@
 		"@types/node-fetch": "2.1.2",
 		"@types/passport": "1.0.1",
 		"@types/passport-local": "1.0.33",
-		"@types/uuid": "3.4.4",
+		"@types/uuid": "3.4.5",
 		"cors": "2.8.5",
 		"eslint-plugin-typescript": "0.14.0",
 		"jest": "23.6.0",
