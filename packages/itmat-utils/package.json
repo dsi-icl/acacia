@@ -14,7 +14,7 @@
     "chalk": "^2.4.1",
     "mongodb": "3.2.7",
     "os2": "0.0.13",
-    "supertest": "^3.3.0"
+    "supertest": "^4.0.0"
   },
   "devDependencies": {
     "@types/express": "^4.16.0",
