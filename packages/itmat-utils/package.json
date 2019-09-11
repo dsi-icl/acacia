@@ -11,10 +11,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chalk": "^2.4.1",
+    "chalk": "2.4.1",
     "mongodb": "3.3.2",
     "os2": "0.0.13",
-    "supertest": "^4.0.0"
+    "supertest": "4.0.0"
   },
   "devDependencies": {
     "@types/express": "4.17.1",
