@@ -23,7 +23,7 @@
   "devDependencies": {
     "typescript": "3.6.3",
     "@types/graphql": "14.0.5",
-    "@types/jest": "23.3.13",
+    "@types/jest": "23.3.14",
     "@types/node": "10.12.18",
     "@types/react": "16.9.2",
     "@types/react-dom": "16.9.0",
