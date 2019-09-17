@@ -9,7 +9,6 @@ import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
 import { errorCodes } from '../errors';
 import uuidv4 from 'uuid/v4';
 import { IUser, userTypes, IUserWithoutToken } from 'itmat-utils/dist/models/user';
-import { PermissionCore, permissionCore } from './permissionCore';
 
 export class UserCore {
     public async getOneUser_throwErrorIfNotExists(username: string): Promise<IUser> {

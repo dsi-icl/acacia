@@ -14,17 +14,15 @@ export const permissions = {
         all_projects_role_management: 'all_projects_role_management', // create, edit and delete roles and manage permissions and users in those roles
     },
     specific_study: {
-        specific_study_user_access_management: 'specific_study_user_access_management', // allows to add or
-        specific_study_data_access: 'specific_study_data_access', // allows to query data
-        specific_study_data_upload: 'specific_study_data_upload', // allows to upload / edit data
+        specific_study_readonly_access: 'specific_study_readonly_access',
+        specific_study_data_management: 'specific_study_data_upload', // allows to upload / edit data
+        specific_study_field_management: 'specific_study_field_upload', // allows to upload field annotation
         specific_study_role_management: 'specific_study_role_management', // create, edit and delete roles and manage permissions and users in those roles
-        specific_study_projects_existence_management: 'specific_study_projects_existence_management', // allows to create, delete, edit projects within a specific study
-        specific_study_data_access_to_all_projects: 'specific_study_data_access_to_all_projects', // query data from all projects in this study (eid is mapped, fields and patients subset)
-        specific_study_user_management_to_all_projects: 'specific_study_user_management_to_all_projects', // add or delete users from access list to all projects in this study
+        specific_study_file_management: 'specific_study_file_management',
+        specific_study_projects_management: 'specific_study_projects_management', // allows to create, delete, edit projects within a specific study
     },
     specific_project: {
+        specific_project_readonly_access: 'specific_project_readonly_access',
         specific_project_role_management: 'specific_project_role_management', // create, edit and delete roles and manage permissions and users in those roles
-        specific_project_data_access: 'specific_project_data_access', // query data from project (eid is mapped, fields and patients subset)
-        specific_project_user_management: 'specific_project_user_management' // add or delete users from access list to this project
     }
 };

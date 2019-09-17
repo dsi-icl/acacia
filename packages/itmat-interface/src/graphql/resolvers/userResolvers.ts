@@ -19,28 +19,30 @@ export const userResolvers = {
         },
         getUsers: async(parent: object, args: any, context: any, info: any): Promise<IUser[]> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            // if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-            //     throw new ForbiddenError('Unauthorised.');
-            // }
+
+            // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: false } : { deleted: false, id: args.userId };
-            const cursor = db.collections!.users_collection.find(queryObj, { projection: { username: 0, email: 0, description: 0, _id: 0 }});
+            const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 }});
             return cursor.toArray();
         }
     },
     User: {
         access: async (user: IUser, arg: any, context: any): Promise<{ projects: IProject[], studies: IStudy[], id: string }> => {
             const requester: Models.UserModels.IUser = context.req.user;
+
+            /* only admin can access this field */
             if (requester.type !== userTypes.ADMIN && user.id !== requester.id){
                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
+            /* if requested user is admin, then he has access to all studies */
             if (user.type === userTypes.ADMIN) {
                 const allprojects: IProject[] = await db.collections!.projects_collection.find({ deleted: false }).toArray();
                 const allstudies: IStudy[] = await db.collections!.studies_collection.find({ deleted: false }).toArray();
                 return { id: `user_access_obj_user_id_${user.id}`, projects: allprojects, studies: allstudies };
             }
 
-            /* find all the roles a user has */
+            /* if requested user is not admin, find all the roles a user has */
             const roles: IRole[] = await db.collections!.roles_collection.find({ users: user.id, deleted: false }).toArray();
             const init: { projects: string[], studies: string[] } = { projects: [], studies: [] };
             const studiesAndProjectThatUserCanSee: { projects: string[], studies: string[] } = roles.reduce(
@@ -59,34 +61,31 @@ export const userResolvers = {
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
         username: async(user: IUser, arg: any, context: any): Promise<string | null> => {
-            if (context.req.user.type !== userTypes.ADMIN) {
+            const requester: Models.UserModels.IUser = context.req.user;
+            /* only admin can access this field */
+            if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
-            const result: IUser | null = await db.collections!.users_collection.findOne({ id: user.id, deleted: false }, { projection: { username: 1 }});
-            if (result === null || result === undefined) {
-                return null;
-            }
-            return result.username;
+
+            return user.username;
         },
         description: async(user: IUser, arg: any, context: any): Promise<string | null> => {
-            if (context.req.user.type !== userTypes.ADMIN) {
+            const requester: Models.UserModels.IUser = context.req.user;
+            /* only admin can access this field */
+            if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
-            const result: IUser | null = await db.collections!.users_collection.findOne({ id: user.id, deleted: false }, { projection: { description: 1 }});
-            if (result === null || result === undefined) {
-                return null;
-            }
-            return result.description;
+
+            return user.description;
         },
         email: async(user: IUser, arg: any, context: any): Promise<string | null> => {
-            if (context.req.user.type !== userTypes.ADMIN) {
+            const requester: Models.UserModels.IUser = context.req.user;
+            /* only admin can access this field */
+            if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
-            const result: IUser | null = await db.collections!.users_collection.findOne({ id: user.id, deleted: false }, { projection: { email: 1 }});
-            if (result === null || result === undefined) {
-                return null;
-            }
-            return result.email;
+
+            return user.email;
         },
     },
     Mutation: {
@@ -117,7 +116,7 @@ export const userResolvers = {
             const requester: Models.UserModels.IUser = context.req.user;
             const req: Express.Request = context.req;
             if (requester === undefined || requester === null) {
-                throw new ApolloError('Not logged in in the first place!');
+                return makeGenericReponse(context.req.user);
             }
             return new Promise(resolve => {
                 req.session!.destroy(err => {
@@ -133,9 +132,12 @@ export const userResolvers = {
         },
         createUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
+
+            /* only admin can create new users */
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-                throw new ForbiddenError('Unauthorised.');
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
+
             const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
                 username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
@@ -159,9 +161,10 @@ export const userResolvers = {
             return createdUser;
         },
         deleteUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+            /* only admin can delete users */
             const requester: Models.UserModels.IUser = context.req.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-                throw new ForbiddenError('Unauthorised.');
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
@@ -172,7 +175,7 @@ export const userResolvers = {
                 id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
             } = args.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
-                throw new ForbiddenError('Unauthorised.');
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
             if (requester.type === Models.UserModels.userTypes.ADMIN) {
                 const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ id, deleted: false })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.

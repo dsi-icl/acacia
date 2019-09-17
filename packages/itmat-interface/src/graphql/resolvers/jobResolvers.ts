@@ -16,13 +16,14 @@ import { ClientRequestArgs } from 'http';
 
 enum JOB_TYPE {
     FIELD_INFO_UPLOAD = 'FIELD_INFO_UPLOAD',
-    DATA_UPLOAD = 'DATA_UPLOAD'
+    DATA_UPLOAD = 'DATA_UPLOAD',
+    DATA_EXPORT = 'DATA_EXPORT'
 }
 
 export const jobResolvers = {
     Query: {},
     Mutation: {
-        createDataCurationJob: async(parent: object, args: { file: string, studyId: string, jobType: JOB_TYPE, tag?: string, version: string }, context: any, info: any): Promise<IJobEntry<{ dataVersion: string, versionTag?: string }>> => {
+        createDataCurationJob: async(parent: object, args: { file: string, studyId: string, tag?: string, version: string }, context: any, info: any): Promise<IJobEntry<{ dataVersion: string, versionTag?: string }>> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -39,7 +40,7 @@ export const jobResolvers = {
             /* create job */
             const job: IJobEntry<{ dataVersion: string, versionTag?: string }> = {
                 id: uuid(),
-                jobType: args.jobType,
+                jobType: JOB_TYPE.DATA_UPLOAD,
                 studyId: args.studyId,
                 requester: requester.id,
                 requestTime: new Date().valueOf(),
@@ -71,7 +72,7 @@ export const jobResolvers = {
             /* create job */
             const job: IJobEntry<{ dataVersionId: string, tag: string }> = {
                 id: uuid(),
-                jobType: 'FIELD_ANNOTATION_UPLOAD',
+                jobType: JOB_TYPE.FIELD_INFO_UPLOAD,
                 studyId: args.studyId,
                 requester: requester.id,
                 requestTime: new Date().valueOf(),
@@ -83,6 +84,33 @@ export const jobResolvers = {
                     dataVersionId: args.dataVersionId,
                     tag: args.tag
                 }
+            };
+
+            const result = await db.collections!.jobs_collection.insertOne(job);
+            if (result.result.ok !== 1) {
+                throw new ApolloError(errorCodes.DATABASE_ERROR);
+            }
+            return job;
+        },
+        createDataExportJob: async(parent: object, args: { studyId: string, projectId?: string }, context: any, info: any): Promise<IJobEntry<undefined>> => {
+            const requester: Models.UserModels.IUser = context.req.user;
+
+            /* check permission */
+
+            /* check study exists */
+
+            /* create job */
+            const job: IJobEntry<undefined> = {
+                id: uuid(),
+                jobType: JOB_TYPE.DATA_EXPORT,
+                studyId: args.studyId,
+                requester: requester.id,
+                projectId: args.projectId,
+                requestTime: new Date().valueOf(),
+                receivedFiles: [],
+                error: null,
+                status: 'QUEUED',
+                cancelled: false
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
