@@ -1,0 +1,82 @@
+
+.page_container {
+    grid-template-columns: 60% 40%;
+    grid-template-rows: 100%;
+    display: grid;
+    height: 100%;
+    grid-template-areas: "userList userDetail"
+}
+
+.user_list_section {
+    grid-area: userList;
+    border-right: 1px solid rgb(77, 77, 77);
+}
+
+.user_detail {
+    grid-area: userDetail;
+}
+
+.user_list button {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    height: 80%;
+    color: white;
+}
+
+.user_list > table tr {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+
+.user_list > table > tbody > tr {
+    height: 3rem;
+    line-height: 3rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.user_list > table:nth-child(2) > thead th {
+    color: #969696;
+    font-weight: normal;
+}
+
+.user_list > table:nth-child(2) {
+    margin-top: 3rem;
+}
+
+.user_list > table > thead > tr > th > svg {
+    fill: var(--color-text-basic-rightpanel);
+    height: 88%;
+    display: inline
+}
+
+.create_new_user button {
+    display: inline-block;
+    width: 40%;
+}
+
+.button_clicked button {
+    background-color: red;
+}
+
+.submit_cancel_button_wrapper {
+    display: flex;
+    width: 100%;
+}
+
+.submit_cancel_button_wrapper a {
+    width: 50%;
+    margin-right: 0.5rem;
+}
+
+.submit_cancel_button_wrapper button {
+    width: 100%;
+    margin: 0px;
+}
+
+.really_delete_button {
+    background-color: red;
+    cursor: pointer;
+    margin-right: 1rem;
+}

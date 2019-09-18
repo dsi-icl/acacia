@@ -1,0 +1,51 @@
+.tab_page_wrapper {
+    padding: 2rem;
+    height: 100%;
+    overflow: auto;
+}
+
+.status_td > span {
+    width: 100%;
+    padding: 0.1rem 0.5rem 0.1rem 0.5rem;
+    color: white;
+}
+
+.finishedStatus_span {
+    background-color: #648601;
+}
+
+.errorStatus_span {
+    background-color: #d80000;
+}
+
+.processingStatus_span {
+    background-color: #f3e313;
+    color: black;
+}
+
+.queuedStatus_span {
+    background-color: #696969;
+}
+
+.cancelledStatus_span {
+    background-color: black;
+}
+
+.job_table {
+    font-size: 0.95rem;
+}
+
+.job_table tr {
+    height: 1.6rem;
+    line-height: 1.6rem;
+}
+
+.cancelButton {
+    font-weight: bold;
+    cursor: pointer;
+    color: #5a5a5a;
+}
+
+.cancelButton:hover {
+    color: white;
+}

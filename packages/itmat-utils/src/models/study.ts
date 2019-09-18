@@ -1,31 +1,44 @@
 export interface IStudy {
     id: string,
     name: string,
-    isUkbiobank: boolean,
-    studyAndDataManagers: string[],
-    applications: IApplication[],
     createdBy: string,
     lastModified: number,
-    deleted: false
+    deleted: boolean,
+    currentDataVersion: number, // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
+    dataVersions: IStudyDataVersion[]
 }
 
-export interface IApplication {
-    id: string,
-    study: string,
+export interface IStudyDataVersion {
+    id: string, // uuid
+    contentId: string, // same contentId = same data
+    version: string,
+    tag?: string,
+    fileSize: number,
+    uploadDate: number,
+    jobId: string,
+    extractedFrom: string,
+    fieldTrees: string[]
+}
+
+
+export interface IRole {
+    id: string
+    projectId?: string,
+    studyId: string,
     name: string,
-    pendingUserApprovals: IPendingApproval[],
-    applicationAdmins: string[],
-    applicationUsers: string[],
-    approvedFields: string[]
-}
+    permissions: string[],
+    users: string[],
+    deleted: boolean
+};
 
-export enum APPLICATION_USER_TYPE {
-    applicationAdmin = 'APPLICATION_ADMIN',
-    applicationUser = 'APPLICATION_USER'
-}
-
-export interface IPendingApproval {
+export interface IProject {
     id: string,
-    user: string,
-    type: APPLICATION_USER_TYPE
+    studyId: string,
+    createdBy: string,
+    name: string,
+    patientMapping: { [originalId: string]: string },
+    approvedFields: string[],
+    approvedFiles: string[],
+    lastModified: number,
+    deleted: boolean
 }

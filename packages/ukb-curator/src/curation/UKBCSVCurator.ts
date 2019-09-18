@@ -1,6 +1,5 @@
 import csvparse from 'csv-parse';
 import { ICodingMap } from '../models/UKBCoding';
-import { IFieldMap, IFieldEntry } from '../models/UKBFields';
 import { IFieldDescriptionObject, IHeaderArrayElement } from '../models/curationUtils';
 import { UKBiobankValueTypes } from '../models/UKBDataType';
 import { Models, CustomError } from 'itmat-utils';
@@ -10,7 +9,7 @@ export interface IDataEntry {
     m_jobId: string,
     m_eid: string,
     m_study: string,
-    m_in_qc: boolean,
+    m_versionId: string,
     [field: string]: {
         [instance: string]: {
             [array: number]: number | string
@@ -89,7 +88,7 @@ export class UKBCSVCurator {
                 console.log('lineNum', currentLineNum);
                 if (this._numOfSubj > 2000) {     // race condition?   // PROBLEM: the last bit <2000 doesn't get uploaded\
                     this._numOfSubj = 0;
-                    bulkInsert.execute((err: Error) => {
+                    await bulkInsert.execute((err: Error) => {
                         if (err) { console.log((err as any).writeErrors[1].err); return; }
                     });
                     bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
@@ -171,7 +170,7 @@ export class UKBCSVCurator {
             { id: this.jobId },
             { $set:
                 {
-                    status: Models.JobModels.jobTypes.UKB_CSV_UPLOAD.status[4],
+                    status: 'Finished',
                     error: errorMsg
                 }
             }

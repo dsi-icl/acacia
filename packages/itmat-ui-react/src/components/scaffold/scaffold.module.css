@@ -1,0 +1,50 @@
+.app {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 60px calc(100% - 60px);
+    grid-template-rows: calc(100% - 20px) 20px;
+    grid-template-areas:
+        "mainMenuBar mainPanel"
+        "statusBar statusBar"
+}
+
+.status_bar {
+    background-color: var(--color-that-orange);
+    grid-area: statusBar;
+    padding-left: 1rem;
+    line-height: 20px;
+}
+
+.main_panel {
+    background: linear-gradient(180deg, #444444 0%, rgba(0, 0, 0, 0) 100%), #282828;
+    grid-area: mainPanel;
+    height: 100%;
+}
+
+.main_menubar {
+    grid-area: mainMenuBar;
+    height: 100%;
+    padding: 1rem 1.2rem 1rem 1.2rem;
+    border-right: 1px solid #444444;
+}
+
+.button {
+    display: block;
+    text-align: center;
+    width: 100%;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+.button svg {
+    fill: rgb(139, 138, 138);
+}
+
+.button:hover svg {
+    fill: var(--color-that-orange) 
+}
+
+.clickedButton svg {
+    fill: rgb(245, 245, 245);
+}

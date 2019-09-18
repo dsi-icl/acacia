@@ -19,7 +19,7 @@ export class UKBImageCurator {
             return false;
         }
         const { field: fieldId, patientId } = document.data;
-        const objectUrl = `${document.id}|${document.receivedFiles}`;
+        const objectUrl = `IMAGE::${document.id}#${document.receivedFiles}`;
         const field: IFieldDescriptionObject = this.parseFieldHeader(fieldId);
             // ==> update the data collection
             // check the fieldId is indeed an image

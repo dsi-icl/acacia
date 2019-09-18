@@ -1,0 +1,14 @@
+.one_project {
+    width: 100%;
+}
+
+.one_project h5 {
+    font-size: 1.1rem;
+    color: var(--color-that-orange);
+    font-weight: bold
+}
+
+.one_project h5:hover {
+    text-decoration: underline;
+    color: var(--color-that-red);
+}

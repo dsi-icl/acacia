@@ -1,47 +1,19 @@
 import { Express } from 'express';
-import { DatabaseBase, IDatabaseBaseConfig } from './databaseBase';
+import { Database, IDatabaseBaseConfig, IDatabase } from './database';
 import { MongoClient } from 'mongodb';
 import { CustomError } from './error';
 import { Logger } from './logger';
 import { IOpenSwiftObjectStoreConfig, OpenStackSwiftObjectStore } from './OpenStackObjectStore';
 
-export interface IServerBaseConfig<D extends IDatabaseBaseConfig> {
+export interface IServerBaseConfig {
     server: {
         port: number
-    },
-    database: D,
-    swift: IOpenSwiftObjectStoreConfig
+    }
 }
 
-export abstract class ServerBase<D extends IDatabaseBaseConfig, K extends DatabaseBase<D>, T extends IServerBaseConfig<D>> {
+export abstract class ServerBase<T extends IServerBaseConfig> {
     constructor(
-        protected readonly config: T,
-        protected readonly db: K,
-        protected readonly objStore: OpenStackSwiftObjectStore) {}
-
-    public async connectToBackEnd(): Promise<void> {
-        try {  // try to establish a connection to database first; if failed, exit the program
-            await this.db.connect();
-        } catch (e) {
-            const { mongo_url: mongoUri, database } = this.config.database;
-            Logger.error(
-                new CustomError(`Cannot connect to database host ${mongoUri} - db = ${database}.`, e)
-            );
-            process.exit(1);
-        }
-
-        try {  // try to establish a connection to database first; if failed, exit the program
-            await this.objStore.connect();
-            Logger.log('connected to object store');
-        } catch (e) {
-            Logger.log(
-                new CustomError('Cannot connect to object store.', e)
-            );
-            process.exit(1);
-        }
-
-        await this.additionalChecksAndActions();
-    }
+        protected readonly config: T){}
 
     public async start(router: Express): Promise<void> {
         const port = this.config.server.port;
