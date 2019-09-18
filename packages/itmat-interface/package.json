@@ -9,13 +9,14 @@
         "build"
     ],
     "scripts": {
+        "start": "node ./build/src/index.js",
         "build": "npm run clean && npm run compile",
         "clean": "rimraf -rf ./build",
         "compile": "tsc -p tsconfig.build.json",
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
-        "apollo-server-express": "2.2.3",
+        "apollo-server-express": "2.4.0",
         "bcrypt": "3.0.6",
         "body-parser": "1.19.0",
         "connect-mongo": "3.0.0",
