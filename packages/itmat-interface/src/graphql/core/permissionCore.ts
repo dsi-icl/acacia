@@ -33,15 +33,15 @@ export class PermissionCore {
         return db.collections!.roles_collection.find({ studyId, projectId }).toArray();
     }
 
-    public async userHasTheNeccessaryPermission_throwErrorIfNot(needOneOfThesePermissions: string[], user: IUser, study: string, project?: string): Promise<void> {
+    public async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, studyId: string, projectId?: string): Promise<boolean> {
         /* if user is an admin then return true if admin privileges includes needed permissions */
         if (user.type === userTypes.ADMIN) {
-            return;
+            return true;
         }
 
         /* aggregationPipeline to return a list of the privileges the user has in this study / project */
         const aggregationPipeline = [
-            { $match: { study, project, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
+            { $match: { studyId, projectId, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
             { $group: {  _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } }  },
             { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: [ '$$this', '$$value' ] }  } } } }
         ];
@@ -54,10 +54,10 @@ export class PermissionCore {
         /* checking privileges */
         for (let i = 0, length = needOneOfThesePermissions.length; i < length; i++) {
             if (hisPrivileges.includes(needOneOfThesePermissions[i])) {
-                return;
+                return true;
             }
         }
-        throw new ApolloError('You do not have the necessary permission.', errorCodes.NO_PERMISSION_ERROR);
+        return false;
     }
 
     public async removeRole(roleId: string): Promise<void> {

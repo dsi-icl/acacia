@@ -1,7 +1,6 @@
 import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
 import { queryResolvers } from './queryResolvers';
-import { fieldResolvers } from './fieldResolvers';
 import { permissionResolvers } from './permissionResolvers';
 import { jobResolvers } from './jobResolvers';
 import { fileResolvers } from './fileResolvers';
@@ -11,7 +10,6 @@ const modules = [
     studyResolvers,
     userResolvers,
     queryResolvers,
-    fieldResolvers,
     permissionResolvers,
     jobResolvers,
     fileResolvers
