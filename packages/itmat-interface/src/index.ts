@@ -13,4 +13,8 @@ db.connect(config.database)
     .then(() => {
         const router = new Router(db);
         server.start(router.getApp());
-});
+    })
+    .catch(error => {
+        console.error(error.toString());
+        process.exit(1);
+    });
