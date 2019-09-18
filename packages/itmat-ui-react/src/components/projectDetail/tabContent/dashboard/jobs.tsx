@@ -3,7 +3,7 @@ import { IJobEntry } from 'itmat-utils/dist/models/job';
 
 export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = ({ jobs }) => {
     return <div>
-        { jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p> :
+        {jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p> :
             <table>
                 <thead>
                     <tr>
@@ -16,7 +16,7 @@ export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = (
                     </tr>
                 </thead>
                 <tbody>
-                    {jobs.map(el => <OneJob key={el.id} job={el}/>)}
+                    {jobs.map(el => <OneJob key={el.id} job={el} />)}
                 </tbody>
             </table>
         }

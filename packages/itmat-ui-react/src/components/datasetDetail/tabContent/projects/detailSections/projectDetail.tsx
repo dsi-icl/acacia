@@ -15,36 +15,36 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId
         query={GET_PROJECT}
         variables={{ projectId, admin: true }}
     >
-    {({ data, loading, error }) => {
-        if (loading) return <LoadingBalls/>;
-        if (error) return <p>{error.toString()}</p>;
-        if (!data || !data.getProject) return <p>Cannot find this project! Please contact admin.</p>;
+        {({ data, loading, error }) => {
+            if (loading) return <LoadingBalls />;
+            if (error) return <p>{error.toString()}</p>;
+            if (!data || !data.getProject) return <p>Cannot find this project! Please contact admin.</p>;
 
-        return <div className={css.project_detail_scaffold}>
-            <div className={css.project_detail_title}>
-                {data.getProject.name}
-            </div>
-            <div className={css.project_detail_left}>
-                <Subsection title='Role'>
-                    <RoleControlSection studyId={studyId} projectId={projectId} roles={data.getProject.roles}/>
-                </Subsection>
-                <Subsection title='Patient ID Mapping'>
-                    <PatientIdMappingSection projectId={projectId}/>
-                </Subsection>
-                <Subsection title='Delete this project'>
-                    <DeleteProjectSection studyId={studyId} projectId={projectId} projectName={data.getProject.name}/>
-                </Subsection>
-            </div>
-            <div className={css.project_detail_right}>
-                <Subsection title='Granted Fields'>
-                    <GrantedFieldListSection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFields}/>
-                </Subsection>
-                <br/><br/>
-                <Subsection title='Granted Files'>
-                    <GrantedFileListSelection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFiles}/>
-                </Subsection>
-            </div>
-        </div>;
-    }}
+            return <div className={css.project_detail_scaffold}>
+                <div className={css.project_detail_title}>
+                    {data.getProject.name}
+                </div>
+                <div className={css.project_detail_left}>
+                    <Subsection title='Role'>
+                        <RoleControlSection studyId={studyId} projectId={projectId} roles={data.getProject.roles} />
+                    </Subsection>
+                    <Subsection title='Patient ID Mapping'>
+                        <PatientIdMappingSection projectId={projectId} />
+                    </Subsection>
+                    <Subsection title='Delete this project'>
+                        <DeleteProjectSection studyId={studyId} projectId={projectId} projectName={data.getProject.name} />
+                    </Subsection>
+                </div>
+                <div className={css.project_detail_right}>
+                    <Subsection title='Granted Fields'>
+                        <GrantedFieldListSection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFields} />
+                    </Subsection>
+                    <br /><br />
+                    <Subsection title='Granted Files'>
+                        <GrantedFileListSelection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFiles} />
+                    </Subsection>
+                </div>
+            </div>;
+        }}
     </Query>;
 };

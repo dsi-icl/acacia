@@ -1,6 +1,6 @@
 import React from 'react';
 import { UPLOAD_FILE } from '../../../../graphql/files';
-import { Mutation, useMutation, useApolloClient } from 'react-apollo';
+import { useMutation, useApolloClient } from 'react-apollo';
 import { GET_STUDY } from '../../../../graphql/study';
 
 export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
@@ -9,7 +9,7 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
     const [success, setSuccess] = React.useState(false);
     const fileRef = React.createRef();
     const store = useApolloClient();
-    const [uploadFile, { loading, error: Graphqlerror }] = useMutation(UPLOAD_FILE, {
+    const [uploadFile, { loading }] = useMutation(UPLOAD_FILE, {
         onCompleted: ({ uploadFile }) => {
             setDescription('');
             setError('');
@@ -22,29 +22,29 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
     });
 
     return <div>
-        <label>Select file: </label><input type='file' ref={fileRef as any}/><br/><br/>
-        <label>Description: </label><input type='text' value={description} onChange={e => { setDescription(e.target.value); setError(''); setSuccess(false); }}/>
-        <br/><br/><br/>
+        <label>Select file: </label><input type='file' ref={fileRef as any} /><br /><br />
+        <label>Description: </label><input type='text' value={description} onChange={e => { setDescription(e.target.value); setError(''); setSuccess(false); }} />
+        <br /><br /><br />
         {
-            loading ?<button>Loading...</button> :
-            <button onClick={() => {
-                                if ((fileRef.current! as any).files.length === 0) {
-                                    setError('You must select a file.');
-                                    setSuccess(false);
-                                    return;
-                                }
+            loading ? <button>Loading...</button> :
+                <button onClick={() => {
+                    if ((fileRef.current! as any).files.length === 0) {
+                        setError('You must select a file.');
+                        setSuccess(false);
+                        return;
+                    }
 
-                                if (description === '') {
-                                    setError('You must provide description.');
-                                    setSuccess(false);
-                                    return;
-                                }
+                    if (description === '') {
+                        setError('You must provide description.');
+                        setSuccess(false);
+                        return;
+                    }
 
-                                const file = (fileRef.current! as any).files[0];
-                                uploadFile({ variables: { file, studyId, description, fileLength: file.size }});
-                            }}>Upload</button>
+                    const file = (fileRef.current! as any).files[0];
+                    uploadFile({ variables: { file, studyId, description, fileLength: file.size } });
+                }}>Upload</button>
         }
-        { error ? <div className='error_banner'>{error}</div> : null }
-        { success ? <div className='saved_banner'>Uploaded.</div> : null }
+        {error ? <div className='error_banner'>{error}</div> : null}
+        {success ? <div className='saved_banner'>Uploaded.</div> : null}
     </div>;
 };
