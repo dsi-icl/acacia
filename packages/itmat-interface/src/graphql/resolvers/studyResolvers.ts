@@ -1,42 +1,70 @@
 import { Database, db } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError, withFilter, defaultMergedResolver } from 'apollo-server-express';
-import { InsertOneWriteOpResult, UpdateWriteOpResult, WriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndUpdateOption } from 'mongodb';
 import { IStudy, IProject, IRole, IStudyDataVersion } from 'itmat-utils/dist/models/study';
 import { makeGenericReponse, IGenericResponse } from '../responses';
-import config from '../../../config/config.json';
 import uuid from 'uuid/v4';
 import { studyCore } from '../core/studyCore';
 import { IUser, userTypes } from 'itmat-utils/dist/models/user';
-import { fieldCore } from '../core/fieldCore';
 import { errorCodes } from '../errors';
-import { permissionCore } from '../core/permissionCore';
-import { permissions } from 'itmat-utils';
 import { IFieldEntry } from 'itmat-utils/dist/models/field';
+import { permissions } from 'itmat-utils';
+import { permissionCore } from '../core/permissionCore';
 
 export const studyResolvers = {
     Query: {
-        getStudy: async(parent: object, args: any, context: any, info: any): Promise<IStudy> => {
+        getStudy: async(parent: object, args: any, context: any, info: any): Promise<IStudy | null> => {
             const requester: IUser = context.req.user;
             const studyId: string = args.studyId;
 
-            /* check if user has permission */
+            /* user can get study if he has readonly permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_readonly_access],
+                requester,
+                studyId
+            );
+            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
-            /* get study */
             return await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
         },
-        getProject: async(parent: object, args: any, context: any, info: any): Promise<IProject> => {
+        getProject: async(parent: object, args: any, context: any, info: any): Promise<IProject | null> => {
             const requester: IUser = context.req.user;
             const projectId: string = args.projectId;
 
-            /* check if user has permission */
+            /* get project */
+            const project: IProject | null = await db.collections!.projects_collection.findOne({ id: projectId, deleted: false }, { projection: { patientMapping: 0 } })!;
 
-            /* get study */
-            return await db.collections!.projects_collection.findOne({ id: projectId, deleted: false }, { projection: { patientMapping: 0 } })!;
+            if (project === null) {
+                return null;
+            }
+
+            /* check if user has permission */
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_project.specific_project_readonly_access],
+                requester,
+                project.studyId,
+                projectId
+            );
+
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_readonly_access],
+                requester,
+                project.studyId
+            );
+
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+
+            return project;
         },
         getStudyFields: async(parent: object, { fieldTreeId, studyId }: { fieldTreeId: string, studyId: string }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
 
-            // checks permission and other checks
+            /* user can get study if he has readonly permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_readonly_access],
+                requester,
+                studyId
+            );
+            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             const result = await db.collections!.field_dictionary_collection.find({ studyId, fieldTreeId }).toArray();
 
@@ -53,9 +81,6 @@ export const studyResolvers = {
         roles: async(study: IStudy) => {
             return await db.collections!.roles_collection.find({ studyId: study.id, deleted: false }).toArray();
         },
-        // fields: async(study: IStudy) => {
-            // return await db.collections!.field_dictionary_collection.find({ studyId: study.id, deleted: false }).toArray();
-        // },
         files: async(study: IStudy) => {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: false }).toArray();
         },

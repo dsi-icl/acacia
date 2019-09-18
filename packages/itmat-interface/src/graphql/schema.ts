@@ -252,8 +252,8 @@ type Mutation {
     removeRole(roleId: String!): GenericResponse
 
     # FILES
-    uploadFile(studyId: String!, projectId: String, description: String!, file: Upload!, fileLength: Int): File
-    deleteFile(studyId: String!, projectId: String, fileId: String!): GenericResponse
+    uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: Int): File
+    deleteFile(studyId: String!, fileId: String!): GenericResponse
 
 
     # QUERY
