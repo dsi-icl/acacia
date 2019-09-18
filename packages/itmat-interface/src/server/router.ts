@@ -34,10 +34,10 @@ export class Router {
 
 
         /* save persistent sessions in mongo */
-        this.app.use(session({
-            secret: 'IAmATeapot',
-            store: new MongoStore({ db: db.db } as any)
-        }));
+        //this.app.use(session({
+        //    secret: 'IAmATeapot',
+        //    store: new MongoStore({ db: db.db } as any)
+        //}));
 
 
         /* authenticating user of the request */

@@ -7,7 +7,7 @@
         "build"
     ],
     "scripts": {
-        "start": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts start",
+        "start": "cross-env BROWSER=none SKIP_PREFLIGHT_CHECK=true react-scripts start",
         "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
         "test": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts test",
         "clean": "rimraf -rf ./dist ./build",
@@ -39,8 +39,9 @@
         "@types/react-dom": "16.9.0",
         "@types/react-router-dom": "4.3.5",
         "@types/node": "12.7.5",
-        "cross-env": "5.2.1",
+        "cross-env": "6.0.0",
         "rimraf": "3.0.0",
+        "tslint": "5.20.0",
         "typescript": "3.6.3"
     },
     "eslintConfig": {
@@ -52,3 +53,4 @@
         "not ie <= 11",
         "not op_mini all"
     ]
+}

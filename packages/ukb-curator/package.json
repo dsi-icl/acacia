@@ -23,6 +23,7 @@
         "express": "4.17.1",
         "itmat-utils": "1.1.8",
         "mongodb": "3.3.2",
+        "saslprep": "1.0.3",
         "node-fetch": "2.6.0"
     },
     "devDependencies": {
