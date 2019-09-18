@@ -20,13 +20,16 @@ export interface IDatabase {
     closeConnection: () => Promise<void>
 }
 
-export class Database<configType extends IDatabaseBaseConfig, C = {[name in keyof configType['collections']]: mongodb.Collection} > implements IDatabase {
+export class Database<configType extends IDatabaseBaseConfig, C = { [name in keyof configType['collections']]: mongodb.Collection }> implements IDatabase {
     private _client?: mongodb.MongoClient;
     private config?: configType;
     public collections?: C;
 
     public async connect(config: configType): Promise<void> {
-        this._client = new mongodb.MongoClient(config.mongo_url, { useNewUrlParser: true });
+        this._client = new mongodb.MongoClient(config.mongo_url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
         this.config = config;
         if (!this.isConnected()) {
             Logger.log('Connecting to the database..');
