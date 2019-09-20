@@ -69,19 +69,19 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
         >
         {(submit, { loading, error, data }) =>
             <>
-                <label>Username: </label> <input type='text' value={inputs.username} onChange={e => { setInputs({...inputs, username: e.target.value }) }}/> <br/><br/>
-                <label>Type: </label>
+                <label>Username: <input type='text' value={inputs.username} onChange={e => { setInputs({...inputs, username: e.target.value }) }}/> </label><br/><br/>
+                <label>Type:
                     <select value={inputs.type} onChange={e => { setInputs({...inputs, type: e.target.value } as any); }}>
                         <option value="STANDARD">System user</option>
                         <option value="ADMIN">System admin</option>
-                    </select><br/><br/>
-                <label>Real name: </label> <input type='text' value={inputs.realName} onChange={e => { setInputs({...inputs, realName: e.target.value }) }}/> <br/><br/>
-                <label>Password: </label> <input type='password' value={inputs.password} onChange={e => { setInputs({...inputs, password: e.target.value }) }}/> <br/><br/>
-                <label>Email: </label> <input type='text' value={inputs.email} onChange={e => { setInputs({...inputs, email: e.target.value }) }}/><br/><br/>
-                <label>Email Notification: </label> <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({...inputs, emailNotificationsActivated: e.target.checked }) }}/><br/><br/>
-                <label>Description: </label> <input type='text' value={inputs.description} onChange={e => { setInputs({...inputs, description: e.target.value }) }}/> <br/><br/>
-                <label>Organisation: </label> <input type='text' value={inputs.organisation} onChange={e => setInputs({...inputs, organisation: e.target.value })} /> <br/><br/>
-                <label>Created by (readonly): </label ><input type='text' readOnly value={inputs.createdBy}/> <br/><br/>
+                    </select></label><br/><br/>
+                <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({...inputs, realName: e.target.value }) }}/> </label><br/><br/>
+                <label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({...inputs, password: e.target.value }) }}/></label> <br/><br/>
+                <label>Email: <input type='text' value={inputs.email} onChange={e => { setInputs({...inputs, email: e.target.value }) }}/></label><br/><br/>
+                <label>Email Notification:  <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({...inputs, emailNotificationsActivated: e.target.checked }) }}/></label><br/><br/>
+                <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({...inputs, description: e.target.value }) }}/></label> <br/><br/>
+                <label>Organisation: <input type='text' value={inputs.organisation} onChange={e => setInputs({...inputs, organisation: e.target.value })} /> </label><br/><br/>
+                <label>Created by (readonly): <input type='text' readOnly value={inputs.createdBy}/> </label><br/><br/>
                 <div className={css.submit_cancel_button_wrapper}>
                     <NavLink to={'/users'}><button className='button_grey'>Cancel</button></NavLink>
                     {loading ? <button>Loading</button> : <button onClick={() => { submit({ variables: { ...formatSubmitObj() } }); }}>Save</button> }
