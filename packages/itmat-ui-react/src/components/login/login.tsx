@@ -3,7 +3,7 @@ import { Mutation } from "react-apollo";
 import { LOGIN, WHO_AM_I } from '../../graphql/user';
 import * as css from './login.module.css';
 
-export const LoginBox: React.FunctionComponent = props => {
+export const LoginBox: React.FunctionComponent = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [passwordInput, setPasswordInput] = React.useState('');
     const [stateerror, setError] = React.useState('');
@@ -32,10 +32,10 @@ export const LoginBox: React.FunctionComponent = props => {
                 <h1>ITMAT - BROKER</h1>
                 <br/><br/>
                 <div>
-                    <input placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
+                    <input id='username_input' placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
                 </div>
                 <div>
-                    <input placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
+                    <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
                 </div>
                 <br/>
                 { loading ? <button>logging in..</button> :
@@ -44,7 +44,7 @@ export const LoginBox: React.FunctionComponent = props => {
                     )
                 }
             </div>
-            <div className={css.error_message}>
+            <div id='error_dialog' className={css.error_message}>
                 {error ? error.message : (stateerror ? stateerror : null )}
             </div>
             </div>
