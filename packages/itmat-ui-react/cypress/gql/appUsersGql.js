@@ -38,10 +38,11 @@ const GET_SPECIFIC_USER = print(gql`
 `);
 
 const CREATE_USER = print(gql`
-    mutation CreateUser(
+    mutation createUser(
         $username: String!
         $password: String!
         $realName: String!
+        $organisation: String!
         $description: String!
         $emailNotificationsActivated: Boolean!
         $email: String!
@@ -51,6 +52,7 @@ const CREATE_USER = print(gql`
             username: $username
             password: $password
             realName: $realName
+            organisation: $organisation
             description: $description
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
