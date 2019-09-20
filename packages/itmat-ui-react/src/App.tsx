@@ -7,7 +7,6 @@ import * as css from './components/scaffold/scaffold.module.css';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { MainMenuBar } from './components/scaffold/mainMenuBar';
 import { MainPanel } from './components/scaffold/mainPanel';
-import { StatusBar } from './components/scaffold/statusBar';
 import { Spinner } from './components/reusable/spinner';
 
 class App extends React.Component {
@@ -24,7 +23,6 @@ class App extends React.Component {
                       <>
                       <MainMenuBar projects={data.whoAmI.access.projects}/>
                       <MainPanel/>
-                      <StatusBar/>
                       </>
                     </Router>
                   </div>;

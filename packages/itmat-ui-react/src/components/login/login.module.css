@@ -4,7 +4,7 @@
 }
 
 .login_box {
-    border-left: 100px solid var(--color-that-orange);
+    border-left: 100px solid var(--color-primary-color);
     padding-left: 3rem;
     /* height: 30%; */
 }
@@ -22,7 +22,7 @@
 .login_box h1 {
     font-family: 'Cairo';
     font-size: 5rem;
-    color: var(--color-that-orange);
+    color: var(--color-primary-color);
     margin-top: 0px;
 }
 

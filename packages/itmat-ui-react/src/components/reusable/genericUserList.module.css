@@ -1,6 +1,6 @@
 .userSpan {
     min-width: 10rem;
-    background-color: var(--color-that-orange);
+    background-color: var(--color-primary-color);
     border-radius: 0.2rem;
     display: inline;
     box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.3);
@@ -41,7 +41,7 @@
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
     font-size: inherit;
     text-align: center;
-    background-color: var(--color-that-orange);
+    background-color: var(--color-primary-color);
 }
 
 .addUserSectionWrapper > .button:hover  {

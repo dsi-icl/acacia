@@ -10,7 +10,7 @@ import { version } from 'moment';
 
 export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
     return <div>
-        <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-that-orange)', textDecoration: 'underline'}}>uploaded the data file to the file repository</span></NavLink>.</p>
+        <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline'}}>uploaded the data file to the file repository</span></NavLink>.</p>
         <br/><br/>
 
         <Query query={GET_STUDY} variables={{ studyId }}>

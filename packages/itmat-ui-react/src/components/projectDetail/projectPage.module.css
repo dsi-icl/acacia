@@ -24,19 +24,19 @@
     display: inline-block;
     line-height: 30px;
     padding: 0px 1rem 0px 1rem;
-    -webkit-box-shadow:inset 0px -1px 0px 0px var(--color-that-orange);
-    -moz-box-shadow:inset 0px -1px 0px 0px var(--color-that-orange);
-    box-shadow:inset 0px -1px 0px 0px var(--color-that-orange);
+    -webkit-box-shadow:inset 0px -1px 0px 0px var(--color-primary-color);
+    -moz-box-shadow:inset 0px -1px 0px 0px var(--color-primary-color);
+    box-shadow:inset 0px -1px 0px 0px var(--color-primary-color);
 }
 
 .tabs > div > a > div:hover {
-    -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-that-orange);
-    -moz-box-shadow:inset 0px -3px 0px 0px var(--color-that-orange);
-    box-shadow:inset 0px -3px 0px 0px var(--color-that-orange);
+    -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-primary-color);
+    -moz-box-shadow:inset 0px -3px 0px 0px var(--color-primary-color);
+    box-shadow:inset 0px -3px 0px 0px var(--color-primary-color);
 }
 
 .tabs > div > .active > div {
-    background-color: var(--color-that-orange);
+    background-color: var(--color-primary-color);
 }
 
 .content {
