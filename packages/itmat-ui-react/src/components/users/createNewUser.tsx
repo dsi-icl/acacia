@@ -52,16 +52,16 @@ export const CreateNewUser: React.FunctionComponent = props => {
         >
         {(createUser, { loading, error }) =>
             <form>
-                <label>Username: </label><input type='text' {...inputControl('username')}/> <br/><br/>
-                <label>Password: </label><input type='password' {...inputControl('password')} /> <br/><br/>
-                <label>Real name: </label><input type='text' {...inputControl('realName')}/> <br/><br/>
-                <label>Organisation: </label><input type='text' {...inputControl('organisation')}/> <br/><br/>
-                <label>Description: </label><input type='text' {...inputControl('description')}/> <br/><br/>
-                <label>Email: </label><input type='text' {...inputControl('email')}/> <br/><br/>
-                <label>Type: </label><select {...inputControl('type')}>
+                <label>Username: <input type='text' {...inputControl('username')}/> </label><br/><br/>
+                <label>Password: <input type='password' {...inputControl('password')} /> </label><br/><br/>
+                <label>Real name: <input type='text' {...inputControl('realName')}/> </label><br/><br/>
+                <label>Organisation: <input type='text' {...inputControl('organisation')}/> </label><br/><br/>
+                <label>Description: <input type='text' {...inputControl('description')}/> </label><br/><br/>
+                <label>Email: <input type='text' {...inputControl('email')}/> </label><br/><br/>
+                <label>Type: <select {...inputControl('type')}>
                     <option value="STANDARD">System user</option>
                     <option value="ADMIN">System admin</option>
-                </select>
+                </select></label>
                 <br/><br/><br/><br/>
                 <div className={css.submit_cancel_button_wrapper}>
                     <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
