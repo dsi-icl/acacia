@@ -1,20 +1,40 @@
 const path = require('path');
-const nodeExternals = require('webpack-node-externals');
+const webpack = require('webpack');
+// const nodeExternals = require('webpack-node-externals');
+const StartServerPlugin = require('start-server-webpack-plugin');
+
 const {
     NODE_ENV = 'production',
 } = process.env;
 
 module.exports = {
-    entry: './src/index.ts',
-    mode: NODE_ENV,
+    mode: NODE_ENV || 'production',
+    devtool: NODE_ENV === 'development' ? 'inline-source-map' : 'source-map',
+    entry: (NODE_ENV === 'development' ?
+        {
+            server: ['webpack/hot/poll?1000', './src/index']
+        } : {
+            core: ['./src/index']
+        }
+    ),
+    watch: NODE_ENV === 'development' ? true : false,
     target: 'node',
-    output: {
-        path: path.resolve(__dirname, 'build'),
-        filename: 'index.js'
-    },
     resolve: {
-        extensions: ['.ts', '.js'],
+        extensions: ['.ts', '.mjs', '.js'],
     },
+    externals: [{
+        bcrypt: 'commonjs bcrypt',
+        express: 'commonjs express',
+        // graphql: 'commonjs graphql',
+        mongodb: 'commonjs mongodb',
+        "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
+        "require_optional": 'commonjs require_optional'
+    }],
+    // externals: [nodeExternals({
+    //     whitelist: ['webpack/hot/poll?1000']
+    // }), nodeExternals({
+    //     modulesDir: path.resolve(__dirname, '../../../node_modules'),
+    // }),],
     module: {
         rules: [
             {
@@ -25,6 +45,25 @@ module.exports = {
             }
         ]
     },
-    externals: [nodeExternals()],
-    watch: NODE_ENV === 'development'
+    plugins: (NODE_ENV === 'development' ? [
+        new StartServerPlugin('index.js'),
+        new webpack.NamedModulesPlugin(),
+        new webpack.HotModuleReplacementPlugin()
+    ] : []).concat([
+        new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../src/utils/noop`),
+        new webpack.IgnorePlugin(new RegExp('^(node-pre-gyp)$')),
+        new webpack.NoEmitOnErrorsPlugin(),
+        new webpack.DefinePlugin({
+            'process.env': {
+                'BUILD_TARGET': JSON.stringify('server')
+            }
+        }),
+    ]),
+    output: {
+        path: path.join(__dirname, '../build'),
+        filename: 'index.js',
+        library: NODE_ENV === 'development' ? undefined : 'itmat-interface',
+        libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
+        umdNamedDefine: NODE_ENV === 'development' ? undefined : true
+    }
 }

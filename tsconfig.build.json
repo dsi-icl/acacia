@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "strict": true,
-        "declaration": true,
+        "declaration": false,
         "noImplicitAny": false,
         "strictNullChecks": true,
         "strictFunctionTypes": true,
@@ -17,6 +17,7 @@
     },
     "exclude": [
         "node_modules",
+        "build",
         "dist"
     ]
 }
