@@ -6,7 +6,7 @@ import * as css from './tabContent.module.css';
 const STATUSES: { [status: string]: any } = {
     finished: <span className={css.finishedStatus_span}>Finished</span>,
     error: <><span className={css.errorStatus_span}>Errored</span><InfoCircle/></>,
-    QUEUED: <span className={css.errorStatus_span}>Queued</span>,
+    QUEUED: <span className={css.queuedStatus_span}>Queued</span>,
     CLAIMED: <span className={css.processingStatus_span}>Processing<InfoCircle/></span>,
     CANCELLED: <span className={css.cancelledStatus_span}>Cancelled<InfoCircle/></span>
 };

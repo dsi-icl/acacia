@@ -7,28 +7,28 @@
 .status_td > span {
     width: 100%;
     padding: 0.1rem 0.5rem 0.1rem 0.5rem;
-    color: white;
 }
 
 .finishedStatus_span {
-    background-color: #648601;
+    background: var(--color-status-finish);
+    color: black;
 }
 
 .errorStatus_span {
-    background-color: #d80000;
+    background: var(--color-status-error);
 }
 
 .processingStatus_span {
-    background-color: #f3e313;
+    background: var(--color-status-processing);
     color: black;
 }
 
 .queuedStatus_span {
-    background-color: #696969;
+    background: var(--color-status-queued);
 }
 
 .cancelledStatus_span {
-    background-color: black;
+    background: var(--color-status-cancelled);
 }
 
 .job_table {

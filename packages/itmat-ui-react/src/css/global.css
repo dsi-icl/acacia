@@ -13,6 +13,11 @@
     --color-scroll-bar-hover: #313131;
     --color-scroll-bar-active: #3a3a3a;
     --input-background: #313131;
+    --color-status-finish: #b0e611;
+    --color-status-error: #d80000;
+    --color-status-processing: #f3e313;
+    --color-status-queued: #696969;
+    --color-status-cancelled: black;
 }
 
 .light_theme {
