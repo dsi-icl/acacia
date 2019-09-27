@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require('webpack');
-// const nodeExternals = require('webpack-node-externals');
 const StartServerPlugin = require('start-server-webpack-plugin');
 
 const {
@@ -25,16 +24,10 @@ module.exports = {
     externals: [{
         bcrypt: 'commonjs bcrypt',
         express: 'commonjs express',
-        // graphql: 'commonjs graphql',
         mongodb: 'commonjs mongodb',
         "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
         "require_optional": 'commonjs require_optional'
     }],
-    // externals: [nodeExternals({
-    //     whitelist: ['webpack/hot/poll?1000']
-    // }), nodeExternals({
-    //     modulesDir: path.resolve(__dirname, '../../../node_modules'),
-    // }),],
     module: {
         rules: [
             {
