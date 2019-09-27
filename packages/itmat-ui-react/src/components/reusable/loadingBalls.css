@@ -86,7 +86,7 @@
     left: 20px;
   }
   .lds-flickr div:nth-child(1) {
-    background: var(--color-that-orange);
+    background: var(--color-primary-color);
     -webkit-animation: lds-flickr 0.7s linear infinite;
     animation: lds-flickr 0.7s linear infinite;
     -webkit-animation-delay: -0.35s;
@@ -100,7 +100,7 @@
     animation-delay: 0s;
   }
   .lds-flickr div:nth-child(3) {
-    background: var(--color-that-orange);
+    background: var(--color-primary-color);
     -webkit-animation: lds-flickr-opacity 0.7s linear infinite;
     animation: lds-flickr-opacity 0.7s linear infinite;
     -webkit-animation-delay: -0.35s;

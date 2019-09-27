@@ -61,7 +61,7 @@ const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: st
                 if (loading) return <LoadingBalls/>;
                 if (error) return <p>{error.toString()}</p>
                 if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
-                    return <p>No file has been uploaded to this dataset yet. You can do this in the <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-that-orange)', textDecoration: 'underline'}}>file repository</span></NavLink></p>;
+                    return <p>No file has been uploaded to this dataset yet. You can do this in the <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline'}}>file repository</span></NavLink></p>;
                 }
                 return <UploadFieldBySelectingFileForm dataVersionId={dataVersionId} files={data.getStudy.files} studyId={studyId} cancel={cancel}/>;
             }}

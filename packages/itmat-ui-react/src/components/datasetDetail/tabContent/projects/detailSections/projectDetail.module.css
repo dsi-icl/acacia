@@ -2,6 +2,7 @@
     display: grid;
     height: 100%;
     width: 100%;
+    padding: 1.2rem;
     grid-template-columns: 50% 50%;
     grid-template-rows: 50px calc(100% - 50px);
     grid-template-areas: "ariane ariane"

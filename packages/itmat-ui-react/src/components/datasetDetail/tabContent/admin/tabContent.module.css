@@ -26,7 +26,7 @@
 }
 
 .role_name {
-    color: var(--color-that-orange);
+    color: var(--color-primary-color);
     text-transform: uppercase;
     font-weight: bold;
     font-size: 1.1rem;
@@ -37,7 +37,7 @@
 .add_new_role_button {
     text-decoration: underline;
     cursor: pointer;
-    color: var(--color-that-orange);
+    color: var(--color-primary-color);
 }
 
 .add_new_role_button:hover {
@@ -83,7 +83,7 @@
     text-align: center;
     height: 1.2rem;
     line-height: 1.2rem;
-    background-color: var(--color-that-orange);
+    background-color: var(--color-primary-color);
     border-radius: 52%;
     font-size: 0.7rem;
     cursor: pointer;

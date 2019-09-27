@@ -111,7 +111,7 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: var(--color-that-orange);
+    background: var(--color-primary-color);
     -webkit-animation: lds-pacman-3 1s linear infinite;
     animation: lds-pacman-3 1s linear infinite;
   }

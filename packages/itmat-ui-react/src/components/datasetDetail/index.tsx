@@ -7,6 +7,7 @@ import { DashboardTabContent, ProjectsTabContent, DataManagementTabContent } fro
 import { LoadingBalls } from '../reusable/loadingBalls';
 import { GET_STUDY } from '../../graphql/study';
 import { FileRepositoryTabContent } from './tabContent/files/fileTab';
+import { ProjectDetail } from './tabContent/projects/detailSections/projectDetail';
 
 export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = ({ studyId })=> {
     return (
@@ -34,6 +35,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                             <Route path='/datasets/:studyId/dashboard' render={() => <DashboardTabContent jobs={data.getStudy.jobs}/>}/>
                             <Route path='/datasets/:studyId/data_management' render={({ match }) => <DataManagementTabContent studyId={match.params.studyId}/>}/>
                             <Route path='/datasets/:studyId/files' render={({ match }) => <FileRepositoryTabContent studyId={studyId}/>}/>
+                            <Route path='/datasets/:studyId/projects/:projectId' render={({ match }) => <ProjectDetail projectId={match.params.projectId}  studyId={match.params.studyId}/>}/>
                             <Route path='/datasets/:studyId/projects' render={({ match }) => <ProjectsTabContent studyId={match.params.studyId} projectList={data.getStudy.projects}/>}/>
                             <Route path='/datasets/:studyId/admin' render={() => <></>}/>
                             <Route path='/datasets/:studyId/' render={() => <></>}/>
