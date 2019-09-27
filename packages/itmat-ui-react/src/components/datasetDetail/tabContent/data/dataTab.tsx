@@ -99,9 +99,9 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                 }
 
 
-                <div key='new data' className={css.data_version_cube + ' ' + css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</div>
+                <button key='new data' className={css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</button>
                 { showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ? 
-                    <div key='save version'  onClick={() => { if (loading) {return;} setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id }}); }} className={css.data_version_cube + ' ' + css.versioning_section_button}>{ loading ? 'Loading...' : 'Set as current version'}</div>
+                    <button key='save version'  onClick={() => { if (loading) {return;} setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id }}); }} className={css.versioning_section_button}>{ loading ? 'Loading...' : 'Set as current version'}</button>
                   : null 
                 }<br/>
             </> : null }
