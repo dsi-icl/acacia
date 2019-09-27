@@ -42,7 +42,6 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
                 // Write our data back to the cache.
                 store.writeQuery({ query: WHO_AM_I, data: whoAmI });
             }}
-            onCompleted={() => { setInput(''); }}
         >
             {(addNewProject, { loading, data }) =>
                 <> 
