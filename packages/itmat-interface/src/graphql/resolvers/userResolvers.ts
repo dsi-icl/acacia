@@ -1,7 +1,7 @@
 import { UserInputError, ForbiddenError, ApolloError } from 'apollo-server-express';
 import { Models, Logger } from 'itmat-utils';
 import { db } from '../../database/database';
-import config from '../../../config/config.json';
+import config from '../../utils/configManager';
 import mongodb from 'mongodb';
 import bcrypt from 'bcrypt';
 import uuidv4 from 'uuid/v4';
@@ -17,12 +17,12 @@ export const userResolvers = {
         whoAmI(parent: object, args: any, context: any, info: any): object {
             return context.req.user;
         },
-        getUsers: async(parent: object, args: any, context: any, info: any): Promise<IUser[]> => {
+        getUsers: async (parent: object, args: any, context: any, info: any): Promise<IUser[]> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: false } : { deleted: false, id: args.userId };
-            const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 }});
+            const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
         }
     },
@@ -31,8 +31,8 @@ export const userResolvers = {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* only admin can access this field */
-            if (requester.type !== userTypes.ADMIN && user.id !== requester.id){
-               throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* if requested user is admin, then he has access to all studies */
@@ -60,7 +60,7 @@ export const userResolvers = {
             const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: false }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
-        username: async(user: IUser, arg: any, context: any): Promise<string | null> => {
+        username: async (user: IUser, arg: any, context: any): Promise<string | null> => {
             const requester: Models.UserModels.IUser = context.req.user;
             /* only admin can access this field */
             if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
@@ -69,7 +69,7 @@ export const userResolvers = {
 
             return user.username;
         },
-        description: async(user: IUser, arg: any, context: any): Promise<string | null> => {
+        description: async (user: IUser, arg: any, context: any): Promise<string | null> => {
             const requester: Models.UserModels.IUser = context.req.user;
             /* only admin can access this field */
             if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
@@ -78,7 +78,7 @@ export const userResolvers = {
 
             return user.description;
         },
-        email: async(user: IUser, arg: any, context: any): Promise<string | null> => {
+        email: async (user: IUser, arg: any, context: any): Promise<string | null> => {
             const requester: Models.UserModels.IUser = context.req.user;
             /* only admin can access this field */
             if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
@@ -89,7 +89,7 @@ export const userResolvers = {
         },
     },
     Mutation: {
-        login: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+        login: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const { req }: { req: Express.Request } = context;
             const result = await db.collections!.users_collection.findOne({ deleted: false, username: args.username });
             if (!result) {
@@ -112,7 +112,7 @@ export const userResolvers = {
                 });
             });
         },
-        logout: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+        logout: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const req: Express.Request = context.req;
             if (requester === undefined || requester === null) {
@@ -130,7 +130,7 @@ export const userResolvers = {
                 });
             });
         },
-        createUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+        createUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* only admin can create new users */
@@ -160,7 +160,7 @@ export const userResolvers = {
 
             return createdUser;
         },
-        deleteUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+        deleteUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             /* only admin can delete users */
             const requester: Models.UserModels.IUser = context.req.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
@@ -169,7 +169,7 @@ export const userResolvers = {
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
         },
-        editUser: async(parent: object, args: any, context: any, info: any): Promise<object> => {
+        editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
                 id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
