@@ -1,4 +1,6 @@
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
+const { CREATE_PROJECT, DELETE_PROJECT } = require('./study');
+const { print } = require('graphql');
 
 describe('Studies page', function() {
     it('admin gets studies successfully', function() {
@@ -12,7 +14,7 @@ describe('Studies page', function() {
         cy.contains('Metadata');
     });
 
-    it('admin can create projects (e2e)', function() {
+    it.only('admin can create projects (e2e)', function() {
         /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
         const studyId = '5f0e6362-e593-4d61-a2bc-73730d8933f6';
@@ -39,9 +41,8 @@ describe('Studies page', function() {
 
             /* cleanup: delete the project */
             const projectId = url.substring(url.lastIndexOf('/') + 1);
-            
-
-
+            cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_PROJECT), variables: { projectId } })
+                .its('body.data.deleteProject.successful').should('eq', true);
         });
 
     });
@@ -61,5 +62,9 @@ describe('Studies page', function() {
         /* clicking the create new user button to go to page */
         cy.contains('Add new project').click();
         cy.contains('Please enter project name.').should('have.class', 'error_banner');
+    });
+
+    it('admin can delete projects', function () {
+
     });
 });
