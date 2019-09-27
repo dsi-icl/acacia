@@ -14,7 +14,7 @@ export class Lexer {
     public tokenize(removeWhiteSpace: boolean = false) {
         let tokens = [];
 
-        let nextToken;
+        let nextToken: IToken;
         while (nextToken = this.nextToken()) {
             tokens.push(nextToken);
             if (nextToken.class === tokenClass.END_OF_INPUT) {

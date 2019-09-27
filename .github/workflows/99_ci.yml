@@ -1,22 +1,23 @@
-name: Node CI
+name: Full Stack CI
 
 on: [pull_request, push]
     
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        node-version: [8.x, 10.x, 12.x]
+        os: [macOS-latest, windows-latest, ubuntu-latest]
+        node: [10.x, 12.x]
 
     steps:
     - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js ${{ matrix.node }}
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: ${{ matrix.node }}
     - name: npm install, build, and test
       run: |
         npm install

@@ -1,1 +1,0 @@
-# itmat-UKB-image-curator
