@@ -1,9 +1,9 @@
 :root {
-    /* stylelint-disable-next-line */
     --font-size-root: 13px;
     --font-size: 0.9rem;
     --font-size-big: 1.5rem;
     --font-family: 'Chivo';
+    --color-font-color: white;
     --color-background: 	#1b1b1b;
     --color-primary-color: #36a7b3;
     --color-error:rgb(255, 82, 82);
@@ -67,7 +67,7 @@
 html, body, #root {
     position: fixed;
     scroll-behavior: smooth;
-    color: white;
+    color: var(--color-font-color);
     font-size: var(--font-size-root);
     font-family: var(--font-family);
     background-color: var(--color-background);
