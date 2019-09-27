@@ -1,7 +1,7 @@
 {
     "database": {
-        "mongo_url": "mongodb://user:password@mongo.dsi.ic.ac.uk:27017/database",
-        "database": "ukbiobank",
+        "mongo_url": "mongodb://user:password@localhost:27017/test",
+        "database": "test",
         "collections": {
             "jobs_collection": "JOB_COLLECTION",
             "users_collection": "USER_COLLECTION",
@@ -19,7 +19,7 @@
         "port": 5000
     },
     "swift": {
-        "uri": "http://localhost:32768/auth/v1.0/",
+        "uri": "https://localhost:8080/auth/v1.0/",
         "username": "test:tester",
         "password": "testing"
     },
