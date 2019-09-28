@@ -12,8 +12,8 @@ export interface IServerBaseConfig {
 }
 
 export abstract class ServerBase<T extends IServerBaseConfig> {
-    constructor(
-        protected readonly config: T){}
+
+    constructor(protected readonly config: T) { }
 
     public async start(router: Express): Promise<void> {
         const port = this.config.server.port;
