@@ -13,7 +13,7 @@ module.exports = {
         {
             server: ['webpack/hot/poll?1000', './src/index']
         } : {
-            core: ['./src/index']
+            core: ['./src/interfaceServer']
         }
     ),
     watch: NODE_ENV === 'development' ? true : false,

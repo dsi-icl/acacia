@@ -34,6 +34,8 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(session({
             secret: 'IAmATeapot',
+            resave: true,
+            saveUninitialized: true
             // store: new MongoStore({ db: db.db } as any)
         }));
 
