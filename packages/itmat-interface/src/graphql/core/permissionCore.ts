@@ -34,6 +34,9 @@ export class PermissionCore {
     }
 
     public async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, studyId: string, projectId?: string): Promise<boolean> {
+
+        if (user === undefined)
+            return false;
         /* if user is an admin then return true if admin privileges includes needed permissions */
         if (user.type === userTypes.ADMIN) {
             return true;
@@ -42,8 +45,8 @@ export class PermissionCore {
         /* aggregationPipeline to return a list of the privileges the user has in this study / project */
         const aggregationPipeline = [
             { $match: { studyId, projectId, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
-            { $group: {  _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } }  },
-            { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: [ '$$this', '$$value' ] }  } } } }
+            { $group: { _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
+            { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
         ];
         const result: { _id: string, arrPrivileges: string[] }[] = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
         if (result.length !== 1) {
@@ -69,7 +72,7 @@ export class PermissionCore {
         }
     }
 
-    public async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string, projectId?: string } | { studyId?: string, projectId: string } ): Promise<void> {
+    public async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string, projectId?: string } | { studyId?: string, projectId: string }): Promise<void> {
         if (studyId === undefined && projectId === undefined) {
             throw new ApolloError('Neither studyId nor projectId is provided');
         }

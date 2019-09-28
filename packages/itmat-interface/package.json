@@ -9,11 +9,10 @@
         "build"
     ],
     "scripts": {
-        "start": "node ./build/src/index.js",
-        "start:dev": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
+        "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
         "build": "npm run clean && npm run compile",
         "clean": "rimraf -rf ./build",
-        "compile": "tsc -p tsconfig.build.json",
+        "compile": "cross-env webpack --config ./config/webpack.config.js",
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
