@@ -6,7 +6,7 @@ import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
-import connectMongo from 'connect-mongo';
+import connectMongo, { NativeMongoOptions } from 'connect-mongo';
 import multer from 'multer';
 import http from 'http';
 import { ApolloServer, gql } from 'apollo-server-express';
@@ -35,8 +35,8 @@ export class Router {
         this.app.use(session({
             secret: 'IAmATeapot',
             resave: true,
-            saveUninitialized: true
-            // store: new MongoStore({ db: db.db } as any)
+            saveUninitialized: true,
+            store: new MongoStore({ client: db.client } as any)
         }));
 
 
