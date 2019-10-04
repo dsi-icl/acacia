@@ -1,4 +1,4 @@
-import { ObjectID } from "mongodb/node_modules/@types/bson";
+import { ObjectID } from "mongodb";
 
 export interface IJobEntry<dataobj> {
     _id?: ObjectID,
