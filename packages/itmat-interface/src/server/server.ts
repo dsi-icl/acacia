@@ -1,5 +1,4 @@
 import { ServerBase, CustomError, IServerBaseConfig } from 'itmat-utils';
-import { IDatabaseConfig } from '../database/database';
 
 export interface IServerConfig extends IServerBaseConfig {
     bcrypt: {
