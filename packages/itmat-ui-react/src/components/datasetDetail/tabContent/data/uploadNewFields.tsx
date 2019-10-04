@@ -5,7 +5,7 @@ import { CREATE_FIELD_CURATION_JOB } from '../../../../graphql/curation';
 import { GET_STUDY } from '../../../../graphql/study';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { NavLink } from 'react-router-dom';
-import { IFile } from 'itmat-utils/dist/models/file';
+import { IFile } from 'itmat-commons/dist/models/file';
 
 export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVersionId: string }> = ({ studyId, dataVersionId }) => {
     const [expanded, setExpanded] = React.useState(false);

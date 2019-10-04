@@ -2,7 +2,8 @@ import mongodb from 'mongodb';
 import { IFieldMap } from '../models/UKBFields';
 import { IFieldDescriptionObject } from '../models/curationUtils';
 import { JobUtils } from '../utils/jobUtils';
-import { Models, Logger } from 'itmat-utils';
+import { Models } from 'itmat-commons';
+import { Logger } from 'itmat-utils';
 
 export class UKBImageCurator {
     private jobUtils: JobUtils;
@@ -21,13 +22,13 @@ export class UKBImageCurator {
         const { field: fieldId, patientId } = document.data;
         const objectUrl = `IMAGE::${document.id}#${document.receivedFiles}`;
         const field: IFieldDescriptionObject = this.parseFieldHeader(fieldId);
-            // ==> update the data collection
-            // check the fieldId is indeed an image
-            // check the patientId exists and the study is right
-            // update the objectUrl
+        // ==> update the data collection
+        // check the fieldId is indeed an image
+        // check the patientId exists and the study is right
+        // update the objectUrl
         if (this.UKBFieldDictionary[field.fieldId] === undefined
             || this.UKBFieldDictionary[field.fieldId].ItemType !== 'Bulk'
-            || this.UKBFieldDictionary[field.fieldId].Array < field.array ) {
+            || this.UKBFieldDictionary[field.fieldId].Array < field.array) {
             await this.jobUtils.setJobError(document.id, 'The provided field is malformed, or does not refer to images.');
             return false;
         }
@@ -35,7 +36,7 @@ export class UKBImageCurator {
         try {
             updateResult = await this.dataCollection.updateOne(
                 { m_eid: patientId, m_study: 'UKBIOBANK' },
-                { $set: { [`${field.fieldId}.${field.instance}.${field.array}`]: objectUrl }});
+                { $set: { [`${field.fieldId}.${field.instance}.${field.array}`]: objectUrl } });
         } catch (e) {
             Logger.error(`Job ${document.id} received file but cannot update data collection: MESSAGE: ${JSON.stringify(e)}`);
             await this.jobUtils.setJobError(document.id, 'Internal error. Do not reupload image. Please contact admin.');
@@ -52,9 +53,9 @@ export class UKBImageCurator {
 
     private parseFieldHeader(fieldHeader: string): IFieldDescriptionObject {
         return ({
-                fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-'))),
-                instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.'))),
-                array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1))
+            fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-'))),
+            instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.'))),
+            array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1))
         });
     }
 }

@@ -1,4 +1,4 @@
-import { Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
 import * as React from 'react';
 import * as css from './tabContent.module.css';
 import { Subsection } from '../../../reusable';

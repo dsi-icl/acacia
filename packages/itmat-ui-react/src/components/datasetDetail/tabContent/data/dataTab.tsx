@@ -7,7 +7,7 @@ import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from '../../../../graphql/study
 import { UploadNewFields } from './uploadNewFields';
 import { DataSummaryVisual } from './dataSummary';
 import { UploadNewData } from './uploadNewData';
-import { IStudy, IStudyDataVersion } from 'itmat-utils/dist/models/study';
+import { IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { FieldListSelectionSection } from './fieldListSelection';
 import { Switch } from 'antd';
 import 'antd/lib/switch/style/css';

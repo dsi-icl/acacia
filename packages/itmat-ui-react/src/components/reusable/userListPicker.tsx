@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IUser } from 'itmat-utils/dist/models/user';
+import { IUser } from 'itmat-commons/dist/models/user';
 import { Select } from 'antd';
 import css from './genericUserList.module.css';
 import 'antd/lib/select/style/css';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { DELETE_PROJECT, GET_STUDY } from '../../../../../graphql/study';
 import { Mutation } from 'react-apollo';
-import { IProject } from 'itmat-utils/dist/models/study';
+import { IProject } from 'itmat-commons/dist/models/study';
 import { Redirect } from 'react-router';
 import { WHO_AM_I } from '../../../../../graphql/user';
 

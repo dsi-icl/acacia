@@ -1,0 +1,30 @@
+{
+    "name": "itmat-commons",
+    "version": "0.0.1",
+    "description": "",
+    "author": "Florian Guitton",
+    "main": "dist/index",
+    "types": "dist/index",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "npm run clean && npm run compile",
+        "clean": "rimraf -rf ./dist",
+        "compile": "tsc -p tsconfig.build.json",
+        "start": "tsc -p tsconfig.build.json -w",
+        "prepublishOnly": "npm run build",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
+    },
+    "dependencies": {
+        "@types/mongodb": "3.1.31",
+        "chalk": "2.4.2"
+    },
+    "devDependencies": {
+        "@types/node": "12.7.8",
+        "rimraf": "3.0.0",
+        "typescript": "3.6.3"
+    }
+}

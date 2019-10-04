@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
-import { IProject } from 'itmat-utils/dist/models/study';
+import { IProject } from 'itmat-commons/dist/models/study';
 import * as css from './sections.module.css';
 export const ProjectSection: React.FunctionComponent<{ study?: boolean, projects: IProject[] }> = ({ study, projects }) => {
     if (projects.length === 0) {

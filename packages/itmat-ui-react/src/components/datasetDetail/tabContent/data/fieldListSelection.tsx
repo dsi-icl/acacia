@@ -1,6 +1,6 @@
 import React from 'react';
 import { Query } from 'react-apollo';
-import { IStudyDataVersion } from 'itmat-utils/dist/models/study';
+import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { GET_STUDY_FIELDS } from '../../../../graphql/fields';
 import { FieldListSection } from '../../../reusable/fieldList';

@@ -4,7 +4,7 @@ import { CREATE_USER, GET_USERS } from '../../graphql/appUsers';
 import * as css from './userList.module.css';
 import { NavLink, Redirect } from 'react-router-dom';
 
-// import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
+// import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
 
 export const CreateNewUser: React.FunctionComponent = props => {
     const [completedCreationId, setCompletedCreationId] = React.useState(undefined);

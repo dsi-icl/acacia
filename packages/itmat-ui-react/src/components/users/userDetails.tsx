@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { EDIT_USER, GET_USERS, DELETE_USER } from '../../graphql/appUsers';
 import * as css from './userList.module.css';
-import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
+import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
 import { NavLink } from 'react-router-dom';
 import { Subsection } from '../reusable';
 import { ProjectSection } from './projectSection';

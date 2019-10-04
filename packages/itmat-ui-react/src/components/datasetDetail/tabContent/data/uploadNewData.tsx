@@ -3,7 +3,7 @@ import { Query, Mutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { GET_STUDY } from '../../../../graphql/study';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
-import { IFile } from 'itmat-utils/dist/models/file';
+import { IFile } from 'itmat-commons/dist/models/file';
 import { CREATE_DATA_CURATION_JOB } from '../../../../graphql/curation';
 
 export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {

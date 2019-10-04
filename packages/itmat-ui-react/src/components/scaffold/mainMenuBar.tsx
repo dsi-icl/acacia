@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 import * as css from './scaffold.module.css';
 import { Icons } from '../icons';
 import { LOGOUT, WHO_AM_I } from '../../graphql/user';
-import { IProject } from 'itmat-utils/dist/models/study';
+import { IProject } from 'itmat-commons/dist/models/study';
 
 export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({ projects }) => {
     return (

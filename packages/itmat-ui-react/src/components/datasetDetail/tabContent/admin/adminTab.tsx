@@ -1,4 +1,4 @@
-import { Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { GET_PROJECT } from '../../../../graphql/projects';
@@ -6,7 +6,7 @@ import { GET_USERS } from '../../../../graphql/appUsers';
 import * as css from './tabContent.module.css';
 import { Subsection, UserListPicker } from '../../../reusable';
 import { EDIT_ROLE, ADD_NEW_ROLE, REMOVE_ROLE } from '../../../../graphql/permission';
-import { IRole } from 'itmat-utils/dist/models/study';
+import { IRole } from 'itmat-commons/dist/models/study';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 
 export const AdminTabContent: React.FunctionComponent<{ studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {

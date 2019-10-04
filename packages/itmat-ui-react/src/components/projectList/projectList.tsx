@@ -1,4 +1,4 @@
-import { Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { WHO_AM_I } from '../../graphql/user';

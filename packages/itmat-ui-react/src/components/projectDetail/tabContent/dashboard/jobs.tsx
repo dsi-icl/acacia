@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IJobEntry } from 'itmat-utils/dist/models/job';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
 
 export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = ({ jobs }) => {
     return <div>

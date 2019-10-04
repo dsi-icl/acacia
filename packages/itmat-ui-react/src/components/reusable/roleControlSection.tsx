@@ -1,4 +1,4 @@
-import { Models, permissions } from 'itmat-utils';
+import { Models, permissions } from 'itmat-commons';
 import * as React from 'react';
 import { Query, Mutation } from 'react-apollo';
 import { GET_PROJECT } from '../../graphql/projects';
@@ -6,7 +6,7 @@ import { GET_USERS } from '../../graphql/appUsers';
 import * as css from './roleControlSection.module.css';
 import { UserListPicker } from './userListPicker';
 import { EDIT_ROLE, ADD_NEW_ROLE, REMOVE_ROLE } from '../../graphql/permission';
-import { IRole } from 'itmat-utils/dist/models/study';
+import { IRole } from 'itmat-commons/dist/models/study';
 import { LoadingBalls } from '../reusable/loadingBalls';
 
 export const RoleControlSection: React.FunctionComponent<{ studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
@@ -72,7 +72,6 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availa
     </div>
 };
 
-
 export const AddRole: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ studyId, projectId }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputNameString, setInputNameString] = React.useState('');
@@ -100,7 +99,6 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId: stri
         </div>
     </div>;
 }
-
 
 const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availablePermissions: string[], originallySelectedPermissions: string[] }> = ({ roleId, availablePermissions, originallySelectedPermissions }) => {
     return <div className={css.permissions_section}>

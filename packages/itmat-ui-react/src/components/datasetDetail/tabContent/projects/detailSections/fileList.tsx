@@ -4,7 +4,7 @@ import { LoadingBalls } from '../../../../reusable/loadingBalls';
 import { EDIT_PROJECT_APPROVED_FILES } from '../../../../../graphql/projects';
 import { GET_STUDY } from '../../../../../graphql/study';
 import { Tree } from 'antd';
-import { IFile } from 'itmat-utils/dist/models/file';
+import { IFile } from 'itmat-commons/dist/models/file';
 
 export const GrantedFileListSelection: React.FunctionComponent<{ originalCheckedList: string[], studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);

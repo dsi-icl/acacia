@@ -1,13 +1,13 @@
 import { Database, db } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError, withFilter, defaultMergedResolver } from 'apollo-server-express';
-import { IStudy, IProject, IRole, IStudyDataVersion } from 'itmat-utils/dist/models/study';
+import { IStudy, IProject, IRole, IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { makeGenericReponse, IGenericResponse } from '../responses';
 import uuid from 'uuid/v4';
 import { studyCore } from '../core/studyCore';
-import { IUser, userTypes } from 'itmat-utils/dist/models/user';
+import { IUser, userTypes } from 'itmat-commons/dist/models/user';
 import { errorCodes } from '../errors';
-import { IFieldEntry } from 'itmat-utils/dist/models/field';
-import { permissions } from 'itmat-utils';
+import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import { permissions } from 'itmat-commons';
 import { permissionCore } from '../core/permissionCore';
 
 export const studyResolvers = {

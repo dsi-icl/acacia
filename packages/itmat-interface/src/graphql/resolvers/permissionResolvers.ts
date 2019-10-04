@@ -1,10 +1,10 @@
 import { ApolloError } from 'apollo-server-express';
-import { IRole } from 'itmat-utils/dist/models/study';
+import { IRole } from 'itmat-commons/dist/models/study';
 import { makeGenericReponse, IGenericResponse } from '../responses';
 import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { studyCore } from '../core/studyCore';
-import { IUser } from 'itmat-utils/dist/models/user';
+import { IUser } from 'itmat-commons/dist/models/user';
 import { db } from '../../database/database';
 
 

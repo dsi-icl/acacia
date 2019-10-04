@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IJobEntry } from 'itmat-utils/dist/models/job';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { InfoCircle } from '../../../reusable/infoCircle';
 import * as css from './tabContent.module.css';
 

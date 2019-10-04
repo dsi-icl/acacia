@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { GET_USERS } from '../../graphql/appUsers';
-import { Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
 import * as css from './userList.module.css';
 import { NavLink } from 'react-router-dom';
 import { Icons } from '../icons';

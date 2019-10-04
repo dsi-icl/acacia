@@ -2,7 +2,7 @@ import React from 'react';
 import { Query } from 'react-apollo';
 import * as css from './tabContent.module.css';
 import { GET_STUDY } from '../../../../graphql/study';
-import { IStudyDataVersion } from 'itmat-utils/dist/models/study';
+import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { formatBytes } from '../../../reusable/fileList';
 // number of patients 
 // newest version of data - date / tag

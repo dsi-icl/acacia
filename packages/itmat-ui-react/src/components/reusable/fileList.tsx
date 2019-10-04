@@ -1,5 +1,5 @@
 import React from 'react';
-import { IFile } from 'itmat-utils/dist/models/file';
+import { IFile } from 'itmat-commons/dist/models/file';
 
 export function formatBytes(size: number, decimal: number = 2) {
     if (size === 0)
