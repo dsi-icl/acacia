@@ -1,6 +1,6 @@
 name: Full Stack CI
 
-on: [pull_request, push]
+on: [push]
     
 jobs:
   build:
