@@ -15,6 +15,7 @@ import { resolvers } from '../graphql/resolvers';
 import { Database } from '../database/database';
 import cors from 'cors';
 import { fileDownloadController } from '../rest/fileDownload';
+import { GraphQLError } from 'graphql';
 const MongoStore = connectMongo(session);
 const upload = multer();
 
@@ -58,7 +59,7 @@ export class Router {
                 // }
                 return ({ req, res });
             },
-            formatError: (error: ApolloError) => {
+            formatError: (error: GraphQLError) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
                 // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
                 Logger.error(error);
