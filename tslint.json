@@ -9,7 +9,7 @@
         "max-line-length": {
             "severity": "warning",
             "options": {
-                "limit": 120,
+                "limit": 250,
                 "ignore-pattern": "^import |^export {(.*?)}"
             }
         },
@@ -31,6 +31,7 @@
         },
         "no-unused-expression": true,
         "no-unused-variable": true,
+        "object-literal-sort-keys": false,
         "quotemark": {
             "severity": "warning",
             "options": [
@@ -57,7 +58,7 @@
         "max-line-length": {
             "severity": "warning",
             "options": {
-                "limit": 120,
+                "limit": 250,
                 "ignore-pattern": "^import |^export {(.*?)}"
             }
         }

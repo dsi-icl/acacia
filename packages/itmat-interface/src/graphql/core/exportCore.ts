@@ -6,7 +6,6 @@ import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 
 export class ExportCore {
-    constructor() {}
 
     public async createExportJob(studyId: string, requester: IUser, projectId?: string): Promise<IJobEntry<undefined>> {
 

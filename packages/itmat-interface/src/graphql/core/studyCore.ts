@@ -6,7 +6,7 @@ import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
 
 export class StudyCore {
-    constructor(private readonly permissionCore: PermissionCore) { }
+    constructor(private readonly localPermissionCore: PermissionCore) { }
 
     public async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
         const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
@@ -72,7 +72,6 @@ export class StudyCore {
         session.startTransaction();
 
         try {
-            const opts = { session, returnOriginal: false };
             /* delete the study */
             await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
 
@@ -80,7 +79,7 @@ export class StudyCore {
             await db.collections!.projects_collection.updateMany({ studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
 
             /* delete all roles related to the study */
-            await this.permissionCore.removeRoleFromStudyOrProject({ studyId });
+            await this.localPermissionCore.removeRoleFromStudyOrProject({ studyId });
 
             /* delete all data */
             // TO_DO
@@ -104,7 +103,7 @@ export class StudyCore {
         await db.collections!.projects_collection.findOneAndUpdate({ id: projectId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } }, opts);
 
         /* delete all roles related to the study */
-        await this.permissionCore.removeRoleFromStudyOrProject({ projectId });
+        await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });
     }
 
     public async editProjectApprovedFields(projectId: string, approvedFields: string[]) {
@@ -143,7 +142,9 @@ export class StudyCore {
     }
 
     private shuffle(array: Array<number | string>) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
-        let currentIndex = array.length, temporaryValue, randomIndex;
+        let currentIndex = array.length;
+        let temporaryValue: string | number;
+        let randomIndex: number;
 
         // While there remain elements to shuffle...
         while (0 !== currentIndex) {

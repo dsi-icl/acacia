@@ -168,7 +168,7 @@ class PipelineGenerator {
     private _translateCohort(cohort: any) {
         const match = {};
 
-        cohort.forEach(function (select: any) {
+        cohort.forEach(function(select: any) {
 
             switch (select.op) {
                 case '=':

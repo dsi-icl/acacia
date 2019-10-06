@@ -17,13 +17,13 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
         setCurrentProjectId(projectId);
     }
 
-    const onCheck = (checkedList: string[]) => {
-        setCheckedList(checkedList);
+    const onCheck = (localCheckedList: string[]) => {
+        setCheckedList(localCheckedList);
     };
 
     return <Query query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data: fileData, error }) => {
-            if (loading) { return <LoadingBalls/>; }
+            if (loading) { return <LoadingBalls />; }
             if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
 
             return <>
@@ -32,31 +32,31 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                     onCheck={onCheck as any}
                     checkedKeys={checkedList}
                 >
-                    {fileData.getStudy.files.map((el: IFile) => <Tree.TreeNode title={el.fileName} key={el.id} dataRef={el} isLeaf={true}/>)}
+                    {fileData.getStudy.files.map((el: IFile) => <Tree.TreeNode title={el.fileName} key={el.id} dataRef={el} isLeaf={true} />)}
                 </Tree>
-                    <Mutation
-                        mutation={EDIT_PROJECT_APPROVED_FILES}
-                        onCompleted={() => setSavedSuccessfully(true)}
-                    >
+                <Mutation
+                    mutation={EDIT_PROJECT_APPROVED_FILES}
+                    onCompleted={() => setSavedSuccessfully(true)}
+                >
                     {(editApprovedFiles, { loading, error }) =>
                         <>
-                        {
-                            loading ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
-                            <button style={{ margin: '1rem 0 0 0' }} onClick={() => {
-                                editApprovedFiles({ variables: { projectId, approvedFiles: checkedList }});
-                                setSavedSuccessfully(false);
-                            }}>Save</button>
-                        }
-                        {
-                            error ? <div className="error_banner">{JSON.stringify(error)}</div> : null
-                        }
+                            {
+                                loading ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
+                                    <button style={{ margin: '1rem 0 0 0' }} onClick={() => {
+                                        editApprovedFiles({ variables: { projectId, approvedFiles: checkedList } });
+                                        setSavedSuccessfully(false);
+                                    }}>Save</button>
+                            }
+                            {
+                                error ? <div className="error_banner">{JSON.stringify(error)}</div> : null
+                            }
 
-                        {
-                            savedSuccessfully ? <div className="saved_banner">Saved!</div> : null
-                        }
+                            {
+                                savedSuccessfully ? <div className="saved_banner">Saved!</div> : null
+                            }
                         </>
                     }
-                    </Mutation>
+                </Mutation>
 
             </>;
         }}

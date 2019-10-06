@@ -22,23 +22,23 @@ export interface IDatabase {
 export class Database<configType extends IDatabaseBaseConfig, C = { [name in keyof configType['collections']]: mongodb.Collection }> implements IDatabase {
 
     get db(): mongodb.Db {
-        return this._client!.db(this.config!.database);
+        return this.localClient!.db(this.config!.database);
     }
 
     get client(): mongodb.MongoClient {
-        return this._client!;
+        return this.localClient!;
     }
     public collections?: C;
-    private _client?: mongodb.MongoClient;
+    private localClient?: mongodb.MongoClient;
     private config?: configType;
 
     public async connect(config: configType): Promise<void> {
-        this._client = new mongodb.MongoClient(config.mongo_url, { useNewUrlParser: true });
+        this.localClient = new mongodb.MongoClient(config.mongo_url, { useNewUrlParser: true });
         this.config = config;
         if (!this.isConnected()) {
             Logger.log('Connecting to the database..');
             /* any error throw here will be caught by the server */
-            await this._client.connect();
+            await this.localClient.connect();
             Logger.log('Connected to database.');
 
             Logger.log('Performing basic checks..');
@@ -54,12 +54,12 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
     }
 
     public isConnected(): boolean {
-        return this._client!.isConnected();
+        return this.localClient!.isConnected();
     }
 
     public async closeConnection(): Promise<void> {
         try {
-            await this._client!.close();
+            await this.localClient!.close();
         } catch (e) {
             Logger.error(new CustomError('Cannot close Mongo connection', e));
         }
