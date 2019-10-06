@@ -23,7 +23,7 @@ let query_test = {
             op: '='},
             { field: '102.0.1',
             value: '',
-            op: 'exists'}],
+            op: 'exists'}]
     ],
     new_fields: [
    {
@@ -32,18 +32,18 @@ let query_test = {
             left: {
                 left: '12143.0.0',
                 right: '',
-                op: 'field',
+                op: 'field'
             },
             right: {
                 left: '12144.0.0',
                 right: '2',
-                op: '^',
+                op: '^'
             },
-            op: '/',
+            op: '/'
         },
-        op: 'derived',
-   },
-    ],
+        op: 'derived'
+   }
+    ]
 };
 
 /// **

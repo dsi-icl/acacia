@@ -47,7 +47,7 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[]}> = ({ 
                         if (logout.successful === true) {
                             cache.writeQuery({
                                 query: WHO_AM_I,
-                                data: { whoAmI: null },
+                                data: { whoAmI: null }
                             });
                         }
                     }}

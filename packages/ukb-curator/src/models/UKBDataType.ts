@@ -6,5 +6,5 @@ export const UKBiobankValueTypes: any = {   // 'date' are provided in yyyy-mm-dd
     'Date': 'date',
     'Text': 'text',
     'Continuous': 'float',
-    'Time': 'date',
+    'Time': 'date'
 };

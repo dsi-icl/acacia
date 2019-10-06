@@ -14,7 +14,7 @@ export class UKBCurator {
         private readonly fieldCollection: Collection,
         private readonly codingCollection: Collection,
         private readonly jobsCollection: Collection,
-        private readonly dataCollection: Collection,
+        private readonly dataCollection: Collection
     ) {
         this.CODING_MAP = {};
         this.FIELD_MAP = {};

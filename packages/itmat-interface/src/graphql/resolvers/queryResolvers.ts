@@ -17,12 +17,12 @@ export const queryResolvers = {
             return entry;
 
 
-        },
+        }
     },
     Mutation: {
         // createQuery: async(parent: object, args: { queryString: string, returnFieldSelection?: string[], study: string, project?: string }, context: any, info: any): Promise<IQueryEntry> => {
         //     const query = queryCore.createQuery()
         // }
     },
-    Subscription: {},
+    Subscription: {}
 };

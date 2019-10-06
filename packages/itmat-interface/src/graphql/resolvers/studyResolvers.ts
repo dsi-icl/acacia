@@ -20,7 +20,7 @@ export const studyResolvers = {
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
-                studyId,
+                studyId
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
@@ -42,13 +42,13 @@ export const studyResolvers = {
                 [permissions.specific_project.specific_project_readonly_access],
                 requester,
                 project.studyId,
-                projectId,
+                projectId
             );
 
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
-                project.studyId,
+                project.studyId
             );
 
             if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
@@ -62,14 +62,14 @@ export const studyResolvers = {
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
-                studyId,
+                studyId
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             const result = await db.collections!.field_dictionary_collection.find({ studyId, fieldTreeId }).toArray();
 
             return result;
-        },
+        }
     },
     Study: {
         projects: async (study: IStudy) => {
@@ -89,7 +89,7 @@ export const studyResolvers = {
         },
         currentDataVersion: async (study: IStudy) => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
-        },
+        }
     },
     Project: {
         fields: async (project: IProject) => {
@@ -132,11 +132,11 @@ export const studyResolvers = {
         iCanEdit: async (project: IProject) => { // TO_DO
             const result = await db.collections!.roles_collection.findOne({
                 studyId: project.studyId,
-                projectId: project.id,
+                projectId: project.id
                 // permissions: permissions.specific_project.specifi
             });
             return true;
-        },
+        }
     },
     Mutation: {
         createStudy: async (parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
@@ -243,13 +243,13 @@ export const studyResolvers = {
             /* create a new dataversion with the same contentId */
             const newDataVersion: IStudyDataVersion = {
                 ...selectedataVersionFiltered[0],
-                id: uuid(),
+                id: uuid()
             };
             console.log(newDataVersion);
 
             /* add this to the database */
             const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, {
-                $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 },
+                $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 }
             }, { returnOriginal: false });
 
             if (result.ok === 1) {
@@ -257,7 +257,7 @@ export const studyResolvers = {
             } else {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
-        },
+        }
     },
-    Subscription: {},
+    Subscription: {}
 };

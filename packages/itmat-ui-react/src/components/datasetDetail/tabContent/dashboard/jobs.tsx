@@ -8,12 +8,12 @@ const STATUSES: { [status: string]: any } = {
     error: <><span className={css.errorStatus_span}>Errored</span><InfoCircle/></>,
     QUEUED: <span className={css.errorStatus_span}>Queued</span>,
     CLAIMED: <span className={css.processingStatus_span}>Processing<InfoCircle/></span>,
-    CANCELLED: <span className={css.cancelledStatus_span}>Cancelled<InfoCircle/></span>,
+    CANCELLED: <span className={css.cancelledStatus_span}>Cancelled<InfoCircle/></span>
 };
 
 const JOBTYPES: { [type: string]: any } = {
     DATA_UPLOAD: <span>Data upload</span>,
-    FIELD_ANNOTATION_UPLOAD: <span>Field annotation upload</span>,
+    FIELD_ANNOTATION_UPLOAD: <span>Field annotation upload</span>
 };
 
 export const JobSection: React.FunctionComponent<{ jobs: Array<IJobEntry<any>> }> = ({ jobs }) => {

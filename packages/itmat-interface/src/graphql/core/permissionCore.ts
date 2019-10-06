@@ -43,7 +43,7 @@ export class PermissionCore {
         const aggregationPipeline = [
             { $match: { studyId, projectId, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
             { $group: {  _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } }  },
-            { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: [ '$$this', '$$value' ] }  } } } },
+            { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: [ '$$this', '$$value' ] }  } } } }
         ];
         const result: Array<{ _id: string, arrPrivileges: string[] }> = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
         if (result.length !== 1) {
@@ -149,7 +149,7 @@ export class PermissionCore {
             users: [],
             studyId: opt.studyId,
             projectId: opt.projectId,
-            deleted: false,
+            deleted: false
         };
         const updateResult = await db.collections!.roles_collection.insertOne(role);
         if (updateResult.result.ok === 1 && updateResult.insertedCount === 1) {

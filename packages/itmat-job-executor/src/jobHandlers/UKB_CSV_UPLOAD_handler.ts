@@ -52,13 +52,13 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
             uploadDate: new Date().valueOf(),
             fileSize: file.fileSize!,
             extractedFrom: file.fileName,
-            fieldTrees: [],
+            fieldTrees: []
         };
         await db.collections!.studies_collection.updateOne({ id: job.studyId }, {
             $push: { dataVersions: newDataVersion },
             $inc: {
-                currentDataVersion: 1,
-            },
+                currentDataVersion: 1
+            }
 
         });
     }

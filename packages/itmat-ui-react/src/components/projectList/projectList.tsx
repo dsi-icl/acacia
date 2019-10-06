@@ -36,7 +36,7 @@ const PickProjectSection: React.FunctionComponent<{projects: Models.Study.IProje
         {projects.map((el) =>
             <NavLink key={el.id} to={`/projects/${el.id}/dashboard`}>
                 <button>{el.name}</button>
-            </NavLink>,
+            </NavLink>
         )}
     </>;
 };

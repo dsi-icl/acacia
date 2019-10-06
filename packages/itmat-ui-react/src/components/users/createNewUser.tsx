@@ -17,7 +17,7 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
         description: '',
         emailNotificationsActivated: false,
         email: '',
-        type: 'STANDARD',
+        type: 'STANDARD'
     });
 
     const inputControl = (property: string) => ({
@@ -25,7 +25,7 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
         onChange: (e: any) => {
             setInputs({...inputs, [property]: e.target.value });
             setError('');
-        },
+        }
     });
 
     function clickedSubmit(mutationFunc: (data: { variables: any }) => {}) {

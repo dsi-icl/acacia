@@ -29,7 +29,7 @@ export enum enumCohortSelectionOp {
     '<' = '<',
     'derived' = 'derived',
     'exists' = 'exists',
-    'count' = 'count',
+    'count' = 'count'
 }
 
 export interface IEquationDescription {
@@ -45,7 +45,7 @@ export enum enumEquationOp {
     '/' = '/',
     '^' = '^',
     'field' = 'field',
-    'val' = 'val',
+    'val' = 'val'
 }
 
 export interface INewFieldSelection {

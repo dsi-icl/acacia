@@ -15,7 +15,7 @@ export const permissionResolvers = {
         users: async (role: IRole): Promise<IUser[]> => {
             const listOfUsers = role.users;
             return await (db.collections!.users_collection.find({ id: { $in: listOfUsers }}, { projection: { _id: 0, password: 0 } }).toArray());
-        },
+        }
     },
     Mutation: {
         addRoleToStudyOrProject: async (parent: object, args: {studyId?: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
@@ -71,7 +71,7 @@ export const permissionResolvers = {
             /* remove the role */
             await permissionCore.removeRole(roleId);
             return makeGenericReponse(roleId);
-        },
+        }
     },
-    Subscription: {},
+    Subscription: {}
 };

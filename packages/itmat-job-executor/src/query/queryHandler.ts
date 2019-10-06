@@ -17,7 +17,7 @@ class QueryHandler {
                 if (project === null || project === undefined) {
                     await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
                         error: 'Project does not exist or has been deleted.',
-                        status: 'FINISHED WITH ERROR',
+                        status: 'FINISHED WITH ERROR'
                     }});
                     return;
                 }
@@ -30,7 +30,7 @@ class QueryHandler {
 
             await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
                 queryResult: JSON.stringify(result),
-                status: 'FINISHED',
+                status: 'FINISHED'
             }});
             return;
         } catch (e) {
@@ -40,7 +40,7 @@ class QueryHandler {
             /* update query status */
             await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
                 error: e.toString(),
-                status: 'FINISHED WITH ERROR',
+                status: 'FINISHED WITH ERROR'
             }});
             return;
         }

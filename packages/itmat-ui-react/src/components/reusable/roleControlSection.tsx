@@ -116,8 +116,8 @@ const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availab
                         roleId,
                         permissionChanges: {
                             add: [],
-                            remove: [el],
-                        },
+                            remove: [el]
+                        }
                     }});
                 }} key={el} className={css.permission_selected}>{el}</div>;
             }}
@@ -134,13 +134,13 @@ const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availab
                         roleId,
                         permissionChanges: {
                             add: [el],
-                            remove: [],
-                        },
+                            remove: []
+                        }
                     }});
                 }} key={el}>{el}</div>;
             }}
             </Mutation>
-            </React.Fragment>,
+            </React.Fragment>
         )}
     </div>;
 };

@@ -26,7 +26,7 @@ export class Parser {
         return (
             {
                 type: 'CONDITION_GROUP',
-                children: [this.CONDITION(), this.CONDITION_GROUP_PRIME()],
+                children: [this.CONDITION(), this.CONDITION_GROUP_PRIME()]
             }
         );
     }
@@ -44,7 +44,7 @@ export class Parser {
                     { type: 'CONDITION', children: [
                         this._openParenthesis(),
                         this.CONDITION_GROUP(),
-                        this._closeParenthesis(),
+                        this._closeParenthesis()
                     ]}
                 );
             case tokenClass.EXPRESSION:
@@ -55,14 +55,14 @@ export class Parser {
                         this.EXPRESSION(),
                         this._closeParenthesis(),
                         this._comparison_operator(),
-                        this._number(),
+                        this._number()
                     ]}
                 );
             case tokenClass.IMAGE:
                 return (
                     { type: 'CONDITION', children: [
                         this._imageExistsFor(),
-                        this.FIELD_DESCRIPTION(),
+                        this.FIELD_DESCRIPTION()
                     ]}
                 );
             case tokenClass.VALUE_OF:
@@ -73,7 +73,7 @@ export class Parser {
                         this.FIELD_DESCRIPTION(),
                         this._closeParenthesis(),
                         this._comparison_operator(),
-                        this.TARGET_VALUE(),
+                        this.TARGET_VALUE()
                     ]}
                 );
             case tokenClass.AND_OR:
@@ -96,19 +96,19 @@ export class Parser {
                     { type: 'CONDITION_GROUP_PRIME', children: [
                         this._and_or(),
                         this.CONDITION(),
-                        this.CONDITION_GROUP_PRIME(),
+                        this.CONDITION_GROUP_PRIME()
                     ]}
                 );
             case tokenClass.END_OF_INPUT:
                 return (
                     { type: 'CONDITION_GROUP_PRIME', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'CONDITION_GROUP_PRIME', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             default:
@@ -121,7 +121,7 @@ export class Parser {
         return (
             {
                 type: 'EXPRESSION',
-                children: [this.TERM(), this.EXPRESSION_PRIME()],
+                children: [this.TERM(), this.EXPRESSION_PRIME()]
             }
         );
     }
@@ -131,7 +131,7 @@ export class Parser {
         return (
             {
                 type: 'FIELD_DESCRIPTION',
-                children: [this.FIELD(), this.INSTANCE_ARRAY()],
+                children: [this.FIELD(), this.INSTANCE_ARRAY()]
             }
         );
     }
@@ -145,13 +145,13 @@ export class Parser {
             case tokenClass.NUMBER:
                 return (
                     { type: 'TARGET_VALUE', children: [
-                        this._number(),
+                        this._number()
                     ]}
                 );
             case tokenClass.NAME:
                 return (
                     { type: 'TARGET_VALUE', children: [
-                        this._name(),
+                        this._name()
                     ]}
                 );
             case tokenClass.VALUE_OF:
@@ -160,7 +160,7 @@ export class Parser {
                         this._value(),
                         this._openParenthesis(),
                         this.FIELD_DESCRIPTION(),
-                        this._closeParenthesis(),
+                        this._closeParenthesis()
                     ]}
                 );
             default:
@@ -177,7 +177,7 @@ export class Parser {
                 return (
                     { type: 'FIELD', children: [
                         this._field(),
-                        this.FIELD_IDENTIFIER(),
+                        this.FIELD_IDENTIFIER()
                     ]}
                 );
             default:
@@ -193,13 +193,13 @@ export class Parser {
             case tokenClass.NUMBER:
                 return (
                     { type: 'FIELD_IDENTIFIER', children: [
-                        this._number(),
+                        this._number()
                     ]}
                 );
             case tokenClass.NAME:
                 return (
                     { type: 'FIELD_IDENTIFIER', children: [
-                        this._name(),
+                        this._name()
                     ]}
                 );
             default:
@@ -216,20 +216,20 @@ export class Parser {
                 return (
                     { type: 'INSTANCE_ARRAY', children: [
                         this._instance(),
-                        this.INSTANCE_ARRAY_IDENTIFIER(),
+                        this.INSTANCE_ARRAY_IDENTIFIER()
                     ]}
                 );
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'INSTANCE_ARRAY', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             case tokenClass.END_OF_INPUT:
             case tokenClass.AND_OR:
                 return (
                     { type: 'INSTANCE_ARRAY', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             default:
@@ -246,13 +246,13 @@ export class Parser {
                 return (
                     { type: 'INSTANCE_ARRAY_IDENTIFIER', children: [
                         this._number(),
-                        this.ARRAY(),
+                        this.ARRAY()
                     ]}
                 );
             case tokenClass.WILDCARD:
                 return (
                     { type: 'INSTANCE_ARRAY_IDENTIFIER', children: [
-                        this._wildcard(),
+                        this._wildcard()
                     ]}
                 );
             default:
@@ -269,20 +269,20 @@ export class Parser {
                 return (
                     { type: 'ARRAY', children: [
                         this._array(),
-                        this.ARRAY_IDENTIFIER(),
+                        this.ARRAY_IDENTIFIER()
                     ]}
                 );
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'ARRAY', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             case tokenClass.END_OF_INPUT:
             case tokenClass.AND_OR:
                 return (
                     { type: 'ARRAY', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             default:
@@ -299,13 +299,13 @@ export class Parser {
                 return (
                     { type: 'INSTANCE_ARRAY_IDENTIFIER', children: [
                         this._number(),
-                        this.ARRAY(),
+                        this.ARRAY()
                     ]}
                 );
             case tokenClass.WILDCARD:
                 return (
                     { type: 'INSTANCE_ARRAY_IDENTIFIER', children: [
-                        this._wildcard(),
+                        this._wildcard()
                     ]}
                 );
             default:
@@ -325,7 +325,7 @@ export class Parser {
                         { type: 'EXPRESSION_PRIME', children: [
                             this._arithmetic_operator(),
                             this.TERM(),
-                            this.EXPRESSION_PRIME(),
+                            this.EXPRESSION_PRIME()
                         ]}
                     );
                 } else {
@@ -334,7 +334,7 @@ export class Parser {
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'EXPRESSION_PRIME', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             default:
@@ -347,7 +347,7 @@ export class Parser {
         return (
             {
                 type: 'TERM',
-                value: [this.FACTOR(), this.TERM_PRIME()],
+                value: [this.FACTOR(), this.TERM_PRIME()]
             }
         );
     }
@@ -363,13 +363,13 @@ export class Parser {
                     { type: 'FACTOR', children: [
                         this._openParenthesis(),
                         this.EXPRESSION(),
-                        this._closeParenthesis(),
+                        this._closeParenthesis()
                     ]}
                 );
             case tokenClass.NUMBER:
                 return (
                     { type: 'FACTOR', children: [
-                        this._number(),
+                        this._number()
                     ]}
                 );
             case tokenClass.VALUE_OF:
@@ -378,7 +378,7 @@ export class Parser {
                         this._value(),
                         this._openParenthesis(),
                         this.FIELD_DESCRIPTION(),
-                        this._closeParenthesis(),
+                        this._closeParenthesis()
                     ]}
                 );
             default:
@@ -398,27 +398,27 @@ export class Parser {
                         { type: 'TERM_PRIME', children: [
                             this._arithmetic_operator(),
                             this.FACTOR(),
-                            this.TERM_PRIME(),
+                            this.TERM_PRIME()
                         ]}
                     );
                 }
             case tokenClass.END_OF_INPUT:
                 return (
                     { type: 'FACTOR', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'FACTOR', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             case tokenClass.ARITHMETIC_OPERATOR:
                 if (nexttoken.value === '+' || nexttoken.value === '-') {
                     return (
                         { type: 'FACTOR', children: [
-                            this._epsilon(),
+                            this._epsilon()
                         ]}
                     );
                 }
@@ -437,7 +437,7 @@ export class Parser {
         return ({
             type: tokenClass.NUMBER,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -450,7 +450,7 @@ export class Parser {
         return ({
             type: tokenClass.IMAGE,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -463,7 +463,7 @@ export class Parser {
         return ({
             type: tokenClass.NAME,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -476,7 +476,7 @@ export class Parser {
         return ({
             type: tokenClass.WILDCARD,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -489,7 +489,7 @@ export class Parser {
         return ({
             type: tokenClass.COMPARISON_OPERATOR,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -502,7 +502,7 @@ export class Parser {
         return ({
             type: tokenClass.ARITHMETIC_OPERATOR,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -515,7 +515,7 @@ export class Parser {
         return ({
             type: tokenClass.VALUE_OF,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -528,7 +528,7 @@ export class Parser {
         return ({
             type: tokenClass.OPEN_PARENTHESIS,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -541,7 +541,7 @@ export class Parser {
         return ({
             type: tokenClass.CLOSE_PARENTHESIS,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -555,7 +555,7 @@ export class Parser {
         return ({
             type: tokenClass.EXPRESSION,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -568,7 +568,7 @@ export class Parser {
         return ({
             type: tokenClass.AND_OR,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -577,7 +577,7 @@ export class Parser {
         return ({
             type: 'epsilon',
             token: true,
-            value: null,
+            value: null
         });
     }
 
@@ -590,7 +590,7 @@ export class Parser {
         return ({
             type: tokenClass.FIELD,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -603,7 +603,7 @@ export class Parser {
         return ({
             type: tokenClass.INSTANCE,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 
@@ -616,7 +616,7 @@ export class Parser {
         return ({
             type: tokenClass.ARRAY,
             token: true,
-            value: nextToken.value,
+            value: nextToken.value
         });
     }
 

@@ -49,28 +49,28 @@ const languageDefinition =  {
         // characters
         [/'[^\\']'/, 'string'],
         [/(')(@escapes)(')/, ['string', 'string.escape', 'string']],
-        [/'/, 'string.invalid'],
+        [/'/, 'string.invalid']
       ],
 
       comment: [
         [/[^\/*]+/, 'comment' ],
         [/\/\*/,    'comment', '@push' ],    // nested comment
         ['\\*/',    'comment', '@pop'  ],
-        [/[\/*]/,   'comment' ],
+        [/[\/*]/,   'comment' ]
       ],
 
       string: [
         [/[^\\"]+/,  'string'],
         [/@escapes/, 'string.escape'],
         [/\\./,      'string.escape.invalid'],
-        [/"/,        { token: 'string.quote', bracket: '@close', next: '@pop' } ],
+        [/"/,        { token: 'string.quote', bracket: '@close', next: '@pop' } ]
       ],
 
       whitespace: [
         [/[ \t\r\n]+/, 'white'],
         [/\/\*/,       'comment', '@comment' ],
-        [/\/\/.*$/,    'comment'],
-      ],
-    },
+        [/\/\/.*$/,    'comment']
+      ]
+    }
   };
 

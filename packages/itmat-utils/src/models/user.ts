@@ -1,6 +1,6 @@
 export enum userTypes {
     ADMIN = 'ADMIN',
-    STANDARD = 'STANDARD',
+    STANDARD = 'STANDARD'
 }
 
 export interface IUserWithoutToken {

@@ -21,10 +21,10 @@ export interface IFieldEntry {
 
 export enum enumItemType {
     IMAGE = 'I',
-    CLINICAL = 'C',
+    CLINICAL = 'C'
 }
 
 export enum enumValueType {
     NUMBER = 'N',
-    CATEGORICAL = 'C',
+    CATEGORICAL = 'C'
 }

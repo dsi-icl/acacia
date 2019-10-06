@@ -29,7 +29,7 @@ export class JobPoller {
         this.setInterval = this.setInterval.bind(this);
         this.checkForJobs = this.checkForJobs.bind(this);
         this.matchObj = {
-            claimedBy: undefined,
+            claimedBy: undefined
             /*, lastClaimed: more then 0 */
         };
 
@@ -48,7 +48,7 @@ export class JobPoller {
             updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, { $set: {
                 claimedBy: this.identity,
                 lastClaimed: new Date().valueOf(),
-                status: 'PROCESSING',
+                status: 'PROCESSING'
             }},
             { maxTimeMS : 30 });
         } catch (e) {

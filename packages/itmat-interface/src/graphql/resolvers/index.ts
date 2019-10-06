@@ -12,7 +12,7 @@ const modules = [
     queryResolvers,
     permissionResolvers,
     jobResolvers,
-    fileResolvers,
+    fileResolvers
 ];
 
 const loggingDecorator = (reducerFunction: Function) => {

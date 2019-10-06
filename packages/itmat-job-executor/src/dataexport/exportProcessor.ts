@@ -54,7 +54,7 @@ export class ExportProcessor {
     private formatDataIntoJSON(onePatientData: any): Object {
         const metadata = {
             eid: onePatientData.m_eid,
-            study: onePatientData.m_study,
+            study: onePatientData.m_study
         };
         delete onePatientData.m_eid;
         delete onePatientData.m_study;

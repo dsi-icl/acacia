@@ -26,7 +26,7 @@ export class QueryCore {
             cancelled: false,
             data_requested: JSON.parse(queryString).data_requested,
             cohort: JSON.parse(queryString).cohort,
-            new_fields: JSON.parse(queryString).new_fields,
+            new_fields: JSON.parse(queryString).new_fields
         };
         await db.collections!.queries_collection.insertOne(query);
         return query;

@@ -8,7 +8,7 @@ import { errorCodes } from '../errors';
 enum JOB_TYPE {
     FIELD_INFO_UPLOAD = 'FIELD_INFO_UPLOAD',
     DATA_UPLOAD = 'DATA_UPLOAD',
-    DATA_EXPORT = 'DATA_EXPORT',
+    DATA_EXPORT = 'DATA_EXPORT'
 }
 
 export const jobResolvers = {
@@ -41,8 +41,8 @@ export const jobResolvers = {
                 cancelled: false,
                 data: {
                     dataVersion: args.version,
-                    versionTag: args.tag,
-                },
+                    versionTag: args.tag
+                }
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
@@ -73,8 +73,8 @@ export const jobResolvers = {
                 cancelled: false,
                 data: {
                     dataVersionId: args.dataVersionId,
-                    tag: args.tag,
-                },
+                    tag: args.tag
+                }
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
@@ -101,7 +101,7 @@ export const jobResolvers = {
                 receivedFiles: [],
                 error: null,
                 status: 'QUEUED',
-                cancelled: false,
+                cancelled: false
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
@@ -109,7 +109,7 @@ export const jobResolvers = {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
             return job;
-        },
+        }
     },
-    Subscription: {},
+    Subscription: {}
 };

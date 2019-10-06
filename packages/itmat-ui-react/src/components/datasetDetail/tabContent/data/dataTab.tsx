@@ -77,7 +77,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                                 className={css.data_version_cube + ( ind === selectedVersion ? ( ind === data.currentDataVersion ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '' )}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
                             </div>
                             {ind === data.dataVersions.length - 1 ? null : <span className={css.arrow}>⟶</span>}
-                        </React.Fragment>,
+                        </React.Fragment>
                         )
                     )
                     :

@@ -52,5 +52,5 @@ const UserList: React.FunctionComponent<{
 
 export const UserListPicker = {
     UserList,
-    User,
+    User
 };

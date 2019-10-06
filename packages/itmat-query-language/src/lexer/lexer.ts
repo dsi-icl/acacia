@@ -6,7 +6,7 @@ export class Lexer {
     private currentPosition: number;
 
     constructor(
-        private readonly inputString: string,
+        private readonly inputString: string
     ) {
         this.currentPosition = 0;
     }

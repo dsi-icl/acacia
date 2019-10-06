@@ -12,7 +12,7 @@ export class FieldCore {
         }
 
         const aggregatePipeline: any = [
-            { $match: queryObj },
+            { $match: queryObj }
         ];
         /* if detailed=false, only returns the fieldid in an array */
         if (detailed === false ) {

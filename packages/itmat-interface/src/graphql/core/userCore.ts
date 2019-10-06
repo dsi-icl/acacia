@@ -31,7 +31,7 @@ export class UserCore {
             createdBy: requester,
             email,
             emailNotificationsActivated,
-            deleted: false,
+            deleted: false
         };
 
         const result = await db.collections!.users_collection.insertOne(entry);

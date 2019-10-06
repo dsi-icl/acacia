@@ -20,7 +20,7 @@ export class ExportCore {
             receivedFiles: [],
             status: 'WAITING',
             error: null,
-            cancelled: false,
+            cancelled: false
         };
         const result = await db.collections!.jobs_collection.insertOne(exportjob);
         if (result.result.ok === 1) {

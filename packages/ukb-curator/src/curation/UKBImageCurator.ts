@@ -54,7 +54,7 @@ export class UKBImageCurator {
         return ({
                 fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-'))),
                 instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.'))),
-                array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1)),
+                array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1))
         });
     }
 }

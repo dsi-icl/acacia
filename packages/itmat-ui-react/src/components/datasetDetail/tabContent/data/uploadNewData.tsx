@@ -64,7 +64,7 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
                     file: selectedFile,
                     studyId,
                     tag: tag === '' ? undefined : tag,
-                    version: versionNumber,
+                    version: versionNumber
                 }});
 
             }}>Submit</button>;

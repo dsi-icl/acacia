@@ -22,7 +22,7 @@ export const LoginBox: React.FunctionComponent = (props) => {
             update={(cache, { data: { login } }) => {
                 cache.writeQuery({
                     query: WHO_AM_I,
-                    data: { whoAmI: login },
+                    data: { whoAmI: login }
                 });
             }}
         >

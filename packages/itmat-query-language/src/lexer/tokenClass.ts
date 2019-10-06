@@ -14,7 +14,7 @@ export const stateToTokenClassMap: {
     7: tokenClass.NUMBER,
     9: tokenClass.NUMBER,
     10: tokenClass.COMPARISON_OPERATOR,
-    11: tokenClass.CLOSE_PARENTHESIS,
+    11: tokenClass.CLOSE_PARENTHESIS
 };
 
 
@@ -36,7 +36,7 @@ export const enum tokenClass {
     EXPRESSION = 'EXPRESSION',
     NUMBER_OF = 'NUMBER_OF',
     END_OF_INPUT = 'END_OF_INPUT',
-    VALUE_OF = 'VALUE_OF',
+    VALUE_OF = 'VALUE_OF'
 }
 
 export const unquotedStringToClassMap: {
@@ -51,5 +51,5 @@ export const unquotedStringToClassMap: {
     imageExistsFor: tokenClass.IMAGE,
     expr: tokenClass.EXPRESSION,
     numberOf: tokenClass.NUMBER_OF,
-    value: tokenClass.VALUE_OF,
+    value: tokenClass.VALUE_OF
 };

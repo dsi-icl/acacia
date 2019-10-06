@@ -8,7 +8,7 @@ export const enum alphabetTypes {
     arithmeticOperator = 7,
     quote = 8,
     comparisonOperator = 9,
-    others = 10,
+    others = 10
 }
 
 export const alphabetToTypeTable: {
@@ -87,5 +87,5 @@ export const alphabetToTypeTable: {
     '*': alphabetTypes.arithmeticOperator,
     '/': alphabetTypes.arithmeticOperator,
     '"': alphabetTypes.quote,
-    '=': alphabetTypes.comparisonOperator,
+    '=': alphabetTypes.comparisonOperator
 };

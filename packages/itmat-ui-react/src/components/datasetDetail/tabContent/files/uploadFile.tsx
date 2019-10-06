@@ -18,7 +18,7 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
             if (!cachedata) { return; }
             const newcachedata = { ...cachedata.getStudy, files: [...cachedata.getStudy.files, uploadFile] };
             store.writeQuery({ query: GET_STUDY, variables: { studyId }, data: { getStudy: newcachedata } });
-        },
+        }
     });
 
     return <div>

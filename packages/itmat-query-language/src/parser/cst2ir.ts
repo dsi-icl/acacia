@@ -16,7 +16,7 @@ export interface ICondensedConditionNode {
 }
 
 export enum WILDCARD {
-    ANY = 'ANY',
+    ANY = 'ANY'
 }
 
 export interface IFieldDescription {
@@ -82,7 +82,7 @@ export class CST2IR {
                 referenceField: properties.FIELD_DESCRIPTION,
                 targetValue: properties.TARGET_VALUE,
                 expression: properties.EXPRESSION ? properties.EXPRESSION : '$',
-                leaf: true,
+                leaf: true
             };
             return newNode;
         } else if (node.type === 'CONDITION' && node.children![0].type === 'PARENTHESIS') {

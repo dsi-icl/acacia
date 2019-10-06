@@ -39,7 +39,7 @@ export class UKBCSVCurator {
         private readonly incomingWebStream: NodeJS.ReadableStream,
         private readonly _fieldDict: IFieldMap, // tslint:disable-line
         private readonly _codingDict: ICodingMap, // tslint:disable-line
-        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"' },
+        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"' }
     ) {
         this._header = [null]; // the first element is subject id
         this._fieldsWithError = [];
@@ -82,7 +82,7 @@ export class UKBCSVCurator {
                     m_in_qc: true,
                     m_eid: line[0],
                     m_jobId: this.jobId,
-                    m_study: this.studyName,
+                    m_study: this.studyName
                 }, line);
 
                 bulkInsert.insert(entry);
@@ -174,9 +174,9 @@ export class UKBCSVCurator {
                 $set:
                 {
                     status: 'Finished',
-                    error: errorMsg,
-                },
-            },
+                    error: errorMsg
+                }
+            }
         );
         if (updateResult.modifiedCount === 1) {
             return;
@@ -228,7 +228,7 @@ export class UKBCSVCurator {
         return ({
             fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-'))),
             instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.'))),
-            array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1)),
+            array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1))
         });
     }
 
@@ -246,13 +246,13 @@ export class UKBCSVCurator {
                 coding: this._codingDict[fieldInfo.Coding],
                 valueType: UKBiobankValueTypes[fieldInfo.ValueType],
                 totalArrayNumber: fieldInfo.Array,
-                field,
+                field
             });
         } else {
             return ({
                 valueType: UKBiobankValueTypes[fieldInfo.ValueType],
                 totalArrayNumber: fieldInfo.Array,
-                field,
+                field
             });
         }
     }

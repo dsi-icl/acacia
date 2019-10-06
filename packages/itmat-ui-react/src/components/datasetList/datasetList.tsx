@@ -36,7 +36,7 @@ const PickDatasetSection: React.FunctionComponent<{datasets: Models.Study.IStudy
         {datasets.map((el) =>
             <NavLink key={el.id} to={`/datasets/${el.id}/dashboard`}>
                 <button>{el.name}</button>
-            </NavLink>,
+            </NavLink>
         )}
     </>;
 };

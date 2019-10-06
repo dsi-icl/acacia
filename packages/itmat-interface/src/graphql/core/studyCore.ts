@@ -32,7 +32,7 @@ export class StudyCore {
             currentDataVersion: -1,
             lastModified: new Date().valueOf(),
             dataVersions: [],
-            deleted: false,
+            deleted: false
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;
@@ -48,13 +48,13 @@ export class StudyCore {
             approvedFields: approvedFields ? approvedFields : [],
             approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
-            deleted: false,
+            deleted: false
         };
 
         const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
             { $match: { m_study: studyId } },
             { $group: { _id: null, array: { $addToSet: '$m_eid' } } },
-            { $project: { array: 1 } },
+            { $project: { array: 1 } }
         ]).toArray();
 
         if (getListOfPatientsResult === null || getListOfPatientsResult === undefined) {

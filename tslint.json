@@ -39,6 +39,18 @@
                 "avoid-escape",
                 "avoid-template"
             ]
+        },
+        "trailing-comma": {
+            "severity": "warning",
+            "options": {
+                "multiline": {
+                    "objects": "never",
+                    "arrays": "never",
+                    "functions": "never",
+                    "typeLiterals": "ignore"
+                },
+                "esSpecCompliant": true
+            }
         }
     },
     "jsRules": {

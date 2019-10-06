@@ -22,7 +22,7 @@ export const userResolvers = {
             const queryObj = args.userId === undefined ? { deleted: false } : { deleted: false, id: args.userId };
             const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
-        },
+        }
     },
     User: {
         access: async (user: IUser, arg: any, context: any): Promise<{ projects: IProject[], studies: IStudy[], id: string }> => {
@@ -51,7 +51,7 @@ export const userResolvers = {
                         a.studies.push(e.studyId);
                     }
                     return a;
-                }, init,
+                }, init
             );
 
             const projects: IProject[] = await db.collections!.projects_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: false }).toArray();
@@ -84,7 +84,7 @@ export const userResolvers = {
             }
 
             return user.email;
-        },
+        }
     },
     Mutation: {
         login: async (parent: object, args: any, context: any, info: any): Promise<object> => {
@@ -153,7 +153,7 @@ export const userResolvers = {
                 realName,
                 email,
                 organisation,
-                emailNotificationsActivated,
+                emailNotificationsActivated
             });
 
             return createdUser;
@@ -193,7 +193,7 @@ export const userResolvers = {
                 emailNotificationsActivated,
                 password,
                 description,
-                organisation,
+                organisation
             };
             if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
             for (const each of Object.keys(fieldsToUpdate)) {
@@ -207,7 +207,7 @@ export const userResolvers = {
             } else {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }
-        },
+        }
     },
-    Subscription: {},
+    Subscription: {}
 };

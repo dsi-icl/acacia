@@ -23,7 +23,7 @@ export class Router {
     private readonly server: http.Server;
 
     constructor(
-        db: Database /* the database to save sessions */,
+        db: Database /* the database to save sessions */
     ) {
         this.app = express();
 
@@ -36,7 +36,7 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(session({
             secret: 'IAmATeapot',
-            store: new MongoStore({ db: db.db } as any),
+            store: new MongoStore({ db: db.db } as any)
         }));
 
 
@@ -63,7 +63,7 @@ export class Router {
                 // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
                 Logger.error(error);
                 return error;
-            },
+            }
         });
         gqlServer.applyMiddleware({ app: this.app, cors: { origin: 'http://localhost:3000', credentials: true } });
 

@@ -98,7 +98,7 @@ const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string,
                     file: selectedFile,
                     studyId,
                     tag,
-                    dataVersionId,
+                    dataVersionId
                 }});
 
             }}>Submit</button>;

@@ -81,14 +81,14 @@ class PipelineGenerator {
             return [
                 {$match: { m_study: query.studyId }},
                 {$match: match},
-                {$project: fields},
+                {$project: fields}
             ];
         } else {
             return [
                 {$match: { m_study: query.studyId }},
                 {$addFields: addFields},
                 {$match: match},
-                {$project: fields},
+                {$project: fields}
             ];
         }
     }
@@ -200,7 +200,7 @@ class PipelineGenerator {
                 default:
                     break;
             }
-        },
+        }
         );
         return match;
     }

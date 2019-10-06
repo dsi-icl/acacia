@@ -15,31 +15,31 @@ export const stateTransitionTable: {
         [alphabetTypes.whitespace]: 5,
         [alphabetTypes.letter]: 6,
         [alphabetTypes.quote]: 3,
-        [alphabetTypes.comparisonOperator]: 10,
+        [alphabetTypes.comparisonOperator]: 10
     },
     1: {},
     2: {},
     3: {
-        [alphabetTypes.quote]: 4,
+        [alphabetTypes.quote]: 4
         // all -> 3
     },
     4: {},
     5: {
-        [alphabetTypes.whitespace]: 5,
+        [alphabetTypes.whitespace]: 5
     },
     6: {
-        [alphabetTypes.letter]: 6,
+        [alphabetTypes.letter]: 6
     },
     7: {
         [alphabetTypes.digit]: 7,
-        [alphabetTypes.dot]: 8,
+        [alphabetTypes.dot]: 8
     },
     8: {
-        [alphabetTypes.digit]: 9,
+        [alphabetTypes.digit]: 9
     },
     9: {
-        [alphabetTypes.digit]: 9,
+        [alphabetTypes.digit]: 9
     },
     10: {},
-    11: {},
+    11: {}
 };
