@@ -1,9 +1,8 @@
+import { Input, Tree } from 'antd';
+import 'antd/lib/tree/style/css';
 import { Models } from 'itmat-utils';
 import * as React from 'react';
-import { Tree, Input } from 'antd';
-import 'antd/lib/tree/style/css';
 import '../../css/antdOverride.css';
-import { LoadingBalls } from './loadingBalls';
 const { TreeNode } = Tree;
 const { Search } = Input;
 
@@ -13,7 +12,7 @@ class DraggableTreeNode extends TreeNode {
     //     super(props);
     // }
 
-    render = () => {
+    public render = () => {
         this.context.rcTree.draggable = true;
         const treenode = super.render();
         return treenode;
@@ -26,8 +25,8 @@ export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedL
     // TEMPORARY
     return <p>PLACEHOLER</p>;
 
-    if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p> }
-    const transformedList = fieldList.map(el => `${el.path}>>${el.id}|${el.fieldName}`);
+    if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p>; }
+    const transformedList = fieldList.map((el) => `${el.path}>>${el.id}|${el.fieldName}`);
     const makeTree = (paths: string[]) => {
         const output: any = [];
         for (let i = 0; i < paths.length; i++) {
@@ -49,7 +48,7 @@ export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedL
         return output;
     };
 
-    const renderTreeNodes = (fieldList: any[]) => fieldList.map(item => {
+    const renderTreeNodes = (fieldList: any[]) => fieldList.map((item) => {
         if (item.children.length !== 0) {
             return (
             <TreeNode title={item.name} key={item.fieldId} dataRef={item} isLeaf={false} selectable={false}>

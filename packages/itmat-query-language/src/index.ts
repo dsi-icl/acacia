@@ -1,6 +1,6 @@
 import { Lexer } from './lexer/lexer';
-import { Parser } from './parser/parser';
 import { CST2IR } from './parser/cst2ir';
+import { Parser } from './parser/parser';
 // import { Pipeline } from './generatePipeline';
 
 const string = 'value (field "Sex") = "Male" OR ( value (field "Age") = 30 AND value(field "Sex") = "Female" )';

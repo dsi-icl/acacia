@@ -1,9 +1,9 @@
-import { db } from '../../database/database';
-import uuidv4 from 'uuid/v4';
 import { IJobEntry } from 'itmat-utils/dist/models/job';
+import uuidv4 from 'uuid/v4';
+import { db } from '../../database/database';
 
 export class JobCore {
-    async createJob(userId: string, jobType: string, files: string[], studyId: string, projectId?: string, jobId?: string): Promise<IJobEntry<any>> {
+    public async createJob(userId: string, jobType: string, files: string[], studyId: string, projectId?: string, jobId?: string): Promise<IJobEntry<any>> {
         const job: IJobEntry<any> = {
             requester: userId,
             id: jobId || uuidv4(),

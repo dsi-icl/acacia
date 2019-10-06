@@ -1,18 +1,18 @@
-import { Database, db } from '../../database/database';
-import { ForbiddenError, ApolloError, UserInputError, withFilter, defaultMergedResolver } from 'apollo-server-express';
-import { IStudy, IProject, IRole, IStudyDataVersion } from 'itmat-utils/dist/models/study';
-import { makeGenericReponse, IGenericResponse } from '../responses';
-import uuid from 'uuid/v4';
-import { studyCore } from '../core/studyCore';
-import { IUser, userTypes } from 'itmat-utils/dist/models/user';
-import { errorCodes } from '../errors';
-import { IFieldEntry } from 'itmat-utils/dist/models/field';
+import { ApolloError } from 'apollo-server-express';
 import { permissions } from 'itmat-utils';
+import { IFieldEntry } from 'itmat-utils/dist/models/field';
+import { IProject, IStudy, IStudyDataVersion } from 'itmat-utils/dist/models/study';
+import { IUser } from 'itmat-utils/dist/models/user';
+import uuid from 'uuid/v4';
+import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
+import { studyCore } from '../core/studyCore';
+import { errorCodes } from '../errors';
+import { IGenericResponse, makeGenericReponse } from '../responses';
 
 export const studyResolvers = {
     Query: {
-        getStudy: async(parent: object, args: any, context: any, info: any): Promise<IStudy | null> => {
+        getStudy: async (parent: object, args: any, context: any, info: any): Promise<IStudy | null> => {
             const requester: IUser = context.req.user;
             const studyId: string = args.studyId;
 
@@ -20,13 +20,13 @@ export const studyResolvers = {
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
-                studyId
+                studyId,
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             return await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
         },
-        getProject: async(parent: object, args: any, context: any, info: any): Promise<IProject | null> => {
+        getProject: async (parent: object, args: any, context: any, info: any): Promise<IProject | null> => {
             const requester: IUser = context.req.user;
             const projectId: string = args.projectId;
 
@@ -42,66 +42,66 @@ export const studyResolvers = {
                 [permissions.specific_project.specific_project_readonly_access],
                 requester,
                 project.studyId,
-                projectId
+                projectId,
             );
 
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
-                project.studyId
+                project.studyId,
             );
 
             if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             return project;
         },
-        getStudyFields: async(parent: object, { fieldTreeId, studyId }: { fieldTreeId: string, studyId: string }, context: any): Promise<IFieldEntry[]> => {
+        getStudyFields: async (parent: object, { fieldTreeId, studyId }: { fieldTreeId: string, studyId: string }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
 
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
-                studyId
+                studyId,
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             const result = await db.collections!.field_dictionary_collection.find({ studyId, fieldTreeId }).toArray();
 
             return result;
-        }
+        },
     },
     Study: {
-        projects: async(study: IStudy) => {
+        projects: async (study: IStudy) => {
             return await db.collections!.projects_collection.find({ studyId: study.id, deleted: false }).toArray();
         },
-        jobs: async(study: IStudy) => {
+        jobs: async (study: IStudy) => {
             return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
         },
-        roles: async(study: IStudy) => {
+        roles: async (study: IStudy) => {
             return await db.collections!.roles_collection.find({ studyId: study.id, deleted: false }).toArray();
         },
-        files: async(study: IStudy) => {
+        files: async (study: IStudy) => {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: false }).toArray();
         },
-        numOfSubjects: async(study: IStudy) => {
+        numOfSubjects: async (study: IStudy) => {
             return await db.collections!.data_collection.countDocuments({ m_study: study.id });
         },
-        currentDataVersion: async(study: IStudy) => {
+        currentDataVersion: async (study: IStudy) => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
-        }
+        },
     },
     Project: {
-        fields: async(project: IProject) => {
+        fields: async (project: IProject) => {
             return await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: project.approvedFields }, deleted: false }).toArray();
         },
-        jobs: async(project: IProject) => {
+        jobs: async (project: IProject) => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
-        files: async(project: IProject) => {
+        files: async (project: IProject) => {
             return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: false }).toArray();
         },
-        patientMapping: async(project: IProject) => {
+        patientMapping: async (project: IProject) => {
             /* check permission */
 
             const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { patientMapping: 1 }});
@@ -111,7 +111,7 @@ export const studyResolvers = {
                 return null;
             }
         },
-        approvedFields: async(project: IProject) => {
+        approvedFields: async (project: IProject) => {
             /* check permission */
 
             const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { approvedFields: 1 }});
@@ -121,15 +121,15 @@ export const studyResolvers = {
                 return null;
             }
         },
-        approvedFiles: async(project: IProject) => {
+        approvedFiles: async (project: IProject) => {
             /* check permission */
 
             return project.approvedFiles;
         },
-        roles: async(project: IProject) => {
+        roles: async (project: IProject) => {
             return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: false }).toArray();
         },
-        iCanEdit: async(project: IProject) => { // TO_DO
+        iCanEdit: async (project: IProject) => { // TO_DO
             const result = await db.collections!.roles_collection.findOne({
                 studyId: project.studyId,
                 projectId: project.id,
@@ -139,7 +139,7 @@ export const studyResolvers = {
         },
     },
     Mutation: {
-        createStudy: async(parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
+        createStudy: async (parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
             /* reject undefined project name */
@@ -153,7 +153,7 @@ export const studyResolvers = {
             const study = await studyCore.createNewStudy(name, requester.id);
             return study;
         },
-        createProject: async(parent: object, { studyId, projectName, approvedFields }: { studyId: string, projectName: string, approvedFields?: string[] }, context: any, info: any): Promise<IProject> => {
+        createProject: async (parent: object, { studyId, projectName, approvedFields }: { studyId: string, projectName: string, approvedFields?: string[] }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* reject undefined project name */
@@ -170,7 +170,7 @@ export const studyResolvers = {
             const project = await studyCore.createProjectForStudy(studyId, projectName, requester.username, approvedFields);
             return project;
         },
-        deleteProject: async(parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteProject: async (parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -179,7 +179,7 @@ export const studyResolvers = {
             await studyCore.deleteProject(projectId);
             return makeGenericReponse(projectId);
         },
-        deleteStudy: async(parent: object, { studyId }: { studyId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteStudy: async (parent: object, { studyId }: { studyId: string }, context: any, info: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -188,7 +188,7 @@ export const studyResolvers = {
             await studyCore.deleteStudy(studyId);
             return makeGenericReponse(studyId);
         },
-        editProjectApprovedFields: async(parent: object, { projectId, approvedFields }: { projectId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
+        editProjectApprovedFields: async (parent: object, { projectId, approvedFields }: { projectId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -207,7 +207,7 @@ export const studyResolvers = {
             const resultingProject = await studyCore.editProjectApprovedFields(projectId, approvedFields);
             return resultingProject;
         },
-        editProjectApprovedFiles: async(parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
+        editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -226,7 +226,7 @@ export const studyResolvers = {
             const resultingProject = await studyCore.editProjectApprovedFiles(projectId, approvedFiles);
             return resultingProject;
         },
-        setDataversionAsCurrent: async(parent: object, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context: any, info: any): Promise<IStudy> => {
+        setDataversionAsCurrent: async (parent: object, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context: any, info: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -235,7 +235,7 @@ export const studyResolvers = {
 
 
             /* check whether the dataversion exists */
-            const selectedataVersionFiltered = study.dataVersions.filter(el => el.id === dataVersionId);
+            const selectedataVersionFiltered = study.dataVersions.filter((el) => el.id === dataVersionId);
             if (selectedataVersionFiltered.length !== 1) {
                 throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
@@ -243,13 +243,13 @@ export const studyResolvers = {
             /* create a new dataversion with the same contentId */
             const newDataVersion: IStudyDataVersion = {
                 ...selectedataVersionFiltered[0],
-                id: uuid()
+                id: uuid(),
             };
             console.log(newDataVersion);
 
             /* add this to the database */
             const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, {
-                $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 }
+                $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 },
             }, { returnOriginal: false });
 
             if (result.ok === 1) {
@@ -257,7 +257,7 @@ export const studyResolvers = {
             } else {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
-        }
+        },
     },
-    Subscription: {}
+    Subscription: {},
 };

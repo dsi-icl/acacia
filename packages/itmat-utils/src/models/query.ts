@@ -1,25 +1,25 @@
 export interface IQueryEntry {
-    id: string,
-    queryString: string,
-    studyId: string,
-    projectId?: string,
-    requester: string,
-    claimedBy?: string,
-    lastClaimed?: number,
-    status: string,
-    error: null | string,
-    cancelled: boolean,
-    cancelledTime?: number,
-    queryResult?: string,
-    data_requested: string[],
-    cohort: ICohortSelection[][],
-    new_fields: INewFieldSelection[]
+    id: string;
+    queryString: string;
+    studyId: string;
+    projectId?: string;
+    requester: string;
+    claimedBy?: string;
+    lastClaimed?: number;
+    status: string;
+    error: null | string;
+    cancelled: boolean;
+    cancelledTime?: number;
+    queryResult?: string;
+    data_requested: string[];
+    cohort: ICohortSelection[][];
+    new_fields: INewFieldSelection[];
 }
 
 export interface ICohortSelection {
-    field: string,
-    value: string,
-    op: enumCohortSelectionOp
+    field: string;
+    value: string;
+    op: enumCohortSelectionOp;
 }
 
 export enum enumCohortSelectionOp {
@@ -29,13 +29,13 @@ export enum enumCohortSelectionOp {
     '<' = '<',
     'derived' = 'derived',
     'exists' = 'exists',
-    'count' = 'count'
+    'count' = 'count',
 }
 
 export interface IEquationDescription {
-    left: string | IEquationDescription,
-    right: string | IEquationDescription,
-    op: enumEquationOp
+    left: string | IEquationDescription;
+    right: string | IEquationDescription;
+    op: enumEquationOp;
 }
 
 export enum enumEquationOp {
@@ -45,11 +45,11 @@ export enum enumEquationOp {
     '/' = '/',
     '^' = '^',
     'field' = 'field',
-    'val' = 'val'
+    'val' = 'val',
 }
 
 export interface INewFieldSelection {
-    name: string,
-    value: IEquationDescription,
-    op: 'derived'
+    name: string;
+    value: IEquationDescription;
+    op: 'derived';
 }

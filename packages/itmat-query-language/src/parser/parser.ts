@@ -1,37 +1,37 @@
-import { IToken, tokenClass, stateToTokenClassMap, unquotedStringToClassMap } from '../lexer/tokenClass';
+import { IToken, tokenClass } from '../lexer/tokenClass';
 
 export class Parser {
     private currentPosition: number = -1;
 
     constructor(private readonly tokenArr: IToken[]) {}
 
-    advancePosition() {
+    public advancePosition() {
         this.currentPosition += 1;
     }
 
-    nextToken(): IToken {
+    public nextToken(): IToken {
         return this.tokenArr[this.currentPosition + 1];
     }
 
-    reportSyntaxError(e: string): void {
+    public reportSyntaxError(e: string): void {
         throw Error(`${e} at ${this.currentPosition + 1}`);
     }
 
-    parse(): any {
+    public parse(): any {
         return this.CONDITION_GROUP();
     }
 
-    CONDITION_GROUP() {
+    public CONDITION_GROUP() {
         // <CONDITION_GROUP> -> <CONDITION> <CONDITION_GROUP'>
         return (
             {
                 type: 'CONDITION_GROUP',
-                children: [this.CONDITION(), this.CONDITION_GROUP_PRIME()]
+                children: [this.CONDITION(), this.CONDITION_GROUP_PRIME()],
             }
         );
     }
 
-    CONDITION(): any {
+    public CONDITION(): any {
         // <CONDITION> -> ( <CONDITION_GROUP> )
         //     | expr ( <EXPRESSION> ) <OP> number
         //     | imageExistsFor <FIELD_DESCRIPTION>
@@ -44,7 +44,7 @@ export class Parser {
                     { type: 'CONDITION', children: [
                         this._openParenthesis(),
                         this.CONDITION_GROUP(),
-                        this._closeParenthesis()
+                        this._closeParenthesis(),
                     ]}
                 );
             case tokenClass.EXPRESSION:
@@ -55,14 +55,14 @@ export class Parser {
                         this.EXPRESSION(),
                         this._closeParenthesis(),
                         this._comparison_operator(),
-                        this._number()
+                        this._number(),
                     ]}
                 );
             case tokenClass.IMAGE:
                 return (
                     { type: 'CONDITION', children: [
                         this._imageExistsFor(),
-                        this.FIELD_DESCRIPTION()
+                        this.FIELD_DESCRIPTION(),
                     ]}
                 );
             case tokenClass.VALUE_OF:
@@ -73,7 +73,7 @@ export class Parser {
                         this.FIELD_DESCRIPTION(),
                         this._closeParenthesis(),
                         this._comparison_operator(),
-                        this.TARGET_VALUE()
+                        this.TARGET_VALUE(),
                     ]}
                 );
             case tokenClass.AND_OR:
@@ -85,7 +85,7 @@ export class Parser {
 
     }
 
-    CONDITION_GROUP_PRIME(): any {
+    public CONDITION_GROUP_PRIME(): any {
         // <CONDITION_GROUP'> -> and <CONDITION> <CONDITION_GROUP'>
         //             | or <CONDITION> <CONDITION_GROUP'>
         //             | e if eof
@@ -96,19 +96,19 @@ export class Parser {
                     { type: 'CONDITION_GROUP_PRIME', children: [
                         this._and_or(),
                         this.CONDITION(),
-                        this.CONDITION_GROUP_PRIME()
+                        this.CONDITION_GROUP_PRIME(),
                     ]}
                 );
             case tokenClass.END_OF_INPUT:
                 return (
                     { type: 'CONDITION_GROUP_PRIME', children: [
-                        this._epsilon()
+                        this._epsilon(),
                     ]}
                 );
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'CONDITION_GROUP_PRIME', children: [
-                        this._epsilon()
+                        this._epsilon(),
                     ]}
                 );
             default:
@@ -116,27 +116,27 @@ export class Parser {
         }
     }
 
-    EXPRESSION(): any {
-        //<EXPRESSION> -> <TERM> <EXPRESSION'>
+    public EXPRESSION(): any {
+        // <EXPRESSION> -> <TERM> <EXPRESSION'>
         return (
             {
                 type: 'EXPRESSION',
-                children: [this.TERM(), this.EXPRESSION_PRIME()]
+                children: [this.TERM(), this.EXPRESSION_PRIME()],
             }
         );
     }
 
-    FIELD_DESCRIPTION() {
+    public FIELD_DESCRIPTION() {
         // <FIELD_DESCRIPTION> -> <FIELD> <INSTANCE_ARRAY>
         return (
             {
                 type: 'FIELD_DESCRIPTION',
-                children: [this.FIELD(), this.INSTANCE_ARRAY()]
+                children: [this.FIELD(), this.INSTANCE_ARRAY()],
             }
         );
     }
 
-    TARGET_VALUE(): any {
+    public TARGET_VALUE(): any {
         // <TARGET_VALUE> -> number
         //                 | name
         //                 | value ( <FIELD_DESCRIPTION> )
@@ -145,13 +145,13 @@ export class Parser {
             case tokenClass.NUMBER:
                 return (
                     { type: 'TARGET_VALUE', children: [
-                        this._number()
+                        this._number(),
                     ]}
                 );
             case tokenClass.NAME:
                 return (
                     { type: 'TARGET_VALUE', children: [
-                        this._name()
+                        this._name(),
                     ]}
                 );
             case tokenClass.VALUE_OF:
@@ -160,7 +160,7 @@ export class Parser {
                         this._value(),
                         this._openParenthesis(),
                         this.FIELD_DESCRIPTION(),
-                        this._closeParenthesis()
+                        this._closeParenthesis(),
                     ]}
                 );
             default:
@@ -169,7 +169,7 @@ export class Parser {
 
     }
 
-    FIELD() {
+    public FIELD() {
         // <FIELD> -> field <FIELD_IDENTIFIER>
         const nexttoken = this.nextToken();
         switch (nexttoken.class) {
@@ -177,7 +177,7 @@ export class Parser {
                 return (
                     { type: 'FIELD', children: [
                         this._field(),
-                        this.FIELD_IDENTIFIER()
+                        this.FIELD_IDENTIFIER(),
                     ]}
                 );
             default:
@@ -185,7 +185,7 @@ export class Parser {
         }
     }
 
-    FIELD_IDENTIFIER(): any {
+    public FIELD_IDENTIFIER(): any {
         // <FIELD_IDENTIFIER> -> number
         //                      | name
         const nexttoken = this.nextToken();
@@ -193,13 +193,13 @@ export class Parser {
             case tokenClass.NUMBER:
                 return (
                     { type: 'FIELD_IDENTIFIER', children: [
-                        this._number()
+                        this._number(),
                     ]}
                 );
             case tokenClass.NAME:
                 return (
                     { type: 'FIELD_IDENTIFIER', children: [
-                        this._name()
+                        this._name(),
                     ]}
                 );
             default:
@@ -207,7 +207,7 @@ export class Parser {
         }
     }
 
-    INSTANCE_ARRAY() {
+    public INSTANCE_ARRAY() {
         // <INSTANCE_ARRAY> -> instance <INSTANCE_ARRAY_IDENTIFIER>
         //                  | e if eof, ), and_or, epilosn
         const nexttoken = this.nextToken();
@@ -216,20 +216,20 @@ export class Parser {
                 return (
                     { type: 'INSTANCE_ARRAY', children: [
                         this._instance(),
-                        this.INSTANCE_ARRAY_IDENTIFIER()
+                        this.INSTANCE_ARRAY_IDENTIFIER(),
                     ]}
                 );
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'INSTANCE_ARRAY', children: [
-                        this._epsilon()
+                        this._epsilon(),
                     ]}
                 );
             case tokenClass.END_OF_INPUT:
             case tokenClass.AND_OR:
                 return (
                     { type: 'INSTANCE_ARRAY', children: [
-                        this._epsilon()
+                        this._epsilon(),
                     ]}
                 );
             default:
@@ -237,22 +237,22 @@ export class Parser {
         }
     }
 
-    INSTANCE_ARRAY_IDENTIFIER() {
+    public INSTANCE_ARRAY_IDENTIFIER() {
         // <INSTANCE_ARRAY_IDENTIFIER> -> number <ARRAY>
-        //                             | any  
+        //                             | any
         const nexttoken = this.nextToken();
         switch (nexttoken.class) {
             case tokenClass.NUMBER:
                 return (
                     { type: 'INSTANCE_ARRAY_IDENTIFIER', children: [
                         this._number(),
-                        this.ARRAY()
+                        this.ARRAY(),
                     ]}
                 );
             case tokenClass.WILDCARD:
                 return (
                     { type: 'INSTANCE_ARRAY_IDENTIFIER', children: [
-                        this._wildcard()
+                        this._wildcard(),
                     ]}
                 );
             default:
@@ -260,7 +260,7 @@ export class Parser {
         }
     }
 
-    ARRAY(): any {
+    public ARRAY(): any {
         // <ARRAY> -> array <ARRAY_IDENTIFIER>
         //         | e
         const nexttoken = this.nextToken();
@@ -269,20 +269,20 @@ export class Parser {
                 return (
                     { type: 'ARRAY', children: [
                         this._array(),
-                        this.ARRAY_IDENTIFIER()
+                        this.ARRAY_IDENTIFIER(),
                     ]}
                 );
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'ARRAY', children: [
-                        this._epsilon()
+                        this._epsilon(),
                     ]}
                 );
             case tokenClass.END_OF_INPUT:
             case tokenClass.AND_OR:
                 return (
                     { type: 'ARRAY', children: [
-                        this._epsilon()
+                        this._epsilon(),
                     ]}
                 );
             default:
@@ -290,7 +290,7 @@ export class Parser {
         }
     }
 
-    ARRAY_IDENTIFIER() {
+    public ARRAY_IDENTIFIER() {
         // <ARRAY_IDENTIFIER> -> any
         //                     | number
         const nexttoken = this.nextToken();
@@ -299,13 +299,13 @@ export class Parser {
                 return (
                     { type: 'INSTANCE_ARRAY_IDENTIFIER', children: [
                         this._number(),
-                        this.ARRAY()
+                        this.ARRAY(),
                     ]}
                 );
             case tokenClass.WILDCARD:
                 return (
                     { type: 'INSTANCE_ARRAY_IDENTIFIER', children: [
-                        this._wildcard()
+                        this._wildcard(),
                     ]}
                 );
             default:
@@ -313,7 +313,7 @@ export class Parser {
         }
     }
 
-    EXPRESSION_PRIME(): any {
+    public EXPRESSION_PRIME(): any {
         // <EXPRESSION'> -> + <TERM> <EXPRESSION'>
         //                 |  - <TERM> <EXPRESSION'>
         //                 |  e
@@ -325,7 +325,7 @@ export class Parser {
                         { type: 'EXPRESSION_PRIME', children: [
                             this._arithmetic_operator(),
                             this.TERM(),
-                            this.EXPRESSION_PRIME()
+                            this.EXPRESSION_PRIME(),
                         ]}
                     );
                 } else {
@@ -342,17 +342,17 @@ export class Parser {
         }
     }
 
-    TERM() {
+    public TERM() {
         // <TERM> -> <FACTOR> <TERM'>
         return (
             {
                 type: 'TERM',
-                value: [this.FACTOR(), this.TERM_PRIME()]
+                value: [this.FACTOR(), this.TERM_PRIME()],
             }
         );
     }
 
-    FACTOR() {
+    public FACTOR() {
         // <FACTOR> -> ( EXPRESSION )
         //           | number
         //           | value ( <FIELD_DESCRIPTION> )
@@ -363,7 +363,7 @@ export class Parser {
                     { type: 'FACTOR', children: [
                         this._openParenthesis(),
                         this.EXPRESSION(),
-                        this._closeParenthesis()
+                        this._closeParenthesis(),
                     ]}
                 );
             case tokenClass.NUMBER:
@@ -378,7 +378,7 @@ export class Parser {
                         this._value(),
                         this._openParenthesis(),
                         this.FIELD_DESCRIPTION(),
-                        this._closeParenthesis()
+                        this._closeParenthesis(),
                     ]}
                 );
             default:
@@ -386,7 +386,7 @@ export class Parser {
         }
     }
 
-    TERM_PRIME(): any {
+    public TERM_PRIME(): any {
         // <TERM'> -> x <FACTOR> <TERM'>
         //     |  / <FACTOR> <TERM'>
         //     | e if eof,+,-,)
@@ -398,27 +398,27 @@ export class Parser {
                         { type: 'TERM_PRIME', children: [
                             this._arithmetic_operator(),
                             this.FACTOR(),
-                            this.TERM_PRIME()
+                            this.TERM_PRIME(),
                         ]}
                     );
                 }
             case tokenClass.END_OF_INPUT:
                 return (
                     { type: 'FACTOR', children: [
-                        this._epsilon()
+                        this._epsilon(),
                     ]}
                 );
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'FACTOR', children: [
-                        this._epsilon()
+                        this._epsilon(),
                     ]}
                 );
             case tokenClass.ARITHMETIC_OPERATOR:
                 if (nexttoken.value === '+' || nexttoken.value === '-') {
                     return (
                         { type: 'FACTOR', children: [
-                            this._epsilon()
+                            this._epsilon(),
                         ]}
                     );
                 }
@@ -428,7 +428,7 @@ export class Parser {
 
     }
 
-    _number() {
+    public _number() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.NUMBER) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -437,11 +437,11 @@ export class Parser {
         return ({
             type: tokenClass.NUMBER,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _imageExistsFor() {
+    public _imageExistsFor() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.IMAGE) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -450,11 +450,11 @@ export class Parser {
         return ({
             type: tokenClass.IMAGE,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _name() {
+    public _name() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.NAME) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -463,11 +463,11 @@ export class Parser {
         return ({
             type: tokenClass.NAME,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _wildcard() {
+    public _wildcard() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.WILDCARD) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -476,11 +476,11 @@ export class Parser {
         return ({
             type: tokenClass.WILDCARD,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _comparison_operator() {
+    public _comparison_operator() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.COMPARISON_OPERATOR) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -489,11 +489,11 @@ export class Parser {
         return ({
             type: tokenClass.COMPARISON_OPERATOR,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _arithmetic_operator() {
+    public _arithmetic_operator() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.ARITHMETIC_OPERATOR) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -502,11 +502,11 @@ export class Parser {
         return ({
             type: tokenClass.ARITHMETIC_OPERATOR,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _value() {
+    public _value() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.VALUE_OF) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -515,11 +515,11 @@ export class Parser {
         return ({
             type: tokenClass.VALUE_OF,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _openParenthesis() {
+    public _openParenthesis() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.OPEN_PARENTHESIS) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -528,11 +528,11 @@ export class Parser {
         return ({
             type: tokenClass.OPEN_PARENTHESIS,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _closeParenthesis() {
+    public _closeParenthesis() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.CLOSE_PARENTHESIS) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -541,11 +541,11 @@ export class Parser {
         return ({
             type: tokenClass.CLOSE_PARENTHESIS,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _expression() {
+    public _expression() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.EXPRESSION) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -555,11 +555,11 @@ export class Parser {
         return ({
             type: tokenClass.EXPRESSION,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _and_or() {
+    public _and_or() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.AND_OR) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -568,20 +568,20 @@ export class Parser {
         return ({
             type: tokenClass.AND_OR,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _epsilon() {
+    public _epsilon() {
         // this.advancePosition();
         return ({
             type: 'epsilon',
             token: true,
-            value: null
+            value: null,
         });
     }
 
-    _field() {
+    public _field() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.FIELD) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -590,11 +590,11 @@ export class Parser {
         return ({
             type: tokenClass.FIELD,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _instance(){
+    public _instance() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.INSTANCE) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -603,11 +603,11 @@ export class Parser {
         return ({
             type: tokenClass.INSTANCE,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    _array() {
+    public _array() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.ARRAY) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -616,10 +616,10 @@ export class Parser {
         return ({
             type: tokenClass.ARRAY,
             token: true,
-            value: nextToken.value
+            value: nextToken.value,
         });
     }
 
-    
+
 
 }

@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { Mutation } from "react-apollo";
+import { Mutation } from 'react-apollo';
 import { LOGIN, WHO_AM_I } from '../../graphql/user';
 import * as css from './login.module.css';
 
-export const LoginBox: React.FunctionComponent = props => {
+export const LoginBox: React.FunctionComponent = (props) => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [passwordInput, setPasswordInput] = React.useState('');
     const [stateerror, setError] = React.useState('');
-    
+
     function handleUsernameChange(e: any) {
         setUsernameInput(e.target.value);
     }
@@ -22,8 +22,8 @@ export const LoginBox: React.FunctionComponent = props => {
             update={(cache, { data: { login } }) => {
                 cache.writeQuery({
                     query: WHO_AM_I,
-                    data: { whoAmI: login }
-                })
+                    data: { whoAmI: login },
+                });
             }}
         >
         {(login, { loading, error }) =>
@@ -32,15 +32,15 @@ export const LoginBox: React.FunctionComponent = props => {
                 <h1>ITMAT - BROKER</h1>
                 <br/><br/>
                 <div>
-                    <input placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
+                    <input placeholder="username" value={usernameInput} onChange={handleUsernameChange} onKeyDown={(e) => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
                 </div>
                 <div>
-                    <input placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
+                    <input placeholder="password" type="password" value={passwordInput} onChange={handlePasswordChange} onKeyDown={(e) => e.keyCode === 13 && document.getElementById('loginButton')!.click() }/> <br/>
                 </div>
                 <br/>
                 { loading ? <button>logging in..</button> :
                     (
-                        <button id='loginButton' onClick={() => {login({ variables: { password: passwordInput, username: usernameInput }});}}> login</button>
+                        <button id="loginButton" onClick={() => {login({ variables: { password: passwordInput, username: usernameInput }}); }}> login</button>
                     )
                 }
             </div>

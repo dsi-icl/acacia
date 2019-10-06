@@ -1,5 +1,4 @@
-import mongodb from 'mongodb';
-import { IDatabaseBaseConfig, Database } from 'itmat-utils';
+import { Database, IDatabaseBaseConfig } from 'itmat-utils';
 
 export interface IDatabaseConfig extends IDatabaseBaseConfig {
     collections: {
@@ -11,8 +10,8 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
         field_dictionary_collection: string,
         roles_collection: string,
         files_collection: string,
-        log_collection: string
-    }
+        log_collection: string,
+    };
 }
 
 export type Database = Database<IDatabaseBaseConfig>;

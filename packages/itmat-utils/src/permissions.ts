@@ -24,5 +24,5 @@ export const permissions = {
     specific_project: {
         specific_project_readonly_access: 'specific_project_readonly_access',
         specific_project_role_management: 'specific_project_role_management', // create, edit and delete roles and manage permissions and users in those roles
-    }
+    },
 };

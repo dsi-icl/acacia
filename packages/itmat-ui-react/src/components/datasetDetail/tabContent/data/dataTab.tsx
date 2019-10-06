@@ -1,22 +1,17 @@
-import { Models } from 'itmat-utils';
-import * as React from 'react';
-import { Query, Mutation, useMutation } from 'react-apollo';
-import { GET_PROJECT } from '../../../../graphql/projects';
-import { CREATE_USER } from '../../../../graphql/appUsers';
-import * as css from './tabContent.module.css';
-import { NavLink, Redirect } from 'react-router-dom';
-import { FieldListSection } from '../../../reusable/fieldList';
-import { Subsection } from '../../../reusable/subsection';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
-import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from '../../../../graphql/study';
-import { UploadNewFields } from './uploadNewFields';
-import { DataSummaryVisual } from './dataSummary';
-import { UploadNewData } from './uploadNewData';
-import { IStudy, IStudyDataVersion } from 'itmat-utils/dist/models/study';
-import { FieldListSelectionSection } from './fieldListSelection';
 import { Switch } from 'antd';
 import 'antd/lib/switch/style/css';
+import { IStudy, IStudyDataVersion } from 'itmat-utils/dist/models/study';
+import * as React from 'react';
+import { Query, useMutation } from 'react-apollo';
+import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from '../../../../graphql/study';
 import { InfoCircle } from '../../../reusable/infoCircle';
+import { LoadingBalls } from '../../../reusable/loadingBalls';
+import { Subsection } from '../../../reusable/subsection';
+import { DataSummaryVisual } from './dataSummary';
+import { FieldListSelectionSection } from './fieldListSelection';
+import * as css from './tabContent.module.css';
+import { UploadNewData } from './uploadNewData';
+import { UploadNewFields } from './uploadNewFields';
 
 
 function removeDuplicateVersion(versions: IStudyDataVersion[]) {
@@ -33,21 +28,21 @@ function removeDuplicateVersion(versions: IStudyDataVersion[]) {
             uniqueContent.push({...el, originalPosition: tmp.length - ind - 1 });
         }
     });
-    console.log(uniqueContent)
+    console.log(uniqueContent);
     return uniqueContent.reverse();
 }
 
-export const DataManagementTabContent:React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const DataManagementTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>
         <div>
         <Query query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
-                if (loading) return <LoadingBalls/>;
-                if (error) return <p>Error :( {JSON.stringify(error)}</p>; 
+                if (loading) { return <LoadingBalls/>; }
+                if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
                 if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
                     return <DataManagement data={data.getStudy} showSaveVersionButton/>;
                 }
-                return <p>There is no data uploaded for this study yet.</p>; 
+                return <p>There is no data uploaded for this study yet.</p>;
             }}
         </Query>
         </div>
@@ -76,22 +71,22 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                     (
                         data.dataVersions.map((el, ind) =>
                         <React.Fragment key={el.id}>
-                            <div 
+                            <div
                                 key={el.id}
                                 onClick={() => { setSelectedVersion(ind); setAddNewDataSectionShown(false); } }
-                                className={css.data_version_cube + ( ind === selectedVersion ? ( ind === data.currentDataVersion? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '' )}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
+                                className={css.data_version_cube + ( ind === selectedVersion ? ( ind === data.currentDataVersion ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '' )}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
                             </div>
                             {ind === data.dataVersions.length - 1 ? null : <span className={css.arrow}>⟶</span>}
-                        </React.Fragment>
+                        </React.Fragment>,
                         )
                     )
                     :
                     (
                         removeDuplicateVersion(data.dataVersions).map((el, ind) => <React.Fragment key={el.id}>
-                            <div 
+                            <div
                                 key={el.id}
                                 onClick={() => { setSelectedVersion(el.originalPosition); setAddNewDataSectionShown(false); } }
-                                className={css.data_version_cube + ( el.originalPosition === selectedVersion ? ( el.contentId === currentVersionContent? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '' )}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
+                                className={css.data_version_cube + ( el.originalPosition === selectedVersion ? ( el.contentId === currentVersionContent ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '' )}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
                             </div>
                             {ind === removeDuplicateVersion(data.dataVersions).length - 1 ? null : <span className={css.arrow}>⟶</span>}
                         </React.Fragment>)
@@ -99,10 +94,10 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                 }
 
 
-                <div key='new data' className={css.data_version_cube + ' ' + css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</div>
-                { showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ? 
-                    <div key='save version'  onClick={() => { if (loading) {return;} setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id }}); }} className={css.data_version_cube + ' ' + css.versioning_section_button}>{ loading ? 'Loading...' : 'Set as current version'}</div>
-                  : null 
+                <div key="new data" className={css.data_version_cube + ' ' + css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</div>
+                { showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ?
+                    <div key="save version"  onClick={() => { if (loading) {return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id }}); }} className={css.data_version_cube + ' ' + css.versioning_section_button}>{ loading ? 'Loading...' : 'Set as current version'}</div>
+                  : null
                 }<br/>
             </> : null }
 
@@ -118,7 +113,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title='Fields & Variables'>
+            <Subsection title="Fields & Variables">
                 <FieldListSelectionSection
                     studyId={data.id}
                     selectedVersion={selectedVersion}
@@ -129,9 +124,9 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                 <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id}/>
             </Subsection>
         </div>
-        
+
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title='Data'>
+            <Subsection title="Data">
                 <DataSummaryVisual
                     studyId={data.id}
                     selectedVersion={selectedVersion}

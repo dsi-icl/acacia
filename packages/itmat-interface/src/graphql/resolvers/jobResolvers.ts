@@ -1,29 +1,20 @@
-import { Models, Logger } from 'itmat-utils';
-import { Database, db } from '../../database/database';
-import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
-import { IStudy } from 'itmat-utils/dist/models/study';
-import { makeGenericReponse, IGenericResponse } from '../responses';
-import { IQueryEntry } from 'itmat-utils/dist/models/query';
-import uuid from 'uuid/v4';
-import mongodb from 'mongodb';
-import { pubsub, subscriptionEvents } from '../pubsub';
-import { queryCore } from '../core/queryCore';
-import { IFile } from 'itmat-utils/dist/models/file';
-import { objStore } from '../../objStore/objStore';
-import { errorCodes } from '../errors';
+import { ApolloError } from 'apollo-server-express';
+import { Models } from 'itmat-utils';
 import { IJobEntry } from 'itmat-utils/dist/models/job';
-import { ClientRequestArgs } from 'http';
+import uuid from 'uuid/v4';
+import { db } from '../../database/database';
+import { errorCodes } from '../errors';
 
 enum JOB_TYPE {
     FIELD_INFO_UPLOAD = 'FIELD_INFO_UPLOAD',
     DATA_UPLOAD = 'DATA_UPLOAD',
-    DATA_EXPORT = 'DATA_EXPORT'
+    DATA_EXPORT = 'DATA_EXPORT',
 }
 
 export const jobResolvers = {
     Query: {},
     Mutation: {
-        createDataCurationJob: async(parent: object, args: { file: string, studyId: string, tag?: string, version: string }, context: any, info: any): Promise<IJobEntry<{ dataVersion: string, versionTag?: string }>> => {
+        createDataCurationJob: async (parent: object, args: { file: string, studyId: string, tag?: string, version: string }, context: any, info: any): Promise<IJobEntry<{ dataVersion: string, versionTag?: string }>> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -50,8 +41,8 @@ export const jobResolvers = {
                 cancelled: false,
                 data: {
                     dataVersion: args.version,
-                    versionTag: args.tag
-                }
+                    versionTag: args.tag,
+                },
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
@@ -60,7 +51,7 @@ export const jobResolvers = {
             }
             return job;
         },
-        createFieldCurationJob: async(parent: object, args: { file: string, studyId: string, tag: string, dataVersionId: string }, context: any, info: any): Promise<IJobEntry<{ dataVersionId: string, tag: string }>> => {
+        createFieldCurationJob: async (parent: object, args: { file: string, studyId: string, tag: string, dataVersionId: string }, context: any, info: any): Promise<IJobEntry<{ dataVersionId: string, tag: string }>> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -82,8 +73,8 @@ export const jobResolvers = {
                 cancelled: false,
                 data: {
                     dataVersionId: args.dataVersionId,
-                    tag: args.tag
-                }
+                    tag: args.tag,
+                },
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
@@ -92,7 +83,7 @@ export const jobResolvers = {
             }
             return job;
         },
-        createDataExportJob: async(parent: object, args: { studyId: string, projectId?: string }, context: any, info: any): Promise<IJobEntry<undefined>> => {
+        createDataExportJob: async (parent: object, args: { studyId: string, projectId?: string }, context: any, info: any): Promise<IJobEntry<undefined>> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -110,7 +101,7 @@ export const jobResolvers = {
                 receivedFiles: [],
                 error: null,
                 status: 'QUEUED',
-                cancelled: false
+                cancelled: false,
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
@@ -118,7 +109,7 @@ export const jobResolvers = {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
             return job;
-        }
+        },
     },
-    Subscription: {}
+    Subscription: {},
 };

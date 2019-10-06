@@ -1,0 +1,53 @@
+{
+    "extends": "tslint:recommended",
+    "rules": {
+        "indent": [
+            true,
+            "spaces",
+            4
+        ],
+        "max-line-length": {
+            "severity": "warning",
+            "options": {
+                "limit": 120,
+                "ignore-pattern": "^import |^export {(.*?)}"
+            }
+        },
+        "new-parens": true,
+        "no-arg": true,
+        "no-bitwise": true,
+        "no-conditional-assignment": true,
+        "no-consecutive-blank-lines": false,
+        "no-console": {
+            "severity": "warning",
+            "options": [
+                "debug",
+                "info",
+                "log",
+                "time",
+                "timeEnd",
+                "trace"
+            ]
+        },
+        "no-unused-expression": true,
+        "no-unused-variable": true,
+        "quotemark": {
+            "severity": "warning",
+            "options": [
+                "single",
+                "jsx-double",
+                "avoid-escape",
+                "avoid-template"
+            ]
+        }
+    },
+    "jsRules": {
+        "max-line-length": {
+            "severity": "warning",
+            "options": {
+                "limit": 120,
+                "ignore-pattern": "^import |^export {(.*?)}"
+            }
+        }
+    }
+}

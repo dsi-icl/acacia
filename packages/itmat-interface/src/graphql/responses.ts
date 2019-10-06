@@ -1,6 +1,6 @@
 export interface IGenericResponse {
-    successful: boolean,
-    id?: string
+    successful: boolean;
+    id?: string;
 }
 
 export function makeGenericReponse(id?: string): IGenericResponse {

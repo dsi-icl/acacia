@@ -1,29 +1,36 @@
 import * as mongodb from 'mongodb';
 import { CustomError } from './error';
 import { Logger } from './logger';
-import { connect } from 'tls';
 
 export interface IDatabaseBaseConfig {
-    mongo_url: string,
-    database: string,
+    mongo_url: string;
+    database: string;
     collections: {
-        [collectionDescription: string]: string  // collection name
-    }
+        [collectionDescription: string]: string,  // collection name
+    };
 }
 
 export interface IDatabase {
-    collections?: any,
-    connect: (config: any) => Promise<void>,
-    db: mongodb.Db,
-    client: mongodb.MongoClient,
-    isConnected: () => boolean,
-    closeConnection: () => Promise<void>
+    collections?: any;
+    connect: (config: any) => Promise<void>;
+    db: mongodb.Db;
+    client: mongodb.MongoClient;
+    isConnected: () => boolean;
+    closeConnection: () => Promise<void>;
 }
 
 export class Database<configType extends IDatabaseBaseConfig, C = { [name in keyof configType['collections']]: mongodb.Collection }> implements IDatabase {
+
+    get db(): mongodb.Db {
+        return this._client!.db(this.config!.database);
+    }
+
+    get client(): mongodb.MongoClient {
+        return this._client!;
+    }
+    public collections?: C;
     private _client?: mongodb.MongoClient;
     private config?: configType;
-    public collections?: C;
 
     public async connect(config: configType): Promise<void> {
         this._client = new mongodb.MongoClient(config.mongo_url, { useNewUrlParser: true });
@@ -44,14 +51,6 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
         } else {
             Logger.warn('Called connect function on an already connected database instance.');
         }
-    }
-
-    get db(): mongodb.Db {
-        return this._client!.db(this.config!.database);
-    }
-
-    get client(): mongodb.MongoClient {
-        return this._client!;
     }
 
     public isConnected(): boolean {
@@ -75,7 +74,7 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
     }
 
     private async checkAllCollectionsArePresent(): Promise<void> {
-        const collectionList: string[] = (await this.db.listCollections({}).toArray()).map(el => el.name);
+        const collectionList: string[] = (await this.db.listCollections({}).toArray()).map((el) => el.name);
         for (const each of Object.values(this.config!.collections)) {
             if (!collectionList.includes(each)) {
                 throw new CustomError(`Collection ${each} does not exist.`);

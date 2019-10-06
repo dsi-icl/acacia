@@ -8,11 +8,11 @@ export const enum alphabetTypes {
     arithmeticOperator = 7,
     quote = 8,
     comparisonOperator = 9,
-    others = 10
+    others = 10,
 }
 
 export const alphabetToTypeTable: {
-    [key: string]: alphabetTypes
+    [key: string]: alphabetTypes,
 } = {
     '0': alphabetTypes.digit,
     '1': alphabetTypes.digit,
@@ -79,13 +79,13 @@ export const alphabetToTypeTable: {
     '(': alphabetTypes.openParenthesis,
     ')': alphabetTypes.closeParenthesis,
     '\n': alphabetTypes.whitespace,
-    '\t': alphabetTypes.whitespace, 
+    '\t': alphabetTypes.whitespace,
     ' ': alphabetTypes.whitespace,
     '.': alphabetTypes.dot,
     '+': alphabetTypes.arithmeticOperator,
     '-': alphabetTypes.arithmeticOperator,
-    '*': alphabetTypes.arithmeticOperator,    
+    '*': alphabetTypes.arithmeticOperator,
     '/': alphabetTypes.arithmeticOperator,
     '"': alphabetTypes.quote,
-    '=': alphabetTypes.comparisonOperator
-}
+    '=': alphabetTypes.comparisonOperator,
+};

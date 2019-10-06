@@ -1,17 +1,13 @@
+import { IProject } from 'itmat-utils/dist/models/study';
 import * as React from 'react';
-import { Query, Mutation } from 'react-apollo';
-import { EDIT_USER, GET_USERS, DELETE_USER } from '../../graphql/appUsers';
-import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
 import { NavLink } from 'react-router-dom';
-import { Subsection } from '../reusable';
-import { IProject, IStudy } from 'itmat-utils/dist/models/study';
 import * as css from './sections.module.css';
 export const ProjectSection: React.FunctionComponent<{ study?: boolean, projects: IProject[] }> = ({ study, projects }) => {
     if (projects.length === 0) {
         return <p>{`User has not been added to any ${ study ? 'study' : 'project'}.`}</p>;
     }
     return <>
-        {projects.map(el => <OneProject key={el.id} project={el} study={study}/>)}
+        {projects.map((el) => <OneProject key={el.id} project={el} study={study}/>)}
     </>;
 };
 

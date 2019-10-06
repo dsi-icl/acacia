@@ -1,5 +1,5 @@
-import gql from "graphql-tag";
-import { job_fragment } from "./curation";
+import gql from 'graphql-tag';
+import { job_fragment } from './curation';
 
 
 export const GET_PROJECT = gql`
@@ -81,11 +81,11 @@ export const EDIT_PROJECT_APPROVED_FIELDS = gql`
                 itemType
                 numOfTimePoints
                 numOfMeasurements
-                notes 
+                notes
             }
         }
     }
-`; 
+`;
 
 export const EDIT_PROJECT_APPROVED_FILES = gql`
     mutation editProjectApprovedFiles($projectId: String!, $approvedFiles: [String]!) {
@@ -103,4 +103,4 @@ export const EDIT_PROJECT_APPROVED_FILES = gql`
             }
         }
     }
-`; 
+`;

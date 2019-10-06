@@ -1,8 +1,8 @@
-import { pipelineGenerator } from './pipeLineGenerator';
-import { IQueryEntry } from 'itmat-utils/dist/models/query';
-import { db } from '../database/database';
-import { IProject } from 'itmat-utils/dist/models/study';
 import { Logger } from 'itmat-utils';
+import { IQueryEntry } from 'itmat-utils/dist/models/query';
+import { IProject } from 'itmat-utils/dist/models/study';
+import { db } from '../database/database';
+import { pipelineGenerator } from './pipeLineGenerator';
 
 class QueryHandler {
     public async actOnDocument(document: IQueryEntry): Promise<void> {
@@ -17,20 +17,20 @@ class QueryHandler {
                 if (project === null || project === undefined) {
                     await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
                         error: 'Project does not exist or has been deleted.',
-                        status: 'FINISHED WITH ERROR'
+                        status: 'FINISHED WITH ERROR',
                     }});
                     return;
                 }
                 const mapping = project.patientMapping;
-                result.forEach(el => {
-                    if (el.m_eid === undefined) return;
+                result.forEach((el) => {
+                    if (el.m_eid === undefined) { return; }
                     el.m_eid = mapping[el.m_eid];
                 });
             }
 
             await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
                 queryResult: JSON.stringify(result),
-                status: 'FINISHED'
+                status: 'FINISHED',
             }});
             return;
         } catch (e) {
@@ -40,7 +40,7 @@ class QueryHandler {
             /* update query status */
             await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
                 error: e.toString(),
-                status: 'FINISHED WITH ERROR'
+                status: 'FINISHED WITH ERROR',
             }});
             return;
         }

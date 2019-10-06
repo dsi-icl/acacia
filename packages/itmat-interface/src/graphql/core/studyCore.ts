@@ -1,17 +1,14 @@
-import mongodb from 'mongodb';
-import { db } from '../../database/database';
-import { permissions } from 'itmat-utils';
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
-import { errorCodes } from '../errors';
+import { IProject, IStudy } from 'itmat-utils/dist/models/study';
 import uuidv4 from 'uuid/v4';
-import { IUser, userTypes } from 'itmat-utils/dist/models/user';
+import { db } from '../../database/database';
+import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
 
 export class StudyCore {
     constructor(private readonly permissionCore: PermissionCore) { }
 
-    async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
+    public async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
         const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
         if (studySearchResult === null || studySearchResult === undefined) {
             throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -19,7 +16,7 @@ export class StudyCore {
         return studySearchResult;
     }
 
-    async findOneProject_throwErrorIfNotExist(projectId: string): Promise<IProject> {
+    public async findOneProject_throwErrorIfNotExist(projectId: string): Promise<IProject> {
         const projectSearchResult: IProject = await db.collections!.projects_collection.findOne({ id: projectId, deleted: false })!;
         if (projectSearchResult === null || projectSearchResult === undefined) {
             throw new ApolloError('Project does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -27,7 +24,7 @@ export class StudyCore {
         return projectSearchResult;
     }
 
-    async createNewStudy(studyName: string, requestedBy: string): Promise<IStudy> {
+    public async createNewStudy(studyName: string, requestedBy: string): Promise<IStudy> {
         const study: IStudy = {
             id: uuidv4(),
             name: studyName,
@@ -35,13 +32,13 @@ export class StudyCore {
             currentDataVersion: -1,
             lastModified: new Date().valueOf(),
             dataVersions: [],
-            deleted: false
+            deleted: false,
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;
     }
 
-    async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
+    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuidv4(),
             studyId,
@@ -51,13 +48,13 @@ export class StudyCore {
             approvedFields: approvedFields ? approvedFields : [],
             approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
-            deleted: false
+            deleted: false,
         };
 
         const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
             { $match: { m_study: studyId } },
             { $group: { _id: null, array: { $addToSet: '$m_eid' } } },
-            { $project: { array: 1 } }
+            { $project: { array: 1 } },
         ]).toArray();
 
         if (getListOfPatientsResult === null || getListOfPatientsResult === undefined) {
@@ -70,7 +67,7 @@ export class StudyCore {
         return project;
     }
 
-    async deleteStudy(studyId: string): Promise<void> {
+    public async deleteStudy(studyId: string): Promise<void> {
         const session = db.client.startSession();
         session.startTransaction();
 
@@ -100,7 +97,7 @@ export class StudyCore {
         }
     }
 
-    async deleteProject(projectId: string): Promise<void> {
+    public async deleteProject(projectId: string): Promise<void> {
         const opts = { returnOriginal: false };
 
         /* delete all projects related to the study */
@@ -110,7 +107,7 @@ export class StudyCore {
         await this.permissionCore.removeRoleFromStudyOrProject({ projectId });
     }
 
-    async editProjectApprovedFields(projectId: string, approvedFields: string[]) {
+    public async editProjectApprovedFields(projectId: string, approvedFields: string[]) {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
         const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields } }, { returnOriginal: false });
         if (result.ok === 1) {
@@ -120,7 +117,7 @@ export class StudyCore {
         }
     }
 
-    async editProjectApprovedFiles(projectId: string, approvedFiles: string[]) {
+    public async editProjectApprovedFiles(projectId: string, approvedFiles: string[]) {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
         const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFiles } }, { returnOriginal: false });
         if (result.ok === 1) {
@@ -131,11 +128,11 @@ export class StudyCore {
     }
 
     private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string } {
-        let rangeArray: (string | number)[] = [...Array.from(listOfPatientId.keys())];
+        let rangeArray: Array<string | number> = [...Array.from(listOfPatientId.keys())];
         if (prefix === undefined) {
             prefix = uuidv4().substring(0, 2);
         }
-        rangeArray = rangeArray.map(e => `${prefix}${e}`);
+        rangeArray = rangeArray.map((e) => `${prefix}${e}`);
         rangeArray = this.shuffle(rangeArray);
         const mapping: { [originalPatientId: string]: string } = {};
         for (let i = 0, length = listOfPatientId.length; i < length; i++) {
@@ -145,7 +142,7 @@ export class StudyCore {
 
     }
 
-    private shuffle(array: (number | string)[]) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
+    private shuffle(array: Array<number | string>) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
         let currentIndex = array.length, temporaryValue, randomIndex;
 
         // While there remain elements to shuffle...

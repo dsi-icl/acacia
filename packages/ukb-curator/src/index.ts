@@ -1,9 +1,9 @@
-import { Db, Collection } from 'mongodb';
-import { ServerBase, CustomError, IServerBaseConfig, Logger, Models } from 'itmat-utils';
-import { ICodingMap, ICodingEntry } from './models/UKBCoding';
-import { IFieldMap, IFieldEntry } from './models/UKBFields';
+import { Logger, Models } from 'itmat-utils';
+import { Collection } from 'mongodb';
 import { UKBCSVCurator } from './curation/UKBCSVCurator';
 import { UKBImageCurator } from './curation/UKBImageCurator';
+import { ICodingEntry, ICodingMap } from './models/UKBCoding';
+import { IFieldEntry, IFieldMap } from './models/UKBFields';
 
 export class UKBCurator {
     private CODING_MAP: ICodingMap;
@@ -14,7 +14,7 @@ export class UKBCurator {
         private readonly fieldCollection: Collection,
         private readonly codingCollection: Collection,
         private readonly jobsCollection: Collection,
-        private readonly dataCollection: Collection
+        private readonly dataCollection: Collection,
     ) {
         this.CODING_MAP = {};
         this.FIELD_MAP = {};

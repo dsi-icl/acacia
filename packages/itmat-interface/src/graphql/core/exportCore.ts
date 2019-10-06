@@ -1,14 +1,14 @@
-import { db } from '../../database/database';
 import { ApolloError } from 'apollo-server-core';
 import { IJobEntry } from 'itmat-utils/dist/models/job';
-import { errorCodes } from '../errors';
-import uuidv4 from 'uuid/v4';
 import { IUser } from 'itmat-utils/dist/models/user';
+import uuidv4 from 'uuid/v4';
+import { db } from '../../database/database';
+import { errorCodes } from '../errors';
 
 export class ExportCore {
-    constructor(){}
+    constructor() {}
 
-    async createExportJob(studyId: string, requester: IUser, projectId?: string): Promise<IJobEntry<undefined>> {
+    public async createExportJob(studyId: string, requester: IUser, projectId?: string): Promise<IJobEntry<undefined>> {
 
         const exportjob: IJobEntry<undefined> = {
             jobType: 'EXPORT',
@@ -20,7 +20,7 @@ export class ExportCore {
             receivedFiles: [],
             status: 'WAITING',
             error: null,
-            cancelled: false
+            cancelled: false,
         };
         const result = await db.collections!.jobs_collection.insertOne(exportjob);
         if (result.result.ok === 1) {

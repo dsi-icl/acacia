@@ -1,30 +1,25 @@
-import { Models, Logger, permissions } from 'itmat-utils';
-import { Database, db } from '../../database/database';
-import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
-import { IStudy } from 'itmat-utils/dist/models/study';
-import { makeGenericReponse, IGenericResponse } from '../responses';
-import { IQueryEntry } from 'itmat-utils/dist/models/query';
-import uuid from 'uuid/v4';
-import mongodb from 'mongodb';
-import { pubsub, subscriptionEvents } from '../pubsub';
-import { queryCore } from '../core/queryCore';
+import { ApolloError } from 'apollo-server-express';
+import { Logger, Models, permissions } from 'itmat-utils';
 import { IFile } from 'itmat-utils/dist/models/file';
+import uuid from 'uuid/v4';
+import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
-import { errorCodes } from '../errors';
 import { permissionCore } from '../core/permissionCore';
+import { errorCodes } from '../errors';
+import { IGenericResponse, makeGenericReponse } from '../responses';
 
 
 export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async(parent: object, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
+        uploadFile: async (parent: object, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_file_management],
                 requester,
-                args.studyId
+                args.studyId,
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
@@ -47,7 +42,7 @@ export const fileResolvers = {
                         description: args.description,
                         uploadedBy: requester.id,
                         uri: fileUri,
-                        deleted: false
+                        deleted: false,
                     };
 
                     const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
@@ -65,13 +60,13 @@ export const fileResolvers = {
                 }
             });
         },
-        deleteFile: async(parent: object, args: { studyId: string, fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteFile: async (parent: object, args: { studyId: string, fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_file_management],
                 requester,
-                args.studyId
+                args.studyId,
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
@@ -81,7 +76,7 @@ export const fileResolvers = {
             } else {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
-        }
+        },
     },
-    Subscription: {}
+    Subscription: {},
 };

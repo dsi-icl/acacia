@@ -1,11 +1,11 @@
-import { JobHandler } from './jobHandlerInterface';
-import { IJobEntry } from 'itmat-utils/dist/models/job';
-import { objStore } from '../objStore/objStore';
-import { db } from '../database/database';
 // import { UKBCurator } from 'ukb-curator';
 import { IFile } from 'itmat-utils/dist/models/file';
+import { IJobEntry } from 'itmat-utils/dist/models/job';
 import { IStudyDataVersion } from 'itmat-utils/dist/models/study';
 import uuid from 'uuid/v4';
+import { db } from '../database/database';
+import { objStore } from '../objStore/objStore';
+import { JobHandler } from './jobHandlerInterface';
 
 export class UKB_CSV_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_CSV_UPLOAD_Handler;
@@ -52,13 +52,13 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
             uploadDate: new Date().valueOf(),
             fileSize: file.fileSize!,
             extractedFrom: file.fileName,
-            fieldTrees: []
+            fieldTrees: [],
         };
         await db.collections!.studies_collection.updateOne({ id: job.studyId }, {
             $push: { dataVersions: newDataVersion },
             $inc: {
-                currentDataVersion: 1
-            }
+                currentDataVersion: 1,
+            },
 
         });
     }

@@ -1,11 +1,11 @@
-import { alphabetTypes, alphabetToTypeTable} from './alphabet';
+import { alphabetTypes} from './alphabet';
 
 export const acceptingStates = [1, 2, 4, 5, 7, 9, 6, 10, 11];
 
 export const stateTransitionTable: {
     [key: number]: {
-        [key: number]: number
-    }
+        [key: number]: number,
+    },
 } = {
     0: {
         [alphabetTypes.arithmeticOperator]: 2,
@@ -15,7 +15,7 @@ export const stateTransitionTable: {
         [alphabetTypes.whitespace]: 5,
         [alphabetTypes.letter]: 6,
         [alphabetTypes.quote]: 3,
-        [alphabetTypes.comparisonOperator]: 10
+        [alphabetTypes.comparisonOperator]: 10,
     },
     1: {},
     2: {},
@@ -25,21 +25,21 @@ export const stateTransitionTable: {
     },
     4: {},
     5: {
-        [alphabetTypes.whitespace]: 5
+        [alphabetTypes.whitespace]: 5,
     },
     6: {
-        [alphabetTypes.letter]: 6
+        [alphabetTypes.letter]: 6,
     },
     7: {
         [alphabetTypes.digit]: 7,
-        [alphabetTypes.dot]: 8
+        [alphabetTypes.dot]: 8,
     },
     8: {
-        [alphabetTypes.digit]: 9
+        [alphabetTypes.digit]: 9,
     },
     9: {
-        [alphabetTypes.digit]: 9
+        [alphabetTypes.digit]: 9,
     },
     10: {},
-    11: {}
-}
+    11: {},
+};

@@ -1,20 +1,20 @@
-import express from 'express';
-import { Express, Request, Response, NextFunction } from 'express';
-import { CustomError, Logger } from 'itmat-utils';
-import { userLoginUtils } from '../utils/userLoginUtils';
-import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
+import { ApolloError } from 'apollo-server-express';
+import { ApolloServer } from 'apollo-server-express';
 import bodyParser from 'body-parser';
-import passport from 'passport';
-import session from 'express-session';
 import connectMongo from 'connect-mongo';
-import multer from 'multer';
-import http from 'http';
-import { ApolloServer, gql } from 'apollo-server-express';
-import { schema } from '../graphql/schema';
-import { resolvers } from '../graphql/resolvers';
-import { Database } from '../database/database';
 import cors from 'cors';
+import express from 'express';
+import { Express, NextFunction, Request, Response } from 'express';
+import session from 'express-session';
+import http from 'http';
+import { CustomError, Logger } from 'itmat-utils';
+import multer from 'multer';
+import passport from 'passport';
+import { Database } from '../database/database';
+import { resolvers } from '../graphql/resolvers';
+import { schema } from '../graphql/schema';
 import { fileDownloadController } from '../rest/fileDownload';
+import { userLoginUtils } from '../utils/userLoginUtils';
 const MongoStore = connectMongo(session);
 const upload = multer();
 
@@ -36,7 +36,7 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(session({
             secret: 'IAmATeapot',
-            store: new MongoStore({ db: db.db } as any)
+            store: new MongoStore({ db: db.db } as any),
         }));
 
 
@@ -63,7 +63,7 @@ export class Router {
                 // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
                 Logger.error(error);
                 return error;
-            }
+            },
         });
         gqlServer.applyMiddleware({ app: this.app, cors: { origin: 'http://localhost:3000', credentials: true } });
 

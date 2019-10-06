@@ -1,5 +1,4 @@
 import { Models } from 'itmat-utils';
-import mongodb from 'mongodb';
 import { db } from '../database/database';
 
 export class UserLoginUtils {

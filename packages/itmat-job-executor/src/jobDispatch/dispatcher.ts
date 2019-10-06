@@ -1,12 +1,9 @@
-import { Models, OpenStackSwiftObjectStore } from 'itmat-utils';
-import { Database } from '../database/database';
 import { IJobEntry } from 'itmat-utils/dist/models/job';
-import { UKBFieldInfoPlugin } from '../plugins/fieldInfoPlugin';
 import { JobHandler } from '../jobHandlers/jobHandlerInterface';
 
 export class JobDispatcher {
     private _handlerCollection: {
-        [jobType: string]: () => Promise<JobHandler>
+        [jobType: string]: () => Promise<JobHandler>,
     };
 
     constructor() { // tslint:disable-line

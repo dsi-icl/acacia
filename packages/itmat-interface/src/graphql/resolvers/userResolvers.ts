@@ -1,16 +1,14 @@
-import { UserInputError, ForbiddenError, ApolloError } from 'apollo-server-express';
-import { Models, Logger } from 'itmat-utils';
+import { ApolloError, UserInputError } from 'apollo-server-express';
+import bcrypt from 'bcrypt';
+import { Logger, Models } from 'itmat-utils';
+import { IProject, IRole, IStudy } from 'itmat-utils/dist/models/study';
+import { IUser, userTypes } from 'itmat-utils/dist/models/user';
+import mongodb from 'mongodb';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
-import mongodb from 'mongodb';
-import bcrypt from 'bcrypt';
-import uuidv4 from 'uuid/v4';
-import { makeGenericReponse } from '../responses';
-import { IUser, userTypes } from 'itmat-utils/dist/models/user';
-import { studyCore } from '../core/studyCore';
 import { userCore } from '../core/userCore';
-import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
 import { errorCodes } from '../errors';
+import { makeGenericReponse } from '../responses';
 
 export const userResolvers = {
     Query: {
@@ -24,7 +22,7 @@ export const userResolvers = {
             const queryObj = args.userId === undefined ? { deleted: false } : { deleted: false, id: args.userId };
             const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
-        }
+        },
     },
     User: {
         access: async (user: IUser, arg: any, context: any): Promise<{ projects: IProject[], studies: IStudy[], id: string }> => {
@@ -53,7 +51,7 @@ export const userResolvers = {
                         a.studies.push(e.studyId);
                     }
                     return a;
-                }, init
+                }, init,
             );
 
             const projects: IProject[] = await db.collections!.projects_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: false }).toArray();
@@ -102,7 +100,7 @@ export const userResolvers = {
             delete result.password;
             delete result.deleted;
 
-            return new Promise(resolve => {
+            return new Promise((resolve) => {
                 req.login(result, (err: any) => {
                     if (err) {
                         Logger.error(err);
@@ -118,8 +116,8 @@ export const userResolvers = {
             if (requester === undefined || requester === null) {
                 return makeGenericReponse(context.req.user);
             }
-            return new Promise(resolve => {
-                req.session!.destroy(err => {
+            return new Promise((resolve) => {
+                req.session!.destroy((err) => {
                     req.logout();
                     if (err) {
                         Logger.error(err);
@@ -139,7 +137,7 @@ export const userResolvers = {
             }
 
             const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
+                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string,
             } = args.user;
 
             const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: false }); // since bycrypt is CPU expensive let's check the username is not taken first
@@ -155,7 +153,7 @@ export const userResolvers = {
                 realName,
                 email,
                 organisation,
-                emailNotificationsActivated
+                emailNotificationsActivated,
             });
 
             return createdUser;
@@ -172,7 +170,7 @@ export const userResolvers = {
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
+                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string,
             } = args.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
@@ -195,7 +193,7 @@ export const userResolvers = {
                 emailNotificationsActivated,
                 password,
                 description,
-                organisation
+                organisation,
             };
             if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
             for (const each of Object.keys(fieldsToUpdate)) {
@@ -209,7 +207,7 @@ export const userResolvers = {
             } else {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }
-        }
+        },
     },
-    Subscription: {}
+    Subscription: {},
 };

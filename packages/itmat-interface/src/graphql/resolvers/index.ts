@@ -1,10 +1,10 @@
+import GraphQLJSON from 'graphql-type-json';
+import { fileResolvers } from './fileResolvers';
+import { jobResolvers } from './jobResolvers';
+import { permissionResolvers } from './permissionResolvers';
+import { queryResolvers } from './queryResolvers';
 import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
-import { queryResolvers } from './queryResolvers';
-import { permissionResolvers } from './permissionResolvers';
-import { jobResolvers } from './jobResolvers';
-import { fileResolvers } from './fileResolvers';
-import GraphQLJSON from 'graphql-type-json';
 
 const modules = [
     studyResolvers,
@@ -12,7 +12,7 @@ const modules = [
     queryResolvers,
     permissionResolvers,
     jobResolvers,
-    fileResolvers
+    fileResolvers,
 ];
 
 const loggingDecorator = (reducerFunction: Function) => {

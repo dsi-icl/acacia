@@ -1,8 +1,8 @@
+import { Logger, Models } from 'itmat-utils';
 import mongodb from 'mongodb';
-import { IFieldMap } from '../models/UKBFields';
 import { IFieldDescriptionObject } from '../models/curationUtils';
+import { IFieldMap } from '../models/UKBFields';
 import { JobUtils } from '../utils/jobUtils';
-import { Models, Logger } from 'itmat-utils';
 
 export class UKBImageCurator {
     private jobUtils: JobUtils;
@@ -54,7 +54,7 @@ export class UKBImageCurator {
         return ({
                 fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-'))),
                 instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.'))),
-                array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1))
+                array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1)),
         });
     }
 }

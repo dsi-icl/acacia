@@ -1,8 +1,8 @@
-import { ILoaderPlugin } from "./interface";
-import { MongoClient, Db } from "itmat-utils/node_modules/@types/mongodb";
 import csvparse from 'csv-parse';
-import { IFieldEntry } from "itmat-utils/dist/models/field";
+import { IFieldEntry } from 'itmat-utils/dist/models/field';
+import { Db } from 'itmat-utils/node_modules/@types/mongodb';
 import uuidv4 from 'uuid/v4';
+import { ILoaderPlugin } from './interface';
 
 export class UKBFieldInfoPlugin implements ILoaderPlugin {
     private inputStream?: NodeJS.ReadableStream;
@@ -11,22 +11,22 @@ export class UKBFieldInfoPlugin implements ILoaderPlugin {
 
     constructor(private readonly jobId: string, private readonly studyId: string) {}
 
-    setInputStream(inputStream: NodeJS.ReadableStream): UKBFieldInfoPlugin {
-        this.inputStream = inputStream; 
+    public setInputStream(inputStream: NodeJS.ReadableStream): UKBFieldInfoPlugin {
+        this.inputStream = inputStream;
         return this;
     }
 
-    setTargetCollection(collectionName: string): UKBFieldInfoPlugin {
+    public setTargetCollection(collectionName: string): UKBFieldInfoPlugin {
         this.collectionName = collectionName;
         return this;
     }
 
-    setDBClient(client: Db): UKBFieldInfoPlugin {
+    public setDBClient(client: Db): UKBFieldInfoPlugin {
         this.dbClient = client;
         return this;
     }
 
-    async processInputStreamToFieldEntry() {
+    public async processInputStreamToFieldEntry() {
         if (!this.dbClient || !this.collectionName || !this.inputStream) {
             throw new Error('Cannot process input before setting dbClient, collectionName and inputStream.');
         }
@@ -34,7 +34,7 @@ export class UKBFieldInfoPlugin implements ILoaderPlugin {
         const bulkInsert = collection.initializeUnorderedBulkOp();
         const parser: NodeJS.ReadableStream = this.inputStream.pipe(csvparse({ columns: true, delimiter: '\t' })); // piping the incoming stream to a parser stream
 
-        parser.on('data', async line => {
+        parser.on('data', async (line) => {
             console.log(line.instance_min, parseInt(line.instance_min));
             const field: IFieldEntry = {
                 id: uuidv4(),
@@ -52,7 +52,7 @@ export class UKBFieldInfoPlugin implements ILoaderPlugin {
                 notes: line.notes,
                 jobId: this.jobId,
                 dateAdded: new Date().valueOf(),
-                deleted: false 
+                deleted: false,
             };
             bulkInsert.insert(field);
         });
