@@ -7,7 +7,7 @@
 //  */
 
 class PipelineGenerator {
-    constructor(private readonly config = {}) {}
+    constructor(private readonly config = {}) { }
 
     /*
     * @fn buildPipeline
@@ -46,7 +46,7 @@ class PipelineGenerator {
     }
     */
     public buildPipeline(query: any) {
-        const fields = {_id: 0, m_eid: 1};
+        const fields = { _id: 0, m_eid: 1 };
         // We send back the requested fields
         query.data_requested.forEach((field: any) => {
             (fields as any)[field] = 1;
@@ -79,16 +79,16 @@ class PipelineGenerator {
 
         if (this._isEmptyObject(addFields)) {
             return [
-                {$match: { m_study: query.studyId }},
-                {$match: match},
-                {$project: fields}
+                { $match: { m_study: query.studyId } },
+                { $match: match },
+                { $project: fields }
             ];
         } else {
             return [
-                {$match: { m_study: query.studyId }},
-                {$addFields: addFields},
-                {$match: match},
-                {$project: fields}
+                { $match: { m_study: query.studyId } },
+                { $addFields: addFields },
+                { $match: match },
+                { $project: fields }
             ];
         }
     }
@@ -110,26 +110,36 @@ class PipelineGenerator {
 
         switch (expression.op) {
             case '*':
-                newField = {$multiply: [this._createNewField(expression.left), this._createNewField(expression.right)]};
+                newField = {
+                    $multiply: [this._createNewField(expression.left), this._createNewField(expression.right)]
+                };
                 break;
             case '/':
-                newField = {$divide: [this._createNewField(expression.left), this._createNewField(expression.right)]};
+                newField = {
+                    $divide: [this._createNewField(expression.left), this._createNewField(expression.right)]
+                };
                 break;
             case '-':
-                newField = {$subtract: [this._createNewField(expression.left), this._createNewField(expression.right)]};
+                newField = {
+                    $subtract: [this._createNewField(expression.left), this._createNewField(expression.right)]
+                };
                 break;
             case '+':
-                newField = {$add: [this._createNewField(expression.left), this._createNewField(expression.right)]};
+                newField = {
+                    $add: [this._createNewField(expression.left), this._createNewField(expression.right)]
+                };
                 break;
             case '^':
                 // NB the right side my be an integer while the left must be a field !
-                newField = {$pow: [ '$' + expression.left,  parseInt(expression.right)]};
+                newField = {
+                    $pow: ['$' + expression.left, parseInt(expression.right, 10)]
+                };
                 break;
             case 'val':
                 newField = parseFloat(expression.left);
                 break;
             case 'field':
-                newField =  '$' + expression.left;
+                newField = '$' + expression.left;
                 break;
             default:
                 break;
@@ -158,7 +168,7 @@ class PipelineGenerator {
     private _translateCohort(cohort: any) {
         const match = {};
 
-        cohort.forEach(function(select: any) {
+        cohort.forEach(function (select: any) {
 
             switch (select.op) {
                 case '=':
@@ -180,9 +190,15 @@ class PipelineGenerator {
                 case 'derived':
                     // equation must only have + - * /
                     const derivedOperation = select.value.split(' ');
-                    if (derivedOperation[0] === '=') {(match as any)[select.field] = {$eq: parseFloat(select.value)}; }
-                    if (derivedOperation[0] === '>') {(match as any)[select.field] = {$gt: parseFloat(select.value)}; }
-                    if (derivedOperation[0] === '<') {(match as any)[select.field] = {$lt: parseFloat(select.value)}; }
+                    if (derivedOperation[0] === '=') {
+                        (match as any)[select.field] = { $eq: parseFloat(select.value) };
+                    }
+                    if (derivedOperation[0] === '>') {
+                        (match as any)[select.field] = { $gt: parseFloat(select.value) };
+                    }
+                    if (derivedOperation[0] === '<') {
+                        (match as any)[select.field] = { $lt: parseFloat(select.value) };
+                    }
                     break;
                 case 'exists':
                     // We check if the field exists. This is to be used for checking if a patient
@@ -193,9 +209,15 @@ class PipelineGenerator {
                     // counts can only be positive. NB: > and < are inclusive e.g. < is <=
                     const countOperation = select.value.split(' ');
                     const countfield = select.field + '.count';
-                    if (countOperation[0] === '=') {(match as any)[countfield] = {$eq: parseInt(countOperation[1])}; }
-                    if (countOperation[0] === '>') {(match as any)[countfield] = {$gt:  parseInt(countOperation[1])}; }
-                    if (countOperation[0] === '<') {(match as any)[countfield] = {$lt:  parseInt(countOperation[1])}; }
+                    if (countOperation[0] === '=') {
+                        (match as any)[countfield] = { $eq: parseInt(countOperation[1], 10) };
+                    }
+                    if (countOperation[0] === '>') {
+                        (match as any)[countfield] = { $gt: parseInt(countOperation[1], 10) };
+                    }
+                    if (countOperation[0] === '<') {
+                        (match as any)[countfield] = { $lt: parseInt(countOperation[1], 10) };
+                    }
                     break;
                 default:
                     break;

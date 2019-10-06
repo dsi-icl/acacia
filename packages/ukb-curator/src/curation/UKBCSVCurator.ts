@@ -226,9 +226,9 @@ export class UKBCSVCurator {
 
     private parseFieldHeader(fieldHeader: string): IFieldDescriptionObject {
         return ({
-            fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-'))),
-            instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.'))),
-            array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1))
+            fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-')), 10),
+            instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.')), 10),
+            array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1), 10)
         });
     }
 

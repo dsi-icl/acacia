@@ -28,7 +28,7 @@ async function main() {
         trimHeaders: true,
         transform: process.argv[6] === 'fields' ? undefined : (value, col) => {
             if (col === 'Coding') {
-                return parseInt(value);
+                return parseInt(value, 10);
             } else {
                 return value;
             }
