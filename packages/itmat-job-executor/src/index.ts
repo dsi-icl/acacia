@@ -1,9 +1,9 @@
 import { Server } from './server/server';
 import { Router } from './server/router';
 import { db } from './database/database';
-import config from '../config/config.json';
+import config from './utils/configManager';
 import { OpenStackSwiftObjectStore } from 'itmat-utils';
-import { JobPoller } from 'itmat-utils';
+import { JobPoller, } from 'itmat-utils';
 import { JobDispatcher } from './jobDispatch/dispatcher';
 import { objStore } from './objStore/objStore';
 
@@ -29,4 +29,8 @@ db.connect(config.database)
         const poller = new JobPoller('me', undefined, db.collections!.jobs_collection, config.pollingInterval, jobDispatcher.dispatch);
         poller.setInterval();
         return;
-});
+    })
+    .catch((e) => {
+        console.error('Could not start executor:', e.message)
+        process.exit(1);
+    });

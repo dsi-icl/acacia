@@ -2,7 +2,7 @@ import mongodb from 'mongodb';
 import bcrypt from 'bcrypt';
 import { db } from '../../database/database';
 import { permissions, Models } from 'itmat-utils';
-import config from '../../../config/config.json';
+import config from '../../utils/configManager';
 
 import { ApolloError } from 'apollo-server-core';
 import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';

@@ -9,7 +9,7 @@ import { IUser, userTypes } from 'itmat-utils/dist/models/user';
 import { PermissionCore, permissionCore } from './permissionCore';
 
 export class StudyCore {
-    constructor(private readonly permissionCore: PermissionCore){}
+    constructor(private readonly permissionCore: PermissionCore) { }
 
     async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
         const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
@@ -56,8 +56,8 @@ export class StudyCore {
 
         const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
             { $match: { m_study: studyId } },
-            { $group: {  _id: null, array: { $addToSet: '$m_eid' } }  },
-            { $project: { array: 1 }}
+            { $group: { _id: null, array: { $addToSet: '$m_eid' } } },
+            { $project: { array: 1 } }
         ]).toArray();
 
         if (getListOfPatientsResult === null || getListOfPatientsResult === undefined) {
@@ -77,7 +77,7 @@ export class StudyCore {
         try {
             const opts = { session, returnOriginal: false };
             /* delete the study */
-            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true   }});
+            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
 
             /* delete all projects related to the study */
             await db.collections!.projects_collection.updateMany({ studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
@@ -110,7 +110,7 @@ export class StudyCore {
         await this.permissionCore.removeRoleFromStudyOrProject({ projectId });
     }
 
-    async editProjectApprovedFields(projectId: string, approvedFields: string[] ) {
+    async editProjectApprovedFields(projectId: string, approvedFields: string[]) {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
         const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields } }, { returnOriginal: false });
         if (result.ok === 1) {
@@ -120,7 +120,7 @@ export class StudyCore {
         }
     }
 
-    async editProjectApprovedFiles(projectId: string, approvedFiles: string[] ) {
+    async editProjectApprovedFiles(projectId: string, approvedFiles: string[]) {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
         const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFiles } }, { returnOriginal: false });
         if (result.ok === 1) {
@@ -130,37 +130,37 @@ export class StudyCore {
         }
     }
 
-    private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string} { 
-        let rangeArray: (string| number)[] = [...Array(listOfPatientId.length).keys()];
+    private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string } {
+        let rangeArray: (string | number)[] = [...Array.from(listOfPatientId.keys())];
         if (prefix === undefined) {
-            prefix = uuidv4().substring(0,2);
+            prefix = uuidv4().substring(0, 2);
         }
         rangeArray = rangeArray.map(e => `${prefix}${e}`);
         rangeArray = this.shuffle(rangeArray);
-        const mapping: { [originalPatientId: string]: string} = {};
+        const mapping: { [originalPatientId: string]: string } = {};
         for (let i = 0, length = listOfPatientId.length; i < length; i++) {
             mapping[listOfPatientId[i]] = (rangeArray as string[])[i];
         }
         return mapping;
-    
+
     }
-    
-    private shuffle(array: (number|string)[]) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
+
+    private shuffle(array: (number | string)[]) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
         let currentIndex = array.length, temporaryValue, randomIndex;
-        
+
         // While there remain elements to shuffle...
         while (0 !== currentIndex) {
-        
+
             // Pick a remaining element...
             randomIndex = Math.floor(Math.random() * currentIndex);
             currentIndex -= 1;
-        
+
             // And swap it with the current element.
             temporaryValue = array[currentIndex];
             array[currentIndex] = array[randomIndex];
             array[randomIndex] = temporaryValue;
         }
-        
+
         return array;
     }
 }
