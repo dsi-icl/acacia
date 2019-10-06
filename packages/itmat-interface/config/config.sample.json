@@ -1,27 +1,29 @@
 {
-  "database": {
-    "mongo_url": "mongodb://user:password@mongo.dsi.ic.ac.uk:27017/ukbiobank",
-    "database": "ukbiobank",
-    "collections": {
-      "jobs_collection": "JOB_COLLECTION",
-      "users_collection": "USER_COLLECTION",
-      "studies_collection": "STUDY_COLLECTION",
-      "roles_collection": "ROLE_COLLECTION",
-      "projects_collection": "PROJECT_COLLECTION",
-      "queries_collection": "QUERY_COLLECTION",
-      "log_collection": "LOG_COLLECTION",
-      "field_dictionary_collection": "clinical_fieldDictionary"
+    "database": {
+        "mongo_url": "mongodb://user:password@localhost:27017/test",
+        "database": "test",
+        "collections": {
+            "jobs_collection": "JOB_COLLECTION",
+            "users_collection": "USER_COLLECTION",
+            "studies_collection": "STUDY_COLLECTION",
+            "projects_collection": "PROJECT_COLLECTION",
+            "queries_collection": "QUERY_COLLECTION",
+            "log_collection": "LOG_COLLECTION",
+            "data_collection": "DATA_COLLECTION",
+            "roles_collection": "ROLE_COLLECTION",
+            "field_dictionary_collection": "FIELD_COLLECTION",
+            "files_collection": "FILES_COLLECTION"
+        }
+    },
+    "server": {
+        "port": 3003
+    },
+    "bcrypt": {
+        "saltround": 2
+    },
+    "swift": {
+        "uri": "https://localhost:8080/auth/v1.0",
+        "username": "test:tester",
+        "password": "testing"
     }
-  },
-  "server": {
-    "port": 3003
-  },
-  "bcrypt": {
-    "saltround": 2
-  },
-  "swift": {
-    "uri": "http://swift.dsi.ic.ac.uk:8080/auth/v1.0",
-    "username": "test:tester",
-    "password": "testing"
-  }
 }
