@@ -2,6 +2,7 @@ import csvparse from 'csv-parse';
 import { ICodingMap } from '../models/UKBCoding';
 import { IFieldDescriptionObject, IHeaderArrayElement } from '../models/curationUtils';
 import { UKBiobankValueTypes } from '../models/UKBDataType';
+import { IFieldMap } from '../models/UKBFields';
 import { Models, CustomError } from 'itmat-utils';
 import mongo, { Collection } from 'mongodb';
 
@@ -14,7 +15,7 @@ export interface IDataEntry {
         [instance: string]: {
             [array: number]: number | string
         }
-    } | string | boolean | string []
+    } | string | boolean | string[]
 }
 
 /* update should be audit trailed */
@@ -40,7 +41,7 @@ export class UKBCSVCurator {
         private readonly _codingDict: ICodingMap, // tslint:disable-line
         private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"' }
     ) {
-        this._header = [ null ]; // the first element is subject id
+        this._header = [null]; // the first element is subject id
         this._fieldsWithError = [];
         this._numOfSubj = 0;
         this._headerProcessedSuccessfully = false;
@@ -81,7 +82,8 @@ export class UKBCSVCurator {
                     m_in_qc: true,
                     m_eid: line[0],
                     m_jobId: this.jobId,
-                    m_study: this.studyName }, line);
+                    m_study: this.studyName
+                }, line);
 
                 bulkInsert.insert(entry);
                 this._numOfSubj++;
@@ -105,7 +107,7 @@ export class UKBCSVCurator {
         });
     }
 
-    private async processValue(headerElementForField: IHeaderArrayElement, preValue: string): Promise<string|number|false> {
+    private async processValue(headerElementForField: IHeaderArrayElement, preValue: string): Promise<string | number | false> {
         /* PRECONDITION: this.processHeader must be called */
         /* PRECONDITION: preValue is not null or empty string (checked in the enclosing function) */
 
@@ -168,7 +170,8 @@ export class UKBCSVCurator {
     private async setJobStatusToError(errorMsg: string) {
         const updateResult: mongo.UpdateWriteOpResult = await this.jobsCollection.updateOne(
             { id: this.jobId },
-            { $set:
+            {
+                $set:
                 {
                     status: 'Finished',
                     error: errorMsg
@@ -187,7 +190,7 @@ export class UKBCSVCurator {
         const entry: any = Object.assign(originalEntry);
 
         for (let i = 1; i < line.length; i++) {
-            if (line[i] === '' || this._header[i] === null || line[i] === null || this._header[i] === undefined ) {
+            if (line[i] === '' || this._header[i] === null || line[i] === null || this._header[i] === undefined) {
                 continue;
             }
 
@@ -195,7 +198,7 @@ export class UKBCSVCurator {
             const fieldDescription: IHeaderArrayElement = this._header[i] as IHeaderArrayElement;
 
             /************************HERE IS THE MAIN DIFFERENCE BETWEEN IMPLEMENTATIONS ******/
-            const { field: { instance, fieldId, array }, totalArrayNumber  } = this._header[i] as IHeaderArrayElement;
+            const { field: { instance, fieldId, array }, totalArrayNumber } = this._header[i] as IHeaderArrayElement;
             if (entry[fieldId] === undefined) {
                 entry[fieldId] = {};
             }
@@ -223,13 +226,13 @@ export class UKBCSVCurator {
 
     private parseFieldHeader(fieldHeader: string): IFieldDescriptionObject {
         return ({
-                fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-'))),
-                instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.'))),
-                array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1))
+            fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-'))),
+            instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.'))),
+            array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1))
         });
     }
 
-    private checkFieldIsValid(field: IFieldDescriptionObject, fieldInfo: IFieldEntry|undefined): boolean {
+    private checkFieldIsValid(field: IFieldDescriptionObject, fieldInfo: IFieldEntry | undefined): boolean {
         return (fieldInfo !== undefined
             && field.fieldId === fieldInfo.FieldID
             && fieldInfo.Instances >= field.instance
@@ -254,7 +257,7 @@ export class UKBCSVCurator {
         }
     }
 
-    private async processValue_helper_testValueType(headerElementForField: IHeaderArrayElement, preValue: string): Promise<string|number|false> {
+    private async processValue_helper_testValueType(headerElementForField: IHeaderArrayElement, preValue: string): Promise<string | number | false> {
         if (headerElementForField.valueType === 'integer' || headerElementForField.valueType === 'float') {
             if (!isNaN(parseFloat(preValue))) {  // better ways to test isNan??..
                 return parseFloat(preValue);

@@ -20,7 +20,7 @@ export interface IDatabase {
     closeConnection: () => Promise<void>
 }
 
-export class Database<configType extends IDatabaseBaseConfig, C = {[name in keyof configType['collections']]: mongodb.Collection} > implements IDatabase {
+export class Database<configType extends IDatabaseBaseConfig, C = { [name in keyof configType['collections']]: mongodb.Collection }> implements IDatabase {
     private _client?: mongodb.MongoClient;
     private config?: configType;
     public collections?: C;

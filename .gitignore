@@ -91,6 +91,8 @@ notes/
 
 dist/
 
+config/
+
 .vscode/
 
 diagnostics/
