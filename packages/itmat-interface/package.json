@@ -52,7 +52,7 @@
         "cors": "2.8.5",
         "eslint-plugin-typescript": "0.14.0",
         "jest": "24.9.0",
-        "mongodb-memory-server": "5.2.7",
+        "mongodb-memory-server": "5.2.8",
         "rimraf": "3.0.0",
         "supertest": "4.0.2",
         "typescript": "3.6.3",
