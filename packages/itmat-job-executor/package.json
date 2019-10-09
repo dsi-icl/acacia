@@ -22,7 +22,7 @@
         "csv-parse": "4.6.3",
         "express": "4.17.1",
         "itmat-utils": "1.1.8",
-        "json2csv": "4.5.3",
+        "json2csv": "4.5.4",
         "mongodb": "3.3.2",
         "node-fetch": "2.6.0",
         "ukb-curator": "^1.0.0",
