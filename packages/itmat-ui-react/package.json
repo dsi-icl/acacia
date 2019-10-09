@@ -41,7 +41,7 @@
         "@types/node": "12.7.12",
         "cross-env": "6.0.3",
         "rimraf": "3.0.0",
-        "typescript": "3.6.3"
+        "typescript": "3.6.4"
     },
     "eslintConfig": {
         "extends": "react-app"
