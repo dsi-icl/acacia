@@ -22,7 +22,7 @@
         "connect-mongo": "3.0.0",
         "deepmerge": "4.1.1",
         "express": "4.17.1",
-        "express-session": "1.16.2",
+        "express-session": "1.17.0",
         "fs-extra": "8.1.0",
         "graphql": "14.5.8",
         "graphql-type-json": "0.3.0",
