@@ -60,7 +60,7 @@
         "rimraf": "3.0.0",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
-        "ts-loader": "6.1.0",
+        "ts-loader": "6.2.0",
         "typescript": "3.6.4",
         "typescript-eslint-parser": "21.0.2",
         "webpack": "4.40.2",
