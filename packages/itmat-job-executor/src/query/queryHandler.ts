@@ -1,7 +1,7 @@
 import { pipelineGenerator } from './pipeLineGenerator';
-import { IQueryEntry } from 'itmat-commons/dist/models/query';
+import { IQueryEntry } from 'itmat-utils/dist/models/query';
 import { db } from '../database/database';
-import { IProject } from 'itmat-commons/dist/models/study';
+import { IProject } from 'itmat-utils/dist/models/study';
 import { Logger } from 'itmat-utils';
 
 class QueryHandler {

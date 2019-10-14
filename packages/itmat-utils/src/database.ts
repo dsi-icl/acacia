@@ -26,10 +26,7 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
     public collections?: C;
 
     public async connect(config: configType): Promise<void> {
-        this._client = new mongodb.MongoClient(config.mongo_url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        this._client = new mongodb.MongoClient(config.mongo_url, { useNewUrlParser: true });
         this.config = config;
         if (!this.isConnected()) {
             Logger.log('Connecting to the database..');

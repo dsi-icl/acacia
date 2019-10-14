@@ -1,14 +1,10 @@
 import React from 'react';
-import { IFile } from 'itmat-commons/dist/models/file';
+import { UPLOAD_FILE } from '../../graphql/files';
+import { Mutation } from 'react-apollo';
+import { IFile } from 'itmat-utils/dist/models/file';
 
-export function formatBytes(size: number, decimal: number = 2) {
-    if (size === 0)
-        return "0 B";
-    const base = 1024;
-    const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-    const order = Math.floor(Math.log(size) / Math.log(base));
-    return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + " " + units[order];
-}
+/* https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript */
+export function formatBytes(a: number, b?: number){if(0==a)return"0 B";var c=1024,d=b||2,e=["B","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f]}
 
 export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files }) => {
     return <div>
@@ -22,7 +18,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
                 </tr>
             </thead>
             <tbody>
-                {files.map(el => <OneFile file={el} key={el.id} />)}
+                {files.map(el => <OneFile file={el} key={el.id}/>)}
             </tbody>
         </table>
     </div>;

@@ -11,14 +11,12 @@
         "emitDecoratorMetadata": true,
         "esModuleInterop": true,
         "experimentalDecorators": true,
-        "module": "esnext",
+        "module": "commonjs",
         "target": "es5",
-        "sourceMap": true,
-        "moduleResolution": "node"
+        "sourceMap": true
     },
     "exclude": [
         "node_modules",
-        "build",
         "dist"
     ]
 }

@@ -1,4 +1,4 @@
-import { IJobEntry } from "itmat-commons/dist/models/job";
+import { IJobEntry } from "itmat-utils/dist/models/job";
 
 export abstract class JobHandler {
     protected constructor() { }

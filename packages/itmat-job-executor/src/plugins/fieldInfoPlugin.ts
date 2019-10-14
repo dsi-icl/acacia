@@ -1,7 +1,7 @@
 import { ILoaderPlugin } from "./interface";
-import { MongoClient, Db } from "mongodb";
+import { MongoClient, Db } from "itmat-utils/node_modules/@types/mongodb";
 import csvparse from 'csv-parse';
-import { IFieldEntry } from "itmat-commons/dist/models/field";
+import { IFieldEntry } from "itmat-utils/dist/models/field";
 import uuidv4 from 'uuid/v4';
 
 export class UKBFieldInfoPlugin implements ILoaderPlugin {
@@ -9,10 +9,10 @@ export class UKBFieldInfoPlugin implements ILoaderPlugin {
     private collectionName?: string;
     private dbClient?: Db;
 
-    constructor(private readonly jobId: string, private readonly studyId: string) { }
+    constructor(private readonly jobId: string, private readonly studyId: string) {}
 
     setInputStream(inputStream: NodeJS.ReadableStream): UKBFieldInfoPlugin {
-        this.inputStream = inputStream;
+        this.inputStream = inputStream; 
         return this;
     }
 
@@ -52,7 +52,7 @@ export class UKBFieldInfoPlugin implements ILoaderPlugin {
                 notes: line.notes,
                 jobId: this.jobId,
                 dateAdded: new Date().valueOf(),
-                deleted: false
+                deleted: false 
             };
             bulkInsert.insert(field);
         });

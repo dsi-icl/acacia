@@ -1,4 +1,5 @@
 import * as mongodb from 'mongodb';
+import * as Models from './models';
 import { Logger } from './logger';
 
 export interface IJobPollerConfig {
@@ -45,14 +46,12 @@ export class JobPoller {
         Logger.log(`${this.identity} polling ${this.jobCollection} for new jobs of type ${this.jobType || 'ALL'}.`);
         let updateResult: mongodb.FindAndModifyWriteOpResultObject;
         try {
-            updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {
-                $set: {
-                    claimedBy: this.identity,
-                    lastClaimed: new Date().valueOf(),
-                    status: 'PROCESSING'
-                }
-            },
-                { maxTimeMS: 30 });
+            updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, { $set: {
+                claimedBy: this.identity,
+                lastClaimed: new Date().valueOf(),
+                status: 'PROCESSING'
+            }},
+            { maxTimeMS : 30 });
         } catch (e) {
             console.log(e);
             return;

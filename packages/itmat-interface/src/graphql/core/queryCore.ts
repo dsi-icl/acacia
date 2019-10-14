@@ -1,13 +1,13 @@
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
-import { permissions } from 'itmat-commons';
+import { permissions } from 'itmat-utils';
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, IRole } from 'itmat-commons/dist/models/study';
+import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
 import { errorCodes } from '../errors';
 import uuidv4 from 'uuid/v4';
-import { IUser, userTypes } from 'itmat-commons/dist/models/user';
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
-import { IQueryEntry } from 'itmat-commons/dist/models/query';
+import { IUser, userTypes } from 'itmat-utils/dist/models/user';
+import { IFieldEntry } from 'itmat-utils/dist/models/field';
+import { IQueryEntry } from 'itmat-utils/dist/models/query';
 
 export class QueryCore {
     async getOneQuery_throwErrorIfNotExists(queryId: string, onlyResult: boolean): Promise<IQueryEntry> {

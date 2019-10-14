@@ -1,5 +1,5 @@
 import { JobHandler } from './jobHandlerInterface';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntry } from 'itmat-utils/dist/models/job';
 import { objStore } from '../objStore/objStore';
 import { db } from '../database/database';
 import { UKBFieldInfoPlugin } from '../plugins/fieldInfoPlugin';

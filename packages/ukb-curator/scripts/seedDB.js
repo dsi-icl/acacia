@@ -10,10 +10,7 @@ if (!process.argv[6] || !(process.argv[6] === 'codes' || process.argv[6] === 'fi
 }
 
 async function main() {
-    const conn = await mongo.MongoClient.connect(process.argv[3], {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    const conn = await mongo.MongoClient.connect(process.argv[3], { useNewUrlParser: true });
     const db = conn.db(process.argv[4]);
     let collection = db.collection(process.argv[5]);
     await collection.drop();
