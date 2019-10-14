@@ -11,29 +11,29 @@ import { StatusBar } from './components/scaffold/statusBar';
 import { Spinner } from './components/reusable/spinner';
 
 class App extends React.Component {
-  public render() {
-    return (
-      <ApolloProvider client={client}>
-            <Query query={WHO_AM_I}>
-              {({loading, error, data }) => {
-                if (loading) return <div style={{ width: '100%', height: '100%', textAlign: 'center', paddingTop: '20%' }}><Spinner/></div>;
-                if (error) return <p>Error :( {error.message}</p>;
-                if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) // if logged in return the app
-                  return <div className={css.app}>
-                    <Router>
-                      <>
-                      <MainMenuBar projects={data.whoAmI.access.projects}/>
-                      <MainPanel/>
-                      <StatusBar/>
-                      </>
-                    </Router>
-                  </div>;
-                return <LoginBox/>; // if not logged in return the login boxs
-              }}
-            </Query>
-      </ApolloProvider>
-    );
-  }
+    public render() {
+        return (
+            <ApolloProvider client={client}>
+                <Query query={WHO_AM_I}>
+                    {({ loading, error, data }) => {
+                        if (loading) return <div style={{ width: '100%', height: '100%', textAlign: 'center', paddingTop: '20%' }}><Spinner /></div>;
+                        if (error) return <p>Error :( {error.message}</p>;
+                        if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) // if logged in return the app
+                            return <div className={css.app}>
+                                <Router>
+                                    <>
+                                        <MainMenuBar projects={data.whoAmI.access.projects} />
+                                        <MainPanel />
+                                        <StatusBar />
+                                    </>
+                                </Router>
+                            </div>;
+                        return <LoginBox />; // if not logged in return the login boxs
+                    }}
+                </Query>
+            </ApolloProvider>
+        );
+    }
 }
 
 export default App;

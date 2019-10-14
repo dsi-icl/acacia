@@ -7,7 +7,7 @@
         "build"
     ],
     "scripts": {
-        "start": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts start",
+        "start": "cross-env BROWSER=none SKIP_PREFLIGHT_CHECK=true react-scripts start",
         "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
         "test": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts test",
         "clean": "rimraf -rf ./dist ./build",
@@ -23,7 +23,7 @@
         "apollo-upload-client": "11.0.0",
         "graphql": "14.5.8",
         "graphql-tag": "2.10.1",
-        "itmat-utils": "1.1.8",
+        "itmat-commons": "0.0.1",
         "react": "16.10.2",
         "react-apollo": "3.1.2",
         "react-dom": "16.10.2",
@@ -41,6 +41,7 @@
         "@types/node": "12.7.12",
         "cross-env": "6.0.3",
         "rimraf": "3.0.0",
+        "tslint": "5.20.0",
         "typescript": "3.6.4"
     },
     "eslintConfig": {

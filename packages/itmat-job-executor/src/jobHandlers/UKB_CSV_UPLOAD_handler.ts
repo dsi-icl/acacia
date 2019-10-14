@@ -1,10 +1,10 @@
 import { JobHandler } from './jobHandlerInterface';
-import { IJobEntry } from 'itmat-utils/dist/models/job';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { objStore } from '../objStore/objStore';
 import { db } from '../database/database';
 // import { UKBCurator } from 'ukb-curator';
-import { IFile } from 'itmat-utils/dist/models/file';
-import { IStudyDataVersion } from 'itmat-utils/dist/models/study';
+import { IFile } from 'itmat-commons/dist/models/file';
+import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import uuid from 'uuid/v4';
 
 export class UKB_CSV_UPLOAD_Handler extends JobHandler {
