@@ -1,15 +1,14 @@
-import { Models, permissions } from 'itmat-commons';
-import { Logger } from 'itmat-utils';
+import { Models, Logger, permissions } from 'itmat-utils';
 import { Database, db } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
-import { IStudy } from 'itmat-commons/dist/models/study';
+import { IStudy } from 'itmat-utils/dist/models/study';
 import { makeGenericReponse, IGenericResponse } from '../responses';
-import { IQueryEntry } from 'itmat-commons/dist/models/query';
+import { IQueryEntry } from 'itmat-utils/dist/models/query';
 import uuid from 'uuid/v4';
 import mongodb from 'mongodb';
 import { pubsub, subscriptionEvents } from '../pubsub';
 import { queryCore } from '../core/queryCore';
-import { IFile } from 'itmat-commons/dist/models/file';
+import { IFile } from 'itmat-utils/dist/models/file';
 import { objStore } from '../../objStore/objStore';
 import { errorCodes } from '../errors';
 import { permissionCore } from '../core/permissionCore';
@@ -19,7 +18,7 @@ export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async (parent: object, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
+        uploadFile: async(parent: object, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -66,7 +65,7 @@ export const fileResolvers = {
                 }
             });
         },
-        deleteFile: async (parent: object, args: { studyId: string, fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteFile: async(parent: object, args: { studyId: string, fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(

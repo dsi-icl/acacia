@@ -25,10 +25,7 @@ beforeAll(async () => {
     mongod = new MongoMemoryServer();
     const mongoUri = await mongod.getConnectionString();
     const dbName = await mongod.getDbName();
-    const client = await mongodb.MongoClient.connect(mongoUri, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    const client = await mongodb.MongoClient.connect(mongoUri, { useNewUrlParser: true });
     APIDatabase.jobs_collection = client.db(dbName).collection('job');
 });
 

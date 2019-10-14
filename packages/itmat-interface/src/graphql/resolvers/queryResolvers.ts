@@ -1,9 +1,9 @@
-import { Models } from 'itmat-commons';
+import { Models } from 'itmat-utils';
 import { Database } from '../../database/database';
 import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
-import { IStudy } from 'itmat-commons/dist/models/study';
+import { IStudy } from 'itmat-utils/dist/models/study';
 import { makeGenericReponse } from '../responses';
-import { IQueryEntry } from 'itmat-commons/dist/models/query';
+import { IQueryEntry } from 'itmat-utils/dist/models/query';
 import uuid from 'uuid/v4';
 import mongodb from 'mongodb';
 import { pubsub, subscriptionEvents } from '../pubsub';
@@ -16,7 +16,7 @@ export const queryResolvers = {
 
         // },
 
-        getQueryById: async (parent: object, args: { queryId: string }, context: any, info: any): Promise<IQueryEntry> => {
+        getQueryById: async(parent: object, args: { queryId: string }, context: any, info: any): Promise<IQueryEntry> => {
             const queryId = args.queryId;
             /* check permission */
 

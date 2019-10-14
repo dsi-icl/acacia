@@ -1,16 +1,15 @@
 import { UserInputError, ForbiddenError, ApolloError } from 'apollo-server-express';
-import { Models } from 'itmat-commons';
-import { Logger } from 'itmat-utils';
+import { Models, Logger } from 'itmat-utils';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import mongodb from 'mongodb';
 import bcrypt from 'bcrypt';
 import uuidv4 from 'uuid/v4';
 import { makeGenericReponse } from '../responses';
-import { IUser, userTypes } from 'itmat-commons/dist/models/user';
+import { IUser, userTypes } from 'itmat-utils/dist/models/user';
 import { studyCore } from '../core/studyCore';
 import { userCore } from '../core/userCore';
-import { IProject, IStudy, IRole } from 'itmat-commons/dist/models/study';
+import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
 import { errorCodes } from '../errors';
 
 export const userResolvers = {

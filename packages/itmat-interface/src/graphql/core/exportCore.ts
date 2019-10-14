@@ -1,12 +1,12 @@
 import { db } from '../../database/database';
 import { ApolloError } from 'apollo-server-core';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntry } from 'itmat-utils/dist/models/job';
 import { errorCodes } from '../errors';
 import uuidv4 from 'uuid/v4';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { IUser } from 'itmat-utils/dist/models/user';
 
 export class ExportCore {
-    constructor() { }
+    constructor(){}
 
     async createExportJob(studyId: string, requester: IUser, projectId?: string): Promise<IJobEntry<undefined>> {
 

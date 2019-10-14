@@ -3,7 +3,7 @@ import { ICodingMap } from '../models/UKBCoding';
 import { IFieldDescriptionObject, IHeaderArrayElement } from '../models/curationUtils';
 import { UKBiobankValueTypes } from '../models/UKBDataType';
 import { IFieldMap } from '../models/UKBFields';
-import { Models } from 'itmat-commons';
+import { Models, CustomError } from 'itmat-utils';
 import mongo, { Collection } from 'mongodb';
 
 export interface IDataEntry {

@@ -30,10 +30,7 @@ class ItmatNodeEnvironment extends NodeEnvironment {
         console.log(await mongodb.getConnectionString());
         config.database.mongo_url = await mongodb.getConnectionString();
         config.database.database = await mongodb.getDbName();
-        mongo = new MongoClient(config.database.mongo_url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        mongo = new MongoClient(config.database.mongo_url, { useNewUrlParser: true });
 
         /* Setting up the collections and seeds in the database */
         await mongo.connect();
