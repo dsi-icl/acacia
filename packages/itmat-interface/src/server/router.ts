@@ -6,7 +6,7 @@ import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import session from 'express-session';
-import connectMongo, { NativeMongoOptions } from 'connect-mongo';
+import connectMongo from 'connect-mongo';
 import multer from 'multer';
 import http from 'http';
 import { ApolloServer, gql } from 'apollo-server-express';

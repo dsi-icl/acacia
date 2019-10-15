@@ -1,5 +1,4 @@
 import { Models } from 'itmat-commons';
-import { OpenStackSwiftObjectStore } from 'itmat-utils';
 import { Database } from '../database/database';
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { UKBFieldInfoPlugin } from '../plugins/fieldInfoPlugin';

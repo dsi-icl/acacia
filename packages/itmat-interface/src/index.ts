@@ -1,5 +1,4 @@
 import http from 'http';
-import express from 'express';
 import os from 'os';
 import config from './utils/configManager';
 import ITMATInterfaceServer from './interfaceServer';

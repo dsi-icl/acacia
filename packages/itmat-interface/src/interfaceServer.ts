@@ -1,5 +1,4 @@
 //External node module imports
-import express from 'express';
 import { Router } from './server/router';
 import { objStore } from './objStore/objStore';
 import { db } from './database/database';
