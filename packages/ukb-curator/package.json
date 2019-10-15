@@ -37,7 +37,7 @@
         "eslint-plugin-typescript": "0.14.0",
         "rimraf": "3.0.0",
         "supertest": "4.0.2",
-        "typescript-eslint-parser": "21.0.2",
+        "typescript-eslint-parser": "22.0.0",
         "typescript": "3.6.4"
     }
 }
