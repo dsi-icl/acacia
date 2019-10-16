@@ -1,7 +1,7 @@
-import * as mongodb from 'mongodb';
+import { ObjectID } from "mongodb";
 
 export interface IJobEntry<dataobj> {
-    _id?: mongodb.ObjectId,
+    _id?: ObjectID,
     jobType: string,
     id: string,
     projectId?: string,

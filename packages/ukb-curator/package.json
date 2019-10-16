@@ -21,8 +21,10 @@
         "connect-timeout": "1.9.0",
         "csv-parse": "4.6.3",
         "express": "4.17.1",
+        "itmat-commons": "0.0.1",
         "itmat-utils": "1.1.8",
         "mongodb": "3.3.2",
+        "saslprep": "1.0.3",
         "node-fetch": "2.6.0"
     },
     "devDependencies": {
@@ -35,7 +37,7 @@
         "eslint-plugin-typescript": "0.14.0",
         "rimraf": "3.0.0",
         "supertest": "4.0.2",
-        "typescript-eslint-parser": "21.0.2",
+        "typescript-eslint-parser": "22.0.0",
         "typescript": "3.6.4"
     }
 }

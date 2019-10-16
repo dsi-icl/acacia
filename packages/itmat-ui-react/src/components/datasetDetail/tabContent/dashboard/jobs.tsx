@@ -1,14 +1,14 @@
 import * as React from 'react';
-import { IJobEntry } from 'itmat-utils/dist/models/job';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { InfoCircle } from '../../../reusable/infoCircle';
 import * as css from './tabContent.module.css';
 
 const STATUSES: { [status: string]: any } = {
     finished: <span className={css.finishedStatus_span}>Finished</span>,
-    error: <><span className={css.errorStatus_span}>Errored</span><InfoCircle/></>,
+    error: <><span className={css.errorStatus_span}>Errored</span><InfoCircle /></>,
     QUEUED: <span className={css.errorStatus_span}>Queued</span>,
-    CLAIMED: <span className={css.processingStatus_span}>Processing<InfoCircle/></span>,
-    CANCELLED: <span className={css.cancelledStatus_span}>Cancelled<InfoCircle/></span>
+    CLAIMED: <span className={css.processingStatus_span}>Processing<InfoCircle /></span>,
+    CANCELLED: <span className={css.cancelledStatus_span}>Cancelled<InfoCircle /></span>
 };
 
 const JOBTYPES: { [type: string]: any } = {
@@ -18,7 +18,7 @@ const JOBTYPES: { [type: string]: any } = {
 
 export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = ({ jobs }) => {
     return <div>
-        { jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p> :
+        {jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p> :
             <table className={css.job_table}>
                 <thead>
                     <tr>
@@ -30,7 +30,7 @@ export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = (
                     </tr>
                 </thead>
                 <tbody>
-                    {jobs.map(el => <OneJob key={el.id} job={el}/>)}
+                    {jobs.map(el => <OneJob key={el.id} job={el} />)}
                 </tbody>
             </table>
         }

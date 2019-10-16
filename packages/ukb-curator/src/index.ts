@@ -1,5 +1,6 @@
 import { Db, Collection } from 'mongodb';
-import { ServerBase, CustomError, IServerBaseConfig, Logger, Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
+import { ServerBase, CustomError, IServerBaseConfig, Logger } from 'itmat-utils';
 import { ICodingMap, ICodingEntry } from './models/UKBCoding';
 import { IFieldMap, IFieldEntry } from './models/UKBFields';
 import { UKBCSVCurator } from './curation/UKBCSVCurator';
