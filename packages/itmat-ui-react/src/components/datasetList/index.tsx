@@ -8,7 +8,7 @@ export const DatasetListPage: React.FunctionComponent = (props) => {
             <div className={css.project_list + ' page_section'}>
                 <div className="page_ariane">DATASETS</div>
                 <div className="page_content">
-                    <DatasetList/>
+                    <DatasetList />
                 </div>
             </div>
         </div>

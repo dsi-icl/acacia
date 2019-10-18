@@ -1,14 +1,14 @@
-import { Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Subsection } from '../../../reusable';
 import { RoleControlSection } from '../../../reusable/roleControlSection';
 import * as css from './tabContent.module.css';
 
-export const AdminTabContent: React.FunctionComponent<{studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
+export const AdminTabContent: React.FunctionComponent<{ studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
     return <div className={css.tab_page_wrapper_grid}>
         <div className={css.tab_page_wrapper + ' ' + css.main_page}>
             <Subsection title="Roles">
-                <RoleControlSection studyId={studyId} projectId={projectId} roles={roles}/>
+                <RoleControlSection studyId={studyId} projectId={projectId} roles={roles} />
             </Subsection>
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.sub_page}>

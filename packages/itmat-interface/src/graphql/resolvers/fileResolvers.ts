@@ -1,6 +1,7 @@
 import { ApolloError } from 'apollo-server-express';
-import { Logger, Models, permissions } from 'itmat-utils';
-import { IFile } from 'itmat-utils/dist/models/file';
+import { Models, permissions } from 'itmat-commons';
+import { IFile } from 'itmat-commons/dist/models/file';
+import { Logger } from 'itmat-utils';
 import uuid from 'uuid/v4';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';

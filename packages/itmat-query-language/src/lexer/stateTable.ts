@@ -4,8 +4,8 @@ export const acceptingStates = [1, 2, 4, 5, 7, 9, 6, 10, 11];
 
 export const stateTransitionTable: {
     [key: number]: {
-        [key: number]: number,
-    },
+        [key: number]: number
+    }
 } = {
     0: {
         [alphabetTypes.arithmeticOperator]: 2,

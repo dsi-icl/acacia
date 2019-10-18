@@ -1,4 +1,5 @@
-import { Logger, Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
+import { Logger } from 'itmat-utils';
 import mongodb from 'mongodb';
 import { IFieldDescriptionObject } from '../models/curationUtils';
 import { IFieldMap } from '../models/UKBFields';

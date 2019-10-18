@@ -1,4 +1,3 @@
-import { ApolloError } from 'apollo-server-express';
 import { ApolloServer } from 'apollo-server-express';
 import bodyParser from 'body-parser';
 import connectMongo from 'connect-mongo';
@@ -11,7 +10,7 @@ import http from 'http';
 import { CustomError, Logger } from 'itmat-utils';
 import multer from 'multer';
 import passport from 'passport';
-import { Database } from '../database/database';
+import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
 import { schema } from '../graphql/schema';
 import { fileDownloadController } from '../rest/fileDownload';
@@ -23,9 +22,7 @@ export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
 
-    constructor(
-        db: Database /* the database to save sessions */
-    ) {
+    constructor() {
         this.app = express();
 
         this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
@@ -37,7 +34,9 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(session({
             secret: 'IAmATeapot',
-            store: new MongoStore({ db: db.db } as any)
+            resave: true,
+            saveUninitialized: true,
+            store: new MongoStore({ client: db.client } as any)
         }));
 
 

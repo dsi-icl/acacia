@@ -6,7 +6,7 @@ export interface IDatabaseBaseConfig {
     mongo_url: string;
     database: string;
     collections: {
-        [collectionDescription: string]: string,  // collection name
+        [collectionDescription: string]: string  // collection name
     };
 }
 
@@ -33,7 +33,10 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
     private config?: configType;
 
     public async connect(config: configType): Promise<void> {
-        this.localClient = new mongodb.MongoClient(config.mongo_url, { useNewUrlParser: true });
+        this.localClient = new mongodb.MongoClient(config.mongo_url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
         this.config = config;
         if (!this.isConnected()) {
             Logger.log('Connecting to the database..');

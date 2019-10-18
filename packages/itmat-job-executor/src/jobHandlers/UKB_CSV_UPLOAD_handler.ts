@@ -1,7 +1,7 @@
 // import { UKBCurator } from 'ukb-curator';
-import { IFile } from 'itmat-utils/dist/models/file';
-import { IJobEntry } from 'itmat-utils/dist/models/job';
-import { IStudyDataVersion } from 'itmat-utils/dist/models/study';
+import { IFile } from 'itmat-commons/dist/models/file';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import uuid from 'uuid/v4';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';

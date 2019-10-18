@@ -3,10 +3,10 @@ import { Mutation } from 'react-apollo';
 import { LOGIN, WHO_AM_I } from '../../graphql/user';
 import * as css from './login.module.css';
 
-export const LoginBox: React.FunctionComponent = (props) => {
+export const LoginBox: React.FunctionComponent = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [passwordInput, setPasswordInput] = React.useState('');
-    const [stateError, setError] = React.useState('');
+    const [stateError] = React.useState('');
 
     function handleUsernameChange(e: any) {
         setUsernameInput(e.target.value);

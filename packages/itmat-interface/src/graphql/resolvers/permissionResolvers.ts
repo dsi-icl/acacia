@@ -1,6 +1,6 @@
 import { ApolloError } from 'apollo-server-express';
-import { IRole } from 'itmat-utils/dist/models/study';
-import { IUser } from 'itmat-utils/dist/models/user';
+import { IRole } from 'itmat-commons/dist/models/study';
+import { IUser } from 'itmat-commons/dist/models/user';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
@@ -14,11 +14,11 @@ export const permissionResolvers = {
     StudyOrProjectUserRole: {
         users: async (role: IRole): Promise<IUser[]> => {
             const listOfUsers = role.users;
-            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0 } }).toArray());
+            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers }}, { projection: { _id: 0, password: 0 } }).toArray());
         }
     },
     Mutation: {
-        addRoleToStudyOrProject: async (parent: object, args: { studyId?: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
+        addRoleToStudyOrProject: async (parent: object, args: {studyId?: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { studyId, projectId, roleName } = args;
             /* check the requester has privilege */
@@ -44,7 +44,7 @@ export const permissionResolvers = {
             const result = await permissionCore.addRoleToStudyOrProject({ studyId: studyId!, projectId, roleName });
             return result;
         },
-        editRole: async (parent: object, args: { roleId: string, name?: string, userChanges?: { add: string[], remove: string[] }, permissionChanges?: { add: string[], remove: string[] } }, context: any, info: any): Promise<IRole> => {
+        editRole: async (parent: object, args: {roleId: string, name?: string, userChanges?: { add: string[], remove: string[]}, permissionChanges?: { add: string[], remove: string[]}}, context: any, info: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { roleId, name, permissionChanges, userChanges } = args;
 
@@ -62,7 +62,7 @@ export const permissionResolvers = {
             const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, name, permissionChanges, userChanges);
             return modifiedRole;
         },
-        removeRole: async (parent: object, args: { roleId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        removeRole: async (parent: object, args: {roleId: string}, context: any, info: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
             const { roleId } = args;
 

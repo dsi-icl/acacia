@@ -1,5 +1,5 @@
 import { Tree } from 'antd';
-import { IFile } from 'itmat-utils/dist/models/file';
+import { IFile } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { EDIT_PROJECT_APPROVED_FILES } from '../../../../../graphql/projects';
@@ -17,8 +17,8 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
         setCurrentProjectId(projectId);
     }
 
-    const onCheck = (localCheckedList: string[]) => {
-        setCheckedList(localCheckedList);
+    const onCheck = (checkedList: string[]) => {
+        setCheckedList(checkedList);
     };
 
     return <Query query={GET_STUDY} variables={{ studyId }}>

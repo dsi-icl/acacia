@@ -4,7 +4,7 @@ export interface IToken {
 }
 
 export const stateToTokenClassMap: {
-    [key: number]: tokenClass,
+    [key: number]: tokenClass
 } = {
     1: tokenClass.OPEN_PARENTHESIS,
     2: tokenClass.ARITHMETIC_OPERATOR,
@@ -40,7 +40,7 @@ export const enum tokenClass {
 }
 
 export const unquotedStringToClassMap: {
-    [key: string]: tokenClass,
+    [key: string]: tokenClass
 } = {
     field: tokenClass.FIELD,
     instance: tokenClass.INSTANCE,

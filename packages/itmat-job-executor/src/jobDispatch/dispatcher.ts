@@ -1,9 +1,9 @@
-import { IJobEntry } from 'itmat-utils/dist/models/job';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { JobHandler } from '../jobHandlers/jobHandlerInterface';
 
 export class JobDispatcher {
     private _handlerCollection: {
-        [jobType: string]: () => Promise<JobHandler>,
+        [jobType: string]: () => Promise<JobHandler>
     };
 
     constructor() { // tslint:disable-line

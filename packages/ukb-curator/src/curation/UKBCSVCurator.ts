@@ -1,5 +1,5 @@
 import csvparse from 'csv-parse';
-import { Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
 import mongo, { Collection } from 'mongodb';
 import { IFieldDescriptionObject, IHeaderArrayElement } from '../models/curationUtils';
 import { ICodingMap } from '../models/UKBCoding';
@@ -13,8 +13,8 @@ export interface IDataEntry {
     m_versionId: string;
     [field: string]: {
         [instance: string]: {
-            [array: number]: number | string,
-        },
+            [array: number]: number | string
+        }
     } | string | boolean | string[];
 }
 

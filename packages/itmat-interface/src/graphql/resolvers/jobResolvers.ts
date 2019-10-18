@@ -1,6 +1,6 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models } from 'itmat-utils';
-import { IJobEntry } from 'itmat-utils/dist/models/job';
+import { Models } from 'itmat-commons';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
 import uuid from 'uuid/v4';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';

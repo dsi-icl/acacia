@@ -1,4 +1,4 @@
-import { IStudyDataVersion } from 'itmat-utils/dist/models/study';
+import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import React from 'react';
 import { Query } from 'react-apollo';
 import { GET_STUDY } from '../../../../graphql/study';
@@ -10,11 +10,9 @@ import * as css from './tabContent.module.css';
 // data curation pipeline
 // upload new sets of data
 
-
 export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
 
-
-    const { id, version, tag, uploadDate, jobId, fileSize, extractedFrom } = versions[selectedVersion];
+    const { id, version, tag, uploadDate, fileSize, extractedFrom } = versions[selectedVersion];
 
     return <>
         {selectedVersion === currentVersion ? null : <><span className="warning_banner">Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
@@ -80,7 +78,7 @@ const OriginalFile: React.FunctionComponent<{ fileName: string }> = ({ fileName 
 const DateOfUpload: React.FunctionComponent<{ date: string | number /* UNIX timestamp */ }> = ({ date }) => {
     return <div style={{ gridArea: 'date' }}><div>
         <p>Data were uploaded on</p>
-        <span className={css.number_highlight}>{date ? (new Date(parseInt(date as any, 10))).toLocaleString() : 'n/a'}</span>
+        <span className={css.number_highlight}>{date ? (new Date(parseInt(date as any))).toLocaleString() : 'n/a'}</span>
     </div></div>;
 };
 

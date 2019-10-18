@@ -1,4 +1,4 @@
-import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
+import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
 import * as React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';

@@ -7,7 +7,7 @@
 //  */
 
 class PipelineGenerator {
-    constructor(private readonly config = {}) { }
+    constructor(private readonly config = {}) {}
 
     /*
     * @fn buildPipeline
@@ -46,7 +46,7 @@ class PipelineGenerator {
     }
     */
     public buildPipeline(query: any) {
-        const fields = { _id: 0, m_eid: 1 };
+        const fields = {_id: 0, m_eid: 1};
         // We send back the requested fields
         query.data_requested.forEach((field: any) => {
             (fields as any)[field] = 1;

@@ -1,10 +1,10 @@
 import bcrypt from 'bcrypt';
-import { Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 
 import { ApolloError } from 'apollo-server-core';
-import { IUser, IUserWithoutToken, userTypes } from 'itmat-utils/dist/models/user';
+import { IUser, IUserWithoutToken, userTypes } from 'itmat-commons/dist/models/user';
 import uuidv4 from 'uuid/v4';
 import { errorCodes } from '../errors';
 

@@ -5,7 +5,7 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
         jobs_collection: string,
         UKB_coding_collection: string,
         field_dictionary_collection: string,
-        data_collection: string,
+        data_collection: string
     };
 }
 

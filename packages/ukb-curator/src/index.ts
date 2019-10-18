@@ -1,4 +1,5 @@
-import { Logger, Models } from 'itmat-utils';
+import { Models } from 'itmat-commons';
+import { Logger } from 'itmat-utils';
 import { Collection } from 'mongodb';
 import { UKBCSVCurator } from './curation/UKBCSVCurator';
 import { UKBImageCurator } from './curation/UKBImageCurator';

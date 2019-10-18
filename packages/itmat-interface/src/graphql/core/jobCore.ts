@@ -1,4 +1,4 @@
-import { IJobEntry } from 'itmat-utils/dist/models/job';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
 import uuidv4 from 'uuid/v4';
 import { db } from '../../database/database';
 

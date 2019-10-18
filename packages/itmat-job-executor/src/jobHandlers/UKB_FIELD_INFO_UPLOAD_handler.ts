@@ -1,4 +1,4 @@
-import { IJobEntry } from 'itmat-utils/dist/models/job';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { UKBFieldInfoPlugin } from '../plugins/fieldInfoPlugin';

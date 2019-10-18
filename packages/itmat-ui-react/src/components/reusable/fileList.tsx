@@ -1,16 +1,14 @@
-import { IFile } from 'itmat-utils/dist/models/file';
+import { IFile } from 'itmat-commons/dist/models/file';
 import React from 'react';
 
-/* https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript */
-export function formatBytes(a: number, b?: number) {
-    if (0 == a) {
+export function formatBytes(size: number, decimal: number = 2) {
+    if (size === 0) {
         return '0 B';
     }
-    const c = 1024;
-    const d = b || 2
-    const e = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const f = Math.floor(Math.log(a) / Math.log(c));
-    return parseFloat((a / Math.pow(c, f)).toFixed(d)) + ' ' + e[f];
+    const base = 1024;
+    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const order = Math.floor(Math.log(size) / Math.log(base));
+    return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + ' ' + units[order];
 }
 
 export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files }) => {

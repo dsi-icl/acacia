@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy } from 'itmat-utils/dist/models/study';
+import { IProject, IStudy } from 'itmat-commons/dist/models/study';
 import uuidv4 from 'uuid/v4';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';

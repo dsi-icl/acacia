@@ -4,7 +4,7 @@ import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_USER, GET_USERS } from '../../graphql/appUsers';
 import * as css from './userList.module.css';
 
-// import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
+// import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
 
 export const CreateNewUser: React.FunctionComponent = (props) => {
     const [completedCreationId, setCompletedCreationId] = React.useState(undefined);
@@ -29,7 +29,7 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
     });
 
     function clickedSubmit(mutationFunc: (data: { variables: any }) => {}) {
-        return (e: any) => {
+        return function(e: any) {
             e.preventDefault();
             const allFields = Object.keys(inputs);
             for (const each of allFields) {
@@ -50,7 +50,7 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
             refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
             onCompleted={(data) => setCompletedCreationId(data.createUser.id)}
         >
-            {(createUser, { loading }) =>
+            {(createUser, { loading, error }) =>
                 <form>
                     <label>Username: </label><input type="text" {...inputControl('username')} /> <br /><br />
                     <label>Password: </label><input type="password" {...inputControl('password')} /> <br /><br />

@@ -1,8 +1,9 @@
 import { ApolloError, UserInputError } from 'apollo-server-express';
 import bcrypt from 'bcrypt';
-import { Logger, Models } from 'itmat-utils';
-import { IProject, IRole, IStudy } from 'itmat-utils/dist/models/study';
-import { IUser, userTypes } from 'itmat-utils/dist/models/user';
+import { Models } from 'itmat-commons';
+import { IProject, IRole, IStudy } from 'itmat-commons/dist/models/study';
+import { IUser, userTypes } from 'itmat-commons/dist/models/user';
+import { Logger } from 'itmat-utils';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
@@ -137,7 +138,7 @@ export const userResolvers = {
             }
 
             const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string,
+                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
 
             const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: false }); // since bycrypt is CPU expensive let's check the username is not taken first
@@ -170,7 +171,7 @@ export const userResolvers = {
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string,
+                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
             } = args.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);

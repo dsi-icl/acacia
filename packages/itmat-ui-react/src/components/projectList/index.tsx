@@ -8,7 +8,7 @@ export const ProjectListPage: React.FunctionComponent = (props) => {
             <div className={css.project_list + ' page_section'}>
                 <div className="page_ariane">PROJECTS</div>
                 <div className="page_content">
-                    <ProjectList/>
+                    <ProjectList />
                 </div>
             </div>
         </div>

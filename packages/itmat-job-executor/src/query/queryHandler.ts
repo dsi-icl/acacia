@@ -1,6 +1,6 @@
+import { IQueryEntry } from 'itmat-commons/dist/models/query';
+import { IProject } from 'itmat-commons/dist/models/study';
 import { Logger } from 'itmat-utils';
-import { IQueryEntry } from 'itmat-utils/dist/models/query';
-import { IProject } from 'itmat-utils/dist/models/study';
 import { db } from '../database/database';
 import { pipelineGenerator } from './pipeLineGenerator';
 

@@ -1,7 +1,7 @@
 import { ApolloError } from 'apollo-server-core';
-import { permissions } from 'itmat-utils';
-import { IRole } from 'itmat-utils/dist/models/study';
-import { IUser, userTypes } from 'itmat-utils/dist/models/user';
+import { permissions } from 'itmat-commons';
+import { IRole } from 'itmat-commons/dist/models/study';
+import { IUser, userTypes } from 'itmat-commons/dist/models/user';
 import { BulkWriteResult } from 'mongodb';
 import uuidv4 from 'uuid/v4';
 import { db } from '../../database/database';
@@ -34,6 +34,10 @@ export class PermissionCore {
     }
 
     public async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, studyId: string, projectId?: string): Promise<boolean> {
+
+        if (user === undefined) {
+            return false;
+        }
         /* if user is an admin then return true if admin privileges includes needed permissions */
         if (user.type === userTypes.ADMIN) {
             return true;

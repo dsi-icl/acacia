@@ -1,4 +1,4 @@
-import { IQueryEntry } from 'itmat-utils/dist/models/query';
+import { IQueryEntry } from 'itmat-commons/dist/models/query';
 import { queryCore } from '../core/queryCore';
 
 

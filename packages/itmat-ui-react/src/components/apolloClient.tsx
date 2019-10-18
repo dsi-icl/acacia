@@ -7,44 +7,44 @@ import { createUploadLink } from 'apollo-upload-client';
 import { getMainDefinition } from 'apollo-utilities';
 
 const wsLink = new WebSocketLink({
-  uri: 'ws://localhost:3003/graphql',
-  options: {
-    reconnect: true
-  }
+    uri: 'ws://localhost:3003/graphql',
+    options: {
+        reconnect: true
+    }
 });
 
 const uploadLink = createUploadLink({
-  uri: 'http://localhost:3003/graphql',
-  credentials: 'include'
+    uri: 'http://localhost:3003/graphql',
+    credentials: 'include'
 });
 
 const link = split(
-  // split based on operation type
-  ({ query }) => {
-    const { kind, operation } = getMainDefinition(query) as any;
-    return kind === 'OperationDefinition' && operation === 'subscription';
-  },
-  wsLink,
-  uploadLink
+    // split based on operation type
+    ({ query }) => {
+        const { kind, operation } = getMainDefinition(query) as any;
+        return kind === 'OperationDefinition' && operation === 'subscription';
+    },
+    wsLink,
+    uploadLink
 );
 
 const cache = new InMemoryCache({
-  dataIdFromObject: (object) => `${object.__typename || 'undefined_typeName'}___${object.id || 'undefined_id'}`
+    dataIdFromObject: (object) => `${object.__typename || 'undefined_typeName'}___${object.id || 'undefined_id'}`
 });
 
 export const client = new ApolloClient({
-  link: from([
-    onError(({ graphQLErrors, networkError }) => {
-      if (graphQLErrors) {
-        graphQLErrors.map(({ message, locations, path }) =>
-          console.log(
-            `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-          )
-        );
-      }
-      if (networkError) { console.log(`[Network error]: ${networkError}`); }
-    }),
-    link
-  ]),
-  cache
+    link: from([
+        onError(({ graphQLErrors, networkError }) => {
+            if (graphQLErrors) {
+                graphQLErrors.map(({ message, locations, path }) =>
+                    console.log(
+                        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+                    )
+                );
+            }
+            if (networkError) { console.log(`[Network error]: ${networkError}`); }
+        }),
+        link
+    ]),
+    cache
 });

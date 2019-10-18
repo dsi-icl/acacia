@@ -12,7 +12,7 @@ export const enum alphabetTypes {
 }
 
 export const alphabetToTypeTable: {
-    [key: string]: alphabetTypes,
+    [key: string]: alphabetTypes
 } = {
     '0': alphabetTypes.digit,
     '1': alphabetTypes.digit,

@@ -1,6 +1,6 @@
 import csvparse from 'csv-parse';
-import { IFieldEntry } from 'itmat-utils/dist/models/field';
-import { Db } from 'itmat-utils/node_modules/@types/mongodb';
+import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import { Db } from 'mongodb';
 import uuidv4 from 'uuid/v4';
 import { ILoaderPlugin } from './interface';
 

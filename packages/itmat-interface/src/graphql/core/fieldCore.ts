@@ -1,4 +1,4 @@
-import { IFieldEntry } from 'itmat-utils/dist/models/field';
+import { IFieldEntry } from 'itmat-commons/dist/models/field';
 import { db } from '../../database/database';
 
 export class FieldCore {
@@ -15,8 +15,8 @@ export class FieldCore {
             { $match: queryObj }
         ];
         /* if detailed=false, only returns the fieldid in an array */
-        if (detailed === false ) {
-            aggregatePipeline.concat( [ { $group: {  _id: null, array: { $addToSet: '$fieldId' } } } ]);
+        if (detailed === false) {
+            aggregatePipeline.concat([{ $group: { _id: null, array: { $addToSet: '$fieldId' } } }]);
         }
 
         const cursor = db.collections!.field_dictionary_collection.aggregate(aggregatePipeline);

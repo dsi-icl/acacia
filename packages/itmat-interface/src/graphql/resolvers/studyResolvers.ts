@@ -1,8 +1,8 @@
 import { ApolloError } from 'apollo-server-express';
-import { permissions } from 'itmat-utils';
-import { IFieldEntry } from 'itmat-utils/dist/models/field';
-import { IProject, IStudy, IStudyDataVersion } from 'itmat-utils/dist/models/study';
-import { IUser } from 'itmat-utils/dist/models/user';
+import { permissions } from 'itmat-commons';
+import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import { IProject, IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import { IUser } from 'itmat-commons/dist/models/user';
 import uuid from 'uuid/v4';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
@@ -104,7 +104,7 @@ export const studyResolvers = {
         patientMapping: async (project: IProject) => {
             /* check permission */
 
-            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { patientMapping: 1 }});
+            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { patientMapping: 1 } });
             if (result && result.patientMapping) {
                 return result.patientMapping;
             } else {
@@ -114,7 +114,7 @@ export const studyResolvers = {
         approvedFields: async (project: IProject) => {
             /* check permission */
 
-            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { approvedFields: 1 }});
+            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { approvedFields: 1 } });
             if (result && result.approvedFields) {
                 return result.approvedFields;
             } else {
