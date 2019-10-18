@@ -1,6 +1,6 @@
-import { IToken, tokenClass, stateToTokenClassMap, unquotedStringToClassMap } from './tokenClass';
-import { alphabetTypes, alphabetToTypeTable } from './alphabet';
-import { stateTransitionTable, acceptingStates } from './stateTable';
+import { alphabetToTypeTable, alphabetTypes } from './alphabet';
+import { acceptingStates, stateTransitionTable } from './stateTable';
+import { IToken, stateToTokenClassMap, tokenClass, unquotedStringToClassMap } from './tokenClass';
 
 export class Lexer {
     private currentPosition: number;
@@ -22,7 +22,7 @@ export class Lexer {
             }
         }
         if (removeWhiteSpace) {
-            tokens = tokens.filter(el => el.class !== tokenClass.WHITE_SPACE);
+            tokens = tokens.filter((el) => el.class !== tokenClass.WHITE_SPACE);
         }
         return tokens;
     }

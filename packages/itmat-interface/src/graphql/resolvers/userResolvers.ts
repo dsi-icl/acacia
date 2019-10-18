@@ -1,16 +1,15 @@
-import { UserInputError, ForbiddenError, ApolloError } from 'apollo-server-express';
-import { Models, Logger } from 'itmat-utils';
+import { ApolloError, UserInputError } from 'apollo-server-express';
+import bcrypt from 'bcrypt';
+import { Models } from 'itmat-commons';
+import { IProject, IRole, IStudy } from 'itmat-commons/dist/models/study';
+import { IUser, userTypes } from 'itmat-commons/dist/models/user';
+import { Logger } from 'itmat-utils';
+import mongodb from 'mongodb';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
-import mongodb from 'mongodb';
-import bcrypt from 'bcrypt';
-import uuidv4 from 'uuid/v4';
-import { makeGenericReponse } from '../responses';
-import { IUser, userTypes } from 'itmat-utils/dist/models/user';
-import { studyCore } from '../core/studyCore';
 import { userCore } from '../core/userCore';
-import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
 import { errorCodes } from '../errors';
+import { makeGenericReponse } from '../responses';
 
 export const userResolvers = {
     Query: {
@@ -86,7 +85,7 @@ export const userResolvers = {
             }
 
             return user.email;
-        },
+        }
     },
     Mutation: {
         login: async (parent: object, args: any, context: any, info: any): Promise<object> => {
@@ -102,7 +101,7 @@ export const userResolvers = {
             delete result.password;
             delete result.deleted;
 
-            return new Promise(resolve => {
+            return new Promise((resolve) => {
                 req.login(result, (err: any) => {
                     if (err) {
                         Logger.error(err);
@@ -118,8 +117,8 @@ export const userResolvers = {
             if (requester === undefined || requester === null) {
                 return makeGenericReponse(context.req.user);
             }
-            return new Promise(resolve => {
-                req.session!.destroy(err => {
+            return new Promise((resolve) => {
+                req.session!.destroy((err) => {
                     req.logout();
                     if (err) {
                         Logger.error(err);

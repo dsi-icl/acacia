@@ -1,17 +1,16 @@
-import { ApolloError } from 'apollo-server-express';
+// import { ApolloError } from 'apollo-server-express';
 
-interface IErrorForClient {
-    errors: {
-        error: string,
-        detail: string,
-        error_type_ref: string,
-        error_id: string
-    }[]
-};
+// interface IErrorForClient {
+//     errors: Array<{
+//         error: string,
+//         detail: string,
+//         error_type_ref: string,
+//         error_id: string,
+//     }>;
+// }
 
-export function formatGraphqlErrorForClient(err: ApolloError) {
-    
-};
+// export function formatGraphqlErrorForClient(err: ApolloError) {
+// }
 
 export enum errorCodes {
     DATABASE_ERROR = 'DATABASE_ERROR',
@@ -20,4 +19,4 @@ export enum errorCodes {
     AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
     NO_PERMISSION_ERROR = 'NO_PERMISSION_ERROR',
     FILE_STREAM_ERROR = 'FILE_STREAM_ERROR'
-};
+}

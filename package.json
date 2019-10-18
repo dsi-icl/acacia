@@ -5,12 +5,17 @@
         "postinstall": "npm run bootstrap",
         "bootstrap": "lerna bootstrap --hoist",
         "clean": "lerna run clean",
-        "start:dev": "lerna run --stream --scope itmat-interface --scope itmat-ui-react start",
+        "prestart": "lerna run --stream --scope itmat-commons --scope itmat-utils build",
+        "start": "lerna run --stream --scope itmat-interface --scope itmat-ui-react start",
         "build": "lerna run --stream --ignore itmat-query-language --ignore itmat-job-executor --ignore ukb-curator build",
         "publish": "lerna run tsc && lerna publish",
         "test": "echo There is no test at this point !"
     },
+    "optionalDependencies": {
+        "mongodb-client-encryption": "0.3.1"
+    },
     "devDependencies": {
-        "lerna": "3.16.4"
+        "lerna": "3.18.1",
+        "tslint": "5.20.0"
     }
 }

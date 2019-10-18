@@ -1,6 +1,6 @@
 export interface IToken {
-    class: string,
-    value: string
+    class: string;
+    value: string;
 }
 
 export const stateToTokenClassMap: {
@@ -15,7 +15,7 @@ export const stateToTokenClassMap: {
     9: tokenClass.NUMBER,
     10: tokenClass.COMPARISON_OPERATOR,
     11: tokenClass.CLOSE_PARENTHESIS
-}
+};
 
 
 export const enum tokenClass {
@@ -37,7 +37,7 @@ export const enum tokenClass {
     NUMBER_OF = 'NUMBER_OF',
     END_OF_INPUT = 'END_OF_INPUT',
     VALUE_OF = 'VALUE_OF'
-};
+}
 
 export const unquotedStringToClassMap: {
     [key: string]: tokenClass
@@ -52,4 +52,4 @@ export const unquotedStringToClassMap: {
     expr: tokenClass.EXPRESSION,
     numberOf: tokenClass.NUMBER_OF,
     value: tokenClass.VALUE_OF
-}
+};

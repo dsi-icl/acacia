@@ -1,5 +1,5 @@
-import mongodb from 'mongodb';
 import { Logger } from 'itmat-utils';
+import mongodb from 'mongodb';
 
 export class JobUtils {
     constructor(private readonly jobCollection: mongodb.Collection) {}
