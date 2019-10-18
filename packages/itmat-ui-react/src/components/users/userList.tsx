@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { GET_USERS} from '../../graphql/appUsers';
-import { Models } from 'itmat-utils';
+import { GET_USERS } from '../../graphql/appUsers';
+import { Models } from 'itmat-commons';
 import * as css from './userList.module.css';
 import { NavLink } from 'react-router-dom';
 import { Icons } from '../icons';
@@ -11,29 +11,29 @@ export const UserListSection: React.FunctionComponent = props => {
     return (
         <Query
             query={GET_USERS}
-            variables={{fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
+            variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
         >
-            {({loading, error, data }) => {
-                if (loading) return <LoadingBalls/>;
+            {({ loading, error, data }) => {
+                if (loading) return <LoadingBalls />;
                 if (error) return <p>Error :( {error.message}</p>;
                 const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
                 return (
-                    <UserList list={userList}/>
+                    <UserList list={userList} />
                 );
             }}
         </Query>
     );
 };
 
-const User: React.FunctionComponent<{ data: Models.UserModels.IUserWithoutToken}> = ({ data }) => {
+const User: React.FunctionComponent<{ data: Models.UserModels.IUserWithoutToken }> = ({ data }) => {
     return (
-            <tr>
-                <td>{data.username}</td>
-                <td>{data.realName}</td>
-                <td>{data.type}</td>
-                <td>{data.email}</td>
-                <td><NavLink to={`/users/${data.id}`} activeClassName={css.button_clicked}><button>More/Edit</button></NavLink></td>
-            </tr>
+        <tr>
+            <td>{data.username}</td>
+            <td>{data.realName}</td>
+            <td>{data.type}</td>
+            <td>{data.email}</td>
+            <td><NavLink to={`/users/${data.id}`} activeClassName={css.button_clicked}><button>More/Edit</button></NavLink></td>
+        </tr>
     );
 };
 
@@ -42,18 +42,18 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
 
     function highermappingfunction() {
         if (searchString === '') {
-            return function(el: Models.UserModels.IUserWithoutToken) {
-                return <User key={el.id} data={el}/>;
+            return function (el: Models.UserModels.IUserWithoutToken) {
+                return <User key={el.id} data={el} />;
             }
         }
-        return function(el: Models.UserModels.IUserWithoutToken) {
+        return function (el: Models.UserModels.IUserWithoutToken) {
             if (
                 el.username.toLowerCase().indexOf(searchString.toLowerCase()) !== -1 ||
                 el.email.toLowerCase().indexOf(searchString.toLowerCase()) !== -1 ||
                 el.type.toLowerCase().indexOf(searchString.toLowerCase()) !== -1 ||
                 el.realName.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
             ) {
-                return <User key={el.id} data={el}/>;
+                return <User key={el.id} data={el} />;
             }
             return null;
         }
@@ -64,7 +64,7 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
             <table>
                 <thead>
                     <tr>
-                        <th><Icons type='search'/><input name='search' value={searchString} onChange={e => {setSearchString(e.target.value)}}/></th>
+                        <th><Icons type='search' /><input name='search' value={searchString} onChange={e => { setSearchString(e.target.value) }} /></th>
                         <th></th>
                         <th></th>
                         <th></th>

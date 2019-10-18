@@ -6,8 +6,8 @@ import * as css from './login.module.css';
 export const LoginBox: React.FunctionComponent = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [passwordInput, setPasswordInput] = React.useState('');
-    const [stateerror, setError] = React.useState('');
-    
+    const [stateError] = React.useState('');
+
     function handleUsernameChange(e: any) {
         setUsernameInput(e.target.value);
     }
@@ -45,11 +45,11 @@ export const LoginBox: React.FunctionComponent = () => {
                 }
             </div>
             <div id='error_dialog' className={css.error_message}>
-                {error ? error.message : (stateerror ? stateerror : null )}
+                {error ? error.message : (stateError ? stateError : null )}
             </div>
             </div>
 
-        }
+            }
         </Mutation>
     );
 };

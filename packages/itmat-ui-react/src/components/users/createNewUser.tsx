@@ -4,7 +4,7 @@ import { CREATE_USER, GET_USERS } from '../../graphql/appUsers';
 import * as css from './userList.module.css';
 import { NavLink, Redirect } from 'react-router-dom';
 
-// import { IUserWithoutToken } from 'itmat-utils/dist/models/user';
+// import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
 
 export const CreateNewUser: React.FunctionComponent = props => {
     const [completedCreationId, setCompletedCreationId] = React.useState(undefined);
@@ -23,7 +23,7 @@ export const CreateNewUser: React.FunctionComponent = props => {
     const inputControl = (property: string) => ({
         value: inputs[property],
         onChange: (e: any) => {
-            setInputs({...inputs, [property]: e.target.value });
+            setInputs({ ...inputs, [property]: e.target.value });
             setError('');
         }
     });
@@ -42,12 +42,12 @@ export const CreateNewUser: React.FunctionComponent = props => {
         }
     }
 
-    if (completedCreationId) return <Redirect to={`/users/${completedCreationId}`}/>;
+    if (completedCreationId) return <Redirect to={`/users/${completedCreationId}`} />;
 
     return (
         <Mutation
             mutation={CREATE_USER}
-            refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false} }]}
+            refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
             onCompleted={data => setCompletedCreationId(data.createUser.id)}
         >
         {(createUser, { loading, error }) =>

@@ -12,7 +12,7 @@ import http from 'http';
 import { ApolloServer, gql } from 'apollo-server-express';
 import { schema } from '../graphql/schema';
 import { resolvers } from '../graphql/resolvers';
-import { Database } from '../database/database';
+import { db } from '../database/database';
 import cors from 'cors';
 import { fileDownloadController } from '../rest/fileDownload';
 import { GraphQLError } from 'graphql';
@@ -23,9 +23,7 @@ export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
 
-    constructor(
-        db: Database /* the database to save sessions */,
-    ) {
+    constructor() {
         this.app = express();
 
         this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
@@ -37,7 +35,9 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(session({
             secret: 'IAmATeapot',
-            store: new MongoStore({ db: db.db } as any)
+            resave: true,
+            saveUninitialized: true,
+            store: new MongoStore({ client: db.client } as any)
         }));
 
 
