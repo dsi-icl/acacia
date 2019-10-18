@@ -14,7 +14,7 @@
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
-        "antd": "3.24.0",
+        "antd": "3.24.1",
         "apollo-cache-inmemory": "1.6.3",
         "apollo-client": "2.6.4",
         "apollo-link": "1.2.13",
