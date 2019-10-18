@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { IUser } from 'itmat-commons/dist/models/user';
 import { Select } from 'antd';
-import css from './genericUserList.module.css';
 import 'antd/lib/select/style/css';
+import { IUser } from 'itmat-commons/dist/models/user';
+import * as React from 'react';
 import '../../css/antdOverride.css';
+import css from './genericUserList.module.css';
 
 const User: React.FunctionComponent<{ user: IUser, onClickCross: (user: IUser) => void }> = ({ user, onClickCross }) => {
     return (
@@ -18,13 +18,13 @@ const UserList: React.FunctionComponent<{
     studyId: string,
     projectId?: string,
     submitButtonString: string,
-    children: (typeof User)[],
+    children: Array<typeof User>,
     availableUserList: IUser[],
     onClickAddButton: (studyId: string, projectId: string | undefined, user: IUser) => void
 }> = ({ submitButtonString, onClickAddButton, studyId, projectId, children, availableUserList }) => {
 
     const [addUserInput, setAddUserInput]: [string | undefined, Function] = React.useState(undefined);
-    const selectedUser = availableUserList.filter(el => el.id === addUserInput)[0] || null;
+    const selectedUser = availableUserList.filter((el) => el.id === addUserInput)[0] || null;
 
     return <div>
         {children || <span>There is no user added currently.</span>}
@@ -33,12 +33,12 @@ const UserList: React.FunctionComponent<{
             <div className={css.selectionWrapper}>
                 <Select
                     showSearch
-                    getPopupContainer={ev => ev!.parentElement!}
+                    getPopupContainer={(ev) => ev!.parentElement!}
                     dropdownStyle={{ maxHeight: 250, overflow: 'auto' }}
                     style={{ width: '100%' }}
                     value={addUserInput}
-                    onChange={e => { setAddUserInput(e) }}
-                    notFoundContent='No user matches your search'
+                    onChange={(e) => { setAddUserInput(e); }}
+                    notFoundContent="No user matches your search"
                 >
                     {availableUserList.map((el: IUser) => <Select.Option key={el.id} value={el.id}>{`${el.realName} (${el.organisation || 'unknown organisation'})`}</Select.Option>)}
                 </Select>
@@ -53,4 +53,4 @@ const UserList: React.FunctionComponent<{
 export const UserListPicker = {
     UserList,
     User
-}
+};

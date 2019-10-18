@@ -1,18 +1,13 @@
+import { ApolloError } from 'apollo-server-express';
 import { Models, permissions } from 'itmat-commons';
-import { Logger } from 'itmat-utils';
-import { Database, db } from '../../database/database';
-import { ForbiddenError, ApolloError, UserInputError, withFilter } from 'apollo-server-express';
-import { IStudy } from 'itmat-commons/dist/models/study';
-import { makeGenericReponse, IGenericResponse } from '../responses';
-import { IQueryEntry } from 'itmat-commons/dist/models/query';
-import uuid from 'uuid/v4';
-import mongodb from 'mongodb';
-import { pubsub, subscriptionEvents } from '../pubsub';
-import { queryCore } from '../core/queryCore';
 import { IFile } from 'itmat-commons/dist/models/file';
+import { Logger } from 'itmat-utils';
+import uuid from 'uuid/v4';
+import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
-import { errorCodes } from '../errors';
 import { permissionCore } from '../core/permissionCore';
+import { errorCodes } from '../errors';
+import { IGenericResponse, makeGenericReponse } from '../responses';
 
 
 export const fileResolvers = {

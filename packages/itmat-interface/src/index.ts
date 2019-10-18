@@ -1,9 +1,8 @@
-import http from 'http';
-import os from 'os';
-import config from './utils/configManager';
-import ITMATInterfaceServer from './interfaceServer';
 import { Server } from 'http';
 import { Socket } from 'net';
+import os from 'os';
+import ITMATInterfaceServer from './interfaceServer';
+import config from './utils/configManager';
 
 let interface_iteration = 0;
 let interface_server = new ITMATInterfaceServer(config);
@@ -43,14 +42,15 @@ function serverSpinning() {
         console.log(`Destroying ${interface_sockets.length} sockets ...`);
         interface_sockets.forEach((socket) => {
             socket.destroy();
-        })
+        });
         interface_sockets = [];
         console.log(`Shuting down server ${interface_iteration} ...`);
         interface_router.close(() => {
             serverStart();
-        })
-    } else
+        });
+    } else {
         serverStart();
+    }
 }
 
 serverSpinning();

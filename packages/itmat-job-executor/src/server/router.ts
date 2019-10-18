@@ -1,6 +1,6 @@
-import express, { Express } from 'express';
 import bodyParser from 'body-parser';
 import timeout from 'connect-timeout';
+import express, { Express } from 'express';
 
 export class Router {
     private readonly app: Express;

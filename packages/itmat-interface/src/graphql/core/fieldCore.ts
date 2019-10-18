@@ -1,12 +1,5 @@
-import mongodb from 'mongodb';
-import { db } from '../../database/database';
-import { permissions } from 'itmat-commons';
-import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, IRole } from 'itmat-commons/dist/models/study';
-import { errorCodes } from '../errors';
-import uuidv4 from 'uuid/v4';
-import { IUser, userTypes } from 'itmat-commons/dist/models/user';
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import { db } from '../../database/database';
 
 export class FieldCore {
     public async getFieldsOfStudy(studyId: string, detailed: boolean, getOnlyTheseFields?: string[]): Promise<IFieldEntry[]> {

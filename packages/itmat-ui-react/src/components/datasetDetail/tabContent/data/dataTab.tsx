@@ -1,17 +1,17 @@
-import * as React from 'react';
-import { Query, useMutation } from 'react-apollo';
-import * as css from './tabContent.module.css';
-import { Subsection } from '../../../reusable/subsection';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
-import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from '../../../../graphql/study';
-import { UploadNewFields } from './uploadNewFields';
-import { DataSummaryVisual } from './dataSummary';
-import { UploadNewData } from './uploadNewData';
-import { IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
-import { FieldListSelectionSection } from './fieldListSelection';
 import { Switch } from 'antd';
 import 'antd/lib/switch/style/css';
+import { IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import * as React from 'react';
+import { Query, useMutation } from 'react-apollo';
+import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from '../../../../graphql/study';
 import { InfoCircle } from '../../../reusable/infoCircle';
+import { LoadingBalls } from '../../../reusable/loadingBalls';
+import { Subsection } from '../../../reusable/subsection';
+import { DataSummaryVisual } from './dataSummary';
+import { FieldListSelectionSection } from './fieldListSelection';
+import * as css from './tabContent.module.css';
+import { UploadNewData } from './uploadNewData';
+import { UploadNewFields } from './uploadNewFields';
 
 
 function removeDuplicateVersion(versions: IStudyDataVersion[]) {
@@ -28,7 +28,7 @@ function removeDuplicateVersion(versions: IStudyDataVersion[]) {
             uniqueContent.push({ ...el, originalPosition: tmp.length - ind - 1 });
         }
     });
-    console.log(uniqueContent)
+    console.log(uniqueContent);
     return uniqueContent.reverse();
 }
 
@@ -37,8 +37,8 @@ export const DataManagementTabContent: React.FunctionComponent<{ studyId: string
         <div>
             <Query query={GET_STUDY} variables={{ studyId }}>
                 {({ loading, data, error }) => {
-                    if (loading) return <LoadingBalls />;
-                    if (error) return <p>Error :( {JSON.stringify(error)}</p>;
+                    if (loading) { return <LoadingBalls />; }
+                    if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
                     if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
                         return <DataManagement data={data.getStudy} showSaveVersionButton />;
                     }
@@ -93,9 +93,9 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                 }
 
 
-                <div key='new data' className={css.data_version_cube + ' ' + css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</div>
+                <div key="new data" className={css.data_version_cube + ' ' + css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</div>
                 {showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ?
-                    <div key='save version' onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.data_version_cube + ' ' + css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</div>
+                    <div key="save version" onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.data_version_cube + ' ' + css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</div>
                     : null
                 }<br />
             </> : null}
@@ -112,7 +112,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title='Fields & Variables'>
+            <Subsection title="Fields & Variables">
                 <FieldListSelectionSection
                     studyId={data.id}
                     selectedVersion={selectedVersion}
@@ -125,7 +125,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title='Data'>
+            <Subsection title="Data">
                 <DataSummaryVisual
                     studyId={data.id}
                     selectedVersion={selectedVersion}

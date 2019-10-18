@@ -1,9 +1,9 @@
-import { Store, Account, Container, Segment, DynamicLargeObject, StaticLargeObject } from 'os2';
+import { Account, Container, Segment, Store } from 'os2';
 
 export interface IOpenSwiftObjectStoreConfig {
-    uri: string
-    username: string,
-    password: string
+    uri: string;
+    username: string;
+    password: string;
 }
 
 export class OpenStackSwiftObjectStore {

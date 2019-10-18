@@ -15,6 +15,7 @@
         "mongodb-client-encryption": "0.3.1"
     },
     "devDependencies": {
-        "lerna": "3.18.1"
+        "lerna": "3.18.1",
+        "tslint": "5.20.0"
     }
 }

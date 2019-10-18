@@ -1,19 +1,19 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { GET_PROJECT } from '../../../../graphql/projects';
-import * as css from './tabContent.module.css';
 import { FieldListSection } from '../../../reusable/fieldList';
-import { Subsection } from '../../../reusable/subsection';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
+import { Subsection } from '../../../reusable/subsection';
+import * as css from './tabContent.module.css';
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => {
     return <div className={css.scaffold_wrapper}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title='Variables'>
+            <Subsection title="Variables">
                 <Query query={GET_PROJECT} variables={{ projectId, admin: false }}>
                     {({ loading, data, error }) => {
-                        if (loading) return <LoadingBalls />;
-                        if (error) return <p>Error :( {JSON.stringify(error)}</p>;
+                        if (loading) { return <LoadingBalls />; }
+                        if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
 
                         return <FieldListSection checkable={false} fieldList={data.getProject.fields} />;
                     }}

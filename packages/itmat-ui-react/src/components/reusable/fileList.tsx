@@ -1,13 +1,14 @@
-import React from 'react';
 import { IFile } from 'itmat-commons/dist/models/file';
+import React from 'react';
 
 export function formatBytes(size: number, decimal: number = 2) {
-    if (size === 0)
-        return "0 B";
+    if (size === 0) {
+        return '0 B';
+    }
     const base = 1024;
-    const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     const order = Math.floor(Math.log(size) / Math.log(base));
-    return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + " " + units[order];
+    return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + ' ' + units[order];
 }
 
 export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files }) => {
@@ -22,7 +23,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
                 </tr>
             </thead>
             <tbody>
-                {files.map(el => <OneFile file={el} key={el.id} />)}
+                {files.map((el) => <OneFile file={el} key={el.id} />)}
             </tbody>
         </table>
     </div>;

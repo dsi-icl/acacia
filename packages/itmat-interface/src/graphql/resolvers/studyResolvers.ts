@@ -1,14 +1,14 @@
-import { Database, db } from '../../database/database';
-import { ForbiddenError, ApolloError, UserInputError, withFilter, defaultMergedResolver } from 'apollo-server-express';
-import { IStudy, IProject, IRole, IStudyDataVersion } from 'itmat-commons/dist/models/study';
-import { makeGenericReponse, IGenericResponse } from '../responses';
-import uuid from 'uuid/v4';
-import { studyCore } from '../core/studyCore';
-import { IUser, userTypes } from 'itmat-commons/dist/models/user';
-import { errorCodes } from '../errors';
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import { ApolloError } from 'apollo-server-express';
 import { permissions } from 'itmat-commons';
+import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import { IProject, IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import { IUser } from 'itmat-commons/dist/models/user';
+import uuid from 'uuid/v4';
+import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
+import { studyCore } from '../core/studyCore';
+import { errorCodes } from '../errors';
+import { IGenericResponse, makeGenericReponse } from '../responses';
 
 export const studyResolvers = {
     Query: {
@@ -132,11 +132,11 @@ export const studyResolvers = {
         iCanEdit: async (project: IProject) => { // TO_DO
             const result = await db.collections!.roles_collection.findOne({
                 studyId: project.studyId,
-                projectId: project.id,
+                projectId: project.id
                 // permissions: permissions.specific_project.specifi
             });
             return true;
-        },
+        }
     },
     Mutation: {
         createStudy: async (parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
@@ -235,7 +235,7 @@ export const studyResolvers = {
 
 
             /* check whether the dataversion exists */
-            const selectedataVersionFiltered = study.dataVersions.filter(el => el.id === dataVersionId);
+            const selectedataVersionFiltered = study.dataVersions.filter((el) => el.id === dataVersionId);
             if (selectedataVersionFiltered.length !== 1) {
                 throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
             }

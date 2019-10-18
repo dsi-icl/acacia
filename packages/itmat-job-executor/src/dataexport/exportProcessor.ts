@@ -1,9 +1,9 @@
-import mongodb from 'mongodb';
-import { db } from '../database/database';
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
 import { Logger } from 'itmat-utils';
 import { Transform } from 'json2csv';
+import mongodb from 'mongodb';
 import { Readable } from 'stream';
+import { db } from '../database/database';
 
 export class ExportProcessor {
     /* document from [ mongo cursor -> flatten document -> input stream -> json2csv -> output stream ] -> swift */
@@ -13,7 +13,7 @@ export class ExportProcessor {
     private outputParseStream?: Readable;
     constructor(private readonly dataCursor: mongodb.Cursor, private readonly studyId: string, private readonly wantedFields?: string[], private readonly projectId?: string, private readonly patientIdMap?: { [originalId: string]: string }) { }
 
-    async fetchFieldInfo() {
+    public async fetchFieldInfo() {
         const queryobj = this.wantedFields === undefined ? { studyId: this.studyId } : { studyId: this.studyId, fieldId: { $in: this.wantedFields } };
         const cursor = db.collections!.field_dictionary_collection.find(queryobj, { projection: { _id: 0 } });
         this.fieldInfo = await cursor.toArray();
@@ -29,7 +29,7 @@ export class ExportProcessor {
     }
 
     public getOutputParseStream() {
-        if (!this.fieldInfo || !this.fieldCSVHeaderList) { throw new Error('Cannot set output stream before fetching field info.') }
+        if (!this.fieldInfo || !this.fieldCSVHeaderList) { throw new Error('Cannot set output stream before fetching field info.'); }
         this.inputStream = new Readable({ objectMode: true });
         const opts = { fields: ['eid', 'study', ...this.fieldCSVHeaderList!] };
         const transformOpts = { objectMode: true };
@@ -39,7 +39,7 @@ export class ExportProcessor {
     }
 
     public async startStreamParsing() {
-        if (!this.fieldInfo) { throw new Error('Cannot create export file before fetching field info and setting output stream.') }
+        if (!this.fieldInfo) { throw new Error('Cannot create export file before fetching field info and setting output stream.'); }
         let nextDocument: Object | null;
         while (nextDocument = await this.dataCursor.next()) {
             const flattenedData = this.formatDataIntoJSON(nextDocument);
@@ -61,9 +61,9 @@ export class ExportProcessor {
         delete onePatientData.m_in_qc;
         delete onePatientData.m_jobId;
         const flattenData: { [field: string]: string | number } = {};
-        Object.keys(onePatientData).forEach(fieldkey => {
-            Object.keys(onePatientData[fieldkey]).forEach(instancekey => {
-                Object.keys(onePatientData[fieldkey][instancekey]).forEach(arraykey => {
+        Object.keys(onePatientData).forEach((fieldkey) => {
+            Object.keys(onePatientData[fieldkey]).forEach((instancekey) => {
+                Object.keys(onePatientData[fieldkey][instancekey]).forEach((arraykey) => {
                     flattenData[`${fieldkey}-${instancekey}.${arraykey}`] = onePatientData[fieldkey][instancekey][arraykey];
                 });
             });

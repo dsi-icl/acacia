@@ -1,9 +1,9 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import App from './App';
-import registerServiceWorker from './registerServiceWorker';
-import './css/global.css';
 import './css/antdOverride.css';
+import './css/global.css';
+import registerServiceWorker from './registerServiceWorker';
 
 ReactDOM.render(
     <App />,

@@ -1,21 +1,21 @@
 import csvparse from 'csv-parse';
-import { ICodingMap } from '../models/UKBCoding';
-import { IFieldDescriptionObject, IHeaderArrayElement } from '../models/curationUtils';
-import { UKBiobankValueTypes } from '../models/UKBDataType';
-import { IFieldMap } from '../models/UKBFields';
 import { Models } from 'itmat-commons';
 import mongo, { Collection } from 'mongodb';
+import { IFieldDescriptionObject, IHeaderArrayElement } from '../models/curationUtils';
+import { ICodingMap } from '../models/UKBCoding';
+import { UKBiobankValueTypes } from '../models/UKBDataType';
+import { IFieldMap } from '../models/UKBFields';
 
 export interface IDataEntry {
-    m_jobId: string,
-    m_eid: string,
-    m_study: string,
-    m_versionId: string,
+    m_jobId: string;
+    m_eid: string;
+    m_study: string;
+    m_versionId: string;
     [field: string]: {
         [instance: string]: {
             [array: number]: number | string
         }
-    } | string | boolean | string[]
+    } | string | boolean | string[];
 }
 
 /* update should be audit trailed */
@@ -56,7 +56,7 @@ export class UKBCSVCurator {
         const parseStream: NodeJS.ReadableStream = this.incomingWebStream.pipe(csvparse(this.parseOptions)); // piping the incoming stream to a parser stream
 
         // check for intergrity
-        parseStream.on('data', async line => {
+        parseStream.on('data', async (line) => {
             if (isHeader) {
                 /* pausing the stream so all the async ops on the first line must be completed before the second line is read */
                 parseStream.pause();
@@ -226,9 +226,9 @@ export class UKBCSVCurator {
 
     private parseFieldHeader(fieldHeader: string): IFieldDescriptionObject {
         return ({
-            fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-'))),
-            instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.'))),
-            array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1))
+            fieldId: parseInt(fieldHeader.slice(0, fieldHeader.indexOf('-')), 10),
+            instance: parseInt(fieldHeader.slice(fieldHeader.indexOf('-') + 1, fieldHeader.indexOf('.')), 10),
+            array: parseInt(fieldHeader.slice(fieldHeader.indexOf('.') + 1), 10)
         });
     }
 

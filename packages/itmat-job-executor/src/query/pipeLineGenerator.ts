@@ -9,118 +9,6 @@
 class PipelineGenerator {
     constructor(private readonly config = {}) {}
 
-
-    /**
-     * @fn _createNewdField
-     * @desc Creates the new fields required to compare when using an expresion like BMI or an average
-     * expression = {
-     *   "left": json for nested or string for field id or Float,
-     *   "right": json for nested or string for field id or Float,
-     *   "op": String // Logical operation
-     * @param expression
-     * @return json formated in the mongo format in the pipeline stage addfield
-     * @private
-     */
-    private _createNewField(expression: any) {
-        let newField = {};
-
-        switch (expression.op) {
-            case '*':
-                newField = {"$multiply": [this._createNewField(expression.left), this._createNewField(expression.right)]};
-                break;
-            case '/':
-                newField = {"$divide": [this._createNewField(expression.left), this._createNewField(expression.right)]};
-                break;
-            case '-':
-                newField = {"$subtract": [this._createNewField(expression.left), this._createNewField(expression.right)]};
-                break;
-            case '+':
-                newField = {"$add": [this._createNewField(expression.left), this._createNewField(expression.right)]};
-                break;
-            case '^':
-                //NB the right side my be an integer while the left must be a field !
-                newField = {"$pow": [ '$' + expression.left,  parseInt(expression.right)]};
-                break;
-            case 'val':
-                newField = parseFloat(expression.left);
-                break;
-            case 'field':
-                newField =  '$' + expression.left;
-                break;
-            default:
-                break;
-        }
-
-        return newField;
-    }
-
-    /**
-     * @fn _isEmptyObject
-     * @desc tests if an object is empty
-     * @param obj
-     * @returns {boolean}
-     * @private
-     */
-    private _isEmptyObject(obj: any){
-        return !Object.keys(obj).length;
-    }
-
-    /**
-     * @fn _translateCohort
-     * @desc Tranforms a query into a mongo query.
-     * @param cohort
-     * @private
-     */
-    private _translateCohort(cohort: any){
-        let match = {};
-
-        cohort.forEach(function (select: any) {
-
-            switch (select.op){
-                case '=':
-                    // select.value must be an array
-                    (match as any)[select.field] = { $in: [select.value] };
-                    break;
-                case '!=':
-                    // select.value must be an array
-                    (match as any)[select.field] = { $ne: [select.value] };
-                    break;
-                case '>':
-                    // select.value must be a float
-                    (match as any)[select.field] = { $lt: parseFloat(select.value) };
-                    break;
-                case '<':
-                    // select.value must be a float
-                    (match as any)[select.field] = { $gt: parseFloat(select.value) };
-                    break;
-                case 'derived':
-                    // equation must only have + - * /
-                    let derivedOperation = select.value.split(' ');
-                    if (derivedOperation[0] === '='){(match as any)[select.field] = {$eq: parseFloat(select.value)};}
-                    if (derivedOperation[0] === '>'){(match as any)[select.field] = {$gt: parseFloat(select.value)};}
-                    if (derivedOperation[0] === '<'){(match as any)[select.field] = {$lt: parseFloat(select.value)};}
-                    break;
-                case 'exists':
-                    // We check if the field exists. This is to be used for checking if a patient
-                    // has an image
-                    (match as any)[select.field] = { $exists: true };
-                    break;
-                case 'count':
-                    // counts can only be positive. NB: > and < are inclusive e.g. < is <=
-                    let countOperation = select.value.split(' ');
-                    let countfield = select.field + '.count';
-                    if (countOperation[0] === '='){(match as any)[countfield] = {$eq: parseInt(countOperation[1])};}
-                    if (countOperation[0] === '>'){(match as any)[countfield] = {$gt:  parseInt(countOperation[1])};}
-                    if (countOperation[0] === '<'){(match as any)[countfield] = {$lt:  parseInt(countOperation[1])};}
-                    break;
-                default:
-                    break;
-            }
-        }
-        );
-        return match;
-    }
-
     /*
     * @fn buildPipeline
     * @desc Methods that builds thee pipeline for the mongo query
@@ -158,13 +46,13 @@ class PipelineGenerator {
     }
     */
     public buildPipeline(query: any) {
-        let fields = {_id: 0, m_eid: 1};
+        const fields = {_id: 0, m_eid: 1};
         // We send back the requested fields
         query.data_requested.forEach((field: any) => {
             (fields as any)[field] = 1;
         });
 
-        let addFields = {};
+        const addFields = {};
         // We send back the newly created derived fields by default
         if (query.new_fields.length > 0) {
             query.new_fields.forEach((field: any) => {
@@ -178,31 +66,165 @@ class PipelineGenerator {
         }
 
         let match = {};
-        if(query.cohort.length > 1){
-            let subqueries: any = [];
+        if (query.cohort.length > 1) {
+            const subqueries: any = [];
             query.cohort.forEach((subcohort: any) => {
                 // addFields.
                 subqueries.push(this._translateCohort(subcohort));
             });
             match = { $or: subqueries };
-        }else{
+        } else {
             match = this._translateCohort(query.cohort[0]);
         }
 
-        if(this._isEmptyObject(addFields)){
+        if (this._isEmptyObject(addFields)) {
             return [
-                {$match: { m_study: query.studyId }},
-                {$match: match},
-                {$project: fields}
+                { $match: { m_study: query.studyId } },
+                { $match: match },
+                { $project: fields }
             ];
-        }else{
+        } else {
             return [
-                {$match: { m_study: query.studyId }},
-                {$addFields: addFields},
-                {$match: match},
-                {$project: fields}
+                { $match: { m_study: query.studyId } },
+                { $addFields: addFields },
+                { $match: match },
+                { $project: fields }
             ];
         }
+    }
+
+
+    /**
+     * @fn _createNewdField
+     * @desc Creates the new fields required to compare when using an expresion like BMI or an average
+     * expression = {
+     *   "left": json for nested or string for field id or Float,
+     *   "right": json for nested or string for field id or Float,
+     *   "op": String // Logical operation
+     * @param expression
+     * @return json formated in the mongo format in the pipeline stage addfield
+     * @private
+     */
+    private _createNewField(expression: any) {
+        let newField = {};
+
+        switch (expression.op) {
+            case '*':
+                newField = {
+                    $multiply: [this._createNewField(expression.left), this._createNewField(expression.right)]
+                };
+                break;
+            case '/':
+                newField = {
+                    $divide: [this._createNewField(expression.left), this._createNewField(expression.right)]
+                };
+                break;
+            case '-':
+                newField = {
+                    $subtract: [this._createNewField(expression.left), this._createNewField(expression.right)]
+                };
+                break;
+            case '+':
+                newField = {
+                    $add: [this._createNewField(expression.left), this._createNewField(expression.right)]
+                };
+                break;
+            case '^':
+                // NB the right side my be an integer while the left must be a field !
+                newField = {
+                    $pow: ['$' + expression.left, parseInt(expression.right, 10)]
+                };
+                break;
+            case 'val':
+                newField = parseFloat(expression.left);
+                break;
+            case 'field':
+                newField = '$' + expression.left;
+                break;
+            default:
+                break;
+        }
+
+        return newField;
+    }
+
+    /**
+     * @fn _isEmptyObject
+     * @desc tests if an object is empty
+     * @param obj
+     * @returns {boolean}
+     * @private
+     */
+    private _isEmptyObject(obj: any) {
+        return !Object.keys(obj).length;
+    }
+
+    /**
+     * @fn _translateCohort
+     * @desc Tranforms a query into a mongo query.
+     * @param cohort
+     * @private
+     */
+    private _translateCohort(cohort: any) {
+        const match = {};
+
+        cohort.forEach(function(select: any) {
+
+            switch (select.op) {
+                case '=':
+                    // select.value must be an array
+                    (match as any)[select.field] = { $in: [select.value] };
+                    break;
+                case '!=':
+                    // select.value must be an array
+                    (match as any)[select.field] = { $ne: [select.value] };
+                    break;
+                case '>':
+                    // select.value must be a float
+                    (match as any)[select.field] = { $lt: parseFloat(select.value) };
+                    break;
+                case '<':
+                    // select.value must be a float
+                    (match as any)[select.field] = { $gt: parseFloat(select.value) };
+                    break;
+                case 'derived':
+                    // equation must only have + - * /
+                    const derivedOperation = select.value.split(' ');
+                    if (derivedOperation[0] === '=') {
+                        (match as any)[select.field] = { $eq: parseFloat(select.value) };
+                    }
+                    if (derivedOperation[0] === '>') {
+                        (match as any)[select.field] = { $gt: parseFloat(select.value) };
+                    }
+                    if (derivedOperation[0] === '<') {
+                        (match as any)[select.field] = { $lt: parseFloat(select.value) };
+                    }
+                    break;
+                case 'exists':
+                    // We check if the field exists. This is to be used for checking if a patient
+                    // has an image
+                    (match as any)[select.field] = { $exists: true };
+                    break;
+                case 'count':
+                    // counts can only be positive. NB: > and < are inclusive e.g. < is <=
+                    const countOperation = select.value.split(' ');
+                    const countfield = select.field + '.count';
+                    if (countOperation[0] === '=') {
+                        (match as any)[countfield] = { $eq: parseInt(countOperation[1], 10) };
+                    }
+                    if (countOperation[0] === '>') {
+                        (match as any)[countfield] = { $gt: parseInt(countOperation[1], 10) };
+                    }
+                    if (countOperation[0] === '<') {
+                        (match as any)[countfield] = { $lt: parseInt(countOperation[1], 10) };
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        );
+        return match;
     }
 }
 

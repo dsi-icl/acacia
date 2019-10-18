@@ -1,10 +1,10 @@
+import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import React from 'react';
 import { Query } from 'react-apollo';
-import * as css from './tabContent.module.css';
 import { GET_STUDY } from '../../../../graphql/study';
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { formatBytes } from '../../../reusable/fileList';
-// number of patients 
+import * as css from './tabContent.module.css';
+// number of patients
 // newest version of data - date / tag
 // download data
 // data curation pipeline
@@ -15,7 +15,7 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selec
     const { id, version, tag, uploadDate, fileSize, extractedFrom } = versions[selectedVersion];
 
     return <>
-        {selectedVersion === currentVersion ? null : <><span className='warning_banner'>Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
+        {selectedVersion === currentVersion ? null : <><span className="warning_banner">Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
         <div className={css.data_summary_section}>
             <NumberOfPatients studyId={studyId} key={id} />
             <NewestVersionOfData version={version || 'n/a'} />
@@ -31,7 +31,7 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selec
 
 
 
-//////////////////////////COMPONENTS WITHIN THE PAGE//////////////////////////////////////
+////////////////////////// COMPONENTS WITHIN THE PAGE//////////////////////////////////////
 const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div style={{ gridArea: 'patients' }}>
         <div>
@@ -39,8 +39,8 @@ const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyI
             <span className={css.number_highlight}>
                 <Query query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
-                        if (loading) return '...';
-                        if (error || !data || !data.getStudy || data.getStudy.numOfSubjects === undefined) return 'n/a';
+                        if (loading) { return '...'; }
+                        if (error || !data || !data.getStudy || data.getStudy.numOfSubjects === undefined) { return 'n/a'; }
                         return data.getStudy.numOfSubjects;
                     }}
                 </Query>
@@ -58,7 +58,7 @@ const NewestVersionOfData: React.FunctionComponent<{ version: string }> = ({ ver
 };
 
 const VersionTag: React.FunctionComponent<{ tag: string }> = ({ tag }) => {
-    if (!tag) return <div style={{ gridArea: 'tag' }} >Current version of data is not tagged.</div>;
+    if (!tag) { return <div style={{ gridArea: 'tag' }} >Current version of data is not tagged.</div>; }
     return <div style={{ gridArea: 'tag' }}><div>
         <p>Dataset version tag</p>
         <span className={css.number_highlight}>{tag}</span>
@@ -79,7 +79,7 @@ const DateOfUpload: React.FunctionComponent<{ date: string | number /* UNIX time
     return <div style={{ gridArea: 'date' }}><div>
         <p>Data were uploaded on</p>
         <span className={css.number_highlight}>{date ? (new Date(parseInt(date as any))).toLocaleString() : 'n/a'}</span>
-    </div></div>
+    </div></div>;
 };
 
 const FileSize: React.FunctionComponent<{ size: string }> = ({ size }) => {

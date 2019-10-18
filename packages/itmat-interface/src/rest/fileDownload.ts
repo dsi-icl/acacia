@@ -1,7 +1,6 @@
-import { Express, Request, Response, NextFunction } from 'express';
-import { db } from '../database/database';
-import { fieldCore } from '../graphql/core/fieldCore';
+import { Request, Response } from 'express';
 import { IFile } from 'itmat-commons/dist/models/file';
+import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 
 export const fileDownloadController = async (req: Request, res: Response) => {
