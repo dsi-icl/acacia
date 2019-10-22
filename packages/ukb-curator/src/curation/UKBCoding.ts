@@ -1,5 +1,5 @@
-import { ICodingEntry, ICodingMap } from '../models/UKBCoding';
 import mongodb from 'mongodb';
+import { ICodingEntry, ICodingMap } from '../models/UKBCoding';
 
 export class UKBCoding {
     constructor(private readonly UKBCodingCollection: mongodb.Collection) {}

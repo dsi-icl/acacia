@@ -79,13 +79,13 @@ export const alphabetToTypeTable: {
     '(': alphabetTypes.openParenthesis,
     ')': alphabetTypes.closeParenthesis,
     '\n': alphabetTypes.whitespace,
-    '\t': alphabetTypes.whitespace, 
+    '\t': alphabetTypes.whitespace,
     ' ': alphabetTypes.whitespace,
     '.': alphabetTypes.dot,
     '+': alphabetTypes.arithmeticOperator,
     '-': alphabetTypes.arithmeticOperator,
-    '*': alphabetTypes.arithmeticOperator,    
+    '*': alphabetTypes.arithmeticOperator,
     '/': alphabetTypes.arithmeticOperator,
     '"': alphabetTypes.quote,
     '=': alphabetTypes.comparisonOperator
-}
+};

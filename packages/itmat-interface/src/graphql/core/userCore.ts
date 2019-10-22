@@ -1,14 +1,12 @@
-import mongodb from 'mongodb';
 import bcrypt from 'bcrypt';
+import { Models } from 'itmat-commons';
 import { db } from '../../database/database';
-import { permissions, Models } from 'itmat-utils';
-import config from '../../../config/config.json';
+import config from '../../utils/configManager';
 
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
-import { errorCodes } from '../errors';
+import { IUser, IUserWithoutToken, userTypes } from 'itmat-commons/dist/models/user';
 import uuidv4 from 'uuid/v4';
-import { IUser, userTypes, IUserWithoutToken } from 'itmat-utils/dist/models/user';
+import { errorCodes } from '../errors';
 
 export class UserCore {
     public async getOneUser_throwErrorIfNotExists(username: string): Promise<IUser> {

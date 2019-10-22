@@ -80,7 +80,6 @@ server.key
 doc/
 
 config.json
-*.config.json
 config._test.js
 config.test.js
 config.test.json
@@ -90,6 +89,8 @@ config.test.json
 notes/
 
 dist/
+
+config/
 
 .vscode/
 

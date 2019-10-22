@@ -1,13 +1,12 @@
 import * as mongodb from 'mongodb';
-import * as Models from './models';
 import { Logger } from './logger';
 
 export interface IJobPollerConfig {
-    identity: string, // a string identifying the server; this is just to keep track in mongo
-    jobType?: string, // if undefined, matches all jobs
-    jobCollection: mongodb.Collection, // collection to poll 
-    pollingFrequency: number, // in ms
-    action: (document: any) => void // gets called every time there is new document
+    identity: string; // a string identifying the server; this is just to keep track in mongo
+    jobType?: string; // if undefined, matches all jobs
+    jobCollection: mongodb.Collection; // collection to poll
+    pollingFrequency: number; // in ms
+    action: (document: any) => void; // gets called every time there is new document
 }
 
 export class JobPoller {
@@ -46,12 +45,14 @@ export class JobPoller {
         Logger.log(`${this.identity} polling ${this.jobCollection} for new jobs of type ${this.jobType || 'ALL'}.`);
         let updateResult: mongodb.FindAndModifyWriteOpResultObject;
         try {
-            updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, { $set: {
-                claimedBy: this.identity,
-                lastClaimed: new Date().valueOf(),
-                status: 'PROCESSING'
-            }},
-            { maxTimeMS : 30 });
+            updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {
+                $set: {
+                    claimedBy: this.identity,
+                    lastClaimed: new Date().valueOf(),
+                    status: 'PROCESSING'
+                }
+            },
+                { maxTimeMS: 30 });
         } catch (e) {
             console.log(e);
             return;

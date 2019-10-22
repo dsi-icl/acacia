@@ -1,5 +1,5 @@
-import gql from "graphql-tag";
-import { job_fragment } from "./curation";
+import gql from 'graphql-tag';
+import { job_fragment } from './curation';
 
 export const GET_STUDIES_LIST = gql`
     {
@@ -86,7 +86,7 @@ export const CREATE_PROJECT = gql`
         createProject(studyId: $studyId, projectName: $projectName, approvedFields: $approvedFields) {
             id
             studyId
-            name 
+            name
             approvedFields
         }
     }
@@ -115,7 +115,7 @@ export const SET_DATAVERSION_AS_CURRENT = gql`
                 contentId
                 fileSize
                 fieldTrees
-            } 
+            }
         }
     }
 `;

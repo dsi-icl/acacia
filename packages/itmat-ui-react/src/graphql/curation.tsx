@@ -1,4 +1,4 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 export const job_fragment = gql`
     fragment ALL on Job {
@@ -24,7 +24,7 @@ export const CREATE_DATA_CURATION_JOB = gql`
         }
     }
     ${job_fragment}
-`; 
+`;
 
 export const CREATE_FIELD_CURATION_JOB = gql`
     mutation createDataCurationJob($file: String!, $studyId: String!, $tag: String!, $dataVersionId: String!) {
@@ -33,4 +33,4 @@ export const CREATE_FIELD_CURATION_JOB = gql`
         }
     }
     ${job_fragment}
-`; 
+`;

@@ -1,8 +1,8 @@
-import { ServerBase, IServerBaseConfig } from 'itmat-utils';
+import { IServerBaseConfig, ServerBase } from 'itmat-utils';
 
 
-interface IServerConfig extends IServerBaseConfig {
-    pollingInterval: number
+export interface IServerConfig extends IServerBaseConfig {
+    pollingInterval: number;
 }
 
 export class Server extends ServerBase<IServerConfig> {
