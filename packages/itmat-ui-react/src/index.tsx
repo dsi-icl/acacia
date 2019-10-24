@@ -6,7 +6,9 @@ import './css/global.css';
 import registerServiceWorker from './registerServiceWorker';
 
 ReactDOM.render(
-    <App />,
+    <React.StrictMode>
+        <App />
+    </React.StrictMode>,
     document.getElementById('root') as HTMLElement
 );
 
