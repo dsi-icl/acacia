@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
 const { CREATE_PROJECT, DELETE_PROJECT } = require('./study');
 const { print } = require('graphql');
