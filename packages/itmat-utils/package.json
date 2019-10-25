@@ -12,7 +12,7 @@
         "build": "npm run clean && npm run compile",
         "clean": "rimraf -rf ./dist",
         "compile": "tsc -p tsconfig.build.json",
-        "start": "tsc -p tsconfig.build.json -w",
+        "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
         "prepublishOnly": "npm run build",
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
