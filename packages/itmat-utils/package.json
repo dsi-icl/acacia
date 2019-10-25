@@ -12,7 +12,7 @@
         "build": "npm run clean && npm run compile",
         "clean": "rimraf -rf ./dist",
         "compile": "tsc -p tsconfig.build.json",
-        "start": "tsc -p tsconfig.build.json -w",
+        "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
         "prepublishOnly": "npm run build",
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
@@ -27,7 +27,7 @@
     "devDependencies": {
         "@types/express": "4.17.1",
         "@types/mongodb": "3.3.6",
-        "@types/node": "12.11.1",
+        "@types/node": "12.11.7",
         "rimraf": "3.0.0",
         "typescript": "3.6.4"
     }
