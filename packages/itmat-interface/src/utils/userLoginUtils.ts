@@ -1,5 +1,4 @@
-import { Models } from 'itmat-utils';
-import mongodb from 'mongodb';
+import { Models } from 'itmat-commons';
 import { db } from '../database/database';
 
 export class UserLoginUtils {
@@ -18,7 +17,7 @@ export class UserLoginUtils {
     }
 
     private async _getUser(username: string): Promise<Models.UserModels.IUserWithoutToken> {
-        return await db.collections!.users_collection.findOne({ deleted: false, username }, { projection: { _id: 0, deleted: 0, password: 0 }})!;
+        return await db.collections!.users_collection.findOne({ deleted: false, username }, { projection: { _id: 0, deleted: 0, password: 0 } })!;
     }
 }
 

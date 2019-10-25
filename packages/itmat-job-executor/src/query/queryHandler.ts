@@ -1,8 +1,8 @@
-import { pipelineGenerator } from './pipeLineGenerator';
-import { IQueryEntry } from 'itmat-utils/dist/models/query';
-import { db } from '../database/database';
-import { IProject } from 'itmat-utils/dist/models/study';
+import { IQueryEntry } from 'itmat-commons/dist/models/query';
+import { IProject } from 'itmat-commons/dist/models/study';
 import { Logger } from 'itmat-utils';
+import { db } from '../database/database';
+import { pipelineGenerator } from './pipeLineGenerator';
 
 class QueryHandler {
     public async actOnDocument(document: IQueryEntry): Promise<void> {
@@ -22,8 +22,8 @@ class QueryHandler {
                     return;
                 }
                 const mapping = project.patientMapping;
-                result.forEach(el => {
-                    if (el.m_eid === undefined) return;
+                result.forEach((el) => {
+                    if (el.m_eid === undefined) { return; }
                     el.m_eid = mapping[el.m_eid];
                 });
             }

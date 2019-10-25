@@ -1,27 +1,27 @@
-import mongodb, { BulkWriteResult } from 'mongodb';
-import { db } from '../../database/database';
-import { permissions } from 'itmat-utils';
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, IRole } from 'itmat-utils/dist/models/study';
-import { errorCodes } from '../errors';
+import { permissions } from 'itmat-commons';
+import { IRole } from 'itmat-commons/dist/models/study';
+import { IUser, userTypes } from 'itmat-commons/dist/models/user';
+import { BulkWriteResult } from 'mongodb';
 import uuidv4 from 'uuid/v4';
-import { IUser, userTypes } from 'itmat-utils/dist/models/user';
+import { db } from '../../database/database';
+import { errorCodes } from '../errors';
 
 interface ICreateRoleInput {
-    studyId: string,
-    projectId?: string,
-    roleName: string
+    studyId: string;
+    projectId?: string;
+    roleName: string;
 }
 
-interface IUserToRoleInput {
-    roleId: string,
-    userId: string
-}
+// interface IUserToRoleInput {
+//     roleId: string;
+//     userId: string;
+// }
 
 export class PermissionCore {
     public validatePermissionInput_throwErrorIfNot(inputPermissions: string[]): void {
         const allPermissions = Object.entries(permissions).reduce((a: string[], e: any) => a.concat(Object.values(e[1])), []);
-        for (let each of inputPermissions) {
+        for (const each of inputPermissions) {
             if (!allPermissions.includes(each)) {
                 throw new ApolloError(`"${each}" is not a valid permission.`, errorCodes.CLIENT_MALFORMED_INPUT);
             }
@@ -34,6 +34,10 @@ export class PermissionCore {
     }
 
     public async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, studyId: string, projectId?: string): Promise<boolean> {
+
+        if (user === undefined) {
+            return false;
+        }
         /* if user is an admin then return true if admin privileges includes needed permissions */
         if (user.type === userTypes.ADMIN) {
             return true;
@@ -42,14 +46,14 @@ export class PermissionCore {
         /* aggregationPipeline to return a list of the privileges the user has in this study / project */
         const aggregationPipeline = [
             { $match: { studyId, projectId, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
-            { $group: {  _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } }  },
-            { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: [ '$$this', '$$value' ] }  } } } }
+            { $group: { _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
+            { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
         ];
-        const result: { _id: string, arrPrivileges: string[] }[] = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
+        const result: Array<{ _id: string, arrPrivileges: string[] }> = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
         if (result.length !== 1) {
-            throw new ApolloError(`Internal error occurred when checking user privileges.`, errorCodes.DATABASE_ERROR);
+            throw new ApolloError('Internal error occurred when checking user privileges.', errorCodes.DATABASE_ERROR);
         }
-        const hisPrivileges = result[0].arrPrivileges;   //example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
+        const hisPrivileges = result[0].arrPrivileges;   // example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
 
         /* checking privileges */
         for (let i = 0, length = needOneOfThesePermissions.length; i < length; i++) {
@@ -69,7 +73,7 @@ export class PermissionCore {
         }
     }
 
-    public async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string, projectId?: string } | { studyId?: string, projectId: string } ): Promise<void> {
+    public async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string, projectId?: string } | { studyId?: string, projectId: string }): Promise<void> {
         if (studyId === undefined && projectId === undefined) {
             throw new ApolloError('Neither studyId nor projectId is provided');
         }
@@ -131,7 +135,7 @@ export class PermissionCore {
         // });
 
         // /* check that study or project exists and the role does not already exist */
-        const queryObj = opt.projectId === undefined ? { study: opt.studyId, deleted: false } : { study: opt.studyId, project: opt.projectId, deleted: false };
+        // const queryObj = opt.projectId === undefined ? { study: opt.studyId, deleted: false } : { study: opt.studyId, project: opt.projectId, deleted: false };
         // const searchResult: IProject | IStudy = await targetCollection.findOne(queryObj)!;
         // const errorTarget = opt.project === undefined ? `Project "${opt.project}" of study "${opt.study}"` : `Study "${opt.study}"`
         // if (searchResult === null || searchResult === undefined) {

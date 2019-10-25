@@ -1,27 +1,27 @@
-import { IToken, tokenClass, stateToTokenClassMap, unquotedStringToClassMap } from '../lexer/tokenClass';
+import { IToken, tokenClass } from '../lexer/tokenClass';
 
 export class Parser {
     private currentPosition: number = -1;
 
     constructor(private readonly tokenArr: IToken[]) {}
 
-    advancePosition() {
+    public advancePosition() {
         this.currentPosition += 1;
     }
 
-    nextToken(): IToken {
+    public nextToken(): IToken {
         return this.tokenArr[this.currentPosition + 1];
     }
 
-    reportSyntaxError(e: string): void {
+    public reportSyntaxError(e: string): void {
         throw Error(`${e} at ${this.currentPosition + 1}`);
     }
 
-    parse(): any {
+    public parse(): any {
         return this.CONDITION_GROUP();
     }
 
-    CONDITION_GROUP() {
+    public CONDITION_GROUP() {
         // <CONDITION_GROUP> -> <CONDITION> <CONDITION_GROUP'>
         return (
             {
@@ -31,7 +31,7 @@ export class Parser {
         );
     }
 
-    CONDITION(): any {
+    public CONDITION(): any {
         // <CONDITION> -> ( <CONDITION_GROUP> )
         //     | expr ( <EXPRESSION> ) <OP> number
         //     | imageExistsFor <FIELD_DESCRIPTION>
@@ -85,7 +85,7 @@ export class Parser {
 
     }
 
-    CONDITION_GROUP_PRIME(): any {
+    public CONDITION_GROUP_PRIME(): any {
         // <CONDITION_GROUP'> -> and <CONDITION> <CONDITION_GROUP'>
         //             | or <CONDITION> <CONDITION_GROUP'>
         //             | e if eof
@@ -116,8 +116,8 @@ export class Parser {
         }
     }
 
-    EXPRESSION(): any {
-        //<EXPRESSION> -> <TERM> <EXPRESSION'>
+    public EXPRESSION(): any {
+        // <EXPRESSION> -> <TERM> <EXPRESSION'>
         return (
             {
                 type: 'EXPRESSION',
@@ -126,7 +126,7 @@ export class Parser {
         );
     }
 
-    FIELD_DESCRIPTION() {
+    public FIELD_DESCRIPTION() {
         // <FIELD_DESCRIPTION> -> <FIELD> <INSTANCE_ARRAY>
         return (
             {
@@ -136,7 +136,7 @@ export class Parser {
         );
     }
 
-    TARGET_VALUE(): any {
+    public TARGET_VALUE(): any {
         // <TARGET_VALUE> -> number
         //                 | name
         //                 | value ( <FIELD_DESCRIPTION> )
@@ -169,7 +169,7 @@ export class Parser {
 
     }
 
-    FIELD() {
+    public FIELD() {
         // <FIELD> -> field <FIELD_IDENTIFIER>
         const nexttoken = this.nextToken();
         switch (nexttoken.class) {
@@ -185,7 +185,7 @@ export class Parser {
         }
     }
 
-    FIELD_IDENTIFIER(): any {
+    public FIELD_IDENTIFIER(): any {
         // <FIELD_IDENTIFIER> -> number
         //                      | name
         const nexttoken = this.nextToken();
@@ -207,7 +207,7 @@ export class Parser {
         }
     }
 
-    INSTANCE_ARRAY() {
+    public INSTANCE_ARRAY() {
         // <INSTANCE_ARRAY> -> instance <INSTANCE_ARRAY_IDENTIFIER>
         //                  | e if eof, ), and_or, epilosn
         const nexttoken = this.nextToken();
@@ -237,9 +237,9 @@ export class Parser {
         }
     }
 
-    INSTANCE_ARRAY_IDENTIFIER() {
+    public INSTANCE_ARRAY_IDENTIFIER() {
         // <INSTANCE_ARRAY_IDENTIFIER> -> number <ARRAY>
-        //                             | any  
+        //                             | any
         const nexttoken = this.nextToken();
         switch (nexttoken.class) {
             case tokenClass.NUMBER:
@@ -260,7 +260,7 @@ export class Parser {
         }
     }
 
-    ARRAY(): any {
+    public ARRAY(): any {
         // <ARRAY> -> array <ARRAY_IDENTIFIER>
         //         | e
         const nexttoken = this.nextToken();
@@ -290,7 +290,7 @@ export class Parser {
         }
     }
 
-    ARRAY_IDENTIFIER() {
+    public ARRAY_IDENTIFIER() {
         // <ARRAY_IDENTIFIER> -> any
         //                     | number
         const nexttoken = this.nextToken();
@@ -313,7 +313,7 @@ export class Parser {
         }
     }
 
-    EXPRESSION_PRIME(): any {
+    public EXPRESSION_PRIME(): any {
         // <EXPRESSION'> -> + <TERM> <EXPRESSION'>
         //                 |  - <TERM> <EXPRESSION'>
         //                 |  e
@@ -334,7 +334,7 @@ export class Parser {
             case tokenClass.CLOSE_PARENTHESIS:
                 return (
                     { type: 'EXPRESSION_PRIME', children: [
-                        this._epsilon(),
+                        this._epsilon()
                     ]}
                 );
             default:
@@ -342,7 +342,7 @@ export class Parser {
         }
     }
 
-    TERM() {
+    public TERM() {
         // <TERM> -> <FACTOR> <TERM'>
         return (
             {
@@ -352,7 +352,7 @@ export class Parser {
         );
     }
 
-    FACTOR() {
+    public FACTOR() {
         // <FACTOR> -> ( EXPRESSION )
         //           | number
         //           | value ( <FIELD_DESCRIPTION> )
@@ -369,7 +369,7 @@ export class Parser {
             case tokenClass.NUMBER:
                 return (
                     { type: 'FACTOR', children: [
-                        this._number(),
+                        this._number()
                     ]}
                 );
             case tokenClass.VALUE_OF:
@@ -386,7 +386,7 @@ export class Parser {
         }
     }
 
-    TERM_PRIME(): any {
+    public TERM_PRIME(): any {
         // <TERM'> -> x <FACTOR> <TERM'>
         //     |  / <FACTOR> <TERM'>
         //     | e if eof,+,-,)
@@ -428,7 +428,7 @@ export class Parser {
 
     }
 
-    _number() {
+    public _number() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.NUMBER) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -441,7 +441,7 @@ export class Parser {
         });
     }
 
-    _imageExistsFor() {
+    public _imageExistsFor() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.IMAGE) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -454,7 +454,7 @@ export class Parser {
         });
     }
 
-    _name() {
+    public _name() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.NAME) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -467,7 +467,7 @@ export class Parser {
         });
     }
 
-    _wildcard() {
+    public _wildcard() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.WILDCARD) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -480,7 +480,7 @@ export class Parser {
         });
     }
 
-    _comparison_operator() {
+    public _comparison_operator() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.COMPARISON_OPERATOR) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -493,7 +493,7 @@ export class Parser {
         });
     }
 
-    _arithmetic_operator() {
+    public _arithmetic_operator() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.ARITHMETIC_OPERATOR) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -506,7 +506,7 @@ export class Parser {
         });
     }
 
-    _value() {
+    public _value() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.VALUE_OF) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -519,7 +519,7 @@ export class Parser {
         });
     }
 
-    _openParenthesis() {
+    public _openParenthesis() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.OPEN_PARENTHESIS) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -532,7 +532,7 @@ export class Parser {
         });
     }
 
-    _closeParenthesis() {
+    public _closeParenthesis() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.CLOSE_PARENTHESIS) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -545,7 +545,7 @@ export class Parser {
         });
     }
 
-    _expression() {
+    public _expression() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.EXPRESSION) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -559,7 +559,7 @@ export class Parser {
         });
     }
 
-    _and_or() {
+    public _and_or() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.AND_OR) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -572,7 +572,7 @@ export class Parser {
         });
     }
 
-    _epsilon() {
+    public _epsilon() {
         // this.advancePosition();
         return ({
             type: 'epsilon',
@@ -581,7 +581,7 @@ export class Parser {
         });
     }
 
-    _field() {
+    public _field() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.FIELD) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -594,7 +594,7 @@ export class Parser {
         });
     }
 
-    _instance(){
+    public _instance() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.INSTANCE) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -607,7 +607,7 @@ export class Parser {
         });
     }
 
-    _array() {
+    public _array() {
         const nextToken = this.nextToken();
         if (nextToken.class !== tokenClass.ARRAY) {
             this.reportSyntaxError(JSON.stringify(nextToken));
@@ -620,6 +620,6 @@ export class Parser {
         });
     }
 
-    
+
 
 }

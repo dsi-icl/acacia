@@ -1,4 +1,4 @@
-import { alphabetTypes, alphabetToTypeTable} from './alphabet';
+import { alphabetTypes} from './alphabet';
 
 export const acceptingStates = [1, 2, 4, 5, 7, 9, 6, 10, 11];
 
@@ -20,7 +20,7 @@ export const stateTransitionTable: {
     1: {},
     2: {},
     3: {
-        [alphabetTypes.quote]: 4,
+        [alphabetTypes.quote]: 4
         // all -> 3
     },
     4: {},
@@ -42,4 +42,4 @@ export const stateTransitionTable: {
     },
     10: {},
     11: {}
-}
+};

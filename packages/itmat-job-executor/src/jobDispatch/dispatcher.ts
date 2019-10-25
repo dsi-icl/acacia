@@ -1,7 +1,4 @@
-import { Models, OpenStackSwiftObjectStore } from 'itmat-utils';
-import { Database } from '../database/database';
-import { IJobEntry } from 'itmat-utils/dist/models/job';
-import { UKBFieldInfoPlugin } from '../plugins/fieldInfoPlugin';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { JobHandler } from '../jobHandlers/jobHandlerInterface';
 
 export class JobDispatcher {
