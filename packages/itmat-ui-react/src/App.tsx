@@ -8,7 +8,7 @@ import { MainMenuBar } from './components/scaffold/mainMenuBar';
 import { MainPanel } from './components/scaffold/mainPanel';
 import * as css from './components/scaffold/scaffold.module.css';
 import { StatusBar } from './components/scaffold/statusBar';
-import { WHO_AM_I } from './graphql/user';
+import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
 class App extends React.Component {
     public render() {

@@ -2,8 +2,8 @@ import { Tree } from 'antd';
 import { IFile } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
-import { EDIT_PROJECT_APPROVED_FILES } from '../../../../../graphql/projects';
-import { GET_STUDY } from '../../../../../graphql/study';
+import { EDIT_PROJECT_APPROVED_FILES } from 'itmat-commons/dist/graphql/projects';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { LoadingBalls } from '../../../../reusable/loadingBalls';
 
 export const GrantedFileListSelection: React.FunctionComponent<{ originalCheckedList: string[], studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {

@@ -3,7 +3,7 @@ import 'antd/lib/switch/style/css';
 import { IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
-import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from '../../../../graphql/study';
+import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from 'itmat-commons/dist/graphql/study';
 import { InfoCircle } from '../../../reusable/infoCircle';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { Subsection } from '../../../reusable/subsection';

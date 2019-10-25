@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_USER, GET_USERS } from '../../graphql/appUsers';
+import { CREATE_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import * as css from './userList.module.css';
 
 // import { IUserWithoutToken } from 'itmat-commons/dist/models/user';

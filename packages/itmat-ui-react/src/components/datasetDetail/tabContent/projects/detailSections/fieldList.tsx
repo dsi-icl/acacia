@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
-import { EDIT_PROJECT_APPROVED_FIELDS } from '../../../../../graphql/projects';
-import { GET_STUDY } from '../../../../../graphql/study';
+import { EDIT_PROJECT_APPROVED_FIELDS } from 'itmat-commons/dist/graphql/projects';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { FieldListSection } from '../../../../reusable/fieldList';
 import { LoadingBalls } from '../../../../reusable/loadingBalls';
 

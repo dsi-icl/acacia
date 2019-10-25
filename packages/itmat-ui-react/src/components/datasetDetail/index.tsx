@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink, Route, Switch } from 'react-router-dom';
-import { GET_STUDY } from '../../graphql/study';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { LoadingBalls } from '../reusable/loadingBalls';
 import * as css from './projectPage.module.css';
 import { DashboardTabContent, DataManagementTabContent, ProjectsTabContent } from './tabContent';

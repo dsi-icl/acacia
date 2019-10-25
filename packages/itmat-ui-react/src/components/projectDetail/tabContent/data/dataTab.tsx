@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { GET_PROJECT } from '../../../../graphql/projects';
+import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
 import { FieldListSection } from '../../../reusable/fieldList';
 import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { Subsection } from '../../../reusable/subsection';

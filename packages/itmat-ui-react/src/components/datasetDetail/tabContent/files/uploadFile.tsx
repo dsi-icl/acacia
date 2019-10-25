@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApolloClient, useMutation } from 'react-apollo';
-import { UPLOAD_FILE } from '../../../../graphql/files';
-import { GET_STUDY } from '../../../../graphql/study';
+import { UPLOAD_FILE } from 'itmat-commons/dist/graphql/files';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 
 export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [description, setDescription] = React.useState('');
