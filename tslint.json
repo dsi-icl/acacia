@@ -36,7 +36,6 @@
             "severity": "warning",
             "options": [
                 "single",
-                "jsx-double",
                 "avoid-escape",
                 "avoid-template"
             ]
