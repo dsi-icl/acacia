@@ -11,7 +11,7 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
         <div className={css.main_menubar}>
             <div>
                 <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title="Projects" activeClassName={css.clickedButton}>
-                    <div className={css.button}><Icons type="studies" /></div>
+                    <div className={css.button}><Icons type="query" /></div>
                 </NavLink>
             </div>
 
@@ -27,6 +27,7 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
                 </NavLink>
             </div>
 
+            {/*
             <div>
                 <NavLink to="/notifications" title="Notifications" activeClassName={css.clickedButton}>
                     <div className={css.button}><Icons type="notification" /></div>
@@ -38,6 +39,7 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
                     <div className={css.button}><Icons type="settings" /></div>
                 </NavLink>
             </div>
+            */}
 
             <div>
                 <NavLink title="Logout" to="/logout" id="logoutButton">
