@@ -2,34 +2,8 @@
 'use strict';
 const gql = require('graphql-tag');
 const { print } = require('graphql');
-
-const LOGIN = print(gql`
-mutation login($username: String!, $password: String!) {
-    login(username: $username, password: $password) {
-        id
-        username
-        type
-        realName
-        shortcuts {
-            id
-            project
-            study
-        }
-        email
-        emailNotificationsActivated
-        createdBy
-    }
-}
-`);
-
-const LOGOUT = print(gql`
-    mutation {
-        logout{
-            successful
-            id
-        }
-    }
-`);
+const itmatCommons = require('itmat-commons');
+const {  LOGIN, LOGOUT } = itmatCommons.GQLRequests;
 
 function connectAdmin(agent) {
     return connectAgent(agent, 'admin', 'admin');
@@ -43,7 +17,7 @@ function connectAgent(agent, user, pw) {
     return new Promise((resolve, reject) => agent.post('/graphql')
         .set('Content-type', 'application/json')
         .send({
-            query: LOGIN,
+            query: print(LOGIN),
             variables: { username: user, password: pw }
         })
         .then(res => {
@@ -56,7 +30,7 @@ function connectAgent(agent, user, pw) {
 function disconnectAgent(agent) {
     return new Promise((resolve, reject) => agent.post('/graphql')
         .send({
-            query: LOGOUT,
+            query: print(LOGOUT),
         })
         .then(res => {
             if (res.statusCode === 200)

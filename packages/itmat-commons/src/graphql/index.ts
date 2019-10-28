@@ -8,4 +8,4 @@ import * as query from './query';
 import * as study from './study';
 import * as user from './user';
 
-export { appUsers, curation, fields, files, permission, projects, query, study, user };
+export default { ...appUsers, ...curation, ...fields, ...files, ...permission, ...projects, ...query, ...study, ...user };
