@@ -1,20 +1,20 @@
 import * as React from 'react';
-import { NavLink, Redirect } from 'react-router-dom';
-import * as css from './tabContent.module.css';
 import { Mutation } from 'react-apollo';
-import { CREATE_PROJECT, GET_STUDY } from '../../../../graphql/study';
-import { WHO_AM_I } from '../../../../graphql/user';
+import { NavLink, Redirect } from 'react-router-dom';
+import { CREATE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import * as css from './tabContent.module.css';
 
-export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: { id: string, name: string }[] }> = ({ studyId, projectList }) => {
+export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: Array<{ id: string, name: string }> }> = ({ studyId, projectList }) => {
     return <div>
-        {projectList.map(el => <OneProject studyId={studyId} key={el.id} id={el.id} name={el.name} />)}
+        {projectList.map((el) => <OneProject studyId={studyId} key={el.id} id={el.id} name={el.name} />)}
         <AddNewProject studyId={studyId} />
     </div>;
 };
 
 const OneProject: React.FunctionComponent<{ studyId: string, id: string, name: string }> = ({ id, name, studyId }) =>
     <NavLink to={`/datasets/${studyId}/projects/${id}`} activeClassName={css.active_project}><button className={css.project_badge + ' button_grey'}>{name}</button></NavLink>;
-;
+
 
 
 const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
@@ -22,7 +22,7 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
     const [error, setError] = React.useState('');
 
     return <div>
-        <input value={input} onChange={e => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name' />
+        <input value={input} onChange={(e) => { setError(''); setInput(e.target.value); }} type="text" placeholder="Enter name" />
         <Mutation
             mutation={CREATE_PROJECT}
             update={(store, { data: { createProject } }) => {
@@ -61,7 +61,7 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
             }
         </Mutation>
         {
-            error ? <div className='error_banner'>{error}</div> : null
+            error ? <div className="error_banner">{error}</div> : null
         }
     </div>;
 };

@@ -1,32 +1,32 @@
-import * as React from 'react';
-import { Query, Mutation } from 'react-apollo';
-import { EDIT_USER, GET_USERS, DELETE_USER } from '../../graphql/appUsers';
-import * as css from './userList.module.css';
 import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
+import * as React from 'react';
+import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
+import { DELETE_USER, EDIT_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { Subsection } from '../reusable';
-import { ProjectSection } from './projectSection';
 import { LoadingBalls } from '../reusable/loadingBalls';
+import { ProjectSection } from './projectSection';
+import * as css from './userList.module.css';
 
 export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
     return (
         <Query query={GET_USERS} variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId }}>
             {({ loading, error, data }) => {
-                if (loading) return <LoadingBalls />;
-                if (error) return <p>Error :( {error.message}</p>;
+                if (loading) { return <LoadingBalls />; }
+                if (error) { return <p>Error :( {error.message}</p>; }
                 const user: IUserWithoutToken = data.getUsers[0];
-                if (user === null || user === undefined) { return <p>Oops! Cannot find user.</p>; };
+                if (user === null || user === undefined) { return <p>Oops! Cannot find user.</p>; }
                 return (
                     <>
-                        <div className='page_ariane'>{data.getUsers[0].username}</div>
-                        <div className='page_content'>
-                            <Subsection title='Account Information'>
+                        <div className="page_ariane">{data.getUsers[0].username}</div>
+                        <div className="page_content">
+                            <Subsection title="Account Information">
                                 <EditUserForm user={user} />
                             </Subsection>
-                            <Subsection title='Projects'>
+                            <Subsection title="Projects">
                                 <ProjectSection projects={data.getUsers[0].access.projects} />
                             </Subsection>
-                            <Subsection title='Datasets'>
+                            <Subsection title="Datasets">
                                 <ProjectSection study={true} projects={data.getUsers[0].access.studies} />
                             </Subsection>
                         </div>
@@ -42,11 +42,10 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     const [deleteButtonShown, setDeleteButtonShown] = React.useState(false);
     const [userIsDeleted, setUserIsDeleted] = React.useState(false);
     const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
-    console.log(inputs);
     if (inputs.id !== user.id) {
         setUserIsDeleted(false);
         setDeleteButtonShown(false);
-        setInputs({ ...user, password: '' })
+        setInputs({ ...user, password: '' });
     }
 
     function formatSubmitObj() {
@@ -60,7 +59,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
         return editUserObj;
     }
 
-    if (userIsDeleted) { return <p> User {user.username} is deleted. </p> }
+    if (userIsDeleted) { return <p> User {user.username} is deleted. </p>; }
 
     return (
         <Mutation
@@ -89,10 +88,8 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                 {
                     error ? <div className='error_banner'>{JSON.stringify(error)}</div> : null
                 }
-
-
                     {
-                        savedSuccessfully ? <div className='saved_banner'>Saved!</div> : null
+                        savedSuccessfully ? <div className="saved_banner">Saved!</div> : null
                     }
                 <br/><br/><br/>
                 <Mutation

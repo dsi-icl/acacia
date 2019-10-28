@@ -1,18 +1,18 @@
 import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { WHO_AM_I } from '../../graphql/user';
 import { NavLink, Redirect } from 'react-router-dom';
+import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
-export const DatasetList: React.FunctionComponent = props => {
+export const DatasetList: React.FunctionComponent = (props) => {
     return (
         <Query
             query={WHO_AM_I}
             pollInterval={5000}
         >
             {({ loading, error, data }) => {
-                if (loading) return <p>Loading...</p>;
-                if (error) return <p>Error :( {error}</p>;
+                if (loading) { return <p>Loading...</p>; }
+                if (error) { return <p>Error :( {error}</p>; }
                 if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.studies) {
                     const datasets = data.whoAmI.access.studies;
                     if (datasets.length === 1) {
@@ -33,10 +33,10 @@ export const DatasetList: React.FunctionComponent = props => {
 const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => {
     return <>
         You have access to two or more datasets. Please pick the one you would like to access: <br /><br /><br />
-        {datasets.map(el =>
+        {datasets.map((el) =>
             <NavLink key={el.id} to={`/datasets/${el.id}/dashboard`}>
                 <button>{el.name}</button>
             </NavLink>
         )}
-    </>
-}
+    </>;
+};

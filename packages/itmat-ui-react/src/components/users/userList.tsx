@@ -1,21 +1,21 @@
+import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { GET_USERS } from '../../graphql/appUsers';
-import { Models } from 'itmat-commons';
-import * as css from './userList.module.css';
 import { NavLink } from 'react-router-dom';
+import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { Icons } from '../icons';
 import { LoadingBalls } from '../reusable/loadingBalls';
+import * as css from './userList.module.css';
 
-export const UserListSection: React.FunctionComponent = props => {
+export const UserListSection: React.FunctionComponent = (props) => {
     return (
         <Query
             query={GET_USERS}
             variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
         >
             {({ loading, error, data }) => {
-                if (loading) return <LoadingBalls />;
-                if (error) return <p>Error :( {error.message}</p>;
+                if (loading) { return <LoadingBalls />; }
+                if (error) { return <p>Error :( {error.message}</p>; }
                 const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
                 return (
                     <UserList list={userList} />
@@ -42,11 +42,11 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
 
     function highermappingfunction() {
         if (searchString === '') {
-            return function (el: Models.UserModels.IUserWithoutToken) {
+            return (el: Models.UserModels.IUserWithoutToken) => {
                 return <User key={el.id} data={el} />;
-            }
+            };
         }
-        return function (el: Models.UserModels.IUserWithoutToken) {
+        return (el: Models.UserModels.IUserWithoutToken) => {
             if (
                 el.username.toLowerCase().indexOf(searchString.toLowerCase()) !== -1 ||
                 el.email.toLowerCase().indexOf(searchString.toLowerCase()) !== -1 ||
@@ -56,7 +56,7 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
                 return <User key={el.id} data={el} />;
             }
             return null;
-        }
+        };
     }
 
     return (
@@ -64,11 +64,11 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
             <table>
                 <thead>
                     <tr>
-                        <th><Icons type='search' /><input name='search' value={searchString} onChange={e => { setSearchString(e.target.value) }} /></th>
+                        <th><Icons type="search" /><input name="search" value={searchString} onChange={(e) => { setSearchString(e.target.value); }} /></th>
                         <th></th>
                         <th></th>
                         <th></th>
-                        <th><NavLink to={`/users/createNewUser`} activeClassName={css.button_clicked}><button>Create new user</button></NavLink></th>
+                        <th><NavLink to={'/users/createNewUser'} activeClassName={css.button_clicked}><button>Create new user</button></NavLink></th>
                     </tr>
                 </thead>
             </table>

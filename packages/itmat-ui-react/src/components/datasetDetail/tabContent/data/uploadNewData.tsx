@@ -1,10 +1,10 @@
-import React from 'react';
-import { Query, Mutation } from 'react-apollo';
-import { NavLink } from 'react-router-dom';
-import { GET_STUDY } from '../../../../graphql/study';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
 import { IFile } from 'itmat-commons/dist/models/file';
-import { CREATE_DATA_CURATION_JOB } from '../../../../graphql/curation';
+import React from 'react';
+import { Mutation, Query } from 'react-apollo';
+import { NavLink } from 'react-router-dom';
+import { CREATE_DATA_CURATION_JOB } from 'itmat-commons/dist/graphql/curation';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { LoadingBalls } from '../../../reusable/loadingBalls';
 
 export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
     return <div>
@@ -13,8 +13,8 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelBut
 
         <Query query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
-                if (loading) return <LoadingBalls />;
-                if (error) return <p>{error.toString()}</p>
+                if (loading) { return <LoadingBalls />; }
+                if (error) { return <p>{error.toString()}</p>; }
                 if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
                     return null;
                 }
@@ -34,15 +34,15 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
 
     return <>
         <label>Data file:</label>
-        <select value={selectedFile} onChange={e => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
+        <select value={selectedFile} onChange={(e) => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
         <label>Version number:</label>
-        <input value={versionNumber} onChange={e => { setSuccessfullySaved(false); setVersionNumber(e.target.value); setError(''); }} placeholder='x.y.z (y and z optional)' type='text' /> <br /><br />
+        <input value={versionNumber} onChange={(e) => { setSuccessfullySaved(false); setVersionNumber(e.target.value); setError(''); }} placeholder="x.y.z (y and z optional)" type="text" /> <br /><br />
         <label>Tag:</label>
-        <input value={tag} onChange={e => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder='e.g. finalised (optional)' type='text' /><br /><br />
+        <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder="e.g. finalised (optional)" type="text" /><br /><br />
 
         <Mutation mutation={CREATE_DATA_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
             {(createCurationJob, { loading }) => {
-                if (loading) return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>
+                if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
                 return <button style={{ width: '45%', display: 'inline-block' }} onClick={() => {
                     if (!selectedFile) {
                         setError('Please select a file.');
@@ -72,10 +72,10 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
                 }}>Submit</button>;
             }}
         </Mutation>
-        <button style={{ width: '45%', display: 'inline-block' }} className='button_grey' onClick={() => cancelButton(false)}>Cancel</button>
+        <button style={{ width: '45%', display: 'inline-block' }} className="button_grey" onClick={() => cancelButton(false)}>Cancel</button>
 
-        {error ? <div className='error_banner'>{error}</div> : null}
-        {successfullySaved ? <div className='saved_banner'>Job created and queued.</div> : null}
+        {error ? <div className="error_banner">{error}</div> : null}
+        {successfullySaved ? <div className="saved_banner">Job created and queued.</div> : null}
     </>;
 
 };

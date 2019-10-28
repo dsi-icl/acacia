@@ -2,9 +2,9 @@ const request = require('supertest');
 const admin = request.agent(global._APP_);
 const user = request.agent(global._APP_);
 const { connectAdmin, connectUser, disconnectAgent } = require('./loginHelper');
-const { WHO_AM_I, ADD_SHORT_CUT, REMOVE_SHORT_CUT } = require('./gql/usersGql');
 const { Models } = require('itmat-utils');
-const { GET_SPECIFIC_USER, GET_USERS_LIST, CREATE_USER, EDIT_USER, DELETE_USER } = require('./gql/appUsersGql');
+const itmatCommons = require('itmat-commons');
+const {  WHO_AM_I, ADD_SHORT_CUT, REMOVE_SHORT_CUT, GET_SPECIFIC_USER, GET_USERS_LIST, CREATE_USER, EDIT_USER, DELETE_USER } = itmatCommons.GQLRequests;
 
 beforeAll(async () => { // eslint-disable-line no-undef
     await connectAdmin(admin);

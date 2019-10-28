@@ -1,7 +1,7 @@
 export interface IServerBaseConfig {
     server: {
         port: number
-    }
+    };
 }
 
 export abstract class ServerBase<T extends IServerBaseConfig> {

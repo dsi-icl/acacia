@@ -1,10 +1,10 @@
-import { Db, Collection } from 'mongodb';
 import { Models } from 'itmat-commons';
-import { ServerBase, CustomError, IServerBaseConfig, Logger } from 'itmat-utils';
-import { ICodingMap, ICodingEntry } from './models/UKBCoding';
-import { IFieldMap, IFieldEntry } from './models/UKBFields';
+import { Logger } from 'itmat-utils';
+import { Collection } from 'mongodb';
 import { UKBCSVCurator } from './curation/UKBCSVCurator';
 import { UKBImageCurator } from './curation/UKBImageCurator';
+import { ICodingEntry, ICodingMap } from './models/UKBCoding';
+import { IFieldEntry, IFieldMap } from './models/UKBFields';
 
 export class UKBCurator {
     private CODING_MAP: ICodingMap;

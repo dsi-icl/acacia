@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
-import { CREATE_USER, GET_USERS } from '../../graphql/appUsers';
-import * as css from './userList.module.css';
 import { NavLink, Redirect } from 'react-router-dom';
+import { CREATE_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
+import * as css from './userList.module.css';
 
 // import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
 
-export const CreateNewUser: React.FunctionComponent = props => {
+export const CreateNewUser: React.FunctionComponent = (props) => {
     const [completedCreationId, setCompletedCreationId] = React.useState(undefined);
     const [inputError, setError] = React.useState('');
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
@@ -29,26 +29,26 @@ export const CreateNewUser: React.FunctionComponent = props => {
     });
 
     function clickedSubmit(mutationFunc: (data: { variables: any }) => {}) {
-        return function (e: any) {
+        return function(e: any) {
             e.preventDefault();
             const allFields = Object.keys(inputs);
-            for (let each of allFields) {
+            for (const each of allFields) {
                 if (inputs[each] === undefined || inputs[each] === '') {
                     setError('None of the fields can be empty!');
                     return;
                 }
             }
-            mutationFunc({ variables: inputs })
-        }
+            mutationFunc({ variables: inputs });
+        };
     }
 
-    if (completedCreationId) return <Redirect to={`/users/${completedCreationId}`} />;
+    if (completedCreationId) { return <Redirect to={`/users/${completedCreationId}`} />; }
 
     return (
         <Mutation
             mutation={CREATE_USER}
             refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
-            onCompleted={data => setCompletedCreationId(data.createUser.id)}
+            onCompleted={(data) => setCompletedCreationId(data.createUser.id)}
         >
         {(createUser, { loading, error }) =>
             <form>

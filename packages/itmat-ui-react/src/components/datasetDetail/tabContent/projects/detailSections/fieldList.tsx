@@ -1,9 +1,9 @@
 import React from 'react';
-import { Query, Mutation } from 'react-apollo';
-import { LoadingBalls } from '../../../../reusable/loadingBalls';
+import { Mutation, Query } from 'react-apollo';
+import { EDIT_PROJECT_APPROVED_FIELDS } from 'itmat-commons/dist/graphql/projects';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { FieldListSection } from '../../../../reusable/fieldList';
-import { EDIT_PROJECT_APPROVED_FIELDS } from '../../../../../graphql/projects';
-import { GET_STUDY } from '../../../../../graphql/study';
+import { LoadingBalls } from '../../../../reusable/loadingBalls';
 
 export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: string[], studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);
@@ -22,8 +22,8 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
 
     return <Query query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data: fieldData, error }) => {
-            if (loading) return <LoadingBalls />;
-            if (error) return <p>Error :( {JSON.stringify(error)}</p>;
+            if (loading) { return <LoadingBalls />; }
+            if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
 
             return <>
                 <FieldListSection onCheck={onCheck} checkedList={checkedList} checkable={true} fieldList={fieldData.getStudy.fields} />
@@ -36,16 +36,16 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
                             {
                                 loading ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
                                     <button style={{ margin: '1rem 0 0 0' }} onClick={() => {
-                                        editApprovedFields({ variables: { projectId, approvedFields: checkedList.filter(el => el.indexOf('CAT') === -1) } });
+                                        editApprovedFields({ variables: { projectId, approvedFields: checkedList.filter((el) => el.indexOf('CAT') === -1) } });
                                         setSavedSuccessfully(false);
                                     }}>Save</button>
                             }
                             {
-                                error ? <div className='error_banner'>{JSON.stringify(error)}</div> : null
+                                error ? <div className="error_banner">{JSON.stringify(error)}</div> : null
                             }
 
                             {
-                                savedSuccessfully ? <div className='saved_banner'>Saved!</div> : null
+                                savedSuccessfully ? <div className="saved_banner">Saved!</div> : null
                             }
                         </>
                     }

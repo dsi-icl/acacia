@@ -1,15 +1,14 @@
-import { Server } from './server/server';
-import { Router } from './server/router';
+import { JobPoller } from 'itmat-utils';
 import { db } from './database/database';
-import config from './utils/configManager';
-import { OpenStackSwiftObjectStore } from 'itmat-utils';
-import { JobPoller, } from 'itmat-utils';
 import { JobDispatcher } from './jobDispatch/dispatcher';
 import { objStore } from './objStore/objStore';
+import { Router } from './server/router';
+import { Server } from './server/server';
+import config from './utils/configManager';
 
 /* TO_DO: can we figure out the files at runtime and import at runtime */
-import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_handler';
 import { UKB_CSV_UPLOAD_Handler } from './jobHandlers/UKB_CSV_UPLOAD_handler';
+import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_handler';
 import { UKB_IMAGE_UPLOAD_Handler } from './jobHandlers/UKB_IMAGE_UPLOAD_handler';
 
 const server = new Server(config);
@@ -31,6 +30,6 @@ db.connect(config.database)
         return;
     })
     .catch((e) => {
-        console.error('Could not start executor:', e.message)
+        console.error('Could not start executor:', e.message);
         process.exit(1);
     });

@@ -1,18 +1,18 @@
 import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { WHO_AM_I } from '../../graphql/user';
 import { NavLink, Redirect } from 'react-router-dom';
+import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
-export const ProjectList: React.FunctionComponent = props => {
+export const ProjectList: React.FunctionComponent = (props) => {
     return (
         <Query
             query={WHO_AM_I}
             pollInterval={5000}
         >
             {({ loading, error, data }) => {
-                if (loading) return <p>Loading...</p>;
-                if (error) return <p>Error :( {error}</p>;
+                if (loading) { return <p>Loading...</p>; }
+                if (error) { return <p>Error :( {error}</p>; }
                 if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.projects) {
                     const projects = data.whoAmI.access.projects;
                     if (projects.length === 1) {
@@ -33,10 +33,10 @@ export const ProjectList: React.FunctionComponent = props => {
 const PickProjectSection: React.FunctionComponent<{ projects: Models.Study.IProject[] }> = ({ projects }) => {
     return <>
         You have access to two or more projects. Please pick the one you would like to access: <br /><br /><br />
-        {projects.map(el =>
+        {projects.map((el) =>
             <NavLink key={el.id} to={`/projects/${el.id}/dashboard`}>
                 <button>{el.name}</button>
             </NavLink>
         )}
-    </>
-}
+    </>;
+};

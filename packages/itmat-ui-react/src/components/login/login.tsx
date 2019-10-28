@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Mutation } from "react-apollo";
-import { LOGIN, WHO_AM_I } from '../../graphql/user';
+import { Mutation } from 'react-apollo';
+import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import * as css from './login.module.css';
 
 export const LoginBox: React.FunctionComponent = () => {
@@ -23,7 +23,7 @@ export const LoginBox: React.FunctionComponent = () => {
                 cache.writeQuery({
                     query: WHO_AM_I,
                     data: { whoAmI: login }
-                })
+                });
             }}
         >
         {(login, { loading, error }) =>

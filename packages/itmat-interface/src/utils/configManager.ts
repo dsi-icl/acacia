@@ -1,18 +1,18 @@
-import fs from 'fs-extra';
 import merge from 'deepmerge';
+import fs from 'fs-extra';
+import { IOpenSwiftObjectStoreConfig } from 'itmat-utils';
+import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
-import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
-import { IOpenSwiftObjectStoreConfig } from 'itmat-utils';
 
 interface IConfiguration extends IServerConfig {
-    database: IDatabaseBaseConfig,
-    swift: IOpenSwiftObjectStoreConfig
+    database: IDatabaseBaseConfig;
+    swift: IOpenSwiftObjectStoreConfig;
 }
 
 class ConfigurationManager {
 
-    static expand(configurationFile: string): IConfiguration {
+    public static expand(configurationFile: string): IConfiguration {
 
         try {
             if (fs.existsSync(configurationFile)) {

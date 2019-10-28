@@ -1,9 +1,9 @@
 import * as React from 'react';
-import * as css from './tabContent.module.css';
+import { Route, Switch } from 'react-router-dom';
 import { Subsection } from '../../../reusable/subsection';
-import { ProjectListSection } from './projectListSection';
-import { Switch, Route } from 'react-router-dom';
 import { ProjectDetail } from './detailSections/projectDetail';
+import { ProjectListSection } from './projectListSection';
+import * as css from './tabContent.module.css';
 
 export const ProjectsTabContent:React.FunctionComponent<{ studyId: string, projectList: { id: string, name: string }[] }> = ({ studyId, projectList }) => {
     return <div className={css.tab_page_wrapper}>

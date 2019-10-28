@@ -1,7 +1,4 @@
-import { Models } from 'itmat-commons';
-import { Database } from '../database/database';
 import { IJobEntry } from 'itmat-commons/dist/models/job';
-import { UKBFieldInfoPlugin } from '../plugins/fieldInfoPlugin';
 import { JobHandler } from '../jobHandlers/jobHandlerInterface';
 
 export class JobDispatcher {

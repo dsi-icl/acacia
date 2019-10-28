@@ -1,13 +1,27 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import App from './App';
-import registerServiceWorker from './registerServiceWorker';
-import './css/global.css';
 import './css/antdOverride.css';
+import './css/global.css';
+import registerServiceWorker, { unregister as unregisterServiceWorker } from './registerServiceWorker';
 
-ReactDOM.render(
-    <App />,
-    document.getElementById('root') as HTMLElement
-);
+const mountApp = () => {
+    ReactDOM.render(
+        <React.StrictMode>
+            <App />
+        </React.StrictMode>,
+        document.getElementById('root') as HTMLElement
+    );
+}
 
+mountApp();
 registerServiceWorker();
+
+if (module.hot) {
+    module.hot.accept('./index', mountApp);
+    module.hot.accept('./App', mountApp);
+    module.hot.accept('./registerServiceWorker', () => {
+        unregisterServiceWorker();
+        registerServiceWorker();
+    });
+}
