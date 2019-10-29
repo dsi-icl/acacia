@@ -1,6 +1,7 @@
-/// <reference types="cypress" />
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
-const { DELETE_USER, CREATE_USER } = require('../gql/appUsersGql');
+const { DELETE_USER, CREATE_USER } = require('itmat-commons').GQLRequests;
+const { print } = require('graphql');
+
 
 describe('User management page', function() {
     it('admin can create user (e2e)', function() {
@@ -12,6 +13,8 @@ describe('User management page', function() {
         cy.contains('Create new user', { timeout: 100000 }).click();
         cy.url().should('eq', `${Cypress.config().baseUrl}/users/createNewUser`);
 
+        cy.contains('testuser').should('not.exist');
+
         /* submitting the form */
         const textinputs  = [
             { label: 'Username', value: 'testuser' },
@@ -19,7 +22,7 @@ describe('User management page', function() {
             { label: 'Real name', value: 'Test User Chan' },
             { label: 'Organisation', value: 'DSI-ICL' },
             { label: 'Description', value: 'Just a test user.' },
-            { label: 'Email', value: 'testing@test.com' },
+            { label: 'Email', value: 'testing@test.com' }
         ];
         textinputs.forEach(e => {
             cy.get('form').contains(e.label).children('input').type(e.value);
@@ -36,7 +39,7 @@ describe('User management page', function() {
 
             /* cleanup: delete the user via API */
             const createdUserId = url.substring(url.lastIndexOf('/') + 1);
-            cy.request('POST', 'http://localhost:3003/graphql', { query: DELETE_USER, variables: { userId: createdUserId } })
+            cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
                 .its('body.data.deleteUser.successful').should('eq', true);
         });
     });
@@ -57,13 +60,13 @@ describe('User management page', function() {
             type: 'STANDARD'
         };
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: CREATE_USER, variables: createUserInput }
+            { query: print(CREATE_USER), variables: createUserInput }
         ).then(res => {
             const createdUserId = res.body.data.createUser.id;
             expect(createdUserId).to.be.a('string');
 
             /* visit user management page */
-            cy.visit(`/users`);
+            cy.visit('/users');
 
             /* find the created user's entry and go to 'more' */
             cy.get('tbody', { timeout: 1000000 }).children().last().within(() => {
@@ -88,7 +91,7 @@ describe('User management page', function() {
             });
 
             /* cleanup: delete the user via API */
-            cy.request('POST', 'http://localhost:3003/graphql', { query: DELETE_USER, variables: { userId: createdUserId } })
+            cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
                 .its('body.data.deleteUser.successful').should('eq', true);
         });
     });
@@ -100,7 +103,7 @@ describe('User management page', function() {
         /* setup: create a user via API */
         cy.request('POST', 'http://localhost:3003/graphql',
             {
-                query: CREATE_USER,
+                query: print(CREATE_USER),
                 variables: {
                     username: 'testinguser',
                     password: 'testpassword',
@@ -141,7 +144,7 @@ describe('User management page', function() {
         /* setup: create a user via API */
         cy.request('POST', 'http://localhost:3003/graphql',
             {
-                query: CREATE_USER,
+                query: print(CREATE_USER),
                 variables: {
                     username: 'testinguser3',
                     password: 'testpassword',
@@ -189,7 +192,7 @@ describe('User management page', function() {
             /* check that the info are really changed in the user list */
 
             /* cleanup: delete the user via API */
-            cy.request('POST', 'http://localhost:3003/graphql', { query: DELETE_USER, variables: { userId: createdUserId } })
+            cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
             .its('body.data.deleteUser.successful').should('eq', true);
         });
     }); 

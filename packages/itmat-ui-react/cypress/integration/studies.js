@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
-const { CREATE_PROJECT, DELETE_PROJECT } = require('./study');
+const { CREATE_PROJECT, DELETE_PROJECT } = require('itmat-commons').GQLRequests;
 const { print } = require('graphql');
 
 describe('Studies page', function() {
@@ -65,7 +65,22 @@ describe('Studies page', function() {
         cy.contains('Please enter project name.').should('have.class', 'error_banner');
     });
 
-    it('admin can delete projects', function () {
+    // it('admin can delete projects', function () {
+    //     /* setup: login via API */
+    //     cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
+    //     const studyId = '5f0e6362-e593-4d61-a2bc-73730d8933f6';
 
-    });
+    //     /* setup: create the project to be deleted */
+    //     cy.request('POST', 'http://localhost:3003/graphql', { query: print(CREATE_PROJECT), variables: { studyId, projectName: 'testProject' } }) // no 'approved fields' keys here as it's not available in the ui
+    //         .then(res => {
+    //             const createdProjectId = res.body.data.createProject.id;
+    //             expect(createdProjectId).to.be.a('string');
+
+    //             cy.visit(`/datasets/${studyId}/projects/${createdProjectId}`);
+
+
+    //         });
+
+
+    // });
 });
