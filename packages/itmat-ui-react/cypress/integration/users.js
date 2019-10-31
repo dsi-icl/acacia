@@ -79,7 +79,7 @@ describe('User management page', function() {
             /* user detail should have shown up */
             cy.get('div:contains(testinguser2)').should('have.class', 'page_ariane');
             cy.get(':contains(Account Information) + div').within(() => {
-                cy.contains('Username').children('input').its('value').should('eq', 'testinguser2');
+                cy.contains('Username').children('input').should('have.value', 'testinguser2');
                 cy.contains('Type');
                 cy.contains('Real name');
                 cy.contains('Password');
@@ -183,7 +183,7 @@ describe('User management page', function() {
                     cy.contains(e.label).children('input').type(e.value);
                 });
                 cy.contains('Type').children('select').select('System admin');
-                cy.contains('Submit').click();
+                cy.contains('Save').click();
             });
 
             /* user feedback */

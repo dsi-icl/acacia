@@ -9,7 +9,7 @@ const users = [{
     "emailNotificationsActivated" : true, 
     "organisation":  "DSI",
     "deleted" : false, 
-    "id" : "replaced_at_runtime",
+    "id" : "replaced_at_runtime1",
 },
 { 
     "username" : "admin", 
@@ -22,7 +22,7 @@ const users = [{
     "description": "I am an admin user.",
     "emailNotificationsActivated" : false, 
     "deleted" : false, 
-    "id" : "replaced_at_runtime", 
+    "id" : "replaced_at_runtime2", 
 }];
 
 module.exports = users;

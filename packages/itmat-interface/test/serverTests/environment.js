@@ -5,13 +5,13 @@
 const server = require('../../dist/src/server/server').Server;
 const NodeEnvironment = require('jest-environment-node');
 const config = require('./config');
-const mongodb = require('./inMemoryMongo');
 const { MongoClient } = require('mongodb');
 const { db } = require('../../dist/src/database/database');
 const { OpenStackSwiftObjectStore } = require('itmat-utils');
 const { FileController, UserController, QueryController } = require('../../dist/src/RESTControllers');
 const { Router } = require('../../dist/src/server/router');
-const users = require('../../seed/users');
+const { setupDatabase } = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
+const { connectionString, database, mongoClient } = require('./inMemoryMongo');
 
 let app;
 let objStore;
@@ -27,25 +27,21 @@ class ItmatNodeEnvironment extends NodeEnvironment {
         process.env.NODE_ENV = 'test';
 
         /* Creating a in-memory MongoDB instance for testing */
-        console.log(await mongodb.getConnectionString());
-        config.database.mongo_url = await mongodb.getConnectionString();
-        config.database.database = await mongodb.getDbName();
         mongo = new MongoClient(config.database.mongo_url, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
 
         /* Setting up the collections and seeds in the database */
-        await mongo.connect();
-        const database = mongo.db(config.database.database);
-        for (let each in config.database.collections) {
-            await database.createCollection(config.database.collections[each]);
-        }
-        await database.collection(config.database.collections.users_collection).insert(users);
-
+        await setupDatabase(connectionString, database);
+        console.log('Finished setting up database.');
 
         /* Setting up the app (webserver) */
         objStore = new OpenStackSwiftObjectStore(config.swift);
+
+
+        config.database.mongo_url = connectionString;
+        config.database.database = database;
 
         return db.connect(config.database)
             .then(() => objStore.connect())

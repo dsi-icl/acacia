@@ -83,4 +83,20 @@ describe('Studies page', function() {
 
 
     // });
+
+    it('', function() {
+        /* setup: login via API */
+        cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
+        const studyId = '5f0e6362-e593-4d61-a2bc-73730d8933f6';
+        cy.visit(`/datasets/${studyId}/projects`);
+
+        /* error bar should not be visible */
+        cy.contains('Add new project', { timeout: 100000 });   // making sure ajax is finished 
+        cy.contains('Please enter project name.').should('not.exist');
+
+        /* clicking the create new user button to go to page */
+        cy.contains('Add new project').click();
+        cy.contains('Please enter project name.').should('have.class', 'error_banner');
+    });
+
 });
