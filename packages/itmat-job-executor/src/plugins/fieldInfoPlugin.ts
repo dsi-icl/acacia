@@ -52,7 +52,7 @@ export class UKBFieldInfoPlugin implements ILoaderPlugin {
                 notes: line.notes,
                 jobId: this.jobId,
                 dateAdded: new Date().valueOf(),
-                deleted: false
+                deleted: null
             };
             bulkInsert.insert(field);
         });

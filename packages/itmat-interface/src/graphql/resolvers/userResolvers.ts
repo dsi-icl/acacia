@@ -20,7 +20,7 @@ export const userResolvers = {
             const requester: Models.UserModels.IUser = context.req.user;
 
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
-            const queryObj = args.userId === undefined ? { deleted: false } : { deleted: false, id: args.userId };
+            const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
             const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
         }
@@ -36,13 +36,13 @@ export const userResolvers = {
 
             /* if requested user is admin, then he has access to all studies */
             if (user.type === userTypes.ADMIN) {
-                const allprojects: IProject[] = await db.collections!.projects_collection.find({ deleted: false }).toArray();
-                const allstudies: IStudy[] = await db.collections!.studies_collection.find({ deleted: false }).toArray();
+                const allprojects: IProject[] = await db.collections!.projects_collection.find({ deleted: null }).toArray();
+                const allstudies: IStudy[] = await db.collections!.studies_collection.find({ deleted: null }).toArray();
                 return { id: `user_access_obj_user_id_${user.id}`, projects: allprojects, studies: allstudies };
             }
 
             /* if requested user is not admin, find all the roles a user has */
-            const roles: IRole[] = await db.collections!.roles_collection.find({ users: user.id, deleted: false }).toArray();
+            const roles: IRole[] = await db.collections!.roles_collection.find({ users: user.id, deleted: null }).toArray();
             const init: { projects: string[], studies: string[] } = { projects: [], studies: [] };
             const studiesAndProjectThatUserCanSee: { projects: string[], studies: string[] } = roles.reduce(
                 (a, e) => {
@@ -55,8 +55,8 @@ export const userResolvers = {
                 }, init
             );
 
-            const projects: IProject[] = await db.collections!.projects_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: false }).toArray();
-            const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: false }).toArray();
+            const projects: IProject[] = await db.collections!.projects_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null }).toArray();
+            const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
         username: async (user: IUser, arg: any, context: any): Promise<string | null> => {
@@ -90,7 +90,7 @@ export const userResolvers = {
     Mutation: {
         login: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const { req }: { req: Express.Request } = context;
-            const result = await db.collections!.users_collection.findOne({ deleted: false, username: args.username });
+            const result = await db.collections!.users_collection.findOne({ deleted: null, username: args.username });
             if (!result) {
                 throw new UserInputError('User does not exist.');
             }
@@ -141,7 +141,7 @@ export const userResolvers = {
                 username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
 
-            const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: false }); // since bycrypt is CPU expensive let's check the username is not taken first
+            const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: null }); // since bycrypt is CPU expensive let's check the username is not taken first
             if (alreadyExist !== null && alreadyExist !== undefined) {
                 throw new UserInputError('User already exists.');
             }
@@ -177,7 +177,7 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
             if (requester.type === Models.UserModels.userTypes.ADMIN) {
-                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ id, deleted: false })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     throw new ApolloError('User not found');
                 }
@@ -202,7 +202,7 @@ export const userResolvers = {
                     delete fieldsToUpdate[each];
                 }
             }
-            const updateResult: mongodb.FindAndModifyWriteOpResultObject = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: false }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            const updateResult: mongodb.FindAndModifyWriteOpResultObject = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
             if (updateResult.ok === 1) {
                 return updateResult.value;
             } else {

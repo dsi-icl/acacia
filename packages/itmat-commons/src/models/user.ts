@@ -12,7 +12,7 @@ export interface IUserWithoutToken {
     type: userTypes;
     description: string;
     emailNotificationsActivated: boolean;
-    deleted: boolean;
+    deleted: number | null;
     createdBy: string;
 }
 

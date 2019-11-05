@@ -9,7 +9,7 @@ export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
 
     public async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
-        const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
+        const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
         if (studySearchResult === null || studySearchResult === undefined) {
             throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
@@ -17,7 +17,7 @@ export class StudyCore {
     }
 
     public async findOneProject_throwErrorIfNotExist(projectId: string): Promise<IProject> {
-        const projectSearchResult: IProject = await db.collections!.projects_collection.findOne({ id: projectId, deleted: false })!;
+        const projectSearchResult: IProject = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null })!;
         if (projectSearchResult === null || projectSearchResult === undefined) {
             throw new ApolloError('Project does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
@@ -32,7 +32,7 @@ export class StudyCore {
             currentDataVersion: -1,
             lastModified: new Date().valueOf(),
             dataVersions: [],
-            deleted: false
+            deleted: null
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;
@@ -48,7 +48,7 @@ export class StudyCore {
             approvedFields: approvedFields ? approvedFields : [],
             approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
-            deleted: false
+            deleted: null
         };
 
         const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
@@ -71,12 +71,14 @@ export class StudyCore {
         const session = db.client.startSession();
         session.startTransaction();
 
+        const timestamp = new Date().valueOf();
+
         try {
             /* delete the study */
-            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
+            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
 
             /* delete all projects related to the study */
-            await db.collections!.projects_collection.updateMany({ studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
+            await db.collections!.projects_collection.updateMany({ studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
 
             /* delete all roles related to the study */
             await this.localPermissionCore.removeRoleFromStudyOrProject({ studyId });
@@ -98,9 +100,10 @@ export class StudyCore {
 
     public async deleteProject(projectId: string): Promise<void> {
         const opts = { returnOriginal: false };
+        const timestamp = new Date().valueOf();
 
         /* delete all projects related to the study */
-        await db.collections!.projects_collection.findOneAndUpdate({ id: projectId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } }, opts);
+        await db.collections!.projects_collection.findOneAndUpdate({ id: projectId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } }, opts);
 
         /* delete all roles related to the study */
         await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });

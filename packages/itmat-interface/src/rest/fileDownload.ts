@@ -11,7 +11,7 @@ export const fileDownloadController = async (req: Request, res: Response) => {
         /* check permission */
 
         /* download file */
-        const file: IFile = await db.collections!.files_collection.findOne({ id: requestedFile, deleted: false })!;
+        const file: IFile = await db.collections!.files_collection.findOne({ id: requestedFile, deleted: null })!;
         if (!file) {
             res.status(404).json({ error: 'File not found. ' });
             return;

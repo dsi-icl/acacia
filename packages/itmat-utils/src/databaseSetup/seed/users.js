@@ -8,7 +8,7 @@ const users = [{
     "description": "I am a standard user.",
     "emailNotificationsActivated" : true, 
     "organisation":  "DSI",
-    "deleted" : false, 
+    "deleted" : null, 
     "id" : "replaced_at_runtime1",
 },
 { 
@@ -21,7 +21,7 @@ const users = [{
     "email" : "admin@user.io", 
     "description": "I am an admin user.",
     "emailNotificationsActivated" : false, 
-    "deleted" : false, 
+    "deleted" : null, 
     "id" : "replaced_at_runtime2", 
 }];
 

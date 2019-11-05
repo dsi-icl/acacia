@@ -24,14 +24,14 @@ export const studyResolvers = {
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
-            return await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
+            return await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
         },
         getProject: async (parent: object, args: any, context: any, info: any): Promise<IProject | null> => {
             const requester: IUser = context.req.user;
             const projectId: string = args.projectId;
 
             /* get project */
-            const project: IProject | null = await db.collections!.projects_collection.findOne({ id: projectId, deleted: false }, { projection: { patientMapping: 0 } })!;
+            const project: IProject | null = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
 
             if (project === null) {
                 return null;
@@ -73,16 +73,16 @@ export const studyResolvers = {
     },
     Study: {
         projects: async (study: IStudy) => {
-            return await db.collections!.projects_collection.find({ studyId: study.id, deleted: false }).toArray();
+            return await db.collections!.projects_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         jobs: async (study: IStudy) => {
             return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
         },
         roles: async (study: IStudy) => {
-            return await db.collections!.roles_collection.find({ studyId: study.id, deleted: false }).toArray();
+            return await db.collections!.roles_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         files: async (study: IStudy) => {
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: false }).toArray();
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         numOfSubjects: async (study: IStudy) => {
             return await db.collections!.data_collection.countDocuments({ m_study: study.id });
@@ -93,18 +93,18 @@ export const studyResolvers = {
     },
     Project: {
         fields: async (project: IProject) => {
-            return await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: project.approvedFields }, deleted: false }).toArray();
+            return await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: project.approvedFields }, deleted: null }).toArray();
         },
         jobs: async (project: IProject) => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
         files: async (project: IProject) => {
-            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: false }).toArray();
+            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
         },
         patientMapping: async (project: IProject) => {
             /* check permission */
 
-            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { patientMapping: 1 } });
+            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { patientMapping: 1 } });
             if (result && result.patientMapping) {
                 return result.patientMapping;
             } else {
@@ -114,7 +114,7 @@ export const studyResolvers = {
         approvedFields: async (project: IProject) => {
             /* check permission */
 
-            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { approvedFields: 1 } });
+            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { approvedFields: 1 } });
             if (result && result.approvedFields) {
                 return result.approvedFields;
             } else {
@@ -127,7 +127,7 @@ export const studyResolvers = {
             return project.approvedFiles;
         },
         roles: async (project: IProject) => {
-            return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: false }).toArray();
+            return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray();
         },
         iCanEdit: async (project: IProject) => { // TO_DO
             const result = await db.collections!.roles_collection.findOne({
@@ -248,7 +248,7 @@ export const studyResolvers = {
             console.log(newDataVersion);
 
             /* add this to the database */
-            const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, {
+            const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
                 $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 }
             }, { returnOriginal: false });
 

@@ -237,7 +237,7 @@ type Mutation {
     deleteUser(userId: String!): GenericResponse
 
     # STUDY
-    createStudy(name: String!, isUkbiobank: Boolean!): Study
+    createStudy(name: String!): Study
     deleteStudy(studyId: String!): GenericResponse
 
     # PROJECT

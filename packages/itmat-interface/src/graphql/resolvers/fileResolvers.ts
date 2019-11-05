@@ -27,14 +27,16 @@ export const fileResolvers = {
             const file = await args.file;
 
             return new Promise<IFile>(async (resolve, reject) => {
+                console.log(file);
+                const stream: NodeJS.ReadableStream = (file as any).createReadStream();
                 const fileUri = uuid();
                 /* if the client cancelled the request mid-stream it will throw an error */
-                file.stream.on('error', (e) => {
+                stream.on('error', (e) => {
                     Logger.error(e);
                     reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
                 });
 
-                file.stream.on('end', async () => {
+                stream.on('end', async () => {
                     const fileEntry: IFile = {
                         id: uuid(),
                         fileName: file.filename,
@@ -43,7 +45,7 @@ export const fileResolvers = {
                         description: args.description,
                         uploadedBy: requester.id,
                         uri: fileUri,
-                        deleted: false
+                        deleted: null
                     };
 
                     const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
@@ -55,7 +57,7 @@ export const fileResolvers = {
                 });
 
                 try {
-                    await objStore.uploadFile(file.stream, args.studyId, fileUri);
+                    await objStore.uploadFile(stream, args.studyId, fileUri);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }
@@ -71,7 +73,7 @@ export const fileResolvers = {
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
-            const updateResult = await db.collections!.files_collection.updateOne({ deleted: false, id: args.fileId }, { $set: { deleted: true } });
+            const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
             if (updateResult.result.ok === 1) {
                 return makeGenericReponse();
             } else {

@@ -30,7 +30,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
     }
 
     public async execute(job: IJobEntry<{ dataVersion: string, versionTag?: string }>) {
-        const file: IFile = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: false })!;
+        const file: IFile = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: null })!;
         if (!file) {
             // throw error
         }

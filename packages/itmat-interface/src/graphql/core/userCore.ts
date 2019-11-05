@@ -10,7 +10,7 @@ import { errorCodes } from '../errors';
 
 export class UserCore {
     public async getOneUser_throwErrorIfNotExists(username: string): Promise<IUser> {
-        const user = await db.collections!.users_collection.findOne({ deleted: false, username });
+        const user = await db.collections!.users_collection.findOne({ deleted: null, username });
         if (user === undefined || user === null) {
             throw new ApolloError('User does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
@@ -31,7 +31,7 @@ export class UserCore {
             createdBy: requester,
             email,
             emailNotificationsActivated,
-            deleted: false
+            deleted: null
         };
 
         const result = await db.collections!.users_collection.insertOne(entry);
@@ -44,8 +44,8 @@ export class UserCore {
     }
 
     public async deleteUser(userId: string) {
-        const result = await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: false }, { $set: { deleted: true, password: 'DeletedUserDummyPassword' } }, { returnOriginal: false, projection: { deleted: 1 } });
-        if (result.ok !== 1 || result.value.deleted !== true) {
+        const result = await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnOriginal: false, projection: { deleted: 1 } });
+        if (result.ok !== 1 || result.value.deleted === null) {
             throw new ApolloError(`Database error: ${JSON.stringify(result.lastErrorObject)}`, errorCodes.DATABASE_ERROR);
         }
         return;

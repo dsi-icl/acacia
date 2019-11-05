@@ -15,7 +15,7 @@ export interface IFieldEntry {
     notes?: string;
     jobId: string;
     dateAdded: number;
-    deleted: boolean;
+    deleted: number | null;
     fieldTreeId: string;
 }
 
