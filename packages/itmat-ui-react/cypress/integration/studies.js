@@ -1,18 +1,57 @@
 /// <reference types="cypress" />
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
-const { CREATE_PROJECT, DELETE_PROJECT } = require('itmat-commons').GQLRequests;
+const { CREATE_PROJECT, CREATE_STUDY, DELETE_PROJECT } = require('itmat-commons').GQLRequests;
 const { print } = require('graphql');
 
 describe('Studies page', function() {
-    it('admin gets studies successfully', function() {
+    it('admin can add dataset successfully', function() {
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
+
         cy.visit('/datasets');
-        cy.contains('UKBIOBANK', { timeout: 100000 });
-        cy.contains('Past Jobs');
-        cy.contains('Date');
-        cy.contains('Type');
-        cy.contains('Status');
-        cy.contains('Metadata');
+
+        /* initial states */
+        cy.contains('There is no dataset or you have not been added to any. Please contact admin.');
+        cy.contains('Please pick the study you would like to access:').should('not.exist');
+
+        /* create study */
+        cy.contains('Submit').should('not.exist');
+        cy.contains('Add new dataset').click();
+        cy.contains('Enter name').children('input').type('testingDataset');
+        cy.contains('Submit');
+
+        /* updated state */
+        cy.contains('Submit').should('not.exist');
+        cy.contains('testingDataset');
+    });
+
+    it('admin can navigate to dataset details from main page successfully', function() {
+        /* setup: login via API */
+        cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
+
+        /* setup: create a study via API */
+        const createStudyInput = { name: 'testingStudy2' };
+        cy.request('POST', 'http://localhost:3003/graphql',
+            { query: print(CREATE_STUDY), variables: createStudyInput }
+        ).then(res => {
+            const createdStudyId = res.body.data.createStudy.id;
+            expect(createdStudyId).to.be.a('string');
+
+
+            cy.visit('/'); cy.get('a[title=Datasets]').click();
+
+            cy.url().then(url => {
+                expect(url).to.equal('http://localhost:3003/datasets');
+
+                /* initial states */
+                cy.contains('There is no dataset or you have not been added to any. Please contact admin.').should('not.exist');
+                cy.contains('Please pick the study you would like to access:');
+                cy.contains('testingStudy2').click();
+
+                cy.url().then(url => {
+                    expect(url).to.equal(`http://localhost:3003/datasets/${createdStudyId}`);
+                });
+            });
+        });
     });
 
     it.only('admin can create projects (e2e)', function() {

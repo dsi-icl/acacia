@@ -22,8 +22,8 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
     });
 
     return <div>
-        <label>Select file: </label><input type="file" ref={fileRef as any} /><br /><br />
-        <label>Description: </label><input type="text" value={description} onChange={(e) => { setDescription(e.target.value); setError(''); setSuccess(false); }} />
+        <label>Select file: <input type="file" ref={fileRef as any} /></label><br /><br />
+        <label>Description: <input type="text" value={description} onChange={(e) => { setDescription(e.target.value); setError(''); setSuccess(false); }} /></label>
         <br /><br /><br />
         {
             loading ? <button>Loading...</button> :

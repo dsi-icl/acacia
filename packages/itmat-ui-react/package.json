@@ -52,7 +52,8 @@
         "jest-enzyme": "^7.1.1",
         "rimraf": "3.0.0",
         "tslint": "5.20.0",
-        "typescript": "3.6.4"
+        "typescript": "3.6.4",
+        "uuid": "3.3.3"
     },
     "tslintConfig": {
         "extends": "react-app"
