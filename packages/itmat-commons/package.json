@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "mongodb": "3.3.3",
-        "chalk": "2.4.2"
+        "chalk": "3.0.0"
     },
     "devDependencies": {
         "@types/node": "12.12.7",
