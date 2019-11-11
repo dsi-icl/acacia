@@ -28,7 +28,7 @@
         "graphql-type-json": "0.3.0",
         "itmat-commons": "0.0.1",
         "itmat-utils": "1.1.8",
-        "mongodb": "3.3.3",
+        "mongodb": "3.3.4",
         "multer": "2.0.0-alpha.7",
         "node-fetch": "2.6.0",
         "os2": "0.0.13",
