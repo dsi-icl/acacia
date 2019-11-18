@@ -27,7 +27,6 @@
         "mongodb": "3.3.3",
         "node-fetch": "2.6.0",
         "saslprep": "1.0.3",
-        "ukb-curator": "^1.0.0",
         "uuid": "3.3.3"
     },
     "devDependencies": {
@@ -39,9 +38,16 @@
         "@types/node-fetch": "2.5.2",
         "@types/uuid": "3.4.5",
         "eslint-plugin-typescript": "0.14.0",
+        "jest": "^24.9.0",
         "rimraf": "3.0.0",
         "supertest": "4.0.2",
+        "ts-jest": "^24.1.0",
         "typescript": "3.6.4",
         "typescript-eslint-parser": "22.0.0"
+    },
+    "jest": {
+        "transform": {
+            "^.+\\.(ts)?$": "ts-jest"
+        }
     }
 }

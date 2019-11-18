@@ -35,16 +35,23 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
             // throw error
         }
         const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
-        const datasetId: string = uuid();
-        // await this.ukbCurator.uploadIncomingCSVStreamToMongo(
+        const versionId: string = uuid();
+        // const errors = await this.ukbCurator.uploadIncomingCSVStreamToMongo(
         //     job.studyId,
         //     job.id,
         //     job.receivedFiles[0],
         //     fileStream
         // );
-        await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
+
+        if (errors.length !== 0) {
+            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors } });
+            return;
+        } else {
+            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
+        }
+
         const newDataVersion: IStudyDataVersion = {
-            id: datasetId,
+            id: versionId,
             contentId: uuid(),
             jobId: job.id,
             version: job.data!.dataVersion,
