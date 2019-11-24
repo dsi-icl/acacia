@@ -29,7 +29,7 @@
         "itmat-commons": "0.0.1",
         "itmat-utils": "1.1.8",
         "mongodb": "3.3.4",
-        "multer": "2.0.0-alpha.7",
+        "multer": "2.0.0-beta.1",
         "node-fetch": "2.6.0",
         "os2": "0.0.13",
         "passport": "0.4.0",
