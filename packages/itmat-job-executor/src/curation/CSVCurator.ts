@@ -5,6 +5,7 @@ import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { parse } from 'querystring';
 import { continueStatement } from '@babel/types';
 import { resolve } from 'dns';
+import { Writable } from 'stream';
 
 export interface IDataEntry {
     m_jobId: string; // the id of the job that causes this upload
@@ -63,77 +64,75 @@ export class CSVCurator {
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
             const parseStream: NodeJS.ReadableStream = this.incomingWebStream.pipe(csvparse(this.parseOptions)); // piping the incoming stream to a parser stream
-
-            /* check for intergrity */
-            parseStream.on('data', async (line) => {
-                if (isHeader) {
-                    /* pausing the stream so all the async ops on the first line must be completed before the second line is read */
-                    parseStream.pause();
-                    lineNum++;
-                    const { error, parsedHeader } = processHeader(line);
-                    if (error) {
-                        this._errored = true;
-                        this._errors.push(...error);
-                    }
-                    this._header = parsedHeader;
-                    isHeader = false;
-                    parseStream.resume();  // now that all promises have resolved, we can resume the stream
-                } else {
-                    const currentLineNum = lineNum++;
-                    /* no need to pause stream here because the calls to database don't need to follow any order */
-                    subjectString.push(line[0]);
-
-                    const { error, dataEntry } = processDataRow({
-                        lineNum: currentLineNum,
-                        row: line,
-                        parsedHeader: this._header,
-                        job: this.job,
-                        versionId: this.versionId
-                    });
-
-                    if (error) {
-                        this._errored = true;
-                        this._errors.push(...error);
-                    }
-
-                    if (this._errored) {
-                        return;
-                    }
-
-                    // // TO_DO {
-                    //     curator-defined constraints for values
-                    // }
-
-
-
-                    bulkInsert.insert(dataEntry);
-                    this._numOfSubj++;
-                    console.log('lineNum', currentLineNum);
-                    if (this._numOfSubj > 2000) {     // race condition?   // PROBLEM: the last bit <2000 doesn't get uploaded\
-                        this._numOfSubj = 0;
-                        await bulkInsert.execute((err: Error) => {
-                            if (err) { console.log((err as any).writeErrors[1].err); return; }
+            const uploadWriteStream: NodeJS.WritableStream = new Writable({
+                objectMode: true,
+                write: async (line, _, next) => {
+                    if (isHeader) {
+                        lineNum++;
+                        const { error, parsedHeader } = processHeader(line);
+                        if (error) {
+                            this._errored = true;
+                            this._errors.push(...error);
+                        }
+                        this._header = parsedHeader;
+                        isHeader = false;
+                        next();
+                    } else {
+                        const currentLineNum = lineNum++;
+                        subjectString.push(line[0]);
+                        const { error, dataEntry } = processDataRow({
+                            lineNum: currentLineNum,
+                            row: line,
+                            parsedHeader: this._header,
+                            job: this.job,
+                            versionId: this.versionId
                         });
-                        bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+
+                        if (error) {
+                            this._errored = true;
+                            this._errors.push(...error);
+                        }
+
+                        if (this._errored) {
+                            return;
+                        }
+
+                        // // TO_DO {
+                        //     curator-defined constraints for values
+                        // }
+
+                        bulkInsert.insert(dataEntry);
+                        this._numOfSubj++;
+                        console.log('lineNum', currentLineNum);
+                        if (this._numOfSubj > 999) {     // race condition?   // PROBLEM: the last bit <2000 doesn't get uploaded\
+                            this._numOfSubj = 0;
+                            await bulkInsert.execute((err: Error) => {
+                                if (err) { console.log((err as any).writeErrors[1].err); return; }
+                            });
+                            bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+                        }
+                        next();
                     }
                 }
-
             });
 
-            parseStream.on('end', () => {
+            uploadWriteStream.on('finish', async () => {
                 /* check for subject Id duplicate */
                 const set = new Set(subjectString);
                 if (set.size !== subjectString.length) {
                     this._errors.push('Data Error: There is duplicate subject id.');
                 }
 
-                bulkInsert.execute((err: Error) => {
+                await bulkInsert.execute((err: Error) => {
                     console.log('FINSIHED LOADING');
                     if (err) { console.log(err); return; }
                 });
+
                 console.log('end');
                 resolve(this._errors);
             });
+
+            parseStream.pipe(uploadWriteStream);
         });
     }
 }
