@@ -24,7 +24,7 @@
         "itmat-commons": "0.0.1",
         "itmat-utils": "1.1.8",
         "json2csv": "4.5.4",
-        "mongodb": "3.3.4",
+        "mongodb": "3.3.5",
         "node-fetch": "2.6.0",
         "ukb-curator": "^1.0.0",
         "uuid": "3.3.3",
