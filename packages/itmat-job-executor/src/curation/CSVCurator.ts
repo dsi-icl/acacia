@@ -1,10 +1,6 @@
 import csvparse from 'csv-parse';
-import { Models } from 'itmat-commons';
-import mongo, { Collection } from 'mongodb';
+import { Collection } from 'mongodb';
 import { IJobEntry } from 'itmat-commons/dist/models/job';
-import { parse } from 'querystring';
-import { continueStatement } from '@babel/types';
-import { resolve } from 'dns';
 import { Writable } from 'stream';
 
 export interface IDataEntry {
@@ -45,7 +41,7 @@ export class CSVCurator {
     constructor(
         private readonly dataCollection: Collection,
         private readonly incomingWebStream: NodeJS.ReadableStream,
-        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"' },
+        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
         private readonly job: IJobEntry<{ dataVersion: string, versionTag: string | null }>,
         private readonly versionId: string
     ) {
@@ -63,7 +59,15 @@ export class CSVCurator {
             let isHeader: boolean = true;
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
-            const parseStream: NodeJS.ReadableStream = this.incomingWebStream.pipe(csvparse(this.parseOptions)); // piping the incoming stream to a parser stream
+            const csvparseStream = csvparse(this.parseOptions);
+            const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
+
+            csvparseStream.on('skip', (error) => {
+                lineNum++;
+                this._errored = true;
+                this._errors.push(error.toString());
+            });
+
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
                 write: async (line, _, next) => {
@@ -78,7 +82,7 @@ export class CSVCurator {
                         isHeader = false;
                         next();
                     } else {
-                        const currentLineNum = lineNum++;
+                        const currentLineNum = ++lineNum;
                         subjectString.push(line[0]);
                         const { error, dataEntry } = processDataRow({
                             lineNum: currentLineNum,
@@ -94,6 +98,7 @@ export class CSVCurator {
                         }
 
                         if (this._errored) {
+                            next();
                             return;
                         }
 
@@ -103,8 +108,7 @@ export class CSVCurator {
 
                         bulkInsert.insert(dataEntry);
                         this._numOfSubj++;
-                        console.log('lineNum', currentLineNum);
-                        if (this._numOfSubj > 999) {     // race condition?   // PROBLEM: the last bit <2000 doesn't get uploaded\
+                        if (this._numOfSubj > 999) {
                             this._numOfSubj = 0;
                             await bulkInsert.execute((err: Error) => {
                                 if (err) { console.log((err as any).writeErrors[1].err); return; }
@@ -123,10 +127,12 @@ export class CSVCurator {
                     this._errors.push('Data Error: There is duplicate subject id.');
                 }
 
-                await bulkInsert.execute((err: Error) => {
-                    console.log('FINSIHED LOADING');
-                    if (err) { console.log(err); return; }
-                });
+                if (!this._errored) {
+                    await bulkInsert.execute((err: Error) => {
+                        console.log('FINSIHED LOADING');
+                        if (err) { console.log(err); return; }
+                    });
+                }
 
                 console.log('end');
                 resolve(this._errors);
@@ -187,6 +193,7 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
 
     if (row.length !== parsedHeader.length) {
         error.push(`Line ${lineNum}: Uneven field Number; expected ${parsedHeader.length} fields but got ${row.length}`);
+        return ({ error, dataEntry });
     }
 
     for (const each of row) {
@@ -204,6 +211,11 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
 
         /* skip for missing data */
         if (each === '') {
+            colIndex++;
+            continue;
+        }
+
+        if (parsedHeader[colIndex] === null) {
             colIndex++;
             continue;
         }
