@@ -17,6 +17,8 @@
     --color-status-error: #d80000;
     --color-status-processing: #f3e313;
     --color-status-queued: #696969;
+    --color-popup: #131212;
+    --color-popup-border: #4a4a4a;
     --color-status-cancelled: black;
 }
 

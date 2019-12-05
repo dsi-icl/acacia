@@ -40,7 +40,10 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
         <label>Tag:</label>
         <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder="e.g. finalised (optional)" type="text" /><br /><br />
 
-        <Mutation mutation={CREATE_DATA_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
+        <Mutation
+            mutation={CREATE_DATA_CURATION_JOB}
+            onCompleted={() => setSuccessfullySaved(true)}
+        >
             {(createCurationJob, { loading }) => {
                 if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
                 return <button style={{ width: '45%', display: 'inline-block' }} onClick={() => {

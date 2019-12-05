@@ -4,11 +4,22 @@ import { InfoCircle } from '../../../reusable/infoCircle';
 import * as css from './tabContent.module.css';
 
 const STATUSES: { [status: string]: any } = {
-    finished: <span className={css.finishedStatus_span}>Finished</span>,
-    error: <><span className={css.errorStatus_span}>Errored</span><InfoCircle/></>,
-    QUEUED: <span className={css.queuedStatus_span}>Queued</span>,
-    CLAIMED: <span className={css.processingStatus_span}>Processing<InfoCircle/></span>,
-    CANCELLED: <span className={css.cancelledStatus_span}>Cancelled<InfoCircle/></span>
+    finished: () => <span className={css.finishedStatus_span}>Finished</span>,
+    // error: (errors: string[]) => <><span className={css.errorStatus_span}>Errored</span><InfoCircle/></>,
+    error: (errors: string[]) => <>
+        <span className={css.errorStatus_span}>Errored</span>
+        <InfoCircle/>
+        <div className={css.error_wrapper}>
+            <div>
+                <ul>
+                    {errors.map((el, ind) => <li key={ind}>{el}</li>)}
+                </ul>
+            </div>
+        </div>
+        </>,
+    QUEUED: () => <span className={css.queuedStatus_span}>Queued</span>,
+    CLAIMED: () => <span className={css.processingStatus_span}>Processing<InfoCircle/></span>,
+    CANCELLED: () => <span className={css.cancelledStatus_span}>Cancelled<InfoCircle/></span>
 };
 
 const JOBTYPES: { [type: string]: any } = {
@@ -42,7 +53,7 @@ const OneJob: React.FunctionComponent<{ job: IJobEntry<any> }> = ({ job }) => {
         <tr>
             <td>{new Date(job.requestTime).toLocaleString()}</td>
             <td>{JOBTYPES[job.jobType]}</td>
-            <td className={css.status_td}>{job.cancelled ? STATUSES.CANCELLED : STATUSES[job.status]}</td>
+            <td className={css.status_td}>{job.cancelled ? STATUSES.CANCELLED() : STATUSES[job.status](job.error)}</td>
             <td>{JSON.stringify(job.data, null, 4)}</td>
             <td className={css.cancelButton}>x</td>
         </tr>
