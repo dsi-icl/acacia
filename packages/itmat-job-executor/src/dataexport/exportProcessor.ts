@@ -18,7 +18,7 @@ export class ExportProcessor {
         const cursor = db.collections!.field_dictionary_collection.find(queryobj, { projection: { _id: 0 } });
         this.fieldInfo = await cursor.toArray();
         const tmp: string[] = [];
-        this.fieldInfo.forEach((el: IFieldEntry) => {
+        this.fieldInfo!.forEach((el: IFieldEntry) => {
             for (let i = el.startingTimePoint, maxTimePoint = el.startingTimePoint + el.numOfTimePoints; i < maxTimePoint; i++) {
                 for (let j = el.startingMeasurement, maxMeasurement = el.startingMeasurement + el.numOfMeasurements; j < maxMeasurement; j++) {
                     tmp.push(`${el.fieldId}-${i}.${j}`);

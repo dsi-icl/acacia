@@ -59,5 +59,5 @@ serverSpinning();
 
 if (module.hot) {
     module.hot.accept('./index', serverSpinning);
-    module.hot.accept('./interfaceServer', serverSpinning);
+    module.hot.accept('./jobExecutorServer', serverSpinning);
 }

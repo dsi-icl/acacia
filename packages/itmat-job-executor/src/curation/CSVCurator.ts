@@ -42,7 +42,7 @@ export class CSVCurator {
         private readonly dataCollection: Collection,
         private readonly incomingWebStream: NodeJS.ReadableStream,
         private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
-        private readonly job: IJobEntry<{ dataVersion: string, versionTag: string | null }>,
+        private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
         private readonly versionId: string
     ) {
         this._header = [null]; // the first element is subject id
@@ -181,7 +181,7 @@ export function processHeader(header: string[]): { error?: string[], parsedHeade
     return ({ parsedHeader, error: error.length === 0 ? undefined : error });
 }
 
-export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag: string | null }>}): { error?: string[], dataEntry: IDataEntry } { // tslint:disable-line
+export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // tslint:disable-line
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;

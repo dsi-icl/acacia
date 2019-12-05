@@ -141,7 +141,7 @@ type Job {
     receivedFiles: [String]!
     requestTime: Float!
     status: String!
-    error: String
+    error: [String]
     cancelled: Boolean
     cancelledTime: Int
     data: JSON

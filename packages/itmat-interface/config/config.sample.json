@@ -22,7 +22,7 @@
         "saltround": 2
     },
     "swift": {
-        "uri": "http://localhost:32770/auth/v1.0",
+        "uri": "http://localhost:32768/auth/v1.0",
         "username": "test:tester",
         "password": "testing"
     }

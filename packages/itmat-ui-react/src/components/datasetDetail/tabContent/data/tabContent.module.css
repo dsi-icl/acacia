@@ -9,12 +9,15 @@
 }
 
 .scaffold_wrapper > div {
-    padding: 0 2rem 2rem 2rem;
+    padding: 1rem 2rem 2rem 2rem;
+    height: 100%;
+    overflow: auto;
+}
+
+.data_management_section {
     display: grid;
     grid-template-columns: 60% 40%;
     grid-template-rows: 0.1fr 6fr;
-    height: 100%;
-    overflow: auto;
     grid-template-areas: 
     "versions versions"
     "leftPanel rightPanel"

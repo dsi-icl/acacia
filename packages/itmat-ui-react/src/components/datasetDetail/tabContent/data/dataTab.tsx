@@ -14,38 +14,22 @@ import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
 
 
-function removeDuplicateVersion(versions: IStudyDataVersion[]) {
-    const alreadySeenContent: string[] = [];
-    const uniqueContent: any[] = [];
-    const tmp = [...versions].reverse();
-    console.log(tmp);
-    tmp.forEach((el, ind) => {
-        if (alreadySeenContent.includes(el.contentId)) {
-            console.log(alreadySeenContent, el.contentId);
-            return;
-        } else {
-            alreadySeenContent.push(el.contentId);
-            uniqueContent.push({ ...el, originalPosition: tmp.length - ind - 1 });
-        }
-    });
-    console.log(uniqueContent);
-    return uniqueContent.reverse();
-}
 
-export const DataManagementTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>
-        <div>
-            <Query query={GET_STUDY} variables={{ studyId }}>
-                {({ loading, data, error }) => {
-                    if (loading) { return <LoadingBalls />; }
-                    if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
-                    if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
-                        return <DataManagement data={data.getStudy} showSaveVersionButton />;
-                    }
-                    return <p>There is no data uploaded for this study yet.</p>;
-                }}
-            </Query>
-        </div>
+        <Query query={GET_STUDY} variables={{ studyId }}>
+            {({ loading, data, error }) => {
+                if (loading) { return <LoadingBalls />; }
+                if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
+                if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
+                    return <div className={css.data_management_section}><DataManagement data={data.getStudy} showSaveVersionButton /></div>;
+                }
+                return <div>
+                    <p>There is no data uploaded for this study yet.</p>
+                    <UploadNewData studyId={studyId} cancelButton={() => {}} />
+                </div>;
+            }}
+        </Query>
     </div>;
 };
 
@@ -135,3 +119,18 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
 
     </>;
 };
+
+function removeDuplicateVersion(versions: IStudyDataVersion[]) {
+    const alreadySeenContent: string[] = [];
+    const uniqueContent: any[] = [];
+    const tmp = [...versions].reverse();
+    tmp.forEach((el, ind) => {
+        if (alreadySeenContent.includes(el.contentId)) {
+            return;
+        } else {
+            alreadySeenContent.push(el.contentId);
+            uniqueContent.push({ ...el, originalPosition: tmp.length - ind - 1 });
+        }
+    });
+    return uniqueContent.reverse();
+}

@@ -4,6 +4,7 @@ import uuidv4 from 'uuid/v4';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
+import { makeGenericReponse, IGenericResponse } from '../responses';
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -61,7 +62,7 @@ export class StudyCore {
             throw new ApolloError('Cannot get list of patients', errorCodes.DATABASE_ERROR);
         }
 
-        project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+        // project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
 
         await db.collections!.projects_collection.insertOne(project);
         return project;

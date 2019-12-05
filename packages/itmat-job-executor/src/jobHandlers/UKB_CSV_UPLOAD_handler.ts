@@ -6,25 +6,15 @@ import uuid from 'uuid/v4';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
+import { CSVCurator } from '../curation/CSVCurator';
 
 export class UKB_CSV_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_CSV_UPLOAD_Handler;
     // private ukbCurator: UKBCurator;
 
-    private constructor() {
-        super();
-        // this.ukbCurator = new UKBCurator(
-        //     db.collections!.jobs_collection,
-        //     db.collections!.UKB_coding_collection,
-        //     db.collections!.field_dictionary_collection,
-        //     db.collections!.data_collection
-        // );
-    }
-
     public async getInstance() {
         if (!this._instance) {
             this._instance = new UKB_CSV_UPLOAD_Handler();
-            // await this.ukbCurator.updateUKBCodingAndFieldsMap();
         }
         return this._instance;
     }
@@ -36,12 +26,15 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
         }
         const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
         const versionId: string = uuid();
-        // const errors = await this.ukbCurator.uploadIncomingCSVStreamToMongo(
-        //     job.studyId,
-        //     job.id,
-        //     job.receivedFiles[0],
-        //     fileStream
-        // );
+        const csvcurator = new CSVCurator(
+            db.collections!.data_collection,
+            fileStream,
+            undefined,
+            job,
+            versionId
+        );
+        const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
+
 
         if (errors.length !== 0) {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors } });
@@ -52,7 +45,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
 
         const newDataVersion: IStudyDataVersion = {
             id: versionId,
-            contentId: uuid(),
+            contentId: uuid(), // same content = same id - used in reverting data, version control
             jobId: job.id,
             version: job.data!.dataVersion,
             tag: job.data!.versionTag,

@@ -20,8 +20,10 @@ export class JobDispatcher {
     }
 
     public async dispatch(job: IJobEntry<any>) {
+        console.log(this._handlerCollection, job.jobType)
         if (!this._handlerCollection[job.jobType]) {
             // set job to UNPROCESSED
+            return;
         }
         await (await this._handlerCollection[job.jobType]()).execute(job);
     }

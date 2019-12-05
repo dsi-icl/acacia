@@ -1,7 +1,6 @@
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
-import { UKBFieldInfoPlugin } from '../plugins/fieldInfoPlugin';
 import { JobHandler } from './jobHandlerInterface';
 
 type IFieldCurationJobEntry = IJobEntry<{ dataVersionId: string, tag: string }>;
@@ -18,9 +17,9 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
 
     public async execute(job: IFieldCurationJobEntry) {
         const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.receivedFiles[0], job.id);
-        const ukbfieldprocessor = new UKBFieldInfoPlugin(job.id, job.studyId);
-        ukbfieldprocessor.setDBClient(db.db).setInputStream(fileStream).setTargetCollection('FIELD_COLLECTION');
-        await ukbfieldprocessor.processInputStreamToFieldEntry();
+        // const ukbfieldprocessor = new UKBFieldInfoPlugin(job.id, job.studyId);
+        // ukbfieldprocessor.setDBClient(db.db).setInputStream(fileStream).setTargetCollection('FIELD_COLLECTION');
+        // await ukbfieldprocessor.processInputStreamToFieldEntry();
     }
 
     public async uploadStudyOnMongo(job: IFieldCurationJobEntry, fieldTreeId: string) {

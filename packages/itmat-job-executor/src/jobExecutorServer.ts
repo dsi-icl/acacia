@@ -4,11 +4,10 @@ import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
 import { Server } from './server/server';
-import { JobDispatcher } from './jobDispatch/dispatcher';
 import { JobPoller } from 'itmat-utils';
+import { JobDispatcher } from './jobDispatch/dispatcher';
 import { UKB_CSV_UPLOAD_Handler } from './jobHandlers/UKB_CSV_UPLOAD_handler';
 import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_handler';
-import { UKB_IMAGE_UPLOAD_Handler } from './jobHandlers/UKB_IMAGE_UPLOAD_handler';
 
 class ITMATJobExecutorServer extends Server {
 
@@ -30,19 +29,19 @@ class ITMATJobExecutorServer extends Server {
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect(this.config.database)
+            db.connect((this.config as any).database)
                 .then(() => objStore.connect())
                 .then(() => {
 
                     _this.router = new Router();
 
-                    const router = new Router();
                     const jobDispatcher = new JobDispatcher();
 
                     /* TO_DO: can we figure out the files at runtime and import at runtime */
-                    jobDispatcher.registerJobType('UKB_CSV_UPLOAD', UKB_CSV_UPLOAD_Handler.prototype.getInstance);
-                    jobDispatcher.registerJobType('UKB_FIELD_INFO_UPLOAD', UKB_FIELD_INFO_UPLOAD_Handler.prototype.getInstance);
-                    jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKB_IMAGE_UPLOAD_Handler.prototype.getInstance);
+                    console.log(UKB_CSV_UPLOAD_Handler.prototype.getInstance);
+                    jobDispatcher.registerJobType('DATA_UPLOAD', UKB_CSV_UPLOAD_Handler.prototype.getInstance);
+                    // jobDispatcher.registerJobType('UKB_FIELD_INFO_UPLOAD', UKB_FIELD_INFO_UPLOAD_Handler.prototype.getInstance);
+                    // jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKB_IMAGE_UPLOAD_Handler.prototype.getInstance);
 
                     const poller = new JobPoller({
                         identity: 'me',

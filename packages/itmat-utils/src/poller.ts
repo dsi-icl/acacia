@@ -42,7 +42,7 @@ export class JobPoller {
     }
 
     private async checkForJobs() {
-        Logger.log(`${this.identity} polling ${this.jobCollection} for new jobs of type ${this.jobType || 'ALL'}.`);
+        Logger.log(`${this.identity} polling for new jobs of type ${this.jobType || 'ALL'}.`);
         let updateResult: mongodb.FindAndModifyWriteOpResultObject;
         try {
             updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {
