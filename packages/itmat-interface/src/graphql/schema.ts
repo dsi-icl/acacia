@@ -93,7 +93,7 @@ type DataVersion {
     uploadDate: String!
     jobId: String!
     extractedFrom: String!
-    fileSize: String!
+    fileSize: String
     fieldTrees: [String]!
 }
 

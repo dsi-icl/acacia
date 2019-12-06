@@ -5,11 +5,14 @@ const seedUsers = require('./seed/users');
 const collections = {
     "jobs_collection": {
         name: "1JOB_COLLECTION",
-        indexes: []
+        indexes: [
+            { key: { id: 1 }, unique: true },
+        ]
     },
     "users_collection": {
         name: "1USER_COLLECTION",
         indexes: [
+            { key: { id: 1 }, unique: true },
             { key: { username: 1, deleted: 1 }, unique: true  },
             { key: { email: 1, deleted: 1 }, unique: true } 
         ]
@@ -17,42 +20,53 @@ const collections = {
     "studies_collection": { 
         name: "1STUDY_COLLECTION",
         indexes: [
+            { key: { id: 1 }, unique: true },
             { key: { name: 1, deleted: 1 }, unique: true }
         ]
     },
     "projects_collection": { 
         name: "1PROJECT_COLLECTION",
         indexes: [
+            { key: { id: 1 }, unique: true },
             { key: { name: 1, studyId: 1, deleted: 1 }, unique: true }
         ]
     },
     "queries_collection": { 
         name: "1QUERY_COLLECTION",
-        indexes: []
+        indexes: [
+            { key: { id: 1 }, unique: true },
+        ]
     },
     "log_collection": {
         name: "1LOG_COLLECTION",
-        indexes: []
+        indexes: [
+            { key: { id: 1 }, unique: true },
+        ]
     },
     "data_collection": {
         name: "1DATA_COLLECTION",
-        indexes: []
+        indexes: [
+            { key: { m_eid: 1, m_versionId: 1, m_study: 1 }, unique: true },
+        ]
     },
     "roles_collection": {
         name: "1ROLE_COLLECTION",
         indexes: [
+            { key: { id: 1 }, unique: true },
             { key: { name: 1, studyId: 1, projectId: 1, deleted: 1 }, unique: true }
         ]
     },
     "field_dictionary_collection": {
         name: "1FIELD_COLLECTION",
         indexes: [
-
+            { key: { id: 1 }, unique: true },
         ]
     },
     "files_collection": {
         name: "1FILES_COLLECTION",
-        indexes: []
+        indexes: [
+            { key: { id: 1 }, unique: true },
+        ]
     }
 };
 
@@ -66,10 +80,7 @@ async function setupDatabase(mongostr, databaseName) {
     /* creating collections and indexes */
     for (let each of Object.keys(collections)) {
         const collection = await db.createCollection(collections[each].name);
-        const indexes = await collection.createIndexes([
-            { key: { id: 1 }, unique: true },
-            ...collections[each].indexes
-        ]);
+        await collection.createIndexes(collections[each].indexes);
     }
     
 

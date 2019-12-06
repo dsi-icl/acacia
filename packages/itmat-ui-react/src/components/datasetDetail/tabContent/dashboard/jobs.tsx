@@ -18,8 +18,8 @@ const STATUSES: { [status: string]: any } = {
         </div>
         </>,
     QUEUED: () => <span className={css.queuedStatus_span}>Queued</span>,
-    CLAIMED: () => <span className={css.processingStatus_span}>Processing<InfoCircle/></span>,
-    CANCELLED: () => <span className={css.cancelledStatus_span}>Cancelled<InfoCircle/></span>
+    PROCESSING: () => <span className={css.processingStatus_span}>Processing</span>,
+    CANCELLED: () => <span className={css.cancelledStatus_span}>Cancelled</span>
 };
 
 const JOBTYPES: { [type: string]: any } = {
@@ -53,7 +53,7 @@ const OneJob: React.FunctionComponent<{ job: IJobEntry<any> }> = ({ job }) => {
         <tr>
             <td>{new Date(job.requestTime).toLocaleString()}</td>
             <td>{JOBTYPES[job.jobType]}</td>
-            <td className={css.status_td}>{job.cancelled ? STATUSES.CANCELLED() : STATUSES[job.status](job.error)}</td>
+            <td className={css.status_td}>{job.cancelled ? STATUSES.CANCELLED() : (STATUSES[job.status] || (() => null))(job.error)}</td>
             <td>{JSON.stringify(job.data, null, 4)}</td>
             <td className={css.cancelButton}>x</td>
         </tr>
