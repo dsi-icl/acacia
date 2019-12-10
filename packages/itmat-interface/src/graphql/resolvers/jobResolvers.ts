@@ -113,10 +113,9 @@ export const jobResolvers = {
         }
     },
     Subscription: {
-        // subscribeToJobStatusChange: withFilter(
-        //     () => pubsub.asyncIterator(subscriptionEvents.JOB_STATUS_CHANGE),
-        //     (incoming, variables) => incoming.studyId === variables.studyId
-        // )
-                subscribeToJobStatusChange:  () => pubsub.asyncIterator(subscriptionEvents.JOB_STATUS_CHANGE)
+        subscribeToJobStatusChange: withFilter(
+            () => pubsub.asyncIterator(subscriptionEvents.JOB_STATUS_CHANGE),
+            (incoming, variables) => incoming.studyId === variables.studyId
+        )
     }
 };

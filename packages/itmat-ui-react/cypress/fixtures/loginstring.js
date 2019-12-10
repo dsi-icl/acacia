@@ -1,11 +1,11 @@
 const LOGINSTRING = `mutation login($username: String!, $password: String!) {
     login(username: $username, password: $password) {
-      ...ALL
+      ...ALL_FOR_USER
       __typename
     }
   }
   
-  fragment ALL on User {
+  fragment ALL_FOR_USER on User {
     id
     username
     type

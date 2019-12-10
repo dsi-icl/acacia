@@ -11,7 +11,7 @@ export const GET_PROJECT = gql`
             approvedFields @include(if: $admin)
             approvedFiles @include(if: $admin)
             jobs {
-                ...ALL
+                ...ALL_FOR_JOB
             }
             roles @include(if: $admin) {
                 id

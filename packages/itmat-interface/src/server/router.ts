@@ -5,7 +5,6 @@ import cors from 'cors';
 import express from 'express';
 import { Express, NextFunction, Request, Response } from 'express';
 import session from 'express-session';
-import { GraphQLError } from 'graphql';
 import http from 'http';
 import { CustomError, Logger } from 'itmat-utils';
 import multer from 'multer';
@@ -58,7 +57,7 @@ export class Router {
                 // }
                 return ({ req, res });
             },
-            formatError: (error: GraphQLError) => {
+            formatError: (error: any) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
                 // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
                 Logger.error(error);
@@ -70,7 +69,7 @@ export class Router {
 
         /* register the graphql subscription functionalities */
         this.server = http.createServer(this.app);
-        gqlServer.installSubscriptionHandlers(this.server);
+        // gqlServer.installSubscriptionHandlers(this.server);
 
 
         /* Bounce all unauthenticated non-graphql HTTP requests */

@@ -1,7 +1,9 @@
 import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { GQLRequests } from 'itmat-commons';
 import * as React from 'react';
 import { InfoCircle } from '../../../reusable/infoCircle';
 import * as css from './tabContent.module.css';
+import { useSubscription } from 'react-apollo';
 
 const STATUSES: { [status: string]: any } = {
     finished: () => <span className={css.finishedStatus_span}>Finished</span>,
@@ -27,7 +29,13 @@ const JOBTYPES: { [type: string]: any } = {
     FIELD_ANNOTATION_UPLOAD: <span>Field annotation upload</span>
 };
 
-export const JobSection: React.FunctionComponent<{ jobs: Array<IJobEntry<any>> }> = ({ jobs }) => {
+export const JobSection: React.FunctionComponent<{ studyId: string, jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
+    const { data, loading } = useSubscription(
+        GQLRequests.SUBSCRIBE_TO_JOB_STATUS,
+        { variables: { studyId }, onSubscriptionData: ({ client, subscriptionData})  => {
+            console.log(subscriptionData);
+        }}
+    );
     return <div>
         {jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p> :
             <table className={css.job_table}>

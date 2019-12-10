@@ -31,7 +31,7 @@ export const GET_STUDY = gql`
             name
             createdBy
             jobs {
-                ...ALL
+                ...ALL_FOR_JOB
             }
             projects {
                 id

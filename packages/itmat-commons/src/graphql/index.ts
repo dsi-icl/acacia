@@ -7,5 +7,6 @@ import * as projects from './projects';
 import * as query from './query';
 import * as study from './study';
 import * as user from './user';
+import * as subscription from './subscription';
 
-export const GQLRequests = { ...appUsers, ...curation, ...fields, ...files, ...permission, ...projects, ...query, ...study, ...user };
+export const GQLRequests = { ...subscription, ...appUsers, ...curation, ...fields, ...files, ...permission, ...projects, ...query, ...study, ...user };
