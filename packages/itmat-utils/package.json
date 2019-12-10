@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "chalk": "3.0.0",
-        "mongodb": "3.3.5",
+        "mongodb": "3.4.0",
         "os2": "0.0.13",
         "supertest": "4.0.2"
     },
