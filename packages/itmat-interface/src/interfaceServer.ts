@@ -4,6 +4,7 @@ import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
 import { Server } from './server/server';
+import { pubsub, subscriptionEvents } from './graphql/pubsub';
 
 class ITMATInterfaceServer extends Server {
 
@@ -28,6 +29,24 @@ class ITMATInterfaceServer extends Server {
             db.connect(this.config.database)
                 .then(() => objStore.connect())
                 .then(() => {
+
+                    const jobChangestream = db.collections!.jobs_collection.watch([
+                        { $match: { operationType: { $in: ['update', 'insert'] } } }
+                    ], { fullDocument: 'updateLookup' });
+                    jobChangestream.on('change', data => {
+                        console.log(data);
+                        if (data.operationType === 'update' &&
+                            data.updateDescription &&
+                            data.updateDescription.updatedFields &&
+                            data.updateDescription.updatedFields.status
+                        ) {
+                            pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, {
+                                jobId: data.fullDocument.id,
+                                newStatus: data.fullDocument.status,
+                                errors: data.fullDocument.status === 'error' ? data.fullDocument.errors : null
+                            });
+                        }
+                    });
 
                     _this.router = new Router();
 

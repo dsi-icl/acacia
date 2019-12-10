@@ -1,9 +1,10 @@
-import { ApolloError } from 'apollo-server-express';
+import { ApolloError, withFilter } from 'apollo-server-express';
 import { Models } from 'itmat-commons';
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import uuid from 'uuid/v4';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
+import { pubsub, subscriptionEvents } from '../pubsub';
 
 enum JOB_TYPE {
     FIELD_INFO_UPLOAD = 'FIELD_INFO_UPLOAD',
@@ -111,5 +112,11 @@ export const jobResolvers = {
             return job;
         }
     },
-    Subscription: {}
+    Subscription: {
+        // subscribeToJobStatusChange: withFilter(
+        //     () => pubsub.asyncIterator(subscriptionEvents.JOB_STATUS_CHANGE),
+        //     (incoming, variables) => incoming.studyId === variables.studyId
+        // )
+                subscribeToJobStatusChange:  () => pubsub.asyncIterator(subscriptionEvents.JOB_STATUS_CHANGE)
+    }
 };

@@ -168,6 +168,20 @@ type GenericResponse {
     id: String
 }
 
+enum JOB_STATUS {
+    finished
+    error
+    QUEUED
+    PROCESSING
+    CANCELLED
+}
+
+type JobStatusChange_Subscription {
+    jobId: String!
+    newStatus: JOB_STATUS!
+    errors: [String]
+}
+
 input QueryObjInput {
     queryString: String!
     returnFieldSelection: [String]
@@ -267,6 +281,6 @@ type Mutation {
 }
 
 type Subscription {
-    stub: GenericResponse
+    subscribeToJobStatusChange(studyId: String!): JobStatusChange_Subscription
 }
 `;
