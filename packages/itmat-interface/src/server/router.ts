@@ -14,6 +14,7 @@ import { resolvers } from '../graphql/resolvers';
 import { schema } from '../graphql/schema';
 import { fileDownloadController } from '../rest/fileDownload';
 import { userLoginUtils } from '../utils/userLoginUtils';
+
 const MongoStore = connectMongo(session);
 const upload = multer();
 
@@ -69,7 +70,7 @@ export class Router {
 
         /* register the graphql subscription functionalities */
         this.server = http.createServer(this.app);
-        // gqlServer.installSubscriptionHandlers(this.server);
+        gqlServer.installSubscriptionHandlers(this.server);
 
 
         /* Bounce all unauthenticated non-graphql HTTP requests */

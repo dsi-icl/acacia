@@ -34,17 +34,16 @@ class ITMATInterfaceServer extends Server {
                         { $match: { operationType: { $in: ['update', 'insert'] } } }
                     ], { fullDocument: 'updateLookup' });
                     jobChangestream.on('change', data => {
-                        console.log(data);
                         if (data.operationType === 'update' &&
                             data.updateDescription &&
                             data.updateDescription.updatedFields &&
                             data.updateDescription.updatedFields.status
                         ) {
-                            pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, {
+                            pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, { subscribeToJobStatusChange: {
                                 jobId: data.fullDocument.id,
                                 newStatus: data.fullDocument.status,
                                 errors: data.fullDocument.status === 'error' ? data.fullDocument.errors : null
-                            });
+                            } });
                         }
                     });
 

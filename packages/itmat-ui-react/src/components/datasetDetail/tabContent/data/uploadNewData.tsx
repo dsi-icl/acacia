@@ -43,6 +43,15 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
         <Mutation
             mutation={CREATE_DATA_CURATION_JOB}
             onCompleted={() => setSuccessfullySaved(true)}
+            update={(store, { data: { createDataCurationJob } }) => {
+                // Read the data from our cache for this query.
+                const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
+                // Add our comment from the mutation to the end.
+                const newjobs = data.getStudy.jobs.concat(createDataCurationJob);
+                data.getStudy.jobs = newjobs;
+                // Write our data back to the cache.
+                store.writeQuery({ query: GET_STUDY, variables: { studyId }, data });
+            }}
         >
             {(createCurationJob, { loading }) => {
                 if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }

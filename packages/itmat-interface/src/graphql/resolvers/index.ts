@@ -29,10 +29,14 @@ export const resolvers = modules.reduce((a, e) => {
         if (a[each] === undefined) {
             a[each] = {};
         }
-        for (const funcName of Object.keys((e as any)[each])) {
-            (e as any)[each][funcName] = loggingDecorator((e as any)[each][funcName]);
-        }
+        // for (const funcName of Object.keys((e as any)[each])) {
+        //     // if (each === 'Subscription') {
+        //     //     (e as any)[each][funcName] = (e as any)[each][funcName];
+        //     // }
+        //     (e as any)[each][funcName] = (e as any)[each][funcName];
+        // }
         a[each] = { ...a[each], ...(e as any)[each] };
     }
+    console.log(a);
     return a;
 }, reduceInit);
