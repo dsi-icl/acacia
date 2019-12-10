@@ -11,7 +11,7 @@
         "test": "echo There is no test at this point !"
     },
     "optionalDependencies": {
-        "mongodb-client-encryption": "0.3.1"
+        "mongodb-client-encryption": "1.0.0"
     },
     "devDependencies": {
         "lerna": "3.19.0",
