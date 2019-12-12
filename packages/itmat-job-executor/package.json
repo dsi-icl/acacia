@@ -12,6 +12,7 @@
         "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
         "build": "npm run clean && npm run compile",
         "clean": "rimraf -rf ./build",
+        "test": "jest",
         "compile": "webpack --config ./config/webpack.config.js",
         "prepublishOnly": "npm run build"
     },

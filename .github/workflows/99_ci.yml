@@ -1,12 +1,10 @@
-name: Full Stack CI
+name: Test and Build CI
 
 on: [push]
     
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
         os: [macOS-latest, windows-latest, ubuntu-latest]
@@ -14,7 +12,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node }}
+    - name: Using Node.js ${{ matrix.node }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node }}
@@ -22,7 +20,7 @@ jobs:
       run: npm install
     - name: Building packages
       run: npm run build --if-present
-    - name: Testing
-      run: npm test
+    - name: Running unit tests
+      run: npm run test:unit
       env:
         CI: true

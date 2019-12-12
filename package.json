@@ -8,6 +8,7 @@
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-utils --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
         "build": "lerna run --stream --ignore itmat-query-language --ignore itmat-job-executor --ignore ukb-curator build",
         "publish": "lerna run tsc && lerna publish",
+        "test:unit": "lerna run --stream --parallel --scope itmat-interface --scope itmat-job-execute --scope itmat-ui-react test",
         "test:e2e": "start-server-and-test"
     },
     "optionalDependencies": {
