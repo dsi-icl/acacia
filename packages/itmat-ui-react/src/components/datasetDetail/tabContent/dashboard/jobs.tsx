@@ -31,22 +31,21 @@ const JOBTYPES: { [type: string]: any } = {
 };
 
 export const JobSection: React.FunctionComponent<{ studyId: string, jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
-    const { data, loading } = useSubscription(
+    useSubscription(
         GQLRequests.SUBSCRIBE_TO_JOB_STATUS,
         { variables: { studyId }, onSubscriptionData: ({ client: store, subscriptionData })  => {
-            console.log(subscriptionData);
-            // Read the data from our cache for this query.
             const olddata: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
-            // Add our comment from the mutation to the end.
             const oldjobs = olddata.getStudy.jobs;
             const newjobs = oldjobs.map((el: any) => {
                 if (el.id === subscriptionData.data.subscribeToJobStatusChange.jobId) {
                     el.status = subscriptionData.data.subscribeToJobStatusChange.newStatus;
+                    if (el.status === 'error') {
+                        el.error = subscriptionData.data.subscribeToJobStatusChange.errors;
+                    }
                 }
                 return el;
             });
             olddata.getStudy.jobs = newjobs;
-            // Write our data back to the cache.
             store.writeQuery({ query: GET_STUDY, variables: { studyId }, data: olddata });
         }}
     );

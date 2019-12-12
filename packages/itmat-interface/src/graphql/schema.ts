@@ -178,6 +178,7 @@ enum JOB_STATUS {
 
 type JobStatusChange_Subscription {
     jobId: String!
+    studyId: String!
     newStatus: JOB_STATUS!
     errors: [String]
 }

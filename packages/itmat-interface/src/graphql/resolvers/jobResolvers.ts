@@ -116,7 +116,7 @@ export const jobResolvers = {
         subscribeToJobStatusChange: {
             subscribe: withFilter(
                 () => pubsub.asyncIterator(subscriptionEvents.JOB_STATUS_CHANGE),
-                (incoming, variables) => incoming.studyId === variables.studyId
+                (incoming, variables) => incoming.subscribeToJobStatusChange.studyId === variables.studyId
             )
         }
     }
