@@ -9,6 +9,7 @@ import { GrantedFieldListSection } from './fieldList';
 import { GrantedFileListSelection } from './fileList';
 import { PatientIdMappingSection } from './patientIdMapping';
 import * as css from './projectDetail.module.css';
+import { NavLink } from 'react-router-dom';
 
 export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId: string }> = ({ projectId, studyId }) => {
     return <Query
@@ -22,7 +23,7 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId
 
             return <div className={css.project_detail_scaffold}>
                 <div className={css.project_detail_title}>
-                    {data.getProject.name}
+                <NavLink to={`/datasets/${studyId}/projects`}><span style={{ marginRight: '1rem', color: 'var(--color-primary-color)' }}>&#11013;</span></NavLink>{data.getProject.name}
                 </div>
                 <div className={css.project_detail_left}>
                     <Subsection title='Role'>

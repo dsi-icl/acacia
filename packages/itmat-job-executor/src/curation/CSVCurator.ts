@@ -19,7 +19,7 @@ export interface IFieldDescriptionObject {
     fieldId: number;
     timepoint: number;
     measurement: number;
-    datatype: 'c' | 'i' | 'd' | 'b';
+    datatype: 'c' | 'i' | 'd' | 'b' | 't';
 }
 
 /* update should be audit trailed */
@@ -157,14 +157,14 @@ export function processHeader(header: string[]): { error?: string[], parsedHeade
         if (colNum === 0) {
             parsedHeader[0] = null;
         } else {
-            if (!/^\d+@\d+.\d+(:[c|i|d|b])?$/.test(each)) {
+            if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
                 error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
                 parsedHeader[colNum] = null;
             } else {
                 const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
                 const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
                 const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
-                const datatype: 'c' | 'i' | 'd' | 'b' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
+                const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
                 parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
                 fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
             }
@@ -252,6 +252,9 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
                         colIndex++;
                         continue;
                     }
+                    break;
+                case 't':
+                    value = each;
                     break;
                 default:
                     error.push(`Line ${lineNum}: Invalid data type '${datatype}'`);

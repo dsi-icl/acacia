@@ -17,3 +17,6 @@ export interface IJobEntry<dataobj> {
     lastClaimed?: number;
     data?: dataobj;
 }
+
+export type IJobEntryForDataCuration = IJobEntry<{ dataVersion: string, versionTag?: string }>;
+export type IJobEntryForFieldCuration = IJobEntry<{ dataVersionId: string, tag: string }>;

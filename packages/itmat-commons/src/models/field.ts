@@ -25,6 +25,9 @@ export enum enumItemType {
 }
 
 export enum enumValueType {
-    NUMBER = 'N',
-    CATEGORICAL = 'C'
+    INTEGER = 'i',
+    CATEGORICAL = 'c',
+    DECIMAL = 'd',
+    BOOLEAN = 'b',
+    FREETEXT = 't'
 }
