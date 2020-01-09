@@ -269,7 +269,7 @@ describe('CSVCuratorClass', () => {
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Data Error: There is duplicate subject id.']);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(2108);
-        expect(mongoStub._bulkinsert._executeCalled).toEqual([1000, 2000, 2108]);
+        expect(mongoStub._bulkinsert._executeCalled).toEqual([1000, 2000]);
         expect(mongoStub._bulkinsert._insertArray[0]).toEqual({
             1: { 1: { 1: '1', 2: 2 }, 2: { 1: 2, } }, 2: { 1: { 1: 'male' } },
             m_eid: 'Subj1',

@@ -101,6 +101,7 @@ export class FieldCurator {
                 const set = new Set(fieldIdString);
                 if (set.size !== fieldIdString.length) {
                     this._errors.push('Data Error: There is duplicate field id.');
+                    this._errored = true;
                 }
 
                 if (!this._errored) {
@@ -122,7 +123,6 @@ export class FieldCurator {
 export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }) : { error?: string[], dataEntry: IFieldEntry } { // tslint:disable-line
     /* pure function */
     const error: string[] = [];
-    let colIndex = 0;
     const dataEntry_nouse: any = { };
     const THESE_COL_CANT_BE_EMPTY = {
         0: 'FieldID',
@@ -136,7 +136,7 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
     };
 
     if (row.length !== CORRECT_NUMBER_OF_COLUMN) {
-        error.push(`Line ${lineNum}: Uneven field Number; expected ${CORRECT_NUMBER_OF_COLUMN} fields but got ${row.length}`);
+        error.push(`Line ${lineNum}: Uneven field Number; expected ${CORRECT_NUMBER_OF_COLUMN} fields but got ${row.length}.`);
         return ({ error, dataEntry: dataEntry_nouse });
     }
 
@@ -147,30 +147,28 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
         }
     }
 
-    const fieldId = parseInt(row[0], 10);
-    const numOfTimePoints = parseInt(row[6], 10);
-    const numOfMeasurements = parseInt(row[7], 10);
-    const startingTimePoint = parseInt(row[8], 10);
-    const startingMeasurement = parseInt(row[9], 10);
-    if (!fieldId) {
+    /* these fields has to be numbers */
+    if (!/^\d+$/.test(row[0]) && row[0] !== '') {
         error.push(`Line ${lineNum} column 1: Cannot parse field ID as number.`);
     }
-    if (!numOfTimePoints) {
+    if (!/^\d+$/.test(row[6]) && row[6] !== '') {
         error.push(`Line ${lineNum} column 7: Cannot parse number of time points as number.`);
     }
-    if (!numOfMeasurements) {
+    if (!/^\d+$/.test(row[7]) && row[7] !== '') {
         error.push(`Line ${lineNum} column 8: Cannot parse number of measurements as number.`);
     }
-    if (!startingTimePoint) {
+    if (!/^\d+$/.test(row[8]) && row[8] !== '') {
         error.push(`Line ${lineNum} column 9: Cannot parse starting timepoint as number.`);
     }
-    if (!startingMeasurement) {
+    if (!/^\d+$/.test(row[9]) && row[9] !== '') {
         error.push(`Line ${lineNum} column 10: Cannot parse starting measurement as number.`);
     }
 
 
     /* check the value type */
-    // if ()
+    if (!['c', 'd', 'i', 'b', 't'].includes(row[2])) {
+        error.push(`Line ${lineNum} column 3: Invalid value type "${row[2]}": use "c" for categorical, "i" for integer, "d" for decimal, "b" for boolean and "t" for free text.`);
+    }
 
     /* if valueType = C, then possibleValues cant be empty */
     if (row[2] === 'c' && row[3] === '') {
@@ -180,6 +178,12 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
     if (error.length !== 0) {
         return ({ error, dataEntry: dataEntry_nouse });
     }
+
+    const fieldId = parseInt(row[0], 10);
+    const numOfTimePoints = parseInt(row[6], 10);
+    const numOfMeasurements = parseInt(row[7], 10);
+    const startingTimePoint = parseInt(row[8], 10);
+    const startingMeasurement = parseInt(row[9], 10);
 
     const dataEntry: IFieldEntry = {
         id: uuid(),

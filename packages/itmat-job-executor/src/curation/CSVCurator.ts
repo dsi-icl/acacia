@@ -125,6 +125,7 @@ export class CSVCurator {
                 const set = new Set(subjectString);
                 if (set.size !== subjectString.length) {
                     this._errors.push('Data Error: There is duplicate subject id.');
+                    this._errored = true;
                 }
 
                 if (!this._errored) {
