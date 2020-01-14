@@ -14,34 +14,34 @@
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
-        "antd": "3.24.2",
-        "apollo-cache-inmemory": "1.6.3",
-        "apollo-client": "2.6.4",
+        "antd": "3.26.7",
+        "apollo-cache-inmemory": "1.6.5",
+        "apollo-client": "2.6.8",
         "apollo-link": "1.2.13",
         "apollo-link-error": "1.1.12",
         "apollo-link-ws": "1.0.19",
-        "apollo-upload-client": "11.0.0",
+        "apollo-upload-client": "12.1.0",
         "graphql": "14.5.8",
         "graphql-tag": "2.10.1",
         "itmat-commons": "0.0.1",
-        "react": "16.11.0",
+        "react": "16.12.0",
         "react-apollo": "3.1.3",
-        "react-dom": "16.11.0",
+        "react-dom": "16.12.0",
         "react-router-dom": "5.1.2",
-        "react-scripts": "3.2.0",
+        "react-scripts": "3.3.0",
         "subscriptions-transport-ws": "0.9.16"
     },
     "devDependencies": {
         "@types/apollo-upload-client": "8.1.3",
         "@types/graphql": "14.5.0",
-        "@types/jest": "24.0.19",
-        "@types/react": "16.9.11",
-        "@types/react-dom": "16.9.3",
-        "@types/react-router-dom": "5.1.0",
-        "@types/node": "12.11.7",
+        "@types/jest": "24.0.25",
+        "@types/react": "16.9.17",
+        "@types/react-dom": "16.9.4",
+        "@types/react-router-dom": "5.1.3",
+        "@types/node": "12.12.24",
         "cross-env": "6.0.3",
         "rimraf": "3.0.0",
-        "typescript": "3.6.4"
+        "typescript": "3.7.4"
     },
     "eslintConfig": {
         "extends": "react-app"
