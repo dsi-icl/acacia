@@ -53,7 +53,7 @@
         "@types/uuid": "3.4.6",
         "@types/webpack-env": "1.15.0",
         "cors": "2.8.5",
-        "cross-env": "6.0.3",
+        "cross-env": "7.0.0",
         "eslint-plugin-typescript": "0.14.0",
         "jest": "24.9.0",
         "mongodb-memory-server": "6.2.2",
