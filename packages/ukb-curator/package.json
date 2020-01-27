@@ -1,6 +1,6 @@
 {
     "name": "ukb-curator",
-    "version": "1.0.0",
+    "version": "0.5.0",
     "description": "Curator service for UKB clinical data",
     "author": "Chon Sou",
     "main": "build/index",
