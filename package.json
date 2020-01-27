@@ -8,8 +8,8 @@
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-utils --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
         "build": "lerna run --stream --ignore itmat-query-language --ignore itmat-job-executor --ignore ukb-curator build",
         "publish": "lerna run tsc && lerna publish",
-        "test:unit": "lerna run --stream --parallel --scope itmat-job-execute test",
-        "test:e2e": "start-server-and-test",
+        "test:unit": "lerna run --stream --parallel --scope itmat-job-executor test",
+        "test:e2e": "echo start-server-and-test to be activated",
         "test": "npm run test:unit && npm run test:e2e"
     },
     "optionalDependencies": {
@@ -18,6 +18,6 @@
     "devDependencies": {
         "lerna": "3.20.2",
         "tslint": "6.0.0",
-        "start-server-and-test": "1.10.6"
+        "start-server-and-test": "1.10.8"
     }
 }
