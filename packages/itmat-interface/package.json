@@ -55,7 +55,7 @@
         "cors": "2.8.5",
         "cross-env": "7.0.0",
         "eslint-plugin-typescript": "0.14.0",
-        "jest": "24.9.0",
+        "jest": "25.1.0",
         "mongodb-memory-server": "6.2.3",
         "rimraf": "3.0.0",
         "start-server-webpack-plugin": "2.2.5",
