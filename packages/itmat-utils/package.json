@@ -20,14 +20,14 @@
     },
     "dependencies": {
         "chalk": "3.0.0",
-        "mongodb": "3.4.0",
+        "mongodb": "3.5.2",
         "os2": "0.0.13",
         "supertest": "4.0.2"
     },
     "devDependencies": {
         "@types/express": "4.17.2",
-        "@types/mongodb": "3.3.12",
-        "@types/node": "12.12.25",
+        "@types/mongodb": "3.3.14",
+        "@types/node": "13.5.0",
         "rimraf": "3.0.0",
         "typescript": "3.7.5"
     }

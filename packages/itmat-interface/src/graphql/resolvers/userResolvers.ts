@@ -202,7 +202,7 @@ export const userResolvers = {
                     delete fieldsToUpdate[each];
                 }
             }
-            const updateResult: mongodb.FindAndModifyWriteOpResultObject = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: false }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: false }, { $set: fieldsToUpdate }, { returnOriginal: false });
             if (updateResult.ok === 1) {
                 return updateResult.value;
             } else {
