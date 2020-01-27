@@ -19,8 +19,7 @@
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
     "dependencies": {
-        "mongodb": "3.5.2",
-        "chalk": "3.0.0"
+        "mongodb": "3.5.2"
     },
     "devDependencies": {
         "@types/node": "13.5.0",
