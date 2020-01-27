@@ -16,7 +16,7 @@ const JOBTYPES: { [type: string]: any } = {
     FIELD_ANNOTATION_UPLOAD: <span>Field annotation upload</span>
 };
 
-export const JobSection: React.FunctionComponent<{ jobs: Array<IJobEntry<any>> }> = ({ jobs }) => {
+export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = ({ jobs }) => {
     return <div>
         {jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p> :
             <table className={css.job_table}>

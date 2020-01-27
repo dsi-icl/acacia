@@ -46,7 +46,7 @@ async function main() {
     let lineNum = 1;
     parseStream.on('data', line => {
         console.log('number of line', lineNum);
-        promises.push(collection.insertOne(line).catch(err => console.log('error on this line', line, err)));
+        promises.push(collection.insertOne(line).catch(err => console.error('error on this line', line, err)));
         lineNum++;
     });
 

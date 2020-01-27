@@ -35,35 +35,35 @@ export class UKBFieldInfoPlugin implements ILoaderPlugin {
         const parser: NodeJS.ReadableStream = this.inputStream.pipe(csvparse({ columns: true, delimiter: '\t' })); // piping the incoming stream to a parser stream
 
         parser.on('data', async (line) => {
-            console.log(line.instance_min, parseInt(line.instance_min, 10));
-            const field: IFieldEntry = {
-                id: uuidv4(),
-                studyId: 'UKBIOBANK',
-                path: line.path,
-                fieldId: line.field_id,
-                fieldName: line.title,
-                valueType: line.value_type,
-                unit: line.units,
-                itemType: line.item_type,
-                numOfTimePoints: parseInt(line.instance_max, 10) - parseInt(line.instance_min, 10) + 1,
-                numOfMeasurements: parseInt(line.array_max, 10) - parseInt(line.array_min, 10) + 1,
-                startingTimePoint: parseInt(line.instance_min, 10),
-                startingMeasurement: parseInt(line.array_min, 10),
-                notes: line.notes,
-                jobId: this.jobId,
-                dateAdded: new Date().valueOf(),
-                deleted: false
-            };
-            bulkInsert.insert(field);
+            );
+        const field: IFieldEntry = {
+            id: uuidv4(),
+            studyId: 'UKBIOBANK',
+            path: line.path,
+            fieldId: line.field_id,
+            fieldName: line.title,
+            valueType: line.value_type,
+            unit: line.units,
+            itemType: line.item_type,
+            numOfTimePoints: parseInt(line.instance_max, 10) - parseInt(line.instance_min, 10) + 1,
+            numOfMeasurements: parseInt(line.array_max, 10) - parseInt(line.array_min, 10) + 1,
+            startingTimePoint: parseInt(line.instance_min, 10),
+            startingMeasurement: parseInt(line.array_min, 10),
+            notes: line.notes,
+            jobId: this.jobId,
+            dateAdded: new Date().valueOf(),
+            deleted: false
+        };
+        bulkInsert.insert(field);
+    });
+
+    parser.on('end', () => {
+        bulkInsert.execute((err: Error) => {
+
+            if (err) { console.error(err); return; }
         });
 
-        parser.on('end', () => {
-            bulkInsert.execute((err: Error) => {
-                console.log('FINSIHED LOADING');
-                if (err) { console.log(err); return; }
-            });
-            console.log('end');
-        });
+    });
     }
 
 

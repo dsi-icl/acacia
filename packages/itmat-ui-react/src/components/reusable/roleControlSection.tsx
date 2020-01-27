@@ -57,9 +57,13 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availa
                                     projectId={role.projectId}
                                     submitButtonString="Add user"
                                     availableUserList={data.getUsers}
-                                    onClickAddButton={loadingAddUser ? () => { } : (studyId, projectId, user) => { addUserToRole({ variables: { roleId: role.id, userChanges: { add: [user.id], remove: [] } } }); }}
+                                    onClickAddButton={loadingAddUser ? () => { return } : (studyId, projectId, user) => { addUserToRole({ variables: { roleId: role.id, userChanges: { add: [user.id], remove: [] } } }); }}
                                 >
-                                    {role.users.map((el) => <UserListPicker.User key={(el as any).id} user={el as any} onClickCross={loadingRemoveUser ? () => { } : (user) => removeUserFromRole({ variables: { roleId: role.id, userChanges: { add: [], remove: [user.id] } } })} />)}
+                                    {role.users.map((el) =>
+                                        <UserListPicker.User key={(el as any).id} user={el as any} onClickCross={loadingRemoveUser
+                                            ? () => { return }
+                                            : (user) => removeUserFromRole({ variables: { roleId: role.id, userChanges: { add: [], remove: [user.id] } } })}
+                                        />)}
                                     {/* {role.users.map(el => <UserListPicker.User user={el as any} onClickCross={loadingRemoveUser ? () => {} : (user) => removeUserFromRole() }/>)} */}
                                 </UserListPicker.UserList>
                             }
@@ -86,7 +90,7 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId: stri
                 mutation={ADD_NEW_ROLE}
                 update={(store, { data: { addRoleToStudyOrProject } }) => {
                     const cachedata = store.readQuery({ query: GET_PROJECT, variables: { projectId, admin: true } }) as any;
-                    console.log(cachedata);
+
                     if (!cachedata) { return; }
                     cachedata.getProject.roles.push(addRoleToStudyOrProject);
                     store.writeQuery({ query: GET_PROJECT, variables: { projectId, admin: true }, data: cachedata });

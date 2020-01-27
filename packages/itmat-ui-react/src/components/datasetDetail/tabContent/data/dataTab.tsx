@@ -18,17 +18,17 @@ function removeDuplicateVersion(versions: IStudyDataVersion[]) {
     const alreadySeenContent: string[] = [];
     const uniqueContent: any[] = [];
     const tmp = [...versions].reverse();
-    console.log(tmp);
+
     tmp.forEach((el, ind) => {
         if (alreadySeenContent.includes(el.contentId)) {
-            console.log(alreadySeenContent, el.contentId);
+
             return;
         } else {
             alreadySeenContent.push(el.contentId);
             uniqueContent.push({ ...el, originalPosition: tmp.length - ind - 1 });
         }
     });
-    console.log(uniqueContent);
+
     return uniqueContent.reverse();
 }
 
@@ -85,7 +85,10 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                                 <div
                                     key={el.id}
                                     onClick={() => { setSelectedVersion(el.originalPosition); setAddNewDataSectionShown(false); }}
-                                    className={css.data_version_cube + (el.originalPosition === selectedVersion ? (el.contentId === currentVersionContent ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '')}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
+                                    className={css.data_version_cube + (el.originalPosition === selectedVersion
+                                        ? (el.contentId === currentVersionContent ? ` ${css.data_version_cube_current}`
+                                            : ` ${css.data_version_cube_selected_not_current}`) : '')}>
+                                    {`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
                                 </div>
                                 {ind === removeDuplicateVersion(data.dataVersions).length - 1 ? null : <span className={css.arrow}>⟶</span>}
                             </React.Fragment>)
@@ -95,7 +98,11 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
 
                 <div key="new data" className={css.data_version_cube + ' ' + css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</div>
                 {showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ?
-                    <div key="save version" onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.data_version_cube + ' ' + css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</div>
+                    <div key="save version" onClick={() => {
+                        if (loading) { return; }
+                        setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } });
+                    }} className={css.data_version_cube + ' ' + css.versioning_section_button}>
+                        {loading ? 'Loading...' : 'Set as current version'}</div>
                     : null
                 }<br />
             </> : null}

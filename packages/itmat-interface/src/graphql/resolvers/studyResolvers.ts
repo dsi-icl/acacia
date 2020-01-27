@@ -140,8 +140,6 @@ export const studyResolvers = {
     },
     Mutation: {
         createStudy: async (parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
-            const requester: IUser = context.req.user;
-
             /* reject undefined project name */
             if (!name) {
                 throw new ApolloError('Study name is not given or undefined.');
@@ -154,8 +152,6 @@ export const studyResolvers = {
             return study;
         },
         createProject: async (parent: object, { studyId, projectName, approvedFields }: { studyId: string, projectName: string, approvedFields?: string[] }, context: any, info: any): Promise<IProject> => {
-            const requester: IUser = context.req.user;
-
             /* reject undefined project name */
             if (!projectName) {
                 throw new ApolloError('Project name is not given or undefined.');
@@ -171,8 +167,6 @@ export const studyResolvers = {
             return project;
         },
         deleteProject: async (parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
-            const requester: IUser = context.req.user;
-
             /* check privileges */
 
             /* delete project */
@@ -180,8 +174,6 @@ export const studyResolvers = {
             return makeGenericReponse(projectId);
         },
         deleteStudy: async (parent: object, { studyId }: { studyId: string }, context: any, info: any): Promise<IGenericResponse> => {
-            const requester: IUser = context.req.user;
-
             /* check privileges */
 
             /* delete project */
@@ -189,13 +181,11 @@ export const studyResolvers = {
             return makeGenericReponse(studyId);
         },
         editProjectApprovedFields: async (parent: object, { projectId, approvedFields }: { projectId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
-            const requester: IUser = context.req.user;
 
             /* check privileges */
 
             /* check study id for the project */
             const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
-            const studyId = project.studyId;
 
             /* check all the adds are valid */
             // const resultFields: string[] = fieldCore.getFieldsOfStudy(studyId, false, changes.add);
@@ -208,7 +198,6 @@ export const studyResolvers = {
             return resultingProject;
         },
         editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
-            const requester: IUser = context.req.user;
 
             /* check privileges */
 
@@ -227,8 +216,6 @@ export const studyResolvers = {
             return resultingProject;
         },
         setDataversionAsCurrent: async (parent: object, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context: any, info: any): Promise<IStudy> => {
-            const requester: IUser = context.req.user;
-
             /* check privileges */
 
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
@@ -245,7 +232,6 @@ export const studyResolvers = {
                 ...selectedataVersionFiltered[0],
                 id: uuid()
             };
-            console.log(newDataVersion);
 
             /* add this to the database */
             const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, {

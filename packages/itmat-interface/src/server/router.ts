@@ -8,7 +8,6 @@ import session from 'express-session';
 import { GraphQLError } from 'graphql';
 import http from 'http';
 import { CustomError, Logger } from 'itmat-utils';
-import multer from 'multer';
 import passport from 'passport';
 import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
@@ -16,7 +15,6 @@ import { schema } from '../graphql/schema';
 import { fileDownloadController } from '../rest/fileDownload';
 import { userLoginUtils } from '../utils/userLoginUtils';
 const MongoStore = connectMongo(session);
-const upload = multer();
 
 export class Router {
     private readonly app: Express;

@@ -5,7 +5,7 @@ import { ProjectDetail } from './detailSections/projectDetail';
 import { ProjectListSection } from './projectListSection';
 import * as css from './tabContent.module.css';
 
-export const ProjectsTabContent: React.FunctionComponent<{ studyId: string, projectList: Array<{ id: string, name: string }> }> = ({ studyId, projectList }) => {
+export const ProjectsTabContent: React.FunctionComponent<{ studyId: string, projectList: { id: string, name: string }[] }> = ({ studyId, projectList }) => {
     return <div className={css.scaffold_wrapper}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title="Projects">

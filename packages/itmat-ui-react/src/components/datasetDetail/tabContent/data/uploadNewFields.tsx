@@ -12,7 +12,7 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
     const [error, setError] = React.useState('');
     const [uploadFileTabSelected, setUploadFileTabSelected] = React.useState(true);
     const fileRef = React.createRef();
-    console.log(dataVersionId);
+
     if (!expanded) {
         return <button onClick={() => setExpanded(true)}>Upload new annotations</button>;
     }
@@ -33,7 +33,6 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
                                 return (
                                     <button onClick={() => {
                                         if ((fileRef.current as any).files.length === 1) {
-                                            console.log((fileRef.current as any).files[0], typeof (fileRef.current as any).files[0]);
                                             setError('');
                                             createCurationJob({
                                                 variables: {
@@ -63,7 +62,11 @@ const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: st
             if (loading) { return <LoadingBalls />; }
             if (error) { return <p>{error.toString()}</p>; }
             if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
-                return <p>No file has been uploaded to this dataset yet. You can do this in the <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-that-orange)', textDecoration: 'underline' }}>file repository</span></NavLink></p>;
+                return <p>No file has been uploaded to this dataset yet. You can do this in the <NavLink to={`/datasets/${studyId}/files`}>
+                    <span style={{ color: 'var(--color-that-orange)', textDecoration: 'underline' }}>
+                        file repository
+                        </span>
+                </NavLink></p>;
             }
             return <UploadFieldBySelectingFileForm dataVersionId={dataVersionId} files={data.getStudy.files} studyId={studyId} cancel={cancel} />;
         }}

@@ -45,7 +45,7 @@ export class OpenStackSwiftObjectStore {
 
     public async uploadFile(fileStream: NodeJS.ReadableStream, studyId: string, uri: string): Promise<string> {
         const containerList = await (this.account as any).listContainers();
-        console.log('containerList', containerList);
+
         const container = new Container(this.account, studyId);
 
         if (!containerList.includes(studyId)) {

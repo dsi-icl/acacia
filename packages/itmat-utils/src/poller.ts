@@ -54,7 +54,7 @@ export class JobPoller {
             },
                 { maxTimeMS: 30 });
         } catch (e) {
-            console.log(e);
+
             return;
         }
 

@@ -17,8 +17,8 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
         setCurrentProjectId(projectId);
     }
 
-    const onCheck = (checkedList: string[]) => {
-        setCheckedList(checkedList);
+    const onCheck = (list: string[]) => {
+        setCheckedList(list);
     };
 
     return <Query query={GET_STUDY} variables={{ studyId }}>
@@ -38,17 +38,17 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                     mutation={EDIT_PROJECT_APPROVED_FILES}
                     onCompleted={() => setSavedSuccessfully(true)}
                 >
-                    {(editApprovedFiles, { loading, error }) =>
+                    {(editApprovedFiles, { loading: loadingField, error: errorField }) =>
                         <>
                             {
-                                loading ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
+                                loadingField ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
                                     <button style={{ margin: '1rem 0 0 0' }} onClick={() => {
                                         editApprovedFiles({ variables: { projectId, approvedFiles: checkedList } });
                                         setSavedSuccessfully(false);
                                     }}>Save</button>
                             }
                             {
-                                error ? <div className="error_banner">{JSON.stringify(error)}</div> : null
+                                errorField ? <div className="error_banner">{JSON.stringify(errorField)}</div> : null
                             }
 
                             {

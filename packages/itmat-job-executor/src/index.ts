@@ -7,9 +7,9 @@ import { Server } from './server/server';
 import config from './utils/configManager';
 
 /* TO_DO: can we figure out the files at runtime and import at runtime */
-import { UKB_CSV_UPLOAD_Handler } from './jobHandlers/UKB_CSV_UPLOAD_handler';
-import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_handler';
-import { UKB_IMAGE_UPLOAD_Handler } from './jobHandlers/UKB_IMAGE_UPLOAD_handler';
+import { UKBCSVUploadHandler } from './jobHandlers/UKBCSVUploadHandler';
+import { UKBFieldInfoUploadHandler } from './jobHandlers/UKBFieldInfoUploadHandler';
+import { UKBImageUploadHandler } from './jobHandlers/UKBImageUploadHandler';
 
 const server = new Server(config);
 
@@ -20,9 +20,9 @@ db.connect(config.database)
         const jobDispatcher = new JobDispatcher();
 
         /* TO_DO: can we figure out the files at runtime and import at runtime */
-        jobDispatcher.registerJobType('UKB_CSV_UPLOAD', UKB_CSV_UPLOAD_Handler.prototype.getInstance);
-        jobDispatcher.registerJobType('UKB_FIELD_INFO_UPLOAD', UKB_FIELD_INFO_UPLOAD_Handler.prototype.getInstance);
-        jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKB_IMAGE_UPLOAD_Handler.prototype.getInstance);
+        jobDispatcher.registerJobType('UKB_CSV_UPLOAD', UKBCSVUploadHandler.prototype.getInstance);
+        jobDispatcher.registerJobType('UKB_FIELD_INFO_UPLOAD', UKBFieldInfoUploadHandler.prototype.getInstance);
+        jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKBImageUploadHandler.prototype.getInstance);
 
         server.start(router.getApp());
         const poller = new JobPoller('me', undefined, db.collections!.jobs_collection, config.pollingInterval, jobDispatcher.dispatch);

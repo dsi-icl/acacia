@@ -22,7 +22,7 @@ export const DatasetList: React.FunctionComponent = (props) => {
                         return <PickDatasetSection datasets={datasets} />;
                     }
                 }
-                console.log('error: ', data);
+
                 return <p>There is no dataset or you have not been added to any. Please contact admin.</p>;
             }
             }

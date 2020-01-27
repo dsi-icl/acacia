@@ -35,7 +35,6 @@ export class UKBCSVCurator {
         private readonly jobsCollection: Collection,
         private readonly studyName: string,
         private readonly jobId: string,
-        private readonly fileName: string,
         private readonly incomingWebStream: NodeJS.ReadableStream,
         private readonly _fieldDict: IFieldMap, // tslint:disable-line
         private readonly _codingDict: ICodingMap, // tslint:disable-line
@@ -49,7 +48,7 @@ export class UKBCSVCurator {
     }
 
     public async processIncomingStreamAndUploadToMongo(): Promise<void> {
-        console.log(`uploading for job ${this.jobId}`);
+
         let lineNum = 0;
         let isHeader: boolean = true;
         let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
@@ -63,7 +62,7 @@ export class UKBCSVCurator {
                 lineNum++;
                 isHeader = false;
                 await this.processHeader(line);
-                console.log(this._headerProcessedSuccessfully, ' header process ', this._fieldsWithError);
+
                 // if (!this._headProcessedSuccessfully) { return; }
                 parseStream.resume();  // now that all promises have resolved, we can resume the stream
             } else {
@@ -73,7 +72,7 @@ export class UKBCSVCurator {
                 if (line.length !== this._fieldNumber) {
                     const error: string = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.error.UNEVEN_FIELD_NUMBER(currentLineNum);
                     await this.setJobStatusToError(error);
-                    console.log('ERROR', 'uneven NF');
+
                     (this.incomingWebStream as any).destroy();  // does this work?
                     return;
                 }
@@ -87,11 +86,11 @@ export class UKBCSVCurator {
 
                 bulkInsert.insert(entry);
                 this._numOfSubj++;
-                console.log('lineNum', currentLineNum);
+
                 if (this._numOfSubj > 2000) {     // race condition?   // PROBLEM: the last bit <2000 doesn't get uploaded\
                     this._numOfSubj = 0;
                     await bulkInsert.execute((err: Error) => {
-                        if (err) { console.log((err as any).writeErrors[1].err); return; }
+                        if (err) { console.error((err as any).writeErrors[1].err); return; }
                     });
                     bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
                 }
@@ -100,10 +99,10 @@ export class UKBCSVCurator {
 
         parseStream.on('end', () => {
             bulkInsert.execute((err: Error) => {
-                console.log('FINSIHED LOADING');
-                if (err) { console.log(err); return; }
+
+                if (err) { console.error(err); return; }
             });
-            console.log('end');
+
         });
     }
 
@@ -195,10 +194,9 @@ export class UKBCSVCurator {
             }
 
             const value: string | number | false = await this.processValue(this._header[i] as IHeaderArrayElement, line[i]);
-            const fieldDescription: IHeaderArrayElement = this._header[i] as IHeaderArrayElement;
 
             /************************HERE IS THE MAIN DIFFERENCE BETWEEN IMPLEMENTATIONS ******/
-            const { field: { instance, fieldId, array }, totalArrayNumber } = this._header[i] as IHeaderArrayElement;
+            const { field: { instance, fieldId, array } } = this._header[i] as IHeaderArrayElement;
             if (entry[fieldId] === undefined) {
                 entry[fieldId] = {};
             }
@@ -263,7 +261,7 @@ export class UKBCSVCurator {
                 return parseFloat(preValue);
             } else {
                 return preValue;
-                // console.log(headerElementForField, preValue);
+                //
                 // throw new CustomError('processValue_helper');
                 // const error: string = Models.JobModels.jobTypes.UKB_CSV_UPLOAD.error.FIELD_ERROR(this._fieldsWithError);
                 // await this.setJobStatusToError(error);

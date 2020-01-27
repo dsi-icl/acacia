@@ -16,8 +16,8 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
         setCurrentProjectId(projectId);
     }
 
-    const onCheck = (checkedList: string[]) => {
-        setCheckedList(checkedList);
+    const onCheck = (list: string[]) => {
+        setCheckedList(list);
     };
 
     return <Query query={GET_STUDY} variables={{ studyId }}>
@@ -31,17 +31,17 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
                     mutation={EDIT_PROJECT_APPROVED_FIELDS}
                     onCompleted={() => setSavedSuccessfully(true)}
                 >
-                    {(editApprovedFields, { loading, error }) =>
+                    {(editApprovedFields, { loading: loadingField, error: errorField }) =>
                         <>
                             {
-                                loading ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
+                                loadingField ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
                                     <button style={{ margin: '1rem 0 0 0' }} onClick={() => {
                                         editApprovedFields({ variables: { projectId, approvedFields: checkedList.filter((el) => el.indexOf('CAT') === -1) } });
                                         setSavedSuccessfully(false);
                                     }}>Save</button>
                             }
                             {
-                                error ? <div className="error_banner">{JSON.stringify(error)}</div> : null
+                                errorField ? <div className="error_banner">{JSON.stringify(errorField)}</div> : null
                             }
 
                             {

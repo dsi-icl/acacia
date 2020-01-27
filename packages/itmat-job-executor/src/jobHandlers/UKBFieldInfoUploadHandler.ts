@@ -6,12 +6,12 @@ import { JobHandler } from './jobHandlerInterface';
 
 type IFieldCurationJobEntry = IJobEntry<{ dataVersionId: string, tag: string }>;
 
-export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
-    private _instance?: UKB_FIELD_INFO_UPLOAD_Handler;
+export class UKBFieldInfoUploadHandler extends JobHandler {
+    private _instance?: UKBFieldInfoUploadHandler;
 
     public async getInstance() {
         if (!this._instance) {
-            this._instance = new UKB_FIELD_INFO_UPLOAD_Handler();
+            this._instance = new UKBFieldInfoUploadHandler();
         }
         return this._instance;
     }
@@ -25,8 +25,8 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
 
     public async uploadStudyOnMongo(job: IFieldCurationJobEntry, fieldTreeId: string) {
         const result = await db.collections!.studies_collection.update(
-            { studyId: job.studyId, deleted: false,  dataVersions: job.data!.dataVersionId },
-            { $push: { 'dataVersions.$.fieldTrees': fieldTreeId }}
+            { studyId: job.studyId, deleted: false, dataVersions: job.data!.dataVersionId },
+            { $push: { 'dataVersions.$.fieldTrees': fieldTreeId } }
         );
 
     }

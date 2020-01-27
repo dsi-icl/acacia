@@ -27,7 +27,7 @@ class ItmatNodeEnvironment extends NodeEnvironment {
         process.env.NODE_ENV = 'test';
 
         /* Creating a in-memory MongoDB instance for testing */
-        console.log(await mongodb.getConnectionString());
+        );
         config.database.mongo_url = await mongodb.getConnectionString();
         config.database.database = await mongodb.getDbName();
         mongo = new MongoClient(config.database.mongo_url, {

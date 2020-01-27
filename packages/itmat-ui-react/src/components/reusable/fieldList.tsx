@@ -44,7 +44,7 @@ export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedL
     //             }
     //         }
     //     }
-    //     console.log(output);
+    //
     //     return output;
     // };
 

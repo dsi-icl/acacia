@@ -6,7 +6,7 @@ import * as css from './userList.module.css';
 
 // import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
 
-export const CreateNewUser: React.FunctionComponent = (props) => {
+export const CreateNewUser: React.FunctionComponent = () => {
     const [completedCreationId, setCompletedCreationId] = React.useState(undefined);
     const [inputError, setError] = React.useState('');
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
@@ -29,7 +29,7 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
     });
 
     function clickedSubmit(mutationFunc: (data: { variables: any }) => {}) {
-        return function(e: any) {
+        return (e: any) => {
             e.preventDefault();
             const allFields = Object.keys(inputs);
             for (const each of allFields) {

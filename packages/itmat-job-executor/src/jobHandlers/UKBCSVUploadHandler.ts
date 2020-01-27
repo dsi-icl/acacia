@@ -4,11 +4,10 @@ import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import uuid from 'uuid/v4';
 import { db } from '../database/database';
-import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
 
-export class UKB_CSV_UPLOAD_Handler extends JobHandler {
-    private _instance?: UKB_CSV_UPLOAD_Handler;
+export class UKBCSVUploadHandler extends JobHandler {
+    private _instance?: UKBCSVUploadHandler;
     // private ukbCurator: UKBCurator;
 
     private constructor() {
@@ -23,7 +22,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
 
     public async getInstance() {
         if (!this._instance) {
-            this._instance = new UKB_CSV_UPLOAD_Handler();
+            this._instance = new UKBCSVUploadHandler();
             // await this.ukbCurator.updateUKBCodingAndFieldsMap();
         }
         return this._instance;
@@ -34,7 +33,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
         if (!file) {
             // throw error
         }
-        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
+        // const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
         const datasetId: string = uuid();
         // await this.ukbCurator.uploadIncomingCSVStreamToMongo(
         //     job.studyId,

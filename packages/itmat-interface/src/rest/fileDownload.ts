@@ -4,7 +4,6 @@ import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 
 export const fileDownloadController = async (req: Request, res: Response) => {
-    const requester = req.user;
     const requestedFile = req.params.fileId;
 
     try {

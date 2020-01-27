@@ -37,7 +37,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
     );
 };
 
-export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: object }) }> = ({ user }) => {
+export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: {} }) }> = ({ user }) => {
     const [inputs, setInputs] = React.useState({ ...user, password: '' });
     const [deleteButtonShown, setDeleteButtonShown] = React.useState(false);
     const [userIsDeleted, setUserIsDeleted] = React.useState(false);
@@ -99,13 +99,30 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
                     >
 
-                        {(deleteUser, { loading, error, data: UserDeletedData }) => {
+                        {(deleteUser, { loading: loadingUserDeletion, error: UserDeletion, data: UserDeletedData }) => {
                             if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
-                            if (error) { return <p>{error.message}</p>; }
+                            if (UserDeletion) { return <p>{UserDeletion.message}</p>; }
                             return (
                                 <>
-                                    <label>Delete this user: </label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
-                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }); }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
+                                    <label>Delete this user: </label>
+                                    {loadingUserDeletion
+                                        ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>
+                                        : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}>
+                                            click here
+                                        </p>
+                                    }<br />
+                                    {deleteButtonShown ?
+                                        <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br />
+                                            <span onClick={() => {
+                                                deleteUser({ variables: { userId: user.id } });
+                                            }} className={css.really_delete_button}>
+                                                Delete user {user.username}
+                                            </span>
+                                            <span onClick={() => {
+                                                setDeleteButtonShown(false);
+                                            }} style={{ cursor: 'pointer' }}>
+                                                Cancel
+                                                      </span></> : null}
                                 </>
                             );
                         }}
