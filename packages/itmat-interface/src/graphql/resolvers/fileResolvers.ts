@@ -27,9 +27,9 @@ export const fileResolvers = {
             const file = await args.file;
 
             return new Promise<IFile>(async (resolve, reject) => {
-                console.log(file);
                 const stream: NodeJS.ReadableStream = (file as any).createReadStream();
                 const fileUri = uuid();
+
                 /* if the client cancelled the request mid-stream it will throw an error */
                 stream.on('error', (e) => {
                     Logger.error(e);

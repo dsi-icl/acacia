@@ -14,11 +14,11 @@ enum FIELD_ITEM_TYPE {
 }
 
 enum FIELD_VALUE_TYPE {
-    N # numeric
-    SC  # categorical single
-    MC  # categorical multiple
-    D # date-time
-    T # free text
+    i # integer
+    c  # categorical
+    d  # decimal
+    b # boolean
+    t # free text
 
 }
 

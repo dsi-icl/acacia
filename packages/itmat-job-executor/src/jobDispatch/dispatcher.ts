@@ -23,6 +23,7 @@ export class JobDispatcher {
         console.log(this._handlerCollection, job.jobType)
         if (!this._handlerCollection[job.jobType]) {
             // set job to UNPROCESSED
+            console.log('NO JOB HANDLER AVAILLABLE');
             return;
         }
         await (await this._handlerCollection[job.jobType]()).execute(job);

@@ -40,7 +40,7 @@ class ITMATJobExecutorServer extends Server {
                     /* TO_DO: can we figure out the files at runtime and import at runtime */
                     console.log(UKB_CSV_UPLOAD_Handler.prototype.getInstance);
                     jobDispatcher.registerJobType('DATA_UPLOAD', UKB_CSV_UPLOAD_Handler.prototype.getInstance);
-                    // jobDispatcher.registerJobType('UKB_FIELD_INFO_UPLOAD', UKB_FIELD_INFO_UPLOAD_Handler.prototype.getInstance);
+                    jobDispatcher.registerJobType('FIELD_INFO_UPLOAD', UKB_FIELD_INFO_UPLOAD_Handler.prototype.getInstance);
                     // jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKB_IMAGE_UPLOAD_Handler.prototype.getInstance);
 
                     const poller = new JobPoller({
