@@ -22,7 +22,7 @@ enum FIELD_VALUE_TYPE {
 
 }
 
-type FieldInfo {
+type Field {
     id: String!
     studyId: String!
     path: String!
@@ -59,11 +59,11 @@ type User {
     access: UserAccess # admin or self only
 }
 
-type ShortCut {
-    id: String!
-    study: String!
-    project: String
-}
+# type ShortCut {
+#     id: String!
+#     study: String!
+#     project: String
+# }
 
 
 type StudyOrProjectUserRole {
@@ -109,7 +109,7 @@ type Study {
     jobs: [Job]!
     projects: [Project]!
     roles: [StudyOrProjectUserRole]!
-    # fields: [FieldInfo]!
+    # fields: [Field]!
     files: [File]!
     numOfSubjects: Int!
 }
@@ -128,7 +128,7 @@ type Project {
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
-    fields: [FieldInfo]! # fields of the study but filtered to be only those in Project.approvedFields
+    fields: [Field]! # fields of the study but filtered to be only those in Project.approvedFields
     files: [File]!
 }
 
@@ -231,7 +231,7 @@ type Query {
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
-    getStudyFields(fieldTreeId: String!, studyId: String!): [FieldInfo]
+    getStudyFields(fieldTreeId: String!, studyId: String!): [Field]
 
     # QUERY
     getQueries(studyId: String!, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
