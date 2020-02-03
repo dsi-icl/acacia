@@ -1,7 +1,7 @@
 import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Subsection } from '../../../reusable';
-import { RoleControlSection } from '../../../reusable/roleControlSection';
+import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
 import * as css from './tabContent.module.css';
 
 export const AdminTabContent: React.FunctionComponent<{ studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {

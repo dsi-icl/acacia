@@ -4,7 +4,7 @@ import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { DELETE_USER, EDIT_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { Subsection } from '../reusable';
-import { LoadingBalls } from '../reusable/loadingBalls';
+import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
 import * as css from './userList.module.css';
 

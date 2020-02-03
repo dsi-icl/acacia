@@ -5,9 +5,9 @@ import { Mutation, Query } from 'react-apollo';
 import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from 'itmat-commons/src/graphql/permission';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
-import { LoadingBalls } from '../reusable/loadingBalls';
+import { LoadingBalls } from '../icons/loadingBalls';
 import * as css from './roleControlSection.module.css';
-import { UserListPicker } from './userListPicker';
+import { UserListPicker } from '../userSelectionList/userListPicker';
 
 export const RoleControlSection: React.FunctionComponent<{ studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
     return <div>

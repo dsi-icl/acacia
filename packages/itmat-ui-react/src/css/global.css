@@ -24,7 +24,7 @@
 
 .light_theme {
     /* override the default colours and add class to <App/>*/
-    --color-font-color: rgb(0, 0, 0);
+    /* --color-font-color: rgb(0, 0, 0);
     --color-background: 	#ffffff;
     --color-primary-color: #36a7b3;
     --color-error:rgb(255, 82, 82);
@@ -40,7 +40,7 @@
     --color-status-queued: #696969;
     --color-popup: #131212;
     --color-popup-border: #4a4a4a;
-    --color-status-cancelled: black;
+    --color-status-cancelled: black; */
 }
 
 @font-face {
@@ -84,6 +84,7 @@
 }
 
 html, body, #root {
+    background-color: var(--color-background);
     position: fixed;
     font-size: var(--font-size-root);
     font-family: var(--font-family);

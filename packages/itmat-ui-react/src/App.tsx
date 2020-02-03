@@ -3,7 +3,7 @@ import { ApolloProvider, Query } from 'react-apollo';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { client } from './components/apolloClient';
 import { LoginBox } from './components/login/login';
-import { Spinner } from './components/reusable/spinner';
+import { Spinner } from './components/reusable/icons/spinner';
 import { MainMenuBar } from './components/scaffold/mainMenuBar';
 import { MainPanel } from './components/scaffold/mainPanel';
 import * as css from './components/scaffold/scaffold.module.css';

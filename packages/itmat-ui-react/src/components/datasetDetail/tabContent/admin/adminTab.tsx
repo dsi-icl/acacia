@@ -6,7 +6,7 @@ import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from 'itmat-commons/src/graphql/permission';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
 import { Subsection, UserListPicker } from '../../../reusable';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
+import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import * as css from './tabContent.module.css';
 
 export const AdminTabContent: React.FunctionComponent<{ studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {

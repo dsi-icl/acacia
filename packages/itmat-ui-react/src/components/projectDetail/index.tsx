@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink, Redirect, Route, Switch } from 'react-router-dom';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
-import { LoadingBalls } from '../reusable/loadingBalls';
+import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import * as css from './projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
 import { FileTabContent } from './tabContent/file/fileTab';

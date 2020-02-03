@@ -4,7 +4,7 @@ import { Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { Icons } from '../icons';
-import { LoadingBalls } from '../reusable/loadingBalls';
+import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import * as css from './userList.module.css';
 
 export const UserListSection: React.FunctionComponent = (props) => {

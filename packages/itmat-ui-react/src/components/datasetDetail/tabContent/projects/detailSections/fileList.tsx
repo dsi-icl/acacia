@@ -4,7 +4,7 @@ import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { EDIT_PROJECT_APPROVED_FILES } from 'itmat-commons/dist/graphql/projects';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
-import { LoadingBalls } from '../../../../reusable/loadingBalls';
+import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 
 export const GrantedFileListSelection: React.FunctionComponent<{ originalCheckedList: string[], studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);
