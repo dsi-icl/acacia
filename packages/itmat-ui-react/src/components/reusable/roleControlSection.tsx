@@ -24,12 +24,13 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availa
             <label className={css.role_name}>{role.name}</label>
             <Mutation
                 mutation={REMOVE_ROLE}
-                update={(store) => {
-                    const cachedata = store.readQuery({ query: GET_PROJECT, variables: { projectId: role.projectId, admin: true } }) as any;
-                    if (!cachedata) { return; }
-                    cachedata.getProject.roles = cachedata.getProject.roles.filter((el: IRole) => el.id !== role.id);
-                    store.writeQuery({ query: GET_PROJECT, variables: { projectId: role.projectId, admin: true }, data: cachedata });
-                }}
+                refetchQueries={[{ query: GET_PROJECT, variables: { projectId: role.projectId, admin: true }}]}
+                // update={(store) => {
+                //     const cachedata = store.readQuery({ query: GET_PROJECT, variables: { projectId: role.projectId, admin: true } }) as any;
+                //     if (!cachedata) { return; }
+                //     cachedata.getProject.roles = cachedata.getProject.roles.filter((el: IRole) => el.id !== role.id);
+                //     store.writeQuery({ query: GET_PROJECT, variables: { projectId: role.projectId, admin: true }, data: cachedata });
+                // }}
             >
                 {(removeRole, { loading }) => {
                     if (loading) { return <span className={css.right_aligned}><LoadingBalls /></span>; }
@@ -79,18 +80,18 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId: stri
     if (!isExpanded) { return <span className={css.add_new_role_button} onClick={() => setIsExpanded(true)}>Add new role</span>; }
     return <div className={css.add_new_role_section}>
         <span>Create new role</span><br /><br />
-        <label>Name: </label><input placeholder="Role name" value={inputNameString} onChange={(e) => setInputNameString(e.target.value)} /> <br />
+        <label>Name: </label><input placeholder='Role name' value={inputNameString} onChange={(e) => setInputNameString(e.target.value)} /> <br />
         <div className={css.add_new_role_buttons_wrapper}>
-            <button className="button_grey" onClick={() => setIsExpanded(false)}>Cancel</button>
+            <button className='button_grey' onClick={() => setIsExpanded(false)}>Cancel</button>
             <Mutation
                 mutation={ADD_NEW_ROLE}
-                update={(store, { data: { addRoleToStudyOrProject } }) => {
-                    const cachedata = store.readQuery({ query: GET_PROJECT, variables: { projectId, admin: true } }) as any;
-                    console.log(cachedata);
-                    if (!cachedata) { return; }
-                    cachedata.getProject.roles.push(addRoleToStudyOrProject);
-                    store.writeQuery({ query: GET_PROJECT, variables: { projectId, admin: true }, data: cachedata });
-                }}
+                refetchQueries={[{ query: GET_PROJECT, variables: { projectId, admin: true }}]}
+                // update={(store, { data: { addRoleToStudyOrProject } }) => {
+                //     const cachedata = store.readQuery({ query: GET_PROJECT, variables: { projectId, admin: true } }) as any;
+                //     if (!cachedata) { return; }
+                //     cachedata.getProject.roles.push(addRoleToStudyOrProject);
+                //     store.writeQuery({ query: GET_PROJECT, variables: { projectId, admin: true }, data: cachedata });
+                // }}
             >
                 {(addNewRole) =>
                     <button onClick={() => { setInputNameString(''); setIsExpanded(false); addNewRole({ variables: { studyId, projectId, roleName: inputNameString } }); }}>Submit</button>
@@ -127,7 +128,7 @@ const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availab
                 <React.Fragment key={el}>
                     <Mutation mutation={EDIT_ROLE}>
                         {(editRole, { loading }) => {
-                            if (loading) { return <div key={el} className="button_loading">{el}</div>; }
+                            if (loading) { return <div key={el} className='button_loading'>{el}</div>; }
 
                             return <div onClick={() => {
                                 editRole({
