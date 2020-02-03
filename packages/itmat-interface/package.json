@@ -8,6 +8,14 @@
     "files": [
         "build"
     ],
+    "scripts": {
+        "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
+        "build": "npm run clean && npm run compile",
+        "test": "jest",
+        "clean": "rimraf -rf ./build",
+        "compile": "webpack --config ./config/webpack.config.js",
+        "prepublishOnly": "npm run build"
+    },
     "dependencies": {
         "apollo-server-express": "2.9.16",
         "bcrypt": "3.0.7",

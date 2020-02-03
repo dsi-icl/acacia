@@ -6,6 +6,14 @@
     "files": [
         "build"
     ],
+    "scripts": {
+        "start": "cross-env BROWSER=none SKIP_PREFLIGHT_CHECK=true react-scripts start",
+        "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
+        "test": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts test",
+        "test:cypress": "npx cypress open",
+        "clean": "rimraf -rf ./dist ./build",
+        "prepublishOnly": "npm run build"
+    },
     "dependencies": {
         "antd": "3.26.8",
         "apollo-cache-inmemory": "1.6.5",

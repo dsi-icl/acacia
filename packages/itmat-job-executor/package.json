@@ -8,6 +8,14 @@
     "files": [
         "build"
     ],
+    "scripts": {
+        "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
+        "build": "npm run clean && npm run compile",
+        "clean": "rimraf -rf ./build",
+        "test": "jest",
+        "compile": "webpack --config ./config/webpack.config.js",
+        "prepublishOnly": "npm run build"
+    },
     "dependencies": {
         "@babel/preset-env": "7.8.3",
         "body-parser": "1.19.0",
