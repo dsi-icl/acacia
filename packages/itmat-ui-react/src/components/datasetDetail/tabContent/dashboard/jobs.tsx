@@ -27,7 +27,7 @@ const STATUSES: { [status: string]: any } = {
 
 const JOBTYPES: { [type: string]: any } = {
     DATA_UPLOAD: <span>Data upload</span>,
-    FIELD_ANNOTATION_UPLOAD: <span>Field annotation upload</span>
+    FIELD_INFO_UPLOAD: <span>Field annotation upload</span>
 };
 
 export const JobSection: React.FunctionComponent<{ studyId: string, jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
