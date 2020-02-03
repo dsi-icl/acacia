@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
-import { FileList } from '../../../reusable/fileList';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
-import { Subsection } from '../../../reusable/subsection';
+import { FileList } from '../../../reusable/fileList/fileList';
+import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import { Subsection } from '../../../reusable/subsection/subsection';
 import * as css from './tabContent.module.css';
 
 export const FileTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => {

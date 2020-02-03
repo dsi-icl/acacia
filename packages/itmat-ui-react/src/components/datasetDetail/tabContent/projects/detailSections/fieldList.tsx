@@ -2,8 +2,8 @@ import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { EDIT_PROJECT_APPROVED_FIELDS } from 'itmat-commons/dist/graphql/projects';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
-import { FieldListSection } from '../../../../reusable/fieldList';
-import { LoadingBalls } from '../../../../reusable/loadingBalls';
+import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
+import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 
 export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: string[], studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);

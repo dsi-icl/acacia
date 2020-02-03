@@ -4,7 +4,7 @@ import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { CREATE_DATA_CURATION_JOB } from 'itmat-commons/dist/graphql/curation';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
+import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 
 export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
     return <div>

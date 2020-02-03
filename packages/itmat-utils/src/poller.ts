@@ -29,7 +29,8 @@ export class JobPoller {
         this.setInterval = this.setInterval.bind(this);
         this.checkForJobs = this.checkForJobs.bind(this);
         this.matchObj = {
-            claimedBy: undefined
+            claimedBy: undefined,
+            status: 'QUEUED'
             /*, lastClaimed: more then 0 */
         };
 

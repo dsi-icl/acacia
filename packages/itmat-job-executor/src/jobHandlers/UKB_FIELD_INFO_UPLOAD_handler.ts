@@ -24,7 +24,7 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
         const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
         const fieldTreeId: string = uuid();
         const fieldcurator = new FieldCurator(
-            db.collections!.field_collection,
+            db.collections!.field_dictionary_collection,
             fileStream,
             undefined,
             job,
@@ -37,16 +37,14 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
             return;
         } else {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
+            await this.updateFieldTreesInMongo(job, fieldTreeId);
         }
-        await this.updateFieldTreesInMongo(job, fieldTreeId);
 
     }
 
     public async updateFieldTreesInMongo(job: IJobEntryForFieldCuration, fieldTreeId: string) {
-        const result = await db.collections!.studies_collection.update(
-            { studyId: job.studyId, deleted: null,  dataVersions: job.data!.dataVersionId },
-            { $push: { 'dataVersions.$.fieldTrees': fieldTreeId }}
-        );
-
+        const queryObject = { 'id': job.studyId, 'deleted': null,  'dataVersions.id': job.data!.dataVersionId };
+        const updateObject = { $push: { 'dataVersions.$.fieldTrees': fieldTreeId }};
+        const result = await db.collections!.studies_collection.findOneAndUpdate(queryObject, updateObject);
     }
 }

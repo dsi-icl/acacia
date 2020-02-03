@@ -1,7 +1,7 @@
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { GQLRequests } from 'itmat-commons';
 import * as React from 'react';
-import { InfoCircle } from '../../../reusable/infoCircle';
+import { InfoCircle } from '../../../reusable/icons/infoCircle';
 import * as css from './tabContent.module.css';
 import { useSubscription } from 'react-apollo';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
@@ -27,7 +27,7 @@ const STATUSES: { [status: string]: any } = {
 
 const JOBTYPES: { [type: string]: any } = {
     DATA_UPLOAD: <span>Data upload</span>,
-    FIELD_ANNOTATION_UPLOAD: <span>Field annotation upload</span>
+    FIELD_INFO_UPLOAD: <span>Field annotation upload</span>
 };
 
 export const JobSection: React.FunctionComponent<{ studyId: string, jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {

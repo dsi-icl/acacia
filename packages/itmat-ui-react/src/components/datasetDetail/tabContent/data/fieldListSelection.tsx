@@ -2,8 +2,8 @@ import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import React from 'react';
 import { Query } from 'react-apollo';
 import { GET_STUDY_FIELDS } from 'itmat-commons/dist/graphql/fields';
-import { FieldListSection } from '../../../reusable/fieldList';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
+import { FieldListSection } from '../../../reusable/fieldList/fieldList';
+import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 // number of patients
 // newest version of data - date / tag
 // download data

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { Subsection } from '../../../reusable/subsection';
+import { Subsection } from '../../../reusable/subsection/subsection';
 import { ProjectDetail } from './detailSections/projectDetail';
 import { ProjectListSection } from './projectListSection';
 import * as css from './tabContent.module.css';
