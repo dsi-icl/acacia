@@ -79,7 +79,7 @@ export const studyResolvers = {
             return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
         },
         roles: async (study: IStudy) => {
-            return await db.collections!.roles_collection.find({ studyId: study.id, deleted: null }).toArray();
+            return await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray();
         },
         files: async (study: IStudy) => {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
@@ -153,7 +153,7 @@ export const studyResolvers = {
             const study = await studyCore.createNewStudy(name, requester.id);
             return study;
         },
-        createProject: async (parent: object, { studyId, projectName, approvedFields }: { studyId: string, projectName: string, approvedFields?: string[] }, context: any, info: any): Promise<IProject> => {
+        createProject: async (parent: object, { studyId, projectName }: { studyId: string, projectName: string }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* reject undefined project name */
@@ -167,7 +167,7 @@ export const studyResolvers = {
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             /* create project */
-            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.username, approvedFields);
+            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.username);
             return project;
         },
         deleteProject: async (parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
@@ -188,7 +188,7 @@ export const studyResolvers = {
             await studyCore.deleteStudy(studyId);
             return makeGenericReponse(studyId);
         },
-        editProjectApprovedFields: async (parent: object, { projectId, approvedFields }: { projectId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
+        editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -203,8 +203,10 @@ export const studyResolvers = {
             //     throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
             // }
 
+            /* check field tree exists */
+
             /* edit approved fields */
-            const resultingProject = await studyCore.editProjectApprovedFields(projectId, approvedFields);
+            const resultingProject = await studyCore.editProjectApprovedFields(projectId, fieldTreeId, approvedFields);
             return resultingProject;
         },
         editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
@@ -245,7 +247,6 @@ export const studyResolvers = {
                 ...selectedataVersionFiltered[0],
                 id: uuid()
             };
-            console.log(newDataVersion);
 
             /* add this to the database */
             const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {

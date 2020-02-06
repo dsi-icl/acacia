@@ -1,81 +1,60 @@
 import { Models, permissions } from 'itmat-commons';
 import { IRole } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
-import { Mutation, Query } from 'react-apollo';
+import { Mutation, Query, useQuery, useMutation } from 'react-apollo';
 import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from 'itmat-commons/src/graphql/permission';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
 import { LoadingBalls } from '../icons/loadingBalls';
 import * as css from './roleControlSection.module.css';
 import { UserListPicker } from '../userSelectionList/userListPicker';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 
-export const RoleControlSection: React.FunctionComponent<{ studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
+export const RoleControlSection: React.FunctionComponent<{ studyId: string, projectId?: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
     return <div>
         {
-            roles.map((el) => <OneRole key={el.id} role={el} availablePermissions={Object.values(permissions.specific_project)} />)
+            roles.map((el) => <OneRole key={el.id} role={el} availablePermissions={projectId ? Object.values(permissions.specific_project) : Object.values(permissions.specific_study)} />)
         }
         <AddRole studyId={studyId} projectId={projectId} />
     </div>;
 };
 
 export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availablePermissions: string[] }> = ({ role, availablePermissions }) => {
+    const isStudyRole = role.projectId ? false : true;
+    const { data: userData, error: userFetchError, loading: userFetchLoading } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
+    const [removeRole, { loading: removeRoleLoading }] = useMutation(REMOVE_ROLE, { refetchQueries: [{ query: isStudyRole ? GET_STUDY : GET_PROJECT, variables: isStudyRole ? { studyId: role.studyId } : { projectId: role.projectId, admin: true }}] });
+    const [addUserToRole, { loading: loadingAddUser }] = useMutation(EDIT_ROLE);
+    const [removeUserFromRole, { loading: loadingRemoveUser }] = useMutation(EDIT_ROLE);
+
+    if (userFetchLoading) { return <LoadingBalls/>; }
     return <div className={css.one_role}>
         <div className={css.role_header}>
             <label className={css.role_name}>{role.name}</label>
-            <Mutation
-                mutation={REMOVE_ROLE}
-                refetchQueries={[{ query: GET_PROJECT, variables: { projectId: role.projectId, admin: true }}]}
-                // update={(store) => {
-                //     const cachedata = store.readQuery({ query: GET_PROJECT, variables: { projectId: role.projectId, admin: true } }) as any;
-                //     if (!cachedata) { return; }
-                //     cachedata.getProject.roles = cachedata.getProject.roles.filter((el: IRole) => el.id !== role.id);
-                //     store.writeQuery({ query: GET_PROJECT, variables: { projectId: role.projectId, admin: true }, data: cachedata });
-                // }}
-            >
-                {(removeRole, { loading }) => {
-                    if (loading) { return <span className={css.right_aligned}><LoadingBalls /></span>; }
-                    return <span className={css.delete_role_button + ' ' + css.right_aligned} onClick={() => removeRole({ variables: { roleId: role.id } })}>X</span>;
-                }}
-            </Mutation>
+            { removeRoleLoading ? <span className={css.right_aligned}><LoadingBalls /></span> :  <span className={css.delete_role_button + ' ' + css.right_aligned} onClick={() => removeRole({ variables: { roleId: role.id } })}>X</span>}
         </div>
         <label>Permissions: </label><br /><br />
         <PermissionsControlPanel roleId={role.id} availablePermissions={availablePermissions} originallySelectedPermissions={role.permissions} />
         <br />
         <label>Users of this role: </label>
         <br /> <br />
-        <Query query={GET_USERS} variables={{ fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }}>
-            {({ data, error, loading }) => {
-                if (error) { return null; }
-                if (loading) { return null; }
-                return <Mutation
-                    mutation={EDIT_ROLE}
-                >
-                    {(addUserToRole, { loading: loadingAddUser }) =>
-                        <Mutation mutation={EDIT_ROLE}>
-                            {(removeUserFromRole, { loading: loadingRemoveUser }) =>
-                                <UserListPicker.UserList
-                                    studyId={role.studyId}
-                                    projectId={role.projectId}
-                                    submitButtonString="Add user"
-                                    availableUserList={data.getUsers}
-                                    onClickAddButton={loadingAddUser ? () => { } : (studyId, projectId, user) => { addUserToRole({ variables: { roleId: role.id, userChanges: { add: [user.id], remove: [] } } }); }}
-                                >
-                                    {role.users.map((el) => <UserListPicker.User key={(el as any).id} user={el as any} onClickCross={loadingRemoveUser ? () => { } : (user) => removeUserFromRole({ variables: { roleId: role.id, userChanges: { add: [], remove: [user.id] } } })} />)}
-                                    {/* {role.users.map(el => <UserListPicker.User user={el as any} onClickCross={loadingRemoveUser ? () => {} : (user) => removeUserFromRole() }/>)} */}
-                                </UserListPicker.UserList>
-                            }
-                        </Mutation>
-                    }
-                </Mutation>;
-            }}
-        </Query>
+        <UserListPicker.UserList
+            studyId={role.studyId}
+            projectId={role.projectId}
+            submitButtonString='Add user'
+            availableUserList={userData.getUsers}
+            onClickAddButton={loadingAddUser ? () => {} : (studyId, projectId, user) => { addUserToRole({ variables: { roleId: role.id, userChanges: { add: [user.id], remove: [] } } }); }}
+        >
+            {role.users.map((el) => <UserListPicker.User key={(el as any).id} user={el as any} onClickCross={loadingRemoveUser ? () => { } : (user) => removeUserFromRole({ variables: { roleId: role.id, userChanges: { add: [], remove: [user.id] } } })} />) as any}
+        </UserListPicker.UserList>
         <br /><br />
     </div>;
 };
 
-export const AddRole: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ studyId, projectId }) => {
+export const AddRole: React.FunctionComponent<{ studyId: string, projectId?: string }> = ({ studyId, projectId }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputNameString, setInputNameString] = React.useState('');
+
+    const refetchQueries = projectId ? [{ query: GET_PROJECT, variables: { projectId, admin: true }}] : [{ query: GET_STUDY, variables: { studyId, admin: true }}]
 
     if (!isExpanded) { return <span className={css.add_new_role_button} onClick={() => setIsExpanded(true)}>Add new role</span>; }
     return <div className={css.add_new_role_section}>
@@ -85,13 +64,7 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId: stri
             <button className='button_grey' onClick={() => setIsExpanded(false)}>Cancel</button>
             <Mutation
                 mutation={ADD_NEW_ROLE}
-                refetchQueries={[{ query: GET_PROJECT, variables: { projectId, admin: true }}]}
-                // update={(store, { data: { addRoleToStudyOrProject } }) => {
-                //     const cachedata = store.readQuery({ query: GET_PROJECT, variables: { projectId, admin: true } }) as any;
-                //     if (!cachedata) { return; }
-                //     cachedata.getProject.roles.push(addRoleToStudyOrProject);
-                //     store.writeQuery({ query: GET_PROJECT, variables: { projectId, admin: true }, data: cachedata });
-                // }}
+                refetchQueries={refetchQueries}
             >
                 {(addNewRole) =>
                     <button onClick={() => { setInputNameString(''); setIsExpanded(false); addNewRole({ variables: { studyId, projectId, roleName: inputNameString } }); }}>Submit</button>
