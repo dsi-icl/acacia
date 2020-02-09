@@ -57,7 +57,7 @@
         "eslint-plugin-typescript": "0.14.0",
         "jest": "25.1.0",
         "mongodb-memory-server": "6.2.4",
-        "rimraf": "3.0.1",
+        "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
         "ts-loader": "6.2.1",
