@@ -22,7 +22,7 @@
         "csv-parse": "4.8.5",
         "express": "4.17.1",
         "itmat-commons": "0.5.0",
-        "itmat-utils": "0.5.0",
+        "itmat-utils": "1.1.8",
         "mongodb": "3.5.2",
         "saslprep": "1.0.3",
         "node-fetch": "2.6.0"
