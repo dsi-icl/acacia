@@ -40,8 +40,14 @@ export const GET_STUDY = gql`
             }
             roles {
                 id
+                name
+                permissions
+                projectId
+                studyId
                 users {
                     id
+                    realName
+                    organisation
                     username
                 }
             }
