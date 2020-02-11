@@ -206,7 +206,7 @@ export const studyResolvers = {
             /* check field tree exists */
 
             /* edit approved fields */
-            const resultingProject = await studyCore.editProjectApprovedFields(projectId, fieldTreeId, approvedFields);
+            const resultingProject = await studyCore.editProjectApprovedFields(projectId, approvedFields);
             return resultingProject;
         },
         editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
