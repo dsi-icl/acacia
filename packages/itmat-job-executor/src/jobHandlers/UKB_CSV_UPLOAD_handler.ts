@@ -1,4 +1,3 @@
-// import { UKBCurator } from 'ukb-curator';
 import { IFile } from 'itmat-commons/dist/models/file';
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
