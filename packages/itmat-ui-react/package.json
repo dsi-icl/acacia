@@ -52,7 +52,7 @@
         "typescript": "3.7.5",
         "uuid": "3.4.0"
     },
-    "tslintConfig": {
+    "eslintConfig": {
         "extends": "react-app"
     },
     "browserslist": [
