@@ -93,7 +93,16 @@ export const studyResolvers = {
     },
     Project: {
         fields: async (project: IProject) => {
-            return await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: project.approvedFields }, deleted: null }).toArray();
+            const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields));
+            const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, deleted: null }).toArray();
+            const fields = result.reduce((a: { [fieldTreeId: string]: IFieldEntry[] }, e: IFieldEntry) => {
+                if (!a[e.fieldTreeId]) {
+                    a[e.fieldTreeId] = [];
+                }
+                a[e.fieldTreeId].push(e);
+                return a;
+            }, {});
+            return fields;
         },
         jobs: async (project: IProject) => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();

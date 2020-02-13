@@ -27,20 +27,7 @@ export const GET_PROJECT = gql`
                 }
             }
             iCanEdit
-            fields {
-                id
-                studyId
-                path
-                fieldId
-                fieldName
-                valueType
-                possibleValues
-                unit
-                itemType
-                numOfTimePoints
-                numOfMeasurements
-                notes
-            }
+            fields
             files {
                 id
                 fileName
@@ -69,20 +56,7 @@ export const EDIT_PROJECT_APPROVED_FIELDS = gql`
         editProjectApprovedFields(projectId: $projectId, fieldTreeId: $fieldTreeId, approvedFields: $approvedFields) {
             id
             approvedFields
-            fields {
-                id
-                studyId
-                path
-                fieldId
-                fieldName
-                valueType
-                possibleValues
-                unit
-                itemType
-                numOfTimePoints
-                numOfMeasurements
-                notes
-            }
+            fields
         }
     }
 `;
