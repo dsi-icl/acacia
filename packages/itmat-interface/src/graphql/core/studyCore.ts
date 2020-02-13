@@ -39,14 +39,14 @@ export class StudyCore {
         return study;
     }
 
-    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
+    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuidv4(),
             studyId,
             createdBy: requestedBy,
             name: projectName,
             patientMapping: {},
-            approvedFields: approvedFields ? approvedFields : [],
+            approvedFields: approvedFields ? approvedFields : {},
             approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
             deleted: null
@@ -110,9 +110,9 @@ export class StudyCore {
         await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });
     }
 
-    public async editProjectApprovedFields(projectId: string, approvedFields: string[]) {
+    public async editProjectApprovedFields(projectId: string, fieldTreeId: string, approvedFields: string[]) {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields } }, { returnOriginal: false });
+        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { [`approvedFields.${fieldTreeId}`]: approvedFields } }, { returnOriginal: false });
         if (result.ok === 1) {
             return result.value;
         } else {

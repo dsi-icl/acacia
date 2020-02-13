@@ -15,8 +15,8 @@ enum FIELD_ITEM_TYPE {
 
 enum FIELD_VALUE_TYPE {
     i # integer
-    c  # categorical
-    d  # decimal
+    c # categorical
+    d # decimal
     b # boolean
     t # free text
 
@@ -121,14 +121,14 @@ type Project {
 
     #only admin
     patientMapping: JSON!
-    approvedFields: [String]!
+    approvedFields: JSON!
     approvedFiles: [String]!
 
     #external to mongo documents:
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
-    fields: [Field]! # fields of the study but filtered to be only those in Project.approvedFields
+    fields: [Field]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
     files: [File]!
 }
 
@@ -258,7 +258,7 @@ type Mutation {
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
     deleteProject(projectId: String!): GenericResponse
-    editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
+    editProjectApprovedFields(projectId: String!, fieldTreeId: String!, approvedFields: [String]!): Project
     editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project
 
     # ACCESS MANAGEMENT

@@ -37,7 +37,7 @@ export interface IProject {
     createdBy: string;
     name: string;
     patientMapping: { [originalId: string]: string };
-    approvedFields: string[];
+    approvedFields: { [fieldTreeId: string]: string[] };
     approvedFiles: string[];
     lastModified: number;
     deleted: number | null;
