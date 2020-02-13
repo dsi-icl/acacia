@@ -128,7 +128,7 @@ type Project {
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
-    fields: [Field]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
+    fields: JSON! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
     files: [File]!
 }
 
