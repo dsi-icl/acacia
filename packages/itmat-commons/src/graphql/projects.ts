@@ -65,8 +65,8 @@ export const GET_PROJECT_PATIENT_MAPPING = gql`
 `;
 
 export const EDIT_PROJECT_APPROVED_FIELDS = gql`
-    mutation editProjectApprovedFields($projectId: String!, $approvedFields: [String]!) {
-        editProjectApprovedFields(projectId: $projectId, approvedFields: $approvedFields) {
+    mutation editProjectApprovedFields($projectId: String!, $fieldTreeId: String! $approvedFields: [String]!) {
+        editProjectApprovedFields(projectId: $projectId, fieldTreeId: $fieldTreeId, approvedFields: $approvedFields) {
             id
             approvedFields
             fields {
