@@ -6,17 +6,18 @@
         "bootstrap": "lerna bootstrap",
         "clean": "lerna run clean",
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-utils --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
-        "build": "lerna run --stream --ignore itmat-query-language --ignore itmat-job-executor --ignore ukb-curator build",
+        "build": "lerna run --stream --ignore itmat-query-language --ignore itmat-job-executor build",
         "publish": "lerna run tsc && lerna publish",
-        "test:unit": "lerna run --stream --parallel --scope itmat-job-execute test",
-        "test:e2e": "start-server-and-test"
+        "test:unit": "lerna run --stream --parallel --scope itmat-job-executor test",
+        "test:e2e": "echo start-server-and-test to be activated",
+        "test": "npm run test:unit && npm run test:e2e"
     },
     "optionalDependencies": {
-        "mongodb-client-encryption": "0.3.1"
+        "mongodb-client-encryption": "1.0.1"
     },
     "devDependencies": {
-        "lerna": "3.18.3",
-        "tslint": "5.20.0",
-        "start-server-and-test": "^1.10.6"
+        "lerna": "3.20.2",
+        "tslint": "6.0.0",
+        "start-server-and-test": "1.10.8"
     }
 }

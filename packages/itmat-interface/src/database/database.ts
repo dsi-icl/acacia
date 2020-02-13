@@ -14,5 +14,4 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
     };
 }
 
-export type Database = Database<IDatabaseBaseConfig>;
 export const db = new Database();

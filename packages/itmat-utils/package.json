@@ -19,16 +19,16 @@
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
     "dependencies": {
-        "chalk": "2.4.2",
-        "mongodb": "3.3.3",
+        "chalk": "3.0.0",
+        "mongodb": "3.5.2",
         "os2": "0.0.13",
         "supertest": "4.0.2"
     },
     "devDependencies": {
-        "@types/express": "4.17.1",
-        "@types/mongodb": "3.3.6",
-        "@types/node": "12.11.7",
-        "rimraf": "3.0.0",
-        "typescript": "3.6.4"
+        "@types/express": "4.17.2",
+        "@types/mongodb": "3.3.16",
+        "@types/node": "13.7.0",
+        "rimraf": "3.0.2",
+        "typescript": "3.7.5"
     }
 }
