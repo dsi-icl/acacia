@@ -22,7 +22,7 @@
     "dependencies": {
         "chalk": "3.0.0",
         "graphql": "14.6.0",
-        "graphql-tag": "2.10.1",
+        "graphql-tag": "2.10.3",
         "mongodb": "3.5.2"
     },
     "devDependencies": {
