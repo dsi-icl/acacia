@@ -4,13 +4,13 @@ const seedUsers = require('./seed/users');
 
 const collections = {
     "jobs_collection": {
-        name: "1JOB_COLLECTION",
+        name: "JOB_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
         ]
     },
     "users_collection": {
-        name: "1USER_COLLECTION",
+        name: "USER_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { username: 1, deleted: 1 }, unique: true  },
@@ -18,52 +18,52 @@ const collections = {
         ]
     },
     "studies_collection": { 
-        name: "1STUDY_COLLECTION",
+        name: "STUDY_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { name: 1, deleted: 1 }, unique: true }
         ]
     },
     "projects_collection": { 
-        name: "1PROJECT_COLLECTION",
+        name: "PROJECT_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { name: 1, studyId: 1, deleted: 1 }, unique: true }
         ]
     },
     "queries_collection": { 
-        name: "1QUERY_COLLECTION",
+        name: "QUERY_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
         ]
     },
     "log_collection": {
-        name: "1LOG_COLLECTION",
+        name: "LOG_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
         ]
     },
     "data_collection": {
-        name: "1DATA_COLLECTION",
+        name: "DATA_COLLECTION",
         indexes: [
             { key: { m_eid: 1, m_versionId: 1, m_study: 1 }, unique: true },
         ]
     },
     "roles_collection": {
-        name: "1ROLE_COLLECTION",
+        name: "ROLE_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { name: 1, studyId: 1, projectId: 1, deleted: 1 }, unique: true }
         ]
     },
     "field_dictionary_collection": {
-        name: "1FIELD_COLLECTION",
+        name: "FIELD_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
         ]
     },
     "files_collection": {
-        name: "1FILES_COLLECTION",
+        name: "FILES_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
         ]

@@ -2,16 +2,14 @@
 
 'use strict';
 
-const server = require('../../dist/src/server/server').Server;
 const NodeEnvironment = require('jest-environment-node');
 const config = require('./config');
 const { MongoClient } = require('mongodb');
-const { db } = require('../../dist/src/database/database');
+const { db } = require('../../src/database/database');
 const { OpenStackSwiftObjectStore } = require('itmat-utils');
-const { FileController, UserController, QueryController } = require('../../dist/src/RESTControllers');
-const { Router } = require('../../dist/src/server/router');
-const { setupDatabase } = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
-const { connectionString, database, mongoClient } = require('./inMemoryMongo');
+const { Router } = require('../../src/server/router');
+const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
+const { getConnectionString, getDatabaseName, mongodb } = require('./inMemoryMongo');
 
 let app;
 let objStore;
@@ -33,6 +31,8 @@ class ItmatNodeEnvironment extends NodeEnvironment {
         });
 
         /* Setting up the collections and seeds in the database */
+        const connectionString = await getConnectionString();
+        const database = await getDatabaseName();
         await setupDatabase(connectionString, database);
         console.log('Finished setting up database.');
 
@@ -46,9 +46,7 @@ class ItmatNodeEnvironment extends NodeEnvironment {
         return db.connect(config.database)
             .then(() => objStore.connect())
             .then(() => {
-                const userController = new UserController(db.collections.users_collection);
-                const fileController = new FileController(db, objStore);
-                const router = new Router(db, userController, fileController);
+                const router = new Router();
                 app = router.getApp();
                 return true;
             }).catch(err => {
