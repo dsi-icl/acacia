@@ -76,9 +76,13 @@ async function setupDatabase(mongostr, databaseName) {
         useUnifiedTopology: true
     });
     const db = conn.db(databaseName);
+    const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 
     /* creating collections and indexes */
     for (let each of Object.keys(collections)) {
+        if (existingCollections.includes(collections[each].name)) {
+            await db.dropCollection(collections[each].name);
+        }
         const collection = await db.createCollection(collections[each].name);
         await collection.createIndexes(collections[each].indexes);
     }
@@ -94,7 +98,7 @@ async function setupDatabase(mongostr, databaseName) {
     await conn.close();
 };
 
-setupDatabase('mongodb://localhost:27017/', 'itmat').then(() => {
+setupDatabase('mongodb://chon:051410Ptmdls@mongo.dsi.ic.ac.uk:27017/ukbiobank', 'ukbiobank').then(() => {
     console.log('Finished setting up database.');
 });
 
