@@ -29,6 +29,5 @@ class ConfigurationManager {
     }
 
 }
-console.log(process.env);
 
 export default ConfigurationManager.expand(process.env.TESTING === 'true' ? 'config/config.test.json' : 'config/config.json');

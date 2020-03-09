@@ -2,7 +2,7 @@ const request = require('supertest');
 const { print } = require('graphql');
 const admin = request.agent(global._APP_);
 const user = request.agent(global._APP_);
-const { connectAdmin, connectUser, disconnectAgent } = require('./loginHelper');
+const { connectAdmin, connectUser, disconnectAgent } = require('./_loginHelper');
 const itmatCommons = require('itmat-commons');
 const { ADD_USER_TO_PROJECT, GET_PROJECT, GET_STUDIES_LIST, CREATE_PROJECT, CREATE_STUDY, DELETE_USER_FROM_PROJECT } = itmatCommons.GQLRequests;
 

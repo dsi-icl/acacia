@@ -1,12 +1,42 @@
 const request = require('supertest');
-const admin = request.agent(global._APP_);
-const user = request.agent(global._APP_);
-const { connectAdmin, connectUser, disconnectAgent } = require('./loginHelper');
-const { Models } = require('itmat-utils');
+const { print } = require('graphql');
+const { connectAdmin, connectUser } = require('./_loginHelper');
+const { db } = require('../../src/database/database');
+const { Router } = require('../../src/server/router');
 const itmatCommons = require('itmat-commons');
 const {  WHO_AM_I, ADD_SHORT_CUT, REMOVE_SHORT_CUT, GET_SPECIFIC_USER, GET_USERS_LIST, CREATE_USER, EDIT_USER, DELETE_USER } = itmatCommons.GQLRequests;
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
+const config = require('../../config/config.sample.json');
+const { Models } = itmatCommons;
+
+let app;
+let mongodb;
+let admin;
+let user;
+
+afterAll(async () => {
+    await db.closeConnection();
+    await mongodb.stop();
+});
 
 beforeAll(async () => { // eslint-disable-line no-undef
+    /* Creating a in-memory MongoDB instance for testing */
+    mongodb = new MongoMemoryServer();
+    const connectionString = await mongodb.getUri();
+    const database = await mongodb.getDbName();
+    await setupDatabase(connectionString, database);
+
+    /* Wiring up the backend server */
+    config.database.mongo_url = connectionString;
+    config.database.database = database;
+    await db.connect(config.database);
+    const router = new Router();
+
+    /* Connecting clients for testing later */
+    app = router.getApp();
+    admin = request.agent(app);
+    user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
 });
@@ -16,19 +46,13 @@ let shortcutIdAdmin;
 
 describe('USERS API', () => {
     describe('END USERS API', () => {
-        test('Who am I (admin)',  () => admin
+        test.only('Who am I (admin)',  () => admin
             .post('/graphql')
-            .send({ query: WHO_AM_I })
+            .send({ query: print(WHO_AM_I) })
             .then(res => {
                 expect(res.status).toBe(200);
                 expect(res.body.data.whoAmI.username).toBe('admin');
                 expect(res.body.data.whoAmI.type).toBe(Models.UserModels.userTypes.ADMIN);
-                expect(res.body.data.whoAmI.realName).toBe('admin');
-                expect(res.body.data.whoAmI.email).toBe('admin@user.io');
-                expect(res.body.data.whoAmI.createdBy).toBe('chon');
-                expect(res.body.data.whoAmI.emailNotificationsActivated).toBe(false);
-                expect(res.body.data.whoAmI.id).toBeDefined();
-                expect(res.body.data.whoAmI.shortcuts).toEqual([]);
                 return true;
         }));
 
