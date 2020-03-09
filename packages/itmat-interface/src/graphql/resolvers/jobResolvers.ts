@@ -1,6 +1,5 @@
 import { ApolloError, withFilter } from 'apollo-server-express';
 import { Models } from 'itmat-commons';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
 import uuid from 'uuid/v4';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -15,7 +14,7 @@ enum JOB_TYPE {
 export const jobResolvers = {
     Query: {},
     Mutation: {
-        createDataCurationJob: async (parent: object, args: { file: string, studyId: string, tag?: string, version: string }, context: any, info: any): Promise<IJobEntry<{ dataVersion: string, versionTag?: string }>> => {
+        createDataCurationJob: async (parent: object, args: { file: string, studyId: string, tag?: string, version: string }, context: any, info: any): Promise<Models.JobModels.IJobEntryForDataCuration> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -30,7 +29,7 @@ export const jobResolvers = {
             }
 
             /* create job */
-            const job: IJobEntry<{ dataVersion: string, versionTag?: string }> = {
+            const job: Models.JobModels.IJobEntryForDataCuration = {
                 id: uuid(),
                 jobType: JOB_TYPE.DATA_UPLOAD,
                 studyId: args.studyId,
@@ -52,7 +51,7 @@ export const jobResolvers = {
             }
             return job;
         },
-        createFieldCurationJob: async (parent: object, args: { file: string, studyId: string, tag: string, dataVersionId: string }, context: any, info: any): Promise<IJobEntry<{ dataVersionId: string, tag: string }>> => {
+        createFieldCurationJob: async (parent: object, args: { file: string, studyId: string, tag: string, dataVersionId: string }, context: any, info: any): Promise<Models.JobModels.IJobEntryForFieldCuration> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -62,7 +61,7 @@ export const jobResolvers = {
             /* check study exists */
 
             /* create job */
-            const job: IJobEntry<{ dataVersionId: string, tag: string }> = {
+            const job: Models.JobModels.IJobEntryForFieldCuration = {
                 id: uuid(),
                 jobType: JOB_TYPE.FIELD_INFO_UPLOAD,
                 studyId: args.studyId,
@@ -76,33 +75,6 @@ export const jobResolvers = {
                     dataVersionId: args.dataVersionId,
                     tag: args.tag
                 }
-            };
-
-            const result = await db.collections!.jobs_collection.insertOne(job);
-            if (result.result.ok !== 1) {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
-            }
-            return job;
-        },
-        createDataExportJob: async (parent: object, args: { studyId: string, projectId?: string }, context: any, info: any): Promise<IJobEntry<undefined>> => {
-            const requester: Models.UserModels.IUser = context.req.user;
-
-            /* check permission */
-
-            /* check study exists */
-
-            /* create job */
-            const job: IJobEntry<undefined> = {
-                id: uuid(),
-                jobType: JOB_TYPE.DATA_EXPORT,
-                studyId: args.studyId,
-                requester: requester.id,
-                projectId: args.projectId,
-                requestTime: new Date().valueOf(),
-                receivedFiles: [],
-                error: null,
-                status: 'QUEUED',
-                cancelled: false
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
