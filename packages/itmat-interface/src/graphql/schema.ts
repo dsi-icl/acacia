@@ -277,7 +277,6 @@ type Mutation {
     # CURATION
     createDataCurationJob(file: String!, studyId: String!, tag: String, version: String!): Job
     createFieldCurationJob(file: String!, studyId: String!, dataVersionId: String!, tag: String!): Job
-    createDataExportJob(studyId: String!, projectId: String): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
 }
 
