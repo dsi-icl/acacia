@@ -68,8 +68,8 @@
         "webpack-cli": "3.3.10"
     },
     "jest": {
-        "globalSetup": "<rootDir>/test/serverTests/setup.js",
-        "testEnvironment": "<rootDir>/test/serverTests/environment.js",
-        "globalTeardown": "<rootDir>/test//serverTests/teardown.js"
+        "globalSetup": "<rootDir>/test/setup.js",
+        "testEnvironment": "<rootDir>/test/environment.js",
+        "globalTeardown": "<rootDir>/test/teardown.js"
     }
 }
