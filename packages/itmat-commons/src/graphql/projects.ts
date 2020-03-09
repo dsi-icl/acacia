@@ -27,20 +27,7 @@ export const GET_PROJECT = gql`
                 }
             }
             iCanEdit
-            fields {
-                id
-                studyId
-                path
-                fieldId
-                fieldName
-                valueType
-                possibleValues
-                unit
-                itemType
-                numOfTimePoints
-                numOfMeasurements
-                notes
-            }
+            fields
             files {
                 id
                 fileName
@@ -65,24 +52,11 @@ export const GET_PROJECT_PATIENT_MAPPING = gql`
 `;
 
 export const EDIT_PROJECT_APPROVED_FIELDS = gql`
-    mutation editProjectApprovedFields($projectId: String!, $approvedFields: [String]!) {
-        editProjectApprovedFields(projectId: $projectId, approvedFields: $approvedFields) {
+    mutation editProjectApprovedFields($projectId: String!, $fieldTreeId: String! $approvedFields: [String]!) {
+        editProjectApprovedFields(projectId: $projectId, fieldTreeId: $fieldTreeId, approvedFields: $approvedFields) {
             id
             approvedFields
-            fields {
-                id
-                studyId
-                path
-                fieldId
-                fieldName
-                valueType
-                possibleValues
-                unit
-                itemType
-                numOfTimePoints
-                numOfMeasurements
-                notes
-            }
+            fields
         }
     }
 `;
