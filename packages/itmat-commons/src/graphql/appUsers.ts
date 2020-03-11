@@ -1,4 +1,5 @@
 import gql from 'graphql-tag';
+import { user_fragment } from './user';
 
 export const GET_USERS = gql`
     query getUsers($fetchDetailsAdminOnly: Boolean!, $fetchAccessPrivileges: Boolean!, $userId: String) {
@@ -48,16 +49,10 @@ export const CREATE_USER = gql`
             email: $email
             type: $type
         }) {
-            id
-            username
-            type
-            realName
-            description
-            email
-            emailNotificationsActivated
-            createdBy
+            ...ALL_FOR_USER
         }
     }
+    ${user_fragment}
 `;
 
 export const EDIT_USER = gql`
@@ -83,15 +78,10 @@ export const EDIT_USER = gql`
             organisation: $organisation
             type: $type
         }) {
-            id
-            username
-            type
-            realName
-            description
-            email
-            emailNotificationsActivated
+            ...ALL_FOR_USER
         }
     }
+    ${user_fragment}
 `;
 
 export const DELETE_USER = gql`

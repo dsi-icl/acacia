@@ -141,6 +141,16 @@ export const userResolvers = {
                 username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
 
+            /* check email is valid form */
+            if (!/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
+                throw new UserInputError('Email is not the right format.');
+            }
+
+            /* check that username and password dont have space */
+            if (username.indexOf(' ') !== -1 || password.indexOf(' ') !== -1) {
+                throw new UserInputError('Username or password cannot have space.');
+            }
+
             const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: null }); // since bycrypt is CPU expensive let's check the username is not taken first
             if (alreadyExist !== null && alreadyExist !== undefined) {
                 throw new UserInputError('User already exists.');
