@@ -192,9 +192,9 @@ export const userResolvers = {
                     throw new ApolloError('User not found');
                 }
             }
-            if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
-                throw new ApolloError('Non-admin users are not authorised to change user type.');
-            }
+            // if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
+                // throw new ApolloError('Non-admin users are not authorised to change user type.');
+            // }
 
             const fieldsToUpdate: any = {
                 type,
@@ -206,6 +206,18 @@ export const userResolvers = {
                 description,
                 organisation
             };
+
+            /* check email is valid form */
+            if (email && !/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
+                throw new UserInputError('User not updated: Email is not the right format.');
+            }
+
+            if (requester.type !== Models.UserModels.userTypes.ADMIN && (
+                type || realName || username || description || organisation
+            )) {
+                throw new ApolloError('User not updated: Non-admin users are only authorised to change their password or email.');
+            }
+
             if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
             for (const each of Object.keys(fieldsToUpdate)) {
                 if (fieldsToUpdate[each] === undefined) {
