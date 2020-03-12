@@ -45,7 +45,10 @@ export class UserCore {
 
     public async deleteUser(userId: string) {
         const result = await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnOriginal: false, projection: { deleted: 1 } });
-        if (result.ok !== 1 || result.value.deleted === null) {
+        if (result.value === null) {
+            return;
+        }
+        if (result.ok !== 1) {
             throw new ApolloError(`Database error: ${JSON.stringify(result.lastErrorObject)}`, errorCodes.DATABASE_ERROR);
         }
         return;
