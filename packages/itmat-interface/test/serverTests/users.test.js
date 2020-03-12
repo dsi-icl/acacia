@@ -1,8 +1,9 @@
 const request = require('supertest');
 const { print } = require('graphql');
-const { connectAdmin, connectUser } = require('./_loginHelper');
+const { connectAdmin, connectUser, connectAgent } = require('./_loginHelper');
 const { db } = require('../../src/database/database');
 const { Router } = require('../../src/server/router');
+const { errorCodes } = require('../../src/graphql/errors');
 const { MongoClient } = require('mongodb');
 const itmatCommons = require('itmat-commons');
 const {  WHO_AM_I, ADD_SHORT_CUT, REMOVE_SHORT_CUT, GET_SPECIFIC_USER, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER } = itmatCommons.GQLRequests;
@@ -62,6 +63,12 @@ describe('USERS API', () => {
             const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
             adminId = result.filter(e => e.username === 'admin')[0].id;
             userId = result.filter(e => e.username === 'standardUser')[0].id;
+        });
+
+        test('If someone not logged in made a request', async () => {
+            const client_not_logged_in = request.agent(app);
+            const res = await client_not_logged_in.post('/graphql').send({ query: print(GET_USERS) });
+            expect(1).toBe(2);
         });
 
         test('Who am I (admin)',  async () => {
@@ -484,7 +491,7 @@ describe('USERS API', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].messages).toBe('NO_PERMISSION_ERROR');
+            expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
             expect(res.body.data.createUser).toEqual(null);
         });
 
@@ -586,25 +593,32 @@ describe('USERS API', () => {
                     query: print(EDIT_USER),
                     variables: {
                         id: 'fakeid2',
-                        password: 'admin'
+                        password: 'admin',
+                        username: 'fakeusername',
+                        type: Models.UserModels.userTypes.ADMIN,
+                        realName: 'Man',
+                        email: 'hey@uk.io',
+                        description: 'DSI director',
+                        organisation: 'DSI-ICL',
                     }
                 }
             );
             const result = await mongoClient
                 .collection(config.database.collections.users_collection)
-                .findOne({ username: 'new_user_3' });
+                .findOne({ id: 'fakeid2' });
             expect(result.password).not.toBe('fakepassword');
             expect(result.password).toHaveLength(60);
             expect(res.status).toBe(200);
             expect(res.body.data.editUser).toEqual(
                 {
-                    username: 'new_user_3', 
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'Chan Ming Man', 
+
+                    username: 'fakeusername', 
+                    type: Models.UserModels.userTypes.ADMIN, 
+                    realName: 'Man', 
                     createdBy: 'admin', 
-                    organisation: 'DSI',
-                    email: 'new3@user.io', 
-                    description: 'I am a new user 3.',
+                    organisation: 'DSI-ICL',
+                    email: 'hey@uk.io', 
+                    description: 'DSI director',
                     id: 'fakeid2',
                     access: {
                         id: `user_access_obj_user_id_fakeid2`,
@@ -615,74 +629,324 @@ describe('USERS API', () => {
             );
         });
 
-        test('edit user (user)',  () => user
-            .post('/graphql')
-            .send({ query: EDIT_USER, variables: { username: 'admin' }})
-            .then(res => {
-                expect(res.status).toBe(200);
-                expect(res.body.data).toBe('admin');
-                expect(res.body).toMatchSnapshot();
-                return true;
-        }));
+        test('edit own password (user)', async () => {
+            /* setup: getting the id of the created user from mongo */
+            const newUser = {
+                username : 'new_user_4', 
+                type: 'STANDARD', 
+                realName: 'Ming Man', 
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                createdBy: 'admin', 
+                email: 'new4@user.io', 
+                description: 'I am a new user 4.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'fakeid4',
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            const createdUser = request.agent(app);
+            await connectAgent(createdUser, 'new_user_4', 'admin');
 
-        test('delete user (user)',  () => user
-            .post('/graphql')
-            .send({ query: DELETE_USER, variables: { username: 'admin' }})
-            .then(res => {
-                expect(res.status).toBe(200);
-                expect(res.body.data).toBe('admin');
-                expect(res.body).toMatchSnapshot();
-                return true;
-        }));
+            /* assertion */
+            const res = await createdUser.post('/graphql').send(
+                {
+                    query: print(EDIT_USER),
+                    variables: {
+                        id: 'fakeid4',
+                        password: 'admin',
+                        email: 'new_email@ic.ac.uk'
+                    }
+                }
+            );
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.editUser).toEqual({
+                username: 'new_user_4', 
+                type: Models.UserModels.userTypes.STANDARD, 
+                realName: 'Ming Man', 
+                createdBy: 'admin', 
+                organisation: 'DSI',
+                email: 'new_email@ic.ac.uk', 
+                description: 'I am a new user 4.',
+                id: 'fakeid4',
+                access: {
+                    id: `user_access_obj_user_id_fakeid4`,
+                    projects: [],
+                    studies: []
+                }
+            });
+        });
 
-        test('delete user (admin)',  () => admin
-            .post('/graphql')
-            .send({ query: DELETE_USER, variables: { username: 'chon' } })
-            .then(res => {
-                expect(res.status).toBe(200);
-                expect(res.body.data).toBe('admin');
-                expect(res.body).toMatchSnapshot();
-                return true;
-        }));
+        test('edit own non-password fields (user) (should fail)', async () => {
+            /* setup: getting the id of the created user from mongo */
+            const newUser = {
+                username : 'new_user_5', 
+                type: 'STANDARD', 
+                realName: 'Ming Man Chon',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                createdBy: 'admin', 
+                email: 'new5@user.io', 
+                description: 'I am a new user 5.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'fakeid5',
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            const createdUser = request.agent(app);
+            await connectAgent(createdUser, 'new_user_5', 'admin');
 
-        test('delete user that has been deleted (admin)',  () => admin
-            .post('/graphql')
-            .send({ query: DELETE_USER, variables: { username: 'chon' } })
-            .then(res => {
-                expect(res.status).toBe(200);
-                expect(res.body.data).toBe('admin');
-                expect(res.body).toMatchSnapshot();
-                return true;
-        }));
+            /* assertion */
+            const res = await createdUser.post('/graphql').send(
+                {
+                    query: print(EDIT_USER),
+                    variables: {
+                        id: 'fakeid5',
+                        username: 'new_username', 
+                        type: 'ADMIN', 
+                        realName: 'Ming Man Chon',
+                        description: 'I am a new user 5.',
+                    }
+                }
+            );
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('User not updated: Non-admin users are only authorised to change their password or email.');
+            expect(res.body.data.editUser).toEqual(null);
+        });
 
-        test('delete user that has been deleted (user)',  () => admin
-            .post('/graphql')
-            .send({ query: DELETE_USER, variables: { username: 'chon' } })
-            .then(res => {
-                expect(res.status).toBe(200);
-                expect(res.body.data).toBe('admin');
-                expect(res.body).toMatchSnapshot();
-                return true;
-        }));
+        test('edit own email with malformed email (user) (should fail)', async () => {
+            /* setup: getting the id of the created user from mongo */
+            const newUser = {
+                username : 'new_user_6', 
+                type: 'STANDARD', 
+                realName: 'Ming Man', 
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                createdBy: 'admin', 
+                email: 'new6@user.io', 
+                description: 'I am a new user 6.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'fakeid6',
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            const createdUser = request.agent(app);
+            await connectAgent(createdUser, 'new_user_6', 'admin');
 
-        test('delete user that has never existed (admin)',  () => admin
-            .post('/graphql')
-            .send({ query: DELETE_USER, variables: { username: 'chon' } })
-            .then(res => {
-                expect(res.status).toBe(200);
-                expect(res.body.data).toBe('admin');
-                expect(res.body).toMatchSnapshot();
-                return true;
-        }));
+            /* assertion */
+            const res = await createdUser.post('/graphql').send(
+                {
+                    query: print(EDIT_USER),
+                    variables: {
+                        id: 'fakeid6',
+                        email: 'new_@email@ic.ac.uk'
+                    }
+                }
+            );
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('User not updated: Email is not the right format.');
+            expect(res.body.data.editUser).toBe(null);
+        });
 
-        test('delete user that has never existed (user)',  () => admin
-            .post('/graphql')
-            .send({ query: DELETE_USER, variables: { username: 'chon' } })
-            .then(res => {
-                expect(res.status).toBe(200);
-                expect(res.body.data).toBe('admin');
-                expect(res.body).toMatchSnapshot();
-                return true;
-        }));    
+        test('edit other user (user)', async () => {
+            /* setup: getting the id of the created user from mongo */
+            const newUser = {
+                username : 'new_user_7', 
+                type: 'STANDARD', 
+                realName: 'Ming Man Tai', 
+                password: 'fakepassword', 
+                createdBy: 'admin', 
+                email: 'new7@user.io', 
+                description: 'I am a new user 7.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'fakeid7',
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+            /* assertion */
+            const res = await user.post('/graphql').send(
+                {
+                    query: print(EDIT_USER),
+                    variables: {
+                        id: 'fakeid7',
+                        password: 'email'
+                    }
+                }
+            );
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.editUser).toEqual(null);
+        });
+
+        test('delete user (admin)', async () => {
+            /* setup: create a new user to be deleted */
+            const newUser = {
+                username : 'new_user_8', 
+                type: 'STANDARD', 
+                realName: 'Chan Mei', 
+                password: 'fakepassword', 
+                createdBy: 'admin', 
+                email: 'new8@user.io', 
+                description: 'I am a new user 8.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'fakeid8',
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+            /* assertion */
+            const getUserRes = await admin.post('/graphql').send({
+                query: print(GET_USERS),
+                variables: { userId: newUser.id, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }
+            });
+
+            expect(getUserRes.body.data.getUsers).toEqual([{
+                realName: 'Chan Mei',
+                type: Models.UserModels.userTypes.STANDARD, 
+                createdBy: 'admin', 
+                organisation: 'DSI',
+                id: newUser.id,
+            }]);
+
+
+            const res = await admin.post('/graphql').send(
+                {
+                    query: print(DELETE_USER),
+                    variables: {
+                        userId: newUser.id
+                    }
+                }
+            );
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.deleteUser).toEqual({
+                successful: true,
+                id: newUser.id
+            });
+
+            const getUserResAfter = await admin.post('/graphql').send({
+                query: print(GET_USERS),
+                variables: { userId: newUser.id, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }
+            });
+
+            expect(getUserResAfter.body.data.getUsers).toEqual([]);
+        });
+
+        test('delete user that has been deleted (admin)', async () => {
+            /* setup: create a "deleted" new user to be deleted */
+            const newUser = {
+                username : 'new_user_9', 
+                type: 'STANDARD', 
+                realName: 'Chan Mei Fong', 
+                password: 'fakepassword', 
+                createdBy: 'admin', 
+                email: 'new9@user.io', 
+                description: 'I am a new user 9.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: (new Date()).valueOf(), 
+                id: 'fakeid9',
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+            /* assertions */
+            const res = await admin.post('/graphql').send(
+                {
+                    query: print(DELETE_USER),
+                    variables: {
+                        userId: newUser.id
+                    }
+                }
+            );
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.deleteUser).toEqual({
+                successful: true,
+                id: newUser.id
+            });
+        });
+
+        test('delete user that has never existed (admin)', async () => {
+            const res = await admin.post('/graphql').send(
+                {
+                    query: print(DELETE_USER),
+                    variables: {
+                        userId: 'I never existed' 
+                    }
+                }
+            );
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.deleteUser).toEqual({
+                successful: true,
+                id: 'I never existed'
+            });
+        });
+
+        test('delete user (user)', async () => {
+            /* setup: create a new user to be deleted */
+            const newUser = {
+                username : 'new_user_10', 
+                type: 'STANDARD', 
+                realName: 'Chan Mei Yi', 
+                password: 'fakepassword', 
+                createdBy: 'admin', 
+                email: 'new10@user.io', 
+                description: 'I am a new user 10.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'fakeid10',
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+            /* assertion */
+            const getUserRes = await user.post('/graphql').send({
+                query: print(GET_USERS),
+                variables: { userId: newUser.id, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }
+            });
+
+            expect(getUserRes.body.data.getUsers).toEqual([{
+                realName: 'Chan Mei Yi',
+                type: Models.UserModels.userTypes.STANDARD, 
+                createdBy: 'admin', 
+                organisation: 'DSI',
+                id: newUser.id,
+            }]);
+
+
+            const res = await user.post('/graphql').send(
+                {
+                    query: print(DELETE_USER),
+                    variables: {
+                        userId: newUser.id
+                    }
+                }
+            );
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.deleteUser).toEqual(null);
+
+            const getUserResAfter = await user.post('/graphql').send({
+                query: print(GET_USERS),
+                variables: { userId: newUser.id, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false }
+            });
+
+            expect(getUserResAfter.body.data.getUsers).toEqual([{
+                realName: 'Chan Mei Yi',
+                type: Models.UserModels.userTypes.STANDARD, 
+                createdBy: 'admin', 
+                organisation: 'DSI',
+                id: newUser.id,
+            }]);
+        });
     });
 });

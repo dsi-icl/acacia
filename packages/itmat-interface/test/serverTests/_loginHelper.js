@@ -39,4 +39,4 @@ function disconnectAgent(agent) {
         }).catch(() => null));
 }
 
-module.exports = { connectAdmin: connectAdmin, connectUser: connectUser, disconnectAgent: disconnectAgent };
+module.exports = { connectAgent, connectAdmin, connectUser, disconnectAgent };
