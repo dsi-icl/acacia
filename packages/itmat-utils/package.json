@@ -29,6 +29,6 @@
         "@types/mongodb": "3.3.16",
         "@types/node": "13.7.0",
         "rimraf": "3.0.2",
-        "typescript": "3.7.5"
+        "typescript": "3.8.3"
     }
 }
