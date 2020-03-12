@@ -34,10 +34,10 @@ export class PermissionCore {
     }
 
     public async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, studyId: string, projectId?: string): Promise<boolean> {
-
         if (user === undefined) {
             return false;
         }
+
         /* if user is an admin then return true if admin privileges includes needed permissions */
         if (user.type === userTypes.ADMIN) {
             return true;
@@ -45,14 +45,18 @@ export class PermissionCore {
 
         /* aggregationPipeline to return a list of the privileges the user has in this study / project */
         const aggregationPipeline = [
-            { $match: { studyId, projectId, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
+            { $match: { studyId, projectId: { $in: [projectId, null]} , users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
             { $group: { _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
             { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
         ];
         const result: Array<{ _id: string, arrPrivileges: string[] }> = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
-        if (result.length !== 1) {
+        if (result.length > 1) {
             throw new ApolloError('Internal error occurred when checking user privileges.', errorCodes.DATABASE_ERROR);
         }
+        if (result.length === 0) {
+            return false;
+        }
+
         const hisPrivileges = result[0].arrPrivileges;   // example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
 
         /* checking privileges */
