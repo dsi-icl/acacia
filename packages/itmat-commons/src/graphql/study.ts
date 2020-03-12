@@ -1,23 +1,9 @@
 import gql from 'graphql-tag';
 import { job_fragment } from './curation';
 
-export const GET_STUDIES_LIST = gql`
-    {
-        getStudies {
-            id
-            name
-            projects {
-                id
-                studyId
-                name
-            }
-        }
-    }
-`;
-
 export const DELETE_STUDY = gql`
-    mutation deleteStudy($name: String!) {
-        deleteStudy(name: $name) {
+    mutation deleteStudy($studyId: String!) {
+        deleteStudy(studyId: $studyId) {
             id
             successful
         }

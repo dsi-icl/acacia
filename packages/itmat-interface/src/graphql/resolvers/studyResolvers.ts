@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { permissions } from 'itmat-commons';
+import { permissions, Models } from 'itmat-commons';
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
 import { IProject, IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { IUser } from 'itmat-commons/dist/models/user';
@@ -151,12 +151,15 @@ export const studyResolvers = {
         createStudy: async (parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
             /* reject undefined project name */
             if (!name) {
                 throw new ApolloError('Study name is not given or undefined.');
             }
-
-            /* check privileges */
 
             /* create study */
             const study = await studyCore.createNewStudy(name, requester.id);
@@ -192,8 +195,11 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
-            /* delete project */
+            /* delete study */
             await studyCore.deleteStudy(studyId);
             return makeGenericReponse(studyId);
         },
