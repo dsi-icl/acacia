@@ -36,7 +36,7 @@
         "passport": "0.4.1",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
-        "uuid": "3.4.0"
+        "uuid": "7.0.2"
     },
     "devDependencies": {
         "@types/bcrypt": "3.0.0",
@@ -51,7 +51,7 @@
         "@types/node-fetch": "2.5.4",
         "@types/passport": "1.0.2",
         "@types/passport-local": "1.0.33",
-        "@types/uuid": "3.4.7",
+        "@types/uuid": "7.0.2",
         "@types/webpack-env": "1.15.1",
         "cors": "2.8.5",
         "cross-env": "7.0.0",

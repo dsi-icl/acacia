@@ -50,7 +50,7 @@
         "jest-enzyme": "7.1.2",
         "rimraf": "3.0.1",
         "typescript": "3.7.5",
-        "uuid": "3.4.0"
+        "uuid": "7.0.2"
     },
     "eslintConfig": {
         "extends": "react-app"
