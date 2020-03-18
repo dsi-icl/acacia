@@ -1,5 +1,5 @@
 const mongo = require('mongodb');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const seedUsers = require('./seed/users');
 
 const collections = {
@@ -13,25 +13,25 @@ const collections = {
         name: "USER_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
-            { key: { username: 1, deleted: 1 }, unique: true  },
-            { key: { email: 1, deleted: 1 }, unique: true } 
+            { key: { username: 1, deleted: 1 }, unique: true },
+            { key: { email: 1, deleted: 1 }, unique: true }
         ]
     },
-    "studies_collection": { 
+    "studies_collection": {
         name: "STUDY_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { name: 1, deleted: 1 }, unique: true }
         ]
     },
-    "projects_collection": { 
+    "projects_collection": {
         name: "PROJECT_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { name: 1, studyId: 1, deleted: 1 }, unique: true }
         ]
     },
-    "queries_collection": { 
+    "queries_collection": {
         name: "QUERY_COLLECTION",
         indexes: [
             { key: { id: 1 }, unique: true },
@@ -82,7 +82,7 @@ async function setupDatabase(mongostr, databaseName) {
         const collection = await db.createCollection(collections[each].name);
         await collection.createIndexes(collections[each].indexes);
     }
-    
+
 
     /* replace the id from the seeds */
     seedUsers[0].id = uuid();

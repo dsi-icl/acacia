@@ -27,7 +27,7 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
                     <>
                         <br />
                         <input type="file" ref={fileRef as any} />
-                        <Mutation mutation={CREATE_FIELD_CURATION_JOB}>
+                        <Mutation<any, any> mutation={CREATE_FIELD_CURATION_JOB}>
                             {(createCurationJob, { loading }) => {
                                 if (loading) { return <button>Loading...</button>; }
                                 return (
@@ -58,15 +58,15 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
 
 
 const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: string, dataVersionId: string, cancel: (expanded: boolean) => void }> = ({ dataVersionId, studyId, cancel }) => {
-    return <Query query={GET_STUDY} variables={{ studyId }}>
-            {({ loading, data, error }) => {
-                if (loading) return <LoadingBalls/>;
-                if (error) return <p>{error.toString()}</p>
-                if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
-                    return <p>No file has been uploaded to this dataset yet. You can do this in the <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline'}}>file repository</span></NavLink></p>;
-                }
-                return <UploadFieldBySelectingFileForm dataVersionId={dataVersionId} files={data.getStudy.files} studyId={studyId} cancel={cancel}/>;
-            }}
+    return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+        {({ loading, data, error }) => {
+            if (loading) return <LoadingBalls />;
+            if (error) return <p>{error.toString()}</p>
+            if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
+                return <p>No file has been uploaded to this dataset yet. You can do this in the <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>file repository</span></NavLink></p>;
+            }
+            return <UploadFieldBySelectingFileForm dataVersionId={dataVersionId} files={data.getStudy.files} studyId={studyId} cancel={cancel} />;
+        }}
     </Query>;
 };
 
@@ -81,7 +81,7 @@ const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string,
         <select value={selectedFile} onChange={(e) => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
         <label>Tag:</label>
         <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder="e.g main tree" type="text" /><br /><br />
-        <Mutation mutation={CREATE_FIELD_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
+        <Mutation<any, any> mutation={CREATE_FIELD_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
             {(createCurationJob, { loading }) => {
                 if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
                 return <button style={{ width: '45%', display: 'inline-block' }} onClick={() => {

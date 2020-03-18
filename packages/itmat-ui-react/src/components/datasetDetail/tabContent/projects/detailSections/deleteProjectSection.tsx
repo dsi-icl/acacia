@@ -22,7 +22,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
     return <>
         <p style={{ color: 'red' }}>Warning! This is irreversible! If you really want to delete this project, please type the name of the project ({projectName}) below to confirm.</p>
         <input type="text" placeholder={projectName} value={inputText} onChange={(e) => { setInput(e.target.value); setError(''); }} /> <br /><br />
-        <Mutation
+        <Mutation<any, any>
             mutation={DELETE_PROJECT}
             update={(store) => {
                 // Read the data from our cache for this query.

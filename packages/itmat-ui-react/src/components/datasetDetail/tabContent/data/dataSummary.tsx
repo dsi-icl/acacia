@@ -37,7 +37,7 @@ const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyI
         <div>
             <p>Number of subjects</p>
             <span className={css.number_highlight}>
-                <Query query={GET_STUDY} variables={{ studyId }}>
+                <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
                         if (loading) { return '...'; }
                         if (error || !data || !data.getStudy || data.getStudy.numOfSubjects === undefined) { return 'n/a'; }

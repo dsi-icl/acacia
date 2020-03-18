@@ -9,7 +9,7 @@ import * as css from './tabContent.module.css';
 export const FileTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => {
     return <div className={css.tab_page_wrapper}>
         <Subsection title="Files">
-            <Query query={GET_PROJECT} variables={{ projectId, admin: false }}>
+            <Query<any, any> query={GET_PROJECT} variables={{ projectId, admin: false }}>
                 {({ loading, data, error }) => {
                     if (loading) { return <LoadingBalls />; }
                     if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }

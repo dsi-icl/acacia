@@ -11,7 +11,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string, projectI
     return <div className={css.scaffold_wrapper}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title="Variables">
-                <Query query={GET_PROJECT} variables={{ projectId, admin: false }}>
+                <Query<any, any> query={GET_PROJECT} variables={{ projectId, admin: false }}>
                     {({ loading, data, error }) => {
                         if (loading) { return <LoadingBalls />; }
                         if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
@@ -28,7 +28,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string, projectI
     </div>;
 };
 
-const FieldListSelectionStateProject: React.FunctionComponent<{ fields: { [fieldTreeId: string]: IFieldEntry[] } } > = ({ fields }) => {
+const FieldListSelectionStateProject: React.FunctionComponent<{ fields: { [fieldTreeId: string]: IFieldEntry[] } }> = ({ fields }) => {
     /* PRECONDITION: it is given (checked by parent component that fields at least have one key */
     const [selectedTree, setSelectedTree] = React.useState(Object.keys(fields)[0]);
 

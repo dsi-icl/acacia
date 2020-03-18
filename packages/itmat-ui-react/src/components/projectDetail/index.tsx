@@ -9,7 +9,7 @@ import { FileTabContent } from './tabContent/file/fileTab';
 
 export const ProjectDetailPage: React.FunctionComponent<{ projectId: string }> = ({ projectId }) => {
     return (
-        <Query
+        <Query<any, any>
             query={GET_PROJECT}
             variables={{ projectId, admin: true }}
         >

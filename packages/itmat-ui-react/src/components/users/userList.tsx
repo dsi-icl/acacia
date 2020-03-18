@@ -9,7 +9,7 @@ import * as css from './userList.module.css';
 
 export const UserListSection: React.FunctionComponent = (props) => {
     return (
-        <Query
+        <Query<any, any>
             query={GET_USERS}
             variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
         >

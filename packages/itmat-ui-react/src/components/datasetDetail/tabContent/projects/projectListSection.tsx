@@ -23,7 +23,7 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
 
     return <div>
         <input value={input} onChange={(e) => { setError(''); setInput(e.target.value); }} type="text" placeholder="Enter name" />
-        <Mutation
+        <Mutation<any, any>
             mutation={CREATE_PROJECT}
             update={(store, { data: { createProject } }) => {
                 // Read the data from our cache for this query.

@@ -6,7 +6,7 @@ import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
 export const ProjectList: React.FunctionComponent = (props) => {
     return (
-        <Query
+        <Query<any, any>
             query={WHO_AM_I}
             pollInterval={5000}
         >

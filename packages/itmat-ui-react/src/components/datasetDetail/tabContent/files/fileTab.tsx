@@ -11,7 +11,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     return <div className={css.scaffold_wrapper}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title="Existing files">
-                <Query query={GET_STUDY} variables={{ studyId }}>
+                <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
                         if (loading) { return <LoadingBalls />; }
                         if (error) { return <p>{error.toString()}</p>; }
