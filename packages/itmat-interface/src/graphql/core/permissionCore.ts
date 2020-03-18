@@ -3,7 +3,7 @@ import { permissions } from 'itmat-commons';
 import { IRole } from 'itmat-commons/dist/models/study';
 import { IUser, userTypes } from 'itmat-commons/dist/models/user';
 import { BulkWriteResult } from 'mongodb';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 
@@ -147,7 +147,7 @@ export class PermissionCore {
 
         /* add user role */
         const role: IRole = {
-            id: uuidv4(),
+            id: uuid(),
             name: opt.roleName,
             permissions: [],
             users: [],

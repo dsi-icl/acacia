@@ -1,6 +1,6 @@
 import { ApolloError, withFilter } from 'apollo-server-express';
 import { Models } from 'itmat-commons';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { pubsub, subscriptionEvents } from '../pubsub';

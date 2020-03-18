@@ -3,7 +3,7 @@ import { Collection } from 'mongodb';
 import { IJobEntryForFieldCuration } from 'itmat-commons/dist/models/job';
 import { Writable } from 'stream';
 import { IFieldEntry, enumValueType, enumItemType } from 'itmat-commons/dist/models/field';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -120,10 +120,10 @@ export class FieldCurator {
     }
 }
 
-export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }) : { error?: string[], dataEntry: IFieldEntry } { // tslint:disable-line
+export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } { // tslint:disable-line
     /* pure function */
     const error: string[] = [];
-    const dataEntry_nouse: any = { };
+    const dataEntry_nouse: any = {};
     const THESE_COL_CANT_BE_EMPTY = {
         0: 'FieldID',
         1: 'Field Name',
