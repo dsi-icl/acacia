@@ -98,8 +98,4 @@ async function setupDatabase(mongostr, databaseName) {
     await conn.close();
 };
 
-setupDatabase('mongodb://chon:051410Ptmdls@mongo.dsi.ic.ac.uk:27017/ukbiobank', 'ukbiobank').then(() => {
-    console.log('Finished setting up database.');
-});
-
 module.exports = setupDatabase;
