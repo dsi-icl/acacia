@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { permissions, Models } from 'itmat-commons';
+import { permissions, Models, task_required_permissions } from 'itmat-commons';
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
 import { IProject, IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { IUser } from 'itmat-commons/dist/models/user';
@@ -174,6 +174,13 @@ export const studyResolvers = {
             }
 
             /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_projects,
+                requester,
+                studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             /* making sure that the study exists first */
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
