@@ -1,5 +1,5 @@
 import merge from 'deepmerge';
-import fs from 'fs-extra';
+import fs from 'fs';
 import { IOpenSwiftObjectStoreConfig } from 'itmat-utils';
 import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
 import configDefaults from '../../config/config.sample.json';
