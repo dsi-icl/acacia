@@ -18,15 +18,13 @@
         "build": "lerna run --stream build",
         "publish": "lerna run tsc && lerna publish",
         "test:unit": "lerna run --stream --parallel --scope itmat-job-executor test",
-        "test:e2e": "echo start-server-and-test to be activated",
-        "test": "yarn run test:unit && yarn run test:e2e"
+        "test": "yarn run test:unit"
     },
     "optionalDependencies": {
         "mongodb-client-encryption": "1.0.1"
     },
     "devDependencies": {
         "lerna": "3.20.2",
-        "tslint": "6.1.0",
-        "start-server-and-test": "1.10.11"
+        "tslint": "6.1.0"
     }
 }
