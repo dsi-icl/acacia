@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink, Route, Switch } from 'react-router-dom';
-import { GET_STUDY } from '../../graphql/study';
-import { LoadingBalls } from '../reusable/loadingBalls';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import * as css from './projectPage.module.css';
-import { DashboardTabContent, DataManagementTabContent, ProjectsTabContent } from './tabContent';
+import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent } from './tabContent';
 import { FileRepositoryTabContent } from './tabContent/files/fileTab';
 
 export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return (
-        <Query
+        <Query<any, any>
             query={GET_STUDY}
             variables={{ studyId }}
         >
@@ -30,11 +30,11 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                     </div>
                     <div className={css.content}>
                         <Switch>
-                            <Route path="/datasets/:studyId/dashboard" render={() => <DashboardTabContent jobs={data.getStudy.jobs} />} />
-                            <Route path="/datasets/:studyId/data_management" render={({ match }) => <DataManagementTabContent studyId={match.params.studyId} />} />
+                            <Route path="/datasets/:studyId/dashboard" render={() => <DashboardTabContent studyId={studyId} jobs={data.getStudy.jobs} />} />
+                            <Route path="/datasets/:studyId/data_management" render={({ match }) => <DataManagementTabContentFetch studyId={match.params.studyId} />} />
                             <Route path="/datasets/:studyId/files" render={() => <FileRepositoryTabContent studyId={studyId} />} />
                             <Route path="/datasets/:studyId/projects" render={({ match }) => <ProjectsTabContent studyId={match.params.studyId} projectList={data.getStudy.projects} />} />
-                            <Route path="/datasets/:studyId/admin" render={() => <></>} />
+                            <Route path="/datasets/:studyId/admin" render={() => <AdminTabContent studyId={studyId} />} />
                             <Route path="/datasets/:studyId/" render={() => <></>} />
                         </Switch>
                     </div>

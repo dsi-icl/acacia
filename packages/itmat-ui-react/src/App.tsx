@@ -3,18 +3,17 @@ import { ApolloProvider, Query } from 'react-apollo';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { client } from './components/apolloClient';
 import { LoginBox } from './components/login/login';
-import { Spinner } from './components/reusable/spinner';
+import { Spinner } from './components/reusable/icons/spinner';
 import { MainMenuBar } from './components/scaffold/mainMenuBar';
 import { MainPanel } from './components/scaffold/mainPanel';
 import * as css from './components/scaffold/scaffold.module.css';
-import { StatusBar } from './components/scaffold/statusBar';
-import { WHO_AM_I } from './graphql/user';
+import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
 class App extends React.Component {
     public render() {
         return (
             <ApolloProvider client={client}>
-                <Query query={WHO_AM_I}>
+                <Query<any, any> query={WHO_AM_I}>
                     {({ loading, error, data }) => {
                         if (loading) { return <div style={{ width: '100%', height: '100%', textAlign: 'center', paddingTop: '20%' }}><Spinner /></div>; }
                         if (error) { return <p>Error :( {error.message}</p>; }
@@ -24,7 +23,6 @@ class App extends React.Component {
                                     <>
                                         <MainMenuBar projects={data.whoAmI.access.projects} />
                                         <MainPanel />
-                                        <StatusBar />
                                     </>
                                 </Router>
                             </div>;

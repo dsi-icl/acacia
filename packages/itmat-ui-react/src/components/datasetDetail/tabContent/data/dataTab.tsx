@@ -3,10 +3,10 @@ import 'antd/lib/switch/style/css';
 import { IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
-import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from '../../../../graphql/study';
-import { InfoCircle } from '../../../reusable/infoCircle';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
-import { Subsection } from '../../../reusable/subsection';
+import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from 'itmat-commons/dist/graphql/study';
+import { InfoCircle } from '../../../reusable/icons/infoCircle';
+import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import { Subsection } from '../../../reusable/subsection/subsection';
 import { DataSummaryVisual } from './dataSummary';
 import { FieldListSelectionSection } from './fieldListSelection';
 import * as css from './tabContent.module.css';
@@ -14,38 +14,22 @@ import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
 
 
-function removeDuplicateVersion(versions: IStudyDataVersion[]) {
-    const alreadySeenContent: string[] = [];
-    const uniqueContent: any[] = [];
-    const tmp = [...versions].reverse();
 
-    tmp.forEach((el, ind) => {
-        if (alreadySeenContent.includes(el.contentId)) {
-
-            return;
-        } else {
-            alreadySeenContent.push(el.contentId);
-            uniqueContent.push({ ...el, originalPosition: tmp.length - ind - 1 });
-        }
-    });
-
-    return uniqueContent.reverse();
-}
-
-export const DataManagementTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>
-        <div>
-            <Query query={GET_STUDY} variables={{ studyId }}>
-                {({ loading, data, error }) => {
-                    if (loading) { return <LoadingBalls />; }
-                    if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
-                    if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
-                        return <DataManagement data={data.getStudy} showSaveVersionButton />;
-                    }
-                    return <p>There is no data uploaded for this study yet.</p>;
-                }}
-            </Query>
-        </div>
+        <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+            {({ loading, data, error }) => {
+                if (loading) { return <LoadingBalls />; }
+                if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
+                if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
+                    return <div className={css.data_management_section}><DataManagement data={data.getStudy} showSaveVersionButton /></div>;
+                }
+                return <div>
+                    <p>There is no data uploaded for this study yet.</p>
+                    <UploadNewData studyId={studyId} cancelButton={() => { }} />
+                </div>;
+            }}
+        </Query>
     </div>;
 };
 
@@ -95,19 +79,12 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                         )
                 }
 
-
-                <div key="new data" className={css.data_version_cube + ' ' + css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</div>
+                <button key='new data' className={css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</button>
                 {showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ?
-                    <div key="save version" onClick={() => {
-                        if (loading) { return; }
-                        setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } });
-                    }} className={css.data_version_cube + ' ' + css.versioning_section_button}>
-                        {loading ? 'Loading...' : 'Set as current version'}</div>
+                    <button key='save version' onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</button>
                     : null
                 }<br />
             </> : null}
-
-
 
             {
                 addNewDataSectionShown ?
@@ -145,3 +122,18 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
 
     </>;
 };
+
+function removeDuplicateVersion(versions: IStudyDataVersion[]) {
+    const alreadySeenContent: string[] = [];
+    const uniqueContent: any[] = [];
+    const tmp = [...versions].reverse();
+    tmp.forEach((el, ind) => {
+        if (alreadySeenContent.includes(el.contentId)) {
+            return;
+        } else {
+            alreadySeenContent.push(el.contentId);
+            uniqueContent.push({ ...el, originalPosition: tmp.length - ind - 1 });
+        }
+    });
+    return uniqueContent.reverse();
+}

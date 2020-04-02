@@ -2,20 +2,16 @@ import { IFile } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { CREATE_DATA_CURATION_JOB } from '../../../../graphql/curation';
-import { GET_STUDY } from '../../../../graphql/study';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
+import { CREATE_DATA_CURATION_JOB } from 'itmat-commons/dist/graphql/curation';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 
 export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
     return <div>
-        <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}>
-            <span style={{ color: 'var(--color-that-orange)', textDecoration: 'underline' }}>
-                uploaded the data file to the file repository
-                </span>
-        </NavLink>.</p>
+        <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>uploaded the data file to the file repository</span></NavLink>.</p>
         <br /><br />
 
-        <Query query={GET_STUDY} variables={{ studyId }}>
+        <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
                 if (loading) { return <LoadingBalls />; }
                 if (error) { return <p>{error.toString()}</p>; }
@@ -44,7 +40,19 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
         <label>Tag:</label>
         <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder="e.g. finalised (optional)" type="text" /><br /><br />
 
-        <Mutation mutation={CREATE_DATA_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
+        <Mutation<any, any>
+            mutation={CREATE_DATA_CURATION_JOB}
+            onCompleted={() => setSuccessfullySaved(true)}
+            update={(store, { data: { createDataCurationJob } }) => {
+                // Read the data from our cache for this query.
+                const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
+                // Add our comment from the mutation to the end.
+                const newjobs = data.getStudy.jobs.concat(createDataCurationJob);
+                data.getStudy.jobs = newjobs;
+                // Write our data back to the cache.
+                store.writeQuery({ query: GET_STUDY, variables: { studyId }, data });
+            }}
+        >
             {(createCurationJob, { loading }) => {
                 if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
                 return <button style={{ width: '45%', display: 'inline-block' }} onClick={() => {

@@ -1,9 +1,9 @@
 import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import React from 'react';
 import { Query } from 'react-apollo';
-import { GET_STUDY_FIELDS } from '../../../../graphql/fields';
-import { FieldListSection } from '../../../reusable/fieldList';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
+import { GET_STUDY_FIELDS } from 'itmat-commons/dist/graphql/fields';
+import { FieldListSection } from '../../../reusable/fieldList/fieldList';
+import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 // number of patients
 // newest version of data - date / tag
 // download data
@@ -31,7 +31,7 @@ const FieldListSelectionState: React.FunctionComponent<{ studyId: string, fieldT
 
     return <>
         <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
-        <Query query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
+        <Query<any, any> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
             {({ data, loading, error }) => {
                 if (loading) { return <LoadingBalls />; }
                 if (error) { return <p>{JSON.stringify(error)}</p>; }

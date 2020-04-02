@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
-import { LOGIN, WHO_AM_I } from '../../graphql/user';
+import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import * as css from './login.module.css';
 
 export const LoginBox: React.FunctionComponent = () => {
@@ -17,7 +17,7 @@ export const LoginBox: React.FunctionComponent = () => {
     }
 
     return (
-        <Mutation
+        <Mutation<any, any>
             mutation={LOGIN}
             update={(cache, { data: { login } }) => {
                 cache.writeQuery({
@@ -32,19 +32,19 @@ export const LoginBox: React.FunctionComponent = () => {
                         <h1>ITMAT - BROKER</h1>
                         <br /><br />
                         <div>
-                            <input placeholder="username" value={usernameInput} onChange={handleUsernameChange} onKeyDown={(e) => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
+                            <input id='username_input' placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
                         </div>
                         <div>
-                            <input placeholder="password" type="password" value={passwordInput} onChange={handlePasswordChange} onKeyDown={(e) => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
+                            <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
                         </div>
                         <br />
                         {loading ? <button>logging in..</button> :
                             (
-                                <button id="loginButton" onClick={() => { login({ variables: { password: passwordInput, username: usernameInput } }); }}> login</button>
+                                <button id='loginButton' onClick={() => { login({ variables: { password: passwordInput, username: usernameInput } }); }}> login</button>
                             )
                         }
                     </div>
-                    <div className={css.error_message}>
+                    <div id='error_dialog' className={css.error_message}>
                         {error ? error.message : (stateError ? stateError : null)}
                     </div>
                 </div>

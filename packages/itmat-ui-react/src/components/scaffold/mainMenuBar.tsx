@@ -2,7 +2,7 @@ import { IProject } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { LOGOUT, WHO_AM_I } from '../../graphql/user';
+import { LOGOUT, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import { Icons } from '../icons';
 import * as css from './scaffold.module.css';
 
@@ -43,7 +43,7 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
 
             <div>
                 <NavLink title="Logout" to="/logout" id="logoutButton">
-                    <Mutation
+                    <Mutation<any, any>
                         mutation={LOGOUT}
                         update={(cache, { data: { logout } }) => {
                             if (logout.successful === true) {

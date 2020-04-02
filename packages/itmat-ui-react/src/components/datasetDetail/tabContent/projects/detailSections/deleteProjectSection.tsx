@@ -2,8 +2,8 @@ import { IProject } from 'itmat-commons/dist/models/study';
 import React from 'react';
 import { Mutation } from 'react-apollo';
 import { Redirect } from 'react-router';
-import { DELETE_PROJECT, GET_STUDY } from '../../../../../graphql/study';
-import { WHO_AM_I } from '../../../../../graphql/user';
+import { DELETE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
 export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, projectId: string, projectName: string }> = ({ studyId, projectId, projectName }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
@@ -22,7 +22,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
     return <>
         <p style={{ color: 'red' }}>Warning! This is irreversible! If you really want to delete this project, please type the name of the project ({projectName}) below to confirm.</p>
         <input type="text" placeholder={projectName} value={inputText} onChange={(e) => { setInput(e.target.value); setError(''); }} /> <br /><br />
-        <Mutation
+        <Mutation<any, any>
             mutation={DELETE_PROJECT}
             update={(store) => {
                 // Read the data from our cache for this query.

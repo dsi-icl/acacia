@@ -1,35 +1,64 @@
-import { JobPoller } from 'itmat-utils';
-import { db } from './database/database';
-import { JobDispatcher } from './jobDispatch/dispatcher';
-import { objStore } from './objStore/objStore';
-import { Router } from './server/router';
-import { Server } from './server/server';
+
+// tslint:disable: no-console
+import { Server } from 'http';
+import { Socket } from 'net';
+import os from 'os';
+import ITMATJobExecutorServer from './jobExecutorServer';
 import config from './utils/configManager';
+import { Logger } from 'itmat-utils';
 
-/* TO_DO: can we figure out the files at runtime and import at runtime */
-import { UKBCSVUploadHandler } from './jobHandlers/UKBCSVUploadHandler';
-import { UKBFieldInfoUploadHandler } from './jobHandlers/UKBFieldInfoUploadHandler';
-import { UKBImageUploadHandler } from './jobHandlers/UKBImageUploadHandler';
+let interfaceIteration = 0;
+let interfaceServer = new ITMATJobExecutorServer(config);
+let interfaceSockets: Socket[] = [];
+let interfaceRouter;
 
-const server = new Server(config);
+function serverStart() {
+    console.info(`Starting server ${interfaceIteration++} ...`);
+    interfaceServer.start().then((itmatRouter: Server) => {
 
-db.connect(config.database)
-    .then(() => objStore.connect())
-    .then(() => {
-        const router = new Router();
-        const jobDispatcher = new JobDispatcher();
+        interfaceRouter = itmatRouter;
+        itmatRouter.listen(config.server.port, () => {
+            console.info(`Listening at http://${os.hostname()}:${config.server.port}/`);
+        })
+            .on('connection', (socket) => {
+                interfaceSockets.push(socket);
+            })
+            .on('error', (error) => {
+                if (error) {
+                    Logger.error('An error occurred while starting the HTTP server.', error);
+                    return;
+                }
+            });
 
-        /* TO_DO: can we figure out the files at runtime and import at runtime */
-        jobDispatcher.registerJobType('UKB_CSV_UPLOAD', UKBCSVUploadHandler.prototype.getInstance);
-        jobDispatcher.registerJobType('UKB_FIELD_INFO_UPLOAD', UKBFieldInfoUploadHandler.prototype.getInstance);
-        jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKBImageUploadHandler.prototype.getInstance);
-
-        server.start(router.getApp());
-        const poller = new JobPoller('me', undefined, db.collections!.jobs_collection, config.pollingInterval, jobDispatcher.dispatch);
-        poller.setInterval();
-        return;
-    })
-    .catch((e) => {
-        console.error('Could not start executor:', e.message);
-        process.exit(1);
+    }).catch((error) => {
+        Logger.error('An error occurred while starting the ITMAT job executor.', error);
+        Logger.error(error.stack);
+        return false;
     });
+}
+
+function serverSpinning() {
+
+    if (interfaceRouter !== undefined) {
+        console.info('Renewing server ...');
+        interfaceServer = new ITMATJobExecutorServer(config);
+        console.info(`Destroying ${interfaceSockets.length} sockets ...`);
+        interfaceSockets.forEach((socket) => {
+            socket.destroy();
+        });
+        interfaceSockets = [];
+        console.info(`Shuting down server ${interfaceIteration} ...`);
+        interfaceRouter.close(() => {
+            serverStart();
+        });
+    } else {
+        serverStart();
+    }
+}
+
+serverSpinning();
+
+if (module.hot) {
+    module.hot.accept('./index', serverSpinning);
+    module.hot.accept('./jobExecutorServer', serverSpinning);
+}

@@ -1,4 +1,4 @@
-import { CustomError, IServerBaseConfig, ServerBase } from 'itmat-utils';
+import { CustomError, IServerBaseConfig, ServerBase, Logger } from 'itmat-utils';
 
 export interface IServerConfig extends IServerBaseConfig {
     bcrypt: {
@@ -12,9 +12,7 @@ export class Server extends ServerBase<IServerConfig> {
     }
     protected async additionalChecksAndActions(): Promise<void> {
         if (isNaN(parseInt(this.config.bcrypt.saltround as any, 10))) {
-            console.log(
-                new CustomError('Salt round must be a number')
-            );
+            Logger.error(new CustomError('Salt round must be a number'));
             process.exit(1);
         }
     }

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_PROJECT, GET_STUDY } from '../../../../graphql/study';
-import { WHO_AM_I } from '../../../../graphql/user';
+import { CREATE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import * as css from './tabContent.module.css';
 
 export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: { id: string, name: string }[] }> = ({ studyId, projectList }) => {
@@ -23,7 +23,7 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
 
     return <div>
         <input value={input} onChange={(e) => { setError(''); setInput(e.target.value); }} type="text" placeholder="Enter name" />
-        <Mutation
+        <Mutation<any, any>
             mutation={CREATE_PROJECT}
             update={(store, { data: { createProject } }) => {
                 // Read the data from our cache for this query.
@@ -42,7 +42,6 @@ const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }
                 // Write our data back to the cache.
                 store.writeQuery({ query: WHO_AM_I, data: whoAmI });
             }}
-            onCompleted={() => { setInput(''); }}
         >
             {(addNewProject, { loading, data }) =>
                 <>

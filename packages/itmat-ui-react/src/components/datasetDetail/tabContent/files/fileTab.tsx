@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { GET_STUDY } from '../../../../graphql/study';
-import { FileList } from '../../../reusable/fileList';
-import { LoadingBalls } from '../../../reusable/loadingBalls';
-import { Subsection } from '../../../reusable/subsection';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { FileList } from '../../../reusable/fileList/fileList';
+import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import { Subsection } from '../../../reusable/subsection/subsection';
 import * as css from './tabContent.module.css';
 import { UploadFileSection } from './uploadFile';
 
@@ -11,7 +11,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     return <div className={css.scaffold_wrapper}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title="Existing files">
-                <Query query={GET_STUDY} variables={{ studyId }}>
+                <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
                         if (loading) { return <LoadingBalls />; }
                         if (error) { return <p>{error.toString()}</p>; }

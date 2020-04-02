@@ -3,7 +3,7 @@ import { permissions } from 'itmat-commons';
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
 import { IProject, IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { IUser } from 'itmat-commons/dist/models/user';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
@@ -24,14 +24,14 @@ export const studyResolvers = {
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
-            return await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
+            return await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
         },
         getProject: async (parent: object, args: any, context: any, info: any): Promise<IProject | null> => {
             const requester: IUser = context.req.user;
             const projectId: string = args.projectId;
 
             /* get project */
-            const project: IProject | null = await db.collections!.projects_collection.findOne({ id: projectId, deleted: false }, { projection: { patientMapping: 0 } })!;
+            const project: IProject | null = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
 
             if (project === null) {
                 return null;
@@ -73,16 +73,16 @@ export const studyResolvers = {
     },
     Study: {
         projects: async (study: IStudy) => {
-            return await db.collections!.projects_collection.find({ studyId: study.id, deleted: false }).toArray();
+            return await db.collections!.projects_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         jobs: async (study: IStudy) => {
             return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
         },
         roles: async (study: IStudy) => {
-            return await db.collections!.roles_collection.find({ studyId: study.id, deleted: false }).toArray();
+            return await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray();
         },
         files: async (study: IStudy) => {
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: false }).toArray();
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         numOfSubjects: async (study: IStudy) => {
             return await db.collections!.data_collection.countDocuments({ m_study: study.id });
@@ -93,18 +93,27 @@ export const studyResolvers = {
     },
     Project: {
         fields: async (project: IProject) => {
-            return await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: project.approvedFields }, deleted: false }).toArray();
+            const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields));
+            const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, deleted: null }).toArray();
+            const fields = result.reduce((a: { [fieldTreeId: string]: IFieldEntry[] }, e: IFieldEntry) => {
+                if (!a[e.fieldTreeId]) {
+                    a[e.fieldTreeId] = [];
+                }
+                a[e.fieldTreeId].push(e);
+                return a;
+            }, {});
+            return fields;
         },
         jobs: async (project: IProject) => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
         files: async (project: IProject) => {
-            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: false }).toArray();
+            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
         },
         patientMapping: async (project: IProject) => {
             /* check permission */
 
-            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { patientMapping: 1 } });
+            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { patientMapping: 1 } });
             if (result && result.patientMapping) {
                 return result.patientMapping;
             } else {
@@ -114,7 +123,7 @@ export const studyResolvers = {
         approvedFields: async (project: IProject) => {
             /* check permission */
 
-            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: false }, { projection: { approvedFields: 1 } });
+            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { approvedFields: 1 } });
             if (result && result.approvedFields) {
                 return result.approvedFields;
             } else {
@@ -127,7 +136,7 @@ export const studyResolvers = {
             return project.approvedFiles;
         },
         roles: async (project: IProject) => {
-            return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: false }).toArray();
+            return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray();
         },
         iCanEdit: async (project: IProject) => { // TO_DO
             const result = await db.collections!.roles_collection.findOne({
@@ -152,7 +161,7 @@ export const studyResolvers = {
             const study = await studyCore.createNewStudy(name, requester.id);
             return study;
         },
-        createProject: async (parent: object, { studyId, projectName, approvedFields }: { studyId: string, projectName: string, approvedFields?: string[] }, context: any, info: any): Promise<IProject> => {
+        createProject: async (parent: object, { studyId, projectName }: { studyId: string, projectName: string }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
             /* reject undefined project name */
             if (!projectName) {
@@ -165,7 +174,7 @@ export const studyResolvers = {
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             /* create project */
-            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.username, approvedFields);
+            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.username);
             return project;
         },
         deleteProject: async (parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
@@ -182,7 +191,8 @@ export const studyResolvers = {
             await studyCore.deleteStudy(studyId);
             return makeGenericReponse(studyId);
         },
-        editProjectApprovedFields: async (parent: object, { projectId, approvedFields }: { projectId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
+        editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
+            const requester: IUser = context.req.user;
 
             /* check privileges */
 
@@ -195,8 +205,10 @@ export const studyResolvers = {
             //     throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
             // }
 
+            /* check field tree exists */
+
             /* edit approved fields */
-            const resultingProject = await studyCore.editProjectApprovedFields(projectId, approvedFields);
+            const resultingProject = await studyCore.editProjectApprovedFields(projectId, fieldTreeId, approvedFields);
             return resultingProject;
         },
         editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
@@ -236,7 +248,7 @@ export const studyResolvers = {
             };
 
             /* add this to the database */
-            const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, {
+            const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
                 $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 }
             }, { returnOriginal: false });
 

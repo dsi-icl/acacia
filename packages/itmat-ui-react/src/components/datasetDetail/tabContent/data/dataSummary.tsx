@@ -1,8 +1,8 @@
 import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import React from 'react';
 import { Query } from 'react-apollo';
-import { GET_STUDY } from '../../../../graphql/study';
-import { formatBytes } from '../../../reusable/fileList';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { formatBytes } from '../../../reusable/fileList/fileList';
 import * as css from './tabContent.module.css';
 // number of patients
 // newest version of data - date / tag
@@ -37,7 +37,7 @@ const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyI
         <div>
             <p>Number of subjects</p>
             <span className={css.number_highlight}>
-                <Query query={GET_STUDY} variables={{ studyId }}>
+                <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
                         if (loading) { return '...'; }
                         if (error || !data || !data.getStudy || data.getStudy.numOfSubjects === undefined) { return 'n/a'; }

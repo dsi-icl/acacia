@@ -15,7 +15,7 @@ export interface IFieldEntry {
     notes?: string;
     jobId: string;
     dateAdded: number;
-    deleted: boolean;
+    deleted: number | null;
     fieldTreeId: string;
 }
 
@@ -25,6 +25,9 @@ export enum enumItemType {
 }
 
 export enum enumValueType {
-    NUMBER = 'N',
-    CATEGORICAL = 'C'
+    INTEGER = 'i',
+    CATEGORICAL = 'c',
+    DECIMAL = 'd',
+    BOOLEAN = 'b',
+    FREETEXT = 't'
 }

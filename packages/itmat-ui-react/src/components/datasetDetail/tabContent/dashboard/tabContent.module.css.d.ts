@@ -12,3 +12,4 @@ export const cancelledStatus_span: string;
 export const finishedStatus_span: string;
 export const job_table: string;
 export const cancelButton: string;
+export const error_wrapper: string;

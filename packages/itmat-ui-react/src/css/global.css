@@ -1,29 +1,46 @@
 :root {
-    /* stylelint-disable-next-line */
     --font-size-root: 13px;
     --font-size: 0.9rem;
     --font-size-big: 1.5rem;
     --font-family: 'Chivo';
-    --color-background: 	#2F323B;
-    --color-that-orange: #ff603d;
-    --color-that-red: #FF3C3C;
+    --color-font-color: white;
+    --color-background: 	#1b1b1b;
+    --color-primary-color: #36a7b3;
     --color-error:rgb(255, 82, 82);
-    --color-purple: 	hsl(266, 56%, 71%);
-    --color-purple-shade2: rgb(200, 184, 255);
-    --color-section-title: 	#00465e;
-    --color-text-blue-light: #52D3DB;
-    --color-section-dark: hsl(222, 11%, 17%);
-    --color-section-light: 	#F8F8F8;
-    --color-text-title-rightpanel: 	rgb(255, 249, 249);
-    --color-text-basic-rightpanel: 	rgb(214, 212, 212);
-    --color-text-leftpanel-basic: rgb(108, 110, 119);
-    --color-text-separator: rgb(201, 201, 201);
-    --color-text-light: rgb(109, 109, 109);
-    --color-text-selected: 	hsl(197, 97%, 45%);
-    --color-royal-blue: hsl(209, 92%, 46%);
-    --color-royal-blue-dark: hsl(209, 92%, 38%);
-    --color-text-selected-hover: rgb(93, 162, 192);
-    --color-input: hsl(222, 11%, 30%);
+    --color-warning: yellow;
+    --color-notification: green;
+    --color-scroll-bar: #292929;
+    --color-scroll-bar-hover: #313131;
+    --color-scroll-bar-active: #3a3a3a;
+    --input-background: #313131;
+    --color-status-finish: #b0e611;
+    --color-status-error: #d80000;
+    --color-status-processing: #f3e313;
+    --color-status-queued: #696969;
+    --color-popup: #131212;
+    --color-popup-border: #4a4a4a;
+    --color-status-cancelled: black;
+}
+
+.light_theme {
+    /* override the default colours and add class to <App/>*/
+    /* --color-font-color: rgb(0, 0, 0);
+    --color-background: 	#ffffff;
+    --color-primary-color: #36a7b3;
+    --color-error:rgb(255, 82, 82);
+    --color-warning: yellow;
+    --color-notification: green;
+    --color-scroll-bar: #292929;
+    --color-scroll-bar-hover: #313131;
+    --color-scroll-bar-active: #3a3a3a;
+    --input-background: #313131;
+    --color-status-finish: #b0e611;
+    --color-status-error: #d80000;
+    --color-status-processing: #f3e313;
+    --color-status-queued: #696969;
+    --color-popup: #131212;
+    --color-popup-border: #4a4a4a;
+    --color-status-cancelled: black; */
 }
 
 @font-face {
@@ -67,13 +84,11 @@
 }
 
 html, body, #root {
+    background-color: var(--color-background);
     position: fixed;
-    scroll-behavior: smooth;
-    color: white;
     font-size: var(--font-size-root);
     font-family: var(--font-family);
-    background-color: rgb(17, 17, 17);
-    /* background: linear-gradient(180deg, #606060 0%, rgba(0, 0, 0, 0) 100%), #282828; */
+    scroll-behavior: smooth;
     user-select: none;
     width: 100%;
     height: 100%;
@@ -96,12 +111,11 @@ button {
     min-height: 20px;
     font-weight: bold;
     line-height: 20px;
-    background-color: var(--color-that-orange);
+    background-color: var(--color-primary-color);
 }
 
 button:hover {
-    background-image: linear-gradient(to bottom right, var(--color-royal-blue), var(--color-purple));
-    /* background-image: linear-gradient(to bottom right, var(--color-text-selected), var(--color-purple-shade2)); */
+    background-image: linear-gradient(to bottom right, blue, purple);
     cursor: pointer;
 }
 
@@ -160,8 +174,8 @@ input, select {
 }
 
 input:focus {
-    border-bottom: 1px solid var(--color-that-orange);
-    color: var(--color-that-orange)
+    border-bottom: 1px solid var(--color-primary-color);
+    color: var(--color-primary-color)
 }
 
 textarea {
@@ -298,16 +312,17 @@ h3 {
   
   /* Handle */
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-leftpanel-basic);
+    background: var(--color-scroll-bar-hover);
   }
 
   ::-webkit-scrollbar-thumb:active {
+    background: var(--color-scroll-bar-active);
     cursor: pointer;
   }
   
   /* Handle on hover */
   ::-webkit-scrollbar-thumb {
-    background: var(--color-input);
+    background: var(--color-scroll-bar);
   }
 
   #container {

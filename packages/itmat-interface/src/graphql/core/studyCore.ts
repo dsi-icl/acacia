@@ -1,15 +1,16 @@
 import { ApolloError } from 'apollo-server-core';
 import { IProject, IStudy } from 'itmat-commons/dist/models/study';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
+import { makeGenericReponse, IGenericResponse } from '../responses';
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
 
     public async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
-        const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: studyId, deleted: false })!;
+        const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
         if (studySearchResult === null || studySearchResult === undefined) {
             throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
@@ -17,7 +18,7 @@ export class StudyCore {
     }
 
     public async findOneProject_throwErrorIfNotExist(projectId: string): Promise<IProject> {
-        const projectSearchResult: IProject = await db.collections!.projects_collection.findOne({ id: projectId, deleted: false })!;
+        const projectSearchResult: IProject = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null })!;
         if (projectSearchResult === null || projectSearchResult === undefined) {
             throw new ApolloError('Project does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
@@ -26,29 +27,29 @@ export class StudyCore {
 
     public async createNewStudy(studyName: string, requestedBy: string): Promise<IStudy> {
         const study: IStudy = {
-            id: uuidv4(),
+            id: uuid(),
             name: studyName,
             createdBy: requestedBy,
             currentDataVersion: -1,
             lastModified: new Date().valueOf(),
             dataVersions: [],
-            deleted: false
+            deleted: null
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;
     }
 
-    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
+    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
-            id: uuidv4(),
+            id: uuid(),
             studyId,
             createdBy: requestedBy,
             name: projectName,
             patientMapping: {},
-            approvedFields: approvedFields ? approvedFields : [],
+            approvedFields: approvedFields ? approvedFields : {},
             approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
-            deleted: false
+            deleted: null
         };
 
         const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
@@ -61,7 +62,7 @@ export class StudyCore {
             throw new ApolloError('Cannot get list of patients', errorCodes.DATABASE_ERROR);
         }
 
-        project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+        // project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
 
         await db.collections!.projects_collection.insertOne(project);
         return project;
@@ -71,12 +72,14 @@ export class StudyCore {
         const session = db.client.startSession();
         session.startTransaction();
 
+        const timestamp = new Date().valueOf();
+
         try {
             /* delete the study */
-            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
+            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
 
             /* delete all projects related to the study */
-            await db.collections!.projects_collection.updateMany({ studyId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } });
+            await db.collections!.projects_collection.updateMany({ studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
 
             /* delete all roles related to the study */
             await this.localPermissionCore.removeRoleFromStudyOrProject({ studyId });
@@ -98,17 +101,18 @@ export class StudyCore {
 
     public async deleteProject(projectId: string): Promise<void> {
         const opts = { returnOriginal: false };
+        const timestamp = new Date().valueOf();
 
         /* delete all projects related to the study */
-        await db.collections!.projects_collection.findOneAndUpdate({ id: projectId, deleted: false }, { $set: { lastModified: new Date().valueOf(), deleted: true } }, opts);
+        await db.collections!.projects_collection.findOneAndUpdate({ id: projectId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } }, opts);
 
         /* delete all roles related to the study */
         await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });
     }
 
-    public async editProjectApprovedFields(projectId: string, approvedFields: string[]) {
+    public async editProjectApprovedFields(projectId: string, fieldTreeId: string, approvedFields: string[]) {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields } }, { returnOriginal: false });
+        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { [`approvedFields.${fieldTreeId}`]: approvedFields } }, { returnOriginal: false });
         if (result.ok === 1) {
             return result.value;
         } else {
@@ -129,7 +133,7 @@ export class StudyCore {
     private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string } {
         let rangeArray: (string | number)[] = [...Array.from(listOfPatientId.keys())];
         if (prefix === undefined) {
-            prefix = uuidv4().substring(0, 2);
+            prefix = uuid().substring(0, 2);
         }
         rangeArray = rangeArray.map((e) => `${prefix}${e}`);
         rangeArray = this.shuffle(rangeArray);

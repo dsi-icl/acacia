@@ -3,7 +3,7 @@ import { permissions } from 'itmat-commons';
 import { IRole } from 'itmat-commons/dist/models/study';
 import { IUser, userTypes } from 'itmat-commons/dist/models/user';
 import { BulkWriteResult } from 'mongodb';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 
@@ -65,7 +65,7 @@ export class PermissionCore {
     }
 
     public async removeRole(roleId: string): Promise<void> {
-        const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, { $set: { deleted: true } });
+        const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         if (updateResult.ok === 1) {
             return;
         } else {
@@ -79,13 +79,13 @@ export class PermissionCore {
         }
         let queryObj = {};
         if (studyId !== undefined && projectId !== undefined) {
-            queryObj = { studyId, projectId, deleted: false };
+            queryObj = { studyId, projectId, deleted: null };
         } else if (studyId !== undefined) {
-            queryObj = { studyId, deleted: false };
+            queryObj = { studyId, deleted: null };
         } else if (projectId !== undefined) {
-            queryObj = { projectId, deleted: false };
+            queryObj = { projectId, deleted: null };
         }
-        const updateResult = await db.collections!.roles_collection.updateMany(queryObj, { $set: { deleted: true } });
+        const updateResult = await db.collections!.roles_collection.updateMany(queryObj, { $set: { deleted: new Date().valueOf() } });
         if (updateResult.result.ok === 1) {
             return;
         } else {
@@ -106,19 +106,19 @@ export class PermissionCore {
         // }
 
         const bulkop = db.collections!.roles_collection.initializeUnorderedBulkOp();
-        bulkop.find({ id: roleId, deleted: false }).updateOne({ $addToSet: { permissions: { $each: permissionChanges.add }, users: { $each: userChanges.add } } });
-        bulkop.find({ id: roleId, deleted: false }).updateOne({ $pullAll: { permissions: permissionChanges.remove, users: userChanges.remove } });
+        bulkop.find({ id: roleId, deleted: null }).updateOne({ $addToSet: { permissions: { $each: permissionChanges.add }, users: { $each: userChanges.add } } });
+        bulkop.find({ id: roleId, deleted: null }).updateOne({ $pullAll: { permissions: permissionChanges.remove, users: userChanges.remove } });
         if (name) {
-            bulkop.find({ id: roleId, deleted: false }).updateOne({ $set: { name } });
+            bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { name } });
         }
         const result: BulkWriteResult = await bulkop.execute();
         if (result.ok === 1) {
-            return await db.collections!.roles_collection.findOne({ id: roleId, deleted: false })!;
+            return await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
         } else {
             throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
         }
 
-        // const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: false }, updateObj, { returnOriginal: false });
+        // const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: null }, updateObj, { returnOriginal: false });
         // if (updateResult.ok === 1) {
         //     return updateResult.value;
         // } else {
@@ -135,7 +135,7 @@ export class PermissionCore {
         // });
 
         // /* check that study or project exists and the role does not already exist */
-        // const queryObj = opt.projectId === undefined ? { study: opt.studyId, deleted: false } : { study: opt.studyId, project: opt.projectId, deleted: false };
+        // const queryObj = opt.projectId === undefined ? { study: opt.studyId, deleted: null } : { study: opt.studyId, project: opt.projectId, deleted: null };
         // const searchResult: IProject | IStudy = await targetCollection.findOne(queryObj)!;
         // const errorTarget = opt.project === undefined ? `Project "${opt.project}" of study "${opt.study}"` : `Study "${opt.study}"`
         // if (searchResult === null || searchResult === undefined) {
@@ -147,13 +147,13 @@ export class PermissionCore {
 
         /* add user role */
         const role: IRole = {
-            id: uuidv4(),
+            id: uuid(),
             name: opt.roleName,
             permissions: [],
             users: [],
             studyId: opt.studyId,
             projectId: opt.projectId,
-            deleted: false
+            deleted: null
         };
         const updateResult = await db.collections!.roles_collection.insertOne(role);
         if (updateResult.result.ok === 1 && updateResult.insertedCount === 1) {

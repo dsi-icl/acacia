@@ -1,7 +1,7 @@
 {
     "database": {
-        "mongo_url": "mongodb://user:password@localhost:27017/test",
-        "database": "test",
+        "mongo_url": "mongodb://localhost:27017",
+        "database": "itmat",
         "collections": {
             "jobs_collection": "JOB_COLLECTION",
             "users_collection": "USER_COLLECTION",
@@ -22,7 +22,7 @@
         "saltround": 2
     },
     "swift": {
-        "uri": "https://localhost:8080/auth/v1.0",
+        "uri": "http://localhost:32768/auth/v1.0",
         "username": "test:tester",
         "password": "testing"
     }

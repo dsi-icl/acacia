@@ -3,7 +3,7 @@ export interface IStudy {
     name: string;
     createdBy: string;
     lastModified: number;
-    deleted: boolean;
+    deleted: number | null;
     currentDataVersion: number; // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
     dataVersions: IStudyDataVersion[];
 }

@@ -2,9 +2,9 @@ import { Tree } from 'antd';
 import { IFile } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
-import { EDIT_PROJECT_APPROVED_FILES } from '../../../../../graphql/projects';
-import { GET_STUDY } from '../../../../../graphql/study';
-import { LoadingBalls } from '../../../../reusable/loadingBalls';
+import { EDIT_PROJECT_APPROVED_FILES } from 'itmat-commons/dist/graphql/projects';
+import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 
 export const GrantedFileListSelection: React.FunctionComponent<{ originalCheckedList: string[], studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);
@@ -21,7 +21,7 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
         setCheckedList(list);
     };
 
-    return <Query query={GET_STUDY} variables={{ studyId }}>
+    return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data: fileData, error }) => {
             if (loading) { return <LoadingBalls />; }
             if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
@@ -32,9 +32,9 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                     onCheck={onCheck as any}
                     checkedKeys={checkedList}
                 >
-                    {fileData.getStudy.files.map((el: IFile) => <Tree.TreeNode title={el.fileName} key={el.id} dataRef={el} isLeaf={true} />)}
+                    {fileData.getStudy.files.map((el: IFile) => <Tree.TreeNode title={el.fileName} key={el.id} isLeaf={true} />)}
                 </Tree>
-                <Mutation
+                <Mutation<any, any>
                     mutation={EDIT_PROJECT_APPROVED_FILES}
                     onCompleted={() => setSavedSuccessfully(true)}
                 >

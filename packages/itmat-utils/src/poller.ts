@@ -29,7 +29,8 @@ export class JobPoller {
         this.setInterval = this.setInterval.bind(this);
         this.checkForJobs = this.checkForJobs.bind(this);
         this.matchObj = {
-            claimedBy: undefined
+            claimedBy: undefined,
+            status: 'QUEUED'
             /*, lastClaimed: more then 0 */
         };
 
@@ -42,7 +43,7 @@ export class JobPoller {
     }
 
     private async checkForJobs() {
-        Logger.log(`${this.identity} polling ${this.jobCollection} for new jobs of type ${this.jobType || 'ALL'}.`);
+        Logger.log(`${this.identity} polling for new jobs of type ${this.jobType || 'ALL'}.`);
         let updateResult: mongodb.FindAndModifyWriteOpResultObject<any>;
         try {
             updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {

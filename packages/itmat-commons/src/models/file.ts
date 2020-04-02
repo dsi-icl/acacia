@@ -7,5 +7,5 @@ export interface IFile {
     description: string;
     uploadedBy: string;  // userId
     uri: string;
-    deleted: boolean;
+    deleted: number | null;
 }
