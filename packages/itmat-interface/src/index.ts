@@ -7,17 +7,23 @@ import ITMATInterfaceServer from './interfaceServer';
 import config from './utils/configManager';
 
 let interfaceIteration = 0;
-let interfaceServer = new ITMATInterfaceServer(config);
+let interfaceStarting = false;
 let interfaceSockets: Socket[] = [];
+let interfaceServer;
 let interfaceRouter;
 
 function serverStart() {
+    if (interfaceStarting)
+        return;
     console.info(`Starting server ${interfaceIteration++} ...`);
+    interfaceStarting = true;
+    interfaceServer = new ITMATInterfaceServer(config);
     interfaceServer.start().then((itmatRouter: Server) => {
 
         interfaceRouter = itmatRouter;
-        itmatRouter.listen(config.server.port, () => {
+        interfaceRouter.listen(config.server.port, () => {
             console.info(`Listening at http://${os.hostname()}:${config.server.port}/`);
+            interfaceStarting = false;
         })
             .on('connection', (socket) => {
                 interfaceSockets.push(socket);
@@ -40,7 +46,6 @@ function serverSpinning() {
 
     if (interfaceRouter !== undefined) {
         console.info('Renewing server ...');
-        interfaceServer = new ITMATInterfaceServer(config);
         console.info(`Destroying ${interfaceSockets.length} sockets ...`);
         interfaceSockets.forEach((socket) => {
             socket.destroy();
