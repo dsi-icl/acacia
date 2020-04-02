@@ -42,7 +42,7 @@ export const client = new ApolloClient({
                         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
                     ));
             }
-            if (networkError) { console.error(`[Network error]: ${networkError}`); }
+            if (networkError) { console.error('[Network error]:', networkError); }
         }),
         link,
     ]),
