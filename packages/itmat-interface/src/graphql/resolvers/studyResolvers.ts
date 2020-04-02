@@ -156,11 +156,6 @@ export const studyResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            /* reject undefined project name */
-            if (!name) {
-                throw new ApolloError('Study name is not given or undefined.');
-            }
-
             /* create study */
             const study = await studyCore.createNewStudy(name, requester.id);
             return study;
