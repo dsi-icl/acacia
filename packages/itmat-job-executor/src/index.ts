@@ -5,6 +5,7 @@ import { Socket } from 'net';
 import os from 'os';
 import ITMATJobExecutorServer from './jobExecutorServer';
 import config from './utils/configManager';
+import { Logger } from 'itmat-utils';
 
 let interfaceIteration = 0;
 let interfaceStarting = false;
@@ -30,14 +31,14 @@ function serverStart() {
             })
             .on('error', (error) => {
                 if (error) {
-                    console.error('An error occurred while starting the HTTP server.', error);
+                    Logger.error('An error occurred while starting the HTTP server.', error);
                     return;
                 }
             });
 
     }).catch((error) => {
-        console.error('An error occurred while starting the ITMAT job executor.', error);
-        console.error(error.stack);
+        Logger.error('An error occurred while starting the ITMAT job executor.', error);
+        Logger.error(error.stack);
         return false;
     });
 }

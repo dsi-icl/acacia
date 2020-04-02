@@ -1,26 +1,36 @@
 import chalk from 'chalk';
 
+const colorizer = process !== undefined ? chalk : {
+    yellow: (str) => str,
+    red: (str) => str
+}
+
+const flatten = (messages: any[]): string => {
+    let print = '';
+    if (messages !== undefined)
+        print = messages.map(message => {
+            if (message instanceof Error)
+                return message.message;
+            if (message instanceof Object)
+                return JSON.stringify(message, null, '\t');
+            return message;
+        }).join(' ');
+    return print;
+}
+
 export class Logger {
-    public static log(message: any): void {
-        if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
-        console.log(`[${new Date().toUTCString()}] ${message}`);
+    public static log(...messages: any[]): void {
+        // tslint:disable-next-line: no-console
+        console.log(`LOG [${new Date().toUTCString()}] ${flatten(messages)}`);
     }
 
-    public static warn(message: any): void {
-        if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
-        console.log(`[${new Date().toUTCString()}] ${chalk.bold.yellow('WARN!')} ${message}`);
+    public static warn(...messages: any[]): void {
+        // tslint:disable-next-line: no-console
+        console.warn(colorizer.yellow(`WAR [${new Date().toUTCString()}] ${flatten(messages)}`));
     }
 
-    public static error(message: any): void {
-        if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
-        console.log(`[${new Date().toUTCString()}] ${chalk.bold.red('ERROR!')} ${message}`);
+    public static error(...messages: any[]): void {
+        // tslint:disable-next-line: no-console
+        console.error(colorizer.red`ERR [${new Date().toUTCString()}] ${flatten(messages)}`);
     }
-
-    // constructor(private readonly identity: string, private readonly logCollection: mongodb.Collection) {
-    // }
-
-    // public static audit(user: string, message: any): void {
-    //     if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
-    //     console.log(`[${new Date().toUTCString()}] ${chalk.bold.blue('Audit')} ${message}`);
-    // }
 }

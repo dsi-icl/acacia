@@ -1,6 +1,6 @@
 import merge from 'deepmerge';
 import fs from 'fs-extra';
-import { IOpenSwiftObjectStoreConfig } from 'itmat-utils';
+import { IOpenSwiftObjectStoreConfig, Logger } from 'itmat-utils';
 import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
@@ -22,7 +22,7 @@ class ConfigurationManager {
                 return merge(configDefaults, JSON.parse(content));
             }
         } catch (e) {
-            console.error('Could not parse configuration file.');
+            Logger.error('Could not parse configuration file.');
         }
 
         return configDefaults;

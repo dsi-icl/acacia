@@ -1,5 +1,5 @@
 import gql from 'graphql-tag';
-import { job_fragment } from './curation';
+import { JOB_FRAGMENT } from './curation';
 
 
 export const GET_PROJECT = gql`
@@ -39,7 +39,7 @@ export const GET_PROJECT = gql`
             }
         }
     }
-    ${job_fragment}
+    ${JOB_FRAGMENT}
 `;
 
 export const GET_PROJECT_PATIENT_MAPPING = gql`

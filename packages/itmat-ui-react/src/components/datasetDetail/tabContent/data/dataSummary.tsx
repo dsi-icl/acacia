@@ -78,7 +78,7 @@ const OriginalFile: React.FunctionComponent<{ fileName: string }> = ({ fileName 
 const DateOfUpload: React.FunctionComponent<{ date: string | number /* UNIX timestamp */ }> = ({ date }) => {
     return <div style={{ gridArea: 'date' }}><div>
         <p>Data were uploaded on</p>
-        <span className={css.number_highlight}>{date ? (new Date(parseInt(date as any))).toLocaleString() : 'n/a'}</span>
+        <span className={css.number_highlight}>{date ? (new Date(parseInt(date as any, 10))).toLocaleString() : 'n/a'}</span>
     </div></div>;
 };
 

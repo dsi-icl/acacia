@@ -10,13 +10,13 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
     const fileRef = React.createRef();
     const store = useApolloClient();
     const [uploadFile, { loading }] = useMutation(UPLOAD_FILE, {
-        onCompleted: ({ uploadFile }) => {
+        onCompleted: ({ uploadFile: uploadFileCompleted }) => {
             setDescription('');
             setError('');
             setSuccess(true);
             const cachedata = store.readQuery({ query: GET_STUDY, variables: { studyId } }) as any;
             if (!cachedata) { return; }
-            const newcachedata = { ...cachedata.getStudy, files: [...cachedata.getStudy.files, uploadFile] };
+            const newcachedata = { ...cachedata.getStudy, files: [...cachedata.getStudy.files, uploadFileCompleted] };
             store.writeQuery({ query: GET_STUDY, variables: { studyId }, data: { getStudy: newcachedata } });
         }
     });

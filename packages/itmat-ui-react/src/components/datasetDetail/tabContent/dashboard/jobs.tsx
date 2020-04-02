@@ -8,7 +8,6 @@ import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 
 const STATUSES: { [status: string]: any } = {
     finished: () => <span className={css.finishedStatus_span}>Finished</span>,
-    // error: (errors: string[]) => <><span className={css.errorStatus_span}>Errored</span><InfoCircle/></>,
     error: (errors: string[]) => <>
         <span className={css.errorStatus_span}>Errored</span>
         <InfoCircle/>

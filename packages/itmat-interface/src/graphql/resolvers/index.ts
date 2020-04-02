@@ -15,9 +15,8 @@ const modules = [
     fileResolvers
 ];
 
-const loggingDecorator = (reducerFunction: Function) => {
+const loggingDecorator = (reducerFunction: (parent, args, context, info) => void) => {
     return async (parent: any, args: any, context: any, info: any) => {
-        console.log(reducerFunction.name, args, context.req.user && context.req.user.id);
         return await reducerFunction(parent, args, context, info);
     };
 };

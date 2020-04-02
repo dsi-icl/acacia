@@ -37,7 +37,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
     );
 };
 
-export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: object }) }> = ({ user }) => {
+export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: {} }) }> = ({ user }) => {
     const [inputs, setInputs] = React.useState({ ...user, password: '' });
     const [deleteButtonShown, setDeleteButtonShown] = React.useState(false);
     const [userIsDeleted, setUserIsDeleted] = React.useState(false);
@@ -97,7 +97,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
                     >
 
-                        {(deleteUser, { loading, error, data: UserDeletedData }) => {
+                        {(deleteUser, { loading: loadingUserDeletion, error: UserDeletion, data: UserDeletedData }) => {
                             if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
                             if (error) return <p>{error.message}</p>
                             return (

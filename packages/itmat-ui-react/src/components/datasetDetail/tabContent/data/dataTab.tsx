@@ -69,7 +69,10 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                                 <div
                                     key={el.id}
                                     onClick={() => { setSelectedVersion(el.originalPosition); setAddNewDataSectionShown(false); }}
-                                    className={css.data_version_cube + (el.originalPosition === selectedVersion ? (el.contentId === currentVersionContent ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '')}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
+                                    className={css.data_version_cube + (el.originalPosition === selectedVersion
+                                        ? (el.contentId === currentVersionContent ? ` ${css.data_version_cube_current}`
+                                            : ` ${css.data_version_cube_selected_not_current}`) : '')}>
+                                    {`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
                                 </div>
                                 {ind === removeDuplicateVersion(data.dataVersions).length - 1 ? null : <span className={css.arrow}>⟶</span>}
                             </React.Fragment>)

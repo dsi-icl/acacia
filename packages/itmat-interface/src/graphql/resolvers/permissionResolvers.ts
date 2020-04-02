@@ -14,12 +14,11 @@ export const permissionResolvers = {
     StudyOrProjectUserRole: {
         users: async (role: IRole): Promise<IUser[]> => {
             const listOfUsers = role.users;
-            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers }}, { projection: { _id: 0, password: 0 } }).toArray());
+            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0 } }).toArray());
         }
     },
     Mutation: {
-        addRoleToStudyOrProject: async (parent: object, args: {studyId?: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
-            const requester: IUser = context.req.user;
+        addRoleToStudyOrProject: async (parent: object, args: { studyId?: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
             const { studyId, projectId, roleName } = args;
             /* check the requester has privilege */
 
@@ -31,8 +30,8 @@ export const permissionResolvers = {
 
             /* check whether the target study or project exists */
             if (studyId && projectId) {  // if both study id and project id are provided then just make sure they belong to each other
-                const result = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
-                if (result.studyId !== studyId) {
+                const resultProject = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
+                if (resultProject.studyId !== studyId) {
                     throw new ApolloError('The project provided does not belong to the study provided', errorCodes.CLIENT_MALFORMED_INPUT);
                 }
             } else if (studyId) {  // if only study id is provided
@@ -44,8 +43,7 @@ export const permissionResolvers = {
             const result = await permissionCore.addRoleToStudyOrProject({ studyId: studyId!, projectId, roleName });
             return result;
         },
-        editRole: async (parent: object, args: {roleId: string, name?: string, userChanges?: { add: string[], remove: string[]}, permissionChanges?: { add: string[], remove: string[]}}, context: any, info: any): Promise<IRole> => {
-            const requester: IUser = context.req.user;
+        editRole: async (parent: object, args: { roleId: string, name?: string, userChanges?: { add: string[], remove: string[] }, permissionChanges?: { add: string[], remove: string[] } }, context: any, info: any): Promise<IRole> => {
             const { roleId, name, permissionChanges, userChanges } = args;
 
             /* check permission */
@@ -62,8 +60,7 @@ export const permissionResolvers = {
             const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, name, permissionChanges, userChanges);
             return modifiedRole;
         },
-        removeRole: async (parent: object, args: {roleId: string}, context: any, info: any): Promise<IGenericResponse> => {
-            const requester: IUser = context.req.user;
+        removeRole: async (parent: object, args: { roleId: string }, context: any, info: any): Promise<IGenericResponse> => {
             const { roleId } = args;
 
             /* check permission */

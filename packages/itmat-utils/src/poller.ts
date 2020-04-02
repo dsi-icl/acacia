@@ -54,7 +54,7 @@ export class JobPoller {
                 }
             });
         } catch (e) {
-            console.log(e);
+
             return;
         }
 

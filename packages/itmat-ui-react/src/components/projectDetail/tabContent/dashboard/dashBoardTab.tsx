@@ -4,7 +4,7 @@ import { Subsection } from '../../../reusable/subsection/subsection';
 import { JobSection } from './jobs';
 import * as css from './tabContent.module.css';
 
-export const DashboardTabContent: React.FunctionComponent<{ studyId: string, jobs: Array<IJobEntry<any>> }> = ({ jobs }) => {
+export const DashboardTabContent: React.FunctionComponent<{ studyId: string, jobs: IJobEntry<any>[] }> = ({ jobs }) => {
     return <div className={css.tab_page_wrapper}>
         <Subsection title="Data summary">
             {/* <DataSummary showSaveVersionButton={false} studyId={studyId}/> */}

@@ -3,17 +3,17 @@ import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { v4 as uuid } from 'uuid';
 import { db } from '../database/database';
-import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
 import { CSVCurator } from '../curation/CSVCurator';
+import { objStore } from '../objStore/objStore';
 
-export class UKB_CSV_UPLOAD_Handler extends JobHandler {
-    private _instance?: UKB_CSV_UPLOAD_Handler;
+export class UKBCSVUploadHandler extends JobHandler {
+    private _instance?: UKBCSVUploadHandler;
     // private ukbCurator: UKBCurator;
 
     public async getInstance() {
         if (!this._instance) {
-            this._instance = new UKB_CSV_UPLOAD_Handler();
+            this._instance = new UKBCSVUploadHandler();
         }
         return this._instance;
     }

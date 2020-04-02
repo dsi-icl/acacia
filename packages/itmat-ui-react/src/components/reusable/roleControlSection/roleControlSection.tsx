@@ -1,7 +1,6 @@
 import { Models, permissions } from 'itmat-commons';
-import { IRole } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
-import { Mutation, Query, useQuery, useMutation } from 'react-apollo';
+import { Mutation, useQuery, useMutation } from 'react-apollo';
 import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from 'itmat-commons/src/graphql/permission';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
@@ -21,7 +20,7 @@ export const RoleControlSection: React.FunctionComponent<{ studyId: string, proj
 
 export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availablePermissions: string[] }> = ({ role, availablePermissions }) => {
     const isStudyRole = role.projectId ? false : true;
-    const { data: userData, error: userFetchError, loading: userFetchLoading } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
+    const { data: userData, loading: userFetchLoading } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
     const [removeRole, { loading: removeRoleLoading }] = useMutation(REMOVE_ROLE, { refetchQueries: [{ query: isStudyRole ? GET_STUDY : GET_PROJECT, variables: isStudyRole ? { studyId: role.studyId } : { projectId: role.projectId, admin: true } }] });
     const [addUserToRole, { loading: loadingAddUser }] = useMutation(EDIT_ROLE);
     const [removeUserFromRole, { loading: loadingRemoveUser }] = useMutation(EDIT_ROLE);

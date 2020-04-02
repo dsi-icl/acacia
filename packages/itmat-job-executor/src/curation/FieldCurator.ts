@@ -4,6 +4,7 @@ import { IJobEntryForFieldCuration } from 'itmat-commons/dist/models/job';
 import { Writable } from 'stream';
 import { IFieldEntry, enumValueType, enumItemType } from 'itmat-commons/dist/models/field';
 import { v4 as uuid } from 'uuid';
+import { Logger } from 'itmat-utils';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -33,7 +34,6 @@ export class FieldCurator {
          *     fieldId  fieldName   valueType   possibleValues  unit    path    numOfTimePoints numOfMeasurements   startingTimepoint   startingMeasurement notes
          */
         return new Promise((resolve) => {
-            console.log(`uploading for job ${this.job.id}`);
             const fieldIdString: string[] = [];
             let lineNum = 0;
             let isHeader: boolean = true;
@@ -87,7 +87,7 @@ export class FieldCurator {
                         if (this._numOfFields > 999) {
                             this._numOfFields = 0;
                             await bulkInsert.execute((err: Error) => {
-                                if (err) { console.log((err as any).writeErrors[1].err); return; }
+                                if (err) { Logger.error((err as any).writeErrors[1].err); return; }
                             });
                             bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
                         }
@@ -106,12 +106,10 @@ export class FieldCurator {
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
-                        console.log('FINSIHED LOADING');
-                        if (err) { console.log(err); return; }
+                        if (err) { Logger.error(err); return; }
                     });
                 }
 
-                console.log('end');
                 resolve(this._errors);
             });
 

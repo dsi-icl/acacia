@@ -2,6 +2,7 @@ import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { Writable } from 'stream';
+import { Logger } from 'itmat-utils';
 
 export interface IDataEntry {
     m_jobId: string; // the id of the job that causes this upload
@@ -54,7 +55,6 @@ export class CSVCurator {
     /* return list of errors. [] if no error */
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         return new Promise((resolve) => {
-            console.log(`uploading for job ${this.job.id}`);
             let lineNum = 0;
             let isHeader: boolean = true;
             const subjectString: string[] = [];
@@ -111,7 +111,7 @@ export class CSVCurator {
                         if (this._numOfSubj > 999) {
                             this._numOfSubj = 0;
                             await bulkInsert.execute((err: Error) => {
-                                if (err) { console.log((err as any).writeErrors[1].err); return; }
+                                if (err) { Logger.error((err as any).writeErrors[1].err); return; }
                             });
                             bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
                         }
@@ -130,12 +130,10 @@ export class CSVCurator {
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
-                        console.log('FINSIHED LOADING');
-                        if (err) { console.log(err); return; }
+                        if (err) { Logger.error(err); return; }
                     });
                 }
 
-                console.log('end');
                 resolve(this._errors);
             });
 

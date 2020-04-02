@@ -5,7 +5,7 @@ import { CREATE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import * as css from './tabContent.module.css';
 
-export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: Array<{ id: string, name: string }> }> = ({ studyId, projectList }) => {
+export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: { id: string, name: string }[] }> = ({ studyId, projectList }) => {
     return <div>
         {projectList.map((el) => <OneProject studyId={studyId} key={el.id} id={el.id} name={el.name} />)}
         <AddNewProject studyId={studyId} />

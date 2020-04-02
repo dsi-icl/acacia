@@ -6,12 +6,12 @@ import { IFile } from 'itmat-commons/dist/models/file';
 import { v4 as uuid } from 'uuid';
 import { FieldCurator } from '../curation/FieldCurator';
 
-export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
-    private _instance?: UKB_FIELD_INFO_UPLOAD_Handler;
+export class UKBFieldInfoUploadHandler extends JobHandler {
+    private _instance?: UKBFieldInfoUploadHandler;
 
     public async getInstance() {
         if (!this._instance) {
-            this._instance = new UKB_FIELD_INFO_UPLOAD_Handler();
+            this._instance = new UKBFieldInfoUploadHandler();
         }
         return this._instance;
     }

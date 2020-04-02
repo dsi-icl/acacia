@@ -54,8 +54,8 @@ const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ select
         setCurrentSelectedTree(selectedTree);
     }
 
-    const onCheck = (checkedList: string[]) => {
-        setCheckedList(checkedList);
+    const onCheck = (list: string[]) => {
+        setCheckedList(list);
     };
 
     return <>

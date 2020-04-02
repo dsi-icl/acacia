@@ -15,7 +15,9 @@
         "clean": "rimraf -rf ./build",
         "test": "jest",
         "compile": "webpack --config ./config/webpack.config.js",
-        "prepublishOnly": "yarn run build"
+        "prepublishOnly": "yarn run build",
+        "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
     "optionalDependencies": {
         "mongodb-client-encryption": "1.0.1"
@@ -41,7 +43,12 @@
         "@types/mongodb": "3.5.4",
         "@types/node": "13.9.8",
         "@types/uuid": "7.0.2",
+        "@typescript-eslint/eslint-plugin": "2.26.0",
+        "@typescript-eslint/parser": "2.26.0",
         "cross-env": "7.0.2",
+        "eslint": "6.8.0",
+        "eslint-config-airbnb-base": "^14.1.0",
+        "eslint-plugin-import": "2.20.2",
         "jest": "25.2.4",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",

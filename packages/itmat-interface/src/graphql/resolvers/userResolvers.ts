@@ -13,12 +13,10 @@ import { makeGenericReponse } from '../responses';
 
 export const userResolvers = {
     Query: {
-        whoAmI(parent: object, args: any, context: any, info: any): object {
+        whoAmI(parent: object, args: any, context: any, info: any): {} {
             return context.req.user;
         },
         getUsers: async (parent: object, args: any, context: any, info: any): Promise<IUser[]> => {
-            const requester: Models.UserModels.IUser = context.req.user;
-
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
             const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });

@@ -131,7 +131,7 @@ export class StudyCore {
     }
 
     private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string } {
-        let rangeArray: Array<string | number> = [...Array.from(listOfPatientId.keys())];
+        let rangeArray: (string | number)[] = [...Array.from(listOfPatientId.keys())];
         if (prefix === undefined) {
             prefix = uuid().substring(0, 2);
         }
@@ -145,7 +145,7 @@ export class StudyCore {
 
     }
 
-    private shuffle(array: Array<number | string>) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
+    private shuffle(array: (number | string)[]) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
         let currentIndex = array.length;
         let temporaryValue: string | number;
         let randomIndex: number;

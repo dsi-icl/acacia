@@ -30,6 +30,11 @@
     },
     "devDependencies": {
         "@types/mongodb": "3.5.4",
+        "@typescript-eslint/eslint-plugin": "2.26.0",
+        "@typescript-eslint/parser": "2.26.0",
+        "eslint": "6.8.0",
+        "eslint-config-airbnb-base": "^14.1.0",
+        "eslint-plugin-import": "2.20.2",
         "rimraf": "3.0.2",
         "typescript": "3.8.3"
     }

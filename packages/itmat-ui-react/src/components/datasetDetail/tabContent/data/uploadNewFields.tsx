@@ -12,7 +12,7 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
     const [error, setError] = React.useState('');
     const [uploadFileTabSelected, setUploadFileTabSelected] = React.useState(true);
     const fileRef = React.createRef();
-    console.log(dataVersionId);
+
     if (!expanded) {
         return <button onClick={() => setExpanded(true)}>Upload new annotations</button>;
     }
@@ -33,7 +33,6 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
                                 return (
                                     <button onClick={() => {
                                         if ((fileRef.current as any).files.length === 1) {
-                                            console.log((fileRef.current as any).files[0], typeof (fileRef.current as any).files[0]);
                                             setError('');
                                             createCurationJob({
                                                 variables: {
