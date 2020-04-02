@@ -37,15 +37,15 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                 return (
                     <>
                         <Tree
-                          checkable
-                          onCheck={onCheck as any}
-                          checkedKeys={checkedList}
+                            checkable
+                            onCheck={onCheck as any}
+                            checkedKeys={checkedList}
                         >
                             {fileData.getStudy.files.map((el: IFile) => <Tree.TreeNode title={el.fileName} key={el.id} isLeaf />)}
                         </Tree>
                         <Mutation<any, any>
-                          mutation={EDIT_PROJECT_APPROVED_FILES}
-                          onCompleted={() => setSavedSuccessfully(true)}
+                            mutation={EDIT_PROJECT_APPROVED_FILES}
+                            onCompleted={() => setSavedSuccessfully(true)}
                         >
                             {(editApprovedFiles, { loading: loadingField, error: errorField }) => (
                                 <>
@@ -53,7 +53,7 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                                         loadingField ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button>
                                             : (
                                                 <button
-                                                  style={{ margin: '1rem 0 0 0' }} onClick={() => {
+                                                    style={{ margin: '1rem 0 0 0' }} onClick={() => {
                                                         editApprovedFiles({ variables: { projectId, approvedFiles: checkedList } });
                                                         setSavedSuccessfully(false);
                                                     }}

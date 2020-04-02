@@ -19,11 +19,11 @@ export const UserPage: React.FunctionComponent = (props) => (
             <Switch>
                 <Route
                     path="/users/createNewUser" render={() => (
-                      <>
+                        <>
                             <div className="page_ariane">CREATE NEW USER</div>
                             <div className={`${css.create_new_user} page_content`}>
-                              <CreateNewUser />
-                          </div>
+                                <CreateNewUser />
+                            </div>
                         </>
                     )}
                 />

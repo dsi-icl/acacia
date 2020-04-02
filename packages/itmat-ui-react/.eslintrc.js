@@ -6,7 +6,8 @@ module.exports = {
     extends: [
         'eslint:recommended',
         'plugin:react/recommended',
-        'airbnb',
+        // 'react-app',
+        // 'airbnb',
     ],
     globals: {
         Atomics: 'readonly',
@@ -31,6 +32,13 @@ module.exports = {
         'react/jsx-indent': ['warn', 4],
         'react/jsx-filename-extension': ['warn', { 'extensions': ['.jsx', '.tsx'] }]
     },
+    settings: {
+        'import/resolver': {
+            node: {
+                paths: ["src"]
+            }
+        }
+    },
     overrides: [
         {
             files: ["*.d.ts"],
@@ -47,7 +55,10 @@ module.exports = {
             plugins: [
                 'cypress',
                 'jest'
-            ]
+            ],
+            rules: {
+                'import/no-extraneous-dependencies': ['off'],
+            }
         },
         {
             files: ["*.test.{ts,tsx}"],
@@ -56,7 +67,10 @@ module.exports = {
             },
             plugins: [
                 'jest'
-            ]
+            ],
+            rules: {
+                'import/no-extraneous-dependencies': ['off'],
+            }
         }
     ]
 };

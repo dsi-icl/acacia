@@ -62,9 +62,9 @@ export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedL
     if (checkable) {
         return (
             <Tree
-              checkable
-              onCheck={onCheck}
-              checkedKeys={checkedList}
+                checkable
+                onCheck={onCheck}
+                checkedKeys={checkedList}
             >
                 {renderTreeNodes(makeTree(transformedList))}
             </Tree>

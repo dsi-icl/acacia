@@ -135,7 +135,7 @@ const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availab
                                         });
                                     }} key={el}
                                 >
-{el}
+                                    {el}
                                 </div>
                             );
                         }}

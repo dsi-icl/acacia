@@ -1,7 +1,7 @@
-const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
 const { CREATE_PROJECT, CREATE_STUDY, DELETE_PROJECT } = require('itmat-commons').GQLRequests;
 const { print } = require('graphql');
 const { v4: uuid } = require('uuid');
+const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
 
 describe('Studies page', () => {
     it('admin can add dataset successfully', () => {

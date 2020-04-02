@@ -104,7 +104,7 @@ const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string,
                     if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
                     return (
                         <button
-                          style={{ width: '45%', display: 'inline-block' }} onClick={() => {
+                            style={{ width: '45%', display: 'inline-block' }} onClick={() => {
                                 if (!selectedFile) {
                                     setError('Please select a file.');
                                     setSuccessfullySaved(false);

@@ -70,7 +70,7 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
                     if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
                     return (
                         <button
-                          style={{ width: '45%', display: 'inline-block' }} onClick={() => {
+                            style={{ width: '45%', display: 'inline-block' }} onClick={() => {
                                 if (!selectedFile) {
                                     setError('Please select a file.');
                                     setSuccessfullySaved(false);

@@ -62,7 +62,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
                                     deleteProject({ variables: { projectId } });
                                 }
                             }}
-                          style={{ display: 'inline-block', width: '30%' }}
+                            style={{ display: 'inline-block', width: '30%' }}
                         >
                             Really delete!
                         </button>

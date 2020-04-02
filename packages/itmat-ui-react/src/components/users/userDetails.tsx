@@ -157,8 +157,8 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <br />
                     <br />
                     <Mutation<any, any>
-                      mutation={DELETE_USER}
-                      refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
+                        mutation={DELETE_USER}
+                        refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
                     >
 
                         {(deleteUser, { loading: loadingUserDeletion, error: UserDeletion, data: UserDeletedData }) => {
