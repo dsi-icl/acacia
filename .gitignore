@@ -84,8 +84,6 @@ coverage/
 dist/
 build/
 
-.vscode/
-
 diagnostics/
 
 kubernetes/*.yaml
