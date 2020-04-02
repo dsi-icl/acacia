@@ -10,7 +10,8 @@
         "publish": "lerna run tsc && lerna publish",
         "test:unit": "lerna run --stream --parallel --scope itmat-job-executor test",
         "test:e2e": "echo start-server-and-test to be activated",
-        "test": "npm run test:unit && npm run test:e2e"
+        "test": "npm run test:unit && npm run test:e2e",
+        "lint": "lerna run --stream --no-bail lint"
     },
     "optionalDependencies": {
         "mongodb-client-encryption": "1.0.1"

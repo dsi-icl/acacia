@@ -14,7 +14,9 @@
         "clean": "rimraf -rf ./build",
         "test": "jest",
         "compile": "webpack --config ./config/webpack.config.js",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
     "dependencies": {
         "@babel/preset-env": "7.8.7",
@@ -39,8 +41,12 @@
         "@types/node": "13.9.1",
         "@types/node-fetch": "2.5.5",
         "@types/uuid": "7.0.2",
+        "@typescript-eslint/eslint-plugin": "2.26.0",
+        "@typescript-eslint/parser": "2.26.0",
         "cross-env": "7.0.2",
-        "eslint-plugin-typescript": "0.14.0",
+        "eslint": "6.8.0",
+        "eslint-config-airbnb-base": "^14.1.0",
+        "eslint-plugin-import": "2.20.2",
         "jest": "25.1.0",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
