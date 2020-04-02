@@ -16,8 +16,8 @@
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
         "prepublishOnly": "yarn run build",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
-        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
+        "lint": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts --fix ./"
     },
     "optionalDependencies": {
         "mongodb-client-encryption": "1.0.1"

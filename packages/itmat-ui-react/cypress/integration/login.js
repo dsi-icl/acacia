@@ -1,5 +1,3 @@
-/// <reference types="cypress" />
-// @ts-check
 describe('Login test', () => {
     it('fails to login with wrong password', () => {
         cy.visit('/');

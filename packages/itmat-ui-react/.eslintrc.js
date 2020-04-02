@@ -40,9 +40,23 @@ module.exports = {
         },
         {
             files: ["cypress/**/*.js"],
-            rules: {
-                'spaced-comment': ['off']
-            }
+            env: {
+                'cypress/globals': true,
+                'jest/globals': true
+            },
+            plugins: [
+                'cypress',
+                'jest'
+            ]
+        },
+        {
+            files: ["*.test.{ts,tsx}"],
+            env: {
+                'jest/globals': true
+            },
+            plugins: [
+                'jest'
+            ]
         }
     ]
 };
