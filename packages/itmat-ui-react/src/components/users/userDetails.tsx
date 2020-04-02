@@ -1,14 +1,18 @@
 import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
 import * as React from 'react';
 import { Mutation, Query } from 'react-apollo';
-import { NavLink } from 'react-router-dom';
+import { NavLink, RouteComponentProps } from 'react-router-dom';
 import { DELETE_USER, EDIT_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { Subsection } from '../reusable';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
 
-export const UserDetailsSection: React.FC<{ userId: string }> = ({ userId }) => (
+type UserDetailsSectionProps = RouteComponentProps<{
+    userId: string
+}>;
+
+export const UserDetailsSection: React.FC<UserDetailsSectionProps> = ({ match: { params: { userId } } }) => (
     <Query<any, any> query={GET_USERS} variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId }}>
         {({ loading, error, data }) => {
             if (loading) { return <LoadingBalls />; }

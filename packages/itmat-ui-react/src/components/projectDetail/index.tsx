@@ -9,7 +9,7 @@ import css from './projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
 import { FileTabContent } from './tabContent/file/fileTab';
 
-export const ProjectDetailPage: React.FC<{ projectId: string }> = ({ projectId }) => (
+export const ProjectDetailPage: React.FC<{ match: { params: { projectId: string } } }> = ({ match: { params: { projectId } } }) => (
     <Query<any, any>
         query={GET_PROJECT}
         variables={{ projectId, admin: true }}

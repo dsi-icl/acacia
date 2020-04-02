@@ -9,7 +9,7 @@ import {
 } from './tabContent';
 import { FileRepositoryTabContent } from './tabContent/files/fileTab';
 
-export const DatasetDetailPage: React.FC<{ studyId: string }> = ({ studyId }) => (
+export const DatasetDetailPage: React.FC<{ match: { params: { studyId: string } } }> = ({ match: { params: { studyId } } }) => (
     <Query<any, any>
         query={GET_STUDY}
         variables={{ studyId }}
@@ -40,10 +40,10 @@ export const DatasetDetailPage: React.FC<{ studyId: string }> = ({ studyId }) =>
                     <div className={css.content}>
                         <Switch>
                             <Route path="/datasets/:studyId/dashboard" render={() => <DashboardTabContent studyId={studyId} jobs={data.getStudy.jobs} />} />
-                            <Route path="/datasets/:studyId/data_management" render={({ match }) => <DataManagementTabContentFetch studyId={match.params.studyId} />} />
+                            <Route path="/datasets/:studyId/data_management" component={DataManagementTabContentFetch} />} />
                             <Route path="/datasets/:studyId/files" render={() => <FileRepositoryTabContent studyId={studyId} />} />
                             <Route path="/datasets/:studyId/projects" render={({ match }) => <ProjectsTabContent studyId={match.params.studyId} projectList={data.getStudy.projects} />} />
-                            <Route path="/datasets/:studyId/admin" render={() => <AdminTabContent studyId={studyId} />} />
+                            <Route path="/datasets/:studyId/admin" component={AdminTabContent} />
                             <Route path="/datasets/:studyId/" render={() => <></>} />
                         </Switch>
                     </div>

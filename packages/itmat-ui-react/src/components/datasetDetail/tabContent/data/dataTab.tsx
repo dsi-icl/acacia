@@ -12,9 +12,13 @@ import { FieldListSelectionSection } from './fieldListSelection';
 import css from './tabContent.module.css';
 import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
+import { RouteComponentProps } from 'react-router';
 
+type DataManagementTabContentFetchProps = RouteComponentProps<{
+    studyId: string
+}>;
 
-export const DataManagementTabContentFetch: React.FC<{ studyId: string }> = ({ studyId }) => (
+export const DataManagementTabContentFetch: React.FC<DataManagementTabContentFetchProps> = ({ match: { params: { studyId } } }) => (
     <div className={css.scaffold_wrapper}>
         <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {

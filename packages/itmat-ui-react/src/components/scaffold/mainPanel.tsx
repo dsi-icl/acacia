@@ -10,11 +10,11 @@ import css from './scaffold.module.css';
 export const MainPanel: React.FC = () => (
     <div className={css.main_panel}>
         <Switch>
-            <Route path="/projects/:projectId" render={({ match }) => <ProjectDetailPage projectId={match.params.projectId} />} />
-            <Route path="/projects" render={() => <ProjectListPage />} />
-            <Route path="/datasets/:studyId" render={({ match }) => <DatasetDetailPage studyId={match.params.studyId} />} />
-            <Route path="/datasets" render={() => <DatasetListPage />} />
-            <Route path="/users" render={() => <UserPage />} />
+            <Route path="/projects/:projectId" component={ProjectDetailPage} />
+            <Route path="/projects" component={ProjectListPage} />
+            <Route path="/datasets/:studyId" component={DatasetDetailPage} />
+            <Route path="/datasets" component={DatasetListPage} />
+            <Route path="/users" component={UserPage} />
             <Route path="/" render={() => <></>} />
         </Switch>
     </div>

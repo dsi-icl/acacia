@@ -28,7 +28,7 @@ export const UserPage: React.FC = (props) => (
                     )}
                 />
                 <Route
-                    path="/users/:userId" render={({ match }) => <UserDetailsSection userId={match.params.userId} />}
+                    path="/users/:userId" component={UserDetailsSection} />}
                 />
                 <Route path="/" render={() => <></>} />
             </Switch>

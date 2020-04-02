@@ -1,7 +1,7 @@
 import React from 'react';
 import { Query } from 'react-apollo';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
-import { NavLink } from 'react-router-dom';
+import { NavLink, RouteComponentProps } from 'react-router-dom';
 import { Subsection } from '../../../../reusable';
 import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 import { RoleControlSection } from '../../../../reusable/roleControlSection/roleControlSection';
@@ -11,7 +11,12 @@ import { GrantedFileListSelection } from './fileList';
 import { PatientIdMappingSection } from './patientIdMapping';
 import css from './projectDetail.module.css';
 
-export const ProjectDetail: React.FC<{ projectId: string, studyId: string }> = ({ projectId, studyId }) => (
+type ProjectDetailProps = RouteComponentProps<{
+    projectId: string
+    studyId: string
+}>;
+
+export const ProjectDetail: React.FC<ProjectDetailProps> = ({ match: { params: { projectId, studyId } } }) => (
     <Query<any, any>
         query={GET_PROJECT}
         variables={{ projectId, admin: true }}
