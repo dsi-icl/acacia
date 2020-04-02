@@ -27,7 +27,7 @@ class ITMATInterfaceServer extends Server {
 
             // Operate database migration if necessary
             db.connect(this.config.database)
-                .then(() => objStore.connect())
+                .then(() => objStore.connect((this.config as any).objectStore))
                 .then(() => {
 
                     const jobChangestream = db.collections!.jobs_collection.watch([

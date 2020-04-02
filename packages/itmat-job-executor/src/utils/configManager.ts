@@ -7,7 +7,7 @@ import { IServerConfig } from '../server/server.js';
 
 interface IConfiguration extends IServerConfig {
     database: IDatabaseBaseConfig;
-    swift: IObjectStoreConfig;
+    objectStore: IObjectStoreConfig;
 }
 
 class ConfigurationManager {

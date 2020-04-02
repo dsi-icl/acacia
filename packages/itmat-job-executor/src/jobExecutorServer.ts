@@ -30,7 +30,7 @@ class ITMATJobExecutorServer extends Server {
 
             // Operate database migration if necessary
             db.connect((this.config as any).database)
-                .then(() => objStore.connect())
+                .then(() => objStore.connect((this.config as any).objectStore))
                 .then(() => {
 
                     _this.router = new Router();
