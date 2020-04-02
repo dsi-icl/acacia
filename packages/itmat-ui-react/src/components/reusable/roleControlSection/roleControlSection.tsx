@@ -9,7 +9,7 @@ import { LoadingBalls } from '../icons/loadingBalls';
 import css from './roleControlSection.module.css';
 import { UserListPicker } from '../userSelectionList/userListPicker';
 
-export const RoleControlSection: React.FunctionComponent<{ studyId: string, projectId?: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => (
+export const RoleControlSection: React.FC<{ studyId: string, projectId?: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => (
     <div>
         {
             roles.map((el) => <OneRole key={el.id} role={el} availablePermissions={projectId ? Object.values(permissions.specific_project) : Object.values(permissions.specific_study)} />)
@@ -18,7 +18,7 @@ export const RoleControlSection: React.FunctionComponent<{ studyId: string, proj
     </div>
 );
 
-export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availablePermissions: string[] }> = ({ role, availablePermissions }) => {
+export const OneRole: React.FC<{ role: Models.Study.IRole, availablePermissions: string[] }> = ({ role, availablePermissions }) => {
     const isStudyRole = !role.projectId;
     const { data: userData, loading: userFetchLoading } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
     const [removeRole, { loading: removeRoleLoading }] = useMutation(REMOVE_ROLE, { refetchQueries: [{ query: isStudyRole ? GET_STUDY : GET_PROJECT, variables: isStudyRole ? { studyId: role.studyId } : { projectId: role.projectId, admin: true } }] });
@@ -56,7 +56,7 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availa
     );
 };
 
-export const AddRole: React.FunctionComponent<{ studyId: string, projectId?: string }> = ({ studyId, projectId }) => {
+export const AddRole: React.FC<{ studyId: string, projectId?: string }> = ({ studyId, projectId }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputNameString, setInputNameString] = React.useState('');
 
@@ -85,7 +85,7 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId?: str
     );
 };
 
-const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availablePermissions: string[], originallySelectedPermissions: string[] }> = ({ roleId, availablePermissions, originallySelectedPermissions }) => (
+const PermissionsControlPanel: React.FC<{ roleId: string, availablePermissions: string[], originallySelectedPermissions: string[] }> = ({ roleId, availablePermissions, originallySelectedPermissions }) => (
     <div className={css.permissions_section}>
         {availablePermissions.map((el) => (originallySelectedPermissions.includes(el)
             ? (

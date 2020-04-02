@@ -21,7 +21,7 @@ const { TreeNode } = Tree;
 //     }
 // }
 
-export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedList?: string[], checkable: boolean, fieldList: Models.Field.IFieldEntry[] }> = ({
+export const FieldListSection: React.FC<{ onCheck?: any, checkedList?: string[], checkable: boolean, fieldList: Models.Field.IFieldEntry[] }> = ({
     onCheck, checkedList, checkable, fieldList,
 }) => {
     if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p>; }

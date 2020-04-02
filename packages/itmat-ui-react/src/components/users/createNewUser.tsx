@@ -4,7 +4,7 @@ import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import css from './userList.module.css';
 
-export const CreateNewUser: React.FunctionComponent = (props) => {
+export const CreateNewUser: React.FC = (props) => {
     const [completedCreationId, setCompletedCreationId] = React.useState(undefined);
     const [inputError, setError] = React.useState('');
     const [createUser, { loading }] = useMutation(CREATE_USER, {

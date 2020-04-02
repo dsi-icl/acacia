@@ -8,7 +8,7 @@ import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
 
-export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => (
+export const UserDetailsSection: React.FC<{ userId: string }> = ({ userId }) => (
     <Query<any, any> query={GET_USERS} variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId }}>
         {({ loading, error, data }) => {
             if (loading) { return <LoadingBalls />; }
@@ -42,7 +42,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
     </Query>
 );
 
-export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: {} }) }> = ({ user }) => {
+export const EditUserForm: React.FC<{ user: (IUserWithoutToken & { access?: {} }) }> = ({ user }) => {
     const [inputs, setInputs] = React.useState({ ...user, password: '' });
     const [deleteButtonShown, setDeleteButtonShown] = React.useState(false);
     const [userIsDeleted, setUserIsDeleted] = React.useState(false);

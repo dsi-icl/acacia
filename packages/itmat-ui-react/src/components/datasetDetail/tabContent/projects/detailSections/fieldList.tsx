@@ -8,7 +8,7 @@ import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 
 
-export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }, studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
+export const GrantedFieldListSection: React.FC<{ originalCheckedList: { [fieldTreeId: string]: string[] }, studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId } });
     if (loading) { return <LoadingBalls />; }
     if (error) { return <p>{error.toString()}</p>; }
@@ -24,7 +24,7 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
     return <FieldListSelectionState originalCheckedList={originalCheckedList} projectId={projectId} studyId={studyId} fieldTreeIds={getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees} />;
 };
 
-const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }, projectId: string, studyId: string, fieldTreeIds: string[] }> = ({
+const FieldListSelectionState: React.FC<{ originalCheckedList: { [fieldTreeId: string]: string[] }, projectId: string, studyId: string, fieldTreeIds: string[] }> = ({
     originalCheckedList, projectId, studyId, fieldTreeIds,
 }) => {
     const [selectedTree, setSelectedTree] = React.useState(fieldTreeIds[0]);
@@ -48,7 +48,7 @@ const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { 
     );
 };
 
-const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ selectedTree: string, originalCheckedList: { [fieldTreeId: string]: string[] }, fieldList: IFieldEntry[], studyId: string, projectId: string }> = ({
+const GrantedFieldListSectionSelectedFieldTree: React.FC<{ selectedTree: string, originalCheckedList: { [fieldTreeId: string]: string[] }, fieldList: IFieldEntry[], studyId: string, projectId: string }> = ({
     selectedTree, fieldList, originalCheckedList, projectId, studyId,
 }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList[selectedTree] || []);

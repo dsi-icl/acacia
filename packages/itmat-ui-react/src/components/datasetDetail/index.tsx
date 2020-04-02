@@ -9,7 +9,7 @@ import {
 } from './tabContent';
 import { FileRepositoryTabContent } from './tabContent/files/fileTab';
 
-export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => (
+export const DatasetDetailPage: React.FC<{ studyId: string }> = ({ studyId }) => (
     <Query<any, any>
         query={GET_STUDY}
         variables={{ studyId }}

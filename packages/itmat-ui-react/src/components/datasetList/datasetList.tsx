@@ -4,7 +4,7 @@ import { Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
-export const DatasetList: React.FunctionComponent = (props) => (
+export const DatasetList: React.FC = (props) => (
     <Query<any, any>
         query={WHO_AM_I}
         pollInterval={5000}
@@ -30,7 +30,7 @@ export const DatasetList: React.FunctionComponent = (props) => (
     </Query>
 );
 
-const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => (
+const PickDatasetSection: React.FC<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => (
     <>
         Please pick the study you would like to access:
         {' '}

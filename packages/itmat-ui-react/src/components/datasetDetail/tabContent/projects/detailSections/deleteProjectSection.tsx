@@ -5,7 +5,7 @@ import { Redirect } from 'react-router';
 import { DELETE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
-export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, projectId: string, projectName: string }> = ({ studyId, projectId, projectName }) => {
+export const DeleteProjectSection: React.FC<{ studyId: string, projectId: string, projectName: string }> = ({ studyId, projectId, projectName }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputText, setInput] = React.useState('');
     const [error, setError] = React.useState('');
@@ -33,7 +33,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
             <Mutation<any, any>
                 mutation={DELETE_PROJECT}
                 update={(store) => {
-                // Read the data from our cache for this query.
+                    // Read the data from our cache for this query.
                     const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId, admin: true } });
                     // Add our comment from the mutation to the end.
                     const newProjects = data.getStudy.projects.filter((el: IProject) => el.id !== projectId);

@@ -7,7 +7,7 @@ import { Icons } from '../icons';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './userList.module.css';
 
-export const UserListSection: React.FunctionComponent = (props) => (
+export const UserListSection: React.FC = (props) => (
     <Query<any, any>
         query={GET_USERS}
         variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
@@ -30,7 +30,7 @@ export const UserListSection: React.FunctionComponent = (props) => (
     </Query>
 );
 
-const User: React.FunctionComponent<{ data: Models.UserModels.IUserWithoutToken }> = ({ data }) => (
+const User: React.FC<{ data: Models.UserModels.IUserWithoutToken }> = ({ data }) => (
     <tr>
         <td>{data.username}</td>
         <td>{data.realName}</td>
@@ -40,7 +40,7 @@ const User: React.FunctionComponent<{ data: Models.UserModels.IUserWithoutToken 
     </tr>
 );
 
-const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutToken[] }> = ({ list }) => {
+const UserList: React.FC<{ list: Models.UserModels.IUserWithoutToken[] }> = ({ list }) => {
     const [searchString, setSearchString] = React.useState('');
 
     function highermappingfunction() {

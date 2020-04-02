@@ -3,7 +3,7 @@ import { Mutation } from 'react-apollo';
 import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import css from './login.module.css';
 
-export const LoginBox: React.FunctionComponent = () => {
+export const LoginBox: React.FC = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [passwordInput, setPasswordInput] = React.useState('');
     const [stateError] = React.useState('');

@@ -7,7 +7,7 @@ import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 
-export const DataTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => (
+export const DataTabContent: React.FC<{ studyId: string, projectId: string }> = ({ projectId }) => (
     <div className={css.scaffold_wrapper}>
         <div className={`${css.tab_page_wrapper} ${css.left_panel}`}>
             <Subsection title="Variables">
@@ -34,7 +34,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string, projectI
     </div>
 );
 
-const FieldListSelectionStateProject: React.FunctionComponent<{ fields: { [fieldTreeId: string]: IFieldEntry[] } }> = ({ fields }) => {
+const FieldListSelectionStateProject: React.FC<{ fields: { [fieldTreeId: string]: IFieldEntry[] } }> = ({ fields }) => {
     /* PRECONDITION: it is given (checked by parent component that fields at least have one key */
     const [selectedTree, setSelectedTree] = React.useState(Object.keys(fields)[0]);
 

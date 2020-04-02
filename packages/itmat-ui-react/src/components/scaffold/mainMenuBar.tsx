@@ -6,7 +6,10 @@ import { LOGOUT, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import { Icons } from '../icons';
 import css from './scaffold.module.css';
 
-export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({ projects }) => (
+type MainMenuBarProps = {
+    projects: IProject[]
+}
+export const MainMenuBar: React.FC<MainMenuBarProps> = ({ projects }) => (
     <div className={css.main_menubar}>
         <div>
             <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title="Projects" activeClassName={css.clickedButton}>

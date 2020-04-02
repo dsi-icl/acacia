@@ -3,7 +3,7 @@ import { useApolloClient, useMutation } from 'react-apollo';
 import { UPLOAD_FILE } from 'itmat-commons/dist/graphql/files';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 
-export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const UploadFileSection: React.FC<{ studyId: string }> = ({ studyId }) => {
     const [description, setDescription] = React.useState('');
     const [error, setError] = React.useState('');
     const [success, setSuccess] = React.useState(false);

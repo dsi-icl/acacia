@@ -4,7 +4,7 @@ import { Query } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
-export const ProjectList: React.FunctionComponent = (props) => (
+export const ProjectList: React.FC = (props) => (
     <Query<any, any>
         query={WHO_AM_I}
         pollInterval={5000}
@@ -34,7 +34,7 @@ export const ProjectList: React.FunctionComponent = (props) => (
     </Query>
 );
 
-const PickProjectSection: React.FunctionComponent<{ projects: Models.Study.IProject[] }> = ({ projects }) => (
+const PickProjectSection: React.FC<{ projects: Models.Study.IProject[] }> = ({ projects }) => (
     <>
         You have access to two or more projects. Please pick the one you would like to access:
         {' '}

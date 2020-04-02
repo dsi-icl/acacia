@@ -5,23 +5,21 @@ import * as React from 'react';
 import '../../../css/antdOverride.css';
 import css from './genericUserList.module.css';
 
-const User: React.FunctionComponent<{ user: IUser, onClickCross: (user: IUser) => void }> = ({ user, onClickCross }) => (
+const User: React.FC<{ user: IUser, onClickCross: (user: IUser) => void }> = ({ user, onClickCross }) => (
     <div className={css.userSpan}>
         <span>{`${user.realName} (${user.organisation})`}</span>
         <div className={css.deleteButton} onClick={() => onClickCross(user)}>x</div>
     </div>
 );
 
-const UserList: React.FunctionComponent<{
+const UserList: React.FC<{
     studyId: string,
     projectId?: string,
     submitButtonString: string,
     children: typeof User[],
     availableUserList: IUser[],
     onClickAddButton: (studyId: string, projectId: string | undefined, user: IUser) => void
-}> = ({
-    submitButtonString, onClickAddButton, studyId, projectId, children, availableUserList,
-}) => {
+}> = ({ submitButtonString, onClickAddButton, studyId, projectId, children, availableUserList, }) => {
     const [addUserInput, setAddUserInput] = React.useState<string | undefined>(undefined);
     const selectedUser = availableUserList.filter((el) => el.id === addUserInput)[0] || null;
 

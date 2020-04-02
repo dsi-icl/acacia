@@ -7,7 +7,7 @@ import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import css from './tabContent.module.css';
 
-export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVersionId: string }> = ({ studyId, dataVersionId }) => {
+export const UploadNewFields: React.FC<{ studyId: string, dataVersionId: string }> = ({ studyId, dataVersionId }) => {
     const [expanded, setExpanded] = React.useState(false);
     const [error, setError] = React.useState('');
     const [uploadFileTabSelected, setUploadFileTabSelected] = React.useState(true);
@@ -63,7 +63,7 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
 };
 
 
-const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: string, dataVersionId: string, cancel: (expanded: boolean) => void }> = ({ dataVersionId, studyId, cancel }) => (
+const UploadFieldBySelectingFileFormFetch: React.FC<{ studyId: string, dataVersionId: string, cancel: (expanded: boolean) => void }> = ({ dataVersionId, studyId, cancel }) => (
     <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data, error }) => {
             if (loading) return <LoadingBalls />;
@@ -81,7 +81,7 @@ const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: st
     </Query>
 );
 
-const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string, files: IFile[], dataVersionId: string, cancel: (expanded: boolean) => void }> = ({
+const UploadFieldBySelectingFileForm: React.FC<{ studyId: string, files: IFile[], dataVersionId: string, cancel: (expanded: boolean) => void }> = ({
     cancel, dataVersionId, studyId, files,
 }) => {
     const [error, setError] = React.useState('');

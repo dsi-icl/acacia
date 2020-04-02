@@ -7,7 +7,7 @@ import { ProjectListPage } from '../projectList';
 import { UserPage } from '../users';
 import css from './scaffold.module.css';
 
-export const MainPanel: React.FunctionComponent = () => (
+export const MainPanel: React.FC = () => (
     <div className={css.main_panel}>
         <Switch>
             <Route path="/projects/:projectId" render={({ match }) => <ProjectDetailPage projectId={match.params.projectId} />} />

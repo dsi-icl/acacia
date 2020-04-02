@@ -14,7 +14,7 @@ import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
 
 
-export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => (
+export const DataManagementTabContentFetch: React.FC<{ studyId: string }> = ({ studyId }) => (
     <div className={css.scaffold_wrapper}>
         <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
@@ -42,7 +42,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
 );
 
 
-export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
+export const DataManagement: React.FC<{ data: IStudy, showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
     const [selectedVersion, setSelectedVersion] = React.useState(data.currentDataVersion);
     const [addNewDataSectionShown, setAddNewDataSectionShown] = React.useState(false);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);

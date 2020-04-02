@@ -6,7 +6,7 @@ import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import css from './tabContent.module.css';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
 
-export const AdminTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const AdminTabContent: React.FC<{ studyId: string }> = ({ studyId }) => {
     const { data, loading } = useQuery(GET_STUDY, { variables: { studyId } });
     if (loading) { return <LoadingBalls />; }
 

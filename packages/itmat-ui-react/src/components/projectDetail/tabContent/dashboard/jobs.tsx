@@ -1,7 +1,7 @@
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import * as React from 'react';
 
-export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = ({ jobs }) => (
+export const JobSection: React.FC<{ jobs: IJobEntry<any>[] }> = ({ jobs }) => (
     <div>
         {jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p>
             : (
@@ -24,7 +24,7 @@ export const JobSection: React.FunctionComponent<{ jobs: IJobEntry<any>[] }> = (
     </div>
 );
 
-const OneJob: React.FunctionComponent<{ job: IJobEntry<any> }> = ({ job }) => (
+const OneJob: React.FC<{ job: IJobEntry<any> }> = ({ job }) => (
     <tr>
         <td />
         <td>{job.jobType}</td>

@@ -7,7 +7,7 @@ import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { UploadFileSection } from './uploadFile';
 
-export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => (
+export const FileRepositoryTabContent: React.FC<{ studyId: string }> = ({ studyId }) => (
     <div className={css.scaffold_wrapper}>
         <div className={`${css.tab_page_wrapper} ${css.left_panel}`}>
             <Subsection title="Existing files">

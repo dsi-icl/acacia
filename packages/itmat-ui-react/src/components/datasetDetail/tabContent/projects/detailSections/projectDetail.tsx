@@ -11,7 +11,7 @@ import { GrantedFileListSelection } from './fileList';
 import { PatientIdMappingSection } from './patientIdMapping';
 import css from './projectDetail.module.css';
 
-export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId: string }> = ({ projectId, studyId }) => (
+export const ProjectDetail: React.FC<{ projectId: string, studyId: string }> = ({ projectId, studyId }) => (
     <Query<any, any>
         query={GET_PROJECT}
         variables={{ projectId, admin: true }}

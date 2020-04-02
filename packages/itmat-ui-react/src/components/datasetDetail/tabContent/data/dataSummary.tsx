@@ -10,7 +10,7 @@ import css from './tabContent.module.css';
 // data curation pipeline
 // upload new sets of data
 
-export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({
+export const DataSummaryVisual: React.FC<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({
     studyId, currentVersion, selectedVersion, versions,
 }) => {
     const {
@@ -42,7 +42,7 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selec
 
 
 // //////////////////////// COMPONENTS WITHIN THE PAGE//////////////////////////////////////
-const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => (
+const NumberOfPatients: React.FC<{ studyId: string }> = ({ studyId }) => (
     <div style={{ gridArea: 'patients' }}>
         <div>
             <p>Number of subjects</p>
@@ -59,7 +59,7 @@ const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyI
     </div>
 );
 
-const NewestVersionOfData: React.FunctionComponent<{ version: string }> = ({ version }) => (
+const NewestVersionOfData: React.FC<{ version: string }> = ({ version }) => (
     <div style={{ gridArea: 'version' }}>
         <div>
             <p>Dataset version</p>
@@ -68,7 +68,7 @@ const NewestVersionOfData: React.FunctionComponent<{ version: string }> = ({ ver
     </div>
 );
 
-const VersionTag: React.FunctionComponent<{ tag: string }> = ({ tag }) => {
+const VersionTag: React.FC<{ tag: string }> = ({ tag }) => {
     if (!tag) { return <div style={{ gridArea: 'tag' }}>Current version of data is not tagged.</div>; }
     return (
         <div style={{ gridArea: 'tag' }}>
@@ -80,7 +80,7 @@ const VersionTag: React.FunctionComponent<{ tag: string }> = ({ tag }) => {
     );
 };
 
-const OriginalFile: React.FunctionComponent<{ fileName: string }> = ({ fileName }) => (
+const OriginalFile: React.FC<{ fileName: string }> = ({ fileName }) => (
     <div style={{ gridArea: 'filename' }}>
         <div>
             <p>Data were extracted from</p>
@@ -89,7 +89,7 @@ const OriginalFile: React.FunctionComponent<{ fileName: string }> = ({ fileName 
     </div>
 );
 
-const DateOfUpload: React.FunctionComponent<{ date: string | number /* UNIX timestamp */ }> = ({ date }) => (
+const DateOfUpload: React.FC<{ date: string | number /* UNIX timestamp */ }> = ({ date }) => (
     <div style={{ gridArea: 'date' }}>
         <div>
             <p>Data were uploaded on</p>
@@ -98,7 +98,7 @@ const DateOfUpload: React.FunctionComponent<{ date: string | number /* UNIX time
     </div>
 );
 
-const FileSize: React.FunctionComponent<{ size: string }> = ({ size }) => (
+const FileSize: React.FC<{ size: string }> = ({ size }) => (
     <div style={{ gridArea: 'dummy' }}>
         <div>
             <p>Original data file size</p>
