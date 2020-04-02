@@ -1,11 +1,11 @@
-/// <reference types="cypress" />
+// / <reference types="cypress" />
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
 const { CREATE_PROJECT, CREATE_STUDY, DELETE_PROJECT } = require('itmat-commons').GQLRequests;
 const { print } = require('graphql');
 const { v4: uuid } = require('uuid');
 
-describe('Studies page', function () {
-    it('admin can add dataset successfully', function () {
+describe('Studies page', () => {
+    it('admin can add dataset successfully', () => {
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         cy.visit('/datasets');
@@ -25,22 +25,21 @@ describe('Studies page', function () {
         cy.contains('Submit').should('not.exist');
     });
 
-    it('admin can navigate to dataset details from main page successfully', function () {
-        /* setup: login via API */
+    it('admin can navigate to dataset details from main page successfully', () => {
+    /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }
-        ).then(res => {
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }).then((res) => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
 
 
             cy.visit('/'); cy.get('a[title=Datasets] > div').click();
 
-            cy.url().then(url => {
+            cy.url().then((url) => {
                 expect(url).to.equal(`${Cypress.config().baseUrl}/datasets`);
 
                 /* initial states */
@@ -48,22 +47,21 @@ describe('Studies page', function () {
                 cy.contains('Please pick the study you would like to access:');
                 cy.contains(createdStudyName).click();
 
-                cy.url().then(url => {
+                cy.url().then((url) => {
                     expect(url).to.equal(`${Cypress.config().baseUrl}/datasets/${createdStudyId}/dashboard`);
                 });
             });
         });
     });
 
-    it('admin can create projects (e2e)', function () {
-        /* setup: login via API */
+    it('admin can create projects (e2e)', () => {
+    /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }
-        ).then(res => {
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }).then((res) => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
 
@@ -76,16 +74,16 @@ describe('Studies page', function () {
 
             /* should have created new project and redirected */
             cy.contains(createdProjectName, { timeout: 100000 });
-            cy.url().then(url => {
+            cy.url().then((url) => {
                 expect(url).to.match(new RegExp(`${Cypress.config().baseUrl}/datasets/${createdStudyId}/projects/(\\w|-)+$`));
                 const listOfHeadingsTobeExpected = [
                     'Role',
                     'Patient ID Mapping',
                     'Delete this project',
                     'Granted Fields',
-                    'Granted Files'
+                    'Granted Files',
                 ];
-                listOfHeadingsTobeExpected.forEach(el => {
+                listOfHeadingsTobeExpected.forEach((el) => {
                     cy.get(`h5:contains(${el})`);
                 });
 
@@ -98,23 +96,21 @@ describe('Studies page', function () {
     });
 
 
-
-    it('displays error message when creating new project if name is not provided (e2e)', function () {
-        /* setup: login via API */
+    it('displays error message when creating new project if name is not provided (e2e)', () => {
+    /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }
-        ).then(res => {
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }).then((res) => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
 
             cy.visit(`/datasets/${createdStudyId}/projects`);
 
             /* error bar should not be visible */
-            cy.contains('Add new project', { timeout: 100000 });   // making sure ajax is finished 
+            cy.contains('Add new project', { timeout: 100000 }); // making sure ajax is finished
             cy.contains('Please enter project name.').should('not.exist');
 
             /* clicking the create new user button to go to page */
@@ -123,23 +119,22 @@ describe('Studies page', function () {
         });
     });
 
-    it('admin can delete projects', function () {
-        /* setup: login via API */
+    it('admin can delete projects', () => {
+    /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }
-        ).then(res => {
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }).then((res) => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
 
             /* setup: create the project to be deleted */
             const createdProjectName = uuid().substring(0, 10);
             cy.request('POST', 'http://localhost:3003/graphql',
-                { query: print(CREATE_PROJECT), variables: { studyId: createdStudyId, projectName: createdProjectName } } // no 'approved fields' keys here as it's not available in the ui
-            ).then(res => {
+                { query: print(CREATE_PROJECT), variables: { studyId: createdStudyId, projectName: createdProjectName } }, // no 'approved fields' keys here as it's not available in the ui
+            ).then((res) => {
                 const createdProjectId = res.body.data.createProject.id;
                 expect(createdProjectId).to.be.a('string');
 
@@ -154,7 +149,7 @@ describe('Studies page', function () {
                 cy.get('h5:contains(Projects)');
                 cy.contains(createdProjectName).should('not.exist');
                 cy.contains('Add new project');
-                cy.url().then(url => {
+                cy.url().then((url) => {
                     expect(url).to.equal(`${Cypress.config().baseUrl}/datasets/${createdStudyId}/projects/`);
                 });
             });

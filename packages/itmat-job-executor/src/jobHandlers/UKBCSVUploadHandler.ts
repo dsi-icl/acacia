@@ -21,7 +21,7 @@ export class UKBCSVUploadHandler extends JobHandler {
     public async execute(job: IJobEntry<{ dataVersion: string, versionTag?: string }>) {
         const file: IFile = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: null })!;
         if (!file) {
-            // throw error
+        // throw error
         }
         const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
         const versionId: string = uuid();
@@ -30,7 +30,7 @@ export class UKBCSVUploadHandler extends JobHandler {
             fileStream,
             undefined,
             job,
-            versionId
+            versionId,
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
 
@@ -38,9 +38,9 @@ export class UKBCSVUploadHandler extends JobHandler {
         if (errors.length !== 0) {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors } });
             return;
-        } else {
-            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
         }
+        await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
+
 
         const newDataVersion: IStudyDataVersion = {
             id: versionId,
@@ -51,15 +51,14 @@ export class UKBCSVUploadHandler extends JobHandler {
             uploadDate: new Date().valueOf(),
             fileSize: file.fileSize!,
             extractedFrom: file.fileName,
-            fieldTrees: []
+            fieldTrees: [],
         };
         await db.collections!.studies_collection.updateOne({ id: job.studyId }, {
             $push: { dataVersions: newDataVersion },
             $inc: {
-                currentDataVersion: 1
-            }
+                currentDataVersion: 1,
+            },
 
         });
     }
-
 }

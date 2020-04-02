@@ -12,14 +12,10 @@ const modules = [
     queryResolvers,
     permissionResolvers,
     jobResolvers,
-    fileResolvers
+    fileResolvers,
 ];
 
-const loggingDecorator = (reducerFunction: (parent, args, context, info) => void) => {
-    return async (parent: any, args: any, context: any, info: any) => {
-        return await reducerFunction(parent, args, context, info);
-    };
-};
+const loggingDecorator = (reducerFunction: (parent, args, context, info) => void) => async (parent: any, args: any, context: any, info: any) => await reducerFunction(parent, args, context, info);
 
 const reduceInit: any = { JSON: GraphQLJSON };
 export const resolvers = modules.reduce((a, e) => {

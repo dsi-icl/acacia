@@ -3,9 +3,9 @@
 import { Server } from 'http';
 import { Socket } from 'net';
 import os from 'os';
+import { Logger } from 'itmat-utils';
 import ITMATJobExecutorServer from './jobExecutorServer';
 import config from './utils/configManager';
-import { Logger } from 'itmat-utils';
 
 let interfaceIteration = 0;
 let interfaceStarting = false;
@@ -14,13 +14,11 @@ let interfaceServer;
 let interfaceRouter;
 
 function serverStart() {
-    if (interfaceStarting)
-        return;
+    if (interfaceStarting) return;
     console.info(`Starting server ${interfaceIteration++} ...`);
     interfaceStarting = true;
     interfaceServer = new ITMATJobExecutorServer(config);
     interfaceServer.start().then((itmatRouter: Server) => {
-
         interfaceRouter = itmatRouter;
         interfaceRouter.listen(config.server.port, () => {
             console.info(`Listening at http://${os.hostname()}:${config.server.port}/`);
@@ -32,10 +30,8 @@ function serverStart() {
             .on('error', (error) => {
                 if (error) {
                     Logger.error('An error occurred while starting the HTTP server.', error);
-                    return;
                 }
             });
-
     }).catch((error) => {
         Logger.error('An error occurred while starting the ITMAT job executor.', error);
         Logger.error(error.stack);
@@ -44,7 +40,6 @@ function serverStart() {
 }
 
 function serverSpinning() {
-
     if (interfaceRouter !== undefined) {
         console.info('Renewing server ...');
         console.info(`Destroying ${interfaceSockets.length} sockets ...`);

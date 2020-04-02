@@ -1,10 +1,10 @@
-/// <reference types="cypress" />
+// / <reference types="cypress" />
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
 const { CREATE_PROJECT, CREATE_STUDY, UPLOAD_FILE } = require('itmat-commons').GQLRequests;
 const { print } = require('graphql');
 const { v4: uuid } = require('uuid');
 
-describe('File upload page', function () {
+describe('File upload page', () => {
     it('Admin can load data from a selected file', function () {
         cy.fixture('CSVCurator.tsv').as('file');
 
@@ -14,8 +14,7 @@ describe('File upload page', function () {
         /* setup: create a study via API */
         const createStudyInput = { name: uuid() };
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: createStudyInput }
-        ).then(res => {
+            { query: print(CREATE_STUDY), variables: createStudyInput }).then((res) => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
 
@@ -26,14 +25,14 @@ describe('File upload page', function () {
                 variables: {
                     studyId: createdStudyId,
                     description: 'TESTFILE_NO_ERROR',
-                    file: null
+                    file: null,
                 },
-                query: print(UPLOAD_FILE)
+                query: print(UPLOAD_FILE),
             }));
             form.append('map', JSON.stringify({ 1: ['variables.file'] }));
             form.append('1', new File([this.file], 'CSVCurator.tsv'));
             return cy.form_request('http://localhost:3003/graphql', form);
-        }).then(xhr => {
+        }).then((xhr) => {
             const res = xhr.response;
             const createdFileId = res.body.data.uploadFile.id;
             const createdStudyId = res.body.data.uploadFile.studyId;
@@ -63,7 +62,7 @@ describe('File upload page', function () {
 
             /* jobs panels should be updated */
             cy.contains('DASHBOARD').click();
-            cy.url().then(url => {
+            cy.url().then((url) => {
                 expect(url).to.equal(`${Cypress.config().baseUrl}/datasets/${createdStudyId}/dashboard`);
                 cy.contains('{"dataVersion": "1.0","versionTag": "Correct data"}');
                 cy.contains('Finished', { timeout: 100000 });
@@ -80,8 +79,7 @@ describe('File upload page', function () {
         /* setup: create a study via API */
         const createStudyInput = { name: uuid() };
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: createStudyInput }
-        ).then(res => {
+            { query: print(CREATE_STUDY), variables: createStudyInput }).then((res) => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
 
@@ -92,14 +90,14 @@ describe('File upload page', function () {
                 variables: {
                     studyId: createdStudyId,
                     description: 'TESTFILE_NO_ERROR',
-                    file: null
+                    file: null,
                 },
-                query: print(UPLOAD_FILE)
+                query: print(UPLOAD_FILE),
             }));
             form.append('map', JSON.stringify({ 1: ['variables.file'] }));
             form.append('1', new File([this.file], 'CSVCurator_error5.tsv'));
             return cy.form_request('http://localhost:3003/graphql', form);
-        }).then(xhr => {
+        }).then((xhr) => {
             const res = xhr.response;
             const createdFileId = res.body.data.uploadFile.id;
             const createdStudyId = res.body.data.uploadFile.studyId;
@@ -118,7 +116,7 @@ describe('File upload page', function () {
             // cy.contains('DASHBOARD').click();
             cy.wait(20000);
             cy.visit(`/datasets/${createdStudyId}/dashboard`);
-            cy.url().then(url => {
+            cy.url().then((url) => {
                 expect(url).to.equal(`${Cypress.config().baseUrl}/datasets/${createdStudyId}/dashboard`);
                 cy.get('table').contains('"dataVersion": "1.0"');
                 cy.get('table').contains('"versionTag": "Malformed data"');

@@ -2,8 +2,10 @@ import { ApolloServer } from 'apollo-server-express';
 import bodyParser from 'body-parser';
 import connectMongo from 'connect-mongo';
 import cors from 'cors';
-import express from 'express';
-import { Express, NextFunction, Request, Response } from 'express';
+import express, {
+    Express, NextFunction, Request, Response,
+} from 'express';
+
 import session from 'express-session';
 import http from 'http';
 import { CustomError, Logger } from 'itmat-utils';
@@ -18,12 +20,13 @@ const MongoStore = connectMongo(session);
 
 export class Router {
     private readonly app: Express;
+
     private readonly server: http.Server;
 
     constructor() {
         this.app = express();
 
-        this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
+        this.app.use(cors({ origin: 'http://localhost:3000', credentials: true })); // TO_DO: remove in production
 
         this.app.use(bodyParser.json({ limit: '50mb' }));
         this.app.use(bodyParser.urlencoded({ extended: true }));
@@ -34,7 +37,7 @@ export class Router {
             secret: 'IAmATeapot',
             resave: true,
             saveUninitialized: true,
-            store: new MongoStore({ client: db.client } as any)
+            store: new MongoStore({ client: db.client } as any),
         }));
 
 
@@ -49,19 +52,18 @@ export class Router {
         const gqlServer = new ApolloServer({
             typeDefs: schema,
             resolvers,
-            context: ({ req, res }: any) => {
-                /* Bounce all unauthenticated graphql requests */
-                // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
-                //     throw new ForbiddenError('not logged in');
-                // }
-                return ({ req, res });
-            },
+            context: ({ req, res }: any) =>
+            /* Bounce all unauthenticated graphql requests */
+            // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
+            //     throw new ForbiddenError('not logged in');
+            // }
+                ({ req, res }),
             formatError: (error: any) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
                 // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
                 Logger.error(error);
                 return error;
-            }
+            },
         });
         gqlServer.applyMiddleware({ app: this.app, cors: { origin: 'http://localhost:3000', credentials: true } });
 

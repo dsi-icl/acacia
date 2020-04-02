@@ -8,9 +8,13 @@ import { db } from '../database/database';
 export class ExportProcessor {
     /* document from [ mongo cursor -> flatten document -> input stream -> json2csv -> output stream ] -> swift */
     private fieldInfo?: IFieldEntry[];
+
     private fieldCSVHeaderList?: string[]; // [32-0-0, 32-1-0]
+
     private inputStream?: Readable;
+
     private outputParseStream?: Readable;
+
     constructor(private readonly dataCursor: mongodb.Cursor, private readonly studyId: string, private readonly wantedFields?: string[], private readonly projectId?: string, private readonly patientIdMap?: { [originalId: string]: string }) { }
 
     public async fetchFieldInfo() {
@@ -54,7 +58,7 @@ export class ExportProcessor {
     private formatDataIntoJSON(onePatientData: any): {} {
         const metadata = {
             eid: onePatientData.m_eid,
-            study: onePatientData.m_study
+            study: onePatientData.m_study,
         };
         delete onePatientData.m_eid;
         delete onePatientData.m_study;
@@ -86,6 +90,4 @@ export class ExportProcessor {
     private writeOneLineToCSV(flattenedData: {} | null): void {
         this.inputStream!.push(flattenedData);
     }
-
-
 }

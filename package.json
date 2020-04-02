@@ -19,7 +19,8 @@
         "publish": "lerna run tsc && lerna publish",
         "test:unit": "lerna run --stream --parallel --scope itmat-job-executor test",
         "test": "yarn run test:unit",
-        "lint": "lerna run --stream --no-bail lint"
+        "lint": "lerna run --stream --no-bail lint",
+        "lint:fix": "lerna run --stream --no-bail lint:fix"
     },
     "devDependencies": {
         "lerna": "3.20.2"

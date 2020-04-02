@@ -1,16 +1,15 @@
 // External node module imports
 import { Server as HTTPServer } from 'http';
+import { JobPoller } from 'itmat-utils';
 import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
 import { Server } from './server/server';
-import { JobPoller } from 'itmat-utils';
 import { JobDispatcher } from './jobDispatch/dispatcher';
 import { UKBCSVUploadHandler } from './jobHandlers/UKBCSVUploadHandler';
 import { UKBFieldInfoUploadHandler } from './jobHandlers/UKBFieldInfoUploadHandler';
 
 class ITMATJobExecutorServer extends Server {
-
     private router;
 
     constructor(config) {
@@ -27,12 +26,10 @@ class ITMATJobExecutorServer extends Server {
     public start(): Promise<HTTPServer> {
         const _this = this;
         return new Promise((resolve, reject) => {
-
-            // Operate database migration if necessary
+        // Operate database migration if necessary
             db.connect((this.config as any).database)
                 .then(() => objStore.connect())
                 .then(() => {
-
                     _this.router = new Router();
 
                     const jobDispatcher = new JobDispatcher();
@@ -46,13 +43,12 @@ class ITMATJobExecutorServer extends Server {
                         identity: 'me',
                         jobCollection: db.collections!.jobs_collection,
                         pollingInterval: (this.config as any).pollingInterval,
-                        action: jobDispatcher.dispatch
+                        action: jobDispatcher.dispatch,
                     });
                     poller.setInterval();
 
                     // Return the Express application
                     return resolve(_this.router.getApp());
-
                 }).catch((err) => reject(err));
         });
     }

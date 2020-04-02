@@ -21,7 +21,7 @@ export const userResolvers = {
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
             const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
-        }
+        },
     },
     User: {
         access: async (user: IUser, arg: any, context: any): Promise<{ projects: IProject[], studies: IStudy[], id: string }> => {
@@ -50,7 +50,7 @@ export const userResolvers = {
                         a.studies.push(e.studyId);
                     }
                     return a;
-                }, init
+                }, init,
             );
 
             const projects: IProject[] = await db.collections!.projects_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null }).toArray();
@@ -83,7 +83,7 @@ export const userResolvers = {
             }
 
             return user.email;
-        }
+        },
     },
     Mutation: {
         login: async (parent: object, args: any, context: any, info: any): Promise<object> => {
@@ -111,7 +111,7 @@ export const userResolvers = {
         },
         logout: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            const req: Express.Request = context.req;
+            const { req } = context;
             if (requester === undefined || requester === null) {
                 return makeGenericReponse(context.req.user);
             }
@@ -135,7 +135,9 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
+            const {
+                username, type, realName, email, emailNotificationsActivated, password, description, organisation,
+            }: {
                 username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
 
@@ -162,7 +164,7 @@ export const userResolvers = {
                 realName,
                 email,
                 organisation,
-                emailNotificationsActivated
+                emailNotificationsActivated,
             });
 
             return createdUser;
@@ -178,20 +180,22 @@ export const userResolvers = {
         },
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
+            const {
+                id, username, type, realName, email, emailNotificationsActivated, password, description, organisation,
+            }: {
                 id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
             } = args.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
             if (requester.type === Models.UserModels.userTypes.ADMIN) {
-                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ id, deleted: null })!; // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     throw new ApolloError('User not found');
                 }
             }
             // if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
-                // throw new ApolloError('Non-admin users are not authorised to change user type.');
+            // throw new ApolloError('Non-admin users are not authorised to change user type.');
             // }
 
             const fieldsToUpdate: any = {
@@ -202,7 +206,7 @@ export const userResolvers = {
                 emailNotificationsActivated,
                 password,
                 description,
-                organisation
+                organisation,
             };
 
             /* check email is valid form */
@@ -225,10 +229,9 @@ export const userResolvers = {
             const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
             if (updateResult.ok === 1) {
                 return updateResult.value;
-            } else {
-                throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }
-        }
+            throw new ApolloError('Server error; no entry or more than one entry has been updated.');
+        },
     },
-    Subscription: {}
+    Subscription: {},
 };

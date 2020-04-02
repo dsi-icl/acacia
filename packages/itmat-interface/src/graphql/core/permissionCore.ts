@@ -26,7 +26,6 @@ export class PermissionCore {
                 throw new ApolloError(`"${each}" is not a valid permission.`, errorCodes.CLIENT_MALFORMED_INPUT);
             }
         }
-        return;
     }
 
     public async getAllRolesOfStudyOrProject(studyId: string, projectId?: string): Promise<IRole[]> {
@@ -34,7 +33,6 @@ export class PermissionCore {
     }
 
     public async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, studyId: string, projectId?: string): Promise<boolean> {
-
         if (user === undefined) {
             return false;
         }
@@ -47,16 +45,16 @@ export class PermissionCore {
         const aggregationPipeline = [
             { $match: { studyId, projectId, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
             { $group: { _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
-            { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
+            { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } },
         ];
         const result: { _id: string, arrPrivileges: string[] }[] = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
         if (result.length !== 1) {
             throw new ApolloError('Internal error occurred when checking user privileges.', errorCodes.DATABASE_ERROR);
         }
-        const hisPrivileges = result[0].arrPrivileges;   // example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
+        const hisPrivileges = result[0].arrPrivileges; // example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
 
         /* checking privileges */
-        for (let i = 0, length = needOneOfThesePermissions.length; i < length; i++) {
+        for (let i = 0, { length } = needOneOfThesePermissions; i < length; i++) {
             if (hisPrivileges.includes(needOneOfThesePermissions[i])) {
                 return true;
             }
@@ -67,7 +65,7 @@ export class PermissionCore {
     public async removeRole(roleId: string): Promise<void> {
         const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         if (updateResult.ok === 1) {
-            return;
+
         } else {
             throw new ApolloError('Cannot delete role.', errorCodes.DATABASE_ERROR);
         }
@@ -87,7 +85,7 @@ export class PermissionCore {
         }
         const updateResult = await db.collections!.roles_collection.updateMany(queryObj, { $set: { deleted: new Date().valueOf() } });
         if (updateResult.result.ok === 1) {
-            return;
+
         } else {
             throw new ApolloError('Cannot delete role(s).', errorCodes.DATABASE_ERROR);
         }
@@ -114,25 +112,25 @@ export class PermissionCore {
         const result: BulkWriteResult = await bulkop.execute();
         if (result.ok === 1) {
             return await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
-        } else {
-            throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
         }
+        throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
 
-        // const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: null }, updateObj, { returnOriginal: false });
-        // if (updateResult.ok === 1) {
-        //     return updateResult.value;
-        // } else {
-        // }
+
+    // const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: null }, updateObj, { returnOriginal: false });
+    // if (updateResult.ok === 1) {
+    //     return updateResult.value;
+    // } else {
+    // }
     }
 
     public async addRoleToStudyOrProject(opt: ICreateRoleInput): Promise<IRole> {
-        // /* check that all the permissions really exist */
-        // const possiblePermissions = Object.values(permissions);
-        // opt.permissions.forEach(el => {
-        //     if (!possiblePermissions.includes(el)) {
-        //         throw new ApolloError(`"${el}" is not in the possible permissions: [${JSON.stringify(possiblePermissions)}]`, errorCodes.CLIENT_MALFORMED_INPUT);
-        //     }
-        // });
+    // /* check that all the permissions really exist */
+    // const possiblePermissions = Object.values(permissions);
+    // opt.permissions.forEach(el => {
+    //     if (!possiblePermissions.includes(el)) {
+    //         throw new ApolloError(`"${el}" is not in the possible permissions: [${JSON.stringify(possiblePermissions)}]`, errorCodes.CLIENT_MALFORMED_INPUT);
+    //     }
+    // });
 
         // /* check that study or project exists and the role does not already exist */
         // const queryObj = opt.projectId === undefined ? { study: opt.studyId, deleted: null } : { study: opt.studyId, project: opt.projectId, deleted: null };
@@ -153,14 +151,13 @@ export class PermissionCore {
             users: [],
             studyId: opt.studyId,
             projectId: opt.projectId,
-            deleted: null
+            deleted: null,
         };
         const updateResult = await db.collections!.roles_collection.insertOne(role);
         if (updateResult.result.ok === 1 && updateResult.insertedCount === 1) {
             return role;
-        } else {
-            throw new ApolloError(`Cannot create role. nInserted: ${updateResult.insertedCount}`, errorCodes.DATABASE_ERROR);
         }
+        throw new ApolloError(`Cannot create role. nInserted: ${updateResult.insertedCount}`, errorCodes.DATABASE_ERROR);
     }
 }
 

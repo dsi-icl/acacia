@@ -14,13 +14,13 @@ export const studyResolvers = {
     Query: {
         getStudy: async (parent: object, args: any, context: any, info: any): Promise<IStudy | null> => {
             const requester: IUser = context.req.user;
-            const studyId: string = args.studyId;
+            const { studyId } = args;
 
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
-                studyId
+                studyId,
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
@@ -28,7 +28,7 @@ export const studyResolvers = {
         },
         getProject: async (parent: object, args: any, context: any, info: any): Promise<IProject | null> => {
             const requester: IUser = context.req.user;
-            const projectId: string = args.projectId;
+            const { projectId } = args;
 
             /* get project */
             const project: IProject | null = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
@@ -42,13 +42,13 @@ export const studyResolvers = {
                 [permissions.specific_project.specific_project_readonly_access],
                 requester,
                 project.studyId,
-                projectId
+                projectId,
             );
 
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
-                project.studyId
+                project.studyId,
             );
 
             if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
@@ -62,34 +62,22 @@ export const studyResolvers = {
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
-                studyId
+                studyId,
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             const result = await db.collections!.field_dictionary_collection.find({ studyId, fieldTreeId }).toArray();
 
             return result;
-        }
+        },
     },
     Study: {
-        projects: async (study: IStudy) => {
-            return await db.collections!.projects_collection.find({ studyId: study.id, deleted: null }).toArray();
-        },
-        jobs: async (study: IStudy) => {
-            return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
-        },
-        roles: async (study: IStudy) => {
-            return await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray();
-        },
-        files: async (study: IStudy) => {
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
-        },
-        numOfSubjects: async (study: IStudy) => {
-            return await db.collections!.data_collection.countDocuments({ m_study: study.id });
-        },
-        currentDataVersion: async (study: IStudy) => {
-            return study.currentDataVersion === -1 ? null : study.currentDataVersion;
-        }
+        projects: async (study: IStudy) => await db.collections!.projects_collection.find({ studyId: study.id, deleted: null }).toArray(),
+        jobs: async (study: IStudy) => await db.collections!.jobs_collection.find({ studyId: study.id }).toArray(),
+        roles: async (study: IStudy) => await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray(),
+        files: async (study: IStudy) => await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray(),
+        numOfSubjects: async (study: IStudy) => await db.collections!.data_collection.countDocuments({ m_study: study.id }),
+        currentDataVersion: async (study: IStudy) => (study.currentDataVersion === -1 ? null : study.currentDataVersion),
     },
     Project: {
         fields: async (project: IProject) => {
@@ -104,21 +92,16 @@ export const studyResolvers = {
             }, {});
             return fields;
         },
-        jobs: async (project: IProject) => {
-            return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
-        },
-        files: async (project: IProject) => {
-            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
-        },
+        jobs: async (project: IProject) => await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray(),
+        files: async (project: IProject) => await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray(),
         patientMapping: async (project: IProject) => {
             /* check permission */
 
             const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { patientMapping: 1 } });
             if (result && result.patientMapping) {
                 return result.patientMapping;
-            } else {
-                return null;
             }
+            return null;
         },
         approvedFields: async (project: IProject) => {
             /* check permission */
@@ -126,26 +109,22 @@ export const studyResolvers = {
             const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { approvedFields: 1 } });
             if (result && result.approvedFields) {
                 return result.approvedFields;
-            } else {
-                return null;
             }
+            return null;
         },
-        approvedFiles: async (project: IProject) => {
-            /* check permission */
+        approvedFiles: async (project: IProject) =>
+        /* check permission */
 
-            return project.approvedFiles;
-        },
-        roles: async (project: IProject) => {
-            return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray();
-        },
+            project.approvedFiles,
+        roles: async (project: IProject) => await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray(),
         iCanEdit: async (project: IProject) => { // TO_DO
             const result = await db.collections!.roles_collection.findOne({
                 studyId: project.studyId,
-                projectId: project.id
+                projectId: project.id,
                 // permissions: permissions.specific_project.specifi
             });
             return true;
-        }
+        },
     },
     Mutation: {
         createStudy: async (parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
@@ -210,12 +189,11 @@ export const studyResolvers = {
             return resultingProject;
         },
         editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
-
             /* check privileges */
 
             /* check study id for the project */
             const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
-            const studyId = project.studyId;
+            const { studyId } = project;
 
             /* check all the adds are valid */
             // const resultFields: string[] = fieldCore.getFieldsOfStudy(studyId, false, changes.add);
@@ -242,20 +220,19 @@ export const studyResolvers = {
             /* create a new dataversion with the same contentId */
             const newDataVersion: IStudyDataVersion = {
                 ...selectedataVersionFiltered[0],
-                id: uuid()
+                id: uuid(),
             };
 
             /* add this to the database */
             const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
-                $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 }
+                $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 },
             }, { returnOriginal: false });
 
             if (result.ok === 1) {
                 return result.value;
-            } else {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
-        }
+            throw new ApolloError(errorCodes.DATABASE_ERROR);
+        },
     },
-    Subscription: {}
+    Subscription: {},
 };

@@ -7,7 +7,6 @@ import { Server } from './server/server';
 import { pubsub, subscriptionEvents } from './graphql/pubsub';
 
 class ITMATInterfaceServer extends Server {
-
     private router;
 
     constructor(config) {
@@ -24,27 +23,27 @@ class ITMATInterfaceServer extends Server {
     public start(): Promise<HTTPServer> {
         const _this = this;
         return new Promise((resolve, reject) => {
-
-            // Operate database migration if necessary
+        // Operate database migration if necessary
             db.connect(this.config.database)
                 .then(() => objStore.connect())
                 .then(() => {
-
                     const jobChangestream = db.collections!.jobs_collection.watch([
-                        { $match: { operationType: { $in: ['update', 'insert'] } } }
+                        { $match: { operationType: { $in: ['update', 'insert'] } } },
                     ], { fullDocument: 'updateLookup' });
-                    jobChangestream.on('change', data => {
-                        if (data.operationType === 'update' &&
-                            data.updateDescription &&
-                            data.updateDescription.updatedFields &&
-                            data.updateDescription.updatedFields.status
+                    jobChangestream.on('change', (data) => {
+                        if (data.operationType === 'update'
+                            && data.updateDescription
+                            && data.updateDescription.updatedFields
+                            && data.updateDescription.updatedFields.status
                         ) {
-                            pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, { subscribeToJobStatusChange: {
-                                jobId: data.fullDocument.id,
-                                studyId: data.fullDocument.studyId,
-                                newStatus: data.fullDocument.status,
-                                errors: data.fullDocument.status === 'error' ? data.fullDocument.errors : null
-                            } });
+                            pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, {
+                                subscribeToJobStatusChange: {
+                                    jobId: data.fullDocument.id,
+                                    studyId: data.fullDocument.studyId,
+                                    newStatus: data.fullDocument.status,
+                                    errors: data.fullDocument.status === 'error' ? data.fullDocument.errors : null,
+                                },
+                            });
                         }
                     });
 
@@ -52,7 +51,6 @@ class ITMATInterfaceServer extends Server {
 
                     // Return the Express application
                     return resolve(_this.router.getApp());
-
                 }).catch((err) => reject(err));
         });
     }

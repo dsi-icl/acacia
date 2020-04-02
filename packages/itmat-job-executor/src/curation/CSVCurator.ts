@@ -8,7 +8,7 @@ export interface IDataEntry {
     m_jobId: string; // the id of the job that causes this upload
     m_eid: string; // patient Id
     m_study: string; // study Id
-    m_versionId: string; // data version Id 
+    m_versionId: string; // data version Id
     [field: string]: {
         [instance: string]: {
             [array: number]: number | string
@@ -35,16 +35,21 @@ export class CSVCurator {
      * - parse / encoding error
      */
     private _header: (IFieldDescriptionObject | null)[]; // eslint:disable-line
+
     private _numOfSubj: number; // eslint:disable-line
+
     private _errored: boolean; // eslint:disable-line
+
     private _errors: string[]; // eslint:disable-line
 
     constructor(
         private readonly dataCollection: Collection,
         private readonly incomingWebStream: NodeJS.ReadableStream,
-        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
+        private readonly parseOptions: csvparse.Options = {
+            delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true,
+        },
         private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
-        private readonly versionId: string
+        private readonly versionId: string,
     ) {
         this._header = [null]; // the first element is subject id
         this._numOfSubj = 0;
@@ -89,7 +94,7 @@ export class CSVCurator {
                             row: line,
                             parsedHeader: this._header,
                             job: this.job,
-                            versionId: this.versionId
+                            versionId: this.versionId,
                         });
 
                         if (error) {
@@ -111,13 +116,13 @@ export class CSVCurator {
                         if (this._numOfSubj > 999) {
                             this._numOfSubj = 0;
                             await bulkInsert.execute((err: Error) => {
-                                if (err) { Logger.error((err as any).writeErrors[1].err); return; }
+                                if (err) { Logger.error((err as any).writeErrors[1].err); }
                             });
                             bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
                         }
                         next();
                     }
-                }
+                },
             });
 
             uploadWriteStream.on('finish', async () => {
@@ -130,7 +135,7 @@ export class CSVCurator {
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
-                        if (err) { Logger.error(err); return; }
+                        if (err) { Logger.error(err); }
                     });
                 }
 
@@ -155,18 +160,18 @@ export function processHeader(header: string[]): { error?: string[], parsedHeade
     for (const each of header) {
         if (colNum === 0) {
             parsedHeader[0] = null;
+        } else if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
+            error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
+            parsedHeader[colNum] = null;
         } else {
-            if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
-                error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
-                parsedHeader[colNum] = null;
-            } else {
-                const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
-                const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
-                const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
-                const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
-                parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
-                fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
-            }
+            const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
+            const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
+            const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
+            const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
+            parsedHeader[colNum] = {
+                fieldId, timepoint, measurement, datatype,
+            };
+            fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
         }
         colNum++;
     }
@@ -180,14 +185,16 @@ export function processHeader(header: string[]): { error?: string[], parsedHeade
     return ({ parsedHeader, error: error.length === 0 ? undefined : error });
 }
 
-export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: IDataEntry } { // eslint:disable-line
+export function processDataRow({
+    lineNum, row, parsedHeader, job, versionId,
+}: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: IDataEntry } { // eslint:disable-line
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;
     const dataEntry: any = {
         m_jobId: job.id,
         m_study: job.studyId,
-        m_versionId: versionId
+        m_versionId: versionId,
     };
 
     if (row.length !== parsedHeader.length) {
@@ -218,47 +225,49 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
             colIndex++;
             continue;
         }
-        const { fieldId, timepoint, measurement, datatype } = parsedHeader[colIndex] as IFieldDescriptionObject;
+        const {
+            fieldId, timepoint, measurement, datatype,
+        } = parsedHeader[colIndex] as IFieldDescriptionObject;
 
         /* adding value to dataEntry */
         let value: any;
         try {
             switch (datatype) {
-                case 'c': // categorical
-                    value = each;
-                    break;
-                case 'd': // decimal
-                    if (!/^\d+(.\d+)?$/.test(each)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
-                        colIndex++;
-                        continue;
-                    }
-                    value = parseFloat(each);
-                    break;
-                case 'i': // integer
-                    if (!/^\d+$/.test(each)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
-                        colIndex++;
-                        continue;
-                    }
-                    value = parseInt(each, 10);
-                    break;
-                case 'b': // boolean
-                    if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
-                        value = each.toLowerCase() === 'true';
-                    } else {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
-                        colIndex++;
-                        continue;
-                    }
-                    break;
-                case 't':
-                    value = each;
-                    break;
-                default:
-                    error.push(`Line ${lineNum}: Invalid data type '${datatype}'`);
+            case 'c': // categorical
+                value = each;
+                break;
+            case 'd': // decimal
+                if (!/^\d+(.\d+)?$/.test(each)) {
+                    error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
                     colIndex++;
                     continue;
+                }
+                value = parseFloat(each);
+                break;
+            case 'i': // integer
+                if (!/^\d+$/.test(each)) {
+                    error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
+                    colIndex++;
+                    continue;
+                }
+                value = parseInt(each, 10);
+                break;
+            case 'b': // boolean
+                if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
+                    value = each.toLowerCase() === 'true';
+                } else {
+                    error.push(`Line ${lineNum} column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
+                    colIndex++;
+                    continue;
+                }
+                break;
+            case 't':
+                value = each;
+                break;
+            default:
+                error.push(`Line ${lineNum}: Invalid data type '${datatype}'`);
+                colIndex++;
+                continue;
             }
         } catch (e) {
             error.push(e.toString());

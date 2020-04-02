@@ -15,10 +15,12 @@ class QueryHandler {
             if (document.projectId) {
                 const project: IProject = await db.collections!.projects_collection.findOne({ id: document.projectId })!;
                 if (project === null || project === undefined) {
-                    await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
-                        error: 'Project does not exist or has been deleted.',
-                        status: 'FINISHED WITH ERROR'
-                    }});
+                    await db.collections!.queries_collection.findOneAndUpdate({ id }, {
+                        $set: {
+                            error: 'Project does not exist or has been deleted.',
+                            status: 'FINISHED WITH ERROR',
+                        },
+                    });
                     return;
                 }
                 const mapping = project.patientMapping;
@@ -28,21 +30,24 @@ class QueryHandler {
                 });
             }
 
-            await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
-                queryResult: JSON.stringify(result),
-                status: 'FINISHED'
-            }});
+            await db.collections!.queries_collection.findOneAndUpdate({ id }, {
+                $set: {
+                    queryResult: JSON.stringify(result),
+                    status: 'FINISHED',
+                },
+            });
             return;
         } catch (e) {
             /* log */
             Logger.error(e.toString());
 
             /* update query status */
-            await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
-                error: e.toString(),
-                status: 'FINISHED WITH ERROR'
-            }});
-            return;
+            await db.collections!.queries_collection.findOneAndUpdate({ id }, {
+                $set: {
+                    error: e.toString(),
+                    status: 'FINISHED WITH ERROR',
+                },
+            });
         }
     }
 }

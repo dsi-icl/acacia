@@ -26,7 +26,7 @@ export class QueryCore {
             cancelled: false,
             data_requested: JSON.parse(queryString).data_requested,
             cohort: JSON.parse(queryString).cohort,
-            new_fields: JSON.parse(queryString).new_fields
+            new_fields: JSON.parse(queryString).new_fields,
         };
         await db.collections!.queries_collection.insertOne(query);
         return query;
@@ -34,9 +34,7 @@ export class QueryCore {
 
     public async getUsersQuery_NoResult(userId: string): Promise<IQueryEntry[]> {
         return db.collections!.queries_collection.find({ requester: userId }, { projection: { _id: 0, claimedBy: 0, queryResult: 0 } }).toArray();
-
     }
-
 }
 
 export const queryCore = Object.freeze(new QueryCore());

@@ -11,12 +11,9 @@ interface IConfiguration extends IServerConfig {
 }
 
 class ConfigurationManager {
-
     public static expand(configurationFile: string): IConfiguration {
-
         try {
             if (fs.existsSync(configurationFile)) {
-
                 const content = fs.readFileSync(configurationFile, 'utf8');
 
                 return merge(configDefaults, JSON.parse(content));
@@ -27,7 +24,6 @@ class ConfigurationManager {
 
         return configDefaults;
     }
-
 }
 
 export default ConfigurationManager.expand(process.env.TESTING === 'true' ? 'config/config.test.json' : 'config/config.json');

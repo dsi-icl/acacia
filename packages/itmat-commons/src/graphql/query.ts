@@ -45,4 +45,3 @@ export const GET_QUERY_RESULT = gql`
         }
     }
 `;
-

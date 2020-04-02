@@ -15,7 +15,7 @@ export const permissionResolvers = {
         users: async (role: IRole): Promise<IUser[]> => {
             const listOfUsers = role.users;
             return await (db.collections!.users_collection.find({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0 } }).toArray());
-        }
+        },
     },
     Mutation: {
         addRoleToStudyOrProject: async (parent: object, args: { studyId?: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
@@ -29,12 +29,12 @@ export const permissionResolvers = {
             }
 
             /* check whether the target study or project exists */
-            if (studyId && projectId) {  // if both study id and project id are provided then just make sure they belong to each other
+            if (studyId && projectId) { // if both study id and project id are provided then just make sure they belong to each other
                 const resultProject = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
                 if (resultProject.studyId !== studyId) {
                     throw new ApolloError('The project provided does not belong to the study provided', errorCodes.CLIENT_MALFORMED_INPUT);
                 }
-            } else if (studyId) {  // if only study id is provided
+            } else if (studyId) { // if only study id is provided
                 await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             } else if (projectId) {
                 await studyCore.findOneProject_throwErrorIfNotExist(projectId);
@@ -44,11 +44,13 @@ export const permissionResolvers = {
             return result;
         },
         editRole: async (parent: object, args: { roleId: string, name?: string, userChanges?: { add: string[], remove: string[] }, permissionChanges?: { add: string[], remove: string[] } }, context: any, info: any): Promise<IRole> => {
-            const { roleId, name, permissionChanges, userChanges } = args;
+            const {
+                roleId, name, permissionChanges, userChanges,
+            } = args;
 
             /* check permission */
 
-            /* check whether all the permissions are valid */  // TO_DO: permission changes are valid or invalid depending on project.
+            /* check whether all the permissions are valid */ // TO_DO: permission changes are valid or invalid depending on project.
             // const allRequestedPermissionChanges: string[] = [...permissionChanges.add, ...permissionChanges.remove];
             // permissionCore.validatePermissionInput_throwErrorIfNot(allRequestedPermissionChanges);
 
@@ -68,7 +70,7 @@ export const permissionResolvers = {
             /* remove the role */
             await permissionCore.removeRole(roleId);
             return makeGenericReponse(roleId);
-        }
+        },
     },
-    Subscription: {}
+    Subscription: {},
 };

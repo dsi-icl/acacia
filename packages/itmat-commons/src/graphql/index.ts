@@ -9,4 +9,6 @@ import * as study from './study';
 import * as user from './user';
 import * as subscription from './subscription';
 
-export const GQLRequests = { ...subscription, ...appUsers, ...curation, ...fields, ...files, ...permission, ...projects, ...query, ...study, ...user };
+export const GQLRequests = {
+    ...subscription, ...appUsers, ...curation, ...fields, ...files, ...permission, ...projects, ...query, ...study, ...user,
+};

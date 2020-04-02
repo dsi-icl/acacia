@@ -1,7 +1,7 @@
-/// <reference types="cypress" />
+// / <reference types="cypress" />
 // @ts-check
-describe('Login test', function() {
-    it('fails to login with wrong password', function() {
+describe('Login test', () => {
+    it('fails to login with wrong password', () => {
         cy.visit('/');
         cy.get('#username_input').type('chon.sou');
         cy.get('#password_input').type('wrongpassword');
@@ -9,7 +9,7 @@ describe('Login test', function() {
         cy.contains('Incorrect password.');
     });
 
-    it('fails to login with wrong username', function() {
+    it('fails to login with wrong username', () => {
         cy.visit('/');
         cy.get('#username_input').type('nobody');
         cy.get('#password_input').type('wrongpassword');
@@ -17,11 +17,11 @@ describe('Login test', function() {
         cy.contains('User does not exist.');
     });
 
-    it('logs in successfully', function() {
+    it('logs in successfully', () => {
         cy.visit('/');
         cy.get('#username_input').type('chon.sou');
         cy.get('#password_input').type('admin');
         cy.get('#loginButton').click();
-        // TO_DO: add snapshot
+    // TO_DO: add snapshot
     });
 });

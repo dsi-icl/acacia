@@ -41,8 +41,8 @@ export const jobResolvers = {
                 cancelled: false,
                 data: {
                     dataVersion: args.version,
-                    versionTag: args.tag
-                }
+                    versionTag: args.tag,
+                },
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
@@ -73,8 +73,8 @@ export const jobResolvers = {
                 cancelled: false,
                 data: {
                     dataVersionId: args.dataVersionId,
-                    tag: args.tag
-                }
+                    tag: args.tag,
+                },
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
@@ -82,14 +82,14 @@ export const jobResolvers = {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
             return job;
-        }
+        },
     },
     Subscription: {
         subscribeToJobStatusChange: {
             subscribe: withFilter(
                 () => pubsub.asyncIterator(subscriptionEvents.JOB_STATUS_CHANGE),
-                (incoming, variables) => incoming.subscribeToJobStatusChange.studyId === variables.studyId
-            )
-        }
-    }
+                (incoming, variables) => incoming.subscribeToJobStatusChange.studyId === variables.studyId,
+            ),
+        },
+    },
 };

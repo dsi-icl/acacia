@@ -7,7 +7,7 @@ export const fileDownloadController = async (req: Request, res: Response) => {
     const requestedFile = req.params.fileId;
 
     try {
-        /* check permission */
+    /* check permission */
 
         /* download file */
         const file: IFile = await db.collections!.files_collection.findOne({ id: requestedFile, deleted: null })!;
@@ -23,6 +23,5 @@ export const fileDownloadController = async (req: Request, res: Response) => {
         return;
     } catch (e) {
         res.status(500).json(e);
-        return;
     }
 };

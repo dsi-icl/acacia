@@ -5,7 +5,6 @@ export interface IServerBaseConfig {
 }
 
 export abstract class ServerBase<T extends IServerBaseConfig> {
-
     protected config: T;
 
     constructor(config: T) {

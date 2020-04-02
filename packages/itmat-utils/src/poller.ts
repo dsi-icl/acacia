@@ -11,12 +11,17 @@ export interface IJobPollerConfig {
 
 export class JobPoller {
     private intervalObj?: NodeJS.Timer;
+
     private readonly matchObj: any;
 
     private readonly identity: string;
+
     private readonly jobType?: string;
+
     private readonly jobCollection: mongodb.Collection;
+
     private readonly pollingInterval: number;
+
     private readonly action: (document: any) => void;
 
     constructor(config: IJobPollerConfig) {
@@ -30,8 +35,8 @@ export class JobPoller {
         this.checkForJobs = this.checkForJobs.bind(this);
         this.matchObj = {
             claimedBy: undefined,
-            status: 'QUEUED'
-            /*, lastClaimed: more then 0 */
+            status: 'QUEUED',
+        /* , lastClaimed: more then 0 */
         };
 
         /* if this.jobType = config.jobType is undefined that this poller polls every job type */
@@ -50,11 +55,10 @@ export class JobPoller {
                 $set: {
                     claimedBy: this.identity,
                     lastClaimed: new Date().valueOf(),
-                    status: 'PROCESSING'
-                }
+                    status: 'PROCESSING',
+                },
             });
         } catch (e) {
-
             return;
         }
 

@@ -3,9 +3,9 @@ const { DELETE_USER, CREATE_USER } = require('itmat-commons').GQLRequests;
 const { print } = require('graphql');
 
 
-describe('User management page', function() {
-    it('admin can create user (e2e)', function() {
-        /* setup: login via API */
+describe('User management page', () => {
+    it('admin can create user (e2e)', () => {
+    /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
         cy.visit('/users');
 
@@ -16,15 +16,15 @@ describe('User management page', function() {
         cy.contains('testuser').should('not.exist');
 
         /* submitting the form */
-        const textinputs  = [
+        const textinputs = [
             { label: 'Username', value: 'testuser' },
             { label: 'Password', value: 'testpassword' },
             { label: 'Real name', value: 'Test User Chan' },
             { label: 'Organisation', value: 'DSI-ICL' },
             { label: 'Description', value: 'Just a test user.' },
-            { label: 'Email', value: 'testing@test.com' }
+            { label: 'Email', value: 'testing@test.com' },
         ];
-        textinputs.forEach(e => {
+        textinputs.forEach((e) => {
             cy.get('form').contains(e.label).children('input').type(e.value);
         });
         cy.get('form').contains('Type').children('select').select('System admin');
@@ -34,7 +34,7 @@ describe('User management page', function() {
         cy.get('tbody').last().contains('testuser');
 
         /* the app should redirect to the created user's page */
-        cy.url().then(url => {
+        cy.url().then((url) => {
             expect(url).to.match(new RegExp(`${Cypress.config().baseUrl}/users/(\\w|-)+$`));
 
             /* cleanup: delete the user via API */
@@ -44,8 +44,8 @@ describe('User management page', function() {
         });
     });
 
-    it('admin can navigate to a user\'s detail page from main page', function() {
-        /* setup: login via API */
+    it('admin can navigate to a user\'s detail page from main page', () => {
+    /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         /* setup: create a user via API */
@@ -57,11 +57,10 @@ describe('User management page', function() {
             organisation: 'DSI',
             email: 'no@n2o.com',
             emailNotificationsActivated: true,
-            type: 'STANDARD'
+            type: 'STANDARD',
         };
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_USER), variables: createUserInput }
-        ).then(res => {
+            { query: print(CREATE_USER), variables: createUserInput }).then((res) => {
             const createdUserId = res.body.data.createUser.id;
             expect(createdUserId).to.be.a('string');
 
@@ -96,8 +95,8 @@ describe('User management page', function() {
         });
     });
 
-    it('admin can delete user (e2e)', function() {
-        /* setup: login via API */
+    it('admin can delete user (e2e)', () => {
+    /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         /* setup: create a user via API */
@@ -112,10 +111,9 @@ describe('User management page', function() {
                     organisation: 'DSI',
                     email: 'no@no.com',
                     emailNotificationsActivated: true,
-                    type: 'STANDARD'
-                }
-            }
-        ).then(res => {
+                    type: 'STANDARD',
+                },
+            }).then((res) => {
             const createdUserId = res.body.data.createUser.id;
             expect(createdUserId).to.be.a('string');
 
@@ -135,10 +133,10 @@ describe('User management page', function() {
             /* user should have feedback */
             cy.contains('User testinguser is deleted');
         });
-    }); 
+    });
 
-    it('admin can edit user (e2e)', function() {
-        /* setup: login via API */
+    it('admin can edit user (e2e)', () => {
+    /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         /* setup: create a user via API */
@@ -153,10 +151,9 @@ describe('User management page', function() {
                     organisation: 'DSI',
                     email: 'no@no3.com',
                     emailNotificationsActivated: true,
-                    type: 'STANDARD'
-                }
-            }
-        ).then(res => {
+                    type: 'STANDARD',
+                },
+            }).then((res) => {
             const createdUserId = res.body.data.createUser.id;
             expect(createdUserId).to.be.a('string');
 
@@ -171,7 +168,7 @@ describe('User management page', function() {
 
             /* fill in the form */
             cy.get(':contains(Account Information) + div').within(() => {
-                const textinputs  = [
+                const textinputs = [
                     { label: 'Username', value: 'editedusername' },
                     { label: 'Password', value: 'test2password' },
                     { label: 'Real name', value: 'Random' },
@@ -179,7 +176,7 @@ describe('User management page', function() {
                     { label: 'Description', value: 'Just a test user2.' },
                     { label: 'Email', value: 'testing@test2.com' },
                 ];
-                textinputs.forEach(e => {
+                textinputs.forEach((e) => {
                     cy.contains(e.label).children('input').type(e.value);
                 });
                 cy.contains('Type').children('select').select('System admin');
@@ -193,7 +190,7 @@ describe('User management page', function() {
 
             /* cleanup: delete the user via API */
             cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
-            .its('body.data.deleteUser.successful').should('eq', true);
+                .its('body.data.deleteUser.successful').should('eq', true);
         });
-    }); 
+    });
 });

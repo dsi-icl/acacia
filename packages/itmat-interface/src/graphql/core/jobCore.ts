@@ -14,7 +14,7 @@ export class JobCore {
             receivedFiles: files,
             status: 'QUEUED',
             error: null,
-            cancelled: false
+            cancelled: false,
         };
         await db.collections!.jobs_collection.insertOne(job);
         return job;

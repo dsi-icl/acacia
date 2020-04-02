@@ -1,4 +1,6 @@
-import { Account, Container, Segment, Store } from 'os2';
+import {
+    Account, Container, Segment, Store,
+} from 'os2';
 
 export interface IOpenSwiftObjectStoreConfig {
     uri: string;
@@ -8,6 +10,7 @@ export interface IOpenSwiftObjectStoreConfig {
 
 export class OpenStackSwiftObjectStore {
     private readonly config: IOpenSwiftObjectStoreConfig;
+
     private account?: Account;
 
     constructor(config: IOpenSwiftObjectStoreConfig) {
@@ -40,7 +43,7 @@ export class OpenStackSwiftObjectStore {
             throw connectResult;
         }
         this.account = account;
-        return; // success
+        // success
     }
 
     public async uploadFile(fileStream: NodeJS.ReadableStream, studyId: string, uri: string): Promise<string> {

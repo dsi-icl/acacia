@@ -13,15 +13,19 @@ const CORRECT_NUMBER_OF_COLUMN = 11;
 
 export class FieldCurator {
     private _errored: boolean; // eslint:disable-line
+
     private _errors: string[]; // eslint:disable-line
+
     private _numOfFields: number; // eslint:disable-line
 
     constructor(
         private readonly fieldCollection: Collection,
         private readonly incomingWebStream: NodeJS.ReadableStream,
-        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
+        private readonly parseOptions: csvparse.Options = {
+            delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true,
+        },
         private readonly job: IJobEntryForFieldCuration,
-        private readonly fieldTreeId: string
+        private readonly fieldTreeId: string,
     ) {
         this._errored = false;
         this._errors = [];
@@ -65,7 +69,7 @@ export class FieldCurator {
                             lineNum: currentLineNum,
                             row: line,
                             job: this.job,
-                            fieldTreeId: this.fieldTreeId
+                            fieldTreeId: this.fieldTreeId,
                         });
 
                         if (error) {
@@ -87,13 +91,13 @@ export class FieldCurator {
                         if (this._numOfFields > 999) {
                             this._numOfFields = 0;
                             await bulkInsert.execute((err: Error) => {
-                                if (err) { Logger.error((err as any).writeErrors[1].err); return; }
+                                if (err) { Logger.error((err as any).writeErrors[1].err); }
                             });
                             bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
                         }
                         next();
                     }
-                }
+                },
             });
 
             uploadWriteStream.on('finish', async () => {
@@ -106,7 +110,7 @@ export class FieldCurator {
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
-                        if (err) { Logger.error(err); return; }
+                        if (err) { Logger.error(err); }
                     });
                 }
 
@@ -118,7 +122,9 @@ export class FieldCurator {
     }
 }
 
-export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } { // eslint:disable-line
+export function processFieldRow({
+    lineNum, row, job, fieldTreeId,
+}: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } { // eslint:disable-line
     /* pure function */
     const error: string[] = [];
     const dataEntry_nouse: any = {};
@@ -130,7 +136,7 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
         6: 'Number of Time Points',
         7: 'Number of Measurements',
         8: 'Starting Time Point',
-        9: 'Starting Measurement'
+        9: 'Starting Measurement',
     };
 
     if (row.length !== CORRECT_NUMBER_OF_COLUMN) {
@@ -201,7 +207,7 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
         jobId: job.id,
         deleted: null,
         dateAdded: (new Date()).valueOf(),
-        fieldTreeId
+        fieldTreeId,
     };
 
     return ({ error: undefined, dataEntry });

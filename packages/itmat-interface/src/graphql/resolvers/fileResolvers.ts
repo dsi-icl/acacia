@@ -20,7 +20,7 @@ export const fileResolvers = {
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_file_management],
                 requester,
-                args.studyId
+                args.studyId,
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
@@ -45,7 +45,7 @@ export const fileResolvers = {
                         description: args.description,
                         uploadedBy: requester.id,
                         uri: fileUri,
-                        deleted: null
+                        deleted: null,
                     };
 
                     const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
@@ -69,17 +69,16 @@ export const fileResolvers = {
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_file_management],
                 requester,
-                args.studyId
+                args.studyId,
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
             if (updateResult.result.ok === 1) {
                 return makeGenericReponse();
-            } else {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
-        }
+            throw new ApolloError(errorCodes.DATABASE_ERROR);
+        },
     },
-    Subscription: {}
+    Subscription: {},
 };
