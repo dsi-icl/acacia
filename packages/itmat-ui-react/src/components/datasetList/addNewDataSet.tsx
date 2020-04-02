@@ -1,7 +1,5 @@
-import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
-import { NavLink, Redirect } from 'react-router-dom';
 import { userTypes } from 'itmat-commons/dist/models/user';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import { CREATE_STUDY } from 'itmat-commons/dist/graphql/study';
