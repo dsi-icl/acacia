@@ -2,7 +2,6 @@ import { Select } from 'antd';
 import 'antd/lib/select/style/css';
 import { IUser } from 'itmat-commons/dist/models/user';
 import * as React from 'react';
-import '../../../css/antdOverride.css';
 import css from './genericUserList.module.css';
 
 const User: React.FC<{ user: IUser, onClickCross: (user: IUser) => void }> = ({ user, onClickCross }) => (

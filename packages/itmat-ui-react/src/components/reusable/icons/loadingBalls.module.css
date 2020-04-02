@@ -1,4 +1,4 @@
-@keyframes lds-flickr-opacity{
+@keyframes ldsFlickr-opacity{
     0% {
       -webkit-transform: translate(0 0);
       transform: translate(0 0);
@@ -20,7 +20,7 @@
       transform: translate(0, 0);
     }
   }
-  @-webkit-keyframes lds-flickr-opacity {
+  @-webkit-keyframes ldsFlickr-opacity {
     0% {
       -webkit-transform: translate(0 0);
       transform: translate(0 0);
@@ -42,7 +42,7 @@
       transform: translate(0, 0);
     }
   }
-  @keyframes lds-flickr {
+  @keyframes ldsFlickr {
     0% {
       -webkit-transform: translate(0, 0);
       transform: translate(0, 0);
@@ -56,7 +56,7 @@
       transform: translate(0, 0);
     }
   }
-  @-webkit-keyframes lds-flickr {
+  @-webkit-keyframes ldsFlickr {
     0% {
       -webkit-transform: translate(0, 0);
       transform: translate(0, 0);
@@ -70,14 +70,14 @@
       transform: translate(0, 0);
     }
   }
-  .lds-flickr {
+  .ldsFlickr {
     position: relative;
     width: 100%;
     margin: 0 auto;
     height: 100%;
     padding: 20% 0 20% 0;
   }
-  .lds-flickr div {
+  .ldsFlickr div {
     position: absolute;
     width: 80px;
     height: 80px;
@@ -85,28 +85,28 @@
     top: 60px;
     left: 20px;
   }
-  .lds-flickr div:nth-child(1) {
+  .ldsFlickr div:nth-child(1) {
     background: var(--color-primary-color);
-    -webkit-animation: lds-flickr 0.7s linear infinite;
-    animation: lds-flickr 0.7s linear infinite;
+    -webkit-animation: ldsFlickr 0.7s linear infinite;
+    animation: ldsFlickr 0.7s linear infinite;
     -webkit-animation-delay: -0.35s;
     animation-delay: -0.35s;
   }
-  .lds-flickr div:nth-child(2) {
+  .ldsFlickr div:nth-child(2) {
     background: #3be6c2;
-    -webkit-animation: lds-flickr 0.7s linear infinite;
-    animation: lds-flickr 0.7s linear infinite;
+    -webkit-animation: ldsFlickr 0.7s linear infinite;
+    animation: ldsFlickr 0.7s linear infinite;
     -webkit-animation-delay: 0s;
     animation-delay: 0s;
   }
-  .lds-flickr div:nth-child(3) {
+  .ldsFlickr div:nth-child(3) {
     background: var(--color-primary-color);
-    -webkit-animation: lds-flickr-opacity 0.7s linear infinite;
-    animation: lds-flickr-opacity 0.7s linear infinite;
+    -webkit-animation: ldsFlickr-opacity 0.7s linear infinite;
+    animation: ldsFlickr-opacity 0.7s linear infinite;
     -webkit-animation-delay: -0.35s;
     animation-delay: -0.35s;
   }
-  .lds-flickr {
+  .ldsFlickr {
     width: 35px !important;
     height: 35px !important;
     -webkit-transform: translate(-17.5px, -17.5px) scale(0.175) translate(17.5px, 17.5px);
