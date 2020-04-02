@@ -16,44 +16,56 @@ export const AddNewDataSet: React.FunctionComponent = (props) => {
         >
             {({ loading, error, data }) => {
                 if (loading) { return <p>Loading...</p>; }
-                if (error) { return <p>Error :( {error}</p>; }
+                if (error) {
+                    return (
+                        <p>
+                            Error :(
+                            {error}
+                        </p>
+                    );
+                }
                 if (data.whoAmI && data.whoAmI.type && data.whoAmI.type === userTypes.ADMIN) {
                     return (
-                        !showMore ?
-                            <button onClick={() => setShowMore(true)}>Add new dataset</button>
-                            :
-                            <div>
-                                <label>Enter name: <input value={newName} onChange={e => { setNewName(e.target.value); setInputError(''); }} type='text' /> </label>
-                                <button className='button_grey' onClick={() => { setShowMore(false); setNewName(''); }}>Cancel</button>
-                                {
-                                    createStudyLoading ?
-                                        <button>Loading...</button>
-                                        :
-                                        <button onClick={() => {
-                                            if (newName === '') {
-                                                setInputError('Please provide a study name.');
-                                                return;
-                                            }
-                                            createStudy({ variables: { name: newName } });
-                                        }}>Submit</button>
-                                }
-                                {
-                                    createStudyError ?
-                                        <div className='error_banner'>Error creating study. Please contact admin.</div>
-                                        :
-                                        null
-                                }
-                                {
-                                    inputError !== '' ?
-                                        <div className='error_banner'>{inputError}</div>
-                                        :
-                                        null
-                                }
-                            </div>
+                        !showMore
+                            ? <button onClick={() => setShowMore(true)}>Add new dataset</button>
+                            : (
+                                <div>
+                                    <label>
+                                        Enter name:
+                                        <input value={newName} onChange={(e) => { setNewName(e.target.value); setInputError(''); }} type="text" />
+                                    </label>
+                                    <button className="button_grey" onClick={() => { setShowMore(false); setNewName(''); }}>Cancel</button>
+                                    {
+                                        createStudyLoading
+                                            ? <button>Loading...</button>
+                                            : (
+                                                <button onClick={() => {
+                                                    if (newName === '') {
+                                                        setInputError('Please provide a study name.');
+                                                        return;
+                                                    }
+                                                    createStudy({ variables: { name: newName } });
+                                                }}
+                                                >
+                                                    Submit
+                                                </button>
+                                            )
+                                    }
+                                    {
+                                        createStudyError
+                                            ? <div className="error_banner">Error creating study. Please contact admin.</div>
+                                            : null
+                                    }
+                                    {
+                                        inputError !== ''
+                                            ? <div className="error_banner">{inputError}</div>
+                                            : null
+                                    }
+                                </div>
+                            )
                     );
-                } else {
-                    return null;
                 }
+                return null;
             }}
         </Query>
     );

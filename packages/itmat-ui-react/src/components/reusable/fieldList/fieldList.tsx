@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Tree } from 'antd';
 import 'antd/lib/tree/style/css';
 import '../../../css/antdOverride.css';
+
 const { TreeNode } = Tree;
 
 // class DraggableTreeNode extends TreeNode {
@@ -20,9 +21,11 @@ const { TreeNode } = Tree;
 //     }
 // }
 
-export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedList?: string[], checkable: boolean, fieldList: Models.Field.IFieldEntry[] }> = ({ onCheck, checkedList, checkable, fieldList }) => {
-    if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p> }
-    const transformedList = fieldList.map(el => `${el.path}>>${el.id}|${el.fieldName}`);
+export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedList?: string[], checkable: boolean, fieldList: Models.Field.IFieldEntry[] }> = ({
+    onCheck, checkedList, checkable, fieldList,
+}) => {
+    if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p>; }
+    const transformedList = fieldList.map((el) => `${el.path}>>${el.id}|${el.fieldName}`);
     const makeTree = (paths: string[]) => {
         const output: any = [];
         for (let i = 0; i < paths.length; i++) {
@@ -43,7 +46,7 @@ export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedL
         return output;
     };
 
-    const renderTreeNodes = (fieldList: any[]) => fieldList.map(item => {
+    const renderTreeNodes = (fieldList: any[]) => fieldList.map((item) => {
         if (item.children.length !== 0) {
             return (
                 <TreeNode title={item.name} key={item.fieldId} isLeaf={false} selectable={false}>
@@ -52,25 +55,24 @@ export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedL
             );
         }
         // return checkable ? <TreeNode title={item.name} key={item.fieldId} dataRef={item} isLeaf={true} /> : <DraggableTreeNode title={item.name} key={item.fieldId} dataRef={item} isLeaf={true} selectable={false} />;
-        return <TreeNode title={item.name} key={item.fieldId} isLeaf={true} />;
+        return <TreeNode title={item.name} key={item.fieldId} isLeaf />;
     });
 
 
     if (checkable) {
         return (
             <Tree
-                checkable
-                onCheck={onCheck}
-                checkedKeys={checkedList}
+              checkable
+              onCheck={onCheck}
+              checkedKeys={checkedList}
             >
                 {renderTreeNodes(makeTree(transformedList))}
             </Tree>
         );
-    } else {
-        return (
-            <Tree>
-                {renderTreeNodes(makeTree(transformedList))}
-            </Tree>);
-
     }
+    return (
+        <Tree>
+            {renderTreeNodes(makeTree(transformedList))}
+        </Tree>
+    );
 };

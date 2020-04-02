@@ -60,38 +60,38 @@ describe('User management page', () => {
         };
         cy.request('POST', 'http://localhost:3003/graphql',
             { query: print(CREATE_USER), variables: createUserInput }).then((res) => {
-                const createdUserId = res.body.data.createUser.id;
-                expect(createdUserId).to.be.a('string');
+            const createdUserId = res.body.data.createUser.id;
+            expect(createdUserId).to.be.a('string');
 
-                /* visit user management page */
-                cy.visit('/users');
+            /* visit user management page */
+            cy.visit('/users');
 
-                /* find the created user's entry and go to 'more' */
-                cy.get('tbody', { timeout: 1000000 }).children().last().within(() => {
-                    cy.contains('More/Edit').click();
-                });
-
-                /* url should have changed */
-                cy.url().should('eq', `${Cypress.config().baseUrl}/users/${createdUserId}`);
-
-                /* user detail should have shown up */
-                cy.get('div:contains(testinguser2)').should('have.class', 'page_ariane');
-                cy.get(':contains(Account Information) + div').within(() => {
-                    cy.contains('Username').children('input').should('have.value', 'testinguser2');
-                    cy.contains('Type');
-                    cy.contains('Real name');
-                    cy.contains('Password');
-                    cy.contains('Email');
-                    cy.contains('Email Notification');
-                    cy.contains('Description');
-                    cy.contains('Organisation');
-                    cy.contains('Created by (readonly)');
-                });
-
-                /* cleanup: delete the user via API */
-                cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
-                    .its('body.data.deleteUser.successful').should('eq', true);
+            /* find the created user's entry and go to 'more' */
+            cy.get('tbody', { timeout: 1000000 }).children().last().within(() => {
+                cy.contains('More/Edit').click();
             });
+
+            /* url should have changed */
+            cy.url().should('eq', `${Cypress.config().baseUrl}/users/${createdUserId}`);
+
+            /* user detail should have shown up */
+            cy.get('div:contains(testinguser2)').should('have.class', 'page_ariane');
+            cy.get(':contains(Account Information) + div').within(() => {
+                cy.contains('Username').children('input').should('have.value', 'testinguser2');
+                cy.contains('Type');
+                cy.contains('Real name');
+                cy.contains('Password');
+                cy.contains('Email');
+                cy.contains('Email Notification');
+                cy.contains('Description');
+                cy.contains('Organisation');
+                cy.contains('Created by (readonly)');
+            });
+
+            /* cleanup: delete the user via API */
+            cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
+                .its('body.data.deleteUser.successful').should('eq', true);
+        });
     });
 
     it('admin can delete user (e2e)', () => {
@@ -113,25 +113,25 @@ describe('User management page', () => {
                     type: 'STANDARD',
                 },
             }).then((res) => {
-                const createdUserId = res.body.data.createUser.id;
-                expect(createdUserId).to.be.a('string');
+            const createdUserId = res.body.data.createUser.id;
+            expect(createdUserId).to.be.a('string');
 
-                /* visit user management page */
-                cy.visit(`/users/${createdUserId}`);
+            /* visit user management page */
+            cy.visit(`/users/${createdUserId}`);
 
-                /* the protected delete button should not be visible yet */
-                cy.contains('Account Information', { timeout: 1000000 });
-                cy.contains('Delete user testinguser').should('not.exist');
+            /* the protected delete button should not be visible yet */
+            cy.contains('Account Information', { timeout: 1000000 });
+            cy.contains('Delete user testinguser').should('not.exist');
 
-                /* click the first guard button to delete user */
-                cy.get(':contains(Delete this user:) + p:contains(click here)').click();
+            /* click the first guard button to delete user */
+            cy.get(':contains(Delete this user:) + p:contains(click here)').click();
 
-                /* now this button should be visible */
-                cy.contains('Delete user testinguser').click();
+            /* now this button should be visible */
+            cy.contains('Delete user testinguser').click();
 
-                /* user should have feedback */
-                cy.contains('User testinguser is deleted');
-            });
+            /* user should have feedback */
+            cy.contains('User testinguser is deleted');
+        });
     });
 
     it('admin can edit user (e2e)', () => {
@@ -153,43 +153,43 @@ describe('User management page', () => {
                     type: 'STANDARD',
                 },
             }).then((res) => {
-                const createdUserId = res.body.data.createUser.id;
-                expect(createdUserId).to.be.a('string');
+            const createdUserId = res.body.data.createUser.id;
+            expect(createdUserId).to.be.a('string');
 
-                /* visit user management page */
-                cy.visit(`/users/${createdUserId}`);
+            /* visit user management page */
+            cy.visit(`/users/${createdUserId}`);
 
-                /* the protected delete button should not be visible yet */
-                cy.contains('Account Information', { timeout: 1000000 });
+            /* the protected delete button should not be visible yet */
+            cy.contains('Account Information', { timeout: 1000000 });
 
-                /* no saved banner */
-                cy.contains('Saved!').should('not.exist');
+            /* no saved banner */
+            cy.contains('Saved!').should('not.exist');
 
-                /* fill in the form */
-                cy.get(':contains(Account Information) + div').within(() => {
-                    const textinputs = [
-                        { label: 'Username', value: 'editedusername' },
-                        { label: 'Password', value: 'test2password' },
-                        { label: 'Real name', value: 'Random' },
-                        { label: 'Organisation', value: 'DSI-ICL2' },
-                        { label: 'Description', value: 'Just a test user2.' },
-                        { label: 'Email', value: 'testing@test2.com' },
-                    ];
-                    textinputs.forEach((e) => {
-                        cy.contains(e.label).children('input').type(e.value);
-                    });
-                    cy.contains('Type').children('select').select('System admin');
-                    cy.contains('Save').click();
+            /* fill in the form */
+            cy.get(':contains(Account Information) + div').within(() => {
+                const textinputs = [
+                    { label: 'Username', value: 'editedusername' },
+                    { label: 'Password', value: 'test2password' },
+                    { label: 'Real name', value: 'Random' },
+                    { label: 'Organisation', value: 'DSI-ICL2' },
+                    { label: 'Description', value: 'Just a test user2.' },
+                    { label: 'Email', value: 'testing@test2.com' },
+                ];
+                textinputs.forEach((e) => {
+                    cy.contains(e.label).children('input').type(e.value);
                 });
-
-                /* user feedback */
-                cy.contains('Saved!');
-
-                /* check that the info are really changed in the user list */
-
-                /* cleanup: delete the user via API */
-                cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
-                    .its('body.data.deleteUser.successful').should('eq', true);
+                cy.contains('Type').children('select').select('System admin');
+                cy.contains('Save').click();
             });
+
+            /* user feedback */
+            cy.contains('Saved!');
+
+            /* check that the info are really changed in the user list */
+
+            /* cleanup: delete the user via API */
+            cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
+                .its('body.data.deleteUser.successful').should('eq', true);
+        });
     });
 });

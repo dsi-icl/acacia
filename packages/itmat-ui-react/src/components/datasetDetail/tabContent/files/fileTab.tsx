@@ -7,9 +7,9 @@ import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { UploadFileSection } from './uploadFile';
 
-export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return <div className={css.scaffold_wrapper}>
-        <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
+export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => (
+    <div className={css.scaffold_wrapper}>
+        <div className={`${css.tab_page_wrapper} ${css.left_panel}`}>
             <Subsection title="Existing files">
                 <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
@@ -23,10 +23,10 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 </Query>
             </Subsection>
         </div>
-        <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
+        <div className={`${css.tab_page_wrapper} ${css.right_panel}`}>
             <Subsection title="Upload new file">
                 <UploadFileSection studyId={studyId} />
             </Subsection>
         </div>
-    </div>;
-};
+    </div>
+);

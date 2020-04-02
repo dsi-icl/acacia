@@ -19,7 +19,8 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
             if (error) {
                 return (
                     <p>
-                        Error :({JSON.stringify(error)}
+                        Error :(
+                        {JSON.stringify(error)}
                     </p>
                 );
             }

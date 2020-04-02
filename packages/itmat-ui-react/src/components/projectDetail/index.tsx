@@ -1,23 +1,32 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { NavLink, Redirect, Route, Switch } from 'react-router-dom';
+import {
+    NavLink, Redirect, Route, Switch,
+} from 'react-router-dom';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
 import { FileTabContent } from './tabContent/file/fileTab';
 
-export const ProjectDetailPage: React.FunctionComponent<{ projectId: string }> = ({ projectId }) => {
-    return (
-        <Query<any, any>
-            query={GET_PROJECT}
-            variables={{ projectId, admin: true }}
-        >
-            {({ loading, error, data }) => {
-                if (loading) { return <LoadingBalls />; }
-                if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
-                if (!data || !data.getProject) { return <div>Oops! Cannot find this project.</div>; }
-                return <div className={css.page_container}>
+export const ProjectDetailPage: React.FunctionComponent<{ projectId: string }> = ({ projectId }) => (
+    <Query<any, any>
+        query={GET_PROJECT}
+        variables={{ projectId, admin: true }}
+    >
+        {({ loading, error, data }) => {
+            if (loading) { return <LoadingBalls />; }
+            if (error) {
+                return (
+                    <p>
+                        Error :(
+                        {JSON.stringify(error)}
+                    </p>
+                );
+            }
+            if (!data || !data.getProject) { return <div>Oops! Cannot find this project.</div>; }
+            return (
+                <div className={css.page_container}>
                     <div className="page_ariane">{data.getProject.name.toUpperCase()}</div>
                     <div className={css.tabs}>
                         <div>
@@ -38,8 +47,8 @@ export const ProjectDetailPage: React.FunctionComponent<{ projectId: string }> =
                             <Route path="/projects/:projectId/" render={() => <Redirect to={`/projects/${projectId}/dashboard`} />} />
                         </Switch>
                     </div>
-                </div>;
-            }}
-        </Query>
-    );
-};
+                </div>
+            );
+        }}
+    </Query>
+);

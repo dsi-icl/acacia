@@ -9,13 +9,13 @@ import { getMainDefinition } from 'apollo-utilities';
 const wsLink = new WebSocketLink({
     uri: 'ws://localhost:3003/graphql',
     options: {
-        reconnect: true
-    }
+        reconnect: true,
+    },
 });
 
 const uploadLink = createUploadLink({
     uri: 'http://localhost:3003/graphql',
-    credentials: 'include'
+    credentials: 'include',
 });
 
 const link = split(
@@ -25,11 +25,11 @@ const link = split(
         return kind === 'OperationDefinition' && operation === 'subscription';
     },
     wsLink,
-    uploadLink
+    uploadLink,
 );
 
 const cache = new InMemoryCache({
-    dataIdFromObject: (object) => `${object.__typename || 'undefined_typeName'}___${object.id || 'undefined_id'}`
+    dataIdFromObject: (object) => `${object.__typename || 'undefined_typeName'}___${object.id || 'undefined_id'}`,
 });
 
 export const client = new ApolloClient({
@@ -39,13 +39,12 @@ export const client = new ApolloClient({
                 graphQLErrors.map(({ message, locations, path }) =>
                     // tslint:disable-next-line: no-console
                     console.log(
-                        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-                    )
-                );
+                        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+                    ));
             }
             if (networkError) { console.error(`[Network error]: ${networkError}`); }
         }),
-        link
+        link,
     ]),
-    cache
+    cache,
 });
