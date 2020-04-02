@@ -123,6 +123,28 @@ describe('STUDY API', () => {
             expect(res.body.errors[0].message).toBe('E11000 duplicate key error dup key: { : \"new_study_2\", : null }');
             expect(res.body.data.createStudy).toBe(null);
         });
+        
+        test.only('Create study that violate unique name constraint (case insensitive) (admin)', async () => {
+            const newStudy = {
+                id: 'fakeNewStudyId1002',
+                name: 'new_study_1002',
+                createdBy: 'admin',
+                lastModified: 200000002,
+                deleted: null,
+                currentDataVersion: -1,
+                dataVersions: []
+            };
+            await mongoClient.collection(config.database.collections.studies_collection).insertOne(newStudy);
+
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_STUDY),
+                variables: { name: 'new_sTUdY_1002' }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('Study "new_sTUdY_1002" already exists (duplicates are case-insensitive).');
+            expect(res.body.data.createStudy).toBe(null);
+        });
 
         test('Create study (user) (should fail)', async () => {
             const res = await user.post('/graphql').send({

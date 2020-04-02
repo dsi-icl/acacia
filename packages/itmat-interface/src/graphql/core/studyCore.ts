@@ -26,6 +26,24 @@ export class StudyCore {
     }
 
     public async createNewStudy(studyName: string, requestedBy: string): Promise<IStudy> {
+        /* check if study already  exist (lowercase because S3 minio buckets cant be mixed case) */
+        const existingStudies = await db.collections!.studies_collection.aggregate(
+            [
+                { $match: { deleted: null } },
+                { $group:{
+                        _id: '',
+                        name: {
+                            $push : { $toLower: '$name' }
+                        }
+                }},
+                { $project: { name: 1 } }
+            ]
+        ).toArray();
+
+        if (existingStudies[0] && existingStudies[0].name.includes(studyName.toLowerCase())) {
+            throw new ApolloError(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
+        }
+
         const study: IStudy = {
             id: uuidv4(),
             name: studyName,
