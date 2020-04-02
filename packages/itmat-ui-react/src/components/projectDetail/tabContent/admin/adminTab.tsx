@@ -11,10 +11,5 @@ export const AdminTabContent: React.FC<{ studyId: string, projectId: string, rol
                 <RoleControlSection studyId={studyId} projectId={projectId} roles={roles} />
             </Subsection>
         </div>
-        <div className={`${css.tab_page_wrapper} ${css.sub_page}`}>
-            <Subsection title="User Access Log">
-                <div />
-            </Subsection>
-        </div>
     </div>
 );

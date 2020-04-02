@@ -1,3 +1,5 @@
+import { Models } from '..';
+
 export interface IStudy {
     id: string;
     name: string;
@@ -27,7 +29,7 @@ export interface IRole {
     studyId: string;
     name: string;
     permissions: string[];
-    users: string[];
+    users: Models.UserModels.IUser[];
     deleted: number | null;
 }
 

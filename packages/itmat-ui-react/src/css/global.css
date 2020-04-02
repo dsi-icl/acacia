@@ -95,11 +95,6 @@ html, body, #root {
     overflow: hidden;
 }
 
-body > div {
-    height: 100%;
-    min-width: 770px;
-}
-
 button {
     display: block;
     padding: 0.5rem 0.7rem;
@@ -107,7 +102,6 @@ button {
     margin: 3px;
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
     border-radius: 0.25rem;
-    width: 100%;
     min-height: 20px;
     font-weight: bold;
     line-height: 20px;
@@ -126,16 +120,6 @@ button:active {
 
 .button_loading {
     cursor: progress !important;
-}
-
-.button_grey {
-    background-image: none;
-    background-color: #4A4A4A;
-}
-
-.button_grey:hover{
-    background-image: none;
-    background-color: rgb(53, 53, 53);
 }
 
 table {

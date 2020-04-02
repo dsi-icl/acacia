@@ -1,3 +1,6 @@
+@import '~antd/dist/antd.dark.css';
+
+/*
 .ant-tree li .ant-tree-node-content-wrapper:hover {
     background-color: #525252 !important;
 }
@@ -65,3 +68,4 @@
 .ant-switch-checked {
     background-color: var(--color-primary-color) !important;
 }
+*/

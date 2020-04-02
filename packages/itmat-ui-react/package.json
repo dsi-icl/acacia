@@ -19,6 +19,7 @@
         "lint:fix": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts --fix ./"
     },
     "dependencies": {
+        "@ant-design/icons": "4.0.5",
         "antd": "4.1.0",
         "apollo-cache-inmemory": "1.6.5",
         "apollo-client": "2.6.8",

@@ -22,11 +22,6 @@ export const AdminTabContent: React.FC<AdminTabContentProps> = ({ match: { param
                     <RoleControlSection studyId={studyId} roles={data.getStudy.roles} />
                 </Subsection>
             </div>
-            <div className={`${css.tab_page_wrapper} ${css.sub_page}`}>
-                <Subsection title="User Access Log">
-                    <div />
-                </Subsection>
-            </div>
         </div>
     );
 };
