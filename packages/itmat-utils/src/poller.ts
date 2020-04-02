@@ -52,8 +52,7 @@ export class JobPoller {
                     lastClaimed: new Date().valueOf(),
                     status: 'PROCESSING'
                 }
-            },
-                { maxTimeMS: 30 });
+            });
         } catch (e) {
             console.log(e);
             return;
