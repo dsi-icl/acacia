@@ -1,5 +1,10 @@
 import chalk from 'chalk';
 
+const colorizer = process !== undefined ? chalk : {
+    yellow: (str) => str,
+    red: (str) => str
+}
+
 const flatten = (messages: any[]): string => {
     let print = '';
     if (messages !== undefined)
@@ -21,11 +26,11 @@ export class Logger {
 
     public static warn(...messages: any[]): void {
         // tslint:disable-next-line: no-console
-        console.warn(`WAR [${new Date().toUTCString()}] ${flatten(messages)}`);
+        console.warn(colorizer.yellow(`WAR [${new Date().toUTCString()}] ${flatten(messages)}`));
     }
 
     public static error(...messages: any[]): void {
         // tslint:disable-next-line: no-console
-        console.error(`ERR [${new Date().toUTCString()}] ${flatten(messages)}`);
+        console.error(colorizer.red`ERR [${new Date().toUTCString()}] ${flatten(messages)}`);
     }
 }

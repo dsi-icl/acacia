@@ -192,12 +192,10 @@ export const studyResolvers = {
             return makeGenericReponse(studyId);
         },
         editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
-            const requester: IUser = context.req.user;
-
             /* check privileges */
 
             /* check study id for the project */
-            const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
+            // const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
 
             /* check all the adds are valid */
             // const resultFields: string[] = fieldCore.getFieldsOfStudy(studyId, false, changes.add);
