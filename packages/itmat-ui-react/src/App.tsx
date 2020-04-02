@@ -20,7 +20,8 @@ class App extends React.Component {
                                 <div style={{
                                     width: '100%', height: '100%', textAlign: 'center', paddingTop: '20%',
                                 }}
-                                ><Spinner />
+                                >
+                                    <Spinner />
                                 </div>
                             );
                         }

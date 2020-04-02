@@ -27,7 +27,9 @@ module.exports = {
     rules: {
         'linebreak-style': ['off'],
         'indent': ['warn', 4],
-        'jsx-quotes': ['warn', 'prefer-double']
+        'jsx-quotes': ['warn', 'prefer-double'],
+        'react/jsx-indent': ['warn', 4],
+        'react/jsx-filename-extension': ['warn', { 'extensions': ['.jsx', '.tsx'] }]
     },
     overrides: [
         {
