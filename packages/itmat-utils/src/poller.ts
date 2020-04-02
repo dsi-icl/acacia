@@ -5,7 +5,7 @@ export interface IJobPollerConfig {
     identity: string; // a string identifying the server; this is just to keep track in mongo
     jobType?: string; // if undefined, matches all jobs
     jobCollection: mongodb.Collection; // collection to poll
-    pollingFrequency: number; // in ms
+    pollingInterval: number; // in ms
     action: (document: any) => void; // gets called every time there is new document
 }
 
@@ -16,14 +16,14 @@ export class JobPoller {
     private readonly identity: string;
     private readonly jobType?: string;
     private readonly jobCollection: mongodb.Collection;
-    private readonly pollingFrequency: number;
+    private readonly pollingInterval: number;
     private readonly action: (document: any) => void;
 
     constructor(config: IJobPollerConfig) {
         this.identity = config.identity;
         this.jobType = config.jobType;
         this.jobCollection = config.jobCollection;
-        this.pollingFrequency = config.pollingFrequency;
+        this.pollingInterval = config.pollingInterval;
         this.action = config.action;
 
         this.setInterval = this.setInterval.bind(this);
@@ -39,7 +39,7 @@ export class JobPoller {
     }
 
     public setInterval() {
-        this.intervalObj = setInterval(this.checkForJobs, this.pollingFrequency);
+        this.intervalObj = setInterval(this.checkForJobs, this.pollingInterval);
     }
 
     private async checkForJobs() {
