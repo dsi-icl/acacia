@@ -63,6 +63,6 @@ function serverSpinning() {
 serverSpinning();
 
 if (module.hot) {
-    module.hot.accept('./index', serverSpinning);
-    module.hot.accept('./interfaceServer', serverSpinning);
+    module.hot.accept('./index.ts', serverSpinning);
+    module.hot.accept('./interfaceServer.ts', serverSpinning);
 }
