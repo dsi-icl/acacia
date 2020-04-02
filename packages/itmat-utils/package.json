@@ -14,21 +14,31 @@
         "compile": "tsc -p tsconfig.build.json",
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
         "prepublishOnly": "npm run build",
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test-integrate": "jest",
+        "test": "node ./test/setup-and-test.js",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
     "dependencies": {
-        "chalk": "3.0.0",
-        "mongodb": "3.5.2",
-        "os2": "0.0.13",
-        "supertest": "4.0.2"
+        "minio": "^7.0.15",
+        "mongodb": "3.5.2"
     },
     "devDependencies": {
+        "chalk": "^4.0.0",
+        "jest": "^25.2.3",
+        "node-fetch": "^2.6.0",
+        "supertest": "4.0.2",
+        "ts-jest": "^25.2.1",
         "@types/express": "4.17.2",
+        "@types/minio": "^7.0.5",
         "@types/mongodb": "3.3.16",
         "@types/node": "13.7.0",
         "rimraf": "3.0.2",
         "typescript": "3.7.5"
+    },
+    "jest": {
+        "transform": {
+            "^.+\\.(ts|js)$": "ts-jest"
+        }
     }
 }

@@ -1,6 +1,6 @@
 export { Database, IDatabaseBaseConfig } from './database';
 export { CustomError } from './error';
 export { ServerBase, IServerBaseConfig } from './serverBase';
-export { OpenStackSwiftObjectStore, IOpenSwiftObjectStoreConfig } from './OpenStackObjectStore';
+export { ObjectStore, IObjectStoreConfig} from './objStore';
 export { Logger } from './logger';
 export { JobPoller } from './poller';
