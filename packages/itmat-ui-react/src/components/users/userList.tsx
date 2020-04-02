@@ -1,9 +1,9 @@
+import { SearchOutlined } from '@ant-design/icons';
 import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
-import { Icons } from '../icons';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './userList.module.css';
 
@@ -66,7 +66,7 @@ const UserList: React.FC<{ list: Models.UserModels.IUserWithoutToken[] }> = ({ l
                 <thead>
                     <tr>
                         <th>
-                            <Icons type="search" />
+                            <SearchOutlined />
                             <input name="search" value={searchString} onChange={(e) => { setSearchString(e.target.value); }} />
                         </th>
                         <th />
