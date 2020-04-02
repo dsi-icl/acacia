@@ -3,7 +3,7 @@ import { Mutation } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
-import * as css from './tabContent.module.css';
+import css from './tabContent.module.css';
 
 export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: { id: string, name: string }[] }> = ({ studyId, projectList }) => {
     return <div>

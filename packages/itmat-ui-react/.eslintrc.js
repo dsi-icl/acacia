@@ -27,7 +27,20 @@ module.exports = {
     rules: {
         'linebreak-style': ['off'],
         'indent': ['warn', 4],
-        'jsx-indent': ['warn', 4],
         'jsx-quotes': ['warn', 'prefer-double']
     },
+    overrides: [
+        {
+            files: ["*.d.ts"],
+            rules: {
+                'spaced-comment': ['off']
+            }
+        },
+        {
+            files: ["cypress/**/*.js"],
+            rules: {
+                'spaced-comment': ['off']
+            }
+        }
+    ]
 };

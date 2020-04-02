@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useMutation } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
-import * as css from './userList.module.css';
+import css from './userList.module.css';
 
 export const CreateNewUser: React.FunctionComponent = (props) => {
     const [completedCreationId, setCompletedCreationId] = React.useState(undefined);

@@ -1,4 +1,4 @@
-// / <reference types="cypress" />
+/// <reference types="cypress" />
 // @ts-check
 describe('Login test', () => {
     it('fails to login with wrong password', () => {
@@ -22,6 +22,6 @@ describe('Login test', () => {
         cy.get('#username_input').type('chon.sou');
         cy.get('#password_input').type('admin');
         cy.get('#loginButton').click();
-    // TO_DO: add snapshot
+        // TO_DO: add snapshot
     });
 });

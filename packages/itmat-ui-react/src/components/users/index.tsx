@@ -3,7 +3,7 @@ import { Route, Switch } from 'react-router-dom';
 import { CreateNewUser } from './createNewUser';
 import { UserDetailsSection } from './userDetails';
 import { UserListSection } from './userList';
-import * as css from './userList.module.css';
+import css from './userList.module.css';
 
 export const UserPage: React.FunctionComponent = (props) => {
     return (

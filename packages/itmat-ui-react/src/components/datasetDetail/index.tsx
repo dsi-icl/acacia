@@ -3,21 +3,29 @@ import { Query } from 'react-apollo';
 import { NavLink, Route, Switch } from 'react-router-dom';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
-import * as css from './projectPage.module.css';
-import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent } from './tabContent';
+import css from './projectPage.module.css';
+import {
+    DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent,
+} from './tabContent';
 import { FileRepositoryTabContent } from './tabContent/files/fileTab';
 
-export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return (
-        <Query<any, any>
-            query={GET_STUDY}
-            variables={{ studyId }}
-        >
-            {({ loading, error, data }) => {
-                if (loading) { return <LoadingBalls />; }
-                if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
-                if (!data || !data.getStudy) { return <div>Oops! Cannot find this dataset.</div>; }
-                return <div className={css.page_container}>
+export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => (
+    <Query<any, any>
+        query={GET_STUDY}
+        variables={{ studyId }}
+    >
+        {({ loading, error, data }) => {
+            if (loading) { return <LoadingBalls />; }
+            if (error) {
+                return (
+                    <p>
+                        Error :({JSON.stringify(error)}
+                    </p>
+                );
+            }
+            if (!data || !data.getStudy) { return <div>Oops! Cannot find this dataset.</div>; }
+            return (
+                <div className={css.page_container}>
                     <div className="page_ariane">{data.getStudy.name.toUpperCase()}</div>
                     <div className={css.tabs}>
                         <div>
@@ -38,8 +46,8 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                             <Route path="/datasets/:studyId/" render={() => <></>} />
                         </Switch>
                     </div>
-                </div>;
-            }}
-        </Query>
-    );
-};
+                </div>
+            );
+        }}
+    </Query>
+);

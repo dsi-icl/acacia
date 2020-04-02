@@ -6,7 +6,7 @@ import { DELETE_USER, EDIT_USER, GET_USERS } from 'itmat-commons/dist/graphql/ap
 import { Subsection } from '../reusable';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
-import * as css from './userList.module.css';
+import css from './userList.module.css';
 
 export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
     return (

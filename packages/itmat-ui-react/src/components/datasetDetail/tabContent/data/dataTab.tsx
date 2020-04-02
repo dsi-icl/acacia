@@ -9,7 +9,7 @@ import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import { DataSummaryVisual } from './dataSummary';
 import { FieldListSelectionSection } from './fieldListSelection';
-import * as css from './tabContent.module.css';
+import css from './tabContent.module.css';
 import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
 

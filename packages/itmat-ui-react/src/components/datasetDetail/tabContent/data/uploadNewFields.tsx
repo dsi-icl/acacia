@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom';
 import { CREATE_FIELD_CURATION_JOB } from 'itmat-commons/dist/graphql/curation';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
-import * as css from './tabContent.module.css';
+import css from './tabContent.module.css';
 
 export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVersionId: string }> = ({ studyId, dataVersionId }) => {
     const [expanded, setExpanded] = React.useState(false);
