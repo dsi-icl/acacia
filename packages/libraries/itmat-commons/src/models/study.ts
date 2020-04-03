@@ -1,3 +1,5 @@
+import { IUser } from './user';
+
 export interface IStudyDataVersion {
     id: string; // uuid
     contentId: string; // same contentId = same data
