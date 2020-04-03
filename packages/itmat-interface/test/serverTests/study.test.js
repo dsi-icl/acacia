@@ -71,7 +71,7 @@ describe('STUDY API', () => {
                 variables: { name: 'new_study_1' }
             });
             expect(res.status).toBe(200);
-            expect(res.body.data.errors).toBeUndefined();
+            expect(res.body.errors).toBeUndefined();
 
             const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: 'new_study_1' });
             expect(res.body.data.createStudy).toEqual({

@@ -73,7 +73,7 @@ describe('FILE API', () => {
                 variables: { name: 'new_study_1' }
             });
             expect(createStudyRes.status).toBe(200);
-            expect(createStudyRes.body.data.errors).toBeUndefined();
+            expect(createStudyRes.body.errors).toBeUndefined();
 
             const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: 'new_study_1' });
             expect(createStudyRes.body.data.createStudy).toEqual({
@@ -92,7 +92,7 @@ describe('FILE API', () => {
             });
             console.log(res.body);
             expect(res).toBe(200);
-            expect(res.body.data.errors).toBeUndefined();
+            expect(res.body.errors).toBeUndefined();
             expect(res.body.data.whoAmI).toEqual({
                 id: 'fsf',
                 fileName: 'just_a_test_file.txt',
