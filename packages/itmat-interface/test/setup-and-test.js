@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const child_process = require('child_process');
 const chalk = require('chalk');
 
-const MINIO_PORT = 9000;
+const MINIO_PORT = 8080;
 
 try {
     child_process.execSync('docker --version', {stdio: 'inherit'});
@@ -30,7 +30,7 @@ const fetchpoll = setInterval(() => {
             if (res.status === 403) {
                 clearInterval(fetchpoll);
                 console.log(chalk.yellow('Docker minio has started up. Running tests now.'));
-                child_process.execSync('yarn test-integrate', { stdio: 'inherit' });
+                child_process.execSync('yarn test-files', { stdio: 'inherit' });
                 minio.kill();
             } else {
                 console.error(`Unexpected res status ${res.status}`);
