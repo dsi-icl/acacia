@@ -14,7 +14,11 @@
         "module": "esnext",
         "target": "es5",
         "sourceMap": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "typeRoots": [
+            "overrides",
+            "node_modules/@types"
+        ]
     },
     "exclude": [
         "node_modules",
