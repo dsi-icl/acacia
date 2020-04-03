@@ -1,16 +1,15 @@
 const request = require('supertest');
 const { print } = require('graphql');
-const FormData = require('form-data');
 const { connectAdmin, connectUser, connectAgent } = require('./_loginHelper');
 const { db } = require('../../src/database/database');
 const { objStore } = require('../../src/objStore/objStore');
 const { Router } = require('../../src/server/router');
-const fs = require('fs');
 const path = require('path');
+const uuid = require('uuid/v4');
 const { errorCodes } = require('../../src/graphql/errors');
 const { MongoClient } = require('mongodb');
 const itmatCommons = require('itmat-commons');
-const { UPLOAD_FILE, WHO_AM_I, CREATE_PROJECT, CREATE_STUDY, DELETE_STUDY } = itmatCommons.GQLRequests;
+const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } = itmatCommons.GQLRequests;
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
 const config = require('../../config/config.sample.json');
@@ -40,7 +39,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     config.database.mongo_url = connectionString;
     config.database.database = database;
     await db.connect(config.database);
-    await objStore.connect();
+    await objStore.connect(config.objectStore);
     const router = new Router();
 
     /* Connect mongo client (for test setup later / retrieve info later) */
@@ -70,89 +69,306 @@ describe('FILE API', () => {
     });
 
     describe('UPLOAD AND DOWNLOAD FILE', () => {
-        test.only('Upload file to study (admin)', async () => { 
-            /* setup: create a study to upload file to */
-            const createStudyRes = await admin.post('/graphql').send({
-                query: print(CREATE_STUDY),
-                variables: { name: 'new_study_1' }
+        describe('UPLOAD FILE', () => {
+            /* note: a new study is created */
+            let createdStudy;
+            beforeEach(async () => {
+                /* setup: create a study to upload file to */
+                const studyname = uuid();
+                const createStudyRes = await admin.post('/graphql').send({
+                    query: print(CREATE_STUDY),
+                    variables: { name: studyname }
+                });
+                expect(createStudyRes.status).toBe(200);
+                expect(createStudyRes.body.errors).toBeUndefined();
+
+                /* setup: getting the created study Id */
+                createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
+                expect(createStudyRes.body.data.createStudy).toEqual({
+                    id: createdStudy.id,
+                    name: studyname
+                });
             });
-            expect(createStudyRes.status).toBe(200);
-            expect(createStudyRes.body.data.errors).toBeUndefined();
 
-            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: 'new_study_1' });
-            expect(createStudyRes.body.data.createStudy).toEqual({
-                id: createdStudy.id,
-                name: 'new_study_1'
+            test('Upload file to study (admin)', async () => { 
+                /* test: upload file */
+                const res = await admin.post('/graphql')
+                    .field('operations', JSON.stringify({
+                        query: print(UPLOAD_FILE),
+                        variables: {
+                            studyId: createdStudy.id,
+                            file: null,
+                            description: 'just a file 1.',
+                            fileLength: 10000
+                        }
+                    }))
+                    .field('map', JSON.stringify({ 1: ['variables.file']}))
+                    .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
+
+                /* setup: geting the created file Id */
+                const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.uploadFile).toEqual({
+                    id: createdFile.id,
+                    fileName: 'just_a_test_file.txt',
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    fileSize: 10000,
+                    description: 'just a file 1.',
+                    uploadedBy: adminId
+                });
             });
 
-            // const body = new FormData();
-            // body.append('operations', JSON.stringify({
-            //     query: print(UPLOAD_FILE),
-            //     variables: {
-            //         studyId: createdStudy.id,
-            //         file: null,
-            //         description: 'just a file 1.',
-            //         fileLength: 10000
-            //     }
-            // }));
-            // body.append('map', JSON.stringify({ 1: ['variables.file'] }));
-            // body.append('1', fs.createReadStream('../filesForTests/just_a_test_file.txt'));
+            test('Upload file to study (user with no privilege) (should fail)', async () => {
+                /* test: upload file */
+                const res = await user.post('/graphql')
+                    .field('operations', JSON.stringify({
+                        query: print(UPLOAD_FILE),
+                        variables: {
+                            studyId: createdStudy.id,
+                            file: null,
+                            description: 'just a file 1.',
+                            fileLength: 10000
+                        }
+                    }))
+                    .field('map', JSON.stringify({ 1: ['variables.file']}))
+                    .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
-            const res = await admin.post('/graphql')
-                .field('operations', JSON.stringify({
-                    query: print(UPLOAD_FILE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        file: null,
-                        description: 'just a file 1.',
-                        fileLength: 10000
-                    }
-                }))
-                .field('map', JSON.stringify({ 1: ['variables.file']}))
-                .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'))
-                // .attach('variables[file]', fs.createReadStream(path.join(__dirname, '../filesForTests/just_a_test_file.txt')))
-                .then(res => res);
-            // const res = await admin.post('/graphql').send({
-            //     query: print(UPLOAD_FILE),
-            //     variables: {
-            //         studyId: createdStudy.id,
-            //         file: fs.createReadStream('../filesForTests/just_a_test_file.txt'),
-            //         description: 'just a file 1.',
-            //         fileLength: 10000
-            //     }
-            // });
-            // console.log(res);
-            expect(res.status).toBe(200);
-            expect(res.body.data.errors).toBeUndefined();
-            expect(res.body.data.whoAmI).toEqual({
-                id: 'fsf',
-                fileName: 'just_a_test_file.txt',
-                studyId: createdStudy.id,
-                projectId: null,
-                fileSize: 10000,
-                description: 'just a file 1.',
-                uploadedBy: 'admin'
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.uploadFile).toEqual(null);
+            });
+
+            test('Upload file to study (user with privilege)', async () => {
+
+            });
+
+            test('Upload a empty file (admin)', async () => {
+                /* test: upload file */
+                const res = await admin.post('/graphql')
+                    .field('operations', JSON.stringify({
+                        query: print(UPLOAD_FILE),
+                        variables: {
+                            studyId: createdStudy.id,
+                            file: null,
+                            description: 'just a file 3.',
+                            fileLength: 0
+                        }
+                    }))
+                    .field('map', JSON.stringify({ 1: ['variables.file']}))
+                    .attach('1', path.join(__dirname, '../filesForTests/just_a_empty_file.txt'));
+
+                /* setup: geting the created file Id */
+                const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_empty_file.txt', studyId: createdStudy.id });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.uploadFile).toEqual({
+                    id: createdFile.id,
+                    fileName: 'just_a_empty_file.txt',
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    fileSize: 0,
+                    description: 'just a file 3.',
+                    uploadedBy: adminId
+                });
             });
         });
 
-        test('Upload file to study (user with privilege)', async () => {
+        describe('DOWNLOAD FILES', () => {
+            /* note: a new study is created and a non-empty text file is uploaded before each test */
+            let createdStudy;
+            let createdFile;
 
+            beforeEach(async () => {
+                /* setup: create a study to upload file to */
+                const studyname = uuid();
+                const createStudyRes = await admin.post('/graphql').send({
+                    query: print(CREATE_STUDY),
+                    variables: { name: studyname }
+                });
+                expect(createStudyRes.status).toBe(200);
+                expect(createStudyRes.body.errors).toBeUndefined();
+
+                /* setup: getting the created study Id */
+                createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
+                expect(createStudyRes.body.data.createStudy).toEqual({
+                    id: createdStudy.id,
+                    name: studyname
+                });
+
+                /* setup: upload file (would be better to upload not via app api but will do for now) */
+                await admin.post('/graphql')
+                    .field('operations', JSON.stringify({
+                        query: print(UPLOAD_FILE),
+                        variables: {
+                            studyId: createdStudy.id,
+                            file: null,
+                            description: 'just a file 1.',
+                            fileLength: 10000
+                        }
+                    }))
+                    .field('map', JSON.stringify({ 1: ['variables.file']}))
+                    .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
+
+                /* setup: geting the created file Id */
+                createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+            });
+
+            test('Download file from study (admin)', async () => {
+                const res = await admin.get(`/file/${createdFile.id}`);
+                expect(res.status).toBe(200);
+                expect(res.headers['content-type']).toBe('application/download');
+                expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
+                expect(res.text).toBe('just testing.');
+            });
+
+            test('Download file from study (user with privilege)', async () => {
+
+            });
+
+            test('Download file from study (not logged in)', async () => {
+                const loggedoutUser = request.agent(app);
+                const res = await loggedoutUser.get(`/file/${createdFile.id}`);
+                expect(res.status).toBe(403);
+                expect(res.body).toEqual({ error: 'Please log in.' });
+            });
+
+            test('Download file from study (user with no privilege) (should fail)', async () => {
+                const res = await user.get(`/file/${createdFile.id}`);
+                expect(res.status).toBe(404);
+                expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+            });
+
+            test('Download an non-existent file from study (admin) (should fail)', async () => {
+                const res = await admin.get('/file/fakefileid');
+                expect(res.status).toBe(404);
+                expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+            });
+
+            test('Download an non-existent file from study (not logged in)', async () => {
+                const loggedoutUser = request.agent(app);
+                const res = await loggedoutUser.get('/file/fakefileid');
+                expect(res.status).toBe(403);
+                expect(res.body).toEqual({ error: 'Please log in.' });
+            });
+
+            test('Download an non-existent file from study (user without privilege) (should fail)', async () => {
+                const res = await user.get('/file/fakefileid');
+                expect(res.status).toBe(404);
+                expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+            });
+
+            test('Download an non-existent file from study (user with privilege) (should fail)', async () => {
+            });
         });
 
-        test('Upload file to study (user with no privilege) (should fail)', async () => {
+        describe('DELETE FILES', () => {
+            let createdStudy;
+            let createdFile;
+            beforeEach(async () => {
+                /* setup: create a study to upload file to */
+                const studyname = uuid();
+                const createStudyRes = await admin.post('/graphql').send({
+                    query: print(CREATE_STUDY),
+                    variables: { name: studyname }
+                });
+                expect(createStudyRes.status).toBe(200);
+                expect(createStudyRes.body.errors).toBeUndefined();
 
-        });
+                /* setup: getting the created study Id */
+                createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
+                expect(createStudyRes.body.data.createStudy).toEqual({
+                    id: createdStudy.id,
+                    name: studyname
+                });
 
-        test('Download file from study (admin)', async () => {
+                /* setup: upload file (would be better to upload not via app api but will do for now) */
+                await admin.post('/graphql')
+                    .field('operations', JSON.stringify({
+                        query: print(UPLOAD_FILE),
+                        variables: {
+                            studyId: createdStudy.id,
+                            file: null,
+                            description: 'just a file 1.',
+                            fileLength: 10000
+                        }
+                    }))
+                    .field('map', JSON.stringify({ 1: ['variables.file']}))
+                    .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
-        });
+                /* setup: geting the created file Id */
+                createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id, deleted: null });
 
-        test('Download file from study (user with privilege)', async () => {
+                /* before test: can download file */
+                const res = await admin.get(`/file/${createdFile.id}`);
+                expect(res.status).toBe(200);
+                expect(res.headers['content-type']).toBe('application/download');
+                expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
+                expect(res.text).toBe('just testing.');
+            });
 
-        });
+            test('Delete file from study (admin)', async () => {
+                const res = await admin.post('/graphql').send({
+                    query: print(DELETE_FILE),
+                    variables: { fileId: createdFile.id }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.deleteFile).toEqual({ successful: true });
+                
+                const downloadFileRes = await user.get(`/file/${createdFile.id}`);
+                expect(downloadFileRes.status).toBe(404);
+                expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
+            });
 
-        test('Download file from study (user with no privilege) (should fail)', async () => {
+            test('Delete file from study (user with privilege)', async () => {
 
+            });
+
+            test('Delete file from study (user with no privilege) (should fail)', async () => {
+                const res = await user.post('/graphql').send({
+                    query: print(DELETE_FILE),
+                    variables: { fileId: createdFile.id }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.deleteFile).toBe(null);
+                
+                const downloadFileRes = await admin.get(`/file/${createdFile.id}`);
+                expect(downloadFileRes.status).toBe(200);
+                expect(downloadFileRes.headers['content-type']).toBe('application/download');
+                expect(downloadFileRes.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
+                expect(downloadFileRes.text).toBe('just testing.');
+            });
+
+            test('Delete an non-existent file from study (admin)', async () => {
+                const res = await admin.post('/graphql').send({
+                    query: print(DELETE_FILE),
+                    variables: { fileId: 'nosuchfile' }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.data.deleteFile).toBe(null);
+            });
+
+            test('Delete an non-existent file from study (user with privilege)', async () => {
+
+            });
+
+            test('Delete an non-existent file from study (user with no privilege)', async () => {
+                const res = await user.post('/graphql').send({
+                    query: print(DELETE_FILE),
+                    variables: { fileId: 'nosuchfile' }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.data.deleteFile).toBe(null);
+            });
         });
     });
 

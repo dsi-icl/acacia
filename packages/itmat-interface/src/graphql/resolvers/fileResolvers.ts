@@ -63,13 +63,18 @@ export const fileResolvers = {
                 }
             });
         },
-        deleteFile: async (parent: object, args: { studyId: string, fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteFile: async (parent: object, args: { fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
+            const file = await db.collections!.files_collection.findOne({ deleted: null, id: args.fileId });
+
+            if (!file) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_file_management],
                 requester,
-                args.studyId
+                file.studyId
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
