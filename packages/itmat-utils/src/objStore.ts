@@ -1,4 +1,5 @@
 import * as Minio from 'minio';
+import { Logger } from './logger';
 
 export interface IObjectStoreConfig {
     host: string;
@@ -27,6 +28,7 @@ export class ObjectStore {
     }
 
     public async connect(config: IObjectStoreConfig): Promise<(Minio.BucketItemFromList)[]> {
+        Logger.log('Checking connection to object store.');
         this.config = config;
         const minioClient = new Minio.Client({
             endPoint: config.host,
