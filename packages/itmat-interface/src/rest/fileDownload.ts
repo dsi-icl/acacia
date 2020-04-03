@@ -13,7 +13,7 @@ export const fileDownloadController = async (req: Request, res: Response) => {
         /* download file */
         const file: IFile = await db.collections!.files_collection.findOne({ id: requestedFile, deleted: null })!;
         if (!file) {
-            res.status(404).json({ error: 'File not found. ' });
+            res.status(404).json({ error: 'File not found.' });
             return;
         }
         const stream = await objStore.downloadFile(file.studyId, file.uri);

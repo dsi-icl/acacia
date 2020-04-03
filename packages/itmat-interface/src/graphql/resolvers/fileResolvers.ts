@@ -41,7 +41,7 @@ export const fileResolvers = {
                         id: uuid(),
                         fileName: file.filename,
                         studyId: args.studyId,
-                        fileSize: args.fileLength || undefined,
+                        fileSize: args.fileLength === undefined ? 0 : args.fileLength,
                         description: args.description,
                         uploadedBy: requester.id,
                         uri: fileUri,
