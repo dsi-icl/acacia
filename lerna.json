@@ -1,12 +1,12 @@
 {
-  "useWorkspaces": true,
-  "packages": [
-    "packages/*"
-  ],
-  "version": "independent",
-  "command": {
-    "run": {
-      "npmClient": "yarn"
+    "useWorkspaces": true,
+    "packages": [
+        "packages/*/*"
+    ],
+    "version": "independent",
+    "command": {
+        "run": {
+            "npmClient": "yarn"
+        }
     }
-  }
 }

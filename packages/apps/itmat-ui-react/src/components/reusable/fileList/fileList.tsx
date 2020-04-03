@@ -1,0 +1,45 @@
+import { IFile } from '@itmat/commons';
+import React from 'react';
+
+export function formatBytes(size: number, decimal = 2) {
+    if (size === 0) {
+        return '0 B';
+    }
+    const base = 1024;
+    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const order = Math.floor(Math.log(size) / Math.log(base));
+    return `${parseFloat((size / Math.pow(base, order)).toFixed(decimal))} ${units[order]}`;
+}
+
+export const FileList: React.FC<{ files: IFile[] }> = ({ files }) => (
+    <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Size</th>
+                    <th />
+                </tr>
+            </thead>
+            <tbody>
+                {files.map((el) => <OneFile file={el} key={el.id} />)}
+            </tbody>
+        </table>
+    </div>
+);
+
+const OneFile: React.FC<{ file: IFile }> = ({ file }) => (
+    <tr>
+        <td>{file.fileName}</td>
+        <td>{file.description}</td>
+        <td>{(file.fileSize && formatBytes(file.fileSize, 1)) || 'Unknown'}</td>
+        <td>
+            <a
+                download={file.fileName} href={`http://localhost:3003/file/${file.id}`}
+            >
+                <button>Download</button>
+            </a>
+        </td>
+    </tr>
+);

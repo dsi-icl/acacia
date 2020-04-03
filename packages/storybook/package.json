@@ -1,0 +1,29 @@
+{
+    "name": "@itmat/storybook",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "start": "yarn run storybook",
+        "storybook": "start-storybook -p 9009",
+        "build-storybook": "build-storybook"
+    },
+    "dependencies": {
+        "@itmat/components": "*",
+        "@itmat/react-scripts": "*",
+        "react": "16.13.1",
+        "react-dom": "16.13.1"
+    },
+    "devDependencies": {
+        "@babel/core": "7.9.0",
+        "@storybook/addon-actions": "5.3.18",
+        "@storybook/addon-docs": "5.3.18",
+        "@storybook/addon-info": "5.3.18",
+        "@storybook/addon-links": "5.3.18",
+        "@storybook/addons": "5.3.18",
+        "@storybook/preset-create-react-app": "2.1.1",
+        "@storybook/react": "5.3.18",
+        "@storybook/theming": "5.3.18",
+        "babel-loader": "8.1.0",
+        "cross-env": "7.0.2"
+    }
+}

@@ -1,9 +1,33 @@
 {
-    "name": "itmat-broker",
+    "name": "@itmat/root",
     "private": true,
+    "repository": "github:dsi-icl/itmat-broker",
+    "homepage": "https://github.com/dsi-icl/itmat-broker",
+    "license": "MIT",
+    "keywords": [
+        "itmat"
+    ],
+    "author": {
+        "email": "f.guitton@imperial.ac.uk",
+        "name": "Florian Guitton"
+    },
+    "scripts": {
+        "preinstall": "node ./scripts/hintYarn.js",
+        "start": "cross-env FORCE_COLOR=true lerna run start --stream",
+        "start:app": "yarn workspace @itmat/feasibility-portal start",
+        "start:storybook": "yarn workspace @itmat/storybook storybook",
+        "test": "cross-env FORCE_COLOR=true lerna run lint && cross-env CI=true FORCE_COLOR=true lerna run test -- --coverage",
+        "build": "cross-env FORCE_COLOR=true lerna run build --stream",
+        "lint:fix": "eslint --fix ."
+    },
     "workspaces": {
         "packages": [
-            "packages/*"
+            "packages/apps/*",
+            "packages/apis/*",
+            "packages/libraries/*",
+            "packages/components",
+            "packages/storybook",
+            "packages/scripts"
         ],
         "nohoist": [
             "packages/apps/**/webpack-dev-server",
@@ -11,18 +35,34 @@
             "**/babel-jest"
         ]
     },
-    "scripts": {
-        "preinstall": "node ./scripts/hintYarn.js",
-        "clean": "lerna run clean",
-        "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-utils --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
-        "build": "lerna run --stream build",
-        "publish": "lerna run tsc && lerna publish",
-        "test:unit": "lerna run --stream --parallel --scope itmat-job-executor test",
-        "test": "yarn run test:unit",
-        "lint": "lerna run --stream --no-bail lint",
-        "lint:fix": "lerna run --stream --no-bail lint:fix"
-    },
     "devDependencies": {
-        "lerna": "3.20.2"
+        "@typescript-eslint/eslint-plugin": "2.25.0",
+        "@typescript-eslint/parser": "2.25.0",
+        "babel-eslint": "10.1.0",
+        "cross-env": "7.0.2",
+        "eslint": "6.8.0",
+        "eslint-config-prettier": "6.10.1",
+        "eslint-config-react-app": "5.2.1",
+        "eslint-plugin-flowtype": "4.7.0",
+        "eslint-plugin-import": "2.20.1",
+        "eslint-plugin-jsx-a11y": "6.2.3",
+        "eslint-plugin-prettier": "3.1.2",
+        "eslint-plugin-react": "7.19.0",
+        "eslint-plugin-react-hooks": "3.0.0",
+        "husky": "4.2.3",
+        "jest-prop-type-error": "1.1.0",
+        "lerna": "3.20.2",
+        "prettier": "2.0.2",
+        "source-map-explorer": "2.4.2"
+    },
+    "husky": {},
+    "jest": {
+        "collectCoverageFrom": [
+            "src/**/*.{js,jsx,ts,tsx}",
+            "!src/setupTests.{js,jsx,ts,tsx}",
+            "!src/index.{js,jsx,ts,tsx}",
+            "!src/serviceWorker.{js,jsx,ts,tsx}",
+            "!src/**/*.(spec|test|stories).{js,jsx,ts,tsx}"
+        ]
     }
 }
