@@ -1,5 +1,5 @@
 import React from 'react';
-import { useApolloClient, useMutation } from 'react-apollo';
+import { useApolloClient, useMutation } from '@apollo/client';
 import { UPLOAD_FILE } from 'itmat-commons/dist/graphql/files';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 

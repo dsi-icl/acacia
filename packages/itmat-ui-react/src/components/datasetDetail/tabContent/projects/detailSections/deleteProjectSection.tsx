@@ -1,6 +1,6 @@
 import { IProject } from 'itmat-commons/dist/models/study';
 import React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/react-components'
 import { Redirect } from 'react-router';
 import { DELETE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';

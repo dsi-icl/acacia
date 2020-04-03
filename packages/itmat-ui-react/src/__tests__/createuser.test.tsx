@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow, mount } from 'enzyme';
-import { MockedProvider } from '@apollo/react-testing';
+import { MockedProvider } from '@apollo/client/testing';
 import { MemoryRouter } from 'react-router';
 import ReactDOM from 'react-dom';
 import { CreateNewUser } from '../components/users/createNewUser';

@@ -1,7 +1,5 @@
 // originally from dsi-icl/optimise-core
 
-
-const gql = require('graphql-tag');
 const { print } = require('graphql');
 const itmatCommons = require('itmat-commons');
 

@@ -1,4 +1,4 @@
-import gql from 'graphql-tag';
+import { gql } from '@apollo/client';
 
 export const JOB_FRAGMENT = gql`
     fragment ALL_FOR_JOB on Job {

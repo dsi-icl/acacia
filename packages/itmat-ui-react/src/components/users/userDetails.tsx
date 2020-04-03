@@ -1,6 +1,6 @@
 import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
 import * as React from 'react';
-import { Mutation, Query } from 'react-apollo';
+import { Mutation, Query } from '@apollo/react-components'
 import { NavLink, RouteComponentProps } from 'react-router-dom';
 import { DELETE_USER, EDIT_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { Subsection } from '../reusable';

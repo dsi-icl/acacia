@@ -1,6 +1,7 @@
 import { Models, permissions } from 'itmat-commons';
 import * as React from 'react';
-import { Mutation, useQuery, useMutation } from 'react-apollo';
+import { useQuery, useMutation } from '@apollo/client';
+import { Mutation } from '@apollo/react-components';
 import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from 'itmat-commons/src/graphql/permission';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
@@ -175,12 +176,11 @@ const PermissionsControlPanel: React.FC<PermissionsControlPanelProps> = ({
 
                 return (
 
-                    <Mutation<any, any> mutation={EDIT_ROLE}>
+                    <Mutation<any, any> key={index} mutation={EDIT_ROLE}>
                         {(editRole, { loading }) => (
                             <Button
                                 size="small"
                                 type={isSelected ? "primary" : "default"}
-                                key={index}
                                 icon={loading ? <LoadingOutlined /> : <TagOutlined />}
                                 style={{
                                     cursor: 'pointer',

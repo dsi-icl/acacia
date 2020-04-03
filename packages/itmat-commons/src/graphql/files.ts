@@ -1,4 +1,4 @@
-import gql from 'graphql-tag';
+import { gql } from '@apollo/client';
 
 export const UPLOAD_FILE = gql`
     mutation uploadFile($studyId: String!, $file: Upload!, $description: String!, $fileLength: Int) {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/react-components'
 import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import css from './login.module.css';
 

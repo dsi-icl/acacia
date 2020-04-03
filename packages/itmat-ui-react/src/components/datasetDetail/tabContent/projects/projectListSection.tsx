@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/react-components'
 import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';

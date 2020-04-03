@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Query, useMutation } from 'react-apollo';
+import { useMutation } from '@apollo/client';
+import { Query } from '@apollo/react-components';
 import { userTypes } from 'itmat-commons/dist/models/user';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import { CREATE_STUDY } from 'itmat-commons/dist/graphql/study';

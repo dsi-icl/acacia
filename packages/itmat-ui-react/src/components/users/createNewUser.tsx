@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useMutation } from 'react-apollo';
+import { useMutation } from '@apollo/client';
 import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import css from './userList.module.css';

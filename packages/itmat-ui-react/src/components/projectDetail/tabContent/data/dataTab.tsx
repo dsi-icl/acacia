@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/react-components'
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';

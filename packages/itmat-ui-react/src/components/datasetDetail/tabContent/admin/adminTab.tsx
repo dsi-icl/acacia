@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useQuery } from 'react-apollo';
+import { useQuery } from '@apollo/client';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { Subsection } from '../../../reusable';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';

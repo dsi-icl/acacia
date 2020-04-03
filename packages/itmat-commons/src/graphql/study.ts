@@ -1,4 +1,4 @@
-import gql from 'graphql-tag';
+import { gql } from '@apollo/client';
 import { JOB_FRAGMENT } from './curation';
 
 export const GET_STUDIES_LIST = gql`

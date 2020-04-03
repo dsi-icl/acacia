@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/react-components'
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import Providers from './Providers';
 import { LoginBox } from './components/login/login';

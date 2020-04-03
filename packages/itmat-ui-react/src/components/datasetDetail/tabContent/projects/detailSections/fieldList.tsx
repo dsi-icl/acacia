@@ -1,5 +1,6 @@
 import React from 'react';
-import { Mutation, Query, useQuery } from 'react-apollo';
+import { useQuery } from '@apollo/client';
+import { Mutation, Query } from '@apollo/react-components';
 import { EDIT_PROJECT_APPROVED_FIELDS } from 'itmat-commons/dist/graphql/projects';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { GET_STUDY_FIELDS } from 'itmat-commons/dist/graphql/fields';

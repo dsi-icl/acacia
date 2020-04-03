@@ -1,6 +1,6 @@
 import { Models } from 'itmat-commons';
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/react-components'
 import { NavLink } from 'react-router-dom';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 

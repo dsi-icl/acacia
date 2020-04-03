@@ -1,7 +1,7 @@
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { GQLRequests } from 'itmat-commons';
 import * as React from 'react';
-import { useSubscription } from 'react-apollo';
+import { useSubscription } from '@apollo/client';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { InfoCircle } from '../../../reusable/icons/infoCircle';
 import css from './tabContent.module.css';
