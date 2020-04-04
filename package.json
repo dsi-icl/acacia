@@ -18,7 +18,8 @@
         "start:storybook": "yarn workspace @itmat/storybook storybook",
         "test": "cross-env FORCE_COLOR=true lerna run lint && cross-env CI=true FORCE_COLOR=true lerna run test -- --coverage",
         "build": "cross-env FORCE_COLOR=true lerna run build --stream",
-        "lint:fix": "eslint --fix ."
+        "lint": "cross-env FORCE_COLOR=true lerna run lint --stream",
+        "lint:fix": "cross-env FORCE_COLOR=true lerna run lint:fix --stream"
     },
     "workspaces": {
         "packages": [
@@ -55,7 +56,11 @@
         "prettier": "2.0.2",
         "source-map-explorer": "2.4.2"
     },
-    "husky": {},
+    "husky": {
+        "hooks": {
+            "pre-commit": "echo activate yarn lint"
+        }
+    },
     "jest": {
         "collectCoverageFrom": [
             "src/**/*.{js,jsx,ts,tsx}",
