@@ -1,9 +1,9 @@
-const testConfig = require('./test.config.js');
-const { Account, Container, Segment } = require('../src/index.js');
-const fs = require('fs');
-const MemoryStream = require('memorystream');
+import testConfig from './test.config';
+import { Account, Container, Segment } from '../src/index';
+import fs from 'fs';
+import MemoryStream from 'memorystream';
 
-let segment_account = Account.fromUsernameAndPassword(testConfig.store_url,
+const segment_account = Account.fromUsernameAndPassword(testConfig.store_url,
     testConfig.account_user, testConfig.account_password);
 let segment_container = undefined;
 
@@ -20,8 +20,8 @@ test('Segment create from disk', function (done) {
     expect.assertions(3);
     expect(segment_account.isConnected()).toBeTruthy();
     expect(segment_container).toBeDefined();
-    let obj = new Segment(segment_container, testConfig.segment_object_name);
-    obj.createFromDisk('./tests/test.config.js').then(function (ok) {
+    const obj = new Segment(segment_container, testConfig.segment_object_name);
+    obj.createFromDisk('./tests/test.config.ts').then(function (ok) {
         expect(ok).toBeTruthy();
         done();
     }, function (error) {
@@ -33,8 +33,8 @@ test('Segment update from stream', function (done) {
     expect.assertions(3);
     expect(segment_account.isConnected()).toBeTruthy();
     expect(segment_container).toBeDefined();
-    let obj = new Segment(segment_container, testConfig.segment_object_name);
-    let ms = new MemoryStream('');
+    const obj = new Segment(segment_container, testConfig.segment_object_name);
+    const ms = new MemoryStream('');
     obj.createFromStream(ms).then(function (ok) {
         expect(ok).toBeTruthy();
         done();
@@ -48,7 +48,7 @@ test('Segment setMetadata', function (done) {
     expect.assertions(3);
     expect(segment_account.isConnected()).toBeTruthy();
     expect(segment_container).toBeDefined();
-    let obj = new Segment(segment_container, testConfig.segment_object_name);
+    const obj = new Segment(segment_container, testConfig.segment_object_name);
     obj.setMetadata({ test: 'coucou' }).then(function (ok) {
         expect(ok).toBeTruthy();
         done();
@@ -61,7 +61,7 @@ test('Segment getMetadata', function (done) {
     expect.assertions(3);
     expect(segment_account.isConnected()).toBeTruthy();
     expect(segment_container).toBeDefined();
-    let obj = new Segment(segment_container, testConfig.segment_object_name);
+    const obj = new Segment(segment_container, testConfig.segment_object_name);
     obj.getMetadata().then(function (data) {
         expect(data.test).toEqual('coucou');
         done();
@@ -74,7 +74,7 @@ test('Segment update metadata', function (done) {
     expect.assertions(4);
     expect(segment_account.isConnected()).toBeTruthy();
     expect(segment_container).toBeDefined();
-    let obj = new Segment(segment_container, testConfig.segment_object_name);
+    const obj = new Segment(segment_container, testConfig.segment_object_name);
     obj.setMetadata({ test: 'coucou_update' }).then(function (ok) {
         expect(ok).toBeTruthy();
         obj.getMetadata().then(function (data) {
@@ -92,7 +92,7 @@ test('Segment content check', function (done) {
     expect.assertions(6);
     expect(segment_account.isConnected()).toBeTruthy();
     expect(segment_container).toBeDefined();
-    let obj = new Segment(segment_container, testConfig.segment_object_name);
+    const obj = new Segment(segment_container, testConfig.segment_object_name);
     obj.getContentStream().then(function (stream) {
         expect(stream).not.toBeNull();
         expect(stream).toBeDefined();
@@ -102,7 +102,7 @@ test('Segment content check', function (done) {
             content += data;
         });
         stream.on('end', function () {
-            let ref = 'coucou hibou';
+            const ref = 'coucou hibou';
             expect(content).toEqual(ref);
             done();
         });
@@ -118,7 +118,7 @@ test('Segment delete', function (done) {
     expect.assertions(3);
     expect(segment_account.isConnected()).toBeTruthy();
     expect(segment_container).toBeDefined();
-    let obj = new Segment(segment_container, testConfig.segment_object_name);
+    const obj = new Segment(segment_container, testConfig.segment_object_name);
     obj.delete().then(function (ok) {
         expect(ok).toBeTruthy();
         done();
@@ -131,8 +131,8 @@ test('Segment create from stream', function (done) {
     expect.assertions(3);
     expect(segment_account.isConnected()).toBeTruthy();
     expect(segment_container).toBeDefined();
-    let obj = new Segment(segment_container, testConfig.segment_object_name);
-    let stream = new MemoryStream('');
+    const obj = new Segment(segment_container, testConfig.segment_object_name);
+    const stream = new MemoryStream('');
     obj.createFromStream(stream).then(function (ok) {
         expect(ok).toBeTruthy();
         done();
@@ -146,7 +146,7 @@ test('Segment empty delete', function (done) {
     expect.assertions(3);
     expect(segment_account.isConnected()).toBeTruthy();
     expect(segment_container).toBeDefined();
-    let obj = new Segment(segment_container, testConfig.segment_object_name);
+    const obj = new Segment(segment_container, testConfig.segment_object_name);
     obj.delete().then(function (ok) {
         expect(ok).toBeTruthy();
         done();

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     store_url: 'http://127.0.0.1',
     account_user: 'root',
     account_password: 'root',

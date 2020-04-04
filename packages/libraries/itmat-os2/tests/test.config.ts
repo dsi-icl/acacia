@@ -1,5 +1,5 @@
-module.exports = {
-    store_url: 'http://localhost:8080',
+export default {
+    store_url: 'http://localhost:32768',
     account_user: 'test:tester',
     account_password: 'testing',
     account_name: 'AUTH_test',
@@ -12,4 +12,4 @@ module.exports = {
     dlo_prefix: 'dlo_prefix',
     slo_container_name: 'slo_test_container',
     slo_object_name: 'slo_test_object'
-}; 
+};

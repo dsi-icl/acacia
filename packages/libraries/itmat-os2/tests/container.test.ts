@@ -1,7 +1,7 @@
-const testConfig = require('./test.config.js');
-const { Account, Container } = require('../src/index.js');
+import testConfig from './test.config';
+import { Account, Container } from '../src/index';
 
-let container_account = Account.fromUsernameAndPassword(testConfig.store_url,
+const container_account = Account.fromUsernameAndPassword(testConfig.store_url,
     testConfig.account_user, testConfig.account_password);
 beforeAll(function () {
     return container_account.connect();
@@ -10,7 +10,7 @@ beforeAll(function () {
 test('Container list non existing', function (done) {
     expect.assertions(2);
     expect(container_account.isConnected()).toBeTruthy();
-    let container = new Container(container_account, testConfig.container_name);
+    const container = new Container(container_account, testConfig.container_name);
     container.listObjects().then(function (data) {
         done.fail(data);
     }, function (error) {
@@ -22,7 +22,7 @@ test('Container list non existing', function (done) {
 test('Container create', function (done) {
     expect.assertions(2);
     expect(container_account.isConnected()).toBeTruthy();
-    let container = new Container(container_account, testConfig.container_name);
+    const container = new Container(container_account, testConfig.container_name);
     container.create().then(function (data) {
         expect(data).not.toBeNull();
         done();
@@ -34,7 +34,7 @@ test('Container create', function (done) {
 test('Container list empty', function (done) {
     expect.assertions(2);
     expect(container_account.isConnected()).toBeTruthy();
-    let container = new Container(container_account, testConfig.container_name);
+    const container = new Container(container_account, testConfig.container_name);
     container.listObjects().then(function (data) {
         expect(data).toBeDefined();
         done();
@@ -46,7 +46,7 @@ test('Container list empty', function (done) {
 test('Container get empty metadata', function (done) {
     expect.assertions(2);
     expect(container_account.isConnected()).toBeTruthy();
-    let container = new Container(container_account, testConfig.container_name);
+    const container = new Container(container_account, testConfig.container_name);
     container.getMetadata().then(function (metadata) {
         expect(metadata).not.toBeNull();
         done();
@@ -59,7 +59,7 @@ test('Container get empty metadata', function (done) {
 test('Container create metadata', function (done) {
     expect.assertions(2);
     expect(container_account.isConnected()).toBeTruthy();
-    let container = new Container(container_account, testConfig.container_name);
+    const container = new Container(container_account, testConfig.container_name);
     container.setMetadata({ test: 'test' }).then(function (update_status) {
         expect(update_status).toBeTruthy();
         done();
@@ -71,7 +71,7 @@ test('Container create metadata', function (done) {
 test('Container set metadata', function (done) {
     expect.assertions(2);
     expect(container_account.isConnected()).toBeTruthy();
-    let container = new Container(container_account, testConfig.container_name);
+    const container = new Container(container_account, testConfig.container_name);
     container.setMetadata({ test: 'test_update' }).then(function (update_status) {
         expect(update_status).toBeTruthy();
         done();
@@ -83,7 +83,7 @@ test('Container set metadata', function (done) {
 test('Container get metadata', function (done) {
     expect.assertions(2);
     expect(container_account.isConnected()).toBeTruthy();
-    let container = new Container(container_account, testConfig.container_name);
+    const container = new Container(container_account, testConfig.container_name);
     container.getMetadata().then(function (metadata) {
         expect(metadata.test).toEqual('test_update');
         done();
@@ -96,7 +96,7 @@ test('Container get metadata', function (done) {
 test('Container delete metadata', function (done) {
     expect.assertions(2);
     expect(container_account.isConnected()).toBeTruthy();
-    let container = new Container(container_account, testConfig.container_name);
+    const container = new Container(container_account, testConfig.container_name);
     container.setMetadata({ test: '' }).then(function (update_status) {
         expect(update_status).toBeTruthy();
         done();
@@ -108,7 +108,7 @@ test('Container delete metadata', function (done) {
 test('Container delete', function (done) {
     expect.assertions(3);
     expect(container_account.isConnected()).toBeTruthy();
-    let container = new Container(container_account, testConfig.container_name);
+    const container = new Container(container_account, testConfig.container_name);
     container.delete().then(function (data) {
         expect(data).not.toBeNull();
         expect(data).toBeTruthy();

@@ -1,6 +1,6 @@
-const request = require('request');
-const fs = require('fs');
-const MemoryStream = require('memorystream');
+import request from 'request';
+import fs from 'fs';
+import MemoryStream from 'memorystream';
 
 /**
  * @class Segment
@@ -8,7 +8,7 @@ const MemoryStream = require('memorystream');
  * @param name {String} Name of this segment
  * @constructor
  */
-function Segment(container, name) {
+export function Segment(container, name) {
     //Init member attributes
     this._container = container;
     this._name = name;
@@ -35,7 +35,7 @@ function Segment(container, name) {
  * @return {Promise} resolve to true on success, on error rejects with a native js Error
  */
 Segment.prototype.createFromDisk = function (filepath) {
-    let readStream = fs.createReadStream(filepath);
+    const readStream = fs.createReadStream(filepath);
 
     return this.createFromStream(readStream);
 };
@@ -47,9 +47,9 @@ Segment.prototype.createFromDisk = function (filepath) {
  * @return {Promise} resolve to true on success, on error rejects with a native js Error
  */
 Segment.prototype.createFromStream = function (readStream) {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
-        let options = {
+        const options = {
             method: 'PUT',
             baseUrl: _this._container.getAccount().getStorageUrl(),
             uri: _this._container.getName() + '/' + _this._name,
@@ -78,9 +78,9 @@ Segment.prototype.createFromStream = function (readStream) {
  * @return {Promise} Resolve to true on success, otherwise a native js Error is rejected
  */
 Segment.prototype.delete = function () {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
-        let options = {
+        const options = {
             method: 'DELETE',
             baseUrl: _this._container.getAccount().getStorageUrl(),
             uri: _this._container.getName() + '/' + _this._name,
@@ -111,14 +111,14 @@ Segment.prototype.delete = function () {
  * @return {Promise} Resolves to true on success, rejects a js native Error otherwise
  */
 Segment.prototype.copy = function (object) {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
-        let heads = {
+        const heads = {
             'X-Auth-Token': _this._container.getAccount().getToken(),
             'Destination': object.getContainer().getName() + '/' + object.getName(),
             'Destination-Account': object.getContainer().getAccount().getName()
         };
-        let options = {
+        const options = {
             method: 'COPY',
             baseUrl: _this._container.getAccount().getStorageUrl(),
             uri: '/' + _this._name + '?multipart-manifest=get',
@@ -144,9 +144,9 @@ Segment.prototype.copy = function (object) {
  * @return {Promise} resolve to a ReadableStream on success, rejects a js Error otherwise
  */
 Segment.prototype.getContentStream = function () {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
-        let options = {
+        const options = {
             method: 'GET',
             baseUrl: _this._container.getAccount().getStorageUrl(),
             uri: _this._container.getName() + '/' + _this._name,
@@ -161,7 +161,7 @@ Segment.prototype.getContentStream = function () {
                     return;
                 }
 
-                let stream = new MemoryStream([]);
+                const stream = new MemoryStream([]);
                 response.on('data', function (data) {
                     stream.write(data);
                 });
@@ -183,13 +183,13 @@ Segment.prototype.getContentStream = function () {
  * reject to js native error otherwise
  */
 Segment.prototype.getMetadata = function () {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
         if (_this._container.getAccount().isConnected() === false) {
             reject(new Error('Segment needs a connected  container/account'));
             return;
         }
-        let options = {
+        const options = {
             method: 'HEAD',
             baseUrl: _this._container.getAccount().getStorageUrl(),
             uri: _this._container.getName() + '/' + _this._name,
@@ -207,10 +207,10 @@ Segment.prototype.getMetadata = function () {
                 return;
             }
 
-            let metas = {};
-            for (let m in response.headers) {
+            const metas = {};
+            for (const m in response.headers) {
                 if (m.toLowerCase().includes('x-object-meta-')) { // Add to metas
-                    let meta_name = m.substr(14);
+                    const meta_name = m.substr(14);
                     metas[meta_name] = response.headers[m];
                 }
             }
@@ -226,22 +226,22 @@ Segment.prototype.getMetadata = function () {
  * @return {Promise} resolves to true on success, on error rejects a native js Error
  */
 Segment.prototype.setMetadata = function (metadata) {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
         if (_this._container.getAccount().isConnected() === false) {
             reject(new Error('Segment needs a connected  container/account'));
             return;
         }
 
-        let metas = {};
-        for (let m in metadata) {
-            let meta_name = 'X-Object-Meta-' + m;
+        const metas = {};
+        for (const m in metadata) {
+            const meta_name = 'X-Object-Meta-' + m;
             metas[meta_name] = metadata[m];
         }
-        let heads = Object.assign({}, {
+        const heads = Object.assign({}, {
             'X-Auth-Token': _this._container.getAccount().getToken()
         }, metas);
-        let options = {
+        const options = {
             method: 'POST',
             baseUrl: _this._container.getAccount().getStorageUrl(),
             uri: _this._container.getName() + '/' + _this._name,
@@ -299,4 +299,4 @@ Segment.prototype.setContainer = function (container) {
     return this._container;
 };
 
-module.exports = Segment;
+export default Segment;

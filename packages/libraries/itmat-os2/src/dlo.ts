@@ -1,9 +1,9 @@
-const request = require('request');
-const MemoryStream = require('memorystream');
-const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
+import request from 'request';
+import MemoryStream from 'memorystream';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
 
-const Segment = require('./segment.js');
+import Segment from './segment';
 
 
 /**
@@ -13,7 +13,7 @@ const Segment = require('./segment.js');
  * @param prefix {String} Prefix is a string that all segment objects have in common
  * @constructor
  */
-function DynamicLargeObject(container, name, prefix = 'default') {
+export function DynamicLargeObject(container, name, prefix = 'default') {
     //Call super constructor
     Segment.call(this, container, name);
 
@@ -50,7 +50,7 @@ const maxChunkSize = 1024 * 1024 * 1024 - 1;
  * @private
  */
 DynamicLargeObject.prototype._generateSegmentName = function (index = 0) {
-    let prefix = this._prefix ? this._prefix + '/' : '';
+    const prefix = this._prefix ? this._prefix + '/' : '';
     return prefix + ('000000000' + index).slice(-9) + '_' + uuidv4();
 };
 
@@ -61,13 +61,13 @@ DynamicLargeObject.prototype._generateSegmentName = function (index = 0) {
  * @return {Promise} Resolves to true on success, reject a js native Error otherwise
  */
 DynamicLargeObject.prototype.createManifest = function () {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
         // Create a DLO in the object storage using the container/prefix urlencoded header
         let object_manifest = encodeURIComponent(_this._container.getName());
         object_manifest += '/' + encodeURIComponent(_this._prefix);
 
-        let options = {
+        const options = {
             method: 'PUT',
             baseUrl: _this._container.getAccount().getStorageUrl(),
             uri: _this._container.getName() + '/' + _this._name,
@@ -99,7 +99,7 @@ DynamicLargeObject.prototype.createManifest = function () {
  * @return {Promise} Resolves to a map of segments:status on success or reject a js Error type
  */
 DynamicLargeObject.prototype.createFromDisk = function (path, chunkSize = maxChunkSize) {
-    let _this = this;
+    const _this = this;
     if (chunkSize > maxChunkSize) //Max to maxChunkSize
         chunkSize = maxChunkSize;
     return new Promise(function (resolve, reject) {
@@ -109,7 +109,7 @@ DynamicLargeObject.prototype.createFromDisk = function (path, chunkSize = maxChu
                 return;
             }
 
-            let streams = [];
+            const streams = [];
             let end = 0;
 
             // Generate read streams of 5Go chunks in the file
@@ -138,21 +138,21 @@ DynamicLargeObject.prototype.createFromDisk = function (path, chunkSize = maxChu
  * @return {Promise} Resolves a map of segments:status on success or reject a js Error type
  */
 DynamicLargeObject.prototype.createFromStreams = function (streams) {
-    let _this = this;
-    let segments = [];
-    let segmentsPromises = [];
+    const _this = this;
+    const segments = [];
+    const segmentsPromises = [];
 
     return new Promise(function (resolve, reject) {
         // Create one segment per read stream. Generates {prefix/uuidv4} names
         for (let stream_idx = 0; stream_idx < streams.length; stream_idx++) {
-            let stream = streams[stream_idx];
-            let segment = new Segment(_this._container, _this._generateSegmentName(stream_idx));
+            const stream = streams[stream_idx];
+            const segment = new Segment(_this._container, _this._generateSegmentName(stream_idx));
             segments.push(segment);
             segmentsPromises.push(segment.createFromStream(stream));
         }
         // Asynchronous execution of all segments creation
         Promise.all(segmentsPromises).then(function (ok_array) {
-            let result = {};
+            const result = {};
             segments.forEach(function (s, idx) {
                 result[s.getName()] = ok_array[idx];
             });
@@ -176,11 +176,11 @@ DynamicLargeObject.prototype.createFromStreams = function (streams) {
  * @return {Promise} Resolves to a map of segments:status on success or reject a js Error type
  */
 DynamicLargeObject.prototype.createFromStream = function (stream, chunkSize = maxChunkSize) {
-    let _this = this;
+    const _this = this;
     if (chunkSize > maxChunkSize) //Max to maxChunkSize
         chunkSize = maxChunkSize;
     return new Promise(function (resolve, reject) {
-        let stream_process = {
+        const stream_process = {
             streams: [],
             stream_idx: 0,
             stream_ptr: [],
@@ -188,16 +188,16 @@ DynamicLargeObject.prototype.createFromStream = function (stream, chunkSize = ma
             segmentsPromises: []
         };
 
-        let pipeNewStream = function () {
-            let new_stream = new MemoryStream();
+        const pipeNewStream = function () {
+            const new_stream = new MemoryStream();
             stream_process.streams.push(new_stream); //Insert current stream
             stream_process.stream_ptr = 0; //Current segment has size 0
             stream_process.stream_idx = stream_process.streams.length - 1; //Last index in the array
-            let segment = new Segment(_this._container, _this._generateSegmentName(stream_process.stream_idx)); //Create segment object
+            const segment = new Segment(_this._container, _this._generateSegmentName(stream_process.stream_idx)); //Create segment object
             stream_process.segments.push(segment);
             stream_process.segmentsPromises.push(segment.createFromStream(new_stream)); //Start reading from new stream
         };
-        let unpipeOldStream = function () {
+        const unpipeOldStream = function () {
             stream_process.streams[stream_process.stream_idx].end(); //Manually end current stream
         };
 
@@ -210,8 +210,8 @@ DynamicLargeObject.prototype.createFromStream = function (stream, chunkSize = ma
 
             stream.pause(); //Stop stream because we may stop consuming data for a moment
             if (stream_process.stream_ptr + chunk.length >= chunkSize) { // chunkSize limit reached
-                let overflowedChunk = chunk.slice(chunkSize - stream_process.stream_ptr);
-                let flowingChunk = chunk.slice(0, -overflowedChunk.length);
+                const overflowedChunk = chunk.slice(chunkSize - stream_process.stream_ptr);
+                const flowingChunk = chunk.slice(0, -overflowedChunk.length);
 
                 stream_process.streams[stream_process.stream_idx].write(flowingChunk); //Write until chunkSize in current segment
                 stream_process.stream_ptr += flowingChunk.length; //Increment current stream pointer
@@ -231,9 +231,9 @@ DynamicLargeObject.prototype.createFromStream = function (stream, chunkSize = ma
             unpipeOldStream();
             stream.unpipe();
             if (stream_process.stream_ptr === 0) { // The last Segment is empty, remove it
-                let segment = stream_process.segments[stream_process.stream_idx];
-                let creation_promise = stream_process.segmentsPromises[stream_process.segmentsPromises.length - 1];
-                let deletion_promise = new Promise(function (resolve, reject) {
+                const segment = stream_process.segments[stream_process.stream_idx];
+                const creation_promise = stream_process.segmentsPromises[stream_process.segmentsPromises.length - 1];
+                const deletion_promise = new Promise(function (resolve, reject) {
                     creation_promise.then(function (__unused___create_ok) {
                         segment.delete().then(function (delete_ok) {
                             stream_process.segments.pop();
@@ -250,7 +250,7 @@ DynamicLargeObject.prototype.createFromStream = function (stream, chunkSize = ma
 
             //Async wait for all segments
             Promise.all(stream_process.segmentsPromises).then(function (ok_array) {
-                let result = {};
+                const result = {};
                 stream_process.segments.forEach(function (s, idx) {
                     result[s.getName()] = ok_array[idx];
                 });
@@ -277,14 +277,14 @@ DynamicLargeObject.prototype.createFromStream = function (stream, chunkSize = ma
  * @return {Promise} Resolve to a ReadableStream on success or reject a js Error
  */
 DynamicLargeObject.prototype.getContentStream = function (manifest = false) {
-    let _this = this;
+    const _this = this;
     const manifest_url_param = '?multipart-manifest=get';
 
     if (manifest === false) { // Get content from Segment implementation
         return Segment.prototype.getContentStream.call(this);
     }
     return new Promise(function (resolve, reject) {
-        let options = {
+        const options = {
             method: 'GET',
             baseUrl: _this._container.getAccount().getStorageUrl(),
             uri: _this._container.getName() + '/' + _this._name + manifest_url_param,
@@ -298,7 +298,7 @@ DynamicLargeObject.prototype.getContentStream = function (manifest = false) {
                     reject(new Error(response.statusMessage));
                     return;
                 }
-                let stream = new MemoryStream([]);
+                const stream = new MemoryStream([]);
                 response.on('data', function (data) {
                     stream.write(data);
                 });
@@ -332,4 +332,4 @@ DynamicLargeObject.prototype.setPrefix = function (prefix) {
     return this._prefix;
 };
 
-module.exports = DynamicLargeObject;
+export default DynamicLargeObject;

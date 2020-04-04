@@ -1,4 +1,4 @@
-const request = require('request');
+import request from 'request';
 
 /**
  * @class Container
@@ -6,7 +6,7 @@ const request = require('request');
  * @param name {String} container name or identifier
  * @constructor
  */
-function Container(account, name) {
+export function Container(account, name) {
     //Init member attributes
     this._name = name;
     this._account = account;
@@ -29,13 +29,13 @@ function Container(account, name) {
  * @return {Promise} Resolves to object storage response on success, on error rejects a native js Error
  */
 Container.prototype.create = function () {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
         }
-        let options = {
+        const options = {
             method: 'PUT',
             baseUrl: _this._account.getStorageUrl(),
             uri: '/' + _this._name,
@@ -63,13 +63,13 @@ Container.prototype.create = function () {
  * @return {Promise} Resolves to object storage response on success, on error rejects a native js Error
  */
 Container.prototype.delete = function () {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
         }
-        let options = {
+        const options = {
             method: 'DELETE',
             baseUrl: _this._account.getStorageUrl(),
             uri: '/' + _this._name,
@@ -98,22 +98,22 @@ Container.prototype.delete = function () {
  * @return {Promise} resolves to true on success, on error rejects a native js Error
  */
 Container.prototype.setMetadata = function (metadata) {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
         }
 
-        let metas = {};
-        for (let m in metadata) {
-            let meta_name = 'X-Container-Meta-' + m;
+        const metas = {};
+        for (const m in metadata) {
+            const meta_name = 'X-Container-Meta-' + m;
             metas[meta_name] = metadata[m];
         }
-        let heads = Object.assign({}, {
+        const heads = Object.assign({}, {
             'X-Auth-Token': _this._account.getToken()
         }, metas);
-        let options = {
+        const options = {
             method: 'POST',
             baseUrl: _this._account.getStorageUrl(),
             uri: '/' + _this._name,
@@ -140,13 +140,13 @@ Container.prototype.setMetadata = function (metadata) {
  * @return {Promise} resolve to a json object containing the metadata or rejects a js Error
  */
 Container.prototype.getMetadata = function () {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
         }
-        let options = {
+        const options = {
             method: 'HEAD',
             baseUrl: _this._account.getStorageUrl(),
             uri: '/' + _this._name,
@@ -164,10 +164,10 @@ Container.prototype.getMetadata = function () {
                 return;
             }
 
-            let metas = {};
-            for (let m in response.headers) {
+            const metas = {};
+            for (const m in response.headers) {
                 if (m.toLowerCase().includes('x-container-meta-')) {//Add to metas
-                    let meta_name = m.substr(17);
+                    const meta_name = m.substr(17);
                     metas[meta_name] = response.headers[m];
                 }
             }
@@ -182,13 +182,13 @@ Container.prototype.getMetadata = function () {
  * @return {Promise} Resolves to json content of the container, rejects to native js error
  */
 Container.prototype.listObjects = function () {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
         }
-        let options = {
+        const options = {
             method: 'GET',
             baseUrl: _this._account.getStorageUrl(),
             uri: '/' + _this._name,
@@ -250,4 +250,4 @@ Container.prototype.getName = function () {
     return this._name;
 };
 
-module.exports = Container;
+export default Container;

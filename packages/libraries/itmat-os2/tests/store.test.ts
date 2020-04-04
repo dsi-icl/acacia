@@ -1,11 +1,11 @@
-const testConfig = require('./test.config.js');
+import testConfig from './test.config';
 
-const { Store } = require('../src/index.js');
+import { Store } from '../src/index';
 
 test('Store list capabilities', function (done) {
     expect.assertions(1);
 
-    var test_store = new Store(testConfig.store_url);
+    const test_store = new Store(testConfig.store_url);
     test_store.info().then(function (features) {
         expect(features.hasOwnProperty('swift')).toBeTruthy();
         done();
@@ -18,7 +18,7 @@ test('Store list capabilities', function (done) {
 test('Store list capabilities fail', function (done) {
     expect.assertions(1);
 
-    var test_store = new Store('http://invalid-url.test.com');
+    const test_store = new Store('http://invalid-url.test.com');
     test_store.info().then(function (features) {
         done.fail(features);
     }, function (error) {

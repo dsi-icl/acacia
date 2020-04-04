@@ -1,10 +1,9 @@
-const testConfig = require('./test.config.js');
-const { Account, Container, StaticLargeObject } = require('../src/index.js');
-const fs = require('fs');
-const MemoryStream = require('memorystream');
+import testConfig from './test.config';
+import { Account, Container, StaticLargeObject } from '../src/index';
+import MemoryStream from 'memorystream';
 
 let chunks = {};
-let slo_account = Account.fromUsernameAndPassword(testConfig.store_url,
+const slo_account = Account.fromUsernameAndPassword(testConfig.store_url,
     testConfig.account_user, testConfig.account_password);
 let slo_container = undefined;
 let buffer = '';
@@ -23,8 +22,8 @@ test('SLO create from disk', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
-    let obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
-    obj.createFromDisk('./tests/test.config.js').then(function (data) {
+    const obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
+    obj.createFromDisk('./tests/test.config.ts').then(function (data) {
         expect(data).toBeDefined();
         chunks = data;
         done();
@@ -37,7 +36,7 @@ test('SLO remove manifest, keep the chunks', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
-    let obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
+    const obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
     obj.delete().then(function (status) {
         expect(status).toBeTruthy();
         done();
@@ -50,9 +49,9 @@ test('SLO re-create manifest', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
-    let obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
-    let manifest = [];
-    for (let c in chunks) {
+    const obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
+    const manifest = [];
+    for (const c in chunks) {
         manifest.push({ path: slo_container.getName() + '/' + c });
     }
     obj.createManifest(manifest).then(function (status) {
@@ -67,7 +66,7 @@ test('SLO remove manifest and remove chunks', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
-    let obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
+    const obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
     obj.deleteWithContent().then(function (status) {
         expect(status).toBeTruthy();
         done();
@@ -81,8 +80,8 @@ test('SLO create from large stream, 500Mo chunks', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
-    let obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
-    let test_stream = new MemoryStream();
+    const obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
+    const test_stream = new MemoryStream();
     obj.createFromStream(test_stream, 500 * 1024 * 1024).then(function (data) {
         expect(data).toBeDefined();
         chunks = data;
@@ -99,7 +98,7 @@ test('SLO remove manifest and remove chunks again', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
-    let obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
+    const obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
     obj.deleteWithContent().then(function (status) {
         expect(status).toBeTruthy();
         done();

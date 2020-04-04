@@ -1,4 +1,4 @@
-const request = require('request');
+import request from 'request';
 
 /**
  * @class Store
@@ -6,7 +6,7 @@ const request = require('request');
  * @param url {String} Object storage API url
  * @constructor
  */
-function Store(url = 'http://127.0.0.1:8080') {
+export function Store(url = 'http://127.0.0.1:8080') {
     //Init member attributes
     this._url = url;
 
@@ -43,10 +43,10 @@ Store.prototype.setURL = function (url) {
  * @return {Promise} Resolves to the list on success, rejects top native javascript Error otherwise
  */
 Store.prototype.info = function () {
-    let _this = this;
+    const _this = this;
 
     return new Promise(function (resolve, reject) {
-        let options = {
+        const options = {
             method: 'GET',
             baseUrl: _this._url,
             uri: '/info',
@@ -64,4 +64,4 @@ Store.prototype.info = function () {
     });
 };
 
-module.exports = Store;
+export default Store;

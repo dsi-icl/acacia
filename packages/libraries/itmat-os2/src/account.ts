@@ -1,5 +1,5 @@
-const request = require('request');
-const Store = require('./store.js');
+import request from 'request';
+import Store from './store';
 
 /**
  * @class Account
@@ -10,7 +10,7 @@ const Store = require('./store.js');
  * @param token {String} Authentication token for this account
  * @constructor
  */
-function Account(store = null, username = null, password = null, storage_url = null, token = null) {
+export function Account(store = null, username = null, password = null, storage_url = null, token = null) {
     //Init member attributes
     this._name = null;
     this._store = store;
@@ -48,7 +48,7 @@ function Account(store = null, username = null, password = null, storage_url = n
  * @return {Account}
  */
 Account.fromUsernameAndPassword = function (storeUrl, username, password) {
-    let store = new Store(storeUrl);
+    const store = new Store(storeUrl);
     return new Account(store, username, password);
 };
 
@@ -62,8 +62,8 @@ Account.fromUsernameAndPassword = function (storeUrl, username, password) {
  * @return {Account}
  */
 Account.fromNameAndToken = function (storeUrl, name, token) {
-    let store = new Store(storeUrl);
-    let account = new Account(store, null, null, storeUrl + '/v1/' + name, token);
+    const store = new Store(storeUrl);
+    const account = new Account(store, null, null, storeUrl + '/v1/' + name, token);
     account._isAuth = true;
     account._name = name;
     return account;
@@ -76,10 +76,10 @@ Account.fromNameAndToken = function (storeUrl, name, token) {
  * @return {Promise} Resolves to true on success or rejects a native js Error on failure
  */
 Account.prototype.connect = function () {
-    let _this = this;
+    const _this = this;
 
     return new Promise(function (resolve, reject) {
-        let options = {
+        const options = {
             method: 'GET',
             uri: _this._store.getURL() + '/auth/v1.0/',
             headers: {
@@ -118,7 +118,7 @@ Account.prototype.connect = function () {
  * @return {Promise} Always resolves to true
  */
 Account.prototype.disconnect = function () {
-    let _this = this;
+    const _this = this;
     return new Promise(function (resolve, __unused__reject) {
         _this._isAuth = false;
         _this._storage_token = null;
@@ -133,7 +133,7 @@ Account.prototype.disconnect = function () {
  * @return {Promise} Resolves to a json array of containers no success, rejects a native JS Error otherwise
  */
 Account.prototype.listContainers = function () {
-    let _this = this;
+    const _this = this;
 
     return new Promise(function (resolve, reject) {
         if (_this._isAuth === false) {
@@ -141,7 +141,7 @@ Account.prototype.listContainers = function () {
             return;
         }
 
-        let options = {
+        const options = {
             method: 'GET',
             uri: _this._storage_url,
             headers: {
@@ -164,7 +164,7 @@ Account.prototype.listContainers = function () {
  * @return {Promise} Resolves to an object containing all the metadata on success, reject to native js Error otherwise
  */
 Account.prototype.getMetadata = function () {
-    let _this = this;
+    const _this = this;
 
     return new Promise(function (resolve, reject) {
         if (_this._isAuth === false) {
@@ -172,7 +172,7 @@ Account.prototype.getMetadata = function () {
             return;
         }
 
-        let options = {
+        const options = {
             method: 'HEAD',
             uri: _this._storage_url,
             headers: {
@@ -189,10 +189,10 @@ Account.prototype.getMetadata = function () {
                 return;
             }
 
-            let metas = {};
-            for (let m in response.headers) {
+            const metas = {};
+            for (const m in response.headers) {
                 if (m.includes('x-account-meta-')) {//Add to metas
-                    let meta_name = m.substr(15);
+                    const meta_name = m.substr(15);
                     metas[meta_name] = response.headers[m];
                 }
             }
@@ -209,24 +209,24 @@ Account.prototype.getMetadata = function () {
  * @return {Promise} Resolves to true on success, rejects with a native js Error on failure
  */
 Account.prototype.setMetadata = function (metadata = {}) {
-    let _this = this;
+    const _this = this;
 
     return new Promise(function (resolve, reject) {
         if (_this._isAuth === false) {
             reject(new Error('Account must be connected first'));
             return;
         }
-        var metas = {};
-        for (let m in metadata) {
-            var meta_name = 'X-Account-Meta-' + m;
+        const metas = {};
+        for (const m in metadata) {
+            const meta_name = 'X-Account-Meta-' + m;
             metas[meta_name] = metadata[m];
         }
 
-        let heads = Object.assign({}, {
+        const heads = Object.assign({}, {
             'X-Auth-Token': _this._storage_token
         },
             metas);
-        let options = {
+        const options = {
             method: 'POST',
             uri: _this._storage_url,
             headers: heads
@@ -269,7 +269,7 @@ Account.prototype.getStore = function () {
  * @return {Store} Assigned store member value
  */
 Account.prototype.setStore = function setStore(store) {
-    let _this = this;
+    const _this = this;
     this.disconnect().then(function () {
         _this._store = store;
     });
@@ -292,7 +292,7 @@ Account.prototype.getUsername = function () {
  * @return {String} The new value assigned to username
  */
 Account.prototype.setUsername = function (username) {
-    let _this = this;
+    const _this = this;
     this.disconnect().then(function () {
         _this._username = username;
     });
@@ -315,7 +315,7 @@ Account.prototype.getPassword = function () {
  * @return {String} The new value assigned to password
  */
 Account.prototype.setPassword = function setPassword(pass) {
-    let _this = this;
+    const _this = this;
     this.disconnect().then(function () {
         _this._password = pass;
     });
@@ -355,4 +355,4 @@ Account.prototype.getName = function () {
     return this._name;
 };
 
-module.exports = Account;
+export default Account;

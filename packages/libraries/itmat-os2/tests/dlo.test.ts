@@ -1,9 +1,9 @@
-const testConfig = require('./test.config.js');
-const { Account, Container, Segment, DynamicLargeObject } = require('../src/index.js');
-const MemoryStream = require('memorystream');
+import testConfig from './test.config';
+import { Account, Container, Segment, DynamicLargeObject } from '../src/index';
+import MemoryStream from 'memorystream';
 
 let chunks = {};
-let dlo_account = Account.fromUsernameAndPassword(testConfig.store_url,
+const dlo_account = Account.fromUsernameAndPassword(testConfig.store_url,
     testConfig.account_user, testConfig.account_password);
 let dlo_container = undefined;
 let buffer = '';
@@ -22,8 +22,8 @@ test('DLO create from disk, chunks of 250 bytes', function (done) {
     expect.assertions(3);
     expect(dlo_account.isConnected()).toBeTruthy();
     expect(dlo_container).toBeDefined();
-    let obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
-    obj.createFromDisk('./tests/test.config.js', 250).then(function (data) {
+    const obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
+    obj.createFromDisk('./tests/test.config.ts', 250).then(function (data) {
         expect(data).toBeDefined();
         chunks = Object.assign({}, chunks, data);
         done();
@@ -36,7 +36,7 @@ test('DLO remove manifest, keep the chunks', function (done) {
     expect.assertions(3);
     expect(dlo_account.isConnected()).toBeTruthy();
     expect(dlo_container).toBeDefined();
-    let obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
+    const obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
     obj.delete().then(function (status) {
         expect(status).toBeTruthy();
         done();
@@ -49,7 +49,7 @@ test('DLO re-create manifest', function (done) {
     expect.assertions(3);
     expect(dlo_account.isConnected()).toBeTruthy();
     expect(dlo_container).toBeDefined();
-    let obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
+    const obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
     obj.createManifest().then(function (status) {
         expect(status).toBeTruthy();
         done();
@@ -62,7 +62,7 @@ test('DLO remove manifest, keep the chunks', function (done) {
     expect.assertions(3);
     expect(dlo_account.isConnected()).toBeTruthy();
     expect(dlo_container).toBeDefined();
-    let obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
+    const obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
     obj.delete().then(function (status) {
         expect(status).toBeTruthy();
         done();
@@ -75,8 +75,8 @@ test('DLO create from single stream, chunks of 10 bytes', function (done) {
     expect.assertions(3);
     expect(dlo_account.isConnected()).toBeTruthy();
     expect(dlo_container).toBeDefined();
-    let obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
-    let test_stream = new MemoryStream('123456789\n');
+    const obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
+    const test_stream = new MemoryStream('123456789\n');
     obj.createFromStream(test_stream, 10).then(function (data) {
         expect(data).toBeDefined();
         chunks = Object.assign({}, chunks, data);
@@ -92,12 +92,12 @@ test('DLO remove manifest and chunks', function (done) {
     expect.assertions(4);
     expect(dlo_account.isConnected()).toBeTruthy();
     expect(dlo_container).toBeDefined();
-    let obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
+    const obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
     obj.delete().then(function (status) {
         expect(status).toBeTruthy();
-        let delete_proms = [];
+        const delete_proms = [];
         Object.keys(chunks).forEach(function (c) {
-            let seg = new Segment(dlo_container, c);
+            const seg = new Segment(dlo_container, c);
             delete_proms.push(seg.delete());
         });
         Promise.all(delete_proms).then(function (ok_array) {
@@ -117,8 +117,8 @@ test('DLO create from single stream, default chunk size', function (done) {
     expect.assertions(3);
     expect(dlo_account.isConnected()).toBeTruthy();
     expect(dlo_container).toBeDefined();
-    let obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
-    let test_stream = new MemoryStream(buffer); // 100 Mo
+    const obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
+    const test_stream = new MemoryStream(buffer); // 100 Mo
     obj.createFromStream(test_stream).then(function (data) {
         expect(data).toBeDefined();
         chunks = Object.assign({}, chunks, data);
@@ -134,12 +134,12 @@ test('DLO remove manifest and chunks', function (done) {
     expect.assertions(4);
     expect(dlo_account.isConnected()).toBeTruthy();
     expect(dlo_container).toBeDefined();
-    let obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
+    const obj = new DynamicLargeObject(dlo_container, testConfig.dlo_object_name, testConfig.dlo_prefix);
     obj.delete().then(function (status) {
         expect(status).toBeTruthy();
-        let delete_proms = [];
+        const delete_proms = [];
         Object.keys(chunks).forEach(function (c) {
-            let seg = new Segment(dlo_container, c);
+            const seg = new Segment(dlo_container, c);
             delete_proms.push(seg.delete());
         });
         Promise.all(delete_proms).then(function (ok_array) {
