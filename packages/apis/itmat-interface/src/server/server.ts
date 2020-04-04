@@ -4,7 +4,7 @@ import {
 
 export interface IServerConfig extends IServerBaseConfig {
     bcrypt: {
-        saltround: number
+        saltround: number;
     };
 }
 

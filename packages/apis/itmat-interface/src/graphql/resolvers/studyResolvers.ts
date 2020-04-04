@@ -113,7 +113,7 @@ export const studyResolvers = {
             return null;
         },
         approvedFiles: async (project: IProject) =>
-            /* check permission */
+        /* check permission */
 
             project.approvedFiles,
         roles: async (project: IProject) => await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray(),

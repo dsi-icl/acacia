@@ -6,11 +6,11 @@ import { ProjectListSection } from './projectListSection';
 import css from './tabContent.module.css';
 
 type ProjectsTabContentProps = {
-    studyId: string,
+    studyId: string;
     projectList: {
-        id: string,
-        name: string
-    }[]
+        id: string;
+        name: string;
+    }[];
 };
 
 export const ProjectsTabContent: React.FC<ProjectsTabContentProps> = ({ studyId, projectList }) => (

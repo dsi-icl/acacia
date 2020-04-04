@@ -233,41 +233,41 @@ export function processDataRow({
         let value: any;
         try {
             switch (datatype) {
-                case 'c': // categorical
-                    value = each;
-                    break;
-                case 'd': // decimal
-                    if (!/^\d+(.\d+)?$/.test(each)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
-                        colIndex++;
-                        continue;
-                    }
-                    value = parseFloat(each);
-                    break;
-                case 'i': // integer
-                    if (!/^\d+$/.test(each)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
-                        colIndex++;
-                        continue;
-                    }
-                    value = parseInt(each, 10);
-                    break;
-                case 'b': // boolean
-                    if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
-                        value = each.toLowerCase() === 'true';
-                    } else {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
-                        colIndex++;
-                        continue;
-                    }
-                    break;
-                case 't':
-                    value = each;
-                    break;
-                default:
-                    error.push(`Line ${lineNum}: Invalid data type '${datatype}'`);
+            case 'c': // categorical
+                value = each;
+                break;
+            case 'd': // decimal
+                if (!/^\d+(.\d+)?$/.test(each)) {
+                    error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
                     colIndex++;
                     continue;
+                }
+                value = parseFloat(each);
+                break;
+            case 'i': // integer
+                if (!/^\d+$/.test(each)) {
+                    error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
+                    colIndex++;
+                    continue;
+                }
+                value = parseInt(each, 10);
+                break;
+            case 'b': // boolean
+                if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
+                    value = each.toLowerCase() === 'true';
+                } else {
+                    error.push(`Line ${lineNum} column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
+                    colIndex++;
+                    continue;
+                }
+                break;
+            case 't':
+                value = each;
+                break;
+            default:
+                error.push(`Line ${lineNum}: Invalid data type '${datatype}'`);
+                colIndex++;
+                continue;
             }
         } catch (e) {
             error.push(e.toString());
