@@ -10,8 +10,8 @@
     "author": "Chon Sou <c.sou16@imperial.ac.uk>",
     "license": "MIT",
     "scripts": {
-        "start": "react-scripts start --server",
-        "build": "react-scripts build --server",
+        "start": "compile-scripts start --server",
+        "build": "compile-scripts build --server",
         "test": "jest --coverage",
         "prepublishOnly": "yarn run build",
         "lint": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts ./",
@@ -36,7 +36,7 @@
         "uuid": "7.0.3"
     },
     "devDependencies": {
-        "@itmat/react-scripts": "*",
+        "@itmat/compile-scripts": "*",
         "@types/connect-timeout": "0.0.34",
         "@types/express": "4.17.4",
         "@types/mongodb": "3.5.4",

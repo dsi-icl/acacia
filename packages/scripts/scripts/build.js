@@ -6,7 +6,7 @@ const isServerCompilation = process.env.STREAM_SERVER === 'true';
 const isClientCompilation = !isServerCompilation;
 
 if (isServerCompilation === isClientCompilation) {
-    console.log('react-scripts can only be launch with `--server` or `--client` but not both.');
+    console.log('compile-scripts can only be launch with `--server` or `--client` but not both.');
     process.exit(1);
 }
 

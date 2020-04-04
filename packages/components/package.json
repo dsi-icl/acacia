@@ -9,11 +9,11 @@
     "main": "src/index.tsx",
     "main:src": "src/index.tsx",
     "scripts": {
-        "test": "react-scripts test",
+        "test": "compile-scripts test",
         "lint": "eslint ./src/**/*.tsx --max-warnings=0 --format=codeframe"
     },
     "dependencies": {
-        "@itmat/react-scripts": "*",
+        "@itmat/compile-scripts": "*",
         "@storybook/react": "5.3.18",
         "@testing-library/jest-dom": "5.3.0",
         "@testing-library/react": "10.0.2",

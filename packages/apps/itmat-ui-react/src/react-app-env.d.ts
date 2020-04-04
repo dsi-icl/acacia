@@ -1,1 +1,1 @@
-/// <reference types="@itmat/react-scripts" />
+/// <reference types="@itmat/compile-scripts" />

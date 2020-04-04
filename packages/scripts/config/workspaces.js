@@ -109,7 +109,7 @@ const loadAppSettings = appPackageJson => {
         result.dependencies = Object.assign(result.dependencies, devDependencies);
     }
 
-    const reactScripts = getDeep(appPackageObj, ['react-scripts']);
+    const reactScripts = getDeep(appPackageObj, ['compile-scripts']);
     if (!reactScripts) {
         return result;
     }

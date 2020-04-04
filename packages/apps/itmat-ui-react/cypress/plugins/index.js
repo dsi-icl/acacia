@@ -33,7 +33,7 @@ module.exports = (on) => {
                                 // // side of caution.
                                 // // We remove this when the user ejects because the default
                                 // // is sane and uses Babel options. Instead of options, we use
-                                // // the react-scripts and babel-preset-react-app versions.
+                                // // the compile-scripts and babel-preset-react-app versions.
                                 // cacheIdentifier: getCacheIdentifier(
                                 //   isEnvProduction
                                 //     ? 'production'
@@ -42,7 +42,7 @@ module.exports = (on) => {
                                 //     'babel-plugin-named-asset-import',
                                 //     'babel-preset-react-app',
                                 //     'react-dev-utils',
-                                //     'react-scripts',
+                                //     'compile-scripts',
                                 //   ]
                                 // ),
                                 // @remove-on-eject-end
@@ -53,7 +53,7 @@ module.exports = (on) => {
                                             loaderMap: {
                                                 svg: {
                                                     ReactComponent:
-                                '@svgr/webpack?-svgo,+titleProp,+ref![path]',
+                                                        '@svgr/webpack?-svgo,+titleProp,+ref![path]',
                                                 },
                                             },
                                         },

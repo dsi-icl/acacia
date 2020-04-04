@@ -1,5 +1,5 @@
 {
-    "name": "@itmat/react-scripts",
+    "name": "@itmat/compile-scripts",
     "version": "3.4.1",
     "description": "Configuration and scripts for Create React App in itmat.",
     "repository": {
@@ -22,7 +22,7 @@
         "utils"
     ],
     "bin": {
-        "react-scripts": "./bin/react-scripts.js"
+        "compile-scripts": "./bin/compile-scripts.js"
     },
     "types": "./lib/react-app.d.ts",
     "dependencies": {
