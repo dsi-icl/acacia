@@ -12,7 +12,6 @@
         ],
         "jsx": "react",
         "strict": true,
-        "allowJs": true,
         "declaration": false,
         "esModuleInterop": true,
         "skipLibCheck": true,

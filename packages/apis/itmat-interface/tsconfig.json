@@ -4,7 +4,6 @@
         "src/**/*"
     ],
     "compilerOptions": {
-        "declaration": false,
-        "allowJs": true
+        "declaration": false
     }
 }
