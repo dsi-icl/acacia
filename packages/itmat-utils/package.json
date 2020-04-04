@@ -14,7 +14,7 @@
         "compile": "tsc -p tsconfig.build.json",
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
         "prepublishOnly": "npm run build",
-        "test-integrate": "jest --coverage",
+        "test-integrate": "jest --color --coverage",
         "test": "node ./test/setup-and-test.js",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
