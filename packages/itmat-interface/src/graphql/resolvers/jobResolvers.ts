@@ -1,9 +1,11 @@
 import { ApolloError, withFilter } from 'apollo-server-express';
-import { Models } from 'itmat-commons';
+import { Models, task_required_permissions } from 'itmat-commons';
 import uuid from 'uuid/v4';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { pubsub, subscriptionEvents } from '../pubsub';
+import { permissionCore } from '../core/permissionCore';
+import { studyCore } from '../core/studyCore';
 
 enum JOB_TYPE {
     FIELD_INFO_UPLOAD = 'FIELD_INFO_UPLOAD',
@@ -18,10 +20,21 @@ export const jobResolvers = {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_data,
+                requester,
+                args.studyId
+            );
+            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* check if the file exists */
+            const file = await db.collections!.files_collection.findOne({ deleted: null, id: args.file });
+            if (!file) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
 
             /* check study exists */
+            await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
 
             /* check version format */
             if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(args.version)) {
@@ -55,6 +68,12 @@ export const jobResolvers = {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_data,
+                requester,
+                args.studyId
+            );
+            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* check if the file exists */
 
