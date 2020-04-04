@@ -8,7 +8,6 @@ export const permissions = {
         all_studies_data_access: 'all_studies_data_access', // query data from all studies
         all_studies_data_management: 'all_studies_data_management', // upload data from all studies
         all_studies_role_management: 'all_studies_role_management', // create, edit and delete roles and manage permissions and users in those roles
-        all_studies_file_management: 'all_studies_file_management',
         all_studies_manage_projects: 'all_studies_manage_projects', // allows to create, delete, edit projects within a specific study
         all_projects_data_access: 'all_projects_data_access', // query data from all projects (eid is mapped, fields and patients subset)
         all_projects_role_management: 'all_projects_role_management' // create, edit and delete roles and manage permissions and users in those roles
@@ -17,7 +16,6 @@ export const permissions = {
         specific_study_readonly_access: 'specific_study_readonly_access',
         specific_study_data_management: 'specific_study_data_management', // allows to upload / edit data
         specific_study_role_management: 'specific_study_role_management', // create, edit and delete roles and manage permissions and users in those roles
-        specific_study_file_management: 'specific_study_file_management',
         specific_study_projects_management: 'specific_study_projects_management' // allows to create, delete, edit projects within a specific study
     },
     specific_project: {
@@ -44,10 +42,6 @@ export const task_required_permissions = {
     manage_study_projects: [
         permissions.all_study.all_studies_manage_projects,
         permissions.specific_study.specific_study_projects_management
-    ],
-    manage_study_files: [
-        permissions.all_study.all_studies_file_management,
-        permissions.specific_study.specific_study_file_management
     ],
     access_study_data: [
         permissions.all_study.all_studies_data_management,

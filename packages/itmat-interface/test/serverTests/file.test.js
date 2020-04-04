@@ -13,7 +13,7 @@ const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } = itmatCommons.GQLRequests;
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
 const config = require('../../config/config.sample.json');
-const { Models, permissions } = itmatCommons;
+const { permissions } = itmatCommons;
 
 let app;
 let mongodb;
@@ -59,19 +59,19 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
 describe('FILE API', () => {
     let adminId;
-    let userId;
 
     beforeAll(async () => {
         /* setup: first retrieve the generated user id */
         const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
-        userId = result.filter(e => e.username === 'standardUser')[0].id;
     });
 
     describe('UPLOAD AND DOWNLOAD FILE', () => {
         describe('UPLOAD FILE', () => {
-            /* note: a new study is created */
+            /* note: a new study is created and a special authorised user for study permissions */
             let createdStudy;
+            let authorisedUser;
+            let authorisedUserProfile;
             beforeEach(async () => {
                 /* setup: create a study to upload file to */
                 const studyname = uuid();
@@ -88,6 +88,40 @@ describe('FILE API', () => {
                     id: createdStudy.id,
                     name: studyname
                 });
+
+                /* setup: creating a privileged user */
+                const username = uuid();
+                authorisedUserProfile = {
+                    username, 
+                    type: 'STANDARD', 
+                    realName: `${username}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${username}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${username}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+
+                const roleId = uuid();
+                const newRole = {
+                    id: roleId,
+                    projectId: null,
+                    studyId: createdStudy.id,
+                    name: `${roleId}_rolename`,
+                    permissions: [
+                        permissions.specific_study.specific_study_data_management
+                    ],
+                    users: [authorisedUserProfile.id],
+                    deleted: null
+                };
+                await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
+
+                authorisedUser = request.agent(app);
+                await connectAgent(authorisedUser, username, 'admin');
             });
 
             test('Upload file to study (admin)', async () => { 
@@ -142,7 +176,33 @@ describe('FILE API', () => {
             });
 
             test('Upload file to study (user with privilege)', async () => {
+                /* test: upload file */
+                const res = await authorisedUser.post('/graphql')
+                    .field('operations', JSON.stringify({
+                        query: print(UPLOAD_FILE),
+                        variables: {
+                            studyId: createdStudy.id,
+                            file: null,
+                            description: 'just a file 2.',
+                            fileLength: 10000
+                        }
+                    }))
+                    .field('map', JSON.stringify({ 1: ['variables.file']}))
+                    .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
+                /* setup: geting the created file Id */
+                const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.uploadFile).toEqual({
+                    id: createdFile.id,
+                    fileName: 'just_a_test_file.txt',
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    fileSize: 10000,
+                    description: 'just a file 2.',
+                    uploadedBy: authorisedUserProfile.id
+                });
             });
 
             test('Upload a empty file (admin)', async () => {
@@ -180,6 +240,8 @@ describe('FILE API', () => {
             /* note: a new study is created and a non-empty text file is uploaded before each test */
             let createdStudy;
             let createdFile;
+            let authorisedUser;
+            let authorisedUserProfile;
 
             beforeEach(async () => {
                 /* setup: create a study to upload file to */
@@ -214,6 +276,40 @@ describe('FILE API', () => {
 
                 /* setup: geting the created file Id */
                 createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+
+                /* setup: creating a privileged user */
+                const username = uuid();
+                authorisedUserProfile = {
+                    username, 
+                    type: 'STANDARD', 
+                    realName: `${username}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${username}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${username}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+
+                const roleId = uuid();
+                const newRole = {
+                    id: roleId,
+                    projectId: null,
+                    studyId: createdStudy.id,
+                    name: `${roleId}_rolename`,
+                    permissions: [
+                        permissions.specific_study.specific_study_data_management
+                    ],
+                    users: [authorisedUserProfile.id],
+                    deleted: null
+                };
+                await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
+
+                authorisedUser = request.agent(app);
+                await connectAgent(authorisedUser, username, 'admin');
             });
 
             test('Download file from study (admin)', async () => {
@@ -225,7 +321,11 @@ describe('FILE API', () => {
             });
 
             test('Download file from study (user with privilege)', async () => {
-
+                const res = await authorisedUser.get(`/file/${createdFile.id}`);
+                expect(res.status).toBe(200);
+                expect(res.headers['content-type']).toBe('application/download');
+                expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
+                expect(res.text).toBe('just testing.');
             });
 
             test('Download file from study (not logged in)', async () => {
@@ -261,12 +361,17 @@ describe('FILE API', () => {
             });
 
             test('Download an non-existent file from study (user with privilege) (should fail)', async () => {
+                const res = await authorisedUser.get('/file/fakefileid');
+                expect(res.status).toBe(404);
+                expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
             });
         });
 
         describe('DELETE FILES', () => {
             let createdStudy;
             let createdFile;
+            let authorisedUser;
+            let authorisedUserProfile;
             beforeEach(async () => {
                 /* setup: create a study to upload file to */
                 const studyname = uuid();
@@ -307,6 +412,40 @@ describe('FILE API', () => {
                 expect(res.headers['content-type']).toBe('application/download');
                 expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
                 expect(res.text).toBe('just testing.');
+
+                /* setup: creating a privileged user */
+                const username = uuid();
+                authorisedUserProfile = {
+                    username, 
+                    type: 'STANDARD', 
+                    realName: `${username}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${username}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${username}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+
+                const roleId = uuid();
+                const newRole = {
+                    id: roleId,
+                    projectId: null,
+                    studyId: createdStudy.id,
+                    name: `${roleId}_rolename`,
+                    permissions: [
+                        permissions.specific_study.specific_study_data_management
+                    ],
+                    users: [authorisedUserProfile.id],
+                    deleted: null
+                };
+                await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
+
+                authorisedUser = request.agent(app);
+                await connectAgent(authorisedUser, username, 'admin')
             });
 
             test('Delete file from study (admin)', async () => {
@@ -318,13 +457,23 @@ describe('FILE API', () => {
                 expect(res.body.errors).toBeUndefined();
                 expect(res.body.data.deleteFile).toEqual({ successful: true });
                 
-                const downloadFileRes = await user.get(`/file/${createdFile.id}`);
+                const downloadFileRes = await admin.get(`/file/${createdFile.id}`);
                 expect(downloadFileRes.status).toBe(404);
                 expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
             });
 
             test('Delete file from study (user with privilege)', async () => {
-
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(DELETE_FILE),
+                    variables: { fileId: createdFile.id }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.deleteFile).toEqual({ successful: true });
+                
+                const downloadFileRes = await authorisedUser.get(`/file/${createdFile.id}`);
+                expect(downloadFileRes.status).toBe(404);
+                expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
             });
 
             test('Delete file from study (user with no privilege) (should fail)', async () => {
@@ -356,7 +505,14 @@ describe('FILE API', () => {
             });
 
             test('Delete an non-existent file from study (user with privilege)', async () => {
-
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(DELETE_FILE),
+                    variables: { fileId: 'nosuchfile' }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.data.deleteFile).toBe(null);
             });
 
             test('Delete an non-existent file from study (user with no privilege)', async () => {
@@ -374,7 +530,7 @@ describe('FILE API', () => {
 
     describe('FILE PERMISSION FOR PROJECTS', () => {
         test('1 + 1', () => {
-            expect(2).toBe(2);
+            expect(2).toBe(3);
         });
     });
 });

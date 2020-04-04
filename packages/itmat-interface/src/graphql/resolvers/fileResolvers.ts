@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models, permissions } from 'itmat-commons';
+import { Models, permissions, task_required_permissions } from 'itmat-commons';
 import { IFile } from 'itmat-commons/dist/models/file';
 import { Logger } from 'itmat-utils';
 import uuid from 'uuid/v4';
@@ -18,7 +18,7 @@ export const fileResolvers = {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_file_management],
+                task_required_permissions.manage_study_data,
                 requester,
                 args.studyId
             );
@@ -72,7 +72,7 @@ export const fileResolvers = {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_file_management],
+                task_required_permissions.manage_study_data,
                 requester,
                 file.studyId
             );
