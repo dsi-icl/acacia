@@ -37,7 +37,7 @@ const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
 // makes for a smoother build process.
 const shouldInlineRuntimeChunk = process.env.INLINE_RUNTIME_CHUNK !== 'false';
 
-const isExtendingEslintConfig = process.env.EXTEND_ESLINT === 'true';
+// const isExtendingEslintConfig = process.env.EXTEND_ESLINT === 'true';
 
 const imageInlineSizeLimit = parseInt(
     process.env.IMAGE_INLINE_SIZE_LIMIT || '10000'
@@ -365,35 +365,36 @@ module.exports = function (webpackEnv) {
 
                 // First, run the linter.
                 // It's important to do this before Babel processes the JS.
-                // {
-                //     test: /\.(js|mjs|jsx|ts|tsx)$/,
-                //     enforce: 'pre',
-                //     use: [
-                //         {
-                //             options: {
-                //                 cache: true,
-                //                 formatter: require.resolve('react-dev-utils/eslintFormatter'),
-                //                 eslintPath: require.resolve('eslint'),
-                //                 resolvePluginsRelativeTo: __dirname,
-                //                 // @remove-on-eject-begin
-                //                 ignore: isExtendingEslintConfig,
-                //                 baseConfig: isExtendingEslintConfig
-                //                     ? undefined
-                //                     : {
-                //                         extends: [require.resolve('eslint-config-react-app')],
-                //                     },
-                //                 useEslintrc: isExtendingEslintConfig,
-                //                 // @remove-on-eject-end
-                //             },
-                //             loader: require.resolve('eslint-loader'),
-                //         },
-                //     ],
-                //     include: isEnvDevelopment && workspacesConfig.development
-                //         ? [paths.appSrc, workspacesConfig.paths]
-                //         : isEnvProduction && workspacesConfig.production
-                //             ? [paths.appSrc, workspacesConfig.paths]
-                //             : paths.appSrc,
-                // },
+                {
+                    test: /\.(js|mjs|jsx|ts|tsx)$/,
+                    enforce: 'pre',
+                    use: [
+                        {
+                            options: {
+                                cache: true,
+                                formatter: require.resolve('react-dev-utils/eslintFormatter'),
+                                eslintPath: require.resolve('eslint'),
+                                resolvePluginsRelativeTo: __dirname,
+                                // @remove-on-eject-begin
+                                // ignore: isExtendingEslintConfig,
+                                // baseConfig: isExtendingEslintConfig
+                                //     ? undefined
+                                //     : {
+                                //         extends: [require.resolve('eslint-config-react-app')],
+                                //     },
+                                // useEslintrc: isExtendingEslintConfig,
+                                useEslintrc: true,
+                                // @remove-on-eject-end
+                            },
+                            loader: require.resolve('eslint-loader'),
+                        },
+                    ],
+                    include: isEnvDevelopment && workspacesConfig.development
+                        ? [paths.appSrc, workspacesConfig.paths]
+                        : isEnvProduction && workspacesConfig.production
+                            ? [paths.appSrc, workspacesConfig.paths]
+                            : paths.appSrc,
+                },
                 {
                     // "oneOf" will traverse all following loaders until one will
                     // match the requirements. When no loader matches it will fall
