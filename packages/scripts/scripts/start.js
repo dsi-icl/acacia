@@ -173,16 +173,14 @@ startingCheck(paths.appPath, isInteractive)
 
         // There is an incompatibility with lerna that
         // requires a couple of the following lines to be commented out
-        // For more information see https://github.com/facebook/create-react-app/issues/8685
-        if (isInteractive || process.env.CI !== 'true') {
-            // Gracefully exit when stdin ends
-            // process.stdin.on('end', function () {
-            if (isClientCompilation)
-                devServer.close();
-            //     process.exit();
-            // });
-            // process.stdin.resume();
-        }
+        // if (isInteractive || process.env.CI !== 'true') {
+        //     // Gracefully exit when stdin ends
+        //     process.stdin.on('end', function () {
+        //         devServer.close();
+        //         process.exit();
+        //     });
+        //     process.stdin.resume();
+        // }
     })
     .catch(err => {
         if (err && err.message) {
