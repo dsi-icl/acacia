@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "start": "yarn run storybook",
+        "start": "yarn run storybook --quiet",
         "storybook": "start-storybook -p 9009",
         "build-storybook": "build-storybook"
     },
