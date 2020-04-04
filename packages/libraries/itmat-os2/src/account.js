@@ -47,7 +47,7 @@ function Account(store = null, username = null, password = null, storage_url = n
  * @param password {String} Account password
  * @return {Account}
  */
-Account.fromUsernameAndPassword = function(storeUrl, username, password) {
+Account.fromUsernameAndPassword = function (storeUrl, username, password) {
     let store = new Store(storeUrl);
     return new Account(store, username, password);
 };
@@ -61,7 +61,7 @@ Account.fromUsernameAndPassword = function(storeUrl, username, password) {
  * @param token {String} Authentication token
  * @return {Account}
  */
-Account.fromNameAndToken = function(storeUrl, name, token) {
+Account.fromNameAndToken = function (storeUrl, name, token) {
     let store = new Store(storeUrl);
     let account = new Account(store, null, null, storeUrl + '/v1/' + name, token);
     account._isAuth = true;
@@ -75,10 +75,10 @@ Account.fromNameAndToken = function(storeUrl, name, token) {
  * Uses the /auth/v1.0 authentication mechanism of swift object storage
  * @return {Promise} Resolves to true on success or rejects a native js Error on failure
  */
-Account.prototype.connect = function() {
+Account.prototype.connect = function () {
     let _this = this;
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let options = {
             method: 'GET',
             uri: _this._store.getURL() + '/auth/v1.0/',
@@ -87,7 +87,7 @@ Account.prototype.connect = function() {
                 'X-Auth-Key': _this._password
             }
         };
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -117,9 +117,9 @@ Account.prototype.connect = function() {
  * @desc Disconnects this account from the store
  * @return {Promise} Always resolves to true
  */
-Account.prototype.disconnect = function() {
+Account.prototype.disconnect = function () {
     let _this = this;
-    return new Promise(function(resolve, __unused__reject) {
+    return new Promise(function (resolve, __unused__reject) {
         _this._isAuth = false;
         _this._storage_token = null;
         _this._storage_url = null;
@@ -132,10 +132,10 @@ Account.prototype.disconnect = function() {
  * @desc List all the containers in this account
  * @return {Promise} Resolves to a json array of containers no success, rejects a native JS Error otherwise
  */
-Account.prototype.listContainers = function() {
+Account.prototype.listContainers = function () {
     let _this = this;
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._isAuth === false) {
             reject(new Error('Account must be connected first'));
             return;
@@ -148,7 +148,7 @@ Account.prototype.listContainers = function() {
                 'X-Auth-Token': _this._storage_token
             }
         };
-        request(options, function(error, __unused__response, body) {
+        request(options, function (error, __unused__response, body) {
             if (error) {
                 reject(error);
                 return;
@@ -163,10 +163,10 @@ Account.prototype.listContainers = function() {
  * @desc Retrieve stored metadata for this account, MUST be connected
  * @return {Promise} Resolves to an object containing all the metadata on success, reject to native js Error otherwise
  */
-Account.prototype.getMetadata = function() {
+Account.prototype.getMetadata = function () {
     let _this = this;
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._isAuth === false) {
             reject(new Error('Account must be connected first'));
             return;
@@ -179,7 +179,7 @@ Account.prototype.getMetadata = function() {
                 'X-Auth-Token': _this._storage_token
             }
         };
-        request.head(options, function(error, response, __unused__body) {
+        request.head(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -208,10 +208,10 @@ Account.prototype.getMetadata = function() {
  * @param metadata Plain JS object, each attribute is considered to be metadata item
  * @return {Promise} Resolves to true on success, rejects with a native js Error on failure
  */
-Account.prototype.setMetadata = function(metadata = {}) {
+Account.prototype.setMetadata = function (metadata = {}) {
     let _this = this;
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._isAuth === false) {
             reject(new Error('Account must be connected first'));
             return;
@@ -223,15 +223,15 @@ Account.prototype.setMetadata = function(metadata = {}) {
         }
 
         let heads = Object.assign({}, {
-                'X-Auth-Token': _this._storage_token
-            },
+            'X-Auth-Token': _this._storage_token
+        },
             metas);
         let options = {
             method: 'POST',
             uri: _this._storage_url,
             headers: heads
         };
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -249,7 +249,7 @@ Account.prototype.setMetadata = function(metadata = {}) {
  * @fn isConnected
  * @return {boolean} True if the account is connected
  */
-Account.prototype.isConnected = function() {
+Account.prototype.isConnected = function () {
     return this._isAuth;
 };
 
@@ -258,7 +258,7 @@ Account.prototype.isConnected = function() {
  * @desc Getter on store member
  * @return {Store} Current store
  */
-Account.prototype.getStore = function() {
+Account.prototype.getStore = function () {
     return this._store;
 };
 
@@ -270,7 +270,7 @@ Account.prototype.getStore = function() {
  */
 Account.prototype.setStore = function setStore(store) {
     let _this = this;
-    this.disconnect().then(function() {
+    this.disconnect().then(function () {
         _this._store = store;
     });
     return store;
@@ -281,7 +281,7 @@ Account.prototype.setStore = function setStore(store) {
  * @desc Getter on username member var
  * @return {String} The username
  */
-Account.prototype.getUsername = function() {
+Account.prototype.getUsername = function () {
     return this._username;
 };
 
@@ -293,7 +293,7 @@ Account.prototype.getUsername = function() {
  */
 Account.prototype.setUsername = function (username) {
     let _this = this;
-    this.disconnect().then(function() {
+    this.disconnect().then(function () {
         _this._username = username;
     });
     return username;
@@ -304,7 +304,7 @@ Account.prototype.setUsername = function (username) {
  * @desc Getter on password member var
  * @return {String} The password
  */
-Account.prototype.getPassword = function() {
+Account.prototype.getPassword = function () {
     return this._password;
 };
 
@@ -316,7 +316,7 @@ Account.prototype.getPassword = function() {
  */
 Account.prototype.setPassword = function setPassword(pass) {
     let _this = this;
-    this.disconnect().then(function() {
+    this.disconnect().then(function () {
         _this._password = pass;
     });
     return pass;
@@ -327,7 +327,7 @@ Account.prototype.setPassword = function setPassword(pass) {
  * @desc Get account authentication token
  * @return {String|null} Return the token if the account is connected, null otherwise
  */
-Account.prototype.getToken = function() {
+Account.prototype.getToken = function () {
     if (this._isAuth)
         return this._storage_token;
     else
@@ -339,7 +339,7 @@ Account.prototype.getToken = function() {
  * @desc Get this account storage url
  * @return {String|null} The url oif connected, null otherwise
  */
-Account.prototype.getStorageUrl = function() {
+Account.prototype.getStorageUrl = function () {
     if (this._isAuth)
         return this._storage_url;
     else
@@ -351,7 +351,7 @@ Account.prototype.getStorageUrl = function() {
  * @desc Getter a account name
  * @return {null|String} The name if computed or defined, null otherwise
  */
-Account.prototype.getName = function() {
+Account.prototype.getName = function () {
     return this._name;
 };
 

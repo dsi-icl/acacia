@@ -9,17 +9,17 @@ let slo_account = Account.fromUsernameAndPassword(testConfig.store_url,
 let slo_container = undefined;
 let buffer = '';
 
-beforeAll(function() {
-    return slo_account.connect().then(function() {
+beforeAll(function () {
+    return slo_account.connect().then(function () {
         buffer = Buffer.alloc(1024 * 1024 * 100, 42);
         slo_container = new Container(slo_account, testConfig.slo_container_name);
         return slo_container.create();
-    }, function(error) {
+    }, function (error) {
         throw error.toString();
     });
 });
 
-test('SLO create from disk', function(done) {
+test('SLO create from disk', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
@@ -33,7 +33,7 @@ test('SLO create from disk', function(done) {
     });
 });
 
-test('SLO remove manifest, keep the chunks', function(done) {
+test('SLO remove manifest, keep the chunks', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
@@ -46,14 +46,14 @@ test('SLO remove manifest, keep the chunks', function(done) {
     });
 });
 
-test('SLO re-create manifest', function(done) {
+test('SLO re-create manifest', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
     let obj = new StaticLargeObject(slo_container, testConfig.slo_object_name);
     let manifest = [];
     for (let c in chunks) {
-        manifest.push({ path: slo_container.getName() + '/' + c});
+        manifest.push({ path: slo_container.getName() + '/' + c });
     }
     obj.createManifest(manifest).then(function (status) {
         expect(status).toBeTruthy();
@@ -63,7 +63,7 @@ test('SLO re-create manifest', function(done) {
     });
 });
 
-test('SLO remove manifest and remove chunks', function(done) {
+test('SLO remove manifest and remove chunks', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
@@ -77,7 +77,7 @@ test('SLO remove manifest and remove chunks', function(done) {
 });
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60 * 1000 * 5; // 60 secs * 5 = 5 minutes
-test('SLO create from large stream, 500Mo chunks', function(done) {
+test('SLO create from large stream, 500Mo chunks', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
@@ -95,7 +95,7 @@ test('SLO create from large stream, 500Mo chunks', function(done) {
     test_stream.end('Bye bye 2Mo +');
 });
 
-test('SLO remove manifest and remove chunks again', function(done) {
+test('SLO remove manifest and remove chunks again', function (done) {
     expect.assertions(3);
     expect(slo_account.isConnected()).toBeTruthy();
     expect(slo_container).toBeDefined();
@@ -108,10 +108,10 @@ test('SLO remove manifest and remove chunks again', function(done) {
     });
 });
 
-afterAll(function() {
-    return slo_container.delete().then(function(ok) {
+afterAll(function () {
+    return slo_container.delete().then(function (ok) {
         return slo_account.disconnect();
-    }, function(error) {
+    }, function (error) {
         throw error.toString();
     });
 });

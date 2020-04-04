@@ -28,9 +28,9 @@ function Container(account, name) {
  * @desc Creates/updates container instance in object storage
  * @return {Promise} Resolves to object storage response on success, on error rejects a native js Error
  */
-Container.prototype.create = function() {
+Container.prototype.create = function () {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
@@ -43,7 +43,7 @@ Container.prototype.create = function() {
                 'X-Auth-Token': _this._account.getToken()
             }
         };
-        request(options, function(error, response, body) {
+        request(options, function (error, response, body) {
             if (error) {
                 reject(error);
                 return;
@@ -62,9 +62,9 @@ Container.prototype.create = function() {
  * @desc Delete container instance in object storage
  * @return {Promise} Resolves to object storage response on success, on error rejects a native js Error
  */
-Container.prototype.delete = function() {
+Container.prototype.delete = function () {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
@@ -77,7 +77,7 @@ Container.prototype.delete = function() {
                 'X-Auth-Token': _this._account.getToken()
             }
         };
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -97,9 +97,9 @@ Container.prototype.delete = function() {
  * @param metadata Plain js object, each key:value is a metadata field
  * @return {Promise} resolves to true on success, on error rejects a native js Error
  */
-Container.prototype.setMetadata = function(metadata) {
+Container.prototype.setMetadata = function (metadata) {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
@@ -111,8 +111,8 @@ Container.prototype.setMetadata = function(metadata) {
             metas[meta_name] = metadata[m];
         }
         let heads = Object.assign({}, {
-                'X-Auth-Token': _this._account.getToken()
-            }, metas);
+            'X-Auth-Token': _this._account.getToken()
+        }, metas);
         let options = {
             method: 'POST',
             baseUrl: _this._account.getStorageUrl(),
@@ -120,7 +120,7 @@ Container.prototype.setMetadata = function(metadata) {
             headers: heads
         };
 
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -139,9 +139,9 @@ Container.prototype.setMetadata = function(metadata) {
  * @desc Retrieve stored metadata for this container
  * @return {Promise} resolve to a json object containing the metadata or rejects a js Error
  */
-Container.prototype.getMetadata = function() {
+Container.prototype.getMetadata = function () {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
@@ -154,7 +154,7 @@ Container.prototype.getMetadata = function() {
                 'X-Auth-Token': _this._account.getToken()
             }
         };
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -181,9 +181,9 @@ Container.prototype.getMetadata = function() {
  * @desc Get details and objects list for this container
  * @return {Promise} Resolves to json content of the container, rejects to native js error
  */
-Container.prototype.listObjects = function() {
+Container.prototype.listObjects = function () {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._account.isConnected() === false) {
             reject(new Error('Container needs a connect account'));
             return;
@@ -197,7 +197,7 @@ Container.prototype.listObjects = function() {
                 'X-Auth-Token': _this._account.getToken()
             }
         };
-        request(options, function(error, response, body) {
+        request(options, function (error, response, body) {
             if (error) {
                 reject(error);
                 return;
@@ -216,7 +216,7 @@ Container.prototype.listObjects = function() {
  * @param account {Account} New value for account member
  * @return {Account} Assigned account member value
  */
-Container.prototype.setAccount = function(account) {
+Container.prototype.setAccount = function (account) {
     this._account = account;
     return this._account;
 };
@@ -226,7 +226,7 @@ Container.prototype.setAccount = function(account) {
  * @desc Getter on account member
  * @return {Account}
  */
-Container.prototype.getAccount = function() {
+Container.prototype.getAccount = function () {
     return this._account;
 };
 
@@ -236,7 +236,7 @@ Container.prototype.getAccount = function() {
  * @param name {String} New value for name member
  * @return {String} Assigned  member value
  */
-Container.prototype.setName = function(name) {
+Container.prototype.setName = function (name) {
     this._name = name;
     return this._name;
 };
@@ -246,7 +246,7 @@ Container.prototype.setName = function(name) {
  * @desc Getter on container member name
  * @return {String} Container name
  */
-Container.prototype.getName = function() {
+Container.prototype.getName = function () {
     return this._name;
 };
 

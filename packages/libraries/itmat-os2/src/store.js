@@ -21,7 +21,7 @@ function Store(url = 'http://127.0.0.1:8080') {
  * @desc Getter on url member
  * @return {String} The store url
  */
-Store.prototype.getURL = function() {
+Store.prototype.getURL = function () {
     return this._url;
 };
 
@@ -31,7 +31,7 @@ Store.prototype.getURL = function() {
  * @param url {String} New value for url member
  * @return {String} Newly assigned value
  */
-Store.prototype.setURL = function(url) {
+Store.prototype.setURL = function (url) {
     this._url = url;
     return this._url;
 };
@@ -42,10 +42,10 @@ Store.prototype.setURL = function(url) {
  * @desc Attempts to list activated capabilities on this Store
  * @return {Promise} Resolves to the list on success, rejects top native javascript Error otherwise
  */
-Store.prototype.info = function() {
+Store.prototype.info = function () {
     let _this = this;
 
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let options = {
             method: 'GET',
             baseUrl: _this._url,
@@ -53,11 +53,11 @@ Store.prototype.info = function() {
             json: true
         };
 
-        request(options, function(error, response, body) {
+        request(options, function (error, response, body) {
             if (error)
                 reject(error);
-			else if ([200, 204].indexOf(response.statusCode) < 0)
-				reject(new Error(response.statusMessage));
+            else if ([200, 204].indexOf(response.statusCode) < 0)
+                reject(new Error(response.statusMessage));
             else
                 resolve(body);
         });

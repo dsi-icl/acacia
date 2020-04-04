@@ -34,7 +34,7 @@ function Segment(container, name) {
  * @param filepath Absolute or relative path to the file on disk
  * @return {Promise} resolve to true on success, on error rejects with a native js Error
  */
-Segment.prototype.createFromDisk = function(filepath) {
+Segment.prototype.createFromDisk = function (filepath) {
     let readStream = fs.createReadStream(filepath);
 
     return this.createFromStream(readStream);
@@ -46,9 +46,9 @@ Segment.prototype.createFromDisk = function(filepath) {
  * @param readStream Segment content in the form of a Node.js stream.Readable instance
  * @return {Promise} resolve to true on success, on error rejects with a native js Error
  */
-Segment.prototype.createFromStream = function(readStream) {
+Segment.prototype.createFromStream = function (readStream) {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let options = {
             method: 'PUT',
             baseUrl: _this._container.getAccount().getStorageUrl(),
@@ -58,7 +58,7 @@ Segment.prototype.createFromStream = function(readStream) {
             },
             body: readStream
         };
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -77,9 +77,9 @@ Segment.prototype.createFromStream = function(readStream) {
  * @desc Delete this object form the Object Storage
  * @return {Promise} Resolve to true on success, otherwise a native js Error is rejected
  */
-Segment.prototype.delete = function() {
+Segment.prototype.delete = function () {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let options = {
             method: 'DELETE',
             baseUrl: _this._container.getAccount().getStorageUrl(),
@@ -88,7 +88,7 @@ Segment.prototype.delete = function() {
                 'X-Auth-Token': _this._container.getAccount().getToken()
             }
         };
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -110,9 +110,9 @@ Segment.prototype.delete = function() {
  * @param object {Segment} Destination object
  * @return {Promise} Resolves to true on success, rejects a js native Error otherwise
  */
-Segment.prototype.copy = function(object) {
+Segment.prototype.copy = function (object) {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let heads = {
             'X-Auth-Token': _this._container.getAccount().getToken(),
             'Destination': object.getContainer().getName() + '/' + object.getName(),
@@ -124,7 +124,7 @@ Segment.prototype.copy = function(object) {
             uri: '/' + _this._name + '?multipart-manifest=get',
             headers: heads
         };
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -143,9 +143,9 @@ Segment.prototype.copy = function(object) {
  * @desc Get the stored object content
  * @return {Promise} resolve to a ReadableStream on success, rejects a js Error otherwise
  */
-Segment.prototype.getContentStream = function() {
+Segment.prototype.getContentStream = function () {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let options = {
             method: 'GET',
             baseUrl: _this._container.getAccount().getStorageUrl(),
@@ -155,22 +155,22 @@ Segment.prototype.getContentStream = function() {
             }
         };
         request(options)
-            .on('response', function(response) {
+            .on('response', function (response) {
                 if (response.statusCode !== 200) {
                     reject(new Error(response.statusMessage));
                     return;
                 }
 
                 let stream = new MemoryStream([]);
-                response.on('data', function(data) {
+                response.on('data', function (data) {
                     stream.write(data);
                 });
-                response.on('end', function() {
+                response.on('end', function () {
                     stream.end();
                 });
                 resolve(stream);
             })
-            .on('error', function(error) {
+            .on('error', function (error) {
                 reject(error);
             });
     });
@@ -182,9 +182,9 @@ Segment.prototype.getContentStream = function() {
  * @return {Promise} Resolves to js object where each key:value pair is one metadata entry,
  * reject to js native error otherwise
  */
-Segment.prototype.getMetadata = function() {
+Segment.prototype.getMetadata = function () {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._container.getAccount().isConnected() === false) {
             reject(new Error('Segment needs a connected  container/account'));
             return;
@@ -197,7 +197,7 @@ Segment.prototype.getMetadata = function() {
                 'X-Auth-Token': _this._container.getAccount().getToken()
             }
         };
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -225,9 +225,9 @@ Segment.prototype.getMetadata = function() {
  * @param metadata Plain js object, each key:value is a metadata field
  * @return {Promise} resolves to true on success, on error rejects a native js Error
  */
-Segment.prototype.setMetadata = function(metadata) {
+Segment.prototype.setMetadata = function (metadata) {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (_this._container.getAccount().isConnected() === false) {
             reject(new Error('Segment needs a connected  container/account'));
             return;
@@ -248,7 +248,7 @@ Segment.prototype.setMetadata = function(metadata) {
             headers: heads
         };
 
-        request(options, function(error, response, __unused__body) {
+        request(options, function (error, response, __unused__body) {
             if (error) {
                 reject(error);
                 return;
@@ -266,7 +266,7 @@ Segment.prototype.setMetadata = function(metadata) {
  * @desc Getter on name member
  * @return {String} Segment name
  */
-Segment.prototype.getName = function() {
+Segment.prototype.getName = function () {
     return this._name;
 };
 
@@ -275,7 +275,7 @@ Segment.prototype.getName = function() {
  * @param name {String} New value for object name
  * @return {String} Assigned value for name member
  */
-Segment.prototype.setName = function(name) {
+Segment.prototype.setName = function (name) {
     this.name = name;
     return this._name;
 };
@@ -285,7 +285,7 @@ Segment.prototype.setName = function(name) {
  * @desc Getter on container member
  * @return {Container} Container member value
  */
-Segment.prototype.getContainer = function() {
+Segment.prototype.getContainer = function () {
     return this._container;
 };
 
@@ -294,7 +294,7 @@ Segment.prototype.getContainer = function() {
  * @param container New container
  * @return {Container} Assigned container value
  */
-Segment.prototype.setContainer = function(container) {
+Segment.prototype.setContainer = function (container) {
     this._container = container;
     return this._container;
 };

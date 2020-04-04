@@ -12,4 +12,4 @@ module.exports = {
     dlo_prefix: 'dlo_prefix',
     slo_container_name: 'slo_test_container',
     slo_object_name: 'slo_test_object'
-};
+}; 
