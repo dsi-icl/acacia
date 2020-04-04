@@ -6,7 +6,5 @@ module.exports = {
     ],
     plugins: [
         'add-module-exports'
-    ].concat(process.env.NODE_ENV === 'test' ? [
-        'rewire-ts'
-    ] : [])
+    ]
 };
