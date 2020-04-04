@@ -3,6 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 const resolve = require('resolve');
 const PnpWebpackPlugin = require('pnp-webpack-plugin');
+const StartServerPlugin = require('start-server-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
 const InlineChunkHtmlPlugin = require('react-dev-utils/InlineChunkHtmlPlugin');
@@ -56,6 +57,8 @@ const workspacesConfig = workspaces.init(paths);
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
 module.exports = function (webpackEnv) {
+    const isServerCompilation = process.env.STREAM_SERVER === 'true';
+    const isClientCompilation = !isServerCompilation;
     const isEnvDevelopment = webpackEnv === 'development';
     const isEnvProduction = webpackEnv === 'production';
 
@@ -139,15 +142,7 @@ module.exports = function (webpackEnv) {
         return loaders;
     };
 
-    return {
-        mode: isEnvProduction ? 'production' : isEnvDevelopment && 'development',
-        // Stop compilation early in production
-        bail: isEnvProduction,
-        devtool: isEnvProduction
-            ? shouldUseSourceMap
-                ? 'source-map'
-                : false
-            : isEnvDevelopment && 'cheap-module-source-map',
+    const baseConfiguration = isClientCompilation ? {
         // These are the "entry points" to our application.
         // This means they will be the "root" imports that are included in JS bundle.
         entry: [
@@ -204,7 +199,39 @@ module.exports = function (webpackEnv) {
             // module chunks which are built will work in web workers as well.
             globalObject: 'this',
         },
-        optimization: {
+    } : {
+            ...(fs.existsSync(paths.serverSetup) ? require(paths.serverSetup)() : {}),
+            target: 'node',
+            entry: [
+                // We include the hot reloading component again
+                isEnvDevelopment &&
+                'webpack/hot/poll?1000',
+                // And also the app's code again:
+                paths.appIndexJs,
+            ].filter(Boolean),
+            output: {
+                // The build folder.
+                path: isEnvDevelopment ? undefined : paths.appBuild,
+                // Add /* filename */ comments to generated require()s in the output.
+                pathinfo: isEnvDevelopment,
+                filename: isEnvDevelopment ? 'server.js' : 'server.[contenthash:8].js',
+                library: isEnvDevelopment ? undefined : `${appPackageJson.name}`,
+                libraryTarget: isEnvDevelopment ? undefined : 'umd',
+                umdNamedDefine: isEnvDevelopment ? undefined : true,
+            },
+        }
+
+    return {
+        mode: isEnvProduction ? 'production' : isEnvDevelopment && 'development',
+        // Stop compilation early in production
+        bail: isEnvProduction,
+        devtool: isEnvProduction
+            ? shouldUseSourceMap
+                ? 'source-map'
+                : false
+            : isEnvDevelopment && 'cheap-module-source-map',
+        ...baseConfiguration,
+        optimization: isClientCompilation ? {
             minimize: isEnvProduction,
             minimizer: [
                 // This is only used in production mode
@@ -281,7 +308,7 @@ module.exports = function (webpackEnv) {
             runtimeChunk: {
                 name: entrypoint => `runtime-${entrypoint.name}`,
             },
-        },
+        } : undefined,
         resolve: {
             // This allows you to set a fallback for where webpack should look for modules.
             // We placed these paths second because we want `node_modules` to "win"
@@ -320,7 +347,7 @@ module.exports = function (webpackEnv) {
                 // To fix this, we prevent you from importing files out of src/ -- if you'd like to,
                 // please link the files into your node_modules/ and let module-resolution kick in.
                 // Make sure your source files are compiled, as they will not be processed in any way.
-                new ModuleScopePlugin(paths.appSrc, [paths.appPackageJson]),
+                new ModuleScopePlugin([paths.appSrc, paths.appConfig], [paths.appPackageJson]),
             ],
         },
         resolveLoader: {
@@ -338,35 +365,35 @@ module.exports = function (webpackEnv) {
 
                 // First, run the linter.
                 // It's important to do this before Babel processes the JS.
-                {
-                    test: /\.(js|mjs|jsx|ts|tsx)$/,
-                    enforce: 'pre',
-                    use: [
-                        {
-                            options: {
-                                cache: true,
-                                formatter: require.resolve('react-dev-utils/eslintFormatter'),
-                                eslintPath: require.resolve('eslint'),
-                                resolvePluginsRelativeTo: __dirname,
-                                // @remove-on-eject-begin
-                                ignore: isExtendingEslintConfig,
-                                baseConfig: isExtendingEslintConfig
-                                    ? undefined
-                                    : {
-                                        extends: [require.resolve('eslint-config-react-app')],
-                                    },
-                                useEslintrc: isExtendingEslintConfig,
-                                // @remove-on-eject-end
-                            },
-                            loader: require.resolve('eslint-loader'),
-                        },
-                    ],
-                    include: isEnvDevelopment && workspacesConfig.development
-                        ? [paths.appSrc, workspacesConfig.paths]
-                        : isEnvProduction && workspacesConfig.production
-                            ? [paths.appSrc, workspacesConfig.paths]
-                            : paths.appSrc,
-                },
+                // {
+                //     test: /\.(js|mjs|jsx|ts|tsx)$/,
+                //     enforce: 'pre',
+                //     use: [
+                //         {
+                //             options: {
+                //                 cache: true,
+                //                 formatter: require.resolve('react-dev-utils/eslintFormatter'),
+                //                 eslintPath: require.resolve('eslint'),
+                //                 resolvePluginsRelativeTo: __dirname,
+                //                 // @remove-on-eject-begin
+                //                 ignore: isExtendingEslintConfig,
+                //                 baseConfig: isExtendingEslintConfig
+                //                     ? undefined
+                //                     : {
+                //                         extends: [require.resolve('eslint-config-react-app')],
+                //                     },
+                //                 useEslintrc: isExtendingEslintConfig,
+                //                 // @remove-on-eject-end
+                //             },
+                //             loader: require.resolve('eslint-loader'),
+                //         },
+                //     ],
+                //     include: isEnvDevelopment && workspacesConfig.development
+                //         ? [paths.appSrc, workspacesConfig.paths]
+                //         : isEnvProduction && workspacesConfig.production
+                //             ? [paths.appSrc, workspacesConfig.paths]
+                //             : paths.appSrc,
+                // },
                 {
                     // "oneOf" will traverse all following loaders until one will
                     // match the requirements. When no loader matches it will fall
@@ -414,7 +441,7 @@ module.exports = function (webpackEnv) {
                                         'babel-plugin-named-asset-import',
                                         'babel-preset-react-app',
                                         'react-dev-utils',
-                                        'react-scripts',
+                                        '@itmat/react-scripts',
                                     ]
                                 ),
                                 // @remove-on-eject-end
@@ -568,8 +595,17 @@ module.exports = function (webpackEnv) {
             ],
         },
         plugins: [
+            isServerCompilation &&
+            isEnvDevelopment &&
+            new StartServerPlugin({
+                name: 'server.js',
+                signal: false
+            }),
+            isServerCompilation &&
+            isEnvDevelopment &&
+            new webpack.NamedModulesPlugin(),
             // Generates an `index.html` file with the <script> injected.
-            new HtmlWebpackPlugin(
+            isClientCompilation && new HtmlWebpackPlugin(
                 Object.assign(
                     {},
                     {
@@ -597,6 +633,7 @@ module.exports = function (webpackEnv) {
             // Inlines the webpack runtime script. This script is too small to warrant
             // a network request.
             // https://github.com/facebook/create-react-app/issues/5358
+            isClientCompilation &&
             isEnvProduction &&
             shouldInlineRuntimeChunk &&
             new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/runtime-.+[.]js/]),
@@ -605,6 +642,7 @@ module.exports = function (webpackEnv) {
             // <link rel="icon" href="%PUBLIC_URL%/favicon.ico">
             // It will be an empty string unless you specify "homepage"
             // in `package.json`, in which case it will be the pathname of that URL.
+            isClientCompilation &&
             new InterpolateHtmlPlugin(HtmlWebpackPlugin, env.raw),
             // This gives some necessary context to module not found errors, such as
             // the requesting resource.
@@ -640,7 +678,7 @@ module.exports = function (webpackEnv) {
             //   `index.html`
             // - "entrypoints" key: Array of files which are included in `index.html`,
             //   can be used to reconstruct the HTML if necessary
-            new ManifestPlugin({
+            isClientCompilation && new ManifestPlugin({
                 fileName: 'asset-manifest.json',
                 publicPath: paths.publicUrlOrPath,
                 generate: (seed, files, entrypoints) => {
@@ -663,9 +701,11 @@ module.exports = function (webpackEnv) {
             // solution that requires the user to opt into importing specific locales.
             // https://github.com/jmblog/how-to-optimize-momentjs-with-webpack
             // You can remove this if you don't use Moment.js:
-            new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+            new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/, /^(node-pre-gyp)$/),
+            new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/noop`),
             // Generate a service worker script that will precache, and keep up to date,
             // the HTML & assets that are part of the webpack build.
+            isClientCompilation &&
             isEnvProduction &&
             new WorkboxWebpackPlugin.GenerateSW({
                 clientsClaim: true,
@@ -702,6 +742,7 @@ module.exports = function (webpackEnv) {
                     '!**/__tests__/**',
                     '!**/?(*.)(spec|test).*',
                     '!**/src/setupProxy.*',
+                    '!**/src/setupServer.*',
                     '!**/src/setupTests.*',
                 ],
                 silent: true,

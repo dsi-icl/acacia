@@ -1,3 +1,15 @@
+// Checking which build pipeline should be triggered
+const args = process.argv.slice(2);
+process.env.STREAM_SERVER = `${args.includes('--server')}`;
+
+const isServerCompilation = process.env.STREAM_SERVER === 'true';
+const isClientCompilation = !isServerCompilation;
+
+if (isServerCompilation === isClientCompilation) {
+    console.log('react-scripts can only be launch with `--server` or `--client` but not both.');
+    process.exit(1);
+}
+
 // Do this as the first thing so that any code reading it knows the right env.
 process.env.BABEL_ENV = 'production';
 process.env.NODE_ENV = 'production';
@@ -36,7 +48,7 @@ const WARN_AFTER_CHUNK_GZIP_SIZE = 1024 * 1024;
 const isInteractive = process.stdout.isTTY;
 
 // Warn and crash if required files are missing
-if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
+if (isClientCompilation && !checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
     process.exit(1);
 }
 
@@ -46,7 +58,9 @@ const config = configFactory('production');
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
 const { checkBrowsers } = require('react-dev-utils/browsersHelper');
-checkBrowsers(paths.appPath, isInteractive)
+const startingCheck = isServerCompilation ? () => Promise.resolve() : checkBrowsers
+
+startingCheck(paths.appPath, isInteractive)
     .then(() => {
         // First, read the current file sizes in build directory.
         // This lets us display how much they changed later.
@@ -56,8 +70,11 @@ checkBrowsers(paths.appPath, isInteractive)
         // Remove all content but keep the directory so that
         // if you're in it, you don't end up in Trash
         fs.emptyDirSync(paths.appBuild);
-        // Merge with the public folder
-        copyPublicFolder();
+
+        if (isClientCompilation) {
+            // Merge with the public folder
+            copyPublicFolder();
+        }
         // Start the webpack build
         return build(previousFileSizes);
     })
@@ -90,17 +107,19 @@ checkBrowsers(paths.appPath, isInteractive)
             );
             console.log();
 
-            const appPackage = require(paths.appPackageJson);
-            const publicUrl = paths.publicUrlOrPath;
-            const publicPath = config.output.publicPath;
-            const buildFolder = path.relative(process.cwd(), paths.appBuild);
-            printHostingInstructions(
-                appPackage,
-                publicUrl,
-                publicPath,
-                buildFolder,
-                useYarn
-            );
+            if (isClientCompilation) {
+                const appPackage = require(paths.appPackageJson);
+                const publicUrl = paths.publicUrlOrPath;
+                const publicPath = config.output.publicPath;
+                const buildFolder = path.relative(process.cwd(), paths.appBuild);
+                printHostingInstructions(
+                    appPackage,
+                    publicUrl,
+                    publicPath,
+                    buildFolder,
+                    useYarn
+                );
+            }
         },
         err => {
             const tscCompileOnError = process.env.TSC_COMPILE_ON_ERROR === 'true';

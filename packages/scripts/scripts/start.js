@@ -1,3 +1,15 @@
+// Checking which build pipeline should be triggered
+const args = process.argv.slice(2);
+process.env.STREAM_SERVER = `${args.includes('--server')}`;
+
+const isServerCompilation = process.env.STREAM_SERVER === 'true';
+const isClientCompilation = !isServerCompilation;
+
+if (isServerCompilation === isClientCompilation) {
+    console.log('react-scripts can only be launch with `--server` or `--client` but not both.');
+    process.exit(1);
+}
+
 // Do this as the first thing so that any code reading it knows the right env.
 process.env.BABEL_ENV = 'development';
 process.env.NODE_ENV = 'development';
@@ -28,12 +40,13 @@ const openBrowser = require('react-dev-utils/openBrowser');
 const paths = require('../config/paths');
 const configFactory = require('../config/webpack.config');
 const createDevServerConfig = require('../config/webpackDevServer.config');
+const customiseServerStremaConfig = require('../config/serverStremaConfig.config');
 
 const useYarn = fs.existsSync(paths.yarnLockFile);
 const isInteractive = process.stdout.isTTY;
 
 // Warn and crash if required files are missing
-if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
+if (isClientCompilation && !checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
     process.exit(1);
 }
 
@@ -61,11 +74,13 @@ if (process.env.HOST) {
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
 const { checkBrowsers } = require('react-dev-utils/browsersHelper');
-checkBrowsers(paths.appPath, isInteractive)
+const startingCheck = isServerCompilation ? () => Promise.resolve() : checkBrowsers
+
+startingCheck(paths.appPath, isInteractive)
     .then(() => {
         // We attempt to use the default port but if it is busy, we offer the user to
         // run on a different port. `choosePort()` Promise resolves to the next free port.
-        return choosePort(HOST, DEFAULT_PORT);
+        return isServerCompilation ? 'bypass' : choosePort(HOST, DEFAULT_PORT);
     })
     .then(port => {
         if (port == null) {
@@ -86,9 +101,9 @@ checkBrowsers(paths.appPath, isInteractive)
         );
         const devSocket = {
             warnings: warnings =>
-                devServer.sockWrite(devServer.sockets, 'warnings', warnings),
+                isClientCompilation && devServer.sockWrite(devServer.sockets, 'warnings', warnings),
             errors: errors =>
-                devServer.sockWrite(devServer.sockets, 'errors', errors),
+                isClientCompilation && devServer.sockWrite(devServer.sockets, 'errors', errors),
         };
         // Create a webpack compiler that is configured with custom messages.
         const compiler = createCompiler({
@@ -113,46 +128,60 @@ checkBrowsers(paths.appPath, isInteractive)
             proxyConfig,
             urls.lanUrlForConfig
         );
-        const devServer = new WebpackDevServer(compiler, serverConfig);
-        // Launch WebpackDevServer.
-        devServer.listen(port, HOST, err => {
-            if (err) {
-                return console.log(err);
-            }
-            if (isInteractive) {
-                clearConsole();
-            }
 
-            // We used to support resolving modules according to `NODE_PATH`.
-            // This now has been deprecated in favor of jsconfig/tsconfig.json
-            // This lets you use absolute paths in imports inside large monorepos:
-            if (process.env.NODE_PATH) {
-                console.log(
-                    chalk.yellow(
-                        'Setting NODE_PATH to resolve modules absolutely has been deprecated in favor of setting baseUrl in jsconfig.json (or tsconfig.json if you are using TypeScript) and will be removed in a future major release of create-react-app.'
-                    )
-                );
-                console.log();
-            }
+        let devServer;
+        if (isClientCompilation) {
+            devServer = new WebpackDevServer(compiler, serverConfig);
+            // Launch WebpackDevServer.
+            devServer.listen(port, HOST, err => {
+                if (err) {
+                    return console.log(err);
+                }
 
-            console.log(chalk.cyan('Starting the development server...\n'));
-            openBrowser(urls.localUrlForBrowser);
-        });
+                // We used to support resolving modules according to `NODE_PATH`.
+                // This now has been deprecated in favor of jsconfig/tsconfig.json
+                // This lets you use absolute paths in imports inside large monorepos:
+                if (process.env.NODE_PATH) {
+                    console.log(
+                        chalk.yellow(
+                            'Setting NODE_PATH to resolve modules absolutely has been deprecated in favor of setting baseUrl in jsconfig.json (or tsconfig.json if you are using TypeScript) and will be removed in a future major release of create-react-app.'
+                        )
+                    );
+                    console.log();
+                }
+
+                console.log(chalk.cyan('Starting the development server...\n'));
+                openBrowser(urls.localUrlForBrowser);
+            });
+        } else {
+            customiseServerStremaConfig(compiler, {
+                useTypeScript,
+                tscCompileOnError,
+            });
+            compiler.watch({
+                aggregateTimeout: 1000
+            }, () => { })
+        }
 
         ['SIGINT', 'SIGTERM'].forEach(function (sig) {
             process.on(sig, function () {
-                devServer.close();
+                if (isClientCompilation)
+                    devServer.close();
                 process.exit();
             });
         });
 
+        // There is an incompatibility with lerna that
+        // requires a couple of the following lines to be commented out
+        // For more information see https://github.com/facebook/create-react-app/issues/8685
         if (isInteractive || process.env.CI !== 'true') {
             // Gracefully exit when stdin ends
-            process.stdin.on('end', function () {
+            // process.stdin.on('end', function () {
+            if (isClientCompilation)
                 devServer.close();
-                process.exit();
-            });
-            process.stdin.resume();
+            //     process.exit();
+            // });
+            // process.stdin.resume();
         }
     })
     .catch(err => {
