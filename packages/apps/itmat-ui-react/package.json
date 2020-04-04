@@ -14,7 +14,6 @@
         "build": "react-scripts build",
         "test": "react-scripts test",
         "test:cypress": "npx cypress open",
-        "clean": "rimraf -rf ./dist ./build",
         "prepublishOnly": "yarn run build",
         "lint": "eslint ./src/**/*.{ts,tsx} --max-warnings=0 --format=codeframe",
         "lint:fix": "eslint ./src/**/*.{ts,tsx} --max-warnings=0 --format=codeframe --fix"
@@ -66,7 +65,7 @@
         "eslint-plugin-jsx-a11y": "6.2.3",
         "eslint-plugin-react": "7.19.0",
         "eslint-plugin-react-hooks": "3.0.0",
-        "rimraf": "3.0.2",
+        "http-proxy-middleware": "1.0.3",
         "typescript": "3.8.3",
         "url-loader": "4.0.0",
         "uuid": "7.0.3"
