@@ -6,6 +6,7 @@ import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
+import { task_required_permissions } from 'itmat-commons';
 
 
 export const permissionResolvers = {
@@ -18,16 +19,23 @@ export const permissionResolvers = {
         }
     },
     Mutation: {
-        addRoleToStudyOrProject: async (parent: object, args: {studyId?: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
+        addRoleToStudyOrProject: async (parent: object, args: {studyId: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { studyId, projectId, roleName } = args;
-            /* check the requester has privilege */
-
 
             /* check whether user has at least provided one id */
             if (studyId === undefined && projectId === undefined) {
                 throw new ApolloError('Please provide either study id or project id.', errorCodes.CLIENT_MALFORMED_INPUT);
             }
+
+            /* check the requester has privilege */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                args.projectId ?  task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+                requester,
+                args.studyId,
+                args.projectId
+            );
+            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* check whether the target study or project exists */
             if (studyId && projectId) {  // if both study id and project id are provided then just make sure they belong to each other
@@ -41,7 +49,7 @@ export const permissionResolvers = {
                 await studyCore.findOneProject_throwErrorIfNotExist(projectId);
             }
 
-            const result = await permissionCore.addRoleToStudyOrProject({ studyId: studyId!, projectId, roleName });
+            const result = await permissionCore.addRoleToStudyOrProject({ createdBy: requester.id, studyId: studyId!, projectId, roleName });
             return result;
         },
         editRole: async (parent: object, args: {roleId: string, name?: string, userChanges?: { add: string[], remove: string[]}, permissionChanges?: { add: string[], remove: string[]}}, context: any, info: any): Promise<IRole> => {

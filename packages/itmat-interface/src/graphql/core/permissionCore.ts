@@ -11,6 +11,7 @@ interface ICreateRoleInput {
     studyId: string;
     projectId?: string;
     roleName: string;
+    createdBy: string;
 }
 
 // interface IUserToRoleInput {
@@ -157,6 +158,7 @@ export class PermissionCore {
             users: [],
             studyId: opt.studyId,
             projectId: opt.projectId,
+            createdBy: opt.createdBy,
             deleted: null
         };
         const updateResult = await db.collections!.roles_collection.insertOne(role);

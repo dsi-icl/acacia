@@ -181,7 +181,7 @@ export const studyResolvers = {
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             /* create project */
-            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.username);
+            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.id);
             return project;
         },
         deleteProject: async (parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
@@ -201,8 +201,15 @@ export const studyResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            /* delete study */
-            await studyCore.deleteStudy(studyId);
+            const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
+
+            if (study) {
+                /* delete study */
+                await studyCore.deleteStudy(studyId);
+            } else {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
             return makeGenericReponse(studyId);
         },
         editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {

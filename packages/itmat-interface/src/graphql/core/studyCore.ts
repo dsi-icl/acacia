@@ -80,13 +80,16 @@ export class StudyCore {
             throw new ApolloError('Cannot get list of patients', errorCodes.DATABASE_ERROR);
         }
 
-        // project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+        if (getListOfPatientsResult[0] !== undefined) {
+            project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+        }
 
         await db.collections!.projects_collection.insertOne(project);
         return project;
     }
 
     public async deleteStudy(studyId: string): Promise<void> {
+        /* PRECONDITION: CHECKED THAT STUDY INDEED EXISTS */
         const session = db.client.startSession();
         session.startTransaction();
 
