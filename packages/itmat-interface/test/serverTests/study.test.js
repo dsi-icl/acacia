@@ -11,6 +11,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
 const config = require('../../config/config.sample.json');
 const { Models, permissions } = itmatCommons;
+const uuid = require('uuid/v4');
 
 let app;
 let mongodb;
@@ -65,18 +66,19 @@ describe('STUDY API', () => {
     });
 
     describe('MANIPULATING STUDIES EXISTENCE', () => {
-        test('Create study (admin)', async () => { 
+        test('Create study (admin)', async () => {
+            const studyName = uuid();
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: 'new_study_1' }
+                variables: { name: studyName }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
 
-            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: 'new_study_1' });
+            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
             expect(res.body.data.createStudy).toEqual({
                 id: createdStudy.id,
-                name: 'new_study_1'
+                name: studyName
             });
 
             const resWhoAmI = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
@@ -96,16 +98,20 @@ describe('STUDY API', () => {
                     projects: [],
                     studies: [{
                         id: createdStudy.id,
-                        name: 'new_study_1'
+                        name: studyName
                     }]
                 }
             });
+
+            /* cleanup: delete study */
+            await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
 
         test('Create study that violate unique name constraint (admin)', async () => {
+            const studyName = uuid();
             const newStudy = {
-                id: 'fakeNewStudyId2',
-                name: 'new_study_2',
+                id: `id_${studyName}`,
+                name: studyName,
                 createdBy: 'admin',
                 lastModified: 200000002,
                 deleted: null,
@@ -116,18 +122,26 @@ describe('STUDY API', () => {
 
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: 'new_study_2' }
+                variables: { name: studyName }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('E11000 duplicate key error dup key: { : \"new_study_2\", : null }');
+            expect(res.body.errors[0].message).toBe(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
             expect(res.body.data.createStudy).toBe(null);
+
+            /* should be only one study in database */
+            const study = await mongoClient.collection(config.database.collections.studies_collection).find({ name: studyName }).toArray();
+            expect(study).toEqual([newStudy]);
+
+            /* cleanup: delete study */
+            await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
         
-        test.only('Create study that violate unique name constraint (case insensitive) (admin)', async () => {
+        test('Create study that violate unique name constraint (case insensitive) (admin)', async () => {
+            const studyName = uuid();
             const newStudy = {
-                id: 'fakeNewStudyId1002',
-                name: 'new_study_1002',
+                id: `id_${studyName}`,
+                name: studyName,
                 createdBy: 'admin',
                 lastModified: 200000002,
                 deleted: null,
@@ -138,32 +152,42 @@ describe('STUDY API', () => {
 
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: 'new_sTUdY_1002' }
+                variables: { name: studyName.toUpperCase() }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('Study "new_sTUdY_1002" already exists (duplicates are case-insensitive).');
+            expect(res.body.errors[0].message).toBe(`Study "${studyName.toUpperCase()}" already exists (duplicates are case-insensitive).`);
             expect(res.body.data.createStudy).toBe(null);
+
+            /* should be only one study in database */
+            const study = await mongoClient.collection(config.database.collections.studies_collection).find({ name: { $in: [studyName, studyName.toUpperCase()] } }).toArray();
+            expect(study).toEqual([newStudy]);
+
+            /* cleanup: delete study */
+            await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
 
         test('Create study (user) (should fail)', async () => {
+            const studyName = uuid();
             const res = await user.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: 'new_study_3' }
+                variables: { name: studyName }
             });
             expect(res.status).toBe(200);
             expect(res.body.data.createStudy).toBe(null);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
 
-            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: 'new_study_3' });
+            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
             expect(createdStudy).toBe(null);
         });
 
-        test('Delete study (admin)', async () => {
+        test('Delete study (no projects) (admin)', async () => {
+            /* setup: create a study to be deleted */
+            const studyName = uuid();
             const newStudy = {
-                id: 'fakeNewStudyId4',
-                name: 'new_study_4',
+                id: `id_${studyName}`,
+                name: studyName,
                 createdBy: 'admin',
                 lastModified: 200000002,
                 deleted: null,
@@ -189,11 +213,12 @@ describe('STUDY API', () => {
                     projects: [],
                     studies: [{
                         id: newStudy.id,
-                        name: 'new_study_4'
+                        name: studyName 
                     }]
                 }
             });
-
+            
+            /* test */
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_STUDY),
                 variables: { studyId: newStudy.id }
@@ -204,12 +229,36 @@ describe('STUDY API', () => {
                 id: newStudy.id,
                 successful: true
             });
+
+            const study = await mongoClient.collection(config.database.collections.studies_collection).findOne({ id: newStudy.id });
+            expect(typeof study.deleted).toBe('number');
+
+            const resWhoAmIAfter = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
+            expect(resWhoAmIAfter.status).toBe(200);
+            expect(resWhoAmIAfter.body.data.errors).toBeUndefined();
+            expect(resWhoAmIAfter.body.data.whoAmI).toEqual({
+                username: 'admin', 
+                type: Models.UserModels.userTypes.ADMIN, 
+                realName: 'admin', 
+                createdBy: 'chon', 
+                organisation: 'DSI',
+                email: 'admin@user.io', 
+                description: 'I am an admin user.',
+                id: adminId,
+                access: {
+                    id: `user_access_obj_user_id_${adminId}`,
+                    projects: [],
+                    studies: []
+                }
+            });
         });
 
-        test('Delete study that has been deleted (admin)', async () => {
+        test('Delete study that has been deleted (no projects) (admin)', async () => {
+            /* setup: create a study to be deleted */
+            const studyName = uuid();
             const newStudy = {
-                id: 'fakeNewStudyId5',
-                name: 'new_study_5',
+                id: `id_${studyName}`,
+                name: studyName,
                 createdBy: 'admin',
                 lastModified: 200000002,
                 deleted: new Date().valueOf(),
@@ -218,17 +267,19 @@ describe('STUDY API', () => {
             };
             await mongoClient.collection(config.database.collections.studies_collection).insertOne(newStudy);
 
+            /* test */
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_STUDY),
                 variables: { studyId: newStudy.id } 
             });
             expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.deleteStudy).toEqual({
-                id: newStudy.id,
-                successful: true
-            });
-            expect(1).toBe(2); // // error not caught. study delete is multiple steps
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(res.body.data.deleteStudy).toEqual(null);
+        });
+
+        test('Delete study (with attached projects) (admin)', async () => {
+
         });
 
         test('Delete study that never existed (admin)', async () => {
@@ -237,17 +288,17 @@ describe('STUDY API', () => {
                 variables: { studyId: 'I_never_existed' }
             });
             expect(res.status).toBe(200);
-            expect(res.body.data.deleteStudy).toEqual({
-                id: 'I_never_existed',
-                successful: true
-            });
-            expect(1).toBe(2); // error not caught. study delete is multiple steps
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(res.body.data.deleteStudy).toEqual(null);
         });
 
         test('Delete study (user) (should fail)', async () => {
+            /* setup: create a study to be deleted */
+            const studyName = uuid();
             const newStudy = {
-                id: 'fakeNewStudyId6',
-                name: 'new_study_6',
+                id: `id_${studyName}`,
+                name: studyName,
                 createdBy: 'admin',
                 lastModified: 200000002,
                 deleted: null,
@@ -258,7 +309,7 @@ describe('STUDY API', () => {
 
             const res = await user.post('/graphql').send({
                 query: print(DELETE_STUDY),
-                variables: { studyId: 'new_study_6' }
+                variables: { studyId: studyName }
             });
             expect(res.status).toBe(200);
             expect(res.body.data.deleteStudy).toBe(null);
@@ -266,17 +317,21 @@ describe('STUDY API', () => {
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
 
             /* confirms that the created study is still alive */
-            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: 'new_study_6' });
+            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
             expect(createdStudy.deleted).toBe(null);
+
+            /* cleanup: delete study */
+            await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
     });
     
     describe('MANIPULATING PROJECTS EXISTENCE', () => {
         let setupStudy;
-        beforeAll(async () => {
+        beforeEach(async () => {
+            const studyName = uuid();
             setupStudy = {
-                id: 'setupStudyId',
-                name: 'setupStudy',
+                id: `id_${studyName}`,
+                name: studyName,
                 createdBy: 'admin',
                 lastModified: 200000002,
                 deleted: null,
@@ -286,29 +341,44 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
         });
 
-        test('Create project (admin)', async () => {
+        test('Create project (no existing patients in study) (admin)', async () => {
+            const projectName = uuid();
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_PROJECT),
                 variables: {
                     studyId: setupStudy.id,
-                    projectName: 'new_project_1'
+                    projectName
                 }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
 
-            const createdProject = await mongoClient.collection(config.database.collections.projects_collection).findOne({ name: 'new_project_1'});
-
+            const createdProject = await mongoClient.collection(config.database.collections.projects_collection).findOne({ name: projectName });
+            expect(createdProject).toEqual({
+                _id: createdProject._id,
+                id: createdProject.id,
+                studyId: setupStudy.id,
+                createdBy: adminId,
+                patientMapping: {},
+                name: projectName,
+                approvedFields: {}, 
+                approvedFiles: [],
+                lastModified: createdProject.lastModified,
+                deleted: null
+            });
             expect(res.body.data.createProject).toEqual({
                 id: createdProject.id,
                 studyId: setupStudy.id,
-                name: 'new_project_1',
+                name: projectName,
                 approvedFields: {}
             });
-            expect(1).toBe(2);  // patient mapping not tested
         });
 
-        test.only('Create project (user with no privilege) (should fail)', async () => {
+        test('Create project (existing patients in study) (admin)', async () => {
+
+        });
+
+        test('Create project (user with no privilege) (should fail)', async () => {
             const res = await user.post('/graphql').send({
                 query: print(CREATE_PROJECT),
                 variables: {
@@ -322,126 +392,71 @@ describe('STUDY API', () => {
             expect(res.body.data.createProject).toBe(null);
         });
 
-        test.only('Create project (user with privilege)', async () => {
-            const newUser = {
-                username : 'new_user_1', 
+        test('Create project (user with privilege)', async () => {
+            /* setup: creating a privileged user */
+            const username = uuid();
+            const authorisedUserProfile = {
+                username, 
                 type: 'STANDARD', 
-                realName: 'real_name_1', 
+                realName: `${username}_realname`, 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
                 createdBy: 'admin', 
-                email: 'new1@user.io', 
+                email: `${username}@user.io`, 
                 description: 'I am a new user.',
                 emailNotificationsActivated: true, 
                 organisation:  'DSI',
                 deleted: null, 
-                id: 'new_user_id_1'
+                id: `new_user_id_${username}`
             };
-            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
+            const roleId = uuid();
             const newRole = {
-                id: 'role001',
+                id: roleId,
                 projectId: null,
                 studyId: setupStudy.id,
-                name: 'Study PI',
+                name: `${roleId}_rolename`,
                 permissions: [
                     permissions.specific_study.specific_study_projects_management
                 ],
-                users: [newUser.id],
-                deleted: null 
+                users: [authorisedUserProfile.id],
+                deleted: null
             };
             await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
-            const createdUser = request.agent(app);
-            await connectAgent(createdUser, 'new_user_1', 'admin');
+            const authorisedUser = request.agent(app);
+            await connectAgent(authorisedUser, username, 'admin')
 
-            const res = await createdUser.post('/graphql').send({
+            /* test */
+            const projectName = uuid();
+            const res = await authorisedUser.post('/graphql').send({
                 query: print(CREATE_PROJECT),
                 variables: {
                     studyId: setupStudy.id,
-                    projectName: 'new_project_7'
+                    projectName
                 }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-
-            const createdProject = await mongoClient.collection(config.database.collections.projects_collection).findOne({ name: 'new_project_7'});
+            const createdProject = await mongoClient.collection(config.database.collections.projects_collection).findOne({ name: projectName });
+            expect(createdProject).toEqual({
+                _id: createdProject._id,
+                id: createdProject.id,
+                studyId: setupStudy.id,
+                createdBy: authorisedUserProfile.id,
+                patientMapping: {},
+                name: projectName,
+                approvedFields: {}, 
+                approvedFiles: [],
+                lastModified: createdProject.lastModified,
+                deleted: null
+            });
             expect(res.body.data.createProject).toEqual({
                 id: createdProject.id,
                 studyId: setupStudy.id,
-                name: 'new_project_7',
+                name: projectName,
                 approvedFields: {}
             });
         });
-
-        // test('edit project approved fields with incorrect field (as string) (user)',  () => user
-        //     .post('/graphql')
-        //     .send({ query: EDIT_PROJECT_APPROVED_FIELDS, variables: { changes: { add: 'non-existent-field' } } })
-        //     .then(res => {
-        //         expect(res.status).toBe(200);
-        //         expect(res.body.data.editProjectApprovedFields).toBeNull();
-        //         expect(res.body.errors[0].message).toBe('Unauthorised.');
-        //         expect(res.body.errors[0].extensions.code).toBe('FORBIDDEN');
-        //         return true;
-        // }));
-
-        // test('edit project approved fields with incorrect field (doesnt exist) (user)',  () => user
-        //     .post('/graphql')
-        //     .send({ query: EDIT_PROJECT_APPROVED_FIELDS, variables: { changes: { add: 9999999999 } } })
-        //     .then(res => {
-        //         expect(res.status).toBe(200);
-        //         expect(res.body.data.editProjectApprovedFields).toBeNull();
-        //         expect(res.body.errors[0].message).toBe('Unauthorised.');
-        //         expect(res.body.errors[0].extensions.code).toBe('FORBIDDEN');
-        //         return true;
-        // }));
-
-        // test('edit project approved fields with correct field number (user)',  () => user
-        //     .post('/graphql')
-        //     .send({ query: EDIT_PROJECT_APPROVED_FIELDS, variables: { changes: { add: 32 } } })
-        //     .then(res => {
-        //         expect(res.status).toBe(200);
-        //         expect(res.body.data.editProjectApprovedFields).toBeNull();
-        //         expect(res.body.errors[0].message).toBe('Unauthorised.');
-        //         expect(res.body.errors[0].extensions.code).toBe('FORBIDDEN');
-        //         return true;
-        // }));
-
-        // test('edit project approved fields with incorrect field (as string) (admin)',  () => admin
-        //     .post('/graphql')
-        //     .send({ query: EDIT_PROJECT_APPROVED_FIELDS, variables: { changes: { add: 'non-existent-field' } } })
-        //     .then(res => {
-        //         expect(res.status).toBe(200);
-        //         expect(res.body.data.editProjectApprovedFields).toBeNull();
-        //         expect(res.body.errors[0].message).toBe('Unauthorised.');
-        //         expect(res.body.errors[0].extensions.code).toBe('FORBIDDEN');
-        //         return true;
-        // }));
-
-        // test('edit project approved fields with incorrect field (doesnt exist) (admin)',  () => admin
-        //     .post('/graphql')
-        //     .send({ query: EDIT_PROJECT_APPROVED_FIELDS, variables: { changes: { add: 99999999999 } } })
-        //     .then(res => {
-        //         expect(res.status).toBe(200);
-        //         expect(res.body.data.editProjectApprovedFields).toBeNull();
-        //         expect(res.body.errors[0].message).toBe('Unauthorised.');
-        //         expect(res.body.errors[0].extensions.code).toBe('FORBIDDEN');
-        //         return true;
-        // }));
-
-        // test('edit project approved fields with correct field number (admin)',  () => admin
-        //     .post('/graphql')
-        //     .send({ query: EDIT_PROJECT_APPROVED_FIELDS, variables: { changes: { add: 32 } } })
-        //     .then(res => {
-        //         expect(res.status).toBe(200);
-        //         expect(res.body.data.editProjectApprovedFields).toBeNull();
-        //         expect(res.body.errors[0].message).toBe('Unauthorised.');
-        //         expect(res.body.errors[0].extensions.code).toBe('FORBIDDEN');
-        //         return true;
-        // }));
-
-
-
-
-
     });
 });

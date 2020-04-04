@@ -3,15 +3,15 @@ const { print } = require('graphql');
 const { connectAdmin, connectUser, connectAgent } = require('./_loginHelper');
 const { db } = require('../../src/database/database');
 const { Router } = require('../../src/server/router');
-const fs = require('fs');
 const { errorCodes } = require('../../src/graphql/errors');
 const { MongoClient } = require('mongodb');
 const itmatCommons = require('itmat-commons');
-const { UPLOAD_FILE, WHO_AM_I, CREATE_PROJECT, CREATE_STUDY, DELETE_STUDY } = itmatCommons.GQLRequests;
+const { WHO_AM_I, ADD_NEW_ROLE, CREATE_PROJECT, CREATE_STUDY, DELETE_STUDY } = itmatCommons.GQLRequests;
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
 const config = require('../../config/config.sample.json');
 const { Models, permissions } = itmatCommons;
+const uuid = require('uuid/v4');
 
 let app;
 let mongodb;
@@ -54,7 +54,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     await connectUser(user);
 });
 
-describe('FILE API', () => {
+describe('ROLE API', () => {
     let adminId;
     let userId;
 
@@ -65,69 +65,444 @@ describe('FILE API', () => {
         userId = result.filter(e => e.username === 'standardUser')[0].id;
     });
 
-    describe('UPLOAD AND DOWNLOAD FILE', () => {
-        test.only('Upload file to study (admin)', async () => { 
-            /* setup: create a study to upload file to */
-            const createStudyRes = await admin.post('/graphql').send({
-                query: print(CREATE_STUDY),
-                variables: { name: 'new_study_1' }
-            });
-            expect(createStudyRes.status).toBe(200);
-            expect(createStudyRes.body.errors).toBeUndefined();
+    describe('ADDING ROLE', () => {
+        let setupStudy;
+        let setupProject;
+        let authorisedUser;
+        let authorisedUserProfile;
+        beforeEach(async () => {
+            const studyName = uuid();
+            setupStudy = {
+                id: `id_${studyName}`,
+                name: studyName,
+                createdBy: adminId,
+                lastModified: 200000002,
+                deleted: null,
+                currentDataVersion: -1,
+                dataVersions: []
+            };
+            await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
 
-            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: 'new_study_1' });
-            expect(createStudyRes.body.data.createStudy).toEqual({
-                id: createdStudy.id,
-                name: 'new_study_1'
-            });
+            const projectName = uuid();
+            setupProject = {
+                id: `id_${projectName}`,
+                studyId: setupStudy.id,
+                createdBy: adminId,
+                patientMapping: {},
+                name: projectName,
+                approvedFields: {}, 
+                approvedFiles: [],
+                lastModified: 20000002,
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.projects_collection).insertOne(setupProject);
 
+            /* setup: creating a privileged user (not yet added roles) */
+            const username = uuid();
+            authorisedUserProfile = {
+                username, 
+                type: 'STANDARD', 
+                realName: `${username}_realname`, 
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                createdBy: 'admin', 
+                email: `${username}@user.io`, 
+                description: 'I am a new user.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: `new_user_id_${username}`
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+
+            authorisedUser = request.agent(app);
+            await connectAgent(authorisedUser, username, 'admin')
+
+        });
+
+        test('Creating a new role for study (admin)', async () => {
+            const roleName = uuid();
             const res = await admin.post('/graphql').send({
-                query: print(UPLOAD_FILE),
+                query: print(ADD_NEW_ROLE),
                 variables: {
-                    studyId: createdStudy.id,
-                    file: fs.createReadStream('../filesForTests/just_a_test_file.txt'),
-                    description: 'just a file 1.',
-                    fileLength: 10000
+                    roleName,
+                    studyId: setupStudy.id,
+                    projectId: null
                 }
             });
-            console.log(res.body);
-            expect(res).toBe(200);
+            expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.whoAmI).toEqual({
-                id: 'fsf',
-                fileName: 'just_a_test_file.txt',
-                studyId: createdStudy.id,
+
+            const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+            expect(createdRole).toEqual({
+                _id: createdRole._id,
+                id: createdRole.id,
                 projectId: null,
-                fileSize: 10000,
-                description: 'just a file 1.',
-                uploadedBy: 'admin'
+                studyId: setupStudy.id,
+                name: roleName,
+                permissions: [],
+                createdBy: adminId,
+                users: [],
+                deleted: null
             });
+            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                id: createdRole.id,
+                name: roleName,
+                permissions: [],
+                studyId: setupStudy.id,
+                projectId: null,
+                users: []
+            });
+
+            /* cleanup */
+            await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
 
-        test('Upload file to study (user with privilege)', async () => {
+        test('Creating a new role for study (user without privilege) (should fail)', async () => {
+            const roleName = uuid();
+            const res = await user.post('/graphql').send({
+                query: print(ADD_NEW_ROLE),
+                variables: {
+                    roleName,
+                    studyId: setupStudy.id,
+                    projectId: null
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.addRoleToStudyOrProject).toEqual(null);
 
+            const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+            expect(createdRole).toBe(null);
         });
 
-        test('Upload file to study (user with no privilege) (should fail)', async () => {
+        test('Creating a new role for study (user with privilege)', async () => {
+            /* setup: adding privilege to authorised user */
+            const roleId = uuid();
+            const newRole = {
+                id: roleId,
+                projectId: null,
+                studyId: setupStudy.id,
+                name: `${roleId}_rolename`,
+                permissions: [
+                    permissions.specific_study.specific_study_role_management
+                ],
+                users: [authorisedUserProfile.id],
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
+            /* test */
+            const roleName = uuid();
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(ADD_NEW_ROLE),
+                variables: {
+                    roleName,
+                    studyId: setupStudy.id,
+                    projectId: null
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+
+            const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+            expect(createdRole).toEqual({
+                _id: createdRole._id,
+                id: createdRole.id,
+                projectId: null,
+                studyId: setupStudy.id,
+                name: roleName,
+                permissions: [],
+                createdBy: authorisedUserProfile.id,
+                users: [],
+                deleted: null
+            });
+            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                id: createdRole.id,
+                name: roleName,
+                permissions: [],
+                studyId: setupStudy.id,
+                projectId: null,
+                users: []
+            });
+
+            /* cleanup */
+            await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
 
-        test('Download file from study (admin)', async () => {
+        test('Creating a new role for project (admin)', async () => {
+            const roleName = uuid();
+            const res = await admin.post('/graphql').send({
+                query: print(ADD_NEW_ROLE),
+                variables: {
+                    roleName,
+                    studyId: setupStudy.id,
+                    projectId: setupProject.id 
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
 
+            const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+            expect(createdRole).toEqual({
+                _id: createdRole._id,
+                id: createdRole.id,
+                projectId: setupProject.id,
+                studyId: setupStudy.id,
+                name: roleName,
+                permissions: [],
+                createdBy: adminId,
+                users: [],
+                deleted: null
+            });
+            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                id: createdRole.id,
+                name: roleName,
+                permissions: [],
+                studyId: setupStudy.id,
+                projectId: setupProject.id,
+                users: []
+            });
+
+            /* cleanup */
+            await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
 
-        test('Download file from study (user with privilege)', async () => {
+        test('Creating a new role for project (user with privilege for another project in the same study) (should fail)', async () => {
+            /* setup: creating another project */
+            const anotherProjectName = uuid();
+            const anotherSetupProject = {
+                id: `id_${anotherProjectName}`,
+                studyId: setupStudy.id,
+                createdBy: adminId,
+                patientMapping: {},
+                name: anotherProjectName,
+                approvedFields: {}, 
+                approvedFiles: [],
+                lastModified: 20000002,
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.projects_collection).insertOne(anotherSetupProject);
 
+            /* setup: giving authorised user privilege */
+            const roleId = uuid();
+            const newRole = {
+                id: roleId,
+                projectId: anotherSetupProject.id,
+                studyId: setupStudy.id,
+                name: `${roleId}_rolename`,
+                permissions: [
+                    permissions.specific_project.specific_project_role_management
+                ],
+                users: [authorisedUserProfile.id],
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
+
+            /* test */
+            const roleName = uuid();
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(ADD_NEW_ROLE),
+                variables: {
+                    roleName,
+                    studyId: setupStudy.id,
+                    projectId: setupProject.id 
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.addRoleToStudyOrProject).toEqual(null);
+
+            const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+            expect(createdRole).toBe(null);
         });
 
-        test('Download file from study (user with no privilege) (should fail)', async () => {
+        test('Creating a new role for project (user with privilege for this project)', async () => {
+            /* setup: giving authorised user privilege */
+            const roleId = uuid();
+            const newRole = {
+                id: roleId,
+                projectId: setupProject.id,
+                studyId: setupStudy.id,
+                name: `${roleId}_rolename`,
+                permissions: [
+                    permissions.specific_project.specific_project_role_management
+                ],
+                users: [authorisedUserProfile.id],
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
+            /* test */
+            const roleName = uuid();
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(ADD_NEW_ROLE),
+                variables: {
+                    roleName,
+                    studyId: setupStudy.id,
+                    projectId: setupProject.id 
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+
+            const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+            expect(createdRole).toEqual({
+                _id: createdRole._id,
+                id: createdRole.id,
+                projectId: setupProject.id,
+                studyId: setupStudy.id,
+                name: roleName,
+                permissions: [],
+                createdBy: authorisedUserProfile.id,
+                users: [],
+                deleted: null
+            });
+            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                id: createdRole.id,
+                name: roleName,
+                permissions: [],
+                studyId: setupStudy.id,
+                projectId: setupProject.id,
+                users: []
+            });
+
+            /* cleanup */
+            await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+        });
+
+        test('Creating a new role for project (user with privilege for the study)', async () => {
+            /* setup: giving authorised user privilege */
+            const roleId = uuid();
+            const newRole = {
+                id: roleId,
+                projectId: null,
+                studyId: setupStudy.id,
+                name: `${roleId}_rolename`,
+                permissions: [
+                    permissions.specific_study.specific_study_role_management
+                ],
+                users: [authorisedUserProfile.id],
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
+
+            /* test */
+            const roleName = uuid();
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(ADD_NEW_ROLE),
+                variables: {
+                    roleName,
+                    studyId: setupStudy.id,
+                    projectId: setupProject.id 
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+
+            const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+            expect(createdRole).toEqual({
+                _id: createdRole._id,
+                id: createdRole.id,
+                projectId: setupProject.id,
+                studyId: setupStudy.id,
+                name: roleName,
+                permissions: [],
+                createdBy: authorisedUserProfile.id,
+                users: [],
+                deleted: null
+            });
+            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                id: createdRole.id,
+                name: roleName,
+                permissions: [],
+                studyId: setupStudy.id,
+                projectId: setupProject.id,
+                users: []
+            });
+
+            /* cleanup */
+            await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+        });
+
+        test('Creating a new role for project (user without privilege) (should fail)', async () => {
+            const roleName = uuid();
+            const res = await user.post('/graphql').send({
+                query: print(ADD_NEW_ROLE),
+                variables: {
+                    roleName,
+                    studyId: setupStudy.id,
+                    projectId: setupProject.id 
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.addRoleToStudyOrProject).toEqual(null);
+
+            const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+            expect(createdRole).toBe(null);
         });
     });
 
-    describe('FILE PERMISSION FOR PROJECTS', () => {
-        test('1 + 1', () => {
-            expect(2).toBe(2);
+    describe('EDITING ROLE', () => {
+        let setupStudy;
+        let setupProject;
+        let setupRole;
+        let authorisedUser;
+        let authorisedUserProfile;
+        beforeEach(async () => {
+            const studyName = uuid();
+            setupStudy = {
+                id: `id_${studyName}`,
+                name: studyName,
+                createdBy: adminId,
+                lastModified: 200000002,
+                deleted: null,
+                currentDataVersion: -1,
+                dataVersions: []
+            };
+            await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
+
+            const projectName = uuid();
+            setupProject = {
+                id: `id_${projectName}`,
+                studyId: setupStudy.id,
+                createdBy: adminId,
+                patientMapping: {},
+                name: projectName,
+                approvedFields: {}, 
+                approvedFiles: [],
+                lastModified: 20000002,
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.projects_collection).insertOne(setupProject);
+
+            /* setup: creating a privileged user (not yet added roles) */
+            const username = uuid();
+            authorisedUserProfile = {
+                username, 
+                type: 'STANDARD', 
+                realName: `${username}_realname`, 
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                createdBy: 'admin', 
+                email: `${username}@user.io`, 
+                description: 'I am a new user.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: `new_user_id_${username}`
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+
+            authorisedUser = request.agent(app);
+            await connectAgent(authorisedUser, username, 'admin')
         });
+
+    });
+
+    describe('DELETING ROLE', () => {
+
     });
 });
