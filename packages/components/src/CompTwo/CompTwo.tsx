@@ -9,9 +9,9 @@ const CompTwo: React.FC = () => {
             <h3>
                 <span role="img" aria-label="Yarn Logo">
                     🐱
-        </span>{' '}
+                </span>{' '}
         Comp Two
-        <Three />
+                <Three />
             </h3>
         </div >
     );

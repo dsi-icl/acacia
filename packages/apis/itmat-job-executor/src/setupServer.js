@@ -5,4 +5,4 @@ module.exports = () => ({
         mongodb: 'commonjs mongodb',
         'require_optional': 'commonjs require_optional'
     }],
-})
+});

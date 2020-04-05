@@ -1,6 +1,6 @@
 import { IFile } from '@itmat/commons';
 import React from 'react';
-import { Mutation, Query } from '@apollo/react-components'
+import { Mutation, Query } from '@apollo/react-components';
 import { NavLink } from 'react-router-dom';
 import { CREATE_DATA_CURATION_JOB } from '@itmat/commons';
 import { GET_STUDY } from '@itmat/commons';

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Query } from '@apollo/react-components'
+import { Query } from '@apollo/react-components';
 import {
     NavLink, Redirect, Route, Switch,
 } from 'react-router-dom';

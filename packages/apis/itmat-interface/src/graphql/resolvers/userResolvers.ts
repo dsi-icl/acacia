@@ -141,7 +141,7 @@ export const userResolvers = {
             } = args.user;
 
             /* check email is valid form */
-            if (!/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
+            if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
                 throw new UserInputError('Email is not the right format.');
             }
 
@@ -209,7 +209,7 @@ export const userResolvers = {
             };
 
             /* check email is valid form */
-            if (email && !/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
+            if (email && !/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
                 throw new UserInputError('User not updated: Email is not the right format.');
             }
 

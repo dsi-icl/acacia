@@ -1,6 +1,6 @@
 import { IUserWithoutToken } from '@itmat/commons';
 import * as React from 'react';
-import { Mutation, Query } from '@apollo/react-components'
+import { Mutation, Query } from '@apollo/react-components';
 import { NavLink, RouteComponentProps } from 'react-router-dom';
 import { DELETE_USER, EDIT_USER, GET_USERS } from '@itmat/commons';
 import { Subsection } from '../reusable';

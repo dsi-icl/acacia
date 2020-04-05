@@ -23,6 +23,145 @@ export interface IFieldDescriptionObject {
     datatype: 'c' | 'i' | 'd' | 'b' | 't';
 }
 
+export function processHeader(header: string[]): { error?: string[]; parsedHeader: Array<IFieldDescriptionObject | null> } {
+    /* pure function */
+    /* headerline is ['eid', 1@0.0, 2@0.1:c] */
+    /* returns a parsed object array and error (undefined if no error) */
+
+    const fieldstrings: string[] = [];
+    const error: string[] = [];
+    const parsedHeader: Array<IFieldDescriptionObject | null> = Array(header.length);
+    let colNum = 0;
+    for (const each of header) {
+        if (colNum === 0) {
+            parsedHeader[0] = null;
+        } else if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
+            error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
+            parsedHeader[colNum] = null;
+        } else {
+            const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
+            const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
+            const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
+            const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
+            parsedHeader[colNum] = {
+                fieldId, timepoint, measurement, datatype,
+            };
+            fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
+        }
+        colNum++;
+    }
+
+    /* check for duplicate */
+    const set = new Set(fieldstrings);
+    if (set.size !== fieldstrings.length) {
+        error.push('Line 1: There is duplicate (field, timepoint, measurement) combination.');
+    }
+
+    return ({ parsedHeader, error: error.length === 0 ? undefined : error });
+}
+
+export function processDataRow({
+    lineNum, row, parsedHeader, job, versionId,
+}: { versionId: string; lineNum: number; row: string[]; parsedHeader: Array<IFieldDescriptionObject | null>; job: IJobEntry<{ dataVersion: string; versionTag?: string }> }): { error?: string[]; dataEntry: IDataEntry } { // eslint:disable-line
+    /* pure function */
+    const error: string[] = [];
+    let colIndex = 0;
+    const dataEntry: any = {
+        m_jobId: job.id,
+        m_study: job.studyId,
+        m_versionId: versionId,
+    };
+
+    if (row.length !== parsedHeader.length) {
+        error.push(`Line ${lineNum}: Uneven field Number; expected ${parsedHeader.length} fields but got ${row.length}`);
+        return ({ error, dataEntry });
+    }
+
+    for (const each of row) {
+        if (colIndex === 0) {
+            /* extracting subject id */
+            if (each === '') {
+                error.push(`Line ${lineNum}: No subject id provided.`);
+                colIndex++;
+                continue;
+            }
+            dataEntry.m_eid = each;
+            colIndex++;
+            continue;
+        }
+
+        /* skip for missing data */
+        if (each === '') {
+            colIndex++;
+            continue;
+        }
+
+        if (parsedHeader[colIndex] === null) {
+            colIndex++;
+            continue;
+        }
+        const {
+            fieldId, timepoint, measurement, datatype,
+        } = parsedHeader[colIndex] as IFieldDescriptionObject;
+
+        /* adding value to dataEntry */
+        let value: any;
+        try {
+            switch (datatype) {
+                case 'c': // categorical
+                    value = each;
+                    break;
+                case 'd': // decimal
+                    if (!/^\d+(.\d+)?$/.test(each)) {
+                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
+                        colIndex++;
+                        continue;
+                    }
+                    value = parseFloat(each);
+                    break;
+                case 'i': // integer
+                    if (!/^\d+$/.test(each)) {
+                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
+                        colIndex++;
+                        continue;
+                    }
+                    value = parseInt(each, 10);
+                    break;
+                case 'b': // boolean
+                    if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
+                        value = each.toLowerCase() === 'true';
+                    } else {
+                        error.push(`Line ${lineNum} column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
+                        colIndex++;
+                        continue;
+                    }
+                    break;
+                case 't':
+                    value = each;
+                    break;
+                default:
+                    error.push(`Line ${lineNum}: Invalid data type '${datatype}'`);
+                    colIndex++;
+                    continue;
+            }
+        } catch (e) {
+            error.push(e.toString());
+            continue;
+        }
+
+        if (dataEntry[fieldId] === undefined) {
+            dataEntry[fieldId] = {};
+        }
+        if (dataEntry[fieldId][timepoint] === undefined) {
+            dataEntry[fieldId][timepoint] = {};
+        }
+        dataEntry[fieldId][timepoint][measurement] = value;
+        colIndex++;
+    }
+
+    return ({ error: error.length === 0 ? undefined : error, dataEntry });
+}
+
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
 export class CSVCurator {
@@ -145,144 +284,4 @@ export class CSVCurator {
             parseStream.pipe(uploadWriteStream);
         });
     }
-}
-
-
-export function processHeader(header: string[]): { error?: string[]; parsedHeader: Array<IFieldDescriptionObject | null> } {
-    /* pure function */
-    /* headerline is ['eid', 1@0.0, 2@0.1:c] */
-    /* returns a parsed object array and error (undefined if no error) */
-
-    const fieldstrings: string[] = [];
-    const error: string[] = [];
-    const parsedHeader: Array<IFieldDescriptionObject | null> = Array(header.length);
-    let colNum = 0;
-    for (const each of header) {
-        if (colNum === 0) {
-            parsedHeader[0] = null;
-        } else if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
-            error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
-            parsedHeader[colNum] = null;
-        } else {
-            const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
-            const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
-            const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
-            const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
-            parsedHeader[colNum] = {
-                fieldId, timepoint, measurement, datatype,
-            };
-            fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
-        }
-        colNum++;
-    }
-
-    /* check for duplicate */
-    const set = new Set(fieldstrings);
-    if (set.size !== fieldstrings.length) {
-        error.push('Line 1: There is duplicate (field, timepoint, measurement) combination.');
-    }
-
-    return ({ parsedHeader, error: error.length === 0 ? undefined : error });
-}
-
-export function processDataRow({
-    lineNum, row, parsedHeader, job, versionId,
-}: { versionId: string; lineNum: number; row: string[]; parsedHeader: Array<IFieldDescriptionObject | null>; job: IJobEntry<{ dataVersion: string; versionTag?: string }> }): { error?: string[]; dataEntry: IDataEntry } { // eslint:disable-line
-    /* pure function */
-    const error: string[] = [];
-    let colIndex = 0;
-    const dataEntry: any = {
-        m_jobId: job.id,
-        m_study: job.studyId,
-        m_versionId: versionId,
-    };
-
-    if (row.length !== parsedHeader.length) {
-        error.push(`Line ${lineNum}: Uneven field Number; expected ${parsedHeader.length} fields but got ${row.length}`);
-        return ({ error, dataEntry });
-    }
-
-    for (const each of row) {
-        if (colIndex === 0) {
-            /* extracting subject id */
-            if (each === '') {
-                error.push(`Line ${lineNum}: No subject id provided.`);
-                colIndex++;
-                continue;
-            }
-            dataEntry.m_eid = each;
-            colIndex++;
-            continue;
-        }
-
-        /* skip for missing data */
-        if (each === '') {
-            colIndex++;
-            continue;
-        }
-
-        if (parsedHeader[colIndex] === null) {
-            colIndex++;
-            continue;
-        }
-        const {
-            fieldId, timepoint, measurement, datatype,
-        } = parsedHeader[colIndex] as IFieldDescriptionObject;
-
-        /* adding value to dataEntry */
-        let value: any;
-        try {
-            switch (datatype) {
-            case 'c': // categorical
-                value = each;
-                break;
-            case 'd': // decimal
-                if (!/^\d+(.\d+)?$/.test(each)) {
-                    error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
-                    colIndex++;
-                    continue;
-                }
-                value = parseFloat(each);
-                break;
-            case 'i': // integer
-                if (!/^\d+$/.test(each)) {
-                    error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
-                    colIndex++;
-                    continue;
-                }
-                value = parseInt(each, 10);
-                break;
-            case 'b': // boolean
-                if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
-                    value = each.toLowerCase() === 'true';
-                } else {
-                    error.push(`Line ${lineNum} column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
-                    colIndex++;
-                    continue;
-                }
-                break;
-            case 't':
-                value = each;
-                break;
-            default:
-                error.push(`Line ${lineNum}: Invalid data type '${datatype}'`);
-                colIndex++;
-                continue;
-            }
-        } catch (e) {
-            error.push(e.toString());
-            continue;
-        }
-
-        if (dataEntry[fieldId] === undefined) {
-            dataEntry[fieldId] = {};
-        }
-        if (dataEntry[fieldId][timepoint] === undefined) {
-            dataEntry[fieldId][timepoint] = {};
-        }
-        dataEntry[fieldId][timepoint][measurement] = value;
-        colIndex++;
-    }
-
-    return ({ error: error.length === 0 ? undefined : error, dataEntry });
 }

@@ -1,6 +1,6 @@
 import { IStudyDataVersion } from '@itmat/commons';
 import React from 'react';
-import { Query } from '@apollo/react-components'
+import { Query } from '@apollo/react-components';
 import { GET_STUDY_FIELDS } from '@itmat/commons';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';

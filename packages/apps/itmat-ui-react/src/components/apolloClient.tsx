@@ -18,8 +18,8 @@ const uploadLink = createUploadLink({
     credentials: 'include',
 }) as any;
 
-uploadLink.onError = () => { return; }
-uploadLink.setOnError = () => { return uploadLink; }
+uploadLink.onError = () => { return; };
+uploadLink.setOnError = () => { return uploadLink; };
 
 const link = split(
     // split based on operation type

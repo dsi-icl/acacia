@@ -32,7 +32,7 @@ export const RoleControlSection: React.FC<RoleControlSectionProps> = ({
             )}
             <AddRole studyId={studyId} projectId={projectId} />
         </>
-    )
+    );
 };
 
 export default RoleControlSection;
@@ -176,7 +176,7 @@ const PermissionsControlPanel: React.FC<PermissionsControlPanelProps> = ({
                         {(editRole, { loading }) => (
                             <Button
                                 size="small"
-                                type={isSelected ? "primary" : "default"}
+                                type={isSelected ? 'primary' : 'default'}
                                 icon={loading ? <LoadingOutlined /> : <TagOutlined />}
                                 style={{
                                     cursor: 'pointer',
@@ -197,7 +197,7 @@ const PermissionsControlPanel: React.FC<PermissionsControlPanelProps> = ({
                             </Button>
                         )}
                     </Mutation>
-                )
+                );
             })}
         </>
     );
@@ -229,8 +229,8 @@ const UsersControlPanel: React.FC<UsersControlPanelProps> = ({
                     remove: []
                 }
             }
-        })
-    }
+        });
+    };
 
     const handleDeselect = (value: string) => {
         return editUsers({
@@ -241,8 +241,8 @@ const UsersControlPanel: React.FC<UsersControlPanelProps> = ({
                     remove: [value]
                 }
             }
-        })
-    }
+        });
+    };
 
     const tagRender = (props: any) => {
 
@@ -265,13 +265,13 @@ const UsersControlPanel: React.FC<UsersControlPanelProps> = ({
                         }
                     }).then(() => {
                         onClose();
-                    })
+                    });
                 }}
             >
                 {label}
             </Tag>
-        )
-    }
+        );
+    };
 
     return (
         <Select

@@ -1,6 +1,6 @@
 import { IStudyDataVersion } from '@itmat/commons';
 import React from 'react';
-import { Query } from '@apollo/react-components'
+import { Query } from '@apollo/react-components';
 import { GET_STUDY } from '@itmat/commons';
 import { formatBytes } from '../../../reusable/fileList/fileList';
 import css from './tabContent.module.css';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Query } from '@apollo/react-components'
+import { Query } from '@apollo/react-components';
 import { GET_PROJECT_PATIENT_MAPPING } from '@itmat/commons';
 import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 

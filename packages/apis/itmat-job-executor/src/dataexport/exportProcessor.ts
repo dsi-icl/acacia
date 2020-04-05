@@ -45,13 +45,15 @@ export class ExportProcessor {
     public async startStreamParsing() {
         if (!this.fieldInfo) { throw new Error('Cannot create export file before fetching field info and setting output stream.'); }
         let nextDocument: {} | null;
-        while (nextDocument = await this.dataCursor.next()) {
+        do {
+            nextDocument = await this.dataCursor.next();
             const flattenedData = this.formatDataIntoJSON(nextDocument);
             if (this.patientIdMap) {
                 this.replacePatientId(flattenedData);
             }
             this.writeOneLineToCSV(flattenedData);
         }
+        while (nextDocument);
         this.writeOneLineToCSV(null);
     }
 

@@ -1,6 +1,6 @@
 import { IProject } from '@itmat/commons';
 import React from 'react';
-import { Mutation } from '@apollo/react-components'
+import { Mutation } from '@apollo/react-components';
 import { Redirect } from 'react-router';
 import { DELETE_PROJECT, GET_STUDY } from '@itmat/commons';
 import { WHO_AM_I } from '@itmat/commons';

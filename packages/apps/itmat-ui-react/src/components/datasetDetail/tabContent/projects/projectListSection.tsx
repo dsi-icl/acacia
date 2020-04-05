@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Mutation } from '@apollo/react-components'
+import { Mutation } from '@apollo/react-components';
 import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_PROJECT, GET_STUDY } from '@itmat/commons';
 import { WHO_AM_I } from '@itmat/commons';

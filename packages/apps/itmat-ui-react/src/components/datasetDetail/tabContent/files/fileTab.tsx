@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Query } from '@apollo/react-components'
+import { Query } from '@apollo/react-components';
 import { GET_STUDY } from '@itmat/commons';
 import { FileList } from '../../../reusable/fileList/fileList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';

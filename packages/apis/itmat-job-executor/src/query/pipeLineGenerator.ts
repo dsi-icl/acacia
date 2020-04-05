@@ -7,7 +7,7 @@
 //  */
 
 class PipelineGenerator {
-    constructor(private readonly config = {}) {}
+    constructor(private readonly config = {}) { }
 
     /*
     * @fn buildPipeline
@@ -108,40 +108,40 @@ class PipelineGenerator {
         let newField = {};
 
         switch (expression.op) {
-        case '*':
-            newField = {
-                $multiply: [this._createNewField(expression.left), this._createNewField(expression.right)],
-            };
-            break;
-        case '/':
-            newField = {
-                $divide: [this._createNewField(expression.left), this._createNewField(expression.right)],
-            };
-            break;
-        case '-':
-            newField = {
-                $subtract: [this._createNewField(expression.left), this._createNewField(expression.right)],
-            };
-            break;
-        case '+':
-            newField = {
-                $add: [this._createNewField(expression.left), this._createNewField(expression.right)],
-            };
-            break;
-        case '^':
-        // NB the right side my be an integer while the left must be a field !
-            newField = {
-                $pow: [`$${expression.left}`, parseInt(expression.right, 10)],
-            };
-            break;
-        case 'val':
-            newField = parseFloat(expression.left);
-            break;
-        case 'field':
-            newField = `$${expression.left}`;
-            break;
-        default:
-            break;
+            case '*':
+                newField = {
+                    $multiply: [this._createNewField(expression.left), this._createNewField(expression.right)],
+                };
+                break;
+            case '/':
+                newField = {
+                    $divide: [this._createNewField(expression.left), this._createNewField(expression.right)],
+                };
+                break;
+            case '-':
+                newField = {
+                    $subtract: [this._createNewField(expression.left), this._createNewField(expression.right)],
+                };
+                break;
+            case '+':
+                newField = {
+                    $add: [this._createNewField(expression.left), this._createNewField(expression.right)],
+                };
+                break;
+            case '^':
+                // NB the right side my be an integer while the left must be a field !
+                newField = {
+                    $pow: [`$${expression.left}`, parseInt(expression.right, 10)],
+                };
+                break;
+            case 'val':
+                newField = parseFloat(expression.left);
+                break;
+            case 'field':
+                newField = `$${expression.left}`;
+                break;
+            default:
+                break;
         }
 
         return newField;
@@ -166,59 +166,62 @@ class PipelineGenerator {
      */
     private _translateCohort(cohort: any) {
         const match = {};
+        let derivedOperation;
+        let countOperation;
+        let countfield;
 
         cohort.forEach((select: any) => {
             switch (select.op) {
-            case '=':
-                // select.value must be an array
-                (match as any)[select.field] = { $in: [select.value] };
-                break;
-            case '!=':
-                // select.value must be an array
-                (match as any)[select.field] = { $ne: [select.value] };
-                break;
-            case '>':
-                // select.value must be a float
-                (match as any)[select.field] = { $lt: parseFloat(select.value) };
-                break;
-            case '<':
-                // select.value must be a float
-                (match as any)[select.field] = { $gt: parseFloat(select.value) };
-                break;
-            case 'derived':
-                // equation must only have + - * /
-                const derivedOperation = select.value.split(' ');
-                if (derivedOperation[0] === '=') {
-                    (match as any)[select.field] = { $eq: parseFloat(select.value) };
-                }
-                if (derivedOperation[0] === '>') {
-                    (match as any)[select.field] = { $gt: parseFloat(select.value) };
-                }
-                if (derivedOperation[0] === '<') {
+                case '=':
+                    // select.value must be an array
+                    (match as any)[select.field] = { $in: [select.value] };
+                    break;
+                case '!=':
+                    // select.value must be an array
+                    (match as any)[select.field] = { $ne: [select.value] };
+                    break;
+                case '>':
+                    // select.value must be a float
                     (match as any)[select.field] = { $lt: parseFloat(select.value) };
-                }
-                break;
-            case 'exists':
-                // We check if the field exists. This is to be used for checking if a patient
-                // has an image
-                (match as any)[select.field] = { $exists: true };
-                break;
-            case 'count':
-                // counts can only be positive. NB: > and < are inclusive e.g. < is <=
-                const countOperation = select.value.split(' ');
-                const countfield = `${select.field}.count`;
-                if (countOperation[0] === '=') {
-                    (match as any)[countfield] = { $eq: parseInt(countOperation[1], 10) };
-                }
-                if (countOperation[0] === '>') {
-                    (match as any)[countfield] = { $gt: parseInt(countOperation[1], 10) };
-                }
-                if (countOperation[0] === '<') {
-                    (match as any)[countfield] = { $lt: parseInt(countOperation[1], 10) };
-                }
-                break;
-            default:
-                break;
+                    break;
+                case '<':
+                    // select.value must be a float
+                    (match as any)[select.field] = { $gt: parseFloat(select.value) };
+                    break;
+                case 'derived':
+                    // equation must only have + - * /
+                    derivedOperation = select.value.split(' ');
+                    if (derivedOperation[0] === '=') {
+                        (match as any)[select.field] = { $eq: parseFloat(select.value) };
+                    }
+                    if (derivedOperation[0] === '>') {
+                        (match as any)[select.field] = { $gt: parseFloat(select.value) };
+                    }
+                    if (derivedOperation[0] === '<') {
+                        (match as any)[select.field] = { $lt: parseFloat(select.value) };
+                    }
+                    break;
+                case 'exists':
+                    // We check if the field exists. This is to be used for checking if a patient
+                    // has an image
+                    (match as any)[select.field] = { $exists: true };
+                    break;
+                case 'count':
+                    // counts can only be positive. NB: > and < are inclusive e.g. < is <=
+                    countOperation = select.value.split(' ');
+                    countfield = `${select.field}.count`;
+                    if (countOperation[0] === '=') {
+                        (match as any)[countfield] = { $eq: parseInt(countOperation[1], 10) };
+                    }
+                    if (countOperation[0] === '>') {
+                        (match as any)[countfield] = { $gt: parseInt(countOperation[1], 10) };
+                    }
+                    if (countOperation[0] === '<') {
+                        (match as any)[countfield] = { $lt: parseInt(countOperation[1], 10) };
+                    }
+                    break;
+                default:
+                    break;
             }
         });
         return match;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Query } from '@apollo/react-components'
+import { Query } from '@apollo/react-components';
 import { GET_PROJECT } from '@itmat/commons';
 import { NavLink, RouteComponentProps } from 'react-router-dom';
 import { Subsection } from '../../../../reusable';

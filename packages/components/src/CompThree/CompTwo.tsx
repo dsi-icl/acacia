@@ -7,9 +7,9 @@ const CompTwo: React.FC = () => {
             <h3>
                 <span role="img" aria-label="Yarn Logo">
                     🦩
-        </span>{' '}
+                </span>{' '}
         Flo
-      </h3>
+            </h3>
         </div>
     );
 };

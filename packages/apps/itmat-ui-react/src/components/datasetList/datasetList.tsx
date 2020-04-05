@@ -1,6 +1,6 @@
 import { IStudy } from '@itmat/commons';
 import * as React from 'react';
-import { Query } from '@apollo/react-components'
+import { Query } from '@apollo/react-components';
 import { NavLink } from 'react-router-dom';
 import { WHO_AM_I } from '@itmat/commons';
 

@@ -26,7 +26,7 @@ export const fileResolvers = {
 
             const file = await args.file;
 
-            return new Promise<IFile>(async (resolve, reject) => {
+            return new Promise<IFile>((resolve, reject) => {
                 const stream: NodeJS.ReadableStream = (file as any).createReadStream();
                 const fileUri = uuid();
 
@@ -57,7 +57,7 @@ export const fileResolvers = {
                 });
 
                 try {
-                    await objStore.uploadFile(stream, args.studyId, fileUri);
+                    objStore.uploadFile(stream, args.studyId, fileUri);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Mutation } from '@apollo/react-components'
+import { Mutation } from '@apollo/react-components';
 import { LOGIN, WHO_AM_I } from '@itmat/commons';
 import css from './login.module.css';
 

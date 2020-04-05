@@ -65,7 +65,7 @@ export class PermissionCore {
     public async removeRole(roleId: string): Promise<void> {
         const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         if (updateResult.ok === 1) {
-
+            // TODO
         } else {
             throw new ApolloError('Cannot delete role.', errorCodes.DATABASE_ERROR);
         }
@@ -85,7 +85,7 @@ export class PermissionCore {
         }
         const updateResult = await db.collections!.roles_collection.updateMany(queryObj, { $set: { deleted: new Date().valueOf() } });
         if (updateResult.result.ok === 1) {
-
+            // TODO
         } else {
             throw new ApolloError('Cannot delete role(s).', errorCodes.DATABASE_ERROR);
         }

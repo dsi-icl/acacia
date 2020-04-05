@@ -6,4 +6,4 @@ module.exports = () => ({
         'require_optional': 'commonjs require_optional',
         'subscriptions-transport-ws': 'commonjs subscriptions-transport-ws'
     }],
-})
+});

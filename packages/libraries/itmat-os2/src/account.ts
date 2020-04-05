@@ -97,8 +97,8 @@ Account.prototype.connect = function () {
                 return;
             }
 
-            if (response.headers.hasOwnProperty('x-storage-token') === false ||
-                response.headers.hasOwnProperty('x-storage-url') === false) {
+            if (Object.prototype.hasOwnProperty.call(response.headers, 'x-storage-token') === false ||
+                Object.prototype.hasOwnProperty.call(response.headers, 'x-storage-url') === false) {
                 reject(new Error('Connected but failed to get a token'));
                 return;
             }

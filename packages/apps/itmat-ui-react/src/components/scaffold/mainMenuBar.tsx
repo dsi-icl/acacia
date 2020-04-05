@@ -1,7 +1,7 @@
 import { ProjectOutlined, DatabaseOutlined, TeamOutlined, PoweroffOutlined } from '@ant-design/icons';
 import { IProject } from '@itmat/commons';
 import * as React from 'react';
-import { Mutation } from '@apollo/react-components'
+import { Mutation } from '@apollo/react-components';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I } from '@itmat/commons';
 import css from './scaffold.module.css';

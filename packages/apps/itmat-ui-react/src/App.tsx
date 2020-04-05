@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Query } from '@apollo/react-components'
+import { Query } from '@apollo/react-components';
 import { WHO_AM_I } from '@itmat/commons';
 import Providers from './Providers';
 import { LoginBox } from './components/login/login';

@@ -38,7 +38,7 @@ export const DataManagementTabContentFetch: React.FC<DataManagementTabContentFet
                 return (
                     <div>
                         <p>There is no data uploaded for this study yet.</p>
-                        <UploadNewData studyId={studyId} cancelButton={() => { }} />
+                        <UploadNewData studyId={studyId} />
                     </div>
                 );
             }}
@@ -161,7 +161,7 @@ function removeDuplicateVersion(versions: IStudyDataVersion[]) {
     const tmp = [...versions].reverse();
     tmp.forEach((el, ind) => {
         if (alreadySeenContent.includes(el.contentId)) {
-
+            // TODO
         } else {
             alreadySeenContent.push(el.contentId);
             uniqueContent.push({ ...el, originalPosition: tmp.length - ind - 1 });

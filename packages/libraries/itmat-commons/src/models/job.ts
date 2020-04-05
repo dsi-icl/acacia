@@ -18,5 +18,5 @@ export interface IJobEntry<dataobj> {
     data?: dataobj;
 }
 
-export type IJobEntryForDataCuration = IJobEntry<{ dataVersion: string, versionTag?: string }>;
-export type IJobEntryForFieldCuration = IJobEntry<{ dataVersionId: string, tag: string }>;
+export type IJobEntryForDataCuration = IJobEntry<{ dataVersion: string; versionTag?: string }>;
+export type IJobEntryForFieldCuration = IJobEntry<{ dataVersionId: string; tag: string }>;
