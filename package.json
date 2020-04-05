@@ -8,7 +8,7 @@
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-utils --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
         "build": "lerna run --stream build",
         "publish": "lerna run tsc && lerna publish",
-        "test:unit": "lerna run --stream --parallel --scope itmat-job-executor --scope itmat-utils test",
+        "test:unit": "lerna run --stream --parallel --scope itmat-interface --scope itmat-job-executor --scope itmat-utils test",
         "test:e2e": "echo start-server-and-test to be activated",
         "test": "npm run test:unit && npm run test:e2e"
     },

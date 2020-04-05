@@ -6,6 +6,7 @@ const { objStore } = require('../../src/objStore/objStore');
 const { Router } = require('../../src/server/router');
 const path = require('path');
 const uuid = require('uuid/v4');
+const chalk = require('chalk');
 const { errorCodes } = require('../../src/graphql/errors');
 const { MongoClient } = require('mongodb');
 const itmatCommons = require('itmat-commons');
@@ -408,6 +409,9 @@ describe('FILE API', () => {
 
                 /* before test: can download file */
                 const res = await admin.get(`/file/${createdFile.id}`);
+                if (res.status !== 200) {
+                    console.log(chalk.red(JSON.stringify(res, null, 4)));
+                }
                 expect(res.status).toBe(200);
                 expect(res.headers['content-type']).toBe('application/download');
                 expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
@@ -528,9 +532,9 @@ describe('FILE API', () => {
         });
     });
 
-    describe('FILE PERMISSION FOR PROJECTS', () => {
-        test('1 + 1', () => {
-            expect(2).toBe(3);
-        });
-    });
+    // describe('FILE PERMISSION FOR PROJECTS', () => {
+    //     test('1 + 1', () => {
+    //         expect(2).toBe(3);
+    //     });
+    // });
 });
