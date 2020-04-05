@@ -2,10 +2,10 @@
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
 const { CREATE_PROJECT, CREATE_STUDY, UPLOAD_FILE } = require('itmat-commons').GQLRequests;
 const { print } = require('graphql');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 
-describe('File upload page', function() {
-    it('Admin can load data from a selected file', function() {
+describe('File upload page', function () {
+    it('Admin can load data from a selected file', function () {
         cy.fixture('CSVCurator.tsv').as('file');
 
         /* setup: login via API */
@@ -71,7 +71,7 @@ describe('File upload page', function() {
         });
     });
 
-    it.only('Admin loads data; the app displays any error in data format', function() {
+    it.only('Admin loads data; the app displays any error in data format', function () {
         cy.fixture('CSVCurator_error5.tsv').as('file');
 
         /* setup: login via API */

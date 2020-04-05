@@ -9,8 +9,8 @@ import { IFieldEntry } from 'itmat-commons/dist/models/field';
 
 
 export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }, studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
-    const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId }});
-    if (loading) { return <LoadingBalls/>; }
+    const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId } });
+    if (loading) { return <LoadingBalls />; }
     if (error) { return <p>{error.toString()}</p>; }
     const { getStudy } = data;
 
@@ -29,13 +29,13 @@ const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { 
 
     return <>
         <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
-        <Query query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
+        <Query<any, any> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
             {({ data, loading, error }) => {
                 if (loading) { return <LoadingBalls />; }
                 if (error) { return <p>{JSON.stringify(error)}</p>; }
                 if (!data || !data.getStudyFields || data.getStudyFields.length === 0) { return <p>There is no field annotations uploaded for this tag.</p>; }
                 // return <FieldListSection projectId={projectId} checkable={false} fieldList={data.getStudyFields} />;
-                return <GrantedFieldListSectionSelectedFieldTree selectedTree={selectedTree} originalCheckedList={originalCheckedList} projectId={projectId} fieldList={data.getStudyFields} studyId={studyId}/>;
+                return <GrantedFieldListSectionSelectedFieldTree selectedTree={selectedTree} originalCheckedList={originalCheckedList} projectId={projectId} fieldList={data.getStudyFields} studyId={studyId} />;
             }}
         </Query>
     </>;
@@ -47,7 +47,7 @@ const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ select
     const [currentProjectId, setCurrentProjectId] = React.useState(projectId);
     const [currentSelectedTree, setCurrentSelectedTree] = React.useState(selectedTree);
 
-    if (currentProjectId !== projectId || selectedTree !== currentSelectedTree ) {
+    if (currentProjectId !== projectId || selectedTree !== currentSelectedTree) {
         setCheckedList(originalCheckedList[selectedTree] || []);
         setSavedSuccessfully(false);
         setCurrentProjectId(projectId);
@@ -60,7 +60,7 @@ const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ select
 
     return <>
         <FieldListSection onCheck={onCheck} checkedList={checkedList} checkable={true} fieldList={fieldList} />
-        <Mutation
+        <Mutation<any, any>
             mutation={EDIT_PROJECT_APPROVED_FIELDS}
             onCompleted={() => setSavedSuccessfully(true)}
         >

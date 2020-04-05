@@ -21,7 +21,7 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
         setCheckedList(checkedList);
     };
 
-    return <Query query={GET_STUDY} variables={{ studyId }}>
+    return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data: fileData, error }) => {
             if (loading) { return <LoadingBalls />; }
             if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
@@ -32,9 +32,9 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                     onCheck={onCheck as any}
                     checkedKeys={checkedList}
                 >
-                    {fileData.getStudy.files.map((el: IFile) => <Tree.TreeNode title={el.fileName} key={el.id} dataRef={el} isLeaf={true} />)}
+                    {fileData.getStudy.files.map((el: IFile) => <Tree.TreeNode title={el.fileName} key={el.id} isLeaf={true} />)}
                 </Tree>
-                <Mutation
+                <Mutation<any, any>
                     mutation={EDIT_PROJECT_APPROVED_FILES}
                     onCompleted={() => setSavedSuccessfully(true)}
                 >

@@ -17,7 +17,7 @@ import { UploadNewFields } from './uploadNewFields';
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper}>
-        <Query query={GET_STUDY} variables={{ studyId }}>
+        <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
                 if (loading) { return <LoadingBalls />; }
                 if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
@@ -26,7 +26,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                 }
                 return <div>
                     <p>There is no data uploaded for this study yet.</p>
-                    <UploadNewData studyId={studyId} cancelButton={() => {}} />
+                    <UploadNewData studyId={studyId} cancelButton={() => { }} />
                 </div>;
             }}
         </Query>
@@ -77,11 +77,11 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                 }
 
                 <button key='new data' className={css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</button>
-                { showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ? 
-                    <button key='save version'  onClick={() => { if (loading) {return;} setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id }}); }} className={css.versioning_section_button}>{ loading ? 'Loading...' : 'Set as current version'}</button>
-                  : null 
-                }<br/>
-            </> : null }
+                {showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ?
+                    <button key='save version' onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</button>
+                    : null
+                }<br />
+            </> : null}
 
             {
                 addNewDataSectionShown ?

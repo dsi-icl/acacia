@@ -1,6 +1,6 @@
 import { ApolloError } from 'apollo-server-core';
 import { IQueryEntry } from 'itmat-commons/dist/models/query';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 
@@ -17,7 +17,7 @@ export class QueryCore {
     public async createQuery(userId: string, queryString: string, studyId: string, projectId?: string): Promise<IQueryEntry> {
         const query: IQueryEntry = {
             requester: userId,
-            id: uuidv4(),
+            id: uuid(),
             queryString,
             studyId,
             projectId,

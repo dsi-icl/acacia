@@ -22,15 +22,15 @@ export const RoleControlSection: React.FunctionComponent<{ studyId: string, proj
 export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availablePermissions: string[] }> = ({ role, availablePermissions }) => {
     const isStudyRole = role.projectId ? false : true;
     const { data: userData, error: userFetchError, loading: userFetchLoading } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
-    const [removeRole, { loading: removeRoleLoading }] = useMutation(REMOVE_ROLE, { refetchQueries: [{ query: isStudyRole ? GET_STUDY : GET_PROJECT, variables: isStudyRole ? { studyId: role.studyId } : { projectId: role.projectId, admin: true }}] });
+    const [removeRole, { loading: removeRoleLoading }] = useMutation(REMOVE_ROLE, { refetchQueries: [{ query: isStudyRole ? GET_STUDY : GET_PROJECT, variables: isStudyRole ? { studyId: role.studyId } : { projectId: role.projectId, admin: true } }] });
     const [addUserToRole, { loading: loadingAddUser }] = useMutation(EDIT_ROLE);
     const [removeUserFromRole, { loading: loadingRemoveUser }] = useMutation(EDIT_ROLE);
 
-    if (userFetchLoading) { return <LoadingBalls/>; }
+    if (userFetchLoading) { return <LoadingBalls />; }
     return <div className={css.one_role}>
         <div className={css.role_header}>
             <label className={css.role_name}>{role.name}</label>
-            { removeRoleLoading ? <span className={css.right_aligned}><LoadingBalls /></span> :  <span className={css.delete_role_button + ' ' + css.right_aligned} onClick={() => removeRole({ variables: { roleId: role.id } })}>X</span>}
+            {removeRoleLoading ? <span className={css.right_aligned}><LoadingBalls /></span> : <span className={css.delete_role_button + ' ' + css.right_aligned} onClick={() => removeRole({ variables: { roleId: role.id } })}>X</span>}
         </div>
         <label>Permissions: </label><br /><br />
         <PermissionsControlPanel roleId={role.id} availablePermissions={availablePermissions} originallySelectedPermissions={role.permissions} />
@@ -42,7 +42,7 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availa
             projectId={role.projectId}
             submitButtonString='Add user'
             availableUserList={userData.getUsers}
-            onClickAddButton={loadingAddUser ? () => {} : (studyId, projectId, user) => { addUserToRole({ variables: { roleId: role.id, userChanges: { add: [user.id], remove: [] } } }); }}
+            onClickAddButton={loadingAddUser ? () => { } : (studyId, projectId, user) => { addUserToRole({ variables: { roleId: role.id, userChanges: { add: [user.id], remove: [] } } }); }}
         >
             {role.users.map((el) => <UserListPicker.User key={(el as any).id} user={el as any} onClickCross={loadingRemoveUser ? () => { } : (user) => removeUserFromRole({ variables: { roleId: role.id, userChanges: { add: [], remove: [user.id] } } })} />) as any}
         </UserListPicker.UserList>
@@ -54,7 +54,7 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId?: str
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputNameString, setInputNameString] = React.useState('');
 
-    const refetchQueries = projectId ? [{ query: GET_PROJECT, variables: { projectId, admin: true }}] : [{ query: GET_STUDY, variables: { studyId, admin: true }}]
+    const refetchQueries = projectId ? [{ query: GET_PROJECT, variables: { projectId, admin: true } }] : [{ query: GET_STUDY, variables: { studyId, admin: true } }]
 
     if (!isExpanded) { return <span className={css.add_new_role_button} onClick={() => setIsExpanded(true)}>Add new role</span>; }
     return <div className={css.add_new_role_section}>
@@ -62,7 +62,7 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId?: str
         <label>Name: </label><input placeholder='Role name' value={inputNameString} onChange={(e) => setInputNameString(e.target.value)} /> <br />
         <div className={css.add_new_role_buttons_wrapper}>
             <button className='button_grey' onClick={() => setIsExpanded(false)}>Cancel</button>
-            <Mutation
+            <Mutation<any, any>
                 mutation={ADD_NEW_ROLE}
                 refetchQueries={refetchQueries}
             >
@@ -79,7 +79,7 @@ const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availab
         {availablePermissions.map((el) =>
             originallySelectedPermissions.includes(el) ?
                 <React.Fragment key={el}>
-                    <Mutation mutation={EDIT_ROLE}>
+                    <Mutation<any, any> mutation={EDIT_ROLE}>
                         {(editRole, { loading }) => {
                             if (loading) { return <div key={el} className={css.permission_selected + ' button_loading'}>{el}</div>; }
 
@@ -99,7 +99,7 @@ const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availab
                 </React.Fragment>
                 :
                 <React.Fragment key={el}>
-                    <Mutation mutation={EDIT_ROLE}>
+                    <Mutation<any, any> mutation={EDIT_ROLE}>
                         {(editRole, { loading }) => {
                             if (loading) { return <div key={el} className='button_loading'>{el}</div>; }
 

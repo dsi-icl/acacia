@@ -1,6 +1,6 @@
 import { ApolloError } from 'apollo-server-core';
 import { IProject, IStudy } from 'itmat-commons/dist/models/study';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
@@ -45,7 +45,7 @@ export class StudyCore {
         }
 
         const study: IStudy = {
-            id: uuidv4(),
+            id: uuid(),
             name: studyName,
             createdBy: requestedBy,
             currentDataVersion: -1,
@@ -59,7 +59,7 @@ export class StudyCore {
 
     public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
-            id: uuidv4(),
+            id: uuid(),
             studyId,
             createdBy: requestedBy,
             name: projectName,
@@ -154,7 +154,7 @@ export class StudyCore {
     private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string } {
         let rangeArray: Array<string | number> = [...Array.from(listOfPatientId.keys())];
         if (prefix === undefined) {
-            prefix = uuidv4().substring(0, 2);
+            prefix = uuid().substring(0, 2);
         }
         rangeArray = rangeArray.map((e) => `${prefix}${e}`);
         rangeArray = this.shuffle(rangeArray);

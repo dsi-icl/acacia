@@ -5,7 +5,7 @@ import config from '../../utils/configManager';
 
 import { ApolloError } from 'apollo-server-core';
 import { IUser, IUserWithoutToken, userTypes } from 'itmat-commons/dist/models/user';
-import uuidv4 from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
 
 export class UserCore {
@@ -21,7 +21,7 @@ export class UserCore {
         const { password, organisation, username, type, description, realName, email, emailNotificationsActivated } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
         const entry: Models.UserModels.IUser = {
-            id: uuidv4(),
+            id: uuid(),
             username,
             type,
             description,

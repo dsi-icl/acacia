@@ -13,7 +13,7 @@ class App extends React.Component {
     public render() {
         return (
             <ApolloProvider client={client}>
-                <Query query={WHO_AM_I}>
+                <Query<any, any> query={WHO_AM_I}>
                     {({ loading, error, data }) => {
                         if (loading) { return <div style={{ width: '100%', height: '100%', textAlign: 'center', paddingTop: '20%' }}><Spinner /></div>; }
                         if (error) { return <p>Error :( {error.message}</p>; }

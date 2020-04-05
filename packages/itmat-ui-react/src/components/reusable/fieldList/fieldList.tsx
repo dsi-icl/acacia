@@ -46,13 +46,13 @@ export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedL
     const renderTreeNodes = (fieldList: any[]) => fieldList.map(item => {
         if (item.children.length !== 0) {
             return (
-                <TreeNode title={item.name} key={item.fieldId} dataRef={item} isLeaf={false} selectable={false}>
+                <TreeNode title={item.name} key={item.fieldId} isLeaf={false} selectable={false}>
                     {renderTreeNodes(item.children)}
                 </TreeNode>
             );
         }
         // return checkable ? <TreeNode title={item.name} key={item.fieldId} dataRef={item} isLeaf={true} /> : <DraggableTreeNode title={item.name} key={item.fieldId} dataRef={item} isLeaf={true} selectable={false} />;
-        return <TreeNode title={item.name} key={item.fieldId} dataRef={item} isLeaf={true} />;
+        return <TreeNode title={item.name} key={item.fieldId} isLeaf={true} />;
     });
 
 

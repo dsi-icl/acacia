@@ -43,7 +43,7 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
 
             <div>
                 <NavLink title="Logout" to="/logout" id="logoutButton">
-                    <Mutation
+                    <Mutation<any, any>
                         mutation={LOGOUT}
                         update={(cache, { data: { logout } }) => {
                             if (logout.successful === true) {

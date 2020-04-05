@@ -31,7 +31,7 @@ const FieldListSelectionState: React.FunctionComponent<{ studyId: string, fieldT
 
     return <>
         <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
-        <Query query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
+        <Query<any, any> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
             {({ data, loading, error }) => {
                 if (loading) { return <LoadingBalls />; }
                 if (error) { return <p>{JSON.stringify(error)}</p>; }

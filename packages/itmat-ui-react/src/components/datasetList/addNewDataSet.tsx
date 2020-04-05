@@ -12,7 +12,7 @@ export const AddNewDataSet: React.FunctionComponent = (props) => {
     const [newName, setNewName] = React.useState('');
     const [inputError, setInputError] = React.useState('');
     return (
-        <Query
+        <Query<any, any>
             query={WHO_AM_I}
             pollInterval={5000}
         >
@@ -22,41 +22,41 @@ export const AddNewDataSet: React.FunctionComponent = (props) => {
                 if (data.whoAmI && data.whoAmI.type && data.whoAmI.type === userTypes.ADMIN) {
                     return (
                         !showMore ?
-                        <button onClick={() => setShowMore(true)}>Add new dataset</button>
-                        :
-                        <div>
-                            <label>Enter name: <input value={newName} onChange={e => { setNewName(e.target.value); setInputError(''); }} type='text'/> </label>
-                            <button className='button_grey' onClick={() => { setShowMore(false); setNewName(''); }}>Cancel</button>
-                            {
-                                createStudyLoading ?
-                                <button>Loading...</button>
-                                :
-                                <button onClick={() => {
-                                    if (newName === '') {
-                                        setInputError('Please provide a study name.');
-                                        return;
-                                    }
-                                    createStudy({ variables: { name: newName }});
-                                } }>Submit</button>
-                            }
-                            {
-                                createStudyError ?
-                                <div className='error_banner'>Error creating study. Please contact admin.</div>
-                                :
-                                null
-                            }
-                            {
-                                inputError !== '' ?
-                                <div className='error_banner'>{inputError}</div>
-                                :
-                                null
-                            }
-                        </div>
+                            <button onClick={() => setShowMore(true)}>Add new dataset</button>
+                            :
+                            <div>
+                                <label>Enter name: <input value={newName} onChange={e => { setNewName(e.target.value); setInputError(''); }} type='text' /> </label>
+                                <button className='button_grey' onClick={() => { setShowMore(false); setNewName(''); }}>Cancel</button>
+                                {
+                                    createStudyLoading ?
+                                        <button>Loading...</button>
+                                        :
+                                        <button onClick={() => {
+                                            if (newName === '') {
+                                                setInputError('Please provide a study name.');
+                                                return;
+                                            }
+                                            createStudy({ variables: { name: newName } });
+                                        }}>Submit</button>
+                                }
+                                {
+                                    createStudyError ?
+                                        <div className='error_banner'>Error creating study. Please contact admin.</div>
+                                        :
+                                        null
+                                }
+                                {
+                                    inputError !== '' ?
+                                        <div className='error_banner'>{inputError}</div>
+                                        :
+                                        null
+                                }
+                            </div>
                     );
                 } else {
                     return null;
                 }
-            } }
+            }}
         </Query>
     );
 };

@@ -2,10 +2,10 @@
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
 const { CREATE_PROJECT, CREATE_STUDY, DELETE_PROJECT } = require('itmat-commons').GQLRequests;
 const { print } = require('graphql');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 
-describe('Studies page', function() {
-    it('admin can add dataset successfully', function() {
+describe('Studies page', function () {
+    it('admin can add dataset successfully', function () {
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         cy.visit('/datasets');
@@ -25,7 +25,7 @@ describe('Studies page', function() {
         cy.contains('Submit').should('not.exist');
     });
 
-    it('admin can navigate to dataset details from main page successfully', function() {
+    it('admin can navigate to dataset details from main page successfully', function () {
         /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
@@ -55,7 +55,7 @@ describe('Studies page', function() {
         });
     });
 
-    it('admin can create projects (e2e)', function() {
+    it('admin can create projects (e2e)', function () {
         /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
@@ -99,7 +99,7 @@ describe('Studies page', function() {
 
 
 
-    it('displays error message when creating new project if name is not provided (e2e)', function() {
+    it('displays error message when creating new project if name is not provided (e2e)', function () {
         /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
