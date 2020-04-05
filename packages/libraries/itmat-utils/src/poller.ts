@@ -11,17 +11,11 @@ export interface IJobPollerConfig {
 
 export class JobPoller {
     private intervalObj?: NodeJS.Timer;
-
     private readonly matchObj: any;
-
     private readonly identity: string;
-
     private readonly jobType?: string;
-
     private readonly jobCollection: mongodb.Collection;
-
     private readonly pollingInterval: number;
-
     private readonly action: (document: any) => void;
 
     constructor(config: IJobPollerConfig) {

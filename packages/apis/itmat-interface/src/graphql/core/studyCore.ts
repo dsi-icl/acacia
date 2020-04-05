@@ -26,6 +26,24 @@ export class StudyCore {
     }
 
     public async createNewStudy(studyName: string, requestedBy: string): Promise<IStudy> {
+        /* check if study already  exist (lowercase because S3 minio buckets cant be mixed case) */
+        const existingStudies = await db.collections!.studies_collection.aggregate(
+            [
+                { $match: { deleted: null } },
+                { $group:{
+                    _id: '',
+                    name: {
+                        $push : { $toLower: '$name' }
+                    }
+                }},
+                { $project: { name: 1 } }
+            ]
+        ).toArray();
+
+        if (existingStudies[0] && existingStudies[0].name.includes(studyName.toLowerCase())) {
+            throw new ApolloError(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
+        }
+
         const study: IStudy = {
             id: uuid(),
             name: studyName,
@@ -33,7 +51,7 @@ export class StudyCore {
             currentDataVersion: -1,
             lastModified: new Date().valueOf(),
             dataVersions: [],
-            deleted: null,
+            deleted: null
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;
@@ -46,29 +64,32 @@ export class StudyCore {
             createdBy: requestedBy,
             name: projectName,
             patientMapping: {},
-            approvedFields: approvedFields || {},
-            approvedFiles: approvedFiles || [],
+            approvedFields: approvedFields ? approvedFields : {},
+            approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
-            deleted: null,
+            deleted: null
         };
 
         const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
             { $match: { m_study: studyId } },
             { $group: { _id: null, array: { $addToSet: '$m_eid' } } },
-            { $project: { array: 1 } },
+            { $project: { array: 1 } }
         ]).toArray();
 
         if (getListOfPatientsResult === null || getListOfPatientsResult === undefined) {
             throw new ApolloError('Cannot get list of patients', errorCodes.DATABASE_ERROR);
         }
 
-        // project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+        if (getListOfPatientsResult[0] !== undefined) {
+            project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+        }
 
         await db.collections!.projects_collection.insertOne(project);
         return project;
     }
 
     public async deleteStudy(studyId: string): Promise<void> {
+        /* PRECONDITION: CHECKED THAT STUDY INDEED EXISTS */
         const session = db.client.startSession();
         session.startTransaction();
 
@@ -89,6 +110,7 @@ export class StudyCore {
 
             await session.commitTransaction();
             session.endSession();
+
         } catch (error) {
             // If an error occurred, abort the whole transaction and
             // undo any changes that might have happened
@@ -110,44 +132,48 @@ export class StudyCore {
     }
 
     public async editProjectApprovedFields(projectId: string, fieldTreeId: string, approvedFields: string[]) {
-        /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever) */
+        /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
         const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { [`approvedFields.${fieldTreeId}`]: approvedFields } }, { returnOriginal: false });
         if (result.ok === 1) {
             return result.value;
+        } else {
+            throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
         }
-        throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
     }
 
     public async editProjectApprovedFiles(projectId: string, approvedFiles: string[]) {
-        /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever) */
+        /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
         const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFiles } }, { returnOriginal: false });
         if (result.ok === 1) {
             return result.value;
+        } else {
+            throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
         }
-        throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
     }
 
     private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string } {
-        let rangeArray: (string | number)[] = [...Array.from(listOfPatientId.keys())];
+        let rangeArray: Array<string | number> = [...Array.from(listOfPatientId.keys())];
         if (prefix === undefined) {
             prefix = uuid().substring(0, 2);
         }
         rangeArray = rangeArray.map((e) => `${prefix}${e}`);
         rangeArray = this.shuffle(rangeArray);
         const mapping: { [originalPatientId: string]: string } = {};
-        for (let i = 0, { length } = listOfPatientId; i < length; i++) {
+        for (let i = 0, length = listOfPatientId.length; i < length; i++) {
             mapping[listOfPatientId[i]] = (rangeArray as string[])[i];
         }
         return mapping;
+
     }
 
-    private shuffle(array: (number | string)[]) { // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
+    private shuffle(array: Array<number | string>) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
         let currentIndex = array.length;
         let temporaryValue: string | number;
         let randomIndex: number;
 
         // While there remain elements to shuffle...
-        while (currentIndex !== 0) {
+        while (0 !== currentIndex) {
+
             // Pick a remaining element...
             randomIndex = Math.floor(Math.random() * currentIndex);
             currentIndex -= 1;

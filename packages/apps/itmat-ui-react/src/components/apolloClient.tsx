@@ -41,7 +41,7 @@ export const client = new ApolloClient({
             if (graphQLErrors) {
                 graphQLErrors.map(({ message, locations, path }) =>
                     // tslint:disable-next-line: no-console
-                    console.log(
+                    console.error(
                         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
                     ));
             }

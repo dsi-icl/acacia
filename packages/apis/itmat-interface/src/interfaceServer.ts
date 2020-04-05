@@ -25,7 +25,7 @@ class ITMATInterfaceServer extends Server {
         return new Promise((resolve, reject) => {
         // Operate database migration if necessary
             db.connect(this.config.database)
-                .then(() => objStore.connect())
+                .then(() => objStore.connect((this.config as any).objectStore))
                 .then(() => {
                     const jobChangestream = db.collections!.jobs_collection.watch([
                         { $match: { operationType: { $in: ['update', 'insert'] } } },

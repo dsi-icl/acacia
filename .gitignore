@@ -90,5 +90,4 @@ diagnostics/
 
 kubernetes/*.yaml
 
-itmat-client-old/
 .idea/
