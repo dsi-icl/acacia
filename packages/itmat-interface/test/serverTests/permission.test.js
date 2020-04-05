@@ -11,7 +11,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
 const config = require('../../config/config.sample.json');
 const { Models, permissions } = itmatCommons;
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 
 let app;
 let mongodb;
@@ -509,7 +509,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 };
-                await mongoClient.collection(config.database.collections.roles_collection).insert([setupRole, authorisedUserRole]);
+                await mongoClient.collection(config.database.collections.roles_collection).insertMany([setupRole, authorisedUserRole]);
             });
 
             test('Edit a non-existent role (admin)', async () => {
@@ -1487,7 +1487,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 };
-                await mongoClient.collection(config.database.collections.roles_collection).insert([setupRole, authorisedUserRole]);
+                await mongoClient.collection(config.database.collections.roles_collection).insertMany([setupRole, authorisedUserRole]);
             });
 
             test('Change role name (admin)', async () => {
@@ -1850,7 +1850,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 };
-                await mongoClient.collection(config.database.collections.roles_collection).insert([setupRole, authorisedUserRole]);
+                await mongoClient.collection(config.database.collections.roles_collection).insertMany([setupRole, authorisedUserRole]);
             });
 
             test('delete a study role (admin)', async () => {
@@ -1992,7 +1992,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 };
-                await mongoClient.collection(config.database.collections.roles_collection).insert([setupRole, authorisedUserRole]);
+                await mongoClient.collection(config.database.collections.roles_collection).insertMany([setupRole, authorisedUserRole]);
             });
 
             test('delete a project role (admin)', async () => {

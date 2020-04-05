@@ -11,7 +11,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
 const config = require('../../config/config.sample.json');
 const { Models, permissions } = itmatCommons;
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 
 let app;
 let mongodb;

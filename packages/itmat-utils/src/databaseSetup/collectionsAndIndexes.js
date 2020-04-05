@@ -93,7 +93,7 @@ async function setupDatabase(mongostr, databaseName) {
     seedUsers[1].id = uuid();
 
     /* insert seed users */
-    await db.collection(collections.users_collection.name).insert(seedUsers);
+    await db.collection(collections.users_collection.name).insertMany(seedUsers);
 
     await conn.close();
 };
