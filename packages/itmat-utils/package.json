@@ -13,6 +13,7 @@
         "clean": "rimraf -rf ./dist",
         "compile": "tsc -p tsconfig.build.json",
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
+        "jest": "jest",
         "prepublishOnly": "npm run build",
         "test-integrate": "jest --color --coverage",
         "test": "node ./test/setup-and-test.js",
