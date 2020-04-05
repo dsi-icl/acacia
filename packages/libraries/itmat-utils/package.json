@@ -2,7 +2,7 @@
     "name": "@itmat/utils",
     "version": "1.1.8",
     "description": "",
-    "main": "./dist/lib.umd.js",
+    "main": "./build/itmatUtils.umd.js",
     "main:src": "./src/index.ts",
     "repository": {
         "type": "git",

@@ -2,7 +2,7 @@
     "name": "@itmat/os2",
     "version": "0.0.13",
     "description": "",
-    "main": "./dist/lib.umd.js",
+    "main": "./build/itmatOS2.umd.js",
     "main:src": "./src/index.ts",
     "repository": {
         "type": "git",

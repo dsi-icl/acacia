@@ -2,7 +2,7 @@
     "name": "@itmat/commons",
     "version": "0.5.0",
     "description": "",
-    "main": "./dist/lib.umd.js",
+    "main": "./build/itmatCommons.umd.js",
     "main:src": "./src/index.ts",
     "repository": {
         "type": "git",
