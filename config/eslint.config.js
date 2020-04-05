@@ -29,6 +29,10 @@ var defaultRules = {
         'error',
         'windows'
     ],
+    'no-unused-vars': [
+        'warn',
+        { 'argsIgnorePattern': '^__unused__' }
+    ],
     'quotes': [
         'error',
         'single'
@@ -45,7 +49,11 @@ var defaultRules = {
     ],
     '@typescript-eslint/no-this-alias': [
         'off'
-    ]
+    ],
+    '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { 'argsIgnorePattern': '^__unused__' }
+    ],
 };
 
 console.log('Applying custom ESLint configuration...');
