@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Mutation, useMutation } from 'react-apollo';
+import { useMutation } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import * as css from './userList.module.css';
@@ -7,7 +7,7 @@ import * as css from './userList.module.css';
 export const CreateNewUser: React.FunctionComponent = (props) => {
     const [completedCreationId, setCompletedCreationId] = React.useState(undefined);
     const [inputError, setError] = React.useState('');
-    const [createUser, { loading, error }] = useMutation(CREATE_USER, {
+    const [createUser, { loading }] = useMutation(CREATE_USER, {
         refetchQueries: [{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }],
         onCompleted: (data) => setCompletedCreationId(data.createUser.id)
     });

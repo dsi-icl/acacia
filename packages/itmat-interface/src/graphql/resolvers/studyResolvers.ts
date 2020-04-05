@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { permissions } from 'itmat-commons';
+import { permissions, Models, task_required_permissions } from 'itmat-commons';
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
 import { IProject, IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { IUser } from 'itmat-commons/dist/models/user';
@@ -151,12 +151,10 @@ export const studyResolvers = {
         createStudy: async (parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
-            /* reject undefined project name */
-            if (!name) {
-                throw new ApolloError('Study name is not given or undefined.');
-            }
-
             /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             /* create study */
             const study = await studyCore.createNewStudy(name, requester.id);
@@ -171,12 +169,19 @@ export const studyResolvers = {
             }
 
             /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_projects,
+                requester,
+                studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             /* making sure that the study exists first */
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             /* create project */
-            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.username);
+            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.id);
             return project;
         },
         deleteProject: async (parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
@@ -192,9 +197,19 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
-            /* delete project */
-            await studyCore.deleteStudy(studyId);
+            const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
+
+            if (study) {
+                /* delete study */
+                await studyCore.deleteStudy(studyId);
+            } else {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
             return makeGenericReponse(studyId);
         },
         editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {

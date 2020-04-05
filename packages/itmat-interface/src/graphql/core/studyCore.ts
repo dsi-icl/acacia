@@ -26,6 +26,24 @@ export class StudyCore {
     }
 
     public async createNewStudy(studyName: string, requestedBy: string): Promise<IStudy> {
+        /* check if study already  exist (lowercase because S3 minio buckets cant be mixed case) */
+        const existingStudies = await db.collections!.studies_collection.aggregate(
+            [
+                { $match: { deleted: null } },
+                { $group:{
+                        _id: '',
+                        name: {
+                            $push : { $toLower: '$name' }
+                        }
+                }},
+                { $project: { name: 1 } }
+            ]
+        ).toArray();
+
+        if (existingStudies[0] && existingStudies[0].name.includes(studyName.toLowerCase())) {
+            throw new ApolloError(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
+        }
+
         const study: IStudy = {
             id: uuid(),
             name: studyName,
@@ -62,13 +80,16 @@ export class StudyCore {
             throw new ApolloError('Cannot get list of patients', errorCodes.DATABASE_ERROR);
         }
 
-        // project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+        if (getListOfPatientsResult[0] !== undefined) {
+            project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+        }
 
         await db.collections!.projects_collection.insertOne(project);
         return project;
     }
 
     public async deleteStudy(studyId: string): Promise<void> {
+        /* PRECONDITION: CHECKED THAT STUDY INDEED EXISTS */
         const session = db.client.startSession();
         session.startTransaction();
 

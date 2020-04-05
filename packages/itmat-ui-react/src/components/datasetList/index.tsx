@@ -1,13 +1,9 @@
 import * as React from 'react';
 import { DatasetList } from './datasetList';
 import * as css from './datasetPage.module.css';
-import { useMutation } from 'react-apollo';
-import { GQLRequests } from 'itmat-commons';
 import { AddNewDataSet } from './addNewDataSet';
 
-export const DatasetListPage: React.FunctionComponent = (props) => {
-    const [createStudy, { error, data, loading }] = useMutation(GQLRequests.CREATE_STUDY);
-
+export const DatasetListPage: React.FunctionComponent = () => {
     return (
         <div className={css.page_container}>
             <div className={css.project_list + ' page_section'}>

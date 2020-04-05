@@ -2,20 +2,37 @@ import { Request, Response } from 'express';
 import { IFile } from 'itmat-commons/dist/models/file';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
+import { permissionCore } from '../graphql/core/permissionCore';
+import { Models, task_required_permissions } from 'itmat-commons';
 
 export const fileDownloadController = async (req: Request, res: Response) => {
-    const requester = req.user;
+    const requester: Models.UserModels.IUser = req.user as any;
     const requestedFile = req.params.fileId;
 
-    try {
-        /* check permission */
+    if (!requester) {
+        res.status(403).json({ error: 'Please log in.' });
+        return;
+    }
 
+    try {
         /* download file */
         const file: IFile = await db.collections!.files_collection.findOne({ id: requestedFile, deleted: null })!;
         if (!file) {
-            res.status(404).json({ error: 'File not found. ' });
+            res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
             return;
         }
+
+        /* check permission */
+        const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+            task_required_permissions.access_project_data,
+            requester,
+            file.studyId
+        );
+        if (!hasPermission) {
+            res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
+            return;
+        }
+
         const stream = await objStore.downloadFile(file.studyId, file.uri);
         res.set('Content-Type', 'application/octet-stream');
         res.set('Content-Type', 'application/download');

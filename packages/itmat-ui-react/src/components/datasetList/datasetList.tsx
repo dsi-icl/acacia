@@ -1,7 +1,7 @@
 import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { NavLink, Redirect } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
 export const DatasetList: React.FunctionComponent = (props) => {

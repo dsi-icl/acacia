@@ -13,3 +13,11 @@ export const UPLOAD_FILE = gql`
         }
     }
 `;
+
+export const DELETE_FILE = gql`
+    mutation deleteFile($fileId: String!) {
+        deleteFile(fileId: $fileId) {
+            successful
+        }
+    }
+`;

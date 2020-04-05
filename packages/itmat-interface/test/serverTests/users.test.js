@@ -67,8 +67,19 @@ describe('USERS API', () => {
 
         test('If someone not logged in made a request', async () => {
             const client_not_logged_in = request.agent(app);
-            const res = await client_not_logged_in.post('/graphql').send({ query: print(GET_USERS) });
-            expect(1).toBe(2);
+            const res = await client_not_logged_in.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NOT_LOGGED_IN);
+            expect(res.body.data.getUsers).toBe(null);
+        });
+
+        test('who am I (not logged in)', async () => {
+            const client_not_logged_in = request.agent(app);
+            const res = await client_not_logged_in.post('/graphql').send({ query: print(WHO_AM_I) });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.whoAmI).toBe(null);
         });
 
         test('Who am I (admin)',  async () => {
