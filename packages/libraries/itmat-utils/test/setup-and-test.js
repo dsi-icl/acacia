@@ -39,7 +39,7 @@ const fetchpoll = setInterval(() => {
                 clearInterval(fetchpoll);
                 clearTimeout(timeout);
                 console.log(chalk.yellow('Docker minio has started up. Running tests now.'));
-                child_process.execSync('yarn test-integrate', { stdio: 'inherit' });
+                child_process.execSync('yarn test', { stdio: 'inherit' });
                 child_process.execSync('docker stop utils-minio', { stdio: 'inherit' });
             } else {
                 console.error(`Unexpected res status ${res.status}`);
