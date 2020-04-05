@@ -97,17 +97,17 @@ startingCheck(paths.appPath, isInteractive)
                 console.log(chalk.green('Compiled successfully.\n'));
             }
 
-            console.log('File sizes after gzip:\n');
-            printFileSizesAfterBuild(
-                stats,
-                previousFileSizes,
-                paths.appBuild,
-                WARN_AFTER_BUNDLE_GZIP_SIZE,
-                WARN_AFTER_CHUNK_GZIP_SIZE
-            );
-            console.log();
-
             if (isClientCompilation) {
+                console.log('File sizes after gzip:\n');
+                printFileSizesAfterBuild(
+                    stats,
+                    previousFileSizes,
+                    paths.appBuild,
+                    WARN_AFTER_BUNDLE_GZIP_SIZE,
+                    WARN_AFTER_CHUNK_GZIP_SIZE
+                );
+                console.log();
+
                 const appPackage = require(paths.appPackageJson);
                 const publicUrl = paths.publicUrlOrPath;
                 const publicPath = config.output.publicPath;
