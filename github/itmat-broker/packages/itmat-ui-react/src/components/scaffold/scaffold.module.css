@@ -1,0 +1,43 @@
+.app {
+    color: var(--color-font-color);
+    background-color: var(--color-background);
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 60px calc(100% - 60px);
+    grid-template-rows: 100%;
+    grid-template-areas:
+        "mainMenuBar mainPanel"
+}
+
+.main_panel {
+    grid-area: mainPanel;
+    height: 100%;
+}
+
+.main_menubar {
+    grid-area: mainMenuBar;
+    height: 100%;
+    padding: 1rem 1.2rem 1rem 1.2rem;
+    border-right: 1px solid #444444;
+}
+
+.button {
+    display: block;
+    text-align: center;
+    width: 100%;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+.button svg {
+    fill: rgb(139, 138, 138);
+}
+
+.button:hover svg {
+    fill: var(--color-primary-color) 
+}
+
+.clickedButton svg {
+    fill: rgb(245, 245, 245);
+}

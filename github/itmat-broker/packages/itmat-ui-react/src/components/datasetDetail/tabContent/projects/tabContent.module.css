@@ -1,0 +1,22 @@
+.tab_page_wrapper {
+    padding: 2rem;
+    height: 100%;
+    overflow: auto;
+}
+
+.add_new_project_tr input {
+    background-color: #484848;
+    border: none;
+    margin: 0px;
+}
+
+.project_badge {
+    border-radius: 0px;
+    margin: 0 0 1rem 0;
+    overflow: hidden;
+}
+
+.active_project button, .active_project button:hover {
+    background-color: #b5b5b5;
+    color: #464646
+}

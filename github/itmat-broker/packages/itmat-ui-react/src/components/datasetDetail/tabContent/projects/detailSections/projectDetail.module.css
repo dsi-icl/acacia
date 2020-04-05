@@ -1,0 +1,36 @@
+.project_detail_scaffold {
+    display: grid;
+    height: 100%;
+    width: 100%;
+    padding: 1.2rem;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 50px calc(100% - 50px);
+    grid-template-areas: "ariane ariane"
+                        "leftpanel rightpanel";
+}
+
+.project_detail_left {
+    height: 100%;
+    overflow: auto;
+    padding: 1.2rem;
+    grid-area: leftpanel;
+    border-right: 1px solid rgb(77, 77, 77);
+}
+
+.project_detail_right {
+    height: 100%;
+    overflow: auto;
+    padding: 1.2rem;
+    grid-area: rightpanel;
+}
+
+.project_detail_title {
+    height: 100%;
+    overflow: hidden;
+    padding-left: 1.2rem;
+    grid-area: ariane;
+    border-bottom: 1px solid rgb(77, 77, 77);
+    line-height: 50px;
+    font-size: 1.5rem;
+    color: white;
+}

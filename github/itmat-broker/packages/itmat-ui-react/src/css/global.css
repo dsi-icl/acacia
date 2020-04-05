@@ -1,0 +1,336 @@
+:root {
+    --font-size-root: 13px;
+    --font-size: 0.9rem;
+    --font-size-big: 1.5rem;
+    --font-family: 'Chivo';
+    --color-font-color: white;
+    --color-background: 	#1b1b1b;
+    --color-primary-color: #36a7b3;
+    --color-error:rgb(255, 82, 82);
+    --color-warning: yellow;
+    --color-notification: green;
+    --color-scroll-bar: #292929;
+    --color-scroll-bar-hover: #313131;
+    --color-scroll-bar-active: #3a3a3a;
+    --input-background: #313131;
+    --color-status-finish: #b0e611;
+    --color-status-error: #d80000;
+    --color-status-processing: #f3e313;
+    --color-status-queued: #696969;
+    --color-popup: #131212;
+    --color-popup-border: #4a4a4a;
+    --color-status-cancelled: black;
+}
+
+.light_theme {
+    /* override the default colours and add class to <App/>*/
+    /* --color-font-color: rgb(0, 0, 0);
+    --color-background: 	#ffffff;
+    --color-primary-color: #36a7b3;
+    --color-error:rgb(255, 82, 82);
+    --color-warning: yellow;
+    --color-notification: green;
+    --color-scroll-bar: #292929;
+    --color-scroll-bar-hover: #313131;
+    --color-scroll-bar-active: #3a3a3a;
+    --input-background: #313131;
+    --color-status-finish: #b0e611;
+    --color-status-error: #d80000;
+    --color-status-processing: #f3e313;
+    --color-status-queued: #696969;
+    --color-popup: #131212;
+    --color-popup-border: #4a4a4a;
+    --color-status-cancelled: black; */
+}
+
+@font-face {
+    font-family: "Chivo";
+    src: url("../font/Chivo/Chivo-Regular.ttf");
+}
+
+@font-face {
+    font-family: "Chivo";
+    src: url("../font/Chivo/Chivo-Bold.ttf");
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: "Chivo";
+    src: url("../font/Chivo/Chivo-Light.ttf");
+    font-weight: lighter;
+}
+
+@font-face {
+    font-family: "Cairo";
+    src: url("../font/Cairo/Cairo-Regular.ttf");
+}
+@font-face {
+    font-family: "Cairo";
+    src: url("../font/Cairo/Cairo-Bold.ttf");
+    font-weight: bold;
+}
+
+* {
+    color: inherit;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    box-sizing: border-box;
+    white-space: normal;
+    text-decoration: none;
+    /* vertical-align: top; */
+    scroll-behavior: smooth;
+    outline: none;
+}
+
+html, body, #root {
+    background-color: var(--color-background);
+    position: fixed;
+    font-size: var(--font-size-root);
+    font-family: var(--font-family);
+    scroll-behavior: smooth;
+    user-select: none;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body > div {
+    height: 100%;
+    min-width: 770px;
+}
+
+button {
+    display: block;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.95rem;
+    margin: 3px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
+    border-radius: 0.25rem;
+    width: 100%;
+    min-height: 20px;
+    font-weight: bold;
+    line-height: 20px;
+    background-color: var(--color-primary-color);
+}
+
+button:hover {
+    background-image: linear-gradient(to bottom right, blue, purple);
+    cursor: pointer;
+}
+
+button:active {
+    background-image: linear-gradient(to bottom right, hsl(197, 97%, 60%), rgb(222, 212, 255));
+    cursor: pointer;
+}
+
+.button_loading {
+    cursor: progress !important;
+}
+
+.button_grey {
+    background-image: none;
+    background-color: #4A4A4A;
+}
+
+.button_grey:hover{
+    background-image: none;
+    background-color: rgb(53, 53, 53);
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+}
+
+th, td {
+    height: 1.4rem;
+    line-height: 1.4rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+a {
+    color: inherit;
+}
+
+a:hover {
+    color: inherit;
+}
+
+input, select, label {
+    height: 1.3rem;
+    line-height: 1.3rem;
+}
+
+input, select {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+    border-radius: 0px;
+    margin-left: 0.3rem;
+    border-bottom: 1px solid #969696;
+    background-color: rgba(0,0,0,0);
+}
+
+input:focus {
+    border-bottom: 1px solid var(--color-primary-color);
+    color: var(--color-primary-color)
+}
+
+textarea {
+    border-radius: 0px;
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+    background-color:hsl(222, 11%, 36%);
+    width: 100%;
+    height: 5rem;
+}
+
+input:read-only {
+    background-image: linear-gradient(to bottom right, var(--color-section-dark), var(--color-section-dark));
+    cursor: default
+}
+
+.page_section {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 100%; 
+    grid-template-rows: 80px calc(100% - 80px); 
+    grid-template-areas: 
+        "ariane"
+        "content";
+}
+
+.page_ariane {
+    grid-area: ariane;
+    padding: 2rem 2rem 2.5rem 2rem;
+    line-height: calc(80px - 2rem - 2.5rem);
+    font-size: 2.5rem;
+    font-weight: lighter;
+    overflow: hidden;
+    height: 100%;
+}
+
+.page_content {
+    padding: 0rem 2rem 1rem 2rem;
+    grid-area: content;
+    height: 100%;
+    font-size: 1rem;
+    overflow: auto;
+}
+
+
+@keyframes error_banner_blink {
+    0% { background: rgb(224, 66, 66)}
+    50% { background: rgb(233, 106, 106)}
+    100% { background: rgb(224, 66, 66)}
+}
+
+.error_banner {
+    background: rgb(224, 66, 66);
+    border-radius: 0.2rem;
+    margin: 0.5rem 0 0.5rem 0;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    width: 50%;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
+    animation-name: error_banner_blink;
+    animation-duration: 0.5s;
+    animation-iteration-count: 3;
+}
+
+@keyframes save_banner_blink {
+    0% { background: rgb(132, 175, 66)}
+    50% { background: rgb(179, 240, 88)}
+    100% { background: rgb(132, 175, 66)}
+}
+
+.saved_banner {
+    background: rgb(132, 175, 66);
+    border-radius: 0.2rem;
+    margin: 0.5rem 0 0.5rem 0;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    width: 50%;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
+    animation-name: save_banner_blink;
+    animation-duration: 0.5s;
+    animation-iteration-count: 3;
+}
+
+@keyframes warning_banner_blink {
+    0% { background: rgb(255, 238, 0)}
+    50% { background: rgb(255, 249, 172)}
+    100% { background: rgb(255, 238, 0)}
+}
+
+.warning_banner{
+    background: rgb(255, 238, 0);
+    border-radius: 0.2rem;
+    margin: 0.5rem 0 0.5rem 0;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    width: 50%;
+    color: black;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
+    animation-name: warning_banner_blink;
+    animation-duration: 0.5s;
+    animation-iteration-count: 3;
+}
+
+
+h1 {
+    display: block;
+    color: var(--color-text-title-rightpanel);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+h4 {
+    display: block;
+    height: 100%;
+    line-height: 100%;
+    color: white;
+    font-size: 2.5rem;
+}
+
+h3 {
+    display: block;
+    color: var(--color-text-title-rightpanel);
+    border-bottom: 1px solid rgb(77, 77, 77);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: var(--color-background); 
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-scroll-bar-hover);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background: var(--color-scroll-bar-active);
+    cursor: pointer;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-scroll-bar);
+  }
+
+  #container {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    grid-area: editorCore
+  }
+  

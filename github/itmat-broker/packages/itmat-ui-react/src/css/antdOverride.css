@@ -1,0 +1,67 @@
+.ant-tree li .ant-tree-node-content-wrapper:hover {
+    background-color: #525252 !important;
+}
+
+.ant-select {
+    color: var(--color-text-basic-rightpanel);
+    line-height: inherit;
+    font-size: inherit;
+}
+
+.ant-select-selection {
+    background-color: var(--input-background);
+    border: none;
+    border-radius: 0px;
+}
+
+.ant-select-selection__rendered {
+    line-height: inherit;
+}
+
+.ant-select-selection--single {
+    height: inherit;
+}
+
+.ant-select-arrow {
+    color: var(--color-text-basic-rightpanel);
+}
+
+.ant-select-dropdown {
+    border-radius: 0px;
+}
+
+.ant-select-dropdown-menu-item-selected:hover, .ant-select-dropdown-menu-item-active:hover  {
+    background-color: var(--color-text-separator);
+}
+
+.ant-select-dropdown-menu-item-active {
+    background-color: var(--color-text-basic-rightpanel);
+}
+
+.ant-select-dropdown-menu-item:first-child, .ant-select-dropdown-menu-item:last-child {
+    border-radius: 0px;
+}
+
+.ant-select-dropdown-menu-item {
+    transition: 0s;
+}
+
+.ant-tree {
+    color: white;
+}
+
+.ant-tree li .ant-tree-node-content-wrapper {
+    color: white;
+}
+
+.ant-tree-title {
+    color: white;
+}
+
+.anticon > svg {
+    fill: var(--color-primary-color);
+}
+
+.ant-switch-checked {
+    background-color: var(--color-primary-color) !important;
+}
