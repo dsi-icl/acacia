@@ -1,14 +1,9 @@
-const request = require('supertest');
-const { print } = require('graphql');
+import request from 'supertest';
+import { GET_STUDIES_LIST, CREATE_PROJECT, CREATE_STUDY, } from '@itmat/commons';
+import { connectAdmin, connectUser } from './_loginHelper'
 
 const admin = request.agent(global._APP_);
 const user = request.agent(global._APP_);
-const itmatCommons = require('@itmat/commons');
-const { connectAdmin, connectUser, disconnectAgent } = require('./_loginHelper');
-
-const {
-    ADD_USER_TO_PROJECT, GET_PROJECT, GET_STUDIES_LIST, CREATE_PROJECT, CREATE_STUDY, DELETE_USER_FROM_PROJECT,
-} = itmatCommons;
 
 beforeAll(async () => { // eslint-disable-line no-undef
     await connectAdmin(admin);

@@ -1,18 +1,14 @@
-const request = require('supertest');
-const { print } = require('graphql');
-const { MongoClient } = require('mongodb');
-const itmatCommons = require('@itmat/commons');
-const setupDatabase = require('@itmat/utils/src/databaseSetup/collectionsAndIndexes');
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const { connectAdmin, connectUser, connectAgent } = require('./_loginHelper');
-const { db } = require('../../src/database/database');
-const { Router } = require('../../src/server/router');
-const { errorCodes } = require('../../src/graphql/errors');
-
-const {
-    WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER,
-} = itmatCommons;
-const config = require('../../config/config.sample.json');
+import request from 'supertest';
+import { print } from 'graphql';
+import { MongoClient } from 'mongodb';
+import { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, } from '@itmat/commons';
+import setupDatabase from '@itmat/utils/src/databaseSetup/collectionsAndIndexes';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
+import { db } from '../../src/database/database';
+import { Router } from '../../src/server/router';
+import { errorCodes } from '../../src/graphql/errors';
+import config from '../../config/config.sample.json';
 
 let app;
 let mongodb;
