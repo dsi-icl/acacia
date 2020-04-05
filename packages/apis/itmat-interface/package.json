@@ -61,7 +61,7 @@
         "eslint": "6.8.0",
         "eslint-plugin-import": "2.20.2",
         "jest": "25.2.7",
-        "mongodb-memory-server": "6.5.1",
+        "mongodb-memory-server": "6.5.2",
         "node-fetch": "2.6.0",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
