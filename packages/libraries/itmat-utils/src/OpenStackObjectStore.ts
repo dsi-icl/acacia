@@ -46,8 +46,11 @@ export class OpenStackSwiftObjectStore {
         // success
     }
 
-    public async uploadFile(fileStream: NodeJS.ReadableStream, studyId: string, uri: string): Promise<string> {
+    public async uploadFile(fileStream: NodeJS.ReadableStream, studyId: string, uri: string): Promise<string | Error> {
         const containerList = await (this.account as any).listContainers();
+
+        if (!this.account)
+            return new Error('Account is not present');
 
         const container = new Container(this.account, studyId);
 
@@ -59,9 +62,12 @@ export class OpenStackSwiftObjectStore {
         return uri;
     }
 
-    public async downloadFile(studyId: string, uri: string): Promise<NodeJS.ReadableStream> {
+    public async downloadFile(studyId: string, uri: string): Promise<NodeJS.ReadableStream | Error> {
         // PRECONDITION: jobId and file exists (checked)
         // faltan checks
+        if (!this.account)
+            return new Error('Account is not present');
+
         const container = new Container(this.account, studyId);
         const segment = new Segment(container, uri);
         return await segment.getContentStream();

@@ -23,7 +23,10 @@ export class UKBCSVUploadHandler extends JobHandler {
         if (!file) {
             // throw error
         }
-        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
+        const fileStream = await objStore.downloadFile(job.studyId, file.uri);
+        if (fileStream instanceof Error)
+            return;
+
         const versionId: string = uuid();
         const csvcurator = new CSVCurator(
             db.collections!.data_collection,

@@ -38,7 +38,7 @@ export const DataManagementTabContentFetch: React.FC<DataManagementTabContentFet
                 return (
                     <div>
                         <p>There is no data uploaded for this study yet.</p>
-                        <UploadNewData studyId={studyId} />
+                        <UploadNewData studyId={studyId} cancelButton={(): void => { return; }} />
                     </div>
                 );
             }}

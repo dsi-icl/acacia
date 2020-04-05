@@ -21,7 +21,11 @@ export class UKBFieldInfoUploadHandler extends JobHandler {
         if (!file) {
             // throw error
         }
-        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
+
+        const fileStream = await objStore.downloadFile(job.studyId, file.uri);
+        if (fileStream instanceof Error)
+            return;
+
         const fieldTreeId: string = uuid();
         const fieldcurator = new FieldCurator(
             db.collections!.field_dictionary_collection,

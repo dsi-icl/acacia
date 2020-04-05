@@ -16,6 +16,9 @@ export const fileDownloadController = async (req: Request, res: Response) => {
             return;
         }
         const stream = await objStore.downloadFile(file.studyId, file.uri);
+        if (stream instanceof Error)
+            return;
+
         res.set('Content-Type', 'application/octet-stream');
         res.set('Content-Type', 'application/download');
         res.set('Content-Disposition', `attachment; filename="${file.fileName}"`);
