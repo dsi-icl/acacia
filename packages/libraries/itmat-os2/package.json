@@ -24,7 +24,7 @@
         "test:mutation": "stryker run ./config/stryker.config.js",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
         "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src --fix",
-        "build": "webpack --config ./config/webpack.config.js",
+        "build": "compile-scripts build --lib",
         "prepare": "yarn run build"
     },
     "dependencies": {
@@ -36,6 +36,7 @@
         "@babel/core": "7.9.0",
         "@babel/preset-env": "7.9.0",
         "@babel/preset-typescript": "7.9.0",
+        "@itmat/compile-scripts": "*",
         "@stryker-mutator/core": "3.1.0",
         "@stryker-mutator/javascript-mutator": "3.1.0",
         "@stryker-mutator/typescript": "3.1.0",
@@ -54,8 +55,7 @@
         "jest": "25.2.7",
         "rimraf": "3.0.2",
         "typescript": "3.8.3",
-        "webpack": "4.42.1",
-        "webpack-cli": "3.3.11"
+        "webpack": "4.42.1"
     },
     "babel": {
         "extends": "./config/babel.config.js"

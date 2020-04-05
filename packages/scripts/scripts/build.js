@@ -1,6 +1,6 @@
 // Checking which build pipeline should be triggered
 const args = process.argv.slice(2);
-process.env.STREAM_SERVER = `${args.includes('--server')}`;
+process.env.STREAM_SERVER = `${args.includes('--server') || args.includes('--lib')}`;
 
 const isServerCompilation = process.env.STREAM_SERVER === 'true';
 const isClientCompilation = !isServerCompilation;
@@ -58,7 +58,7 @@ const config = configFactory('production');
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
 const { checkBrowsers } = require('react-dev-utils/browsersHelper');
-const startingCheck = isServerCompilation ? () => Promise.resolve() : checkBrowsers
+const startingCheck = isServerCompilation ? () => Promise.resolve() : checkBrowsers;
 
 startingCheck(paths.appPath, isInteractive)
     .then(() => {

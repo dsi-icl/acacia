@@ -48,6 +48,8 @@ var defaultRules = {
     ]
 };
 
+console.log('Applying custom ESLint configuration...');
+
 module.exports = {
     env: defaultEnv,
     extends: javascriptExtensions,

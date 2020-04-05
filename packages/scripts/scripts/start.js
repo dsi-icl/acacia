@@ -1,6 +1,6 @@
 // Checking which build pipeline should be triggered
 const args = process.argv.slice(2);
-process.env.STREAM_SERVER = `${args.includes('--server')}`;
+process.env.STREAM_SERVER = `${args.includes('--server') || args.includes('--lib')}`;
 
 const isServerCompilation = process.env.STREAM_SERVER === 'true';
 const isClientCompilation = !isServerCompilation;
@@ -28,7 +28,6 @@ const fs = require('fs');
 const chalk = require('react-dev-utils/chalk');
 const webpack = require('webpack');
 const WebpackDevServer = require('webpack-dev-server');
-const clearConsole = require('react-dev-utils/clearConsole');
 const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
 const {
     choosePort,
@@ -63,7 +62,7 @@ if (process.env.HOST) {
         )
     );
     console.log(
-        `If this was unintentional, check that you haven't mistakenly set it in your shell.`
+        'If this was unintentional, check that you haven\'t mistakenly set it in your shell.'
     );
     console.log(
         `Learn more here: ${chalk.yellow('https://bit.ly/CRA-advanced-config')}`
@@ -74,7 +73,7 @@ if (process.env.HOST) {
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
 const { checkBrowsers } = require('react-dev-utils/browsersHelper');
-const startingCheck = isServerCompilation ? () => Promise.resolve() : checkBrowsers
+const startingCheck = isServerCompilation ? () => Promise.resolve() : checkBrowsers;
 
 startingCheck(paths.appPath, isInteractive)
     .then(() => {
@@ -160,7 +159,7 @@ startingCheck(paths.appPath, isInteractive)
             });
             compiler.watch({
                 aggregateTimeout: 1000
-            }, () => { })
+            }, () => { });
         }
 
         ['SIGINT', 'SIGTERM'].forEach(function (sig) {
