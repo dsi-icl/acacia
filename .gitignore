@@ -80,6 +80,8 @@ config.test.json
 
 notes/
 coverage/
+reports/
+.stryker-tmp/
 
 dist/
 build/
