@@ -14,22 +14,7 @@ interface ICreateRoleInput {
     createdBy: string;
 }
 
-// interface IUserToRoleInput {
-//     roleId: string;
-//     userId: string;
-// }
-
 export class PermissionCore {
-    public validatePermissionInput_throwErrorIfNot(inputPermissions: string[]): void {
-        const allPermissions = Object.entries(permissions).reduce((a: string[], e: any) => a.concat(Object.values(e[1])), []);
-        for (const each of inputPermissions) {
-            if (!allPermissions.includes(each)) {
-                throw new ApolloError(`"${each}" is not a valid permission.`, errorCodes.CLIENT_MALFORMED_INPUT);
-            }
-        }
-        return;
-    }
-
     public async getAllRolesOfStudyOrProject(studyId: string, projectId?: string): Promise<IRole[]> {
         return db.collections!.roles_collection.find({ studyId, projectId }).toArray();
     }
@@ -102,14 +87,6 @@ export class PermissionCore {
         if (permissionChanges === undefined) { permissionChanges = { add: [], remove: [] }; }
         if (userChanges === undefined) { userChanges = { add: [], remove: [] }; }
 
-        // const updateObj: any = {
-        //     $addToSet: { permissions: { $each: permissionChanges.add }, users: { $each: userChanges.add } },
-        //     $pullAll: { permissions: permissionChanges.remove, users: userChanges.remove }
-        // };
-        // if (name) {
-        //     updateObj.$set = { name };
-        // }
-
         const bulkop = db.collections!.roles_collection.initializeUnorderedBulkOp();
         bulkop.find({ id: roleId, deleted: null }).updateOne({ $addToSet: { permissions: { $each: permissionChanges.add }, users: { $each: userChanges.add } } });
         bulkop.find({ id: roleId, deleted: null }).updateOne({ $pullAll: { permissions: permissionChanges.remove, users: userChanges.remove } });
@@ -122,34 +99,9 @@ export class PermissionCore {
         } else {
             throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
         }
-
-        // const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: null }, updateObj, { returnOriginal: false });
-        // if (updateResult.ok === 1) {
-        //     return updateResult.value;
-        // } else {
-        // }
     }
 
     public async addRoleToStudyOrProject(opt: ICreateRoleInput): Promise<IRole> {
-        // /* check that all the permissions really exist */
-        // const possiblePermissions = Object.values(permissions);
-        // opt.permissions.forEach(el => {
-        //     if (!possiblePermissions.includes(el)) {
-        //         throw new ApolloError(`"${el}" is not in the possible permissions: [${JSON.stringify(possiblePermissions)}]`, errorCodes.CLIENT_MALFORMED_INPUT);
-        //     }
-        // });
-
-        // /* check that study or project exists and the role does not already exist */
-        // const queryObj = opt.projectId === undefined ? { study: opt.studyId, deleted: null } : { study: opt.studyId, project: opt.projectId, deleted: null };
-        // const searchResult: IProject | IStudy = await targetCollection.findOne(queryObj)!;
-        // const errorTarget = opt.project === undefined ? `Project "${opt.project}" of study "${opt.study}"` : `Study "${opt.study}"`
-        // if (searchResult === null || searchResult === undefined) {
-        //     throw new ApolloError(`${errorTarget} does not exist.`, errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-        // }
-        // if (searchResult.roles.filter(el => el.name === opt.roleName).length !== 0) {
-        //     throw new ApolloError(`Role "${opt.roleName}" already exists on ${errorTarget}.`, errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-        // }
-
         /* add user role */
         const role: IRole = {
             id: uuidv4(),
