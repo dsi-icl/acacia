@@ -19,17 +19,17 @@ const flatten = (messages: any[]): string => {
 
 export class Logger {
     public static log(...messages: any[]): void {
-    // tslint:disable-next-line: no-console
+        // tslint:disable-next-line: no-console
         console.log(`LOG [${new Date().toUTCString()}] ${flatten(messages)}`);
     }
 
     public static warn(...messages: any[]): void {
-    // tslint:disable-next-line: no-console
+        // tslint:disable-next-line: no-console
         console.warn(colorizer.yellow(`WAR [${new Date().toUTCString()}] ${flatten(messages)}`));
     }
 
     public static error(...messages: any[]): void {
-    // tslint:disable-next-line: no-console
+        // tslint:disable-next-line: no-console
         console.error(colorizer.red`ERR [${new Date().toUTCString()}] ${flatten(messages)}`);
     }
 }

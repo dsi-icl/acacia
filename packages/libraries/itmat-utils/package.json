@@ -16,9 +16,10 @@
         "utils"
     ],
     "scripts": {
-        "test": "jest --coverage",
+        "test": "jest --coverage --detectOpenHandles",
         "test:mutation": "stryker run ./config/stryker.config.js",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
+        "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src --fix",
         "build": "webpack --config ./config/webpack.config.js",
         "prepare": "yarn run build"
     },

@@ -1,13 +1,3 @@
-// babel.config.js
 module.exports = {
-    presets: [
-        [
-            '@babel/preset-env',
-            {
-                targets: {
-                    node: 'current',
-                },
-            },
-        ],
-    ],
+    ...require(`../../../../config/${__filename.split(/[\\/]/).pop()}`)
 };

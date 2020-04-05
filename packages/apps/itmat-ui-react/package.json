@@ -12,11 +12,11 @@
     "scripts": {
         "start": "compile-scripts start",
         "build": "compile-scripts build",
-        "test": "compile-scripts test",
+        "test": "compile-scripts test --detectOpenHandles",
         "test:cypress": "npx cypress open",
         "prepublishOnly": "yarn run build",
-        "lint": "eslint ./src/**/*.{ts,tsx} --max-warnings=0 --format=codeframe",
-        "lint:fix": "eslint ./src/**/*.{ts,tsx} --max-warnings=0 --format=codeframe --fix"
+        "lint": "eslint --ext .js,.jsx,.ts,.tsx ./src",
+        "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./src --fix"
     },
     "dependencies": {
         "@ant-design/icons": "4.0.5",
@@ -71,7 +71,10 @@
         "uuid": "7.0.3"
     },
     "eslintConfig": {
-        "extends": "react-app"
+        "extends": [
+            "react-app",
+            "../../../config/eslint.config.js"
+        ]
     },
     "browserslist": {
         "production": [

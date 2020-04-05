@@ -1,10 +1,3 @@
 module.exports = {
-    presets: [
-        '@babel/preset-env',
-        '@babel/preset-typescript',
-        'minify'
-    ],
-    plugins: [
-        'add-module-exports'
-    ]
+    ...require(`../../../../config/${__filename.split(/[\\/]/).pop()}`)
 };

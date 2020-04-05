@@ -225,7 +225,7 @@ Account.prototype.setMetadata = function (metadata = {}) {
         const heads = Object.assign({}, {
             'X-Auth-Token': _this._storage_token
         },
-            metas);
+        metas);
         const options = {
             method: 'POST',
             uri: _this._storage_url,

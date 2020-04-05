@@ -6,7 +6,7 @@ export interface IDatabaseBaseConfig {
     mongo_url: string;
     database: string;
     collections: {
-        [collectionDescription: string]: string // collection name
+        [collectionDescription: string]: string; // collection name
     };
 }
 

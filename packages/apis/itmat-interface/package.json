@@ -12,11 +12,11 @@
     "scripts": {
         "start": "compile-scripts start --server",
         "build": "compile-scripts build --server",
-        "test": "jest --coverage",
+        "test": "jest --coverage --detectOpenHandles",
         "compile": "webpack --config ./config/webpack.config.js",
         "prepublishOnly": "yarn run build",
-        "lint": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts ./",
-        "lint:fix": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts --fix ./"
+        "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
+        "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src --fix"
     },
     "optionalDependencies": {
         "mongodb-client-encryption": "1.0.1"

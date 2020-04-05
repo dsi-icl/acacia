@@ -20,9 +20,10 @@
         "swift"
     ],
     "scripts": {
-        "test": "jest --coverage --runInBand --no-cache",
+        "test": "jest --coverage --runInBand --detectOpenHandles",
         "test:mutation": "stryker run ./config/stryker.config.js",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
+        "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src --fix",
         "build": "webpack --config ./config/webpack.config.js",
         "prepare": "yarn run build"
     },

@@ -9,8 +9,9 @@
     "main": "src/index.tsx",
     "main:src": "src/index.tsx",
     "scripts": {
-        "test": "compile-scripts test",
-        "lint": "eslint ./src/**/*.tsx --max-warnings=0 --format=codeframe"
+        "test": "compile-scripts test --detectOpenHandles",
+        "lint": "eslint --ext .js,.jsx,.ts,.tsx ./src",
+        "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./src --fix"
     },
     "dependencies": {
         "@itmat/compile-scripts": "*",
@@ -29,7 +30,10 @@
         "typescript": "3.8.3"
     },
     "eslintConfig": {
-        "extends": "react-app"
+        "extends": [
+            "react-app",
+            "../../config/eslint.config.js"
+        ]
     },
     "browserslist": [
         ">0.2%",

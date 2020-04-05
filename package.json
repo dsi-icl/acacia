@@ -18,8 +18,8 @@
         "start:storybook": "yarn workspace @itmat/storybook storybook",
         "test": "cross-env FORCE_COLOR=true lerna run lint && cross-env CI=true FORCE_COLOR=true lerna run test -- --coverage",
         "build": "cross-env FORCE_COLOR=true lerna run build --stream",
-        "lint": "cross-env FORCE_COLOR=true lerna run lint --stream",
-        "lint:fix": "cross-env FORCE_COLOR=true lerna run lint:fix --stream"
+        "lint": "cross-env FORCE_COLOR=true lerna run lint --stream --no-bail",
+        "lint:fix": "cross-env FORCE_COLOR=true lerna run lint:fix --stream --no-bail"
     },
     "workspaces": {
         "packages": [
@@ -60,6 +60,9 @@
         "hooks": {
             "pre-commit": "echo activate yarn lint"
         }
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
     },
     "jest": {
         "collectCoverageFrom": [

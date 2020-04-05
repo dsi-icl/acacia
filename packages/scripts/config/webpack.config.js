@@ -219,7 +219,7 @@ module.exports = function (webpackEnv) {
                 libraryTarget: isEnvDevelopment ? undefined : 'umd',
                 umdNamedDefine: isEnvDevelopment ? undefined : true,
             },
-        }
+        };
 
     return {
         mode: isEnvProduction ? 'production' : isEnvDevelopment && 'development',
@@ -374,7 +374,7 @@ module.exports = function (webpackEnv) {
                                 cache: true,
                                 formatter: require.resolve('react-dev-utils/eslintFormatter'),
                                 eslintPath: require.resolve('eslint'),
-                                resolvePluginsRelativeTo: __dirname,
+                                // resolvePluginsRelativeTo: __dirname,
                                 // @remove-on-eject-begin
                                 // ignore: isExtendingEslintConfig,
                                 // baseConfig: isExtendingEslintConfig
