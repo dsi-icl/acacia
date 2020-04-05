@@ -6,7 +6,7 @@ const { Router } = require('../../src/server/router');
 const { errorCodes } = require('../../src/graphql/errors');
 const { MongoClient } = require('mongodb');
 const itmatCommons = require('itmat-commons');
-const { WHO_AM_I, ADD_NEW_ROLE, CREATE_PROJECT, CREATE_STUDY, DELETE_STUDY } = itmatCommons.GQLRequests;
+const { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } = itmatCommons.GQLRequests;
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
 const config = require('../../config/config.sample.json');
@@ -115,8 +115,7 @@ describe('ROLE API', () => {
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
             authorisedUser = request.agent(app);
-            await connectAgent(authorisedUser, username, 'admin')
-
+            await connectAgent(authorisedUser, username, 'admin');
         });
 
         test('Creating a new role for study (admin)', async () => {
@@ -447,62 +446,1582 @@ describe('ROLE API', () => {
     });
 
     describe('EDITING ROLE', () => {
-        let setupStudy;
-        let setupProject;
-        let setupRole;
-        let authorisedUser;
-        let authorisedUserProfile;
-        beforeEach(async () => {
-            const studyName = uuid();
-            setupStudy = {
-                id: `id_${studyName}`,
-                name: studyName,
-                createdBy: adminId,
-                lastModified: 200000002,
-                deleted: null,
-                currentDataVersion: -1,
-                dataVersions: []
-            };
-            await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
+        describe('EDIT STUDY ROLE', () => {
+            let setupStudy;
+            let setupRole;
+            let authorisedUser;
+            let authorisedUserProfile;
+            beforeEach(async () => {
+                const studyName = uuid();
+                setupStudy = {
+                    id: `id_${studyName}`,
+                    name: studyName,
+                    createdBy: adminId,
+                    lastModified: 200000002,
+                    deleted: null,
+                    currentDataVersion: -1,
+                    dataVersions: []
+                };
+                await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
 
-            const projectName = uuid();
-            setupProject = {
-                id: `id_${projectName}`,
-                studyId: setupStudy.id,
-                createdBy: adminId,
-                patientMapping: {},
-                name: projectName,
-                approvedFields: {}, 
-                approvedFiles: [],
-                lastModified: 20000002,
-                deleted: null
-            };
-            await mongoClient.collection(config.database.collections.projects_collection).insertOne(setupProject);
+                /* setup: creating a privileged user (not yet added roles) */
+                const username = uuid();
+                authorisedUserProfile = {
+                    username, 
+                    type: 'STANDARD', 
+                    realName: `${username}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${username}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${username}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
-            /* setup: creating a privileged user (not yet added roles) */
-            const username = uuid();
-            authorisedUserProfile = {
-                username, 
-                type: 'STANDARD', 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                createdBy: 'admin', 
-                email: `${username}@user.io`, 
-                description: 'I am a new user.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
-                id: `new_user_id_${username}`
-            };
-            await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+                authorisedUser = request.agent(app);
+                await connectAgent(authorisedUser, username, 'admin');
 
-            authorisedUser = request.agent(app);
-            await connectAgent(authorisedUser, username, 'admin')
+                /* setup: giving authorised user privilege */
+                const roleId = [uuid(), uuid()];
+                const authorisedUserRole = {
+                    id: roleId[0],
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: `${roleId[0]}_rolename`,
+                    permissions: [
+                        permissions.specific_study.specific_study_role_management
+                    ],
+                    createdBy: adminId,
+                    users: [authorisedUserProfile.id],
+                    deleted: null
+                };
+
+                setupRole = {
+                    id: roleId[1],
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: `${roleId[1]}_rolename`,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                };
+                await mongoClient.collection(config.database.collections.roles_collection).insert([setupRole, authorisedUserRole]);
+            });
+
+            test('Edit a non-existent role (admin)', async () => {
+                const newRoleName = uuid();
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: 'fake role id',
+                        name: newRoleName
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Edit a non-existent role (user)', async () => {
+                const newRoleName = uuid();
+                const res = await user.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: 'fake role id',
+                        name: newRoleName
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Change role name (admin)', async () => {
+                const newRoleName = uuid();
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        name: newRoleName
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: newRoleName,
+                    studyId: setupStudy.id,
+                    projectId: null,
+                    permissions: [],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: newRoleName,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Change role name (privileged user)', async () => {
+                const newRoleName = uuid();
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        name: newRoleName
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: newRoleName,
+                    studyId: setupStudy.id,
+                    projectId: null,
+                    permissions: [],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: newRoleName,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Change role name (user without privilege) (should fail)', async () => {
+                const newRoleName = uuid();
+                const oldName = setupRole.name;
+                const res = await user.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        name: newRoleName
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: oldName,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Add a non-existent user to role (admin)', async () => {
+                /* setup: confirm that role has no user yet */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOne({
+                    id: setupRole.id,
+                    deleted: null
+                });
+                expect(role).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        userChanges: {
+                            add: ['Iamafakeuser'],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Add user to role (admin)', async () => {
+                /* setup: create a user to be added to role */
+                const newUsername = uuid();
+                const newUser = {
+                    username: newUsername, 
+                    type: 'STANDARD', 
+                    realName: `${newUsername}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${newUsername}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${newUsername}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        userChanges: {
+                            add: [newUser.id],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupRole.studyId,
+                    projectId: null,
+                    permissions: [],
+                    users: [{
+                        id: newUser.id,
+                        organisation: newUser.organisation,
+                        realName: newUser.realName
+                    }]
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [newUser.id],
+                    deleted: null
+                });
+            });
+
+            test('Add user to role (privileged user)', async () => {
+                /* setup: create a user to be added to role */
+                const newUsername = uuid();
+                const newUser = {
+                    username: newUsername, 
+                    type: 'STANDARD', 
+                    realName: `${newUsername}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${newUsername}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${newUsername}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+                /* test */
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        userChanges: {
+                            add: [newUser.id],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupRole.studyId,
+                    projectId: null,
+                    permissions: [],
+                    users: [{
+                        id: newUser.id,
+                        organisation: newUser.organisation,
+                        realName: newUser.realName
+                    }]
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [newUser.id],
+                    deleted: null
+                });
+            });
+
+            test('Add user to role (user without privilege) (should fail)', async () => {
+                /* setup: create a user to be added to role */
+                const newUsername = uuid();
+                const newUser = {
+                    username: newUsername, 
+                    type: 'STANDARD', 
+                    realName: `${newUsername}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${newUsername}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${newUsername}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+                /* test */
+                const res = await user.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        userChanges: {
+                            add: [newUser.id],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Remove user from role (admin)', async () => {
+                /* setup: create a user to be removed from role */
+                const newUsername = uuid();
+                const newUser = {
+                    username: newUsername, 
+                    type: 'STANDARD', 
+                    realName: `${newUsername}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${newUsername}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${newUsername}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+                const updatedRole = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
+                    id: setupRole.id,
+                    deleted: null
+                }, {
+                    $push: {
+                        users: newUser.id
+                    }
+                }, { returnOriginal: false });
+                expect(updatedRole.value.users).toEqual([newUser.id]);
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        userChanges: {
+                            add: [],
+                            remove: [newUser.id]
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupRole.studyId,
+                    projectId: null,
+                    permissions: [],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Add permission to role (admin)', async () => {
+                /* setup: confirm that role has no permissions yet */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOne({
+                    id: setupRole.id,
+                    deleted: null
+                });
+                expect(role).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        permissionChanges: {
+                            add: [
+                                permissions.specific_study.specific_study_projects_management,
+                                permissions.specific_study.specific_study_readonly_access
+                            ],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupRole.studyId,
+                    projectId: null,
+                    permissions: [
+                        permissions.specific_study.specific_study_projects_management,
+                        permissions.specific_study.specific_study_readonly_access
+                    ],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [
+                        permissions.specific_study.specific_study_projects_management,
+                        permissions.specific_study.specific_study_readonly_access
+                    ],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Add a duplicated permission to role (admin)', async () => {
+                /* setup: confirm that role has one permissions yet */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
+                    id: setupRole.id,
+                    deleted: null
+                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnOriginal: false } );
+                expect(role.value).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [ permissions.specific_study.specific_study_readonly_access ],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        permissionChanges: {
+                            add: [
+                                permissions.specific_study.specific_study_readonly_access
+                            ],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupRole.studyId,
+                    projectId: null,
+                    permissions: [
+                        permissions.specific_study.specific_study_readonly_access
+                    ],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [
+                        permissions.specific_study.specific_study_readonly_access
+                    ],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Add two of the same permissions to role (admin)', async () => {
+                /* setup: confirm that role has no permissions yet */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOne({
+                    id: setupRole.id,
+                    deleted: null
+                });
+                expect(role).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        permissionChanges: {
+                            add: [
+                                permissions.specific_study.specific_study_readonly_access,
+                                permissions.specific_study.specific_study_readonly_access
+                            ],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupRole.studyId,
+                    projectId: null,
+                    permissions: [
+                        permissions.specific_study.specific_study_readonly_access
+                    ],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [
+                        permissions.specific_study.specific_study_readonly_access
+                    ],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Adding a non-sense permission to role (admin) (should fail)', async () => {
+                /* setup: confirm that role has no permissions yet */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOne({
+                    id: setupRole.id,
+                    deleted: null
+                });
+                expect(role).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        permissionChanges: {
+                            add: [
+                                'I am a fake permission!'
+                            ],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Adding a project permission to study role (admin) (should fail)', async () => {
+                /* setup: confirm that role has no permissions yet */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOne({
+                    id: setupRole.id,
+                    deleted: null
+                });
+                expect(role).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        permissionChanges: {
+                            add: [
+                                permissions.specific_project.specific_project_role_management
+                            ],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Remove permission from role (admin)', async () => {
+                /* setup: confirm that role has one permissions */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
+                    id: setupRole.id,
+                    deleted: null
+                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnOriginal: false } );
+                expect(role.value).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [ permissions.specific_study.specific_study_readonly_access ],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        permissionChanges: {
+                            add: [],
+                            remove: [
+                                permissions.specific_study.specific_study_readonly_access
+                            ]
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupRole.studyId,
+                    projectId: null,
+                    permissions: [],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Remove permission which is not added from role (admin)', async () => {
+                /* setup: confirm that role has no permissions yet */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOne({
+                    id: setupRole.id,
+                    deleted: null
+                });
+                expect(role).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        permissionChanges: {
+                            add: [],
+                            remove: [
+                                permissions.specific_study.specific_study_readonly_access,
+                            ]
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupRole.studyId,
+                    projectId: null,
+                    permissions: [],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Combination of edits (admin)', async () => {
+                /* setup: create a user to be removed from role */
+                const newUsername = uuid();
+                const newUser = {
+                    username: newUsername, 
+                    type: 'STANDARD', 
+                    realName: `${newUsername}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${newUsername}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${newUsername}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+                /* setup role */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
+                    id: setupRole.id,
+                    deleted: null
+                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access, users: newUser.id } }, { returnOriginal: false } );
+                expect(role.value).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [ permissions.specific_study.specific_study_readonly_access ],
+                    createdBy: adminId,
+                    users: [ newUser.id ],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        permissionChanges: {
+                            add: [
+                                permissions.specific_study.specific_study_projects_management,
+                                permissions.specific_study.specific_study_projects_management
+                            ],
+                            remove: [
+                                permissions.specific_study.specific_study_readonly_access
+                            ]
+                        },
+                        userChanges: {
+                            add: [adminId],
+                            remove: [newUser.id]
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupRole.studyId,
+                    projectId: null,
+                    permissions: [
+                        permissions.specific_study.specific_study_projects_management
+                    ],
+                    users: [{
+                        id: adminId,
+                        organisation: 'DSI',
+                        realName: 'admin',
+                    }]
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [
+                        permissions.specific_study.specific_study_projects_management
+                    ],
+                    users: [ adminId ],
+                    createdBy: adminId,
+                    deleted: null
+                });
+            });
         });
 
+        describe('EDIT PROJECT ROLE', () => {
+            let setupStudy;
+            let setupProject;
+            let setupRole;
+            let authorisedUser;
+            let authorisedUserProfile;
+            beforeEach(async () => {
+                /* setup: creating a setup study */
+                const studyName = uuid();
+                setupStudy = {
+                    id: `id_${studyName}`,
+                    name: studyName,
+                    createdBy: adminId,
+                    lastModified: 200000002,
+                    deleted: null,
+                    currentDataVersion: -1,
+                    dataVersions: []
+                };
+                await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
+
+                /* setup: creating a project */
+                const projectName = uuid();
+                setupProject = {
+                    id: `id_${projectName}`,
+                    studyId: setupStudy.id,
+                    createdBy: adminId,
+                    patientMapping: {},
+                    name: projectName,
+                    approvedFields: {}, 
+                    approvedFiles: [],
+                    lastModified: 12103214,
+                    deleted: null
+                };
+                await mongoClient.collection(config.database.collections.projects_collection).insertOne(setupProject);
+
+                /* setup: creating a privileged user (not yet added roles) */
+                const username = uuid();
+                authorisedUserProfile = {
+                    username, 
+                    type: 'STANDARD', 
+                    realName: `${username}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${username}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${username}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+
+                authorisedUser = request.agent(app);
+                await connectAgent(authorisedUser, username, 'admin');
+
+                /* setup: giving authorised user privilege */
+                const roleId = [uuid(), uuid()];
+                const authorisedUserRole = {
+                    id: roleId[0],
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: `${roleId[0]}_rolename`,
+                    permissions: [
+                        permissions.specific_project.specific_project_role_management
+                    ],
+                    createdBy: adminId,
+                    users: [authorisedUserProfile.id],
+                    deleted: null
+                };
+
+                setupRole = {
+                    id: roleId[1],
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: `${roleId[1]}_rolename`,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                };
+                await mongoClient.collection(config.database.collections.roles_collection).insert([setupRole, authorisedUserRole]);
+            });
+
+            test('Change role name (admin)', async () => {
+                const newRoleName = uuid();
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        name: newRoleName
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: newRoleName,
+                    studyId: setupStudy.id,
+                    projectId: setupProject.id,
+                    permissions: [],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: newRoleName,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Change role name (privileged user)', async () => {
+                const newRoleName = uuid();
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        name: newRoleName
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: newRoleName,
+                    studyId: setupStudy.id,
+                    projectId: setupProject.id,
+                    permissions: [],
+                    users: []
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: newRoleName,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Change role name (user without privilege) (should fail)', async () => {
+                const newRoleName = uuid();
+                const oldName = setupRole.name;
+                const res = await user.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        name: newRoleName
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: oldName,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Add a non-existent user to role (admin)', async () => {
+                /* setup: confirm that role has no user yet */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOne({
+                    id: setupRole.id,
+                    deleted: null
+                });
+                expect(role).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        userChanges: {
+                            add: ['Iamafakeuser'],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Add user to role (privileged user)', async () => {
+                /* setup: create a user to be added to role */
+                const newUsername = uuid();
+                const newUser = {
+                    username: newUsername, 
+                    type: 'STANDARD', 
+                    realName: `${newUsername}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${newUsername}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${newUsername}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+                /* test */
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        userChanges: {
+                            add: [newUser.id],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: setupRole.id,
+                    name: setupRole.name,
+                    studyId: setupStudy.id,
+                    projectId: setupProject.id,
+                    permissions: [],
+                    users: [{
+                        id: newUser.id,
+                        organisation: newUser.organisation,
+                        realName: newUser.realName
+                    }]
+                });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [newUser.id],
+                    deleted: null
+                });
+            });
+
+            test('Add user to role (user without privilege) (should fail)', async () => {
+                /* setup: create a user to be added to role */
+                const newUsername = uuid();
+                const newUser = {
+                    username: newUsername, 
+                    type: 'STANDARD', 
+                    realName: `${newUsername}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${newUsername}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${newUsername}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+
+                /* test */
+                const res = await user.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        userChanges: {
+                            add: [newUser.id],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+
+            test('Adding a study permission to project role (admin) (should fail)', async () => {
+                /* setup: confirm that role has no permissions yet */
+                const role = await mongoClient.collection(config.database.collections.roles_collection).findOne({
+                    id: setupRole.id,
+                    deleted: null
+                });
+                expect(role).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+
+                /* test */
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: setupRole.id,
+                        permissionChanges: {
+                            add: [
+                                permissions.specific_study.specific_study_role_management
+                            ],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+                expect(res.body.data.editRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole).toEqual({
+                    _id: setupRole._id,
+                    id: setupRole.id,
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: setupRole.name,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+            });
+        });
     });
 
     describe('DELETING ROLE', () => {
+        describe('DELETE STUDY ROLE', () => {
+            let setupStudy;
+            let setupRole;
+            let authorisedUser;
+            let authorisedUserProfile;
+            beforeEach(async () => {
+                const studyName = uuid();
+                setupStudy = {
+                    id: `id_${studyName}`,
+                    name: studyName,
+                    createdBy: adminId,
+                    lastModified: 200000002,
+                    deleted: null,
+                    currentDataVersion: -1,
+                    dataVersions: []
+                };
+                await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
 
+                /* setup: creating a privileged user (not yet added roles) */
+                const username = uuid();
+                authorisedUserProfile = {
+                    username, 
+                    type: 'STANDARD', 
+                    realName: `${username}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${username}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${username}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+
+                authorisedUser = request.agent(app);
+                await connectAgent(authorisedUser, username, 'admin');
+
+                /* setup: giving authorised user privilege */
+                const roleId = [uuid(), uuid()];
+                const authorisedUserRole = {
+                    id: roleId[0],
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: `${roleId[0]}_rolename`,
+                    permissions: [
+                        permissions.specific_study.specific_study_role_management
+                    ],
+                    createdBy: adminId,
+                    users: [authorisedUserProfile.id],
+                    deleted: null
+                };
+
+                setupRole = {
+                    id: roleId[1],
+                    projectId: null,
+                    studyId: setupStudy.id,
+                    name: `${roleId[1]}_rolename`,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                };
+                await mongoClient.collection(config.database.collections.roles_collection).insert([setupRole, authorisedUserRole]);
+            });
+
+            test('delete a study role (admin)', async () => {
+                const res = await admin.post('/graphql').send({
+                    query: print(REMOVE_ROLE),
+                    variables: {
+                        roleId: setupRole.id
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.removeRole).toEqual({ successful: true });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(typeof createdRole.deleted).toBe('number'); 
+            });
+
+            test('delete a study role (privileged user)', async () => {
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(REMOVE_ROLE),
+                    variables: {
+                        roleId: setupRole.id
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.removeRole).toEqual({ successful: true });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(typeof createdRole.deleted).toBe('number'); 
+            });
+
+            test('delete a study role (user with no privilege) (should fail)', async () => {
+                const res = await user.post('/graphql').send({
+                    query: print(REMOVE_ROLE),
+                    variables: {
+                        roleId: setupRole.id
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.removeRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole.deleted).toBe(null); 
+            });
+
+            test('delete a non-existent role (admin)', async () => {
+                const res = await admin.post('/graphql').send({
+                    query: print(REMOVE_ROLE),
+                    variables: {
+                        roleId: 'iamafakerole!'
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.data.removeRole).toEqual(null);
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(createdRole.deleted).toBe(null); 
+            });
+        });
+
+        describe('DELETE PROJECT ROLE', () => {
+            let setupStudy;
+            let setupProject;
+            let setupRole;
+            let authorisedUser;
+            let authorisedUserProfile;
+            beforeEach(async () => {
+                /* setup: creating a setup study */
+                const studyName = uuid();
+                setupStudy = {
+                    id: `id_${studyName}`,
+                    name: studyName,
+                    createdBy: adminId,
+                    lastModified: 200000002,
+                    deleted: null,
+                    currentDataVersion: -1,
+                    dataVersions: []
+                };
+                await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
+
+                /* setup: creating a project */
+                const projectName = uuid();
+                setupProject = {
+                    id: `id_${projectName}`,
+                    studyId: setupStudy.id,
+                    createdBy: adminId,
+                    patientMapping: {},
+                    name: projectName,
+                    approvedFields: {}, 
+                    approvedFiles: [],
+                    lastModified: 12103214,
+                    deleted: null
+                };
+                await mongoClient.collection(config.database.collections.projects_collection).insertOne(setupProject);
+
+                /* setup: creating a privileged user (not yet added roles) */
+                const username = uuid();
+                authorisedUserProfile = {
+                    username, 
+                    type: 'STANDARD', 
+                    realName: `${username}_realname`, 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    createdBy: 'admin', 
+                    email: `${username}@user.io`, 
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true, 
+                    organisation:  'DSI',
+                    deleted: null, 
+                    id: `new_user_id_${username}`
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+
+                authorisedUser = request.agent(app);
+                await connectAgent(authorisedUser, username, 'admin');
+
+                /* setup: giving authorised user privilege */
+                const roleId = [uuid(), uuid()];
+                const authorisedUserRole = {
+                    id: roleId[0],
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: `${roleId[0]}_rolename`,
+                    permissions: [
+                        permissions.specific_project.specific_project_role_management
+                    ],
+                    createdBy: adminId,
+                    users: [authorisedUserProfile.id],
+                    deleted: null
+                };
+
+                setupRole = {
+                    id: roleId[1],
+                    projectId: setupProject.id,
+                    studyId: setupStudy.id,
+                    name: `${roleId[1]}_rolename`,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                };
+                await mongoClient.collection(config.database.collections.roles_collection).insert([setupRole, authorisedUserRole]);
+            });
+
+            test('delete a project role (admin)', async () => {
+                const res = await admin.post('/graphql').send({
+                    query: print(REMOVE_ROLE),
+                    variables: {
+                        roleId: setupRole.id
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.removeRole).toEqual({ successful: true });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(typeof createdRole.deleted).toBe('number'); 
+            });
+
+            test('delete a project role (privileged user)', async () => {
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(REMOVE_ROLE),
+                    variables: {
+                        roleId: setupRole.id
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.removeRole).toEqual({ successful: true });
+                const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
+                expect(typeof createdRole.deleted).toBe('number'); 
+            });
+        });
     });
 });

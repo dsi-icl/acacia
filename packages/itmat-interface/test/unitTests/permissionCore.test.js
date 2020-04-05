@@ -125,12 +125,10 @@ describe('PERMISSION CORE CLASS', () => {
                 //         |permissions.specific_study.specific_study_data_management,
                 //         |permissions.specific_study.specific_study_readonly_access,
                 //         |permissions.specific_study.specific_study_role_management,
-                //         |permissions.specific_study.specific_study_file_management,
                 //         |permissions.specific_study.specific_study_projects_management
                 //         |newUsers[3]
                 //     role003 (Data curator)
                 //         |permissions.specific_study.specific_study_data_management,
-                //         |permissions.specific_study.specific_study_file_management
                 //         |newUsers[2]
                 //     project001
                 //         role001 (Project researchers)
@@ -175,7 +173,6 @@ describe('PERMISSION CORE CLASS', () => {
                     name: 'Data curator',
                     permissions: [
                         permissions.specific_study.specific_study_data_management,
-                        permissions.specific_study.specific_study_file_management
                     ],
                     users: [newUsers[2].id],
                     deleted: null 
@@ -189,7 +186,6 @@ describe('PERMISSION CORE CLASS', () => {
                         permissions.specific_study.specific_study_data_management,
                         permissions.specific_study.specific_study_readonly_access,
                         permissions.specific_study.specific_study_role_management,
-                        permissions.specific_study.specific_study_file_management,
                         permissions.specific_study.specific_study_projects_management
                     ],
                     users: [newUsers[3].id],
@@ -231,12 +227,6 @@ describe('PERMISSION CORE CLASS', () => {
                     projectId
                 ),
                 permissionCore.userHasTheNeccessaryPermission(
-                    task_required_permissions.manage_study_files,
-                    user,
-                    studyId,
-                    projectId
-                ),
-                permissionCore.userHasTheNeccessaryPermission(
                     task_required_permissions.access_study_data,
                     user,
                     studyId,
@@ -270,55 +260,55 @@ describe('PERMISSION CORE CLASS', () => {
         test('User belonging to two studies', async () => { 
             const result = await testUser(user);
             expect(result).toEqual([
-                [ false, false, false, false, false, true, false ],
-                [ false, false, false, false, false, false, false ],
-                [ false, false, false, false, false, false, false ],
-                [ false, false, false, false, false, true, true ],
-                [ false, false, false, false, false, false, false ]
+                [ false, false, false, false, true, false ],
+                [ false, false, false, false, false, false ],
+                [ false, false, false, false, false, false ],
+                [ false, false, false, false, true, true ],
+                [ false, false, false, false, false, false ]
             ]);
         });
 
         test('User belonging to two projects', async () => { 
             const result = await testUser(newUsers[0]);
             expect(result).toEqual([
-                [ false, false, false, false, false, true, false ],
-                [ false, false, false, false, false, true, false ],
-                [ false, false, false, false, false, false, false ],
-                [ false, false, false, false, false, false, false ],
-                [ false, false, false, false, false, false, false ]
+                [ false, false, false, false, true, false ],
+                [ false, false, false, false, true, false ],
+                [ false, false, false, false, false, false ],
+                [ false, false, false, false, false, false ],
+                [ false, false, false, false, false, false ]
             ]);
         });
 
         test('User belonging to one project', async () => { 
             const result = await testUser(newUsers[1]);
             expect(result).toEqual([
-                [ false, false, false, false, false, true, false ],
-                [ false, false, false, false, false, false, false ],
-                [ false, false, false, false, false, false, false ],
-                [ false, false, false, false, false, false, false ],
-                [ false, false, false, false, false, false, false ]
+                [ false, false, false, false, false, false ],
+                [ false, false, false, false, true, false ],
+                [ false, false, false, false, false, false ],
+                [ false, false, false, false, false, false ],
+                [ false, false, false, false, false, false ]
             ]);
         });
 
         test('User belonging to one project and one study', async () => { 
             const result = await testUser(newUsers[2]);
             expect(result).toEqual([
-                [ false, true, false, true, true, true, false ],
-                [ false, true, false, true, true, true, false ],
-                [ false, true, false, true, true, true, false ],
-                [ false, false, false, false, false, true, true ],
-                [ false, false, false, false, false, false, false ]
+                [ false, true, false, true, true, false ],
+                [ false, true, false, true, true, false ],
+                [ false, true, false, true, true, false ],
+                [ false, false, false, false, true, true ],
+                [ false, false, false, false, false, false ]
             ]);
         });
 
-        test.only('User belonging to one study (PI)', async () => { 
+        test('User belonging to one study (PI)', async () => { 
             const result = await testUser(newUsers[3]);
             expect(result).toEqual([
-                [ true, true, true, true, true, true, true ],
-                [ true, true, true, true, true, true, true ],
-                [ true, true, true, true, true, true, true ],
-                [ false, false, false, false, false, false, false ],
-                [ false, false, false, false, false, false, false ]
+                [ true, true, true, true, true, true ],
+                [ true, true, true, true, true, true ],
+                [ true, true, true, true, true, true ],
+                [ false, false, false, false, false, false ],
+                [ false, false, false, false, false, false ]
             ]);
         });
     });
