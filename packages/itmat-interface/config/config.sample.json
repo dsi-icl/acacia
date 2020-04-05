@@ -21,9 +21,11 @@
     "bcrypt": {
         "saltround": 2
     },
-    "swift": {
-        "uri": "http://localhost:32768/auth/v1.0",
-        "username": "test:tester",
-        "password": "testing"
+    "objectStore": {
+        "host": "localhost",
+        "port": 8080,
+        "accessKey": "minioadmin",
+        "secretKey": "minioadmin",
+        "useSSL": false
     }
 }

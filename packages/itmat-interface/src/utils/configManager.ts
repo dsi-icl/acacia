@@ -1,13 +1,13 @@
 import merge from 'deepmerge';
 import fs from 'fs-extra';
-import { IOpenSwiftObjectStoreConfig, Logger } from 'itmat-utils';
+import { IObjectStoreConfig } from 'itmat-utils';
 import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
 
 interface IConfiguration extends IServerConfig {
     database: IDatabaseBaseConfig;
-    swift: IOpenSwiftObjectStoreConfig;
+    objectStore: IObjectStoreConfig;
 }
 
 class ConfigurationManager {

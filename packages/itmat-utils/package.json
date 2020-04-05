@@ -15,7 +15,8 @@
         "compile": "tsc -p tsconfig.build.json",
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
         "prepublishOnly": "yarn run build",
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "jest --color --coverage",
+        "test-func": "node ./test/setup-and-test.js",
         "lint": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts ./",
         "lint:fix": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts --fix ./"
     },
@@ -24,18 +25,23 @@
     },
     "dependencies": {
         "chalk": "3.0.0",
-        "mongodb": "3.5.5",
-        "os2": "0.0.13",
-        "uuid": "7.0.3"
+        "minio": "7.0.15",
+        "mongodb": "3.5.5"
     },
     "devDependencies": {
         "@types/mongodb": "3.5.4",
         "@typescript-eslint/eslint-plugin": "2.26.0",
         "@typescript-eslint/parser": "2.26.0",
         "eslint": "6.8.0",
-        "eslint-config-airbnb-base": "^14.1.0",
+        "eslint-config-airbnb-base": "14.1.0",
         "eslint-plugin-import": "2.20.2",
+        "node-fetch": "2.6.0",
         "rimraf": "3.0.2",
         "typescript": "3.8.3"
+    },
+    "jest": {
+        "transform": {
+            "^.+\\.(ts|js)$": "ts-jest"
+        }
     }
 }

@@ -81,9 +81,13 @@ async function setupDatabase(mongostr, databaseName) {
         useUnifiedTopology: true,
     });
     const db = conn.db(databaseName);
+    const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 
     /* creating collections and indexes */
-    for (const each of Object.keys(collections)) {
+    for (let each of Object.keys(collections)) {
+        if (existingCollections.includes(collections[each].name)) {
+            await db.dropCollection(collections[each].name);
+        }
         const collection = await db.createCollection(collections[each].name);
         await collection.createIndexes(collections[each].indexes);
     }
@@ -94,13 +98,11 @@ async function setupDatabase(mongostr, databaseName) {
     seedUsers[1].id = uuid();
 
     /* insert seed users */
-    await db.collection(collections.users_collection.name).insert(seedUsers);
+    await db.collection(collections.users_collection.name).insertMany(seedUsers);
 
     await conn.close();
 }
 
-setupDatabase('mongodb://localhost:27017/', 'itmat').then(() => {
-    console.log('Finished setting up database.');
-});
+};
 
 module.exports = setupDatabase;

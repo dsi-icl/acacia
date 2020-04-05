@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { DatasetList } from './datasetList';
-import css from './datasetPage.module.css';
+import * as css from './datasetPage.module.css';
 import { AddNewDataSet } from './addNewDataSet';
 
 export const DatasetListPage: React.FC = () => (

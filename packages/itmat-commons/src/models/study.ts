@@ -30,6 +30,7 @@ export interface IRole {
     name: string;
     permissions: string[];
     users: Models.UserModels.IUser[];
+    createdBy: string;
     deleted: number | null;
 }
 

@@ -268,8 +268,7 @@ type Mutation {
 
     # FILES
     uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: Int): File
-    deleteFile(studyId: String!, fileId: String!): GenericResponse
-
+    deleteFile(fileId: String!): GenericResponse
 
     # QUERY
     createQuery(query: QueryObjInput!): QueryEntry

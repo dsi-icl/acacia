@@ -13,7 +13,7 @@
         "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
         "build": "yarn run clean && yarn run compile",
         "clean": "rimraf -rf ./build",
-        "test": "jest",
+        "test": "jest --color --coverage",
         "compile": "webpack --config ./config/webpack.config.js",
         "prepublishOnly": "yarn run build",
         "lint": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts ./",
@@ -23,8 +23,6 @@
         "mongodb-client-encryption": "1.0.1"
     },
     "dependencies": {
-        "@babel/core": "7.9.0",
-        "@babel/preset-env": "7.9.0",
         "body-parser": "1.19.0",
         "connect-timeout": "1.9.0",
         "csv-parse": "4.8.8",
@@ -38,6 +36,8 @@
         "uuid": "7.0.3"
     },
     "devDependencies": {
+        "@babel/core": "7.9.0",
+        "@babel/preset-env": "7.9.0",
         "@types/connect-timeout": "0.0.34",
         "@types/express": "4.17.4",
         "@types/mongodb": "3.5.4",
