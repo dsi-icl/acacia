@@ -18,10 +18,12 @@
     "server": {
         "port": 3333
     },
-    "swift": {
-        "uri": "http://localhost:32769/auth/v1.0",
-        "username": "test:tester",
-        "password": "testing"
+    "objectStore": {
+        "host": "localhost",
+        "port": 9000,
+        "accessKey": "minioadmin",
+        "secretKey": "minioadmin",
+        "useSSL": false
     },
     "pollingInterval": 10000
 }

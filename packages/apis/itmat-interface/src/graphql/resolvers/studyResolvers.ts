@@ -1,8 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { permissions } from '@itmat/commons';
-import { IFieldEntry } from '@itmat/commons';
-import { IProject, IStudy, IStudyDataVersion } from '@itmat/commons';
-import { IUser } from '@itmat/commons';
+import { permissions, task_required_permissions, IFieldEntry, IUser, IProject, IStudy, IStudyDataVersion, userTypes } from '@itmat/commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
@@ -69,15 +66,27 @@ export const studyResolvers = {
             const result = await db.collections!.field_dictionary_collection.find({ studyId, fieldTreeId }).toArray();
 
             return result;
-        },
+        }
     },
     Study: {
-        projects: async (study: IStudy) => await db.collections!.projects_collection.find({ studyId: study.id, deleted: null }).toArray(),
-        jobs: async (study: IStudy) => await db.collections!.jobs_collection.find({ studyId: study.id }).toArray(),
-        roles: async (study: IStudy) => await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray(),
-        files: async (study: IStudy) => await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray(),
-        numOfSubjects: async (study: IStudy) => await db.collections!.data_collection.countDocuments({ m_study: study.id }),
-        currentDataVersion: async (study: IStudy) => (study.currentDataVersion === -1 ? null : study.currentDataVersion),
+        projects: async (study: IStudy) => {
+            return await db.collections!.projects_collection.find({ studyId: study.id, deleted: null }).toArray();
+        },
+        jobs: async (study: IStudy) => {
+            return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
+        },
+        roles: async (study: IStudy) => {
+            return await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray();
+        },
+        files: async (study: IStudy) => {
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
+        },
+        numOfSubjects: async (study: IStudy) => {
+            return await db.collections!.data_collection.countDocuments({ m_study: study.id });
+        },
+        currentDataVersion: async (study: IStudy) => {
+            return study.currentDataVersion === -1 ? null : study.currentDataVersion;
+        }
     },
     Project: {
         fields: async (project: IProject) => {
@@ -92,16 +101,21 @@ export const studyResolvers = {
             }, {});
             return fields;
         },
-        jobs: async (project: IProject) => await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray(),
-        files: async (project: IProject) => await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray(),
+        jobs: async (project: IProject) => {
+            return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
+        },
+        files: async (project: IProject) => {
+            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
+        },
         patientMapping: async (project: IProject) => {
             /* check permission */
 
             const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { patientMapping: 1 } });
             if (result && result.patientMapping) {
                 return result.patientMapping;
+            } else {
+                return null;
             }
-            return null;
         },
         approvedFields: async (project: IProject) => {
             /* check permission */
@@ -109,14 +123,18 @@ export const studyResolvers = {
             const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { approvedFields: 1 } });
             if (result && result.approvedFields) {
                 return result.approvedFields;
+            } else {
+                return null;
             }
-            return null;
         },
-        approvedFiles: async (project: IProject) =>
-        /* check permission */
+        approvedFiles: async (project: IProject) => {
+            /* check permission */
 
-            project.approvedFiles,
-        roles: async (project: IProject) => await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray(),
+            return project.approvedFiles;
+        },
+        roles: async (project: IProject) => {
+            return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray();
+        },
         iCanEdit: async (project: IProject) => { // TO_DO
             const result = await db.collections!.roles_collection.findOne({
                 studyId: project.studyId,
@@ -129,12 +147,11 @@ export const studyResolvers = {
     Mutation: {
         createStudy: async (parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
-            /* reject undefined project name */
-            if (!name) {
-                throw new ApolloError('Study name is not given or undefined.');
-            }
 
             /* check privileges */
+            if (requester.type !== userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             /* create study */
             const study = await studyCore.createNewStudy(name, requester.id);
@@ -142,32 +159,58 @@ export const studyResolvers = {
         },
         createProject: async (parent: object, { studyId, projectName }: { studyId: string; projectName: string }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
+
             /* reject undefined project name */
             if (!projectName) {
                 throw new ApolloError('Project name is not given or undefined.');
             }
 
             /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_projects,
+                requester,
+                studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             /* making sure that the study exists first */
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             /* create project */
-            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.username);
+            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.id);
             return project;
         },
         deleteProject: async (parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
+            const requester: IUser = context.req.user;
             /* check privileges */
+
+            /* check privileges */
+            if (requester.type !== userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             /* delete project */
             await studyCore.deleteProject(projectId);
             return makeGenericReponse(projectId);
         },
         deleteStudy: async (parent: object, { studyId }: { studyId: string }, context: any, info: any): Promise<IGenericResponse> => {
-            /* check privileges */
+            const requester: IUser = context.req.user;
 
-            /* delete project */
-            await studyCore.deleteStudy(studyId);
+            /* check privileges */
+            if (requester.type !== userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
+
+            if (study) {
+                /* delete study */
+                await studyCore.deleteStudy(studyId);
+            } else {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
             return makeGenericReponse(studyId);
         },
         editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string; fieldTreeId: string; approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
@@ -230,9 +273,10 @@ export const studyResolvers = {
 
             if (result.ok === 1) {
                 return result.value;
+            } else {
+                throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
-            throw new ApolloError(errorCodes.DATABASE_ERROR);
-        },
+        }
     },
-    Subscription: {},
+    Subscription: {}
 };

@@ -61,7 +61,7 @@ export class Router {
             formatError: (error: any) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
                 // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
-                Logger.error(error);
+                // Logger.error(error);
                 return error;
             },
         });

@@ -1,4 +1,4 @@
 export * from './models';
 export * from './graphql';
 
-export { permissions } from './permissions';
+export { permissions, task_required_permissions } from './permissions';

@@ -29,6 +29,7 @@ export interface IRole {
     name: string;
     permissions: string[];
     users: IUser[];
+    createdBy: string;
     deleted: number | null;
 }
 

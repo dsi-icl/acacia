@@ -12,7 +12,8 @@
     "scripts": {
         "start": "compile-scripts start --server",
         "build": "compile-scripts build --server",
-        "test": "jest --coverage --detectOpenHandles",
+        "test": "jest --color --coverage --detectOpenHandles",
+        "test:mutation": "stryker run ./config/stryker.config.js",
         "prepublishOnly": "yarn run build",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
         "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src --fix"
@@ -21,21 +22,21 @@
         "mongodb-client-encryption": "1.0.1"
     },
     "dependencies": {
-        "@babel/core": "7.9.0",
-        "@babel/preset-env": "7.9.0",
         "body-parser": "1.19.0",
         "connect-timeout": "1.9.0",
         "csv-parse": "4.8.8",
         "deepmerge": "4.2.2",
         "express": "4.17.1",
         "json2csv": "5.0.0",
-        "@itmat/commons": "0.5.0",
-        "@itmat/utils": "1.1.8",
+        "@itmat/commons": "*",
+        "@itmat/utils": "*",
         "mongodb": "3.5.5",
         "saslprep": "1.0.3",
         "uuid": "7.0.3"
     },
     "devDependencies": {
+        "@babel/core": "7.9.0",
+        "@babel/preset-env": "7.9.0",
         "@itmat/compile-scripts": "*",
         "@types/connect-timeout": "0.0.34",
         "@types/express": "4.17.4",

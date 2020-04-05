@@ -5,23 +5,22 @@ describe('Unit tests for processFieldRow function', () => {
     const templateParams = {
         lineNum: 22,
         row: [],
-        job: { // subset of the IJobEntry interface
+        job: {  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
                 dataVersionId: 'mockVersionId',
-                tag: 'testFieldTree',
-            },
+                tag: 'testFieldTree'
+            }
         },
-        fieldTreeId: 'mockFieldTreeId',
+        fieldTreeId: 'mockFieldTreeId'
     };
 
     it('processFieldRow function correctly parse data row', () => {
         const { error, dataEntry } = processFieldRow({
-            ...templateParams,
-            row: [
-                '42', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender',
-            ],
+            ...templateParams, row: [
+                '42', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
+            ]
         });
         expect(error).toBeUndefined();
         expect(dataEntry.id).toBeDefined();
@@ -48,10 +47,9 @@ describe('Unit tests for processFieldRow function', () => {
 
     it('processFieldRow function detects necessary fields that are empty', () => {
         const { error, dataEntry } = processFieldRow({
-            ...templateParams,
-            row: [
-                '42', '', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '', '1', '1', '1', 'Sex / Gender',
-            ],
+            ...templateParams, row: [
+                '42', '', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '', '1', '1', '1', 'Sex / Gender'
+            ]
         });
         expect(error).toBeDefined();
         expect(error).toHaveLength(2);
@@ -62,10 +60,9 @@ describe('Unit tests for processFieldRow function', () => {
 
     it('processFieldRow function detects uneven fields', () => {
         const { error, dataEntry } = processFieldRow({
-            ...templateParams,
-            row: [
-                '42', 'Fieldname', 'c', 'Demographic>Baseline', '3', '1', '1', '1', 'Sex / Gender',
-            ],
+            ...templateParams, row: [
+                '42', 'Fieldname', 'c', 'Demographic>Baseline', '3', '1', '1', '1', 'Sex / Gender'
+            ]
         });
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
@@ -75,10 +72,9 @@ describe('Unit tests for processFieldRow function', () => {
 
     it('processFieldRow function requires possibleValues if valueType is "C"', () => {
         const { error, dataEntry } = processFieldRow({
-            ...templateParams,
-            row: [
-                '42', 'Gender', 'c', '', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender',
-            ],
+            ...templateParams, row: [
+                '42', 'Gender', 'c', '', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
+            ]
         });
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
@@ -88,10 +84,9 @@ describe('Unit tests for processFieldRow function', () => {
 
     it('processFieldRow function catches unparsable entries for supposed number', () => {
         const { error, dataEntry } = processFieldRow({
-            ...templateParams,
-            row: [
-                'fsl3', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1a', 'b1', '1', '1', 'Sex / Gender',
-            ],
+            ...templateParams, row: [
+                'fsl3', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1a', 'b1', '1', '1', 'Sex / Gender'
+            ]
         });
         expect(error).toBeDefined();
         expect(error).toHaveLength(3);
@@ -103,10 +98,9 @@ describe('Unit tests for processFieldRow function', () => {
 
     it('processFieldRow function catches invalid value type', () => {
         const { error, dataEntry } = processFieldRow({
-            ...templateParams,
-            row: [
-                '42', 'Gender', 'O', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender',
-            ],
+            ...templateParams, row: [
+                '42', 'Gender', 'O', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
+            ]
         });
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
@@ -135,7 +129,7 @@ describe('FieldCuratorClass', () => {
     }
 
     it('test mongostub', () => {
-        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
+        const bulkinsert = (new MongoStub).initializeUnorderedBulkOp();
         bulkinsert.insert({});
         bulkinsert.insert({});
         bulkinsert.execute().then(() => {
@@ -154,15 +148,15 @@ describe('FieldCuratorClass', () => {
             mongoStub,
             readStream,
             undefined,
-            { // subset of the IJobEntry interface
+            {  // subset of the IJobEntry interface
                 id: 'mockJobId',
                 studyId: 'mockStudyId',
                 data: {
                     dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag',
-                },
+                    tag: 'mockTag'
+                }
             },
-            'mockFieldTreeId',
+            'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([]);
@@ -197,15 +191,15 @@ describe('FieldCuratorClass', () => {
             mongoStub,
             readStream,
             undefined,
-            { // subset of the IJobEntry interface
+            {  // subset of the IJobEntry interface
                 id: 'mockJobId',
                 studyId: 'mockStudyId',
                 data: {
                     dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag',
-                },
+                    tag: 'mockTag'
+                }
             },
-            'mockFieldTreeId',
+            'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([]);
@@ -240,15 +234,15 @@ describe('FieldCuratorClass', () => {
             mongoStub,
             readStream,
             undefined,
-            { // subset of the IJobEntry interface
+            {  // subset of the IJobEntry interface
                 id: 'mockJobId',
                 studyId: 'mockStudyId',
                 data: {
                     dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag',
-                },
+                    tag: 'mockTag'
+                }
             },
-            'mockFieldTreeId',
+            'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Data Error: There is duplicate field id.']);
@@ -283,15 +277,15 @@ describe('FieldCuratorClass', () => {
             mongoStub,
             readStream,
             undefined,
-            { // subset of the IJobEntry interface
+            {  // subset of the IJobEntry interface
                 id: 'mockJobId',
                 studyId: 'mockStudyId',
                 data: {
                     dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag',
-                },
+                    tag: 'mockTag'
+                }
             },
-            'mockFieldTreeId',
+            'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Data Error: There is duplicate field id.']);
@@ -326,15 +320,15 @@ describe('FieldCuratorClass', () => {
             mongoStub,
             readStream,
             undefined,
-            { // subset of the IJobEntry interface
+            {  // subset of the IJobEntry interface
                 id: 'mockJobId',
                 studyId: 'mockStudyId',
                 data: {
                     dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag',
-                },
+                    tag: 'mockTag'
+                }
             },
-            'mockFieldTreeId',
+            'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Line 24: Uneven field Number; expected 11 fields but got 9.']);
@@ -369,15 +363,15 @@ describe('FieldCuratorClass', () => {
             mongoStub,
             readStream,
             undefined,
-            { // subset of the IJobEntry interface
+            {  // subset of the IJobEntry interface
                 id: 'mockJobId',
                 studyId: 'mockStudyId',
                 data: {
                     dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag',
-                },
+                    tag: 'mockTag'
+                }
             },
-            'mockFieldTreeId',
+            'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Line 1121: Uneven field Number; expected 11 fields but got 10.']);
@@ -412,15 +406,15 @@ describe('FieldCuratorClass', () => {
             mongoStub,
             readStream,
             undefined,
-            { // subset of the IJobEntry interface
+            {  // subset of the IJobEntry interface
                 id: 'mockJobId',
                 studyId: 'mockStudyId',
                 data: {
                     dataVersion: '0.0.1',
-                    versionTag: 'testData',
-                },
+                    versionTag: 'testData'
+                }
             },
-            'mockVersionId',
+            'mockVersionId'
         );
 
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
@@ -430,7 +424,7 @@ describe('FieldCuratorClass', () => {
             'Line 331 column 3: Invalid value type "w": use "c" for categorical, "i" for integer, "d" for decimal, "b" for boolean and "t" for free text.',
             'Line 835 column 7: Cannot parse number of time points as number.',
             'Line 919 column 1: Cannot parse field ID as number.',
-            'Data Error: There is duplicate field id.',
+            'Data Error: There is duplicate field id.'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(7);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
