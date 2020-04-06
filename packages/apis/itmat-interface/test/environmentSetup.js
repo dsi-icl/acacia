@@ -9,6 +9,7 @@ class CustomEnvironment extends NodeEnvironment {
 
     async setup() {
         await super.setup();
+        this.global.__ADJUSTED_TIMEOUT__ = 30 * 1000;
         this.global.__DOCKER_CONTAINER__ = uuid();
         this.global.__MINIO_PORT__ = await minioContainerSetup(this.global.__DOCKER_CONTAINER__, 9000);
     }

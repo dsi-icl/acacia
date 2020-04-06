@@ -86,7 +86,8 @@ module.exports = {
                 'jest/globals': true
             }),
             globals: {
-                __MINIO_PORT__: 'readonly'
+                __MINIO_PORT__: 'readonly',
+                __ADJUSTED_TIMEOUT__: 'readonly'
             },
             extends: javascriptExtensions,
             rules: defaultRules
@@ -103,7 +104,8 @@ module.exports = {
             globals: {
                 Atomics: 'readonly',
                 SharedArrayBuffer: 'readonly',
-                __MINIO_PORT__: 'readonly'
+                __MINIO_PORT__: 'readonly',
+                __ADJUSTED_TIMEOUT__: 'readonly'
             },
             extends: typescriptExtensions,
             rules: defaultRules

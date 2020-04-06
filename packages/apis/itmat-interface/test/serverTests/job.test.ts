@@ -22,7 +22,7 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection?.close();
     await mongodb.stop();
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
@@ -50,7 +50,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 describe('JOB API', () => {
     let adminId;
@@ -61,7 +61,7 @@ describe('JOB API', () => {
         /* setup: first retrieve the generated user id */
         const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     beforeEach(async () => {
         /* setup: create a study to upload file to */
@@ -90,7 +90,7 @@ describe('JOB API', () => {
             deleted: null
         };
         await mongoClient.collection(config.database.collections.files_collection).insertOne(createdFile);
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     test('Create a data curation job with tag (admin)', async () => {
         const res = await admin.post('/graphql').send({
@@ -124,7 +124,7 @@ describe('JOB API', () => {
                 dataVersion: '2.1'
             }
         });
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     test('Create a data curation job without tag (admin)', async () => {
         const res = await admin.post('/graphql').send({
@@ -157,7 +157,7 @@ describe('JOB API', () => {
                 dataVersion: '2.1'
             }
         });
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     test('Create a data curation job (user with no privilege)', async () => {
         const res = await user.post('/graphql').send({
@@ -176,7 +176,7 @@ describe('JOB API', () => {
             receivedFiles: createdFile.id
         });
         expect(job).toBe(null);
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     test('Create a data curation job (user with privilege)', async () => {
         /* setup: creating a privileged user */
@@ -245,7 +245,7 @@ describe('JOB API', () => {
                 versionTag: 'just_a_tag'
             }
         });
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     test('Create a data curation job with a non-existent file id (admin)', async () => {
         const res = await admin.post('/graphql').send({
@@ -264,7 +264,7 @@ describe('JOB API', () => {
             receivedFiles: createdFile.id
         });
         expect(job).toBe(null);
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     test('Create a data curation job with a non-existent study id (admin)', async () => {
         const res = await admin.post('/graphql').send({
@@ -283,7 +283,7 @@ describe('JOB API', () => {
             receivedFiles: createdFile.id
         });
         expect(job).toBe(null);
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     test('Create a data curation job with a non-existent study id (user)', async () => {
         const res = await user.post('/graphql').send({
@@ -302,7 +302,7 @@ describe('JOB API', () => {
             receivedFiles: createdFile.id
         });
         expect(job).toBe(null);
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     test('Create a data curation job with a malformed version id (admin)', async () => {
         const res = await admin.post('/graphql').send({
@@ -321,5 +321,5 @@ describe('JOB API', () => {
             receivedFiles: createdFile.id
         });
         expect(job).toBe(null);
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 });

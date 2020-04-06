@@ -22,7 +22,7 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection?.close();
     await mongodb.stop();
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
@@ -50,7 +50,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 describe('STUDY API', () => {
     let adminId;
@@ -61,7 +61,7 @@ describe('STUDY API', () => {
         const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
         userId = result.filter(e => e.username === 'standardUser')[0].id;
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     describe('MANIPULATING STUDIES EXISTENCE', () => {
         test('Create study (admin)', async () => {
@@ -103,7 +103,7 @@ describe('STUDY API', () => {
 
             /* cleanup: delete study */
             await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Create study that violate unique name constraint (admin)', async () => {
             const studyName = uuid();
@@ -133,7 +133,7 @@ describe('STUDY API', () => {
 
             /* cleanup: delete study */
             await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Create study that violate unique name constraint (case insensitive) (admin)', async () => {
             const studyName = uuid();
@@ -163,7 +163,7 @@ describe('STUDY API', () => {
 
             /* cleanup: delete study */
             await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Create study (user) (should fail)', async () => {
             const studyName = uuid();
@@ -178,7 +178,7 @@ describe('STUDY API', () => {
 
             const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
             expect(createdStudy).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Delete study (no projects) (admin)', async () => {
             /* setup: create a study to be deleted */
@@ -249,7 +249,7 @@ describe('STUDY API', () => {
                     studies: []
                 }
             });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Delete study that has been deleted (no projects) (admin)', async () => {
             /* setup: create a study to be deleted */
@@ -274,11 +274,11 @@ describe('STUDY API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             expect(res.body.data.deleteStudy).toEqual(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Delete study (with attached projects) (admin)', async () => {
             // TODO
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Delete study that never existed (admin)', async () => {
             const res = await admin.post('/graphql').send({
@@ -289,7 +289,7 @@ describe('STUDY API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             expect(res.body.data.deleteStudy).toEqual(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Delete study (user) (should fail)', async () => {
             /* setup: create a study to be deleted */
@@ -320,7 +320,7 @@ describe('STUDY API', () => {
 
             /* cleanup: delete study */
             await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
     });
 
     describe('MANIPULATING PROJECTS EXISTENCE', () => {
@@ -337,7 +337,7 @@ describe('STUDY API', () => {
                 dataVersions: []
             };
             await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Create project (no existing patients in study) (admin)', async () => {
             const projectName = uuid();
@@ -370,11 +370,11 @@ describe('STUDY API', () => {
                 name: projectName,
                 approvedFields: {}
             });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Create project (existing patients in study) (admin)', async () => {
             // TODO
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Create project (user with no privilege) (should fail)', async () => {
             const res = await user.post('/graphql').send({
@@ -388,7 +388,7 @@ describe('STUDY API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
             expect(res.body.data.createProject).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Create project (user with privilege)', async () => {
             /* setup: creating a privileged user */
@@ -455,6 +455,6 @@ describe('STUDY API', () => {
                 name: projectName,
                 approvedFields: {}
             });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
     });
 });

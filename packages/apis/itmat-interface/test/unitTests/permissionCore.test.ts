@@ -14,7 +14,7 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection?.close();
     await mongodb.stop();
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
@@ -34,7 +34,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
         useUnifiedTopology: true
     });
     mongoClient = mongoConnection.db(database);
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 describe('PERMISSION CORE CLASS', () => {
     describe('Check userHasTheNeccessaryPermission()', () => {
@@ -203,7 +203,7 @@ describe('PERMISSION CORE CLASS', () => {
                     deleted: null
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         async function testAllPermissions(user, studyId, projectId) {
             return Promise.all([
@@ -265,7 +265,7 @@ describe('PERMISSION CORE CLASS', () => {
                 [false, false, false, false, true, true],
                 [false, false, false, false, false, false]
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('User belonging to two projects', async () => {
             const result = await testUser(newUsers[0]);
@@ -276,7 +276,7 @@ describe('PERMISSION CORE CLASS', () => {
                 [false, false, false, false, false, false],
                 [false, false, false, false, false, false]
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('User belonging to one project', async () => {
             const result = await testUser(newUsers[1]);
@@ -287,7 +287,7 @@ describe('PERMISSION CORE CLASS', () => {
                 [false, false, false, false, false, false],
                 [false, false, false, false, false, false]
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('User belonging to one project and one study', async () => {
             const result = await testUser(newUsers[2]);
@@ -298,7 +298,7 @@ describe('PERMISSION CORE CLASS', () => {
                 [false, false, false, false, true, true],
                 [false, false, false, false, false, false]
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('User belonging to one study (PI)', async () => {
             const result = await testUser(newUsers[3]);
@@ -309,6 +309,6 @@ describe('PERMISSION CORE CLASS', () => {
                 [false, false, false, false, false, false],
                 [false, false, false, false, false, false]
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
     });
 });

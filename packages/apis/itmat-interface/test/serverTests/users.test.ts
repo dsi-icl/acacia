@@ -21,7 +21,7 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection?.close();
     await mongodb.stop();
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
@@ -49,7 +49,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 describe('USERS API', () => {
     describe('END USERS API', () => {
@@ -61,7 +61,7 @@ describe('USERS API', () => {
             const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
             adminId = result.filter(e => e.username === 'admin')[0].id;
             userId = result.filter(e => e.username === 'standardUser')[0].id;
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('If someone not logged in made a request', async () => {
             const client_not_logged_in = request.agent(app);
@@ -70,7 +70,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NOT_LOGGED_IN);
             expect(res.body.data.getUsers).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('who am I (not logged in)', async () => {
             const client_not_logged_in = request.agent(app);
@@ -78,7 +78,7 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.whoAmI).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Who am I (admin)', async () => {
             const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
@@ -100,7 +100,7 @@ describe('USERS API', () => {
                     studies: []
                 }
             });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Who am I (user)', async () => {
             const res = await user.post('/graphql').send({ query: print(WHO_AM_I) });
@@ -123,7 +123,7 @@ describe('USERS API', () => {
                     studies: []
                 }
             });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
     });
 
     describe('APP USERS QUERY API', () => {
@@ -135,7 +135,7 @@ describe('USERS API', () => {
             const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
             adminId = result.filter(e => e.username === 'admin')[0].id;
             userId = result.filter(e => e.username === 'standardUser')[0].id;
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get all users list with detail (no access info) (admin)', async () => {
             const res = await admin.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: false } });
@@ -162,7 +162,7 @@ describe('USERS API', () => {
                     id: userId
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get all users list with detail (w/ access info) (admin)', async () => {
             const res = await admin.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
@@ -199,7 +199,7 @@ describe('USERS API', () => {
                     }
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get all users list with detail (no access info) (user) (should fail)', async () => {
             const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: false } });
@@ -219,7 +219,7 @@ describe('USERS API', () => {
                     id: userId
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get all users list with detail (w/ access info) (user) (should fail)', async () => {
             const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
@@ -247,7 +247,7 @@ describe('USERS API', () => {
                     }
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get all users without details (admin)', async () => {
             const res = await admin.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
@@ -269,7 +269,7 @@ describe('USERS API', () => {
                     id: userId
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get all users without details (user)', async () => {
             const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
@@ -291,7 +291,7 @@ describe('USERS API', () => {
                     id: userId
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get a specific user with details (admin)', async () => {
             const res = await admin.post('/graphql').send({ query: print(GET_USERS), variables: { userId, fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
@@ -314,7 +314,7 @@ describe('USERS API', () => {
                     }
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get a specific non-self user with details (user) (should fail)', async () => {
             const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { userId: adminId, fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
@@ -327,7 +327,7 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 null
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get a specific non-self user without details (user) (should fail)', async () => {
             const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { userId: adminId, fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
@@ -342,7 +342,7 @@ describe('USERS API', () => {
                     id: adminId
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get a specific self user with details (user)', async () => {
             const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { userId, fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
@@ -365,7 +365,7 @@ describe('USERS API', () => {
                     }
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Get a specific self user without details (w/ access info) (user)', async () => {
             const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { userId, fetchDetailsAdminOnly: false, fetchAccessPrivileges: true } });
@@ -385,7 +385,7 @@ describe('USERS API', () => {
                     }
                 }
             ]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
     });
 
     describe('APP USER MUTATION API', () => {
@@ -400,7 +400,7 @@ describe('USERS API', () => {
                 .toArray();
             adminId = result.filter(e => e.username === 'admin')[0].id;
             userId = result.filter(e => e.username === 'standardUser')[0].id;
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('create user (admin)', async () => {
             const res = await admin.post('/graphql').send({
@@ -441,7 +441,7 @@ describe('USERS API', () => {
                     }
                 }
             );
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('create user with wrong email format (admin)', async () => {
             const res = await admin.post('/graphql').send({
@@ -461,7 +461,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('Email is not the right format.');
             expect(res.body.data.createUser).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('create user with space in password and username (admin)', async () => {
             const res = await admin.post('/graphql').send({
@@ -481,7 +481,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('Username or password cannot have space.');
             expect(res.body.data.createUser).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('create user (user)', async () => {
             const res = await user.post('/graphql').send({
@@ -502,7 +502,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
             expect(res.body.data.createUser).toEqual(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('create user that already exists (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
@@ -539,7 +539,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('User already exists.');
             expect(res.body.data.createUser).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('create user that already exists (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
@@ -576,7 +576,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
             expect(res.body.data.createUser).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
 
         test('edit user (admin)', async () => {
@@ -636,7 +636,7 @@ describe('USERS API', () => {
                     }
                 }
             );
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('edit own password (user)', async () => {
             /* setup: getting the id of the created user from mongo */
@@ -685,7 +685,7 @@ describe('USERS API', () => {
                     studies: []
                 }
             });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('edit own non-password fields (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
@@ -723,7 +723,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('User not updated: Non-admin users are only authorised to change their password or email.');
             expect(res.body.data.editUser).toEqual(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('edit own email with malformed email (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
@@ -758,7 +758,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('User not updated: Email is not the right format.');
             expect(res.body.data.editUser).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('edit other user (user)', async () => {
             /* setup: getting the id of the created user from mongo */
@@ -791,7 +791,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
             expect(res.body.data.editUser).toEqual(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('delete user (admin)', async () => {
             /* setup: create a new user to be deleted */
@@ -846,7 +846,7 @@ describe('USERS API', () => {
             });
 
             expect(getUserResAfter.body.data.getUsers).toEqual([]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('delete user that has been deleted (admin)', async () => {
             /* setup: create a "deleted" new user to be deleted */
@@ -880,7 +880,7 @@ describe('USERS API', () => {
                 successful: true,
                 id: newUser.id
             });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('delete user that has never existed (admin)', async () => {
             const res = await admin.post('/graphql').send(
@@ -897,7 +897,7 @@ describe('USERS API', () => {
                 successful: true,
                 id: 'I never existed'
             });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('delete user (user)', async () => {
             /* setup: create a new user to be deleted */
@@ -956,6 +956,6 @@ describe('USERS API', () => {
                 organisation: 'DSI',
                 id: newUser.id,
             }]);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
     });
 });

@@ -22,7 +22,7 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection?.close();
     await mongodb.stop();
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
@@ -50,7 +50,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 describe('ROLE API', () => {
     let adminId;
@@ -61,7 +61,7 @@ describe('ROLE API', () => {
         const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
         userId = result.filter(e => e.username === 'standardUser')[0].id;
-    });
+    }, global.__ADJUSTED_TIMEOUT__);
 
     describe('ADDING ROLE', () => {
         let setupStudy;
@@ -114,7 +114,7 @@ describe('ROLE API', () => {
 
             authorisedUser = request.agent(app);
             await connectAgent(authorisedUser, username, 'admin');
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Creating a new role for study (admin)', async () => {
             const roleName = uuid();
@@ -152,7 +152,7 @@ describe('ROLE API', () => {
 
             /* cleanup */
             await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Creating a new role for study (user without privilege) (should fail)', async () => {
             const roleName = uuid();
@@ -171,7 +171,7 @@ describe('ROLE API', () => {
 
             const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
             expect(createdRole).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Creating a new role for study (user with privilege)', async () => {
             /* setup: adding privilege to authorised user */
@@ -225,7 +225,7 @@ describe('ROLE API', () => {
 
             /* cleanup */
             await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Creating a new role for project (admin)', async () => {
             const roleName = uuid();
@@ -263,7 +263,7 @@ describe('ROLE API', () => {
 
             /* cleanup */
             await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Creating a new role for project (user with privilege for another project in the same study) (should fail)', async () => {
             /* setup: creating another project */
@@ -313,7 +313,7 @@ describe('ROLE API', () => {
 
             const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
             expect(createdRole).toBe(null);
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Creating a new role for project (user with privilege for this project)', async () => {
             /* setup: giving authorised user privilege */
@@ -367,7 +367,7 @@ describe('ROLE API', () => {
 
             /* cleanup */
             await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Creating a new role for project (user with privilege for the study)', async () => {
             /* setup: giving authorised user privilege */
@@ -421,7 +421,7 @@ describe('ROLE API', () => {
 
             /* cleanup */
             await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        });
+        }, global.__ADJUSTED_TIMEOUT__);
 
         test('Creating a new role for project (user without privilege) (should fail)', async () => {
             const roleName = uuid();
@@ -440,7 +440,7 @@ describe('ROLE API', () => {
 
             const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
             expect(createdRole).toBe(null);
-        });
+        }), global.__ADJUSTED_TIMEOUT__;
     });
 
     describe('EDITING ROLE', () => {
@@ -508,7 +508,7 @@ describe('ROLE API', () => {
                     deleted: null
                 };
                 await mongoClient.collection(config.database.collections.roles_collection).insertMany([setupRole, authorisedUserRole]);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Edit a non-existent role (admin)', async () => {
                 const newRoleName = uuid();
@@ -535,7 +535,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Edit a non-existent role (user)', async () => {
                 const newRoleName = uuid();
@@ -562,7 +562,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Change role name (admin)', async () => {
                 const newRoleName = uuid();
@@ -595,7 +595,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Change role name (privileged user)', async () => {
                 const newRoleName = uuid();
@@ -628,7 +628,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Change role name (user without privilege) (should fail)', async () => {
                 const newRoleName = uuid();
@@ -656,7 +656,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add a non-existent user to role (admin)', async () => {
                 /* setup: confirm that role has no user yet */
@@ -703,7 +703,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add user to role (admin)', async () => {
                 /* setup: create a user to be added to role */
@@ -760,7 +760,7 @@ describe('ROLE API', () => {
                     users: [newUser.id],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add user to role (privileged user)', async () => {
                 /* setup: create a user to be added to role */
@@ -817,7 +817,7 @@ describe('ROLE API', () => {
                     users: [newUser.id],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add user to role (user without privilege) (should fail)', async () => {
                 /* setup: create a user to be added to role */
@@ -864,7 +864,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Remove user from role (admin)', async () => {
                 /* setup: create a user to be removed from role */
@@ -926,7 +926,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add permission to role (admin)', async () => {
                 /* setup: confirm that role has no permissions yet */
@@ -988,7 +988,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add a duplicated permission to role (admin)', async () => {
                 /* setup: confirm that role has one permissions yet */
@@ -1047,7 +1047,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add two of the same permissions to role (admin)', async () => {
                 /* setup: confirm that role has no permissions yet */
@@ -1107,7 +1107,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Adding a non-sense permission to role (admin) (should fail)', async () => {
                 /* setup: confirm that role has no permissions yet */
@@ -1156,7 +1156,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Adding a project permission to study role (admin) (should fail)', async () => {
                 /* setup: confirm that role has no permissions yet */
@@ -1205,7 +1205,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Remove permission from role (admin)', async () => {
                 /* setup: confirm that role has one permissions */
@@ -1260,7 +1260,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Remove permission which is not added from role (admin)', async () => {
                 /* setup: confirm that role has no permissions yet */
@@ -1315,7 +1315,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Combination of edits (admin)', async () => {
                 /* setup: create a user to be removed from role */
@@ -1402,7 +1402,7 @@ describe('ROLE API', () => {
                     createdBy: adminId,
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
         });
 
         describe('EDIT PROJECT ROLE', () => {
@@ -1486,7 +1486,7 @@ describe('ROLE API', () => {
                     deleted: null
                 };
                 await mongoClient.collection(config.database.collections.roles_collection).insertMany([setupRole, authorisedUserRole]);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Change role name (admin)', async () => {
                 const newRoleName = uuid();
@@ -1519,7 +1519,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Change role name (privileged user)', async () => {
                 const newRoleName = uuid();
@@ -1552,7 +1552,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Change role name (user without privilege) (should fail)', async () => {
                 const newRoleName = uuid();
@@ -1580,7 +1580,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add a non-existent user to role (admin)', async () => {
                 /* setup: confirm that role has no user yet */
@@ -1627,7 +1627,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add user to role (privileged user)', async () => {
                 /* setup: create a user to be added to role */
@@ -1684,7 +1684,7 @@ describe('ROLE API', () => {
                     users: [newUser.id],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Add user to role (user without privilege) (should fail)', async () => {
                 /* setup: create a user to be added to role */
@@ -1731,7 +1731,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Adding a study permission to project role (admin) (should fail)', async () => {
                 /* setup: confirm that role has no permissions yet */
@@ -1780,7 +1780,7 @@ describe('ROLE API', () => {
                     users: [],
                     deleted: null
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
         });
     });
 
@@ -1849,7 +1849,7 @@ describe('ROLE API', () => {
                     deleted: null
                 };
                 await mongoClient.collection(config.database.collections.roles_collection).insertMany([setupRole, authorisedUserRole]);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('delete a study role (admin)', async () => {
                 const res = await admin.post('/graphql').send({
@@ -1863,7 +1863,7 @@ describe('ROLE API', () => {
                 expect(res.body.data.removeRole).toEqual({ successful: true });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
                 expect(typeof createdRole.deleted).toBe('number');
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('delete a study role (privileged user)', async () => {
                 const res = await authorisedUser.post('/graphql').send({
@@ -1877,7 +1877,7 @@ describe('ROLE API', () => {
                 expect(res.body.data.removeRole).toEqual({ successful: true });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
                 expect(typeof createdRole.deleted).toBe('number');
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('delete a study role (user with no privilege) (should fail)', async () => {
                 const res = await user.post('/graphql').send({
@@ -1892,7 +1892,7 @@ describe('ROLE API', () => {
                 expect(res.body.data.removeRole).toEqual(null);
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
                 expect(createdRole.deleted).toBe(null);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('delete a non-existent role (admin)', async () => {
                 const res = await admin.post('/graphql').send({
@@ -1907,7 +1907,7 @@ describe('ROLE API', () => {
                 expect(res.body.data.removeRole).toEqual(null);
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
                 expect(createdRole.deleted).toBe(null);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
         });
 
         describe('DELETE PROJECT ROLE', () => {
@@ -1991,7 +1991,7 @@ describe('ROLE API', () => {
                     deleted: null
                 };
                 await mongoClient.collection(config.database.collections.roles_collection).insertMany([setupRole, authorisedUserRole]);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('delete a project role (admin)', async () => {
                 const res = await admin.post('/graphql').send({
@@ -2005,7 +2005,7 @@ describe('ROLE API', () => {
                 expect(res.body.data.removeRole).toEqual({ successful: true });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
                 expect(typeof createdRole.deleted).toBe('number');
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('delete a project role (privileged user)', async () => {
                 const res = await authorisedUser.post('/graphql').send({
@@ -2019,7 +2019,7 @@ describe('ROLE API', () => {
                 expect(res.body.data.removeRole).toEqual({ successful: true });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
                 expect(typeof createdRole.deleted).toBe('number');
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
         });
     });
 });

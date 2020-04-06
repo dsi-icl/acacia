@@ -27,7 +27,7 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection?.close();
     await mongodb.stop();
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
@@ -56,7 +56,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
-});
+}, global.__ADJUSTED_TIMEOUT__);
 
 describeSkip('FILE API', () => {
     let adminId;
@@ -153,7 +153,7 @@ describeSkip('FILE API', () => {
                     description: 'just a file 1.',
                     uploadedBy: adminId
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Upload file to study (user with no privilege) (should fail)', async () => {
                 /* test: upload file */
@@ -174,7 +174,7 @@ describeSkip('FILE API', () => {
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
                 expect(res.body.data.uploadFile).toEqual(null);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Upload file to study (user with privilege)', async () => {
                 /* test: upload file */
@@ -204,7 +204,7 @@ describeSkip('FILE API', () => {
                     description: 'just a file 2.',
                     uploadedBy: authorisedUserProfile.id
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Upload a empty file (admin)', async () => {
                 /* test: upload file */
@@ -234,7 +234,7 @@ describeSkip('FILE API', () => {
                     description: 'just a file 3.',
                     uploadedBy: adminId
                 });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
         });
 
         describeSkip('DOWNLOAD FILES', () => {
@@ -311,7 +311,7 @@ describeSkip('FILE API', () => {
 
                 authorisedUser = request.agent(app);
                 await connectAgent(authorisedUser, username, 'admin');
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Download file from study (admin)', async () => {
                 const res = await admin.get(`/file/${createdFile.id}`);
@@ -319,7 +319,7 @@ describeSkip('FILE API', () => {
                 expect(res.headers['content-type']).toBe('application/download');
                 expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
                 expect(res.text).toBe('just testing.');
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Download file from study (user with privilege)', async () => {
                 const res = await authorisedUser.get(`/file/${createdFile.id}`);
@@ -327,45 +327,45 @@ describeSkip('FILE API', () => {
                 expect(res.headers['content-type']).toBe('application/download');
                 expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
                 expect(res.text).toBe('just testing.');
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Download file from study (not logged in)', async () => {
                 const loggedoutUser = request.agent(app);
                 const res = await loggedoutUser.get(`/file/${createdFile.id}`);
                 expect(res.status).toBe(403);
                 expect(res.body).toEqual({ error: 'Please log in.' });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Download file from study (user with no privilege) (should fail)', async () => {
                 const res = await user.get(`/file/${createdFile.id}`);
                 expect(res.status).toBe(404);
                 expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Download an non-existent file from study (admin) (should fail)', async () => {
                 const res = await admin.get('/file/fakefileid');
                 expect(res.status).toBe(404);
                 expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Download an non-existent file from study (not logged in)', async () => {
                 const loggedoutUser = request.agent(app);
                 const res = await loggedoutUser.get('/file/fakefileid');
                 expect(res.status).toBe(403);
                 expect(res.body).toEqual({ error: 'Please log in.' });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Download an non-existent file from study (user without privilege) (should fail)', async () => {
                 const res = await user.get('/file/fakefileid');
                 expect(res.status).toBe(404);
                 expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Download an non-existent file from study (user with privilege) (should fail)', async () => {
                 const res = await authorisedUser.get('/file/fakefileid');
                 expect(res.status).toBe(404);
                 expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
         });
 
         describeSkip('DELETE FILES', () => {
@@ -450,7 +450,7 @@ describeSkip('FILE API', () => {
 
                 authorisedUser = request.agent(app);
                 await connectAgent(authorisedUser, username, 'admin');
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Delete file from study (admin)', async () => {
                 const res = await admin.post('/graphql').send({
@@ -464,7 +464,7 @@ describeSkip('FILE API', () => {
                 const downloadFileRes = await admin.get(`/file/${createdFile.id}`);
                 expect(downloadFileRes.status).toBe(404);
                 expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Delete file from study (user with privilege)', async () => {
                 const res = await authorisedUser.post('/graphql').send({
@@ -478,7 +478,7 @@ describeSkip('FILE API', () => {
                 const downloadFileRes = await authorisedUser.get(`/file/${createdFile.id}`);
                 expect(downloadFileRes.status).toBe(404);
                 expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Delete file from study (user with no privilege) (should fail)', async () => {
                 const res = await user.post('/graphql').send({
@@ -495,7 +495,7 @@ describeSkip('FILE API', () => {
                 expect(downloadFileRes.headers['content-type']).toBe('application/download');
                 expect(downloadFileRes.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
                 expect(downloadFileRes.text).toBe('just testing.');
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Delete an non-existent file from study (admin)', async () => {
                 const res = await admin.post('/graphql').send({
@@ -506,7 +506,7 @@ describeSkip('FILE API', () => {
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
                 expect(res.body.data.deleteFile).toBe(null);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Delete an non-existent file from study (user with privilege)', async () => {
                 const res = await authorisedUser.post('/graphql').send({
@@ -517,7 +517,7 @@ describeSkip('FILE API', () => {
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
                 expect(res.body.data.deleteFile).toBe(null);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
 
             test('Delete an non-existent file from study (user with no privilege)', async () => {
                 const res = await user.post('/graphql').send({
@@ -528,7 +528,7 @@ describeSkip('FILE API', () => {
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
                 expect(res.body.data.deleteFile).toBe(null);
-            });
+            }, global.__ADJUSTED_TIMEOUT__);
         });
     });
 
