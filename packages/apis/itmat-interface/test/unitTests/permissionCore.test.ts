@@ -2,8 +2,7 @@ import { db } from '../../src/database/database';
 import { MongoClient } from 'mongodb';
 import { permissions, task_required_permissions } from '@itmat/commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const setupDatabase = require('../../../../libraries/itmat-utils/src/databaseSetup/collectionsAndIndexes');
+import { setupDatabase } from '../../../../libraries/itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { permissionCore } from '../../src/graphql/core/permissionCore';
 

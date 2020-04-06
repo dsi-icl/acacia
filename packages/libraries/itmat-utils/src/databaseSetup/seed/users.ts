@@ -25,4 +25,4 @@ const users = [{
     id: 'replaced_at_runtime1',
 }];
 
-module.exports = users;
+export default users;

@@ -2,16 +2,13 @@ import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
-import { objStore } from '../../src/objStore/objStore';
 import { Router } from '../../src/server/router';
-import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
-import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE, CREATE_DATA_CURATION_JOB, permissions } from '@itmat/commons';
+import { CREATE_DATA_CURATION_JOB, permissions } from '@itmat/commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const setupDatabase = require('../../../../libraries/itmat-utils/src/databaseSetup/collectionsAndIndexes');
+import { setupDatabase } from '../../../../libraries/itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 
 let app;

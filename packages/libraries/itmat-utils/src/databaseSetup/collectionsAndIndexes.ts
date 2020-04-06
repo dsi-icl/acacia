@@ -1,6 +1,6 @@
-const mongo = require('mongodb');
-const { v4: uuid } = require('uuid');
-const seedUsers = require('./seed/users');
+import mongo from 'mongodb';
+import { v4 as uuid } from 'uuid';
+import seedUsers from './seed/users';
 
 const collections = {
     jobs_collection: {
@@ -75,7 +75,7 @@ const collections = {
     },
 };
 
-async function setupDatabase(mongostr, databaseName) {
+export async function setupDatabase(mongostr, databaseName) {
     const conn = await mongo.MongoClient.connect(mongostr, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
@@ -84,7 +84,7 @@ async function setupDatabase(mongostr, databaseName) {
     const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 
     /* creating collections and indexes */
-    for (let each of Object.keys(collections)) {
+    for (const each of Object.keys(collections)) {
         if (existingCollections.includes(collections[each].name)) {
             await db.dropCollection(collections[each].name);
         }
@@ -103,4 +103,4 @@ async function setupDatabase(mongostr, databaseName) {
     await conn.close();
 }
 
-module.exports = setupDatabase;
+export default setupDatabase;

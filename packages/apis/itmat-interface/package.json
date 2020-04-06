@@ -12,9 +12,8 @@
     "scripts": {
         "start": "compile-scripts start --server",
         "build": "compile-scripts build --server",
-        "test": "compile-scripts test --watchAll=false --color --no-cache --forceExit --detectOpenHandles",
+        "test": "compile-scripts test --env=own --watchAll=false --color --no-cache --forceExit --detectOpenHandles",
         "test:mutation": "stryker run ./config/stryker.config.js",
-        "test:func": "node ./test/setup-and-test.js",
         "prepublishOnly": "yarn run build",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
         "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src --fix"
@@ -91,6 +90,8 @@
                 "functions": 0,
                 "lines": 0
             }
-        }
+        },
+        "testEnvironment": "<rootDir>/test/environmentSetup.js",
+        "maxConcurrency": 1
     }
 }

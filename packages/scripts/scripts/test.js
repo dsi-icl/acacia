@@ -113,7 +113,9 @@ if (!resolvedEnv) {
         // ignore
     }
 }
-const testEnvironment = resolvedEnv || env;
-argv.push('--env', testEnvironment);
+if (env !== 'own') {
+    const testEnvironment = resolvedEnv || env;
+    argv.push('--env', testEnvironment);
+}
 // @remove-on-eject-end
 jest.run(argv);

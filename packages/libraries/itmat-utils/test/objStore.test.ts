@@ -5,7 +5,7 @@ import fs from 'fs';
 const ACCESS_KEY = 'minioadmin';
 const SECRET_KEY = 'minioadmin';
 const HOST = 'localhost';
-const PORT = 9000;
+const PORT = global.__MINIO_PORT__;
 
 describe('OBJECT STORE CLASS TESTS', () => {
     let client;
@@ -24,7 +24,7 @@ describe('OBJECT STORE CLASS TESTS', () => {
         const objstore = new ObjectStore();
         const connectresult = await objstore.connect({
             host: HOST,
-            port: 9000,
+            port: PORT,
             accessKey: ACCESS_KEY,
             secretKey: SECRET_KEY,
             useSSL: false

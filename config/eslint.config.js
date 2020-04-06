@@ -69,7 +69,6 @@ module.exports = {
             files: [
                 '**/*.ts', '**/*.tsx'
             ],
-
             globals: {
                 Atomics: 'readonly',
                 SharedArrayBuffer: 'readonly',
@@ -79,16 +78,33 @@ module.exports = {
         },
         {
             files: [
-                '**/*.test.ts',
-                '**/*.test.tsx',
                 '**/*.test.js',
                 '**/*.test.jsx',
-                '**/test/**/*.ts',
                 '**/test/**/*.js'
             ],
             env: Object.assign({}, defaultEnv, {
                 'jest/globals': true
             }),
+            globals: {
+                __MINIO_PORT__: 'readonly'
+            },
+            extends: javascriptExtensions,
+            rules: defaultRules
+        },
+        {
+            files: [
+                '**/*.test.ts',
+                '**/*.test.tsx',
+                '**/test/**/*.ts'
+            ],
+            env: Object.assign({}, defaultEnv, {
+                'jest/globals': true
+            }),
+            globals: {
+                Atomics: 'readonly',
+                SharedArrayBuffer: 'readonly',
+                __MINIO_PORT__: 'readonly'
+            },
             extends: typescriptExtensions,
             rules: defaultRules
         }
