@@ -19,7 +19,7 @@ jobs:
     - name: Installing dependencies
       run: yarn install
     - name: Building packages
-      run: yarn run build --if-present
+      run: yarn run build
     - name: Running unit tests
       run: yarn run test:unit
       env:
