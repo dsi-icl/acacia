@@ -16,7 +16,7 @@
         "utils"
     ],
     "scripts": {
-        "test": "compile-scripts test --watchAll=false --color --no-cache --detectOpenHandles",
+        "test": "compile-scripts test --watchAll=false --color --no-cache --forceExit --detectOpenHandles",
         "test:mutation": "stryker run ./config/stryker.config.js",
         "test:func": "node ./test/setup-and-test.js",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
