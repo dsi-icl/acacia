@@ -10,7 +10,7 @@
     "main": "src/index.tsx",
     "main:src": "src/index.tsx",
     "scripts": {
-        "test": "compile-scripts test --watchAll=false --color --no-cache --forceExit --detectOpenHandles",
+        "test": "compile-scripts test --watchAll=false --color --no-cache --verbose --forceExit --detectOpenHandles",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./src",
         "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./src --fix"
     },

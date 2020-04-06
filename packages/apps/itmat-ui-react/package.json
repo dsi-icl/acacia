@@ -12,7 +12,7 @@
     "scripts": {
         "start": "compile-scripts start",
         "build": "compile-scripts build",
-        "test": "compile-scripts test --watchAll=false --color --no-cache --forceExit --detectOpenHandles",
+        "test": "compile-scripts test --watchAll=false --color --no-cache --verbose --forceExit --detectOpenHandles",
         "test:cypress": "npx cypress open",
         "prepublishOnly": "yarn run build",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./src",
