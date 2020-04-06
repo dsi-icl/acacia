@@ -21,6 +21,6 @@ jobs:
     - name: Building packages
       run: yarn run build
     - name: Running unit tests
-      run: yarn run test
+      run: yarn run test --concurrency 1
       env:
         CI: true
