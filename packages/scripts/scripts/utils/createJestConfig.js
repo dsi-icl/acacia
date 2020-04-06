@@ -1,7 +1,10 @@
 const fs = require('fs');
 const chalk = require('react-dev-utils/chalk');
 const paths = require('../../config/paths');
+const workspaces = require('../../config/workspaces');
 const modules = require('../../config/modules');
+
+const workspacesConfiguration = workspaces.init(paths);
 
 module.exports = (resolve, rootDir, isEjecting) => {
     // Use this instead of `paths.testsSetup` to avoid putting
@@ -49,6 +52,7 @@ module.exports = (resolve, rootDir, isEjecting) => {
             '^react-native$': 'react-native-web',
             '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
             ...(modules.jestAliases || {}),
+            ...workspacesConfiguration.map
         },
         moduleFileExtensions: [...paths.moduleFileExtensions, 'node'].filter(
             ext => !ext.includes('mjs')

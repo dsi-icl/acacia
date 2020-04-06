@@ -4,12 +4,8 @@ const findUp = require('find-up');
 const glob = require('glob');
 
 const loadPackageJson = packagePath => {
-    try {
-        const packageObj = fse.readJsonSync(packagePath);
-        return packageObj;
-    } catch (err) {
-        throw err;
-    }
+    const packageObj = fse.readJsonSync(packagePath);
+    return packageObj;
 };
 
 const getWorkspacesRootConfig = dir => {
@@ -109,7 +105,7 @@ const loadAppSettings = appPackageJson => {
         result.dependencies = Object.assign(result.dependencies, devDependencies);
     }
 
-    const reactScripts = getDeep(appPackageObj, ['compile-scripts']);
+    const reactScripts = getDeep(appPackageObj, ['@itmat/compile-scripts']);
     if (!reactScripts) {
         return result;
     }
@@ -175,17 +171,19 @@ const buildDepsTable = srcPaths => {
     });
 };
 
-const filterSrcPaths = (srcPaths, dependencies) => {
+const filterSrcPackages = (srcPaths, dependencies) => {
     const filteredPaths = [];
-
     srcPaths.forEach(path => {
         const pkg = getPkg(path);
 
         if (dependencies && Reflect.has(dependencies, pkg.name)) {
-            filteredPaths.push(path);
+            filteredPaths.push({
+                name: pkg.name,
+                path
+            });
 
             const subDeps = depsTable[pkg.name].deps;
-            const subPaths = filterSrcPaths(srcPaths, subDeps);
+            const subPaths = filterSrcPackages(srcPaths, subDeps);
             filteredPaths.push(...subPaths);
         }
     });
@@ -250,9 +248,15 @@ const init = paths => {
 
     buildDepsTable(babelSrcPaths);
 
+    const applicablePackages = filterSrcPackages(babelSrcPaths, appSettings.dependencies);
     const applicableSrcPaths = [
-        ...new Set(filterSrcPaths(babelSrcPaths, appSettings.dependencies)),
+        ...new Set(applicablePackages.map(package => package.path)),
     ];
+
+    config.map = applicablePackages.reduce((result, current) => ({
+        ...result,
+        [current.name]: current.path
+    }), {});
 
     console.log(
         `Found ${babelSrcPaths.length} path(s) with "${config.packageEntry}" entry.`
