@@ -10,7 +10,8 @@ import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE, CREATE_DATA_CURATION_JOB, permissions } from '@itmat/commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from '@itmat/utils/src/databaseSetup/collectionsAndIndexes';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const setupDatabase = require('../../../../libraries/itmat-utils/src/databaseSetup/collectionsAndIndexes');
 import config from '../../config/config.sample.json';
 
 let app;

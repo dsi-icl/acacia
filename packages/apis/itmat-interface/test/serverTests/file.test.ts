@@ -11,7 +11,8 @@ import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE, permissions } from '@itmat/commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from '@itmat/utils/src/databaseSetup/collectionsAndIndexes';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const setupDatabase = require('../../../../libraries/itmat-utils/src/databaseSetup/collectionsAndIndexes');
 import config from '../../config/config.sample.json';
 
 let app;
@@ -29,12 +30,8 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    console.log('Coucou !');
-    console.log(MongoMemoryServer);
     mongodb = new MongoMemoryServer();
-    console.error(mongodb);
     const connectionString = await mongodb.getUri();
-    console.error(connectionString);
     const database = await mongodb.getDbName();
     await setupDatabase(connectionString, database);
 

@@ -5,9 +5,10 @@ import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
-import { WHO_AM_I, CREATE_PROJECT, CREATE_STUDY, DELETE_STUDY, permissions } from '@itmat/commons';
+import { WHO_AM_I, CREATE_PROJECT, CREATE_STUDY, DELETE_STUDY, permissions, userTypes } from '@itmat/commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from '@itmat/utils/src/databaseSetup/collectionsAndIndexes';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const setupDatabase = require('../../../../libraries/itmat-utils/src/databaseSetup/collectionsAndIndexes');
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 
@@ -84,7 +85,7 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                type: Models.UserModels.userTypes.ADMIN,
+                type: userTypes.ADMIN,
                 realName: 'admin',
                 createdBy: 'chon',
                 organisation: 'DSI',
@@ -199,7 +200,7 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                type: Models.UserModels.userTypes.ADMIN,
+                type: userTypes.ADMIN,
                 realName: 'admin',
                 createdBy: 'chon',
                 organisation: 'DSI',
@@ -236,7 +237,7 @@ describe('STUDY API', () => {
             expect(resWhoAmIAfter.body.data.errors).toBeUndefined();
             expect(resWhoAmIAfter.body.data.whoAmI).toEqual({
                 username: 'admin',
-                type: Models.UserModels.userTypes.ADMIN,
+                type: userTypes.ADMIN,
                 realName: 'admin',
                 createdBy: 'chon',
                 organisation: 'DSI',

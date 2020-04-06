@@ -23,15 +23,14 @@
     },
     "workspaces": {
         "packages": [
+            "packages/*",
             "packages/apps/*",
             "packages/apis/*",
-            "packages/libraries/*",
-            "packages/components",
-            "packages/storybook",
-            "packages/scripts"
+            "packages/libraries/*"
         ],
         "nohoist": [
             "packages/apps/**/webpack-dev-server",
+            "packages/apis/**/webpack-dev-server",
             "**/babel-loader",
             "**/babel-jest"
         ]
