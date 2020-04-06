@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { permissions, IRole, IUser, userTypes } from '@itmat/commons';
+import { IRole, IUser, userTypes } from '@itmat/commons';
 import { BulkWriteResult } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -29,7 +29,7 @@ export class PermissionCore {
 
         /* aggregationPipeline to return a list of the privileges the user has in this study / project */
         const aggregationPipeline = [
-            { $match: { studyId, projectId: { $in: [projectId, null]} , users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
+            { $match: { studyId, projectId: { $in: [projectId, null] }, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
             { $group: { _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
             { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
         ];

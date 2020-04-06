@@ -15,6 +15,6 @@ describe('Create new users', () => {
                 </MockedProvider>
             </MemoryRouter>,
         );
-        expect(wrapper.find('input')).toHaveLength(3);
+        expect(wrapper.find('input')).toHaveLength(6);
     });
 });

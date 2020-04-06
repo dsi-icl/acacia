@@ -23,14 +23,18 @@ let mongoClient;
 
 afterAll(async () => {
     await db.closeConnection();
-    await mongoConnection.close();
+    // await mongoConnection.close();
     await mongodb.stop();
 });
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
+    console.log('Coucou !');
+    console.log(MongoMemoryServer);
     mongodb = new MongoMemoryServer();
+    console.error(mongodb);
     const connectionString = await mongodb.getUri();
+    console.error(connectionString);
     const database = await mongodb.getDbName();
     await setupDatabase(connectionString, database);
 

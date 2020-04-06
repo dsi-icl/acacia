@@ -12,8 +12,9 @@
     "scripts": {
         "start": "compile-scripts start --server",
         "build": "compile-scripts build --server",
-        "test": "jest --color --coverage --detectOpenHandles",
+        "test": "compile-scripts test --watchAll=false --color --no-cache --detectOpenHandles",
         "test:mutation": "stryker run ./config/stryker.config.js",
+        "test:func": "node ./test/setup-and-test.js",
         "prepublishOnly": "yarn run build",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
         "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src --fix"
@@ -45,6 +46,7 @@
         "@types/uuid": "7.0.2",
         "@typescript-eslint/eslint-plugin": "2.26.0",
         "@typescript-eslint/parser": "2.26.0",
+        "babel-jest": "25.2.6",
         "cross-env": "7.0.2",
         "eslint": "6.8.0",
         "eslint-plugin-import": "2.20.2",
@@ -62,10 +64,19 @@
         "extends": "./config/eslint.config.js"
     },
     "jest": {
-        "transform": {
-            "^.+\\.(ts)?$": "ts-jest",
-            "^.+\\.(js)?$": "babel-jest"
-        },
-        "transformIgnorePatterns": []
+        "collectCoverageFrom": [
+            "src/**/*.{ts,tsx}",
+            "!src/setupTests.{ts,tsx}",
+            "!src/serviceWorker.{ts,jsx}",
+            "!src/**/*.(spec|test|stories).{ts,tsx}"
+        ],
+        "coverageThreshold": {
+            "global": {
+                "statements": 98,
+                "branches": 98,
+                "functions": 98,
+                "lines": 98
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 import { db } from '../../src/database/database';
 import { MongoClient } from 'mongodb';
-import { Models, permissions, task_required_permissions } from '@itmat/commons';
+import { permissions, task_required_permissions } from '@itmat/commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from '@itmat/utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';

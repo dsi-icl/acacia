@@ -14,7 +14,7 @@ module.exports = (resolve, rootDir, isEjecting) => {
         : undefined;
 
     const config = {
-        roots: ['<rootDir>/src'],
+        roots: ['<rootDir>/src', '<rootDir>/test'],
 
         collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '!src/**/*.d.ts'],
 
@@ -28,6 +28,7 @@ module.exports = (resolve, rootDir, isEjecting) => {
         testMatch: [
             '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
             '<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
+            '<rootDir>/test/**/*.test.{js,jsx,ts,tsx}',
         ],
         testEnvironment: 'jest-environment-jsdom-fourteen',
         transform: {

@@ -1,5 +1,7 @@
 import { Logger } from '../src/logger';
 
-test('Logger is defined', function () {
-    expect(Logger).toBeDefined();
+describe('LOGGER CLASS TESTS', () => {
+    test('Logger is defined', function () {
+        expect(Logger).toBeDefined();
+    });
 });

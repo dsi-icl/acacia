@@ -16,7 +16,7 @@
         "utils"
     ],
     "scripts": {
-        "test": "jest --color --coverage --detectOpenHandles",
+        "test": "compile-scripts test --watchAll=false --color --no-cache --detectOpenHandles",
         "test:mutation": "stryker run ./config/stryker.config.js",
         "test:func": "node ./test/setup-and-test.js",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
@@ -45,7 +45,9 @@
         "@typescript-eslint/eslint-plugin": "2.26.0",
         "@typescript-eslint/parser": "2.26.0",
         "@types/jest": "25.2.1",
+        "@types/minio": "7.0.5",
         "@types/mongodb": "3.5.4",
+        "babel-jest": "25.2.6",
         "babel-loader": "8.1.0",
         "babel-plugin-add-module-exports": "1.0.2",
         "babel-plugin-rewire-ts": "1.3.3",
@@ -62,5 +64,19 @@
     },
     "eslintConfig": {
         "extends": "./config/eslint.config.js"
+    },
+    "jest": {
+        "collectCoverageFrom": [
+            "src/**/*.{ts,tsx}",
+            "!src/**/*.(spec|test|stories).{ts,tsx}"
+        ],
+        "coverageThreshold": {
+            "global": {
+                "statements": 98,
+                "branches": 98,
+                "functions": 98,
+                "lines": 98
+            }
+        }
     }
 }

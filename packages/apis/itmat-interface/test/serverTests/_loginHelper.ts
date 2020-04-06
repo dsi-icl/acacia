@@ -3,15 +3,7 @@
 import { print } from 'graphql';
 import { LOGIN, LOGOUT } from '@itmat/commons';
 
-export function connectAdmin(agent) {
-    return connectAgent(agent, 'admin', 'admin');
-}
-
-export function connectUser(agent) {
-    return connectAgent(agent, 'standardUser', 'admin');
-}
-
-export function connectAgent(agent, user, pw) {
+export const connectAgent = (agent, user, pw): Promise<void> => {
     return new Promise((resolve, reject) => agent.post('/graphql')
         .set('Content-type', 'application/json')
         .send({
@@ -23,9 +15,9 @@ export function connectAgent(agent, user, pw) {
             return reject();
         })
         .catch(() => null));
-}
+};
 
-export function disconnectAgent(agent) {
+export const disconnectAgent = (agent): Promise<void> => {
     return new Promise((resolve, reject) => agent.post('/graphql')
         .send({
             query: print(LOGOUT),
@@ -34,4 +26,12 @@ export function disconnectAgent(agent) {
             if (res.statusCode === 200) return resolve();
             return reject();
         }).catch(() => null));
-}
+};
+
+export const connectAdmin = (agent): Promise<void> => {
+    return connectAgent(agent, 'admin', 'admin');
+};
+
+export const connectUser = (agent): Promise<void> => {
+    return connectAgent(agent, 'standardUser', 'admin');
+};

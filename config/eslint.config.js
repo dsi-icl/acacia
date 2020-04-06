@@ -87,8 +87,8 @@ module.exports = {
                 '**/*.test.tsx',
                 '**/*.test.js',
                 '**/*.test.jsx',
-                '**/tests/**/*.ts',
-                '**/tests/**/*.js'
+                '**/test/**/*.ts',
+                '**/test/**/*.js'
             ],
             env: Object.assign({}, defaultEnv, {
                 'jest/globals': true

@@ -1,6 +1,7 @@
 {
     "name": "@itmat/components",
     "version": "1.0.0",
+    "license": "MIT",
     "repository": {
         "type": "git",
         "url": "https://github.com/dsi-icl/itmat-broker.git",
@@ -9,7 +10,7 @@
     "main": "src/index.tsx",
     "main:src": "src/index.tsx",
     "scripts": {
-        "test": "compile-scripts test --detectOpenHandles",
+        "test": "compile-scripts test --watchAll=false --color --detectOpenHandles",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./src",
         "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./src --fix"
     },
@@ -35,12 +36,18 @@
             "../../config/eslint.config.js"
         ]
     },
-    "browserslist": [
-        ">0.2%",
-        "not dead",
-        "not ie <= 11",
-        "not op_mini all"
-    ],
+    "browserslist": {
+        "production": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
     "jest": {
         "collectCoverageFrom": [
             "src/**/*.{ts,tsx}",
@@ -56,6 +63,5 @@
                 "lines": 98
             }
         }
-    },
-    "license": "MIT"
+    }
 }
