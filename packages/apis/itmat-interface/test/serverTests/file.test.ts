@@ -14,6 +14,8 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '../../../../libraries/itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 
+const describeSkip = global.__DOCKER_SUPPORT__ ? describe : describe.skip;
+
 let app;
 let mongodb;
 let admin;
@@ -56,7 +58,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     await connectUser(user);
 });
 
-describe('FILE API', () => {
+describeSkip('FILE API', () => {
     let adminId;
 
     beforeAll(async () => {
@@ -65,8 +67,8 @@ describe('FILE API', () => {
         adminId = result.filter(e => e.username === 'admin')[0].id;
     });
 
-    describe('UPLOAD AND DOWNLOAD FILE', () => {
-        describe('UPLOAD FILE', () => {
+    describeSkip('UPLOAD AND DOWNLOAD FILE', () => {
+        describeSkip('UPLOAD FILE', () => {
             /* note: a new study is created and a special authorised user for study permissions */
             let createdStudy;
             let authorisedUser;
@@ -235,7 +237,7 @@ describe('FILE API', () => {
             });
         });
 
-        describe('DOWNLOAD FILES', () => {
+        describeSkip('DOWNLOAD FILES', () => {
             /* note: a new study is created and a non-empty text file is uploaded before each test */
             let createdStudy;
             let createdFile;
@@ -366,7 +368,7 @@ describe('FILE API', () => {
             });
         });
 
-        describe('DELETE FILES', () => {
+        describeSkip('DELETE FILES', () => {
             let createdStudy;
             let createdFile;
             let authorisedUser;
@@ -530,7 +532,7 @@ describe('FILE API', () => {
         });
     });
 
-    // describe('FILE PERMISSION FOR PROJECTS', () => {
+    // describeSkip('FILE PERMISSION FOR PROJECTS', () => {
     //     test('1 + 1', () => {
     //         expect(2).toBe(3);
     //     });
