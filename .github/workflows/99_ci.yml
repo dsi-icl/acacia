@@ -18,9 +18,11 @@ jobs:
         node-version: ${{ matrix.node }}
     - name: Installing dependencies
       run: yarn install
-    - name: Building packages
+    - name: Running linter
+      run: yarn run lint
+    - name: Running build
       run: yarn run build
-    - name: Running unit tests
+    - name: Running tests
       run: yarn run test --concurrency 1
       env:
         CI: true

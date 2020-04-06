@@ -16,7 +16,7 @@
         "start": "cross-env FORCE_COLOR=true lerna run start --stream",
         "start:app": "yarn workspace @itmat/feasibility-portal start",
         "start:storybook": "yarn workspace @itmat/storybook storybook",
-        "test": "cross-env FORCE_COLOR=true lerna run lint --stream && cross-env CI=true FORCE_COLOR=true lerna run test --stream",
+        "test": "cross-env CI=true FORCE_COLOR=true lerna run test --stream",
         "build": "cross-env FORCE_COLOR=true lerna run build --stream",
         "lint": "cross-env FORCE_COLOR=true lerna run lint --stream --no-bail",
         "lint:fix": "cross-env FORCE_COLOR=true lerna run lint:fix --stream --no-bail"
@@ -49,6 +49,7 @@
         "eslint-plugin-prettier": "3.1.2",
         "eslint-plugin-react": "7.19.0",
         "eslint-plugin-react-hooks": "3.0.0",
+        "get-port": "5.1.1",
         "husky": "4.2.3",
         "jest-prop-type-error": "1.1.0",
         "lerna": "3.20.2",
