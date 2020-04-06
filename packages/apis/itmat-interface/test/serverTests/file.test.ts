@@ -25,7 +25,7 @@ let mongoClient;
 
 afterAll(async () => {
     await db.closeConnection();
-    // await mongoConnection.close();
+    await mongoConnection?.close();
     await mongodb.stop();
 });
 
