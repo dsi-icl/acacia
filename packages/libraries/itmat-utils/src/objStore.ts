@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const Minio = require('minio');
+import { default as Minio } from 'minio';
 import { Logger } from './logger';
 
 export interface IObjectStoreConfig {
