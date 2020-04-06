@@ -1,4 +1,4 @@
-import { default as Minio } from 'minio';
+import * as Minio from 'minio';
 import { Logger } from './logger';
 
 export interface IObjectStoreConfig {
