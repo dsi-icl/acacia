@@ -10,15 +10,15 @@ module.exports = {
             console.warn(chalk.yellow('WARNING: Docker not found. If this is Windows or MacOS, only tests that do not require docker will be run. See linux for all tests.'));
         return new Promise((resolve) => {
             try {
-                crossSpawn.sync('docker --version', { stdio: 'inherit' });
-                crossSpawn.sync('docker pull "minio/minio:latest"');
+                crossSpawn.sync('docker', ['--version'], { stdio: 'inherit' });
+                crossSpawn.sync('docker', ['pull', 'minio/minio:latest'], { stdio: 'inherit' });
                 const minioProcess = crossSpawn('docker', [
                     'run', '--rm',
                     '--name', `${container}`,
                     '-p', `${port}:9000`,
                     'minio/minio:latest',
                     'server', '/data'
-                ]);
+                ], { stdio: 'inherit' });
                 minioProcess.on('error', (error) => {
                     throw new Error(error.message);
                 });
@@ -41,11 +41,13 @@ module.exports = {
                                 resolve(port);
                             } else {
                                 console.error(chalk.red(`Unexpected server status ${res.status}`));
-                                crossSpawn.sync(`docker stop "${container}"`, { stdio: 'inherit' });
-                                if (!isSupportedDocker)
-                                    process.exit(0);
-                                else
-                                    process.exit(1);
+                                if (fetchAttempt > 5) {
+                                    crossSpawn.sync('docker', ['stop', `${container}`], { stdio: 'inherit' });
+                                    if (!isSupportedDocker)
+                                        process.exit(0);
+                                    else
+                                        process.exit(1);
+                                }
                             }
                             if (fetchAttempt++ > 5)
                                 clearInterval(fetchPoll);
@@ -60,7 +62,7 @@ module.exports = {
                         });
                 }, 1000);
             } catch (e) {
-                console.warn(e);
+                console.error(e.message);
                 process.exit(0);
             }
         });
@@ -69,7 +71,7 @@ module.exports = {
     minioContainerTeardown: (container) => {
         return new Promise((resolve, reject) => {
             try {
-                crossSpawn.sync(`docker stop ${container}`, { stdio: 'inherit' });
+                crossSpawn.sync('docker', ['stop', `${container}`], { stdio: 'inherit' });
                 resolve();
             } catch (e) {
                 console.error(e);
