@@ -25,10 +25,6 @@ var defaultRules = {
         4,
         { 'SwitchCase': 1 }
     ],
-    'linebreak-style': [
-        'error',
-        'windows'
-    ],
     'no-unused-vars': [
         'warn',
         { 'argsIgnorePattern': '^__unused__' }
