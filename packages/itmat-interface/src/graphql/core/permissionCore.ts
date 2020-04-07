@@ -1,7 +1,7 @@
 import { ApolloError } from 'apollo-server-core';
-import { permissions } from 'itmat-commons';
-import { IRole } from 'itmat-commons/dist/models/study';
-import { IUser, userTypes } from 'itmat-commons/dist/models/user';
+import { permissions } from '@itmat/commons';
+import { IRole } from '@itmat/commons';
+import { IUser, userTypes } from '@itmat/commons';
 import { BulkWriteResult } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -31,11 +31,11 @@ export class PermissionCore {
 
         /* aggregationPipeline to return a list of the privileges the user has in this study / project */
         const aggregationPipeline = [
-            { $match: { studyId, projectId: { $in: [projectId, null]} , users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
+            { $match: { studyId, projectId: { $in: [projectId, null] }, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
             { $group: { _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
             { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
         ];
-        const result: Array<{ _id: string, arrPrivileges: string[] }> = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
+        const result: Array<{ _id: string; arrPrivileges: string[] }> = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
         if (result.length > 1) {
             throw new ApolloError('Internal error occurred when checking user privileges.', errorCodes.DATABASE_ERROR);
         }
@@ -63,7 +63,7 @@ export class PermissionCore {
         }
     }
 
-    public async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string, projectId?: string } | { studyId?: string, projectId: string }): Promise<void> {
+    public async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string; projectId?: string } | { studyId?: string; projectId: string }): Promise<void> {
         if (studyId === undefined && projectId === undefined) {
             throw new ApolloError('Neither studyId nor projectId is provided');
         }
@@ -83,7 +83,7 @@ export class PermissionCore {
         }
     }
 
-    public async editRoleFromStudyOrProject(roleId: string, name?: string, permissionChanges?: { add: string[], remove: string[] }, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
+    public async editRoleFromStudyOrProject(roleId: string, name?: string, permissionChanges?: { add: string[]; remove: string[] }, userChanges?: { add: string[]; remove: string[] }): Promise<IRole> {
         if (permissionChanges === undefined) { permissionChanges = { add: [], remove: [] }; }
         if (userChanges === undefined) { userChanges = { add: [], remove: [] }; }
 

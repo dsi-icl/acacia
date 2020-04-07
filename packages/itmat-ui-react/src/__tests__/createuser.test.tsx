@@ -11,11 +11,11 @@ describe('Create new users', () => {
         const wrapper = mount(
             <MemoryRouter initialEntries={['/']}>
                 <MockedProvider mocks={[]}>
-                    <CreateNewUser/>
+                    <CreateNewUser />
                 </MockedProvider>
             </MemoryRouter>
         );
-        expect(wrapper.find('input')).toHaveLength(3);
+        expect(wrapper.find('input')).toHaveLength(6);
     });
 
 });

@@ -1,18 +1,18 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
-import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { CREATE_PROJECT, GET_STUDY } from '@itmat/commons';
+import { WHO_AM_I } from '@itmat/commons';
 import * as css from './tabContent.module.css';
 
-export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: Array<{ id: string, name: string }> }> = ({ studyId, projectList }) => {
+export const ProjectListSection: React.FunctionComponent<{ studyId: string; projectList: Array<{ id: string; name: string }> }> = ({ studyId, projectList }) => {
     return <div>
         {projectList.map((el) => <OneProject studyId={studyId} key={el.id} id={el.id} name={el.name} />)}
         <AddNewProject studyId={studyId} />
     </div>;
 };
 
-const OneProject: React.FunctionComponent<{ studyId: string, id: string, name: string }> = ({ id, name, studyId }) =>
+const OneProject: React.FunctionComponent<{ studyId: string; id: string; name: string }> = ({ id, name, studyId }) =>
     <NavLink to={`/datasets/${studyId}/projects/${id}`} activeClassName={css.active_project}><button className={css.project_badge + ' button_grey'}>{name}</button></NavLink>;
 
 

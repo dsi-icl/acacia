@@ -1,6 +1,6 @@
 import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntry } from '@itmat/commons';
 import { Writable } from 'stream';
 
 export interface IDataEntry {
@@ -10,8 +10,8 @@ export interface IDataEntry {
     m_versionId: string; // data version Id 
     [field: string]: {
         [instance: string]: {
-            [array: number]: number | string
-        }
+            [array: number]: number | string;
+        };
     } | string | boolean | string[];
 }
 
@@ -22,130 +22,7 @@ export interface IFieldDescriptionObject {
     datatype: 'c' | 'i' | 'd' | 'b' | 't';
 }
 
-/* update should be audit trailed */
-/* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
-export class CSVCurator {
-    /**
-     * things to check:
-     * - duplicate subject id
-     * - duplicate field
-     * - datatype mismatch
-     * - uneven column number
-     * - parse / encoding error
-     */
-    private _header: (IFieldDescriptionObject| null)[]; // tslint:disable-line
-    private _numOfSubj: number; // tslint:disable-line
-    private _errored: boolean; // tslint:disable-line
-    private _errors: string[]; // tslint:disable-line
-
-    constructor(
-        private readonly dataCollection: Collection,
-        private readonly incomingWebStream: NodeJS.ReadableStream,
-        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
-        private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
-        private readonly versionId: string
-    ) {
-        this._header = [null]; // the first element is subject id
-        this._numOfSubj = 0;
-        this._errored = false;
-        this._errors = [];
-    }
-
-    /* return list of errors. [] if no error */
-    public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
-        return new Promise((resolve) => {
-            console.log(`uploading for job ${this.job.id}`);
-            let lineNum = 0;
-            let isHeader: boolean = true;
-            const subjectString: string[] = [];
-            let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
-            const csvparseStream = csvparse(this.parseOptions);
-            const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
-
-            csvparseStream.on('skip', (error) => {
-                lineNum++;
-                this._errored = true;
-                this._errors.push(error.toString());
-            });
-
-            const uploadWriteStream: NodeJS.WritableStream = new Writable({
-                objectMode: true,
-                write: async (line, _, next) => {
-                    if (isHeader) {
-                        lineNum++;
-                        const { error, parsedHeader } = processHeader(line);
-                        if (error) {
-                            this._errored = true;
-                            this._errors.push(...error);
-                        }
-                        this._header = parsedHeader;
-                        isHeader = false;
-                        next();
-                    } else {
-                        const currentLineNum = ++lineNum;
-                        subjectString.push(line[0]);
-                        const { error, dataEntry } = processDataRow({
-                            lineNum: currentLineNum,
-                            row: line,
-                            parsedHeader: this._header,
-                            job: this.job,
-                            versionId: this.versionId
-                        });
-
-                        if (error) {
-                            this._errored = true;
-                            this._errors.push(...error);
-                        }
-
-                        if (this._errored) {
-                            next();
-                            return;
-                        }
-
-                        // // TO_DO {
-                        //     curator-defined constraints for values
-                        // }
-
-                        bulkInsert.insert(dataEntry);
-                        this._numOfSubj++;
-                        if (this._numOfSubj > 999) {
-                            this._numOfSubj = 0;
-                            await bulkInsert.execute((err: Error) => {
-                                if (err) { console.log((err as any).writeErrors[1].err); return; }
-                            });
-                            bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
-                        }
-                        next();
-                    }
-                }
-            });
-
-            uploadWriteStream.on('finish', async () => {
-                /* check for subject Id duplicate */
-                const set = new Set(subjectString);
-                if (set.size !== subjectString.length) {
-                    this._errors.push('Data Error: There is duplicate subject id.');
-                    this._errored = true;
-                }
-
-                if (!this._errored) {
-                    await bulkInsert.execute((err: Error) => {
-                        console.log('FINSIHED LOADING');
-                        if (err) { console.log(err); return; }
-                    });
-                }
-
-                console.log('end');
-                resolve(this._errors);
-            });
-
-            parseStream.pipe(uploadWriteStream);
-        });
-    }
-}
-
-
-export function processHeader(header: string[]): { error?: string[], parsedHeader: Array<IFieldDescriptionObject | null> } { 
+export function processHeader(header: string[]): { error?: string[]; parsedHeader: Array<IFieldDescriptionObject | null> } {
     /* pure function */
     /* headerline is ['eid', 1@0.0, 2@0.1:c] */
     /* returns a parsed object array and error (undefined if no error) */
@@ -182,7 +59,7 @@ export function processHeader(header: string[]): { error?: string[], parsedHeade
     return ({ parsedHeader, error: error.length === 0 ? undefined : error });
 }
 
-export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // tslint:disable-line
+export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string; lineNum: number; row: string[]; parsedHeader: Array<IFieldDescriptionObject | null>; job: IJobEntry<{ dataVersion: string; versionTag?: string }> }): { error?: string[]; dataEntry: IDataEntry } { // tslint:disable-line
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;
@@ -278,4 +155,126 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
     }
 
     return ({ error: error.length === 0 ? undefined : error, dataEntry });
+}
+
+/* update should be audit trailed */
+/* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
+export class CSVCurator {
+    /**
+     * things to check:
+     * - duplicate subject id
+     * - duplicate field
+     * - datatype mismatch
+     * - uneven column number
+     * - parse / encoding error
+     */
+    private _header: (IFieldDescriptionObject | null)[]; // tslint:disable-line
+    private _numOfSubj: number; // tslint:disable-line
+    private _errored: boolean; // tslint:disable-line
+    private _errors: string[]; // tslint:disable-line
+
+    constructor(
+        private readonly dataCollection: Collection,
+        private readonly incomingWebStream: NodeJS.ReadableStream,
+        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
+        private readonly job: IJobEntry<{ dataVersion: string; versionTag?: string }>,
+        private readonly versionId: string
+    ) {
+        this._header = [null]; // the first element is subject id
+        this._numOfSubj = 0;
+        this._errored = false;
+        this._errors = [];
+    }
+
+    /* return list of errors. [] if no error */
+    public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
+        return new Promise((resolve) => {
+            console.log(`uploading for job ${this.job.id}`);
+            let lineNum = 0;
+            let isHeader = true;
+            const subjectString: string[] = [];
+            let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+            const csvparseStream = csvparse(this.parseOptions);
+            const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
+
+            csvparseStream.on('skip', (error) => {
+                lineNum++;
+                this._errored = true;
+                this._errors.push(error.toString());
+            });
+
+            const uploadWriteStream: NodeJS.WritableStream = new Writable({
+                objectMode: true,
+                write: async (line, _, next) => {
+                    if (isHeader) {
+                        lineNum++;
+                        const { error, parsedHeader } = processHeader(line);
+                        if (error) {
+                            this._errored = true;
+                            this._errors.push(...error);
+                        }
+                        this._header = parsedHeader;
+                        isHeader = false;
+                        next();
+                    } else {
+                        const currentLineNum = ++lineNum;
+                        subjectString.push(line[0]);
+                        const { error, dataEntry } = processDataRow({
+                            lineNum: currentLineNum,
+                            row: line,
+                            parsedHeader: this._header,
+                            job: this.job,
+                            versionId: this.versionId
+                        });
+
+                        if (error) {
+                            this._errored = true;
+                            this._errors.push(...error);
+                        }
+
+                        if (this._errored) {
+                            next();
+                            return;
+                        }
+
+                        // // TO_DO {
+                        //     curator-defined constraints for values
+                        // }
+
+                        bulkInsert.insert(dataEntry);
+                        this._numOfSubj++;
+                        if (this._numOfSubj > 999) {
+                            this._numOfSubj = 0;
+                            await bulkInsert.execute((err: Error) => {
+                                if (err) { console.log((err as any).writeErrors[1].err); return; }
+                            });
+                            bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+                        }
+                        next();
+                    }
+                }
+            });
+
+            uploadWriteStream.on('finish', async () => {
+                /* check for subject Id duplicate */
+                const set = new Set(subjectString);
+                if (set.size !== subjectString.length) {
+                    this._errors.push('Data Error: There is duplicate subject id.');
+                    this._errored = true;
+                }
+
+                if (!this._errored) {
+                    await bulkInsert.execute((err: Error) => {
+                        console.log('FINSIHED LOADING');
+                        if (err) { console.log(err); return; }
+                    });
+                }
+
+                console.log('end');
+                resolve(this._errors);
+            });
+
+            parseStream.pipe(uploadWriteStream);
+        });
+    }
 }

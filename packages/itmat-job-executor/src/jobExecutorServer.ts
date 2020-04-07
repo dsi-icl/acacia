@@ -4,10 +4,10 @@ import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
 import { Server } from './server/server';
-import { JobPoller } from 'itmat-utils';
+import { JobPoller } from '@itmat/utils';
 import { JobDispatcher } from './jobDispatch/dispatcher';
-import { UKB_CSV_UPLOAD_Handler } from './jobHandlers/UKB_CSV_UPLOAD_handler';
-import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_handler';
+import { UKBCSVUploadHandler } from './jobHandlers/UKBCSVUploadHandler';
+import { UKBFieldInfoUploadHandler } from './jobHandlers/UKBFieldInfoUploadHandler';
 
 class ITMATJobExecutorServer extends Server {
 
@@ -38,9 +38,9 @@ class ITMATJobExecutorServer extends Server {
                     const jobDispatcher = new JobDispatcher();
 
                     /* TO_DO: can we figure out the files at runtime and import at runtime */
-                    console.log(UKB_CSV_UPLOAD_Handler.prototype.getInstance);
-                    jobDispatcher.registerJobType('DATA_UPLOAD', UKB_CSV_UPLOAD_Handler.prototype.getInstance);
-                    jobDispatcher.registerJobType('FIELD_INFO_UPLOAD', UKB_FIELD_INFO_UPLOAD_Handler.prototype.getInstance);
+                    console.log(UKBCSVUploadHandler.prototype.getInstance);
+                    jobDispatcher.registerJobType('DATA_UPLOAD', UKBCSVUploadHandler.prototype.getInstance);
+                    jobDispatcher.registerJobType('FIELD_INFO_UPLOAD', UKBFieldInfoUploadHandler.prototype.getInstance);
                     // jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKB_IMAGE_UPLOAD_Handler.prototype.getInstance);
 
                     const poller = new JobPoller({

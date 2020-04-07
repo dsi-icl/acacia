@@ -1,14 +1,14 @@
 import React from 'react';
 import { Mutation, Query, useQuery } from 'react-apollo';
-import { EDIT_PROJECT_APPROVED_FIELDS } from 'itmat-commons/dist/graphql/projects';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { EDIT_PROJECT_APPROVED_FIELDS } from '@itmat/commons';
+import { GET_STUDY } from '@itmat/commons';
 import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
-import { GET_STUDY_FIELDS } from 'itmat-commons/dist/graphql/fields';
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import { GET_STUDY_FIELDS } from '@itmat/commons';
+import { IFieldEntry } from '@itmat/commons';
 
 
-export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }, studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
+export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId } });
     if (loading) { return <LoadingBalls />; }
     if (error) { return <p>{error.toString()}</p>; }
@@ -21,10 +21,10 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
         return <p>No field tree uploaded.</p>;
     }
 
-    return <FieldListSelectionState originalCheckedList={originalCheckedList} projectId={projectId} studyId={studyId} fieldTreeIds={getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees} />
+    return <FieldListSelectionState originalCheckedList={originalCheckedList} projectId={projectId} studyId={studyId} fieldTreeIds={getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees} />;
 };
 
-const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }, projectId: string, studyId: string, fieldTreeIds: string[] }> = ({ originalCheckedList, projectId, studyId, fieldTreeIds }) => {
+const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; projectId: string; studyId: string; fieldTreeIds: string[] }> = ({ originalCheckedList, projectId, studyId, fieldTreeIds }) => {
     const [selectedTree, setSelectedTree] = React.useState(fieldTreeIds[0]);
 
     return <>
@@ -41,7 +41,7 @@ const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { 
     </>;
 };
 
-const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ selectedTree: string, originalCheckedList: { [fieldTreeId: string]: string[] }, fieldList: IFieldEntry[], studyId: string, projectId: string }> = ({ selectedTree, fieldList, originalCheckedList, projectId, studyId }) => {
+const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ selectedTree: string; originalCheckedList: { [fieldTreeId: string]: string[] }; fieldList: IFieldEntry[]; studyId: string; projectId: string }> = ({ selectedTree, fieldList, originalCheckedList, projectId, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList[selectedTree] || []);
     const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
     const [currentProjectId, setCurrentProjectId] = React.useState(projectId);

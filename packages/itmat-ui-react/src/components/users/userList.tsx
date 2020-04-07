@@ -1,8 +1,8 @@
-import { Models } from 'itmat-commons';
+import { Models } from '@itmat/commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
+import { GET_USERS } from '@itmat/commons';
 import { Icons } from '../icons';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import * as css from './userList.module.css';

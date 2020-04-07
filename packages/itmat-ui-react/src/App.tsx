@@ -7,7 +7,7 @@ import { Spinner } from './components/reusable/icons/spinner';
 import { MainMenuBar } from './components/scaffold/mainMenuBar';
 import { MainPanel } from './components/scaffold/mainPanel';
 import * as css from './components/scaffold/scaffold.module.css';
-import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { WHO_AM_I } from '@itmat/commons';
 
 class App extends React.Component {
     public render() {

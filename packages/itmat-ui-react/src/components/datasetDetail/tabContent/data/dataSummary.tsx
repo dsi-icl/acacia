@@ -1,7 +1,7 @@
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import { IStudyDataVersion } from '@itmat/commons';
 import React from 'react';
 import { Query } from 'react-apollo';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY } from '@itmat/commons';
 import { formatBytes } from '../../../reusable/fileList/fileList';
 import * as css from './tabContent.module.css';
 // number of patients
@@ -10,7 +10,7 @@ import * as css from './tabContent.module.css';
 // data curation pipeline
 // upload new sets of data
 
-export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
 
     const { id, version, tag, uploadDate, fileSize, extractedFrom } = versions[selectedVersion];
 

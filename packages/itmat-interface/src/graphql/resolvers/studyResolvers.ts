@@ -1,8 +1,8 @@
 import { ApolloError } from 'apollo-server-express';
-import { permissions, Models, task_required_permissions } from 'itmat-commons';
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
-import { IProject, IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { permissions, Models, task_required_permissions } from '@itmat/commons';
+import { IFieldEntry } from '@itmat/commons';
+import { IProject, IStudy, IStudyDataVersion } from '@itmat/commons';
+import { IUser } from '@itmat/commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
@@ -55,7 +55,7 @@ export const studyResolvers = {
 
             return project;
         },
-        getStudyFields: async (parent: object, { fieldTreeId, studyId }: { fieldTreeId: string, studyId: string }, context: any): Promise<IFieldEntry[]> => {
+        getStudyFields: async (parent: object, { fieldTreeId, studyId }: { fieldTreeId: string; studyId: string }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
 
             /* user can get study if he has readonly permission */
@@ -160,7 +160,7 @@ export const studyResolvers = {
             const study = await studyCore.createNewStudy(name, requester.id);
             return study;
         },
-        createProject: async (parent: object, { studyId, projectName }: { studyId: string, projectName: string }, context: any, info: any): Promise<IProject> => {
+        createProject: async (parent: object, { studyId, projectName }: { studyId: string; projectName: string }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* reject undefined project name */
@@ -212,7 +212,7 @@ export const studyResolvers = {
 
             return makeGenericReponse(studyId);
         },
-        editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
+        editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string; fieldTreeId: string; approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -233,7 +233,7 @@ export const studyResolvers = {
             const resultingProject = await studyCore.editProjectApprovedFields(projectId, fieldTreeId, approvedFields);
             return resultingProject;
         },
-        editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
+        editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string; approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -252,7 +252,7 @@ export const studyResolvers = {
             const resultingProject = await studyCore.editProjectApprovedFiles(projectId, approvedFiles);
             return resultingProject;
         },
-        setDataversionAsCurrent: async (parent: object, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context: any, info: any): Promise<IStudy> => {
+        setDataversionAsCurrent: async (parent: object, { studyId, dataVersionId }: { studyId: string; dataVersionId: string }, context: any, info: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */

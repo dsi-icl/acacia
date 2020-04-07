@@ -1,10 +1,10 @@
 import bcrypt from 'bcrypt';
-import { Models } from 'itmat-commons';
+import { Models } from '@itmat/commons';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 
 import { ApolloError } from 'apollo-server-core';
-import { IUser, IUserWithoutToken, userTypes } from 'itmat-commons/dist/models/user';
+import { IUser, IUserWithoutToken, userTypes } from '@itmat/commons';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
 
@@ -17,7 +17,7 @@ export class UserCore {
         return user;
     }
 
-    public async createUser(requester: string, user: { password: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
+    public async createUser(requester: string, user: { password: string; username: string; organisation: string; type: userTypes; description: string; realName: string; email: string; emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
         const { password, organisation, username, type, description, realName, email, emailNotificationsActivated } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
         const entry: Models.UserModels.IUser = {

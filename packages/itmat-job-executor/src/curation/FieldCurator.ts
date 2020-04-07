@@ -1,8 +1,8 @@
 import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
-import { IJobEntryForFieldCuration } from 'itmat-commons/dist/models/job';
+import { IJobEntryForFieldCuration } from '@itmat/commons';
 import { Writable } from 'stream';
-import { IFieldEntry, enumValueType, enumItemType } from 'itmat-commons/dist/models/field';
+import { IFieldEntry, enumValueType, enumItemType } from '@itmat/commons';
 import { v4 as uuid } from 'uuid';
 
 /* update should be audit trailed */
@@ -10,117 +10,7 @@ import { v4 as uuid } from 'uuid';
 
 const CORRECT_NUMBER_OF_COLUMN = 11;
 
-export class FieldCurator {
-    private _errored: boolean; // tslint:disable-line
-    private _errors: string[]; // tslint:disable-line
-    private _numOfFields: number; // tslint:disable-line
-
-    constructor(
-        private readonly fieldCollection: Collection,
-        private readonly incomingWebStream: NodeJS.ReadableStream,
-        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
-        private readonly job: IJobEntryForFieldCuration,
-        private readonly fieldTreeId: string
-    ) {
-        this._errored = false;
-        this._errors = [];
-        this._numOfFields = 0;
-    }
-
-    /* return list of errors. [] if no error */
-    public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
-        /**
-         *     fieldId  fieldName   valueType   possibleValues  unit    path    numOfTimePoints numOfMeasurements   startingTimepoint   startingMeasurement notes
-         */
-        return new Promise((resolve) => {
-            console.log(`uploading for job ${this.job.id}`);
-            const fieldIdString: string[] = [];
-            let lineNum = 0;
-            let isHeader: boolean = true;
-            let bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
-            const csvparseStream = csvparse(this.parseOptions);
-            const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
-
-            csvparseStream.on('skip', (error) => {
-                lineNum++;
-                this._errored = true;
-                this._errors.push(error.toString());
-            });
-
-            const uploadWriteStream: NodeJS.WritableStream = new Writable({
-                objectMode: true,
-                write: async (line, _, next) => {
-                    if (isHeader) {
-                        if (line.length !== CORRECT_NUMBER_OF_COLUMN) {
-                            this._errored = true;
-                            this._errors.push(`Line ${lineNum}: expected ${CORRECT_NUMBER_OF_COLUMN} fields but got ${line.length}`);
-                        }
-                        isHeader = false;
-                        lineNum++;
-                        next();
-                    } else {
-                        const currentLineNum = ++lineNum;
-                        fieldIdString.push(line[0]);
-                        const { error, dataEntry } = processFieldRow({
-                            lineNum: currentLineNum,
-                            row: line,
-                            job: this.job,
-                            fieldTreeId: this.fieldTreeId
-                        });
-
-                        if (error) {
-                            this._errored = true;
-                            this._errors.push(...error);
-                        }
-
-                        if (this._errored) {
-                            next();
-                            return;
-                        }
-
-                        // // TO_DO {
-                        //     curator-defined constraints for values
-                        // }
-
-                        bulkInsert.insert(dataEntry);
-                        this._numOfFields++;
-                        if (this._numOfFields > 999) {
-                            this._numOfFields = 0;
-                            await bulkInsert.execute((err: Error) => {
-                                if (err) { console.log((err as any).writeErrors[1].err); return; }
-                            });
-                            bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
-                        }
-                        next();
-                    }
-                }
-            });
-
-            uploadWriteStream.on('finish', async () => {
-                /* check for subject Id duplicate */
-                const set = new Set(fieldIdString);
-                if (set.size !== fieldIdString.length) {
-                    this._errors.push('Data Error: There is duplicate field id.');
-                    this._errored = true;
-                }
-
-                if (!this._errored) {
-                    await bulkInsert.execute((err: Error) => {
-                        console.log('FINSIHED LOADING');
-                        if (err) { console.log(err); return; }
-                    });
-                }
-
-                console.log('end');
-                resolve(this._errors);
-            });
-
-            parseStream.pipe(uploadWriteStream);
-        });
-    }
-}
-
-export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } { // tslint:disable-line
+export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number; row: string[]; job: IJobEntryForFieldCuration; fieldTreeId: string }): { error?: string[]; dataEntry: IFieldEntry } { // tslint:disable-line
     /* pure function */
     const error: string[] = [];
     const dataEntry_nouse: any = {};
@@ -207,4 +97,114 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
     };
 
     return ({ error: undefined, dataEntry });
+}
+
+export class FieldCurator {
+    private _errored: boolean; // tslint:disable-line
+    private _errors: string[]; // tslint:disable-line
+    private _numOfFields: number; // tslint:disable-line
+
+    constructor(
+        private readonly fieldCollection: Collection,
+        private readonly incomingWebStream: NodeJS.ReadableStream,
+        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
+        private readonly job: IJobEntryForFieldCuration,
+        private readonly fieldTreeId: string
+    ) {
+        this._errored = false;
+        this._errors = [];
+        this._numOfFields = 0;
+    }
+
+    /* return list of errors. [] if no error */
+    public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
+        /**
+         *     fieldId  fieldName   valueType   possibleValues  unit    path    numOfTimePoints numOfMeasurements   startingTimepoint   startingMeasurement notes
+         */
+        return new Promise((resolve) => {
+            console.log(`uploading for job ${this.job.id}`);
+            const fieldIdString: string[] = [];
+            let lineNum = 0;
+            let isHeader = true;
+            let bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
+            const csvparseStream = csvparse(this.parseOptions);
+            const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
+
+            csvparseStream.on('skip', (error) => {
+                lineNum++;
+                this._errored = true;
+                this._errors.push(error.toString());
+            });
+
+            const uploadWriteStream: NodeJS.WritableStream = new Writable({
+                objectMode: true,
+                write: async (line, _, next) => {
+                    if (isHeader) {
+                        if (line.length !== CORRECT_NUMBER_OF_COLUMN) {
+                            this._errored = true;
+                            this._errors.push(`Line ${lineNum}: expected ${CORRECT_NUMBER_OF_COLUMN} fields but got ${line.length}`);
+                        }
+                        isHeader = false;
+                        lineNum++;
+                        next();
+                    } else {
+                        const currentLineNum = ++lineNum;
+                        fieldIdString.push(line[0]);
+                        const { error, dataEntry } = processFieldRow({
+                            lineNum: currentLineNum,
+                            row: line,
+                            job: this.job,
+                            fieldTreeId: this.fieldTreeId
+                        });
+
+                        if (error) {
+                            this._errored = true;
+                            this._errors.push(...error);
+                        }
+
+                        if (this._errored) {
+                            next();
+                            return;
+                        }
+
+                        // // TO_DO {
+                        //     curator-defined constraints for values
+                        // }
+
+                        bulkInsert.insert(dataEntry);
+                        this._numOfFields++;
+                        if (this._numOfFields > 999) {
+                            this._numOfFields = 0;
+                            await bulkInsert.execute((err: Error) => {
+                                if (err) { console.log((err as any).writeErrors[1].err); return; }
+                            });
+                            bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
+                        }
+                        next();
+                    }
+                }
+            });
+
+            uploadWriteStream.on('finish', async () => {
+                /* check for subject Id duplicate */
+                const set = new Set(fieldIdString);
+                if (set.size !== fieldIdString.length) {
+                    this._errors.push('Data Error: There is duplicate field id.');
+                    this._errored = true;
+                }
+
+                if (!this._errored) {
+                    await bulkInsert.execute((err: Error) => {
+                        console.log('FINSIHED LOADING');
+                        if (err) { console.log(err); return; }
+                    });
+                }
+
+                console.log('end');
+                resolve(this._errors);
+            });
+
+            parseStream.pipe(uploadWriteStream);
+        });
+    }
 }

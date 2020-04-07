@@ -1,7 +1,7 @@
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import { IStudyDataVersion } from '@itmat/commons';
 import React from 'react';
 import { Query } from 'react-apollo';
-import { GET_STUDY_FIELDS } from 'itmat-commons/dist/graphql/fields';
+import { GET_STUDY_FIELDS } from '@itmat/commons';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 // number of patients
@@ -10,7 +10,7 @@ import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 // data curation pipeline
 // upload new sets of data
 
-export const FieldListSelectionSection: React.FunctionComponent<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+export const FieldListSelectionSection: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
 
     const { fieldTrees } = versions[selectedVersion];
 
@@ -26,7 +26,7 @@ export const FieldListSelectionSection: React.FunctionComponent<{ studyId: strin
     </>;
 };
 
-const FieldListSelectionState: React.FunctionComponent<{ studyId: string, fieldTreeIds: string[] }> = ({ studyId, fieldTreeIds }) => {
+const FieldListSelectionState: React.FunctionComponent<{ studyId: string; fieldTreeIds: string[] }> = ({ studyId, fieldTreeIds }) => {
     const [selectedTree, setSelectedTree] = React.useState(fieldTreeIds[0]);
 
     return <>

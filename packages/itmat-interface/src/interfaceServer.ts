@@ -5,6 +5,10 @@ import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
 import { Server } from './server/server';
 import { pubsub, subscriptionEvents } from './graphql/pubsub';
+import { Models } from '@itmat/commons';
+
+console.log('Coucou >', Models.UserModels.userTypes.ADMIN);
+console.log('Coucou >', Models.Field);
 
 class ITMATInterfaceServer extends Server {
 
@@ -39,12 +43,14 @@ class ITMATInterfaceServer extends Server {
                             data.updateDescription.updatedFields &&
                             data.updateDescription.updatedFields.status
                         ) {
-                            pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, { subscribeToJobStatusChange: {
-                                jobId: data.fullDocument.id,
-                                studyId: data.fullDocument.studyId,
-                                newStatus: data.fullDocument.status,
-                                errors: data.fullDocument.status === 'error' ? data.fullDocument.errors : null
-                            } });
+                            pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, {
+                                subscribeToJobStatusChange: {
+                                    jobId: data.fullDocument.id,
+                                    studyId: data.fullDocument.studyId,
+                                    newStatus: data.fullDocument.status,
+                                    errors: data.fullDocument.status === 'error' ? data.fullDocument.errors : null
+                                }
+                            });
                         }
                     });
 

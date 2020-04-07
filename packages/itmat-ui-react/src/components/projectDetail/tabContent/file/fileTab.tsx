@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
+import { GET_PROJECT } from '@itmat/commons';
 import { FileList } from '../../../reusable/fileList/fileList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import * as css from './tabContent.module.css';
 
-export const FileTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => {
+export const FileTabContent: React.FunctionComponent<{ studyId: string; projectId: string }> = ({ projectId }) => {
     return <div className={css.tab_page_wrapper}>
         <Subsection title="Files">
             <Query<any, any> query={GET_PROJECT} variables={{ projectId, admin: false }}>

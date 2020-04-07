@@ -1,12 +1,12 @@
 import { ApolloError } from 'apollo-server-express';
-import { IRole } from 'itmat-commons/dist/models/study';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { IRole } from '@itmat/commons';
+import { IUser } from '@itmat/commons';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
-import { task_required_permissions, permissions } from 'itmat-commons';
+import { task_required_permissions, permissions } from '@itmat/commons';
 
 
 export const permissionResolvers = {
@@ -15,11 +15,11 @@ export const permissionResolvers = {
     StudyOrProjectUserRole: {
         users: async (role: IRole): Promise<IUser[]> => {
             const listOfUsers = role.users;
-            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers }}, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
+            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
         }
     },
     Mutation: {
-        addRoleToStudyOrProject: async (parent: object, args: {studyId: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
+        addRoleToStudyOrProject: async (parent: object, args: { studyId: string; projectId?: string; roleName: string }, context: any, info: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { studyId, projectId, roleName } = args;
 
@@ -30,7 +30,7 @@ export const permissionResolvers = {
 
             /* check the requester has privilege */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                args.projectId ?  task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+                args.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
                 requester,
                 args.studyId,
                 args.projectId
@@ -52,7 +52,7 @@ export const permissionResolvers = {
             const result = await permissionCore.addRoleToStudyOrProject({ createdBy: requester.id, studyId: studyId!, projectId, roleName });
             return result;
         },
-        editRole: async (parent: object, args: {roleId: string, name?: string, userChanges?: { add: string[], remove: string[]}, permissionChanges?: { add: string[], remove: string[]}}, context: any, info: any): Promise<IRole> => {
+        editRole: async (parent: object, args: { roleId: string; name?: string; userChanges?: { add: string[]; remove: string[] }; permissionChanges?: { add: string[]; remove: string[] } }, context: any, info: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { roleId, name, permissionChanges, userChanges } = args;
 
@@ -63,7 +63,7 @@ export const permissionResolvers = {
 
             /* check the requester has privilege */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId?  task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
                 requester,
                 role.studyId,
                 role.projectId
@@ -104,7 +104,7 @@ export const permissionResolvers = {
             const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, name, permissionChanges, userChanges);
             return modifiedRole;
         },
-        removeRole: async (parent: object, args: {roleId: string}, context: any, info: any): Promise<IGenericResponse> => {
+        removeRole: async (parent: object, args: { roleId: string }, context: any, info: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
             const { roleId } = args;
 
@@ -115,7 +115,7 @@ export const permissionResolvers = {
 
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId?  task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
                 requester,
                 role.studyId,
                 role.projectId

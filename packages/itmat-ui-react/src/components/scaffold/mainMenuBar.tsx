@@ -1,8 +1,8 @@
-import { IProject } from 'itmat-commons/dist/models/study';
+import { IProject } from '@itmat/commons';
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { LOGOUT, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { LOGOUT, WHO_AM_I } from '@itmat/commons';
 import { Icons } from '../icons';
 import * as css from './scaffold.module.css';
 

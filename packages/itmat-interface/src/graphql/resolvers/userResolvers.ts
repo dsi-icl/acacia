@@ -1,9 +1,9 @@
 import { ApolloError, UserInputError } from 'apollo-server-express';
 import bcrypt from 'bcrypt';
-import { Models } from 'itmat-commons';
-import { IProject, IRole, IStudy } from 'itmat-commons/dist/models/study';
-import { IUser, userTypes } from 'itmat-commons/dist/models/user';
-import { Logger } from 'itmat-utils';
+import { Models } from '@itmat/commons';
+import { IProject, IRole, IStudy } from '@itmat/commons';
+import { IUser, userTypes } from '@itmat/commons';
+import { Logger } from '@itmat/utils';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
@@ -26,7 +26,7 @@ export const userResolvers = {
         }
     },
     User: {
-        access: async (user: IUser, arg: any, context: any): Promise<{ projects: IProject[], studies: IStudy[], id: string }> => {
+        access: async (user: IUser, arg: any, context: any): Promise<{ projects: IProject[]; studies: IStudy[]; id: string }> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* only admin can access this field */
@@ -43,8 +43,8 @@ export const userResolvers = {
 
             /* if requested user is not admin, find all the roles a user has */
             const roles: IRole[] = await db.collections!.roles_collection.find({ users: user.id, deleted: null }).toArray();
-            const init: { projects: string[], studies: string[] } = { projects: [], studies: [] };
-            const studiesAndProjectThatUserCanSee: { projects: string[], studies: string[] } = roles.reduce(
+            const init: { projects: string[]; studies: string[] } = { projects: [], studies: [] };
+            const studiesAndProjectThatUserCanSee: { projects: string[]; studies: string[] } = roles.reduce(
                 (a, e) => {
                     if (e.projectId) {
                         a.projects.push(e.projectId);
@@ -138,11 +138,11 @@ export const userResolvers = {
             }
 
             const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
+                username: string; type: Models.UserModels.userTypes; realName: string; email: string; emailNotificationsActivated: boolean; password: string; description: string; organisation: string;
             } = args.user;
 
             /* check email is valid form */
-            if (!/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
+            if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
                 throw new UserInputError('Email is not the right format.');
             }
 
@@ -181,7 +181,7 @@ export const userResolvers = {
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
+                id: string; username?: string; type?: Models.UserModels.userTypes; realName?: string; email?: string; emailNotificationsActivated?: boolean; password?: string; description?: string; organisation?: string;
             } = args.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
@@ -193,7 +193,7 @@ export const userResolvers = {
                 }
             }
             // if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
-                // throw new ApolloError('Non-admin users are not authorised to change user type.');
+            // throw new ApolloError('Non-admin users are not authorised to change user type.');
             // }
 
             const fieldsToUpdate: any = {
@@ -208,7 +208,7 @@ export const userResolvers = {
             };
 
             /* check email is valid form */
-            if (email && !/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
+            if (email && !/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
                 throw new UserInputError('User not updated: Email is not the right format.');
             }
 

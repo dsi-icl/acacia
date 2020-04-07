@@ -1,8 +1,8 @@
-import { IUserWithoutToken } from 'itmat-commons/dist/models/user';
+import { IUserWithoutToken } from '@itmat/commons';
 import * as React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { DELETE_USER, EDIT_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
+import { DELETE_USER, EDIT_USER, GET_USERS } from '@itmat/commons';
 import { Subsection } from '../reusable';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
@@ -68,17 +68,17 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
         >
             {(submit, { loading, error, data }) =>
                 <>
-                    <label>Username: <input type='text' value={inputs.username} onChange={e => { setInputs({ ...inputs, username: e.target.value }) }} /> </label><br /><br />
+                    <label>Username: <input type='text' value={inputs.username} onChange={e => { setInputs({ ...inputs, username: e.target.value }); }} /> </label><br /><br />
                     <label>Type:
-                    <select value={inputs.type} onChange={e => { setInputs({ ...inputs, type: e.target.value } as any); }}>
+                        <select value={inputs.type} onChange={e => { setInputs({ ...inputs, type: e.target.value } as any); }}>
                             <option value="STANDARD">System user</option>
                             <option value="ADMIN">System admin</option>
                         </select></label><br /><br />
-                    <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }) }} /> </label><br /><br />
-                    <label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }) }} /></label> <br /><br />
-                    <label>Email: <input type='text' value={inputs.email} onChange={e => { setInputs({ ...inputs, email: e.target.value }) }} /></label><br /><br />
-                    <label>Email Notification:  <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({ ...inputs, emailNotificationsActivated: e.target.checked }) }} /></label><br /><br />
-                    <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }) }} /></label> <br /><br />
+                    <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }); }} /> </label><br /><br />
+                    <label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }); }} /></label> <br /><br />
+                    <label>Email: <input type='text' value={inputs.email} onChange={e => { setInputs({ ...inputs, email: e.target.value }); }} /></label><br /><br />
+                    <label>Email Notification:  <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({ ...inputs, emailNotificationsActivated: e.target.checked }); }} /></label><br /><br />
+                    <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }); }} /></label> <br /><br />
                     <label>Organisation: <input type='text' value={inputs.organisation} onChange={e => setInputs({ ...inputs, organisation: e.target.value })} /> </label><br /><br />
                     <label>Created by (readonly): <input type='text' readOnly value={inputs.createdBy} /> </label><br /><br />
                     <div className={css.submit_cancel_button_wrapper}>
@@ -99,11 +99,11 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
 
                         {(deleteUser, { loading, error, data: UserDeletedData }) => {
                             if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
-                            if (error) return <p>{error.message}</p>
+                            if (error) return <p>{error.message}</p>;
                             return (
                                 <>
-                                    <label>Delete this user:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true) }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
-                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }) }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false) }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
+                                    <label>Delete this user:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
+                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }); }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
                                 </>
                             );
                         }}

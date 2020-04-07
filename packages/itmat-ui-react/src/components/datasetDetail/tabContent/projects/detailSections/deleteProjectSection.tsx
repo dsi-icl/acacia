@@ -1,11 +1,11 @@
-import { IProject } from 'itmat-commons/dist/models/study';
+import { IProject } from '@itmat/commons';
 import React from 'react';
 import { Mutation } from 'react-apollo';
 import { Redirect } from 'react-router';
-import { DELETE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
-import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { DELETE_PROJECT, GET_STUDY } from '@itmat/commons';
+import { WHO_AM_I } from '@itmat/commons';
 
-export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, projectId: string, projectName: string }> = ({ studyId, projectId, projectName }) => {
+export const DeleteProjectSection: React.FunctionComponent<{ studyId: string; projectId: string; projectName: string }> = ({ studyId, projectId, projectName }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputText, setInput] = React.useState('');
     const [error, setError] = React.useState('');
@@ -52,9 +52,8 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
                         } else {
                             deleteProject({ variables: { projectId } });
                         }
-                    }}
-                        style={{ display: 'inline-block', width: '30%' }}>Really delete!
-            </button>
+                    }} style={{ display: 'inline-block', width: '30%' }}>Really delete!
+                    </button>
             }
         </Mutation><button style={{ display: 'inline-block', width: '30%' }} className="button_grey" onClick={() => setIsExpanded(false)}>Cancel</button>
         <br />

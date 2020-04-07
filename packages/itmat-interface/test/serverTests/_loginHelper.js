@@ -2,8 +2,8 @@
 'use strict';
 const gql = require('graphql-tag');
 const { print } = require('graphql');
-const itmatCommons = require('itmat-commons');
-const {  LOGIN, LOGOUT } = itmatCommons.GQLRequests;
+const itmatCommons = require('@itmat/commons');
+const { LOGIN, LOGOUT } = itmatCommons.GQLRequests;
 
 function connectAdmin(agent) {
     return connectAgent(agent, 'admin', 'admin');

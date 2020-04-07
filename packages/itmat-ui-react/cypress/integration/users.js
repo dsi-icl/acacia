@@ -1,10 +1,10 @@
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
-const { DELETE_USER, CREATE_USER } = require('itmat-commons').GQLRequests;
+const { DELETE_USER, CREATE_USER } = require('@itmat/commons').GQLRequests;
 const { print } = require('graphql');
 
 
-describe('User management page', function() {
-    it('admin can create user (e2e)', function() {
+describe('User management page', function () {
+    it('admin can create user (e2e)', function () {
         /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
         cy.visit('/users');
@@ -16,7 +16,7 @@ describe('User management page', function() {
         cy.contains('testuser').should('not.exist');
 
         /* submitting the form */
-        const textinputs  = [
+        const textinputs = [
             { label: 'Username', value: 'testuser' },
             { label: 'Password', value: 'testpassword' },
             { label: 'Real name', value: 'Test User Chan' },
@@ -44,7 +44,7 @@ describe('User management page', function() {
         });
     });
 
-    it('admin can navigate to a user\'s detail page from main page', function() {
+    it('admin can navigate to a user\'s detail page from main page', function () {
         /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
@@ -96,7 +96,7 @@ describe('User management page', function() {
         });
     });
 
-    it('admin can delete user (e2e)', function() {
+    it('admin can delete user (e2e)', function () {
         /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
@@ -135,9 +135,9 @@ describe('User management page', function() {
             /* user should have feedback */
             cy.contains('User testinguser is deleted');
         });
-    }); 
+    });
 
-    it('admin can edit user (e2e)', function() {
+    it('admin can edit user (e2e)', function () {
         /* setup: login via API */
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
@@ -171,7 +171,7 @@ describe('User management page', function() {
 
             /* fill in the form */
             cy.get(':contains(Account Information) + div').within(() => {
-                const textinputs  = [
+                const textinputs = [
                     { label: 'Username', value: 'editedusername' },
                     { label: 'Password', value: 'test2password' },
                     { label: 'Real name', value: 'Random' },
@@ -193,7 +193,7 @@ describe('User management page', function() {
 
             /* cleanup: delete the user via API */
             cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
-            .its('body.data.deleteUser.successful').should('eq', true);
+                .its('body.data.deleteUser.successful').should('eq', true);
         });
-    }); 
+    });
 });

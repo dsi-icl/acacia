@@ -4,16 +4,16 @@ import { Subsection } from '../../../reusable';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import * as css from './tabContent.module.css';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY } from '@itmat/commons';
 
 export const AdminTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    const { data, loading } = useQuery(GET_STUDY, { variables: { studyId }});
-    if (loading) { return <LoadingBalls/>; }
+    const { data, loading } = useQuery(GET_STUDY, { variables: { studyId } });
+    if (loading) { return <LoadingBalls />; }
 
     return <div className={css.tab_page_wrapper_grid}>
         <div className={css.tab_page_wrapper + ' ' + css.main_page}>
             <Subsection title='Roles'>
-                <RoleControlSection studyId={studyId} roles={data.getStudy.roles}/>
+                <RoleControlSection studyId={studyId} roles={data.getStudy.roles} />
             </Subsection>
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.sub_page}>

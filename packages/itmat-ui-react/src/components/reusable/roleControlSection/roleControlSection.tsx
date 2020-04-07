@@ -1,15 +1,15 @@
-import { Models, permissions } from 'itmat-commons';
+import { Models, permissions } from '@itmat/commons';
 import * as React from 'react';
 import { Mutation, useQuery, useMutation } from 'react-apollo';
-import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
-import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from 'itmat-commons/src/graphql/permission';
-import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
+import { GET_USERS } from '@itmat/commons';
+import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from '@itmat/commons';
+import { GET_PROJECT } from '@itmat/commons';
 import { LoadingBalls } from '../icons/loadingBalls';
 import * as css from './roleControlSection.module.css';
 import { UserListPicker } from '../userSelectionList/userListPicker';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY } from '@itmat/commons';
 
-export const RoleControlSection: React.FunctionComponent<{ studyId: string, projectId?: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
+export const RoleControlSection: React.FunctionComponent<{ studyId: string; projectId?: string; roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
     return <div>
         {
             roles.map((el) => <OneRole key={el.id} role={el} availablePermissions={projectId ? Object.values(permissions.specific_project) : Object.values(permissions.specific_study)} />)
@@ -18,7 +18,7 @@ export const RoleControlSection: React.FunctionComponent<{ studyId: string, proj
     </div>;
 };
 
-export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availablePermissions: string[] }> = ({ role, availablePermissions }) => {
+export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole; availablePermissions: string[] }> = ({ role, availablePermissions }) => {
     const isStudyRole = role.projectId ? false : true;
     const { data: userData, loading: userFetchLoading } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
     const [removeRole, { loading: removeRoleLoading }] = useMutation(REMOVE_ROLE, { refetchQueries: [{ query: isStudyRole ? GET_STUDY : GET_PROJECT, variables: isStudyRole ? { studyId: role.studyId } : { projectId: role.projectId, admin: true } }] });
@@ -41,19 +41,19 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availa
             projectId={role.projectId}
             submitButtonString='Add user'
             availableUserList={userData.getUsers}
-            onClickAddButton={loadingAddUser ? () => { } : (studyId, projectId, user) => { addUserToRole({ variables: { roleId: role.id, userChanges: { add: [user.id], remove: [] } } }); }}
+            onClickAddButton={loadingAddUser ? () => { return; } : (studyId, projectId, user) => { addUserToRole({ variables: { roleId: role.id, userChanges: { add: [user.id], remove: [] } } }); }}
         >
-            {role.users.map((el) => <UserListPicker.User key={(el as any).id} user={el as any} onClickCross={loadingRemoveUser ? () => { } : (user) => removeUserFromRole({ variables: { roleId: role.id, userChanges: { add: [], remove: [user.id] } } })} />) as any}
+            {role.users.map((el) => <UserListPicker.User key={(el as any).id} user={el as any} onClickCross={loadingRemoveUser ? () => { return; } : (user) => removeUserFromRole({ variables: { roleId: role.id, userChanges: { add: [], remove: [user.id] } } })} />) as any}
         </UserListPicker.UserList>
         <br /><br />
     </div>;
 };
 
-export const AddRole: React.FunctionComponent<{ studyId: string, projectId?: string }> = ({ studyId, projectId }) => {
+export const AddRole: React.FunctionComponent<{ studyId: string; projectId?: string }> = ({ studyId, projectId }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputNameString, setInputNameString] = React.useState('');
 
-    const refetchQueries = projectId ? [{ query: GET_PROJECT, variables: { projectId, admin: true } }] : [{ query: GET_STUDY, variables: { studyId, admin: true } }]
+    const refetchQueries = projectId ? [{ query: GET_PROJECT, variables: { projectId, admin: true } }] : [{ query: GET_STUDY, variables: { studyId, admin: true } }];
 
     if (!isExpanded) { return <span className={css.add_new_role_button} onClick={() => setIsExpanded(true)}>Add new role</span>; }
     return <div className={css.add_new_role_section}>
@@ -73,7 +73,7 @@ export const AddRole: React.FunctionComponent<{ studyId: string, projectId?: str
     </div>;
 };
 
-const PermissionsControlPanel: React.FunctionComponent<{ roleId: string, availablePermissions: string[], originallySelectedPermissions: string[] }> = ({ roleId, availablePermissions, originallySelectedPermissions }) => {
+const PermissionsControlPanel: React.FunctionComponent<{ roleId: string; availablePermissions: string[]; originallySelectedPermissions: string[] }> = ({ roleId, availablePermissions, originallySelectedPermissions }) => {
     return <div className={css.permissions_section}>
         {availablePermissions.map((el) =>
             originallySelectedPermissions.includes(el) ?

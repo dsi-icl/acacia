@@ -1,7 +1,7 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models, permissions, task_required_permissions } from 'itmat-commons';
-import { IFile } from 'itmat-commons/dist/models/file';
-import { Logger } from 'itmat-utils';
+import { Models, task_required_permissions } from '@itmat/commons';
+import { IFile } from '@itmat/commons';
+import { Logger } from '@itmat/utils';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
@@ -9,12 +9,11 @@ import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 
-
 export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async (parent: object, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
+        uploadFile: async (parent: object, args: { fileLength?: number; studyId: string; file: Promise<{ stream: NodeJS.ReadableStream; filename: string }>; description: string }, context: any, info: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -26,7 +25,7 @@ export const fileResolvers = {
 
             const file = await args.file;
 
-            return new Promise<IFile>(async (resolve, reject) => {
+            return new Promise<IFile>((resolve, reject) => {
                 const stream: NodeJS.ReadableStream = (file as any).createReadStream();
                 const fileUri = uuid();
 
@@ -57,7 +56,7 @@ export const fileResolvers = {
                 });
 
                 try {
-                    await objStore.uploadFile(stream, args.studyId, fileUri);
+                    objStore.uploadFile(stream, args.studyId, fileUri);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }

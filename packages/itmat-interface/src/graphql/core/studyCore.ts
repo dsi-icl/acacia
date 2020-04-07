@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy } from 'itmat-commons/dist/models/study';
+import { IProject, IStudy } from '@itmat/commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -30,12 +30,14 @@ export class StudyCore {
         const existingStudies = await db.collections!.studies_collection.aggregate(
             [
                 { $match: { deleted: null } },
-                { $group:{
+                {
+                    $group: {
                         _id: '',
                         name: {
-                            $push : { $toLower: '$name' }
+                            $push: { $toLower: '$name' }
                         }
-                }},
+                    }
+                },
                 { $project: { name: 1 } }
             ]
         ).toArray();

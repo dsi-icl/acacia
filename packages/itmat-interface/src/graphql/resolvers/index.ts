@@ -7,7 +7,7 @@ import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
 import { ApolloError } from 'apollo-server-core';
 import { errorCodes } from '../errors';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { IUser } from '@itmat/commons';
 
 const modules = [
     studyResolvers,
@@ -30,7 +30,7 @@ const bounceNotLoggedInDecorator = (reducerFunction: any) => {
         const uncheckedFunctionWhitelist = ['login', 'whoAmI'];
         const requester: IUser = context.req.user;
         if (!requester) {
-            if (!(uncheckedFunctionWhitelist as any).includes(reducerFunction.name)){
+            if (!(uncheckedFunctionWhitelist as any).includes(reducerFunction.name)) {
                 throw new ApolloError(errorCodes.NOT_LOGGED_IN);
             }
         }

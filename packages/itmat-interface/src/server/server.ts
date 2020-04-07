@@ -1,8 +1,8 @@
-import { CustomError, IServerBaseConfig, ServerBase } from 'itmat-utils';
+import { CustomError, IServerBaseConfig, ServerBase } from '@itmat/utils';
 
 export interface IServerConfig extends IServerBaseConfig {
     bcrypt: {
-        saltround: number
+        saltround: number;
     };
 }
 

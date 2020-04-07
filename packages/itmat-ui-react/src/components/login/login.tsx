@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
-import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { LOGIN, WHO_AM_I } from '@itmat/commons';
 import * as css from './login.module.css';
 
 export const LoginBox: React.FunctionComponent = () => {

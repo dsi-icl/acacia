@@ -1,5 +1,5 @@
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
-import { Logger } from 'itmat-utils';
+import { IFieldEntry } from '@itmat/commons';
+import { Logger } from '@itmat/utils';
 import { Transform } from 'json2csv';
 import mongodb from 'mongodb';
 import { Readable } from 'stream';
@@ -40,7 +40,7 @@ export class ExportProcessor {
 
     public async startStreamParsing() {
         if (!this.fieldInfo) { throw new Error('Cannot create export file before fetching field info and setting output stream.'); }
-        let nextDocument: Object | null;
+        let nextDocument: Record<string, any> | null;
         while (nextDocument = await this.dataCursor.next()) {
             const flattenedData = this.formatDataIntoJSON(nextDocument);
             if (this.patientIdMap) {
@@ -51,7 +51,7 @@ export class ExportProcessor {
         this.writeOneLineToCSV(null);
     }
 
-    private formatDataIntoJSON(onePatientData: any): Object {
+    private formatDataIntoJSON(onePatientData: any): Record<string, any> {
         const metadata = {
             eid: onePatientData.m_eid,
             study: onePatientData.m_study
@@ -71,7 +71,7 @@ export class ExportProcessor {
         return ({ ...flattenData, ...metadata });
     }
 
-    private replacePatientId(flattenData: any): Object {
+    private replacePatientId(flattenData: any): Record<string, any> {
         let newId;
         try {
             newId = this.patientIdMap![flattenData.m_eid];
@@ -83,7 +83,7 @@ export class ExportProcessor {
         return flattenData;
     }
 
-    private writeOneLineToCSV(flattenedData: Object | null): void {
+    private writeOneLineToCSV(flattenedData: Record<string, any> | null): void {
         this.inputStream!.push(flattenedData);
     }
 

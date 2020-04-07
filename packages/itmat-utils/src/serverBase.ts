@@ -1,6 +1,6 @@
 export interface IServerBaseConfig {
     server: {
-        port: number
+        port: number;
     };
 }
 

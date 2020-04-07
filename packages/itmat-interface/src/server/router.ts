@@ -6,7 +6,7 @@ import express from 'express';
 import { Express, NextFunction, Request, Response } from 'express';
 import session from 'express-session';
 import http from 'http';
-import { CustomError, Logger } from 'itmat-utils';
+import { CustomError, Logger } from '@itmat/utils';
 import multer from 'multer';
 import passport from 'passport';
 import { db } from '../database/database';

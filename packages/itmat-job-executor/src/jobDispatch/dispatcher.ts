@@ -1,9 +1,9 @@
-import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntry } from '@itmat/commons';
 import { JobHandler } from '../jobHandlers/jobHandlerInterface';
 
 export class JobDispatcher {
     private _handlerCollection: {
-        [jobType: string]: () => Promise<JobHandler>
+        [jobType: string]: () => Promise<JobHandler>;
     };
 
     constructor() { // tslint:disable-line
@@ -20,7 +20,7 @@ export class JobDispatcher {
     }
 
     public async dispatch(job: IJobEntry<any>) {
-        console.log(this._handlerCollection, job.jobType)
+        console.log(this._handlerCollection, job.jobType);
         if (!this._handlerCollection[job.jobType]) {
             // set job to UNPROCESSED
             console.log('NO JOB HANDLER AVAILLABLE');

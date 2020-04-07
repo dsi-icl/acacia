@@ -1,4 +1,4 @@
-import { Models } from 'itmat-commons';
+import { Models } from '@itmat/commons';
 import { db } from '../database/database';
 
 export class UserLoginUtils {

@@ -1,9 +1,9 @@
 import { Switch } from 'antd';
 import 'antd/lib/switch/style/css';
-import { IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import { IStudy, IStudyDataVersion } from '@itmat/commons';
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
-import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from '@itmat/commons';
 import { InfoCircle } from '../../../reusable/icons/infoCircle';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
@@ -26,7 +26,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                 }
                 return <div>
                     <p>There is no data uploaded for this study yet.</p>
-                    <UploadNewData studyId={studyId} cancelButton={() => { }} />
+                    <UploadNewData studyId={studyId} cancelButton={() => { return; }} />
                 </div>;
             }}
         </Query>
@@ -34,7 +34,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
 };
 
 
-export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
+export const DataManagement: React.FunctionComponent<{ data: IStudy; showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
     const [selectedVersion, setSelectedVersion] = React.useState(data.currentDataVersion);
     const [addNewDataSectionShown, setAddNewDataSectionShown] = React.useState(false);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
