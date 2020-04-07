@@ -1,0 +1,314 @@
+import { db } from '../../src/database/database';
+import { MongoClient } from 'mongodb';
+import { permissions, task_required_permissions } from '@itmat/commons';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { setupDatabase } from '../../../itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import config from '../../config/config.sample.json';
+import { permissionCore } from '../../src/graphql/core/permissionCore';
+
+let mongodb;
+let mongoConnection;
+let mongoClient;
+
+afterAll(async () => {
+    await db.closeConnection();
+    await mongoConnection?.close();
+    await mongodb.stop();
+}, global.__ADJUSTED_TIMEOUT__);
+
+beforeAll(async () => { // eslint-disable-line no-undef
+    /* Creating a in-memory MongoDB instance for testing */
+    mongodb = new MongoMemoryServer();
+    const connectionString = await mongodb.getUri();
+    const database = await mongodb.getDbName();
+    await setupDatabase(connectionString, database);
+
+    /* Wiring up the backend server */
+    config.database.mongo_url = connectionString;
+    config.database.database = database;
+    await db.connect(config.database);
+
+    /* Connect mongo client (for test setup later / retrieve info later) */
+    mongoConnection = await MongoClient.connect(connectionString, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    });
+    mongoClient = mongoConnection.db(database);
+}, global.__ADJUSTED_TIMEOUT__);
+
+describe('PERMISSION CORE CLASS', () => {
+    describe('Check userHasTheNeccessaryPermission()', () => {
+        let admin;
+        let user;
+        let newUsers;
+        beforeAll(async () => {
+            /* setup: create new users to be tested on */
+            newUsers = [
+                {
+                    username: 'new_user_1',
+                    type: 'STANDARD',
+                    realName: 'real_name_1',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new1@user.io',
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
+                    id: 'new_user_id_1'
+                },
+                {
+                    username: 'new_user_2',
+                    type: 'STANDARD',
+                    realName: 'real_name_2',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new2@user.io',
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
+                    id: 'new_user_id_2'
+                },
+                {
+                    username: 'new_user_3',
+                    type: 'STANDARD',
+                    realName: 'real_name_3',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new3@user.io',
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
+                    id: 'new_user_id_3'
+                },
+                {
+                    username: 'new_user_4',
+                    type: 'STANDARD',
+                    realName: 'real_name_4',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new4@user.io',
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
+                    id: 'new_user_id_4'
+                },
+                {
+                    username: 'new_user_5',
+                    type: 'STANDARD',
+                    realName: 'real_name_5',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new5@user.io',
+                    description: 'I am a new user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
+                    id: 'new_user_id_5'
+                }
+            ];
+            await mongoClient.collection(config.database.collections.users_collection).insertMany(newUsers);
+
+            /* setup: first retrieve the generated user id */
+            const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
+            admin = result.filter(e => e.username === 'admin')[0];
+            user = result.filter(e => e.username === 'standardUser')[0];
+
+            /* setup: create roles to be tested on */
+            await mongoClient.collection(config.database.collections.roles_collection).insertMany([
+                // study001
+                //     role004 (Principle investigator)
+                //         |permissions.specific_study.specific_study_data_management,
+                //         |permissions.specific_study.specific_study_readonly_access,
+                //         |permissions.specific_study.specific_study_role_management,
+                //         |permissions.specific_study.specific_study_projects_management
+                //         |newUsers[3]
+                //     role003 (Data curator)
+                //         |permissions.specific_study.specific_study_data_management,
+                //         |newUsers[2]
+                //     project001
+                //         role001 (Project researchers)
+                //             |permissions.specific_project.specific_project_readonly_access
+                //             |user newUsers[0]
+                //     project002
+                //         role002 (Project researchers)
+                //             |permissions.specific_project.specific_project_readonly_access
+                //             |newUsers[1] newUsers[0]
+                // study002
+                //     project001
+                //         role005 (Project Manager)
+                //             |permissions.specific_project.specific_project_role_management,
+                //             |permissions.specific_project.specific_project_readonly_access
+                //             |user newUsers[2]
+                {
+                    id: 'role001',
+                    projectId: 'project001',
+                    studyId: 'study001',
+                    name: 'Project researchers',
+                    permissions: [
+                        permissions.specific_project.specific_project_readonly_access
+                    ],
+                    users: [user.id, newUsers[0].id],
+                    deleted: null
+                },
+                {
+                    id: 'role002',
+                    projectId: 'project002',
+                    studyId: 'study001',
+                    name: 'Project researchers',
+                    permissions: [
+                        permissions.specific_project.specific_project_readonly_access
+                    ],
+                    users: [newUsers[1].id, newUsers[0].id],
+                    deleted: null
+                },
+                {
+                    id: 'role003',
+                    projectId: undefined,
+                    studyId: 'study001',
+                    name: 'Data curator',
+                    permissions: [
+                        permissions.specific_study.specific_study_data_management,
+                    ],
+                    users: [newUsers[2].id],
+                    deleted: null
+                },
+                {
+                    id: 'role004',
+                    projectId: undefined,
+                    studyId: 'study001',
+                    name: 'Principle Investigator',
+                    permissions: [
+                        permissions.specific_study.specific_study_data_management,
+                        permissions.specific_study.specific_study_readonly_access,
+                        permissions.specific_study.specific_study_role_management,
+                        permissions.specific_study.specific_study_projects_management
+                    ],
+                    users: [newUsers[3].id],
+                    deleted: null
+                },
+                {
+                    id: 'role005',
+                    projectId: 'project001',
+                    studyId: 'study002',
+                    name: 'Project Manager',
+                    permissions: [
+                        permissions.specific_project.specific_project_role_management,
+                        permissions.specific_project.specific_project_readonly_access
+                    ],
+                    users: [user.id, newUsers[2].id],
+                    deleted: null
+                }
+            ]);
+        }, global.__ADJUSTED_TIMEOUT__);
+
+        async function testAllPermissions(user, studyId, projectId) {
+            return Promise.all([
+                permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.manage_study_roles,
+                    user,
+                    studyId,
+                    projectId
+                ),
+                permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.manage_study_data,
+                    user,
+                    studyId,
+                    projectId
+                ),
+                permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.manage_study_projects,
+                    user,
+                    studyId,
+                    projectId
+                ),
+                permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.access_study_data,
+                    user,
+                    studyId,
+                    projectId
+                ),
+                permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.access_project_data,
+                    user,
+                    studyId,
+                    projectId
+                ),
+                permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.manage_project_roles,
+                    user,
+                    studyId,
+                    projectId
+                )
+            ]);
+        }
+
+        function testUser(user) {
+            return Promise.all([
+                testAllPermissions(user, 'study001', 'project001'),
+                testAllPermissions(user, 'study001', 'project002'),
+                testAllPermissions(user, 'study001', undefined),
+                testAllPermissions(user, 'study002', 'project001'),
+                testAllPermissions(user, 'study002', undefined),
+            ]);
+        }
+
+        test('User belonging to two studies', async () => {
+            const result = await testUser(user);
+            expect(result).toEqual([
+                [false, false, false, false, true, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, true, true],
+                [false, false, false, false, false, false]
+            ]);
+        }, global.__ADJUSTED_TIMEOUT__);
+
+        test('User belonging to two projects', async () => {
+            const result = await testUser(newUsers[0]);
+            expect(result).toEqual([
+                [false, false, false, false, true, false],
+                [false, false, false, false, true, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false]
+            ]);
+        }, global.__ADJUSTED_TIMEOUT__);
+
+        test('User belonging to one project', async () => {
+            const result = await testUser(newUsers[1]);
+            expect(result).toEqual([
+                [false, false, false, false, false, false],
+                [false, false, false, false, true, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false]
+            ]);
+        }, global.__ADJUSTED_TIMEOUT__);
+
+        test('User belonging to one project and one study', async () => {
+            const result = await testUser(newUsers[2]);
+            expect(result).toEqual([
+                [false, true, false, true, true, false],
+                [false, true, false, true, true, false],
+                [false, true, false, true, true, false],
+                [false, false, false, false, true, true],
+                [false, false, false, false, false, false]
+            ]);
+        }, global.__ADJUSTED_TIMEOUT__);
+
+        test('User belonging to one study (PI)', async () => {
+            const result = await testUser(newUsers[3]);
+            expect(result).toEqual([
+                [true, true, true, true, true, true],
+                [true, true, true, true, true, true],
+                [true, true, true, true, true, true],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false]
+            ]);
+        }, global.__ADJUSTED_TIMEOUT__);
+    });
+});
