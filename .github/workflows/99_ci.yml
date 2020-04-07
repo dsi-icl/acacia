@@ -21,7 +21,7 @@ jobs:
     - name: Running linter
       run: yarn run lint
     - name: Running build
-      run: yarn run build
+      run: yarn run build --concurrency 1
     - name: Running tests
       run: yarn run test --concurrency 1
       env:
