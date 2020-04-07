@@ -6,7 +6,7 @@ import { LoginBox } from './components/login/login';
 import { Spinner } from './components/reusable/icons/spinner';
 import { MainMenuBar } from './components/scaffold/mainMenuBar';
 import { MainPanel } from './components/scaffold/mainPanel';
-import * as css from './components/scaffold/scaffold.module.css';
+import css from './components/scaffold/scaffold.module.css';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
 class App extends React.Component {

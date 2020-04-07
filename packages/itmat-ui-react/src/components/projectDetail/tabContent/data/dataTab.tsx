@@ -4,7 +4,7 @@ import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
-import * as css from './tabContent.module.css';
+import css from './tabContent.module.css';
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => {
