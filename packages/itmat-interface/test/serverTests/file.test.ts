@@ -24,38 +24,59 @@ let mongoConnection;
 let mongoClient;
 
 afterAll(async () => {
+    console.log('-17->');
     await db.closeConnection();
+    console.log('-18->', mongoConnection !== undefined);
     await mongoConnection?.close();
+    console.log('-19->', mongodb !== mongodb);
     await mongodb.stop();
+    console.log('-20->');
 }, global.__ADJUSTED_TIMEOUT__);
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
     mongodb = new MongoMemoryServer();
+    console.log('-1->');
     const connectionString = await mongodb.getUri();
+    console.log('-2->');
     const database = await mongodb.getDbName();
+    console.log('-3->');
     await setupDatabase(connectionString, database);
 
+    console.log('-4->');
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
+    console.log('-5->', config.database.mongo_url);
     config.database.database = database;
+    console.log('-6->', config.database.database);
     await db.connect(config.database);
+    console.log('-7->');
     await objStore.connect(config.objectStore);
+    console.log('-8->');
     const router = new Router();
 
+    console.log('-9->');
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString, {
         useNewUrlParser: true,
         useUnifiedTopology: true
     });
+
+    console.log('-10->', mongoConnection !== undefined);
     mongoClient = mongoConnection.db(database);
+    console.log('-11->', mongoClient !== undefined);
 
     /* Connecting clients for testing later */
     app = router.getApp();
+    console.log('-12->');
     admin = request.agent(app);
+    console.log('-13->');
     user = request.agent(app);
+    console.log('-14->');
     await connectAdmin(admin);
+    console.log('-15->');
     await connectUser(user);
+    console.log('-16->');
 }, global.__ADJUSTED_TIMEOUT__);
 
 describeSkip('FILE API', () => {
