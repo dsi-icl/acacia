@@ -12,7 +12,7 @@
     "scripts": {
         "start": "compile-scripts start --server",
         "build": "compile-scripts build --server",
-        "test": "compile-scripts test --env=own --watchAll=false --color --no-cache --verbose --forceExit --detectOpenHandles",
+        "test": "compile-scripts test --env=own --watchAll=false -i --color --no-cache --verbose --forceExit --detectOpenHandles",
         "test:mutation": "stryker run ./config/stryker.config.js",
         "prepublishOnly": "yarn run build",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",

@@ -16,7 +16,7 @@
         "commons"
     ],
     "scripts": {
-        "test": "compile-scripts test --watchAll=false --color --no-cache --verbose --forceExit --detectOpenHandles",
+        "test": "compile-scripts test --watchAll=false -i --color --no-cache --verbose --forceExit --detectOpenHandles",
         "test:mutation": "stryker run ./config/stryker.config.js",
         "lint": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src",
         "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx ./config ./src --fix",
