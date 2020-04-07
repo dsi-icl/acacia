@@ -12,8 +12,15 @@ import { MongoClient } from 'mongodb';
 import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE, permissions } from '@itmat/commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '../../../itmat-utils/src/databaseSetup/collectionsAndIndexes';
-import config from '../../config/config.sample.json';
+import configBase from '../../config/config.sample.json';
 
+const config = {
+    ...configBase,
+    objectStore: {
+        ...configBase.objectStore,
+        port: global.__MINIO_PORT__
+    }
+};
 const describeSkip = global.__DOCKER_SUPPORT__ ? describe : describe.skip;
 
 let app;
@@ -50,8 +57,10 @@ beforeAll(async () => { // eslint-disable-line no-undef
     config.database.database = database;
     console.log('-6->', config.database.database);
     await db.connect(config.database);
-    console.log('-7->');
-    await objStore.connect(config.objectStore);
+    console.log('-7->', config.objectStore);
+    await objStore.connect(config.objectStore).catch(err => {
+        console.error(err);
+    });
     console.log('-8->');
     const router = new Router();
 
