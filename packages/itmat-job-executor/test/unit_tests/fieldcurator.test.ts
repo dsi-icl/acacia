@@ -1,5 +1,7 @@
 import { processFieldRow, FieldCurator } from '../../src/curation/FieldCurator';
 import fs from 'fs';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
+import {stub} from './_stubHelper';
 
 describe('Unit tests for processFieldRow function', () => {
     const templateParams = {
@@ -17,9 +19,9 @@ describe('Unit tests for processFieldRow function', () => {
     };
 
     it('processFieldRow function correctly parse data row', () => {
-        const { error, dataEntry } = processFieldRow({ ...templateParams, row: [
+        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
             '42', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
-        ]});
+        ]}));
         expect(error).toBeUndefined();
         expect(dataEntry.id).toBeDefined();
         expect(typeof dataEntry.id).toBe('string');
@@ -44,9 +46,9 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function detects necessary fields that are empty', () => {
-        const { error, dataEntry } = processFieldRow({ ...templateParams, row: [
+        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
             '42', '', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '', '1', '1', '1', 'Sex / Gender'
-        ] });
+        ] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(2);
         expect(error[0]).toBe("Line 22 column 2: Field Name cannot be empty.");
@@ -55,9 +57,9 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function detects uneven fields', () => {
-        const { error, dataEntry } = processFieldRow({ ...templateParams, row: [
+        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
             '42', 'Fieldname', 'c', 'Demographic>Baseline', '3', '1', '1', '1', 'Sex / Gender'
-        ] });
+        ] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
         expect(error[0]).toBe("Line 22: Uneven field Number; expected 11 fields but got 9.");
@@ -65,9 +67,9 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function requires possibleValues if valueType is "C"', () => {
-        const { error, dataEntry } = processFieldRow({ ...templateParams, row: [
+        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
             '42', 'Gender', 'c', '', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
-        ] });
+        ] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
         expect(error[0]).toBe('Line 22 column 4: "Possible values" cannot be empty if value type is categorical.');
@@ -75,9 +77,9 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function catches unparsable entries for supposed number', () => {
-        const { error, dataEntry } = processFieldRow({ ...templateParams, row: [
+        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
             'fsl3', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1a', 'b1', '1', '1', 'Sex / Gender'
-        ] });
+        ] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(3);
         expect(error[0]).toBe(`Line 22 column 1: Cannot parse field ID as number.`);
@@ -87,9 +89,9 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function catches invalid value type', () => {
-        const { error, dataEntry } = processFieldRow({ ...templateParams, row: [
+        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
             '42', 'Gender', 'O', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
-        ] });
+        ] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
         expect(error[0]).toBe('Line 22 column 3: Invalid value type "O": use "c" for categorical, "i" for integer, "d" for decimal, "b" for boolean and "t" for free text.');
@@ -132,18 +134,19 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator uploads csv file < 1000 fields okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersionId: 'mockDataVersionId',
+                tag: 'mockTag'
+            }
+        });
         const fieldcurator = new FieldCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag'
-                }
-            },
+            jobEntry,
             'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
@@ -175,18 +178,19 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator uploads csv file > 1000 fields okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_1000.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersionId: 'mockDataVersionId',
+                tag: 'mockTag'
+            }
+        })
         const fieldcurator = new FieldCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag'
-                }
-            },
+            jobEntry,
             'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
@@ -218,18 +222,19 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches duplicate fieldId before first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error1.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersionId: 'mockDataVersionId',
+                tag: 'mockTag'
+            }
+        });
         const fieldcurator = new FieldCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag'
-                }
-            },
+            jobEntry,
             'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
@@ -261,18 +266,19 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches duplicate fieldId after first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error2.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersionId: 'mockDataVersionId',
+                tag: 'mockTag'
+            }
+        });
         const fieldcurator = new FieldCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag'
-                }
-            },
+            jobEntry,
             'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
@@ -304,18 +310,19 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error3.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersionId: 'mockDataVersionId',
+                tag: 'mockTag'
+            }
+        });
         const fieldcurator = new FieldCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag'
-                }
-            },
+            jobEntry,
             'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
@@ -347,18 +354,19 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error4.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersionId: 'mockDataVersionId',
+                tag: 'mockTag'
+            }
+        });
         const fieldcurator = new FieldCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersionId: 'mockDataVersionId',
-                    tag: 'mockTag'
-                }
-            },
+            jobEntry,
             'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
@@ -390,18 +398,19 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error5.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const fieldcurator = new FieldCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
 

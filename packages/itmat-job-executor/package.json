@@ -58,8 +58,8 @@
     "jest": {
         "globals": {
             "ts-jest": {
-                "diagnostics": {
-                    "warnOnly": true
+                "tsConfig": {
+                    "strictNullChecks": false
                 }
             }
         },
