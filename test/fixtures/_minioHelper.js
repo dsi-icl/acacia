@@ -14,7 +14,7 @@ module.exports = {
                     crossSpawn.sync('docker', ['--version'], { stdio: 'inherit' });
                     const result = crossSpawn.sync('docker', ['pull', 'minio/minio:latest'], { stdio: 'inherit' });
                     if (result.error) {
-                        console.warn(chalk.bgYellowBright(chalk.black(' WARNING ')), chalk.yellow('We coult not execute. Some tests will not be run.'));
+                        console.warn(chalk.bgYellowBright(chalk.black(' WARNING ')), chalk.yellow('We coult not execute docker. Some tests will not be run.'));
                         return reject();
                     }
                     console.log(`Bringing Container on port ${port}...`);

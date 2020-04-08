@@ -14,7 +14,7 @@
         "compile": "tsc -p tsconfig.build.json",
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
         "prepublishOnly": "npm run build",
-        "test": "jest --color --coverage",
+        "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
@@ -38,6 +38,7 @@
     "jest": {
         "transform": {
             "^.+\\.(ts|js)$": "ts-jest"
-        }
+        },
+        "testEnvironment": "<rootDir>/../../test/fixtures/_minioJestEnv"
     }
 }
