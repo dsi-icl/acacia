@@ -61,7 +61,7 @@
         "jest": "25.1.0",
         "mongodb-memory-server": "6.2.4",
         "node-fetch": "2.6.0",
-        "mongodb-memory-server": "6.3.3",
+        "mongodb-memory-server": "6.5.2",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
