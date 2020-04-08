@@ -38,5 +38,3 @@ export function disconnectAgent(agent) {
             return reject();
         }).catch(() => null));
 }
-
-export default { connectAgent, connectAdmin, connectUser, disconnectAgent };

@@ -20,4 +20,3 @@ import * as subscription from './subscription';
 export * from './subscription';
 
 export const GQLRequests = { ...subscription, ...appUsers, ...curation, ...fields, ...files, ...permission, ...projects, ...query, ...study, ...user };
-export default GQLRequests;
