@@ -11,7 +11,7 @@ try {
 } catch (e) {
     if (process.platform === 'darwin' || process.platform === 'win32') {
         console.log(chalk.yellow('WARNING: Docker not found. If this is Windows or MacOS, only tests that do not require docker will be run. See linux for all tests.'));
-        child_process.execSync('npm run jest --color --coverage ./test/serverTests/job.test.js ./test/serverTests/permission.test.js ./test/serverTests/study.test.js ./test/serverTests/users.test.js ./test/unitTests/permissionCore.test.js', { stdio: 'inherit'});
+        child_process.execSync('npm run jest --color --coverage ./test/serverTests/job.test.ts ./test/serverTests/permission.test.ts ./test/serverTests/study.test.ts ./test/serverTests/users.test.ts ./test/unitTests/permissionCore.test.ts', { stdio: 'inherit' });
         process.exit(0);
     }
     console.error(chalk.red('ERROR SETTING UP TESTS: Docker not found. Object store integration tests require docker.'));
