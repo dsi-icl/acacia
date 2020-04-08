@@ -1,7 +1,7 @@
 import { IProject } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
-import * as css from './sections.module.css';
+import css from './sections.module.css';
 export const ProjectSection: React.FunctionComponent<{ study?: boolean, projects: IProject[] }> = ({ study, projects }) => {
     if (projects.length === 0) {
         return <p>{`User has not been added to any ${study ? 'study' : 'project'}.`}</p>;

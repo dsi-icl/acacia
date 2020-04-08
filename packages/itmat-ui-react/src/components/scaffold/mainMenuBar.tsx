@@ -4,7 +4,7 @@ import { Mutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import { Icons } from '../icons';
-import * as css from './scaffold.module.css';
+import css from './scaffold.module.css';
 
 export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({ projects }) => {
     return (
