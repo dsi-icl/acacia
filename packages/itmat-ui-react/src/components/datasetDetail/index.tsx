@@ -3,7 +3,7 @@ import { Query } from 'react-apollo';
 import { NavLink, Route, Switch } from 'react-router-dom';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
-import * as css from './projectPage.module.css';
+import css from './projectPage.module.css';
 import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent } from './tabContent';
 import { FileRepositoryTabContent } from './tabContent/files/fileTab';
 

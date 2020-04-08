@@ -4,7 +4,7 @@ import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
 import { FileList } from '../../../reusable/fileList/fileList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
-import * as css from './tabContent.module.css';
+import css from './tabContent.module.css';
 
 export const FileTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => {
     return <div className={css.tab_page_wrapper}>
