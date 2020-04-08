@@ -1,5 +1,5 @@
-const { processFieldRow, FieldCurator } = require('../../src/curation/FieldCurator');
-const fs = require('fs');
+import { processFieldRow, FieldCurator } from '../../src/curation/FieldCurator';
+import fs from 'fs';
 
 describe('Unit tests for processFieldRow function', () => {
     const templateParams = {

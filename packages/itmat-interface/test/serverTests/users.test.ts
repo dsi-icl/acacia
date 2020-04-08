@@ -1,15 +1,15 @@
-const request = require('supertest');
-const { print } = require('graphql');
-const { connectAdmin, connectUser, connectAgent } = require('./_loginHelper');
-const { db } = require('../../src/database/database');
-const { Router } = require('../../src/server/router');
-const { errorCodes } = require('../../src/graphql/errors');
-const { MongoClient } = require('mongodb');
-const itmatCommons = require('itmat-commons');
+import request from 'supertest';
+import { print } from 'graphql';
+import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
+import { db } from '../../src/database/database';
+import { Router } from '../../src/server/router';
+import { errorCodes } from '../../src/graphql/errors';
+import { MongoClient } from 'mongodb';
+import itmatCommons from 'itmat-commons';
 const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER } = itmatCommons.GQLRequests;
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const { default: setupDatabase } = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
-const config = require('../../config/config.sample.json');
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import config from '../../config/config.sample.json';
 const { Models } = itmatCommons;
 
 let app;

@@ -1,5 +1,5 @@
-const { processDataRow, processHeader, CSVCurator } = require('../../src/curation/CSVCurator');
-const fs = require('fs');
+import { processDataRow, processHeader, CSVCurator } from '../../src/curation/CSVCurator';
+import fs from 'fs';
 
 describe('Unit tests for processHeader function', () => {
     it('processHeader function weeds out syntax error', () => {

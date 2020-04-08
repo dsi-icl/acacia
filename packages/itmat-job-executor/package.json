@@ -56,6 +56,13 @@
         "webpack-cli": "3.3.11"
     },
     "jest": {
+        "globals": {
+            "ts-jest": {
+                "diagnostics": {
+                    "warnOnly": true
+                }
+            }
+        },
         "transform": {
             "^.+\\.(ts|js)?$": "ts-jest"
         },

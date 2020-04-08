@@ -1,8 +1,9 @@
 // originally from dsi-icl/optimise-core
 'use strict';
-const gql = require('graphql-tag');
-const { print } = require('graphql');
-const itmatCommons = require('itmat-commons');
+import gql from 'graphql-tag';
+import { print } from 'graphql';
+import itmatCommons from 'itmat-commons';
+
 const { LOGIN, LOGOUT } = itmatCommons.GQLRequests;
 
 export function connectAdmin(agent) {
