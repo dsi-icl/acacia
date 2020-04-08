@@ -4,7 +4,13 @@
         "src/**/*"
     ],
     "compilerOptions": {
-        "declaration": false,
-        "allowJs": true
+        "lib": [
+            "esnext"
+        ],
+        "allowJs": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "skipLibCheck": true,
+        "declaration": false
     }
 }

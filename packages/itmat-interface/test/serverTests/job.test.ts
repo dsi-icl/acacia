@@ -11,7 +11,7 @@ const { MongoClient } = require('mongodb');
 const itmatCommons = require('itmat-commons');
 const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE, CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
+const { default: setupDatabase } = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
 const config = require('../../config/config.sample.json');
 const { permissions } = itmatCommons;
 
@@ -104,7 +104,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'test_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toBeUndefined();
@@ -138,7 +138,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: undefined,
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toBeUndefined();
@@ -171,7 +171,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);
@@ -186,16 +186,16 @@ describe('JOB API', () => {
         /* setup: creating a privileged user */
         const username = uuid();
         const authorisedUserProfile = {
-            username, 
-            type: 'STANDARD', 
-            realName: `${username}_realname`, 
-            password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-            createdBy: 'admin', 
-            email: `${username}@user.io`, 
+            username,
+            type: 'STANDARD',
+            realName: `${username}_realname`,
+            password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+            createdBy: 'admin',
+            email: `${username}@user.io`,
             description: 'I am a new user.',
-            emailNotificationsActivated: true, 
-            organisation:  'DSI',
-            deleted: null, 
+            emailNotificationsActivated: true,
+            organisation: 'DSI',
+            deleted: null,
             id: `new_user_id_${username}`
         };
         await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -225,7 +225,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toBeUndefined();
@@ -259,7 +259,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);
@@ -278,7 +278,7 @@ describe('JOB API', () => {
                 studyId: 'fake_study_id',
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);
@@ -297,7 +297,7 @@ describe('JOB API', () => {
                 studyId: 'fake_study_id',
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);
@@ -316,7 +316,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'just_a_tag',
                 version: '2-3.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);
