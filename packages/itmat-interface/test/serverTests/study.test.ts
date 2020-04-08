@@ -85,12 +85,12 @@ describe('STUDY API', () => {
             expect(resWhoAmI.status).toBe(200);
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
-                username: 'admin',
-                type: Models.UserModels.userTypes.ADMIN,
-                realName: 'admin',
-                createdBy: 'chon',
+                username: 'admin', 
+                type: Models.UserModels.userTypes.ADMIN, 
+                realName: 'admin', 
+                createdBy: 'chon', 
                 organisation: 'DSI',
-                email: 'admin@user.io',
+                email: 'admin@user.io', 
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -136,7 +136,7 @@ describe('STUDY API', () => {
             /* cleanup: delete study */
             await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
-
+        
         test('Create study that violate unique name constraint (case insensitive) (admin)', async () => {
             const studyName = uuid();
             const newStudy = {
@@ -200,12 +200,12 @@ describe('STUDY API', () => {
             expect(resWhoAmI.status).toBe(200);
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
-                username: 'admin',
-                type: Models.UserModels.userTypes.ADMIN,
-                realName: 'admin',
-                createdBy: 'chon',
+                username: 'admin', 
+                type: Models.UserModels.userTypes.ADMIN, 
+                realName: 'admin', 
+                createdBy: 'chon', 
                 organisation: 'DSI',
-                email: 'admin@user.io',
+                email: 'admin@user.io', 
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -213,11 +213,11 @@ describe('STUDY API', () => {
                     projects: [],
                     studies: [{
                         id: newStudy.id,
-                        name: studyName
+                        name: studyName 
                     }]
                 }
             });
-
+            
             /* test */
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_STUDY),
@@ -237,12 +237,12 @@ describe('STUDY API', () => {
             expect(resWhoAmIAfter.status).toBe(200);
             expect(resWhoAmIAfter.body.data.errors).toBeUndefined();
             expect(resWhoAmIAfter.body.data.whoAmI).toEqual({
-                username: 'admin',
-                type: Models.UserModels.userTypes.ADMIN,
-                realName: 'admin',
-                createdBy: 'chon',
+                username: 'admin', 
+                type: Models.UserModels.userTypes.ADMIN, 
+                realName: 'admin', 
+                createdBy: 'chon', 
                 organisation: 'DSI',
-                email: 'admin@user.io',
+                email: 'admin@user.io', 
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -270,7 +270,7 @@ describe('STUDY API', () => {
             /* test */
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_STUDY),
-                variables: { studyId: newStudy.id }
+                variables: { studyId: newStudy.id } 
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
@@ -324,7 +324,7 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
     });
-
+    
     describe('MANIPULATING PROJECTS EXISTENCE', () => {
         let setupStudy;
         beforeEach(async () => {
@@ -361,7 +361,7 @@ describe('STUDY API', () => {
                 createdBy: adminId,
                 patientMapping: {},
                 name: projectName,
-                approvedFields: {},
+                approvedFields: {}, 
                 approvedFiles: [],
                 lastModified: createdProject.lastModified,
                 deleted: null
@@ -396,16 +396,16 @@ describe('STUDY API', () => {
             /* setup: creating a privileged user */
             const username = uuid();
             const authorisedUserProfile = {
-                username,
-                type: 'STANDARD',
-                realName: `${username}_realname`,
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                createdBy: 'admin',
-                email: `${username}@user.io`,
+                username, 
+                type: 'STANDARD', 
+                realName: `${username}_realname`, 
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                createdBy: 'admin', 
+                email: `${username}@user.io`, 
                 description: 'I am a new user.',
-                emailNotificationsActivated: true,
-                organisation: 'DSI',
-                deleted: null,
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
                 id: `new_user_id_${username}`
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -446,7 +446,7 @@ describe('STUDY API', () => {
                 createdBy: authorisedUserProfile.id,
                 patientMapping: {},
                 name: projectName,
-                approvedFields: {},
+                approvedFields: {}, 
                 approvedFiles: [],
                 lastModified: createdProject.lastModified,
                 deleted: null
