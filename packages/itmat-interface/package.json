@@ -11,9 +11,7 @@
     "scripts": {
         "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
         "build": "npm run clean && npm run compile",
-        "test-files": "jest --color --coverage",
-        "test": "node ./test/setup-and-test.js",
-        "jest": "jest",
+        "test": "jest --color --coverage --runInBand",
         "clean": "rimraf -rf ./build",
         "compile": "webpack --config ./config/webpack.config.js",
         "prepublishOnly": "npm run build"
@@ -57,7 +55,9 @@
         "chalk": "^4.0.0",
         "cors": "2.8.5",
         "cross-env": "7.0.2",
+        "cross-spawn": "7.0.2",
         "eslint-plugin-typescript": "0.14.0",
+        "get-port": "5.1.1",
         "jest": "25.1.0",
         "mongodb-memory-server": "6.2.4",
         "node-fetch": "2.6.0",

@@ -1,15 +1,41 @@
 const { ObjectStore } = require('../src/objStore');
+const { minioContainerSetup, minioContainerTeardown } = require('../../../test/fixtures/_minioHelper');
 const path = require('path');
 const fs = require('fs');
 
 const ACCESS_KEY = 'minioadmin';
 const SECRET_KEY = 'minioadmin';
 const HOST = 'localhost';
-const PORT = 9000;
+let PORT;
+let minioContainerName;
+
+afterAll(async () => {
+    if (minioContainerName)
+        await minioContainerTeardown(minioContainerName)
+});
+
+beforeAll(async () => { // eslint-disable-line no-undef
+    const containerSetup = await minioContainerSetup().catch(() => {
+        test = test.skip;
+    });
+    if (containerSetup) {
+        const [minioContainer, minioPort] = containerSetup;
+        minioContainerName = minioContainer;
+        PORT = minioPort;
+    }
+}, 10000);
 
 describe('OBJECT STORE CLASS TESTS', () => {
+
+    if (!minioContainerName) test('Docker is not present', () => {
+        expect(true).toBe(true);
+    })
+
     let client;
-    beforeEach(async () => {
+    if (minioContainerName) beforeEach(async () => {
+        console.log('test === test.skip', test === test.skip);
+        if (test === test.skip)
+            return;
         client = new ObjectStore();
         await client.connect({
             host: HOST,
@@ -20,11 +46,11 @@ describe('OBJECT STORE CLASS TESTS', () => {
         });
     });
 
-    test('Connect to store', async () => {
+    if (minioContainerName) test('Connect to store', async () => {
         const objstore = new ObjectStore();
         const connectresult = await objstore.connect({
             host: HOST,
-            port: 9000,
+            port: PORT,
             accessKey: ACCESS_KEY,
             secretKey: SECRET_KEY,
             useSSL: false
@@ -32,7 +58,7 @@ describe('OBJECT STORE CLASS TESTS', () => {
         expect(connectresult).toEqual([]);
     });
 
-    test('Upload file where studyId bucket doesnt exist yet', async () => {
+    if (minioContainerName) test('Upload file where studyId bucket doesnt exist yet', async () => {
         const uploadResult = await client.uploadFile(
             fs.createReadStream(path.join(__dirname, 'files/fakefile.txt')),
             'fakeStudy1',
@@ -41,7 +67,7 @@ describe('OBJECT STORE CLASS TESTS', () => {
         expect(typeof uploadResult).toBe('string');
     });
 
-    test('Upload file where studyId bucket already exists', async () => {
+    if (minioContainerName) test('Upload file where studyId bucket already exists', async () => {
         await client.uploadFile(
             fs.createReadStream(path.join(__dirname, 'files/fakefile.txt')),
             'fakeStudy2',
@@ -56,7 +82,7 @@ describe('OBJECT STORE CLASS TESTS', () => {
         expect(typeof uploadResult).toBe('string');
     });
 
-    test('Upload file whose name is duplicated', async () => {
+    if (minioContainerName) test('Upload file whose name is duplicated', async () => {
         await client.uploadFile(
             fs.createReadStream(path.join(__dirname, 'files/fakefile2.txt')),
             'fakeStudy3',
@@ -78,7 +104,7 @@ describe('OBJECT STORE CLASS TESTS', () => {
         expect(error.toString()).toBe('Error: File "jkfljsdkfjij042rjio2-fi0-ds9a" of study "fakeStudy3" already exists.');
     });
 
-    test('Download file', async () => {
+    if (minioContainerName) test('Download file', async () => {
         await client.uploadFile(
             fs.createReadStream(path.join(__dirname, 'files/fakefile2.txt')),
             'fakeStudy3',

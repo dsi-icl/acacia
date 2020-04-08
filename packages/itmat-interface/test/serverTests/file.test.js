@@ -1,6 +1,7 @@
 const request = require('supertest');
 const { print } = require('graphql');
 const { connectAdmin, connectUser, connectAgent } = require('./_loginHelper');
+const { minioContainerSetup, minioContainerTeardown } = require('../../../../test/fixtures/_minioHelper');
 const { db } = require('../../src/database/database');
 const { objStore } = require('../../src/objStore/objStore');
 const { Router } = require('../../src/server/router');
@@ -22,14 +23,27 @@ let admin;
 let user;
 let mongoConnection;
 let mongoClient;
+let minioContainerName;
+let contextTest = test;
 
 afterAll(async () => {
     await db.closeConnection();
     await mongoConnection.close();
     await mongodb.stop();
+    if (minioContainerName)
+        await minioContainerTeardown(minioContainerName)
 });
 
 beforeAll(async () => { // eslint-disable-line no-undef
+    const containerSetup = await minioContainerSetup().catch(() => {
+        contextTest = test.skip;
+    });
+    if (containerSetup) {
+        const [minioContainer, minioPort] = containerSetup;
+        minioContainerName = minioContainer;
+        config.objectStore.port = minioPort;
+    }
+    
     /* Creating a in-memory MongoDB instance for testing */
     mongodb = new MongoMemoryServer();
     const connectionString = await mongodb.getUri();
@@ -56,18 +70,23 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
-});
+}, 10000);
 
 describe('FILE API', () => {
+
+    if (!minioContainerName) test('Docker is not present', () => {
+        expect(true).toBe(true);
+    })
+
     let adminId;
 
-    beforeAll(async () => {
+    if (minioContainerName) beforeAll(async () => {
         /* setup: first retrieve the generated user id */
         const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
     });
 
-    describe('UPLOAD AND DOWNLOAD FILE', () => {
+    if (minioContainerName) describe('UPLOAD AND DOWNLOAD FILE', () => {
         describe('UPLOAD FILE', () => {
             /* note: a new study is created and a special authorised user for study permissions */
             let createdStudy;
@@ -125,7 +144,7 @@ describe('FILE API', () => {
                 await connectAgent(authorisedUser, username, 'admin');
             });
 
-            test('Upload file to study (admin)', async () => { 
+            contextTest('Upload file to study (admin)', async () => { 
                 /* test: upload file */
                 const res = await admin.post('/graphql')
                     .field('operations', JSON.stringify({
@@ -155,7 +174,7 @@ describe('FILE API', () => {
                 });
             });
 
-            test('Upload file to study (user with no privilege) (should fail)', async () => {
+            contextTest('Upload file to study (user with no privilege) (should fail)', async () => {
                 /* test: upload file */
                 const res = await user.post('/graphql')
                     .field('operations', JSON.stringify({
@@ -176,7 +195,7 @@ describe('FILE API', () => {
                 expect(res.body.data.uploadFile).toEqual(null);
             });
 
-            test('Upload file to study (user with privilege)', async () => {
+            contextTest('Upload file to study (user with privilege)', async () => {
                 /* test: upload file */
                 const res = await authorisedUser.post('/graphql')
                     .field('operations', JSON.stringify({
@@ -206,7 +225,7 @@ describe('FILE API', () => {
                 });
             });
 
-            test('Upload a empty file (admin)', async () => {
+            contextTest('Upload a empty file (admin)', async () => {
                 /* test: upload file */
                 const res = await admin.post('/graphql')
                     .field('operations', JSON.stringify({
@@ -313,7 +332,7 @@ describe('FILE API', () => {
                 await connectAgent(authorisedUser, username, 'admin');
             });
 
-            test('Download file from study (admin)', async () => {
+            contextTest('Download file from study (admin)', async () => {
                 const res = await admin.get(`/file/${createdFile.id}`);
                 expect(res.status).toBe(200);
                 expect(res.headers['content-type']).toBe('application/download');
@@ -321,7 +340,7 @@ describe('FILE API', () => {
                 expect(res.text).toBe('just testing.');
             });
 
-            test('Download file from study (user with privilege)', async () => {
+            contextTest('Download file from study (user with privilege)', async () => {
                 const res = await authorisedUser.get(`/file/${createdFile.id}`);
                 expect(res.status).toBe(200);
                 expect(res.headers['content-type']).toBe('application/download');
@@ -329,39 +348,39 @@ describe('FILE API', () => {
                 expect(res.text).toBe('just testing.');
             });
 
-            test('Download file from study (not logged in)', async () => {
+            contextTest('Download file from study (not logged in)', async () => {
                 const loggedoutUser = request.agent(app);
                 const res = await loggedoutUser.get(`/file/${createdFile.id}`);
                 expect(res.status).toBe(403);
                 expect(res.body).toEqual({ error: 'Please log in.' });
             });
 
-            test('Download file from study (user with no privilege) (should fail)', async () => {
+            contextTest('Download file from study (user with no privilege) (should fail)', async () => {
                 const res = await user.get(`/file/${createdFile.id}`);
                 expect(res.status).toBe(404);
                 expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
             });
 
-            test('Download an non-existent file from study (admin) (should fail)', async () => {
+            contextTest('Download an non-existent file from study (admin) (should fail)', async () => {
                 const res = await admin.get('/file/fakefileid');
                 expect(res.status).toBe(404);
                 expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
             });
 
-            test('Download an non-existent file from study (not logged in)', async () => {
+            contextTest('Download an non-existent file from study (not logged in)', async () => {
                 const loggedoutUser = request.agent(app);
                 const res = await loggedoutUser.get('/file/fakefileid');
                 expect(res.status).toBe(403);
                 expect(res.body).toEqual({ error: 'Please log in.' });
             });
 
-            test('Download an non-existent file from study (user without privilege) (should fail)', async () => {
+            contextTest('Download an non-existent file from study (user without privilege) (should fail)', async () => {
                 const res = await user.get('/file/fakefileid');
                 expect(res.status).toBe(404);
                 expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
             });
 
-            test('Download an non-existent file from study (user with privilege) (should fail)', async () => {
+            contextTest('Download an non-existent file from study (user with privilege) (should fail)', async () => {
                 const res = await authorisedUser.get('/file/fakefileid');
                 expect(res.status).toBe(404);
                 expect(res.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
@@ -452,7 +471,7 @@ describe('FILE API', () => {
                 await connectAgent(authorisedUser, username, 'admin')
             });
 
-            test('Delete file from study (admin)', async () => {
+            contextTest('Delete file from study (admin)', async () => {
                 const res = await admin.post('/graphql').send({
                     query: print(DELETE_FILE),
                     variables: { fileId: createdFile.id }
@@ -466,7 +485,7 @@ describe('FILE API', () => {
                 expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
             });
 
-            test('Delete file from study (user with privilege)', async () => {
+            contextTest('Delete file from study (user with privilege)', async () => {
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(DELETE_FILE),
                     variables: { fileId: createdFile.id }
@@ -480,7 +499,7 @@ describe('FILE API', () => {
                 expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
             });
 
-            test('Delete file from study (user with no privilege) (should fail)', async () => {
+            contextTest('Delete file from study (user with no privilege) (should fail)', async () => {
                 const res = await user.post('/graphql').send({
                     query: print(DELETE_FILE),
                     variables: { fileId: createdFile.id }
@@ -497,7 +516,7 @@ describe('FILE API', () => {
                 expect(downloadFileRes.text).toBe('just testing.');
             });
 
-            test('Delete an non-existent file from study (admin)', async () => {
+            contextTest('Delete an non-existent file from study (admin)', async () => {
                 const res = await admin.post('/graphql').send({
                     query: print(DELETE_FILE),
                     variables: { fileId: 'nosuchfile' }
@@ -508,7 +527,7 @@ describe('FILE API', () => {
                 expect(res.body.data.deleteFile).toBe(null);
             });
 
-            test('Delete an non-existent file from study (user with privilege)', async () => {
+            contextTest('Delete an non-existent file from study (user with privilege)', async () => {
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(DELETE_FILE),
                     variables: { fileId: 'nosuchfile' }
@@ -519,7 +538,7 @@ describe('FILE API', () => {
                 expect(res.body.data.deleteFile).toBe(null);
             });
 
-            test('Delete an non-existent file from study (user with no privilege)', async () => {
+            contextTest('Delete an non-existent file from study (user with no privilege)', async () => {
                 const res = await user.post('/graphql').send({
                     query: print(DELETE_FILE),
                     variables: { fileId: 'nosuchfile' }
@@ -533,7 +552,7 @@ describe('FILE API', () => {
     });
 
     // describe('FILE PERMISSION FOR PROJECTS', () => {
-    //     test('1 + 1', () => {
+    //     contextTest('1 + 1', () => {
     //         expect(2).toBe(3);
     //     });
     // });
