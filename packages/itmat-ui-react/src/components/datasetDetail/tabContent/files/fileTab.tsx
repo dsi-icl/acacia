@@ -4,7 +4,7 @@ import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { FileList } from '../../../reusable/fileList/fileList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
-import * as css from './tabContent.module.css';
+import css from './tabContent.module.css';
 import { UploadFileSection } from './uploadFile';
 
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {

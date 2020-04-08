@@ -8,7 +8,7 @@ import { DeleteProjectSection } from './deleteProjectSection';
 import { GrantedFieldListSection } from './fieldList';
 import { GrantedFileListSelection } from './fileList';
 import { PatientIdMappingSection } from './patientIdMapping';
-import * as css from './projectDetail.module.css';
+import css from './projectDetail.module.css';
 import { NavLink } from 'react-router-dom';
 
 export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId: string }> = ({ projectId, studyId }) => {
