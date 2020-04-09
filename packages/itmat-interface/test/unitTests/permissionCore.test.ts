@@ -1,6 +1,6 @@
 import { db } from '../../src/database/database';
 import { MongoClient } from 'mongodb';
-import itmatCommons from 'itmat-commons';
+import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';

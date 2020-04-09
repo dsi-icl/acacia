@@ -5,7 +5,7 @@ import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
-import itmatCommons from 'itmat-commons';
+import * as itmatCommons from 'itmat-commons';
 const { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';

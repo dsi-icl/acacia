@@ -8,7 +8,7 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
-import itmatCommons from 'itmat-commons';
+import * as itmatCommons from 'itmat-commons';
 const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE, CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';

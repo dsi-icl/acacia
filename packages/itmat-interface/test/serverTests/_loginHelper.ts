@@ -2,7 +2,7 @@
 'use strict';
 import gql from 'graphql-tag';
 import { print } from 'graphql';
-import itmatCommons from 'itmat-commons';
+import * as itmatCommons from 'itmat-commons';
 const { LOGIN, LOGOUT } = itmatCommons.GQLRequests;
 
 export function connectAdmin(agent) {
