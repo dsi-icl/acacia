@@ -3,7 +3,7 @@ import React from 'react';
 import { Query } from 'react-apollo';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { formatBytes } from '../../../reusable/fileList/fileList';
-import * as css from './tabContent.module.css';
+import css from './tabContent.module.css';
 // number of patients
 // newest version of data - date / tag
 // download data

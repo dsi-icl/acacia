@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useQuery } from 'react-apollo';
 import { Subsection } from '../../../reusable';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
-import * as css from './tabContent.module.css';
+import css from './tabContent.module.css';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 
