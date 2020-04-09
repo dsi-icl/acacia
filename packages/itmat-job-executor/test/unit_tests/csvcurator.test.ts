@@ -1,7 +1,7 @@
 import { processDataRow, processHeader, CSVCurator } from '../../src/curation/CSVCurator';
 import fs from 'fs';
 import { stub } from './_stubHelper';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntryForDataCuration } from 'itmat-commons/dist/models/job';
 
 describe('Unit tests for processHeader function', () => {
     it('processHeader function weeds out syntax error', () => {
@@ -72,18 +72,19 @@ describe('Unit tests for processHeader function', () => {
 });
 
 describe('Unit tests for processDataRow function', () => {
+    const job = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+        id: 'mockJobId',
+        studyId: 'mockStudyId',
+        data: {
+            dataVersion: '0.0.1',
+            versionTag: 'testData'
+        }
+    });
     const templateParams = {
         lineNum: 22,
         row: [],
         parsedHeader: processHeader(['eid', '1@3.3:c', '1@2.1:i', '2@3.2:b', '3@3.1:d']).parsedHeader,
-        job: {  // subset of the IJobEntry interface
-            id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData'
-            }
-        },
+        job,
         versionId: 'mockVersionId'
     };
 
@@ -196,7 +197,7 @@ describe('CSVCuratorClass', () => {
     it('csvcurator uploads csv file okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -228,7 +229,7 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches wrong headers', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error1.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -256,7 +257,7 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches duplicate subject before first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error2.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -288,7 +289,7 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error3.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -324,7 +325,7 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error4.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -360,7 +361,7 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error5.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {

@@ -1,20 +1,21 @@
 import { processFieldRow, FieldCurator } from '../../src/curation/FieldCurator';
 import fs from 'fs';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntryForFieldCuration, IJobEntry } from 'itmat-commons/dist/models/job';
 import {stub} from './_stubHelper';
 
 describe('Unit tests for processFieldRow function', () => {
+    const job = stub<IJobEntryForFieldCuration>({  // subset of the IJobEntry interface
+        id: 'mockJobId',
+        studyId: 'mockStudyId',
+        data: {
+            dataVersionId: 'mockVersionId',
+            tag: 'testFieldTree'
+        }
+    })
     const templateParams = {
         lineNum: 22,
         row: [],
-        job: {  // subset of the IJobEntry interface
-            id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-                dataVersionId: 'mockVersionId',
-                tag: 'testFieldTree' 
-            }
-        },
+        job,
         fieldTreeId: 'mockFieldTreeId'
     };
 
@@ -134,7 +135,7 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator uploads csv file < 1000 fields okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForFieldCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -178,7 +179,7 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator uploads csv file > 1000 fields okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_1000.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForFieldCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -222,7 +223,7 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches duplicate fieldId before first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error1.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForFieldCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -266,7 +267,7 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches duplicate fieldId after first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error2.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForFieldCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -310,7 +311,7 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error3.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForFieldCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
@@ -354,7 +355,7 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error4.tsv');
         const mongoStub = new MongoStub();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntryForFieldCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
