@@ -20,13 +20,13 @@
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
     "dependencies": {
-        "chalk": "3.0.0",
-        "graphql": "14.6.0",
+        "chalk": "4.0.0",
+        "graphql": "15.0.0",
         "graphql-tag": "2.10.3",
         "mongodb": "3.5.5"
     },
     "devDependencies": {
-        "@types/node": "13.9.1",
+        "@types/node": "13.11.0",
         "rimraf": "3.0.2",
         "typescript": "3.8.3"
     }
