@@ -1,19 +1,19 @@
 // originally from dsi-icl/optimise-core
 'use strict';
-const gql = require('graphql-tag');
-const { print } = require('graphql');
-const itmatCommons = require('itmat-commons');
-const {  LOGIN, LOGOUT } = itmatCommons.GQLRequests;
+import gql from 'graphql-tag';
+import { print } from 'graphql';
+import * as itmatCommons from 'itmat-commons';
+const { LOGIN, LOGOUT } = itmatCommons.GQLRequests;
 
-function connectAdmin(agent) {
+export function connectAdmin(agent) {
     return connectAgent(agent, 'admin', 'admin');
 }
 
-function connectUser(agent) {
+export function connectUser(agent) {
     return connectAgent(agent, 'standardUser', 'admin');
 }
 
-function connectAgent(agent, user, pw) {
+export function connectAgent(agent, user, pw) {
     return new Promise((resolve, reject) => agent.post('/graphql')
         .set('Content-type', 'application/json')
         .send({
@@ -27,7 +27,7 @@ function connectAgent(agent, user, pw) {
         }).catch(() => null));
 }
 
-function disconnectAgent(agent) {
+export function disconnectAgent(agent) {
     return new Promise((resolve, reject) => agent.post('/graphql')
         .send({
             query: print(LOGOUT),
@@ -38,5 +38,3 @@ function disconnectAgent(agent) {
             return reject();
         }).catch(() => null));
 }
-
-module.exports = { connectAgent, connectAdmin, connectUser, disconnectAgent };

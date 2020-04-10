@@ -1,11 +1,11 @@
-const { db } = require('../../src/database/database');
-const { MongoClient } = require('mongodb');
-const itmatCommons = require('itmat-commons');
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const setupDatabase = require('itmat-utils/src/databaseSetup/collectionsAndIndexes');
-const config = require('../../config/config.sample.json');
+import { db } from '../../src/database/database';
+import { MongoClient } from 'mongodb';
+import * as itmatCommons from 'itmat-commons';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import config from '../../config/config.sample.json';
 const { Models, permissions, task_required_permissions } = itmatCommons;
-const { permissionCore } = require('../../src/graphql/core/permissionCore');
+import { permissionCore } from '../../src/graphql/core/permissionCore';
 
 let mongodb;
 let mongoConnection;

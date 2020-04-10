@@ -2,10 +2,18 @@
     "extends": "../../tsconfig.json",
     "include": [
         "src/**/*",
-        "../../test/**/*"
+        "../../test/**/*",
+        "../../global.d.ts"
     ],
     "compilerOptions": {
-        "declaration": false,
-        "allowJs": true
+        "lib": [
+            "esnext"
+        ],
+        "allowJs": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "declaration": false
     }
 }

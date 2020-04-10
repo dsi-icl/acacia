@@ -2,9 +2,9 @@
  * @with Minio
  */
 
-const { ObjectStore } = require('../src/objStore');
-const path = require('path');
-const fs = require('fs');
+import { ObjectStore } from '../src/objStore';
+import path from 'path';
+import fs from 'fs';
 
 const ACCESS_KEY = 'minioadmin';
 const SECRET_KEY = 'minioadmin';
@@ -19,7 +19,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
             port: global.minioContainerPort,
             accessKey: ACCESS_KEY,
             secretKey: SECRET_KEY,
-            useSSL: false 
+            useSSL: false
         });
     });
 
@@ -73,7 +73,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
                 fs.createReadStream(path.join(__dirname, 'files/fakefile.txt')),
                 'fakeStudy3',
                 'jkfljsdkfjij042rjio2-fi0-ds9a'
-        );
+            );
         } catch (e) {
             error = e;
         }
@@ -96,7 +96,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
             return new Promise((resolve, reject) => {
                 let string = '';
                 inputStream
-                    .on('data', data => { string = `${string}${data.toString()}`})
+                    .on('data', data => { string = `${string}${data.toString()}` })
                     .on('end', () => { resolve(string); })
                     .on('error', reject)
             });
