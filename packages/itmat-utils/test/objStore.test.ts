@@ -1,3 +1,7 @@
+/**
+ * @with Minio
+ */
+
 import { ObjectStore } from '../src/objStore';
 import path from 'path';
 import fs from 'fs';
@@ -5,15 +9,14 @@ import fs from 'fs';
 const ACCESS_KEY = 'minioadmin';
 const SECRET_KEY = 'minioadmin';
 const HOST = 'localhost';
-const PORT = 9000;
 
-describe('OBJECT STORE CLASS TESTS', () => {
+if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
     let client;
     beforeEach(async () => {
         client = new ObjectStore();
         await client.connect({
             host: HOST,
-            port: PORT,
+            port: global.minioContainerPort,
             accessKey: ACCESS_KEY,
             secretKey: SECRET_KEY,
             useSSL: false
@@ -24,7 +27,7 @@ describe('OBJECT STORE CLASS TESTS', () => {
         const objstore = new ObjectStore();
         const connectresult = await objstore.connect({
             host: HOST,
-            port: 9000,
+            port: global.minioContainerPort,
             accessKey: ACCESS_KEY,
             secretKey: SECRET_KEY,
             useSSL: false
@@ -100,4 +103,6 @@ describe('OBJECT STORE CLASS TESTS', () => {
         };
         expect(await streamToString(downloadResult)).toBe('just a fake file 2.');
     });
+}); else test(`${__filename.split(/[\\/]/).pop()} skipped because it requires Minio on Docker`, () => {
+    expect(true).toBe(true);
 });
