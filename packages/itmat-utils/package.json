@@ -13,10 +13,8 @@
         "clean": "rimraf -rf ./dist",
         "compile": "tsc -p tsconfig.build.json",
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
-        "jest": "jest",
         "prepublishOnly": "npm run build",
-        "test-integrate": "jest --color --coverage",
-        "test": "node ./test/setup-and-test.js",
+        "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
@@ -40,6 +38,7 @@
     "jest": {
         "transform": {
             "^.+\\.(ts|js)$": "ts-jest"
-        }
+        },
+        "testEnvironment": "<rootDir>/../../test/fixtures/_minioJestEnv"
     }
 }
