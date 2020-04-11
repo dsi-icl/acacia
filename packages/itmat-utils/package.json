@@ -13,33 +13,33 @@
         "clean": "rimraf -rf ./dist",
         "compile": "tsc -p tsconfig.build.json",
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
-        "jest": "jest",
         "prepublishOnly": "npm run build",
-        "test-integrate": "jest --color --coverage",
-        "test": "node ./test/setup-and-test.js",
+        "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
     "dependencies": {
-        "minio": "^7.0.15",
-        "mongodb": "3.5.2"
+        "minio": "7.0.15",
+        "mongodb": "3.5.5"
     },
     "devDependencies": {
-        "chalk": "^4.0.0",
-        "jest": "^25.2.3",
-        "node-fetch": "^2.6.0",
+        "chalk": "4.0.0",
+        "jest": "25.2.7",
+        "node-fetch": "2.6.0",
         "supertest": "4.0.2",
-        "ts-jest": "^25.2.1",
-        "@types/express": "4.17.3",
-        "@types/minio": "^7.0.5",
-        "@types/mongodb": "3.3.16",
-        "@types/node": "13.7.0",
+        "ts-jest": "25.2.1",
+        "@types/express": "4.17.4",
+        "@types/jest": "25.2.1",
+        "@types/minio": "7.0.5",
+        "@types/mongodb": "3.5.5",
+        "@types/node": "13.11.0",
         "rimraf": "3.0.2",
         "typescript": "3.8.3"
     },
     "jest": {
         "transform": {
             "^.+\\.(ts|js)$": "ts-jest"
-        }
+        },
+        "testEnvironment": "<rootDir>/../../test/fixtures/_minioJestEnv"
     }
 }
