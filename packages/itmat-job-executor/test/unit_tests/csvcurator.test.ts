@@ -1,5 +1,7 @@
-const { processDataRow, processHeader, CSVCurator } = require('../../src/curation/CSVCurator');
-const fs = require('fs');
+import { processDataRow, processHeader, CSVCurator } from '../../src/curation/CSVCurator';
+import fs from 'fs';
+import { stub } from './_stubHelper';
+import { IJobEntryForDataCuration } from 'itmat-commons/dist/models/job';
 
 describe('Unit tests for processHeader function', () => {
     it('processHeader function weeds out syntax error', () => {
@@ -70,23 +72,24 @@ describe('Unit tests for processHeader function', () => {
 });
 
 describe('Unit tests for processDataRow function', () => {
+    const job = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+        id: 'mockJobId',
+        studyId: 'mockStudyId',
+        data: {
+            dataVersion: '0.0.1',
+            versionTag: 'testData'
+        }
+    });
     const templateParams = {
         lineNum: 22,
         row: [],
         parsedHeader: processHeader(['eid', '1@3.3:c', '1@2.1:i', '2@3.2:b', '3@3.1:d']).parsedHeader,
-        job: {  // subset of the IJobEntry interface
-            id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData' 
-            }
-        },
+        job,
         versionId: 'mockVersionId'
     };
 
     it('processDataRow function correctly parse data row', () => {
-        const { error, dataEntry } = processDataRow({ ...templateParams, row: ['A001', 'male', '95', 'true', '4.64'] });
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', 'male', '95', 'true', '4.64'] }));
         expect(error).toBeUndefined();
         expect(dataEntry).toEqual({
             m_eid: 'A001',
@@ -100,7 +103,7 @@ describe('Unit tests for processDataRow function', () => {
     });
 
     it('processDataRow function weeds out datatype mismatch', () => {
-        const { error, dataEntry } = processDataRow({ ...templateParams, row: ['A001', 'male', 'female', 'male', '4.64'] });
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', 'male', 'female', 'male', '4.64'] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(2);
         expect(error[0]).toBe("Line 22 column 3: Cannot parse 'female' as integer.");
@@ -116,7 +119,7 @@ describe('Unit tests for processDataRow function', () => {
     });
 
     it('processDataRow function weeds out datatype mismatch (2)', () => {
-        const { error, dataEntry } = processDataRow({ ...templateParams, row: ['A001', '45', '53', 'false', '5a'] });
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', '45', '53', 'false', '5a'] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
         expect(error[0]).toBe("Line 22 column 5: Cannot parse '5a' as decimal.");
@@ -131,7 +134,7 @@ describe('Unit tests for processDataRow function', () => {
     });
 
     it('processDataRow function deals with missing value by skipping', () => {
-        const { error, dataEntry } = processDataRow({ ...templateParams, row: ['A001', '', '', 'false', '5.96'] });
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', '', '', 'false', '5.96'] }));
         expect(error).toBeUndefined();
         expect(dataEntry).toEqual({
             m_eid: 'A001',
@@ -144,7 +147,7 @@ describe('Unit tests for processDataRow function', () => {
     });
 
     it('processDataRow function deals with missing subject id correctly', () => {
-        const { error, dataEntry } = processDataRow({ ...templateParams, row: ['', 'male', '53', 'false', '5.3'] });
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['', 'male', '53', 'false', '5.3'] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
         expect(error[0]).toBe("Line 22: No subject id provided.");
@@ -194,18 +197,19 @@ describe('CSVCuratorClass', () => {
     it('csvcurator uploads csv file okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const csvcurator = new CSVCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
@@ -225,18 +229,19 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches wrong headers', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error1.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const csvcurator = new CSVCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
@@ -252,18 +257,19 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches duplicate subject before first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error2.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const csvcurator = new CSVCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
@@ -283,18 +289,19 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error3.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const csvcurator = new CSVCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
 
@@ -318,18 +325,19 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error4.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const csvcurator = new CSVCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
 
@@ -353,18 +361,19 @@ describe('CSVCuratorClass', () => {
     it('csvcurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error5.tsv');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const csvcurator = new CSVCurator(
             mongoStub,
             readStream,
             undefined,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
 

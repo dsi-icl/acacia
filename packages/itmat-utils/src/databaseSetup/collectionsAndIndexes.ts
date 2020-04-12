@@ -98,4 +98,4 @@ async function setupDatabase(mongostr, databaseName) {
     await conn.close();
 };
 
-module.exports = setupDatabase;
+export default setupDatabase;
