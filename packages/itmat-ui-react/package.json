@@ -54,6 +54,7 @@
         "cypress-react-unit-test": "3.3.1",
         "enzyme": "3.11.0",
         "enzyme-adapter-react-16": "1.15.2",
+        "http-proxy-middleware": "1.0.3",
         "react-scripts": "3.4.0",
         "rimraf": "3.0.2",
         "typescript": "3.8.3",
