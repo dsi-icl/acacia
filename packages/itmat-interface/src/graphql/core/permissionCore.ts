@@ -31,7 +31,7 @@ export class PermissionCore {
 
         /* aggregationPipeline to return a list of the privileges the user has in this study / project */
         const aggregationPipeline = [
-            { $match: { studyId, projectId: { $in: [projectId, null]} , users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
+            { $match: { studyId, projectId: { $in: [projectId, null] }, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
             { $group: { _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
             { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
         ];
@@ -94,7 +94,7 @@ export class PermissionCore {
             bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { name } });
         }
         const result: BulkWriteResult = await bulkop.execute();
-        if (result.ok === 1) {
+        if (result.ok === true) {
             return await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
         } else {
             throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
