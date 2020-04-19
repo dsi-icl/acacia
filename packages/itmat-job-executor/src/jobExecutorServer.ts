@@ -46,7 +46,7 @@ class ITMATJobExecutorServer extends Server {
                     const poller = new JobPoller({
                         identity: 'me',
                         jobCollection: db.collections!.jobs_collection,
-                        pollingFrequency: 10000,
+                        pollingInterval: (this.config as any).pollingInterval,
                         action: jobDispatcher.dispatch
                     });
                     poller.setInterval();
