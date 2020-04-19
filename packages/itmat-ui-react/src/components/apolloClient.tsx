@@ -37,12 +37,13 @@ export const client = new ApolloClient({
         onError(({ graphQLErrors, networkError }) => {
             if (graphQLErrors) {
                 graphQLErrors.map(({ message, locations, path }) =>
+                    // tslint:disable-next-line: no-console
                     console.log(
                         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
                     )
                 );
             }
-            if (networkError) { console.log(`[Network error]: ${JSON.stringify(networkError)}`); }
+            if (networkError) { console.error('[Network error]:', networkError); }
         }),
         link
     ]),
