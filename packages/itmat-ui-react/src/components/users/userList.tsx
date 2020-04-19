@@ -1,9 +1,9 @@
+import { SearchOutlined } from '@ant-design/icons';
 import { Models } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
-import { Icons } from '../icons';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './userList.module.css';
 
@@ -14,9 +14,16 @@ export const UserListSection: React.FunctionComponent = (props) => {
             variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
         >
             {({ loading, error, data }) => {
-                if (loading) { return <LoadingBalls />; }
-                if (error) { return <p>Error :( {error.message}</p>; }
-                const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
+            if (loading) { return <LoadingBalls />; }
+	            if (error) {
+	                return (
+	                    <p>
+	                        Error :(
+	                        {error.message}
+	                    </p>
+	                );
+	            }
+	            const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
                 return (
                     <UserList list={userList} />
                 );
@@ -48,10 +55,10 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
         }
         return (el: Models.UserModels.IUserWithoutToken) => {
             if (
-                el.username.toLowerCase().indexOf(searchString.toLowerCase()) !== -1 ||
-                el.email.toLowerCase().indexOf(searchString.toLowerCase()) !== -1 ||
-                el.type.toLowerCase().indexOf(searchString.toLowerCase()) !== -1 ||
-                el.realName.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
+                el.username.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
+                || el.email.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
+                || el.type.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
+                || el.realName.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
             ) {
                 return <User key={el.id} data={el} />;
             }
@@ -64,11 +71,14 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
             <table>
                 <thead>
                     <tr>
-                        <th><Icons type="search" /><input name="search" value={searchString} onChange={(e) => { setSearchString(e.target.value); }} /></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th><NavLink to={'/users/createNewUser'} activeClassName={css.button_clicked}><button>Create new user</button></NavLink></th>
+                        <th>
+                            <SearchOutlined />
+                            <input name="search" value={searchString} onChange={(e) => { setSearchString(e.target.value); }} />
+                        </th>
+                        <th />
+                        <th />
+                        <th />
+                        <th><NavLink to="/users/createNewUser" activeClassName={css.button_clicked}><button>Create new user</button></NavLink></th>
                     </tr>
                 </thead>
             </table>
