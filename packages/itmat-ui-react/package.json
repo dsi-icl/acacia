@@ -30,6 +30,8 @@
         "itmat-commons": "0.5.0",
         "react": "16.13.1",
         "react-apollo": "3.1.5",
+        "react-dnd": "10.0.2",
+        "react-dnd-html5-backend": "10.0.2",
         "react-dom": "16.13.1",
         "react-router-dom": "5.1.2",
         "subscriptions-transport-ws": "0.9.16"

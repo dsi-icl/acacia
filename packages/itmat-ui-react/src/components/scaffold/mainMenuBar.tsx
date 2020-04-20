@@ -60,5 +60,5 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
                 </Mutation>
             </NavLink>
         </div>
-    );
-};
+    </div>
+);

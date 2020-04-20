@@ -3,7 +3,6 @@ import * as React from 'react';
 
 import { Tree } from 'antd';
 import 'antd/lib/tree/style/css';
-import '../../../css/antdOverride.css';
 const { TreeNode } = Tree;
 
 // class DraggableTreeNode extends TreeNode {

@@ -94,7 +94,8 @@ export class PermissionCore {
             bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { name } });
         }
         const result: BulkWriteResult = await bulkop.execute();
-        if (result.ok === true) {
+        // @ts-ignore
+        if (result.ok === 1) {
             return await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
         } else {
             throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);

@@ -175,12 +175,11 @@ const PermissionsControlPanel: React.FunctionComponent<PermissionsControlPanelPr
 
                 return (
 
-                    <Mutation<any, any> mutation={EDIT_ROLE}>
+                    <Mutation<any, any> mutation={EDIT_ROLE} key={index}>
                         {(editRole, { loading }) => (
                             <Button
                                 size="small"
                                 type={isSelected ? "primary" : "default"}
-                                key={index}
                                 icon={loading ? <LoadingOutlined /> : <TagOutlined />}
                                 style={{
                                     cursor: 'pointer',

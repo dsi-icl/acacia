@@ -34,7 +34,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                             <Route path="/datasets/:studyId/data_management" render={({ match }) => <DataManagementTabContentFetch studyId={match.params.studyId} />} />
                             <Route path="/datasets/:studyId/files" render={() => <FileRepositoryTabContent studyId={studyId} />} />
                             <Route path="/datasets/:studyId/projects" render={({ match }) => <ProjectsTabContent studyId={match.params.studyId} projectList={data.getStudy.projects} />} />
-                            <Route path="/datasets/:studyId/admin" render={() => <AdminTabContent studyId={studyId} />} />
+                            <Route path="/datasets/:studyId/admin" component={AdminTabContent} />
                             <Route path="/datasets/:studyId/" render={() => <></>} />
                         </Switch>
                     </div>
