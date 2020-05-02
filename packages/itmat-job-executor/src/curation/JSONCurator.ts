@@ -1,12 +1,12 @@
-import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { Writable } from 'stream';
+import JSONStream from 'JSONStream';
 import { IFieldDescriptionObject, IDataEntry } from '../utils/Interfaces';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
-export class CSVCurator {
+export class JSONCurator {
     /**
      * things to check:
      * - duplicate subject id
@@ -23,7 +23,6 @@ export class CSVCurator {
     constructor(
         private readonly dataCollection: Collection,
         private readonly incomingWebStream: NodeJS.ReadableStream,
-        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
         private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
         private readonly versionId: string
     ) {
@@ -37,77 +36,66 @@ export class CSVCurator {
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         return new Promise((resolve) => {
             console.log(`uploading for job ${this.job.id}`);
-            let lineNum = 0;
+            let objectNum = 0;
             let isHeader: boolean = true;
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
-            const csvparseStream = csvparse(this.parseOptions);
-            const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
-
-            csvparseStream.on('skip', (error) => {
-                lineNum++;
-                this._errored = true;
-                this._errors.push(error.toString());
-            });
-
+            const jsonstream = JSONStream.parse([{emitKey: true}]);
+            
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
-                write: async (line, _, next) => {
-                    if (isHeader) {
-                        lineNum++;
-                        const { error, parsedHeader } = processHeader(line);
+                write: async (chunk, _, callback) => {
+                    objectNum++;
+                    if (chunk.key === "fields") {
+                        const { error, parsedHeader } = processJSONHeader(chunk.value);
                         if (error) {
                             this._errored = true;
                             this._errors.push(...error);
                         }
                         this._header = parsedHeader;
-                        isHeader = false;
-                        next();
+                        
                     } else {
-                        const currentLineNum = ++lineNum;
-                        subjectString.push(line[0]);
-                        const { error, dataEntry } = processDataRow({
-                            lineNum: currentLineNum,
-                            row: line,
+                        subjectString.push(chunk.key);
+                        const { error, dataEntry } = processEachSubject({
+                            objectNum: objectNum,
+                            subject: chunk,
                             parsedHeader: this._header,
                             job: this.job,
                             versionId: this.versionId
-                        });
-
+                        }); 
                         if (error) {
                             this._errored = true;
                             this._errors.push(...error);
                         }
 
                         if (this._errored) {
-                            next();
+                            callback();
                             return;
                         }
-
-                        // // TO_DO {
-                        //     curator-defined constraints for values
-                        // }
-
                         bulkInsert.insert(dataEntry);
-                        this._numOfSubj++;
-                        if (this._numOfSubj > 999) {
-                            this._numOfSubj = 0;
-                            await bulkInsert.execute((err: Error) => {
-                                if (err) { console.log((err as any).writeErrors[1].err); return; }
-                            });
-                            bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
-                        }
-                        next();
+                        this,this._numOfSubj++;
+                        
                     }
+                    if (this._numOfSubj > 999) {
+                        this._numOfSubj = 0;
+                        await bulkInsert.execute((err: Error) => {
+                            if (err) {
+                                console.log((err as any).writeErrors[1].err);
+                                return;
+                            }
+                        })
+                    }
+                    callback();
                 }
             });
-
+            
             uploadWriteStream.on('finish', async () => {
                 /* check for subject Id duplicate */
                 const set = new Set(subjectString);
                 if (set.size !== subjectString.length) {
                     this._errors.push('Data Error: There is duplicate subject id.');
                     this._errored = true;
+                    
                 }
 
                 if (!this._errored) {
@@ -120,52 +108,41 @@ export class CSVCurator {
                 console.log('end');
                 resolve(this._errors);
             });
-
-            parseStream.pipe(uploadWriteStream);
+            this.incomingWebStream.pipe(jsonstream);
+            jsonstream.pipe(uploadWriteStream);
         });
     }
 }
 
-
-export function processHeader(header: string[]): { error?: string[], parsedHeader: Array<IFieldDescriptionObject | null> } { 
-    /* pure function */
-    /* headerline is ['eid', 1@0.0, 2@0.1:c] */
-    /* returns a parsed object array and error (undefined if no error) */
-
+export function processJSONHeader(header: string[]): {error?: string[], parsedHeader: Array<IFieldDescriptionObject | null>} {
     const fieldstrings: string[] = [];
     const error: string[] = [];
     const parsedHeader: Array<IFieldDescriptionObject | null> = Array(header.length);
     let colNum = 0;
     for (const each of header) {
-        if (colNum === 0) {
-            parsedHeader[0] = null;
+        if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
+            error.push(`Object 1: '${each}' is not a valid header field descriptor.`);
+            parsedHeader[colNum] = null;
         } else {
-            if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
-                error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
-                parsedHeader[colNum] = null;
-            } else {
-                const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
-                const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
-                const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
-                const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
-                parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
-                fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
-            }
+            const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
+            const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
+            const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
+            const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
+            parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
+            fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
         }
         colNum++;
     }
-
     /* check for duplicate */
     const set = new Set(fieldstrings);
     if (set.size !== fieldstrings.length) {
-        error.push('Line 1: There is duplicate (field, timepoint, measurement) combination.');
+        error.push('Object 1: There is duplicate (field, timepoint, measurement) combination.');
     }
-
     return ({ parsedHeader, error: error.length === 0 ? undefined : error });
+
 }
 
-export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // tslint:disable-line
-    /* pure function */
+export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: JSON, parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // tslint:disable-line
     const error: string[] = [];
     let colIndex = 0;
     const dataEntry: any = {
@@ -174,35 +151,28 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
         m_versionId: versionId
     };
 
-    if (row.length !== parsedHeader.length) {
-        error.push(`Line ${lineNum}: Uneven field Number; expected ${parsedHeader.length} fields but got ${row.length}`);
-        return ({ error, dataEntry });
+    /* extracting subject id */        
+    if (!subject['key']) {
+        error.push(`Object ${objectNum}: No subject id provided.`);
     }
 
-    for (const each of row) {
-        if (colIndex === 0) {
-            /* extracting subject id */
-            if (each === '') {
-                error.push(`Line ${lineNum}: No subject id provided.`);
-                colIndex++;
-                continue;
-            }
-            dataEntry.m_eid = each;
-            colIndex++;
-            continue;
-        }
-
+    if (subject['value'].length !== parsedHeader.length) {
+        error.push(`Object ${subject['key']}: Uneven field Number; expected ${parsedHeader.length} fields but got ${subject['value'].length}`);
+        return ({ error, dataEntry });
+    }
+    for (const each of subject['value']) {
         /* skip for missing data */
         if (each === '') {
             colIndex++;
-            continue;
+            continue
         }
 
         if (parsedHeader[colIndex] === null) {
             colIndex++;
             continue;
         }
-        const { fieldId, timepoint, measurement, datatype } = parsedHeader[colIndex] as IFieldDescriptionObject;
+        dataEntry.m_eid = subject['key'];
+        const {fieldId, timepoint, measurement, datatype } = parsedHeader [colIndex] as IFieldDescriptionObject;
 
         /* adding value to dataEntry */
         let value: any;
@@ -213,7 +183,7 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
                     break;
                 case 'd': // decimal
                     if (!/^\d+(.\d+)?$/.test(each)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
+                        error.push(`The ${objectNum} object (subjectId: ${subject['key']}) column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
                         colIndex++;
                         continue;
                     }
@@ -221,7 +191,7 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
                     break;
                 case 'i': // integer
                     if (!/^\d+$/.test(each)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
+                        error.push(`The ${objectNum} object (subjectId: ${subject['key']}) column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
                         colIndex++;
                         continue;
                     }
@@ -231,7 +201,7 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
                     if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
                         value = each.toLowerCase() === 'true';
                     } else {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
+                        error.push(`The ${objectNum} object (subjectId: ${subject['key']}) column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
                         colIndex++;
                         continue;
                     }
@@ -240,7 +210,7 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
                     value = each;
                     break;
                 default:
-                    error.push(`Line ${lineNum}: Invalid data type '${datatype}'`);
+                    error.push(`The ${objectNum} object (subjectId: ${subject['key']}): Invalid data type '${datatype}'`);
                     colIndex++;
                     continue;
             }
@@ -257,7 +227,10 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
         }
         dataEntry[fieldId][timepoint][measurement] = value;
         colIndex++;
+    
     }
 
     return ({ error: error.length === 0 ? undefined : error, dataEntry });
+    
 }
+
