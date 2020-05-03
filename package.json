@@ -22,7 +22,6 @@
         "jest-environment-node": "25.3.0",
         "lerna": "3.22.0",
         "start-server-and-test": "1.11.0",
-        "tslint": "6.1.1",
         "typescript": "3.8.3"
     }
 }
