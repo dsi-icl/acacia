@@ -1,5 +1,6 @@
-import { IFile } from 'itmat-commons/dist/models/file';
 import React from 'react';
+import { Table, Button } from 'antd';
+import { IFile } from 'itmat-commons/dist/models/file';
 
 export function formatBytes(size: number, decimal: number = 2) {
     if (size === 0) {
@@ -12,29 +13,27 @@ export function formatBytes(size: number, decimal: number = 2) {
 }
 
 export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files }) => {
-    return <div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Size</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {files.map((el) => <OneFile file={el} key={el.id} />)}
-            </tbody>
-        </table>
-    </div>;
-};
 
-const OneFile: React.FunctionComponent<{ file: IFile }> = ({ file }) => {
-    return <tr>
-        <td>{file.fileName}</td>
-        <td>{file.description}</td>
-        <td>{(file.fileSize && formatBytes(file.fileSize, 1)) || 'Unknown'}</td>
-        <td><a download={file.fileName} href={`http://localhost:3003/file/${file.id}`}
-        ><button>Download</button></a></td>
-    </tr>;
+    const columns = [
+        {
+            title: 'Name',
+            dataIndex: 'fileName',
+            sorter: (a, b) => a.fileName.localeCompare(b.fileName)
+        },
+        {
+            title: 'Description',
+            dataIndex: 'description'
+        },
+        {
+            title: 'Size',
+            dataIndex: 'fileSize',
+            render: (size) => formatBytes(size)
+        },
+        {
+            render: (rec, file) => <Button download={file.fileName} href={`${process.env.REACT_APP_FILE_SERVICE}/${file.id}`}>Download</Button>
+        }
+    ];
+
+    return <Table pagination={false} columns={columns} dataSource={files} size="middle" />;
+
 };
