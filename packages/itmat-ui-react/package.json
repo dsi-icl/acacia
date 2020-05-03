@@ -14,7 +14,7 @@
         "test": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts test",
         "test:cypress": "npx cypress open",
         "clean": "rimraf -rf ./dist ./build",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "@ant-design/icons": "4.0.6",
