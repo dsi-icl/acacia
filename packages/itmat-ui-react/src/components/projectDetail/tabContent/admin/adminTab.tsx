@@ -6,7 +6,7 @@ import css from './tabContent.module.css';
 
 export const AdminTabContent: React.FunctionComponent<{ studyId: string, projectId: string, roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => (
     <div className={css.tab_page_wrapper_grid}>
-        <div className={`${css.tab_page_wrapper} ${css.main_page}`}>
+        <div className={`${css.tab_page_wrapper} ${css.cover_page}`}>
             <Subsection title="Roles">
                 <RoleControlSection studyId={studyId} projectId={projectId} roles={roles} />
             </Subsection>

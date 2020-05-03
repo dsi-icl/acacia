@@ -1,10 +1,12 @@
 import { ProjectOutlined, DatabaseOutlined, TeamOutlined, PoweroffOutlined } from '@ant-design/icons';
 import { IProject } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { GET_GRANTED_PERMISSIONS } from 'itmat-commons/dist/graphql/permission';
 import css from './scaffold.module.css';
+import { LoadingBalls } from '../reusable/icons/loadingBalls';
 
 type MainMenuBarProps = {
     projects: IProject[]
@@ -22,13 +24,20 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
                 <div className={css.button}><DatabaseOutlined /> Datasets</div>
             </NavLink>
         </div>
-
-        <div>
-            <NavLink to="/users" title="Users" activeClassName={css.clickedButton}>
-                <div className={css.button}><TeamOutlined /> Users</div>
-            </NavLink>
-        </div>
-        {/* 
+        <Query<any, any> query={GET_GRANTED_PERMISSIONS}>
+            {({ loading, data, error }) => {
+                if (loading) return <LoadingBalls />;
+                if (error) return <p>{error.toString()}</p>
+                return (
+                    <div>
+                        <NavLink to="/users" title="Users" activeClassName={css.clickedButton}>
+                            <div className={css.button}><TeamOutlined /> Users</div>
+                        </NavLink>
+                    </div>
+                );
+            }}
+        </Query>
+        {/*
         <div>
             <NavLink to="/notifications" title="Notifications" activeClassName={css.clickedButton}>
                 <div className={css.button}><BellOutlined /></div>

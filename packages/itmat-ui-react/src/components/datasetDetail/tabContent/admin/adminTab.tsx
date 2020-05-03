@@ -17,7 +17,7 @@ export const AdminTabContent: React.FunctionComponent<AdminTabContentProps> = ({
 
     return (
         <div className={css.tab_page_wrapper_grid}>
-            <div className={`${css.tab_page_wrapper} ${css.main_page}`}>
+            <div className={`${css.tab_page_wrapper} ${css.cover_page}`}>
                 <Subsection title="Roles">
                     <RoleControlSection studyId={studyId} roles={data.getStudy.roles} />
                 </Subsection>

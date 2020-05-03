@@ -15,6 +15,10 @@
     grid-area: sub;
 }
 
+.cover_page {
+    grid-area: main sub;
+}
+
 .tab_page_wrapper {
     padding: 2rem;
     overflow: auto;
