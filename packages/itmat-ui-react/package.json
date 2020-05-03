@@ -12,7 +12,6 @@
         "start": "cross-env BROWSER=none SKIP_PREFLIGHT_CHECK=true react-scripts start",
         "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
         "test": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts test",
-        "test:cypress": "npx cypress open",
         "clean": "rimraf -rf ./dist ./build",
         "prepublishOnly": "yarn run build"
     },
@@ -42,7 +41,6 @@
     },
     "devDependencies": {
         "@apollo/react-testing": "3.1.4",
-        "@cypress/webpack-preprocessor": "5.1.2",
         "@types/apollo-upload-client": "8.1.3",
         "@types/graphql": "14.5.0",
         "@types/jest": "25.2.1",
@@ -51,9 +49,6 @@
         "@types/react-dom": "16.9.6",
         "@types/react-router-dom": "5.1.4",
         "cross-env": "7.0.2",
-        "cypress": "4.4.0",
-        "cypress-file-upload": "4.0.6",
-        "cypress-react-unit-test": "3.3.1",
         "enzyme": "3.11.0",
         "enzyme-adapter-react-16": "1.15.2",
         "http-proxy-middleware": "1.0.3",
