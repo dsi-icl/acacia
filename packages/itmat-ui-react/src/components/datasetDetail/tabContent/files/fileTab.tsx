@@ -1,22 +1,50 @@
 import React, { useState } from 'react';
-import { Query } from 'react-apollo';
+import { Button, Upload, notification } from 'antd';
+import { RcFile } from 'antd/lib/upload';
+import { UploadOutlined } from '@ant-design/icons';
+import { Query, useApolloClient, useMutation } from 'react-apollo';
 import { useDropzone } from 'react-dropzone';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { UPLOAD_FILE } from 'itmat-commons/dist/graphql/files';
 import { FileList } from '../../../reusable/fileList/fileList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
-import { UploadFileSection } from './uploadFile';
 
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
 
     const [isDropOverlayShowing, setisDropOverlayShowing] = useState(false);
+    const [fileList, setFileList] = useState<RcFile[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [description, setDescription] = React.useState('');
+    const store = useApolloClient();
+
+    const [uploadFile] = useMutation(UPLOAD_FILE, {
+        onCompleted: ({ uploadFile }) => {
+            setDescription('');
+            const cachedata = store.readQuery({
+                query: GET_STUDY,
+                variables: { studyId }
+            }) as any;
+            if (!cachedata)
+                return;
+            const newcachedata = {
+                ...cachedata.getStudy,
+                files: [...cachedata.getStudy.files, uploadFile]
+            };
+            store.writeQuery({
+                query: GET_STUDY,
+                variables: { studyId },
+                data: { getStudy: newcachedata }
+            });
+        }
+    });
 
     const onDropLocal = (acceptedFiles: Blob[]) => {
-
-        acceptedFiles.forEach((file: Blob) => {
-        });
-
+        fileFilter(acceptedFiles.map(file => {
+            (file as RcFile).uid = `${Math.random()}`;
+            return file as RcFile;
+        }))
     };
 
     const onDragEnter = () => setisDropOverlayShowing(true);
@@ -37,6 +65,55 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         onDropRejected
     });
 
+    const fileFilter = (files: RcFile[]) => {
+        setFileList([...fileList, ...files]);
+    }
+
+    const uploadHandler = () => {
+
+        const uploads: Promise<any>[] = [];
+        setIsUploading(true);
+        fileList.forEach(file => {
+            uploads.push(uploadFile({
+                variables: {
+                    file,
+                    studyId,
+                    description,
+                    fileLength: file.size
+                }
+            }).then(result => {
+                notification.success({
+                    message: 'Upload succeeded!',
+                    description: `File ${result.data.uploadFile.fileName} was successfully uploaded!`,
+                    placement: 'topRight',
+                });
+            }).catch(error => {
+                notification.error({
+                    message: 'Upload error!',
+                    description: error?.message ?? error ?? 'Unknown Error Occurred!',
+                    placement: 'topRight',
+                    duration: 0,
+                });
+            }));
+        });
+
+        Promise.all(uploads).then(() => {
+            setIsUploading(false);
+        })
+    };
+
+    const uploaderProps = {
+        onRemove: (file) => {
+            const target = fileList.indexOf(file);
+            setFileList(fileList.splice(0, target).concat(fileList.splice(target + 1)))
+        },
+        beforeUpload: (file) => {
+            fileFilter([file]);
+            return true;
+        },
+        fileList,
+    };
+
     return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input {...getInputProps()} />
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
@@ -55,7 +132,18 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
             <Subsection title="Upload new file">
-                <UploadFileSection studyId={studyId} />
+                <Upload {...uploaderProps}>
+                    <Button><UploadOutlined />Select File</Button>
+                </Upload>
+                <Button
+                    type="primary"
+                    onClick={uploadHandler}
+                    disabled={fileList.length === 0}
+                    loading={isUploading}
+                    style={{ marginTop: 16 }}
+                >
+                    {isUploading ? 'Uploading' : 'Upload'}
+                </Button>
             </Subsection>
         </div>
     </div>;
