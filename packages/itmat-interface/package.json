@@ -2,6 +2,7 @@
     "name": "itmat-interface",
     "version": "0.5.0",
     "description": "",
+    "license": "MIT",
     "author": "Chon Sou",
     "main": "build/index",
     "types": "build/index",
@@ -25,7 +26,7 @@
         "express": "4.17.1",
         "express-session": "1.17.1",
         "fs-extra": "9.0.0",
-        "graphql": "15.0.0",
+        "graphql": "14.5.3",
         "graphql-type-json": "0.3.1",
         "itmat-commons": "0.5.0",
         "itmat-utils": "1.1.8",
@@ -72,9 +73,12 @@
         "webpack": "4.42.1",
         "webpack-cli": "3.3.11"
     },
+    "optionalDependencies": {
+        "mongodb-client-encryption": "1.0.1"
+    },
     "resolutions": {
-        "**/**/fs-capacitor": "^6.0.0",
-        "**/graphql-upload": "^10.0.0"
+        "**/**/fs-capacitor": "^5.0.0",
+        "**/graphql-upload": "^9.0.0"
     },
     "jest": {
         "globals": {

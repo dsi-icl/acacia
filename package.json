@@ -1,6 +1,7 @@
 {
     "name": "itmat-broker",
     "private": true,
+    "license": "MIT",
     "scripts": {
         "postinstall": "yarn run bootstrap",
         "bootstrap": "lerna bootstrap",
@@ -18,20 +19,18 @@
         ],
         "nohoist": []
     },
-    "optionalDependencies": {
-        "mongodb-client-encryption": "1.0.1"
-    },
     "devDependencies": {
         "@types/jest": "25.2.1",
         "eslint": "6.8.0",
         "eslint-plugin-jest": "23.8.2",
         "jest-environment-node": "25.3.0",
         "lerna": "3.20.2",
-        "tslint": "6.1.1",
-        "start-server-and-test": "1.11.0"
+        "start-server-and-test": "1.11.0",
+        "typescript": "3.8.3"
     },
     "resolutions": {
-        "**/**/fs-capacitor": "^6.0.0",
-        "**/graphql-upload": "^10.0.0"
+        "**/**/fs-capacitor": "^5.0.0",
+        "**/graphql-upload": "^9.0.0",
+        "**/moment": "2.24.0"
     }
 }
