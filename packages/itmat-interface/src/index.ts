@@ -1,5 +1,5 @@
 
-// tslint:disable: no-console
+// eslint:disable: no-console
 import { Server } from 'http';
 import { Socket } from 'net';
 import os from 'os';

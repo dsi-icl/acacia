@@ -15,10 +15,10 @@ export class JSONCurator {
      * - uneven column number
      * - parse / encoding error
      */
-    private _header: (IFieldDescriptionObject| null)[]; // tslint:disable-line
-    private _numOfSubj: number; // tslint:disable-line
-    private _errored: boolean; // tslint:disable-line
-    private _errors: string[]; // tslint:disable-line
+    private _header: (IFieldDescriptionObject | null)[]; // eslint:disable-line
+    private _numOfSubj: number; // eslint:disable-line
+    private _errored: boolean; // eslint:disable-line
+    private _errors: string[]; // eslint:disable-line
 
     constructor(
         private readonly dataCollection: Collection,
@@ -40,8 +40,8 @@ export class JSONCurator {
             let isHeader: boolean = true;
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
-            const jsonstream = JSONStream.parse([{emitKey: true}]);
-            
+            const jsonstream = JSONStream.parse([{ emitKey: true }]);
+
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
                 write: async (chunk, _, callback) => {
@@ -53,7 +53,7 @@ export class JSONCurator {
                             this._errors.push(...error);
                         }
                         this._header = parsedHeader;
-                        
+
                     } else {
                         subjectString.push(chunk.key);
                         const { error, dataEntry } = processEachSubject({
@@ -62,7 +62,7 @@ export class JSONCurator {
                             parsedHeader: this._header,
                             job: this.job,
                             versionId: this.versionId
-                        }); 
+                        });
                         if (error) {
                             this._errored = true;
                             this._errors.push(...error);
@@ -73,8 +73,8 @@ export class JSONCurator {
                             return;
                         }
                         bulkInsert.insert(dataEntry);
-                        this,this._numOfSubj++;
-                        
+                        this, this._numOfSubj++;
+
                     }
                     if (this._numOfSubj > 999) {
                         this._numOfSubj = 0;
@@ -88,14 +88,14 @@ export class JSONCurator {
                     callback();
                 }
             });
-            
+
             uploadWriteStream.on('finish', async () => {
                 /* check for subject Id duplicate */
                 const set = new Set(subjectString);
                 if (set.size !== subjectString.length) {
                     this._errors.push('Data Error: There is duplicate subject id.');
                     this._errored = true;
-                    
+
                 }
 
                 if (!this._errored) {
@@ -114,7 +114,7 @@ export class JSONCurator {
     }
 }
 
-export function processJSONHeader(header: string[]): {error?: string[], parsedHeader: Array<IFieldDescriptionObject | null>} {
+export function processJSONHeader(header: string[]): { error?: string[], parsedHeader: Array<IFieldDescriptionObject | null> } {
     const fieldstrings: string[] = [];
     const error: string[] = [];
     const parsedHeader: Array<IFieldDescriptionObject | null> = Array(header.length);
@@ -142,7 +142,7 @@ export function processJSONHeader(header: string[]): {error?: string[], parsedHe
 
 }
 
-export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: JSON, parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // tslint:disable-line
+export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: JSON, parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: IDataEntry } { // eslint:disable-line
     const error: string[] = [];
     let colIndex = 0;
     const dataEntry: any = {
@@ -151,7 +151,7 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
         m_versionId: versionId
     };
 
-    /* extracting subject id */        
+    /* extracting subject id */
     if (!subject['key']) {
         error.push(`Object ${objectNum}: No subject id provided.`);
     }
@@ -172,7 +172,7 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
             continue;
         }
         dataEntry.m_eid = subject['key'];
-        const {fieldId, timepoint, measurement, datatype } = parsedHeader [colIndex] as IFieldDescriptionObject;
+        const { fieldId, timepoint, measurement, datatype } = parsedHeader[colIndex] as IFieldDescriptionObject;
 
         /* adding value to dataEntry */
         let value: any;
@@ -227,10 +227,10 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
         }
         dataEntry[fieldId][timepoint][measurement] = value;
         colIndex++;
-    
+
     }
 
     return ({ error: error.length === 0 ? undefined : error, dataEntry });
-    
+
 }
 

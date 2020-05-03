@@ -6,7 +6,7 @@ export class JobDispatcher {
         [jobType: string]: () => Promise<JobHandler>
     };
 
-    constructor() { // tslint:disable-line
+    constructor() { // eslint:disable-line
         this.dispatch = this.dispatch.bind(this);
         this._handlerCollection = {};
     }
