@@ -1,5 +1,20 @@
 import gql from 'graphql-tag';
 
+export const GET_GRANTED_PERMISSIONS = gql`
+    query getGrantedPermissions($studyId: String, $projectId: String) {
+        getGrantedPermissions(studyId: $studyId, projectId: $projectId) {
+            studies {
+                studyId
+                permissions
+            }
+            projects {
+                projectId
+                permissions
+            }
+        }
+    }
+`
+
 export const EDIT_ROLE = gql`
     mutation editRole(
         $roleId: String!,
