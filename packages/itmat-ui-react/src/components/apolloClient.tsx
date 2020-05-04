@@ -3,15 +3,15 @@ import { ApolloClient } from 'apollo-client';
 import { from, split } from 'apollo-link';
 import { onError } from 'apollo-link-error';
 import { WebSocketLink } from 'apollo-link-ws';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { createUploadLink } from 'apollo-upload-client';
 import { getMainDefinition } from 'apollo-utilities';
 
-const wsLink = new WebSocketLink({
-    uri: process.env.REACT_APP_GRAPHQL_SERVICE?.replace('http', 'ws') ?? '/',
-    options: {
-        reconnect: true
-    }
-});
+const wsClient = new SubscriptionClient(process.env.REACT_APP_GRAPHQL_SERVICE?.replace('http', 'ws') ?? '/', {
+    reconnect: true
+})
+
+const wsLink = new WebSocketLink(wsClient);
 
 const uploadLink = createUploadLink({
     uri: process.env.REACT_APP_GRAPHQL_SERVICE,
