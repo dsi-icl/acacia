@@ -24,7 +24,11 @@ export const studyResolvers = {
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
-            return await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
+            const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
+            if (study === null || study === undefined) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+            return study;
         },
         getProject: async (parent: object, args: any, context: any, info: any): Promise<IProject | null> => {
             const requester: IUser = context.req.user;
@@ -34,7 +38,7 @@ export const studyResolvers = {
             const project: IProject | null = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
 
             if (project === null) {
-                return null;
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* check if user has permission */
@@ -163,11 +167,6 @@ export const studyResolvers = {
         createProject: async (parent: object, { studyId, projectName }: { studyId: string, projectName: string }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
-            /* reject undefined project name */
-            if (!projectName) {
-                throw new ApolloError('Project name is not given or undefined.');
-            }
-
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
                 task_required_permissions.manage_study_projects,
@@ -187,7 +186,16 @@ export const studyResolvers = {
         deleteProject: async (parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
 
+            const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
+
             /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_projects,
+                requester,
+                project.studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             /* delete project */
             await studyCore.deleteProject(projectId);
