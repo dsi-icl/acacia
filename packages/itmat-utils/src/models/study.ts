@@ -40,5 +40,5 @@ export interface IProject {
     approvedFields: string[];
     approvedFiles: string[];
     lastModified: number;
-    deleted: boolean;
+    deleted: number | null;
 }
