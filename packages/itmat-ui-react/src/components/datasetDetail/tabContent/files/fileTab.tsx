@@ -10,6 +10,7 @@ import { FileList } from '../../../reusable/fileList/fileList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
+import { ApolloError } from 'apollo-client';
 
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
 
@@ -37,6 +38,14 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 variables: { studyId },
                 data: { getStudy: newcachedata }
             });
+        },
+        onError: (error: ApolloError) => {
+            notification.error({
+                message: 'Upload error!',
+                description: error.message ?? 'Unknown Error Occurred!',
+                placement: 'topRight',
+                duration: 0,
+            })
         }
     });
 
@@ -133,9 +142,10 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
             <Subsection title="Upload new file">
                 <Upload {...uploaderProps}>
-                    <Button><UploadOutlined />Select File</Button>
+                    <Button>Select File</Button>
                 </Upload>
                 <Button
+                    icon={<UploadOutlined />}
                     type="primary"
                     onClick={uploadHandler}
                     disabled={fileList.length === 0}
