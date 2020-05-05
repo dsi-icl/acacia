@@ -6,14 +6,32 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { GET_USERS, EDIT_ROLE, CREATE_USER, ADD_NEW_ROLE, WHO_AM_I, CREATE_PROJECT, CREATE_STUDY, DELETE_STUDY, DELETE_PROJECT } = itmatCommons.GQLRequests;
+const {
+    GET_STUDY_FIELDS,
+    EDIT_PROJECT_APPROVED_FIELDS,
+    GET_PROJECT_PATIENT_MAPPING,
+    GET_STUDY,
+    GET_PROJECT,
+    GET_USERS,
+    EDIT_ROLE,
+    CREATE_USER,
+    ADD_NEW_ROLE,
+    WHO_AM_I,
+    CREATE_PROJECT,
+    CREATE_STUDY,
+    DELETE_STUDY,
+    DELETE_PROJECT
+} = itmatCommons.GQLRequests;
 const { userTypes } = itmatCommons.Models.UserModels;
+const { permissions } = itmatCommons;
+type IDataEntry = itmatCommons.Models.Data.IDataEntry;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
-const { Models, permissions } = itmatCommons;
 import { v4 as uuid } from 'uuid';
-import { GET_STUDY, GET_PROJECT } from 'itmat-commons/src/graphql';
+import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import { text } from 'body-parser';
+import { IFieldEntry } from 'itmat-commons/dist/models/field';
 
 let app;
 let mongodb;
@@ -87,12 +105,12 @@ describe('STUDY API', () => {
             expect(resWhoAmI.status).toBe(200);
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
-                username: 'admin', 
-                type: Models.UserModels.userTypes.ADMIN, 
-                realName: 'admin', 
-                createdBy: 'chon', 
+                username: 'admin',
+                type: userTypes.ADMIN,
+                realName: 'admin',
+                createdBy: 'chon',
                 organisation: 'DSI',
-                email: 'admin@user.io', 
+                email: 'admin@user.io',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -202,12 +220,12 @@ describe('STUDY API', () => {
             expect(resWhoAmI.status).toBe(200);
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
-                username: 'admin', 
-                type: Models.UserModels.userTypes.ADMIN, 
-                realName: 'admin', 
-                createdBy: 'chon', 
+                username: 'admin',
+                type: userTypes.ADMIN,
+                realName: 'admin',
+                createdBy: 'chon',
                 organisation: 'DSI',
-                email: 'admin@user.io', 
+                email: 'admin@user.io',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -215,11 +233,11 @@ describe('STUDY API', () => {
                     projects: [],
                     studies: [{
                         id: newStudy.id,
-                        name: studyName 
+                        name: studyName
                     }]
                 }
             });
-            
+
             /* test */
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_STUDY),
@@ -239,12 +257,12 @@ describe('STUDY API', () => {
             expect(resWhoAmIAfter.status).toBe(200);
             expect(resWhoAmIAfter.body.data.errors).toBeUndefined();
             expect(resWhoAmIAfter.body.data.whoAmI).toEqual({
-                username: 'admin', 
-                type: Models.UserModels.userTypes.ADMIN, 
-                realName: 'admin', 
-                createdBy: 'chon', 
+                username: 'admin',
+                type: userTypes.ADMIN,
+                realName: 'admin',
+                createdBy: 'chon',
                 organisation: 'DSI',
-                email: 'admin@user.io', 
+                email: 'admin@user.io',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -328,11 +346,13 @@ describe('STUDY API', () => {
     });
 
     describe('MANIPULATING PROJECTS EXISTENCE', () => {
+        let testCounter = 0;
         let setupStudy;
         let setupProject;
         beforeEach(async () => {
+            testCounter++;
             /* setup: creating a study */
-            const studyName = uuid();
+            const studyName = uuid() + 'STUDYNAME_manipulating_project_existentce_' + testCounter;
             setupStudy = {
                 id: `id_${studyName}`,
                 name: studyName,
@@ -345,7 +365,7 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.studies_collection).insertOne(setupStudy);
 
             /* setup: creating a project */
-            const projectName = uuid();
+            const projectName = uuid() + 'PROJECTNAME_manipulating_project_existentce_' + testCounter;
             setupProject = {
                 id: `id_${projectName}`,
                 studyId: setupStudy.id,
@@ -358,6 +378,11 @@ describe('STUDY API', () => {
                 deleted: null
             };
             await mongoClient.collection(config.database.collections.projects_collection).insertOne(setupProject);
+        });
+
+        afterEach(async () => {
+            await mongoClient.collection(config.database.collections.studies_collection).updateOne({ id: setupStudy.id }, { $set: { deleted: 10000 } });
+            await mongoClient.collection(config.database.collections.projects_collection).updateOne({ id: setupProject.id }, { $set: { deleted: 10000 } });
         });
 
         test('Create project (no existing patients in study) (admin)', async () => {
@@ -378,9 +403,9 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 createdBy: adminId,
-                patientMapping: {},
                 name: projectName,
-                approvedFields: {}, 
+                patientMapping: {},
+                approvedFields: {},
                 approvedFiles: [],
                 lastModified: createdProject.lastModified,
                 deleted: null
@@ -391,6 +416,9 @@ describe('STUDY API', () => {
                 name: projectName,
                 approvedFields: {}
             });
+
+            /* cleanup: delete project */
+            await mongoClient.collection(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { deleted: 10000 } });
         });
 
         test('Create project (existing patients in study) (admin)', async () => {
@@ -476,6 +504,9 @@ describe('STUDY API', () => {
                 name: projectName,
                 approvedFields: {}
             });
+
+            /* cleanup: delete project */
+            await mongoClient.collection(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { deleted: 10000 } });
         });
 
         test('Delete project (user without privilege) (should fail)', async () => {
@@ -579,6 +610,12 @@ describe('STUDY API', () => {
         let createdRole_study; // tslint:disable-line
         let createdRole_project;// tslint:disable-line
         let createdUserAuthorised;
+        let createdUserAuthorisedStudy;
+        let authorisedUser;
+        let authorisedUserStudy;
+        const fieldTreeId = uuid();
+        let mockFields: IFieldEntry[];
+
         beforeAll(async () => {
             /*** setup: create a setup study ***/
             /* 1. create study */
@@ -595,6 +632,101 @@ describe('STUDY API', () => {
                     id: createdStudy.id,
                     name: studyName
                 });
+            }
+
+            /* x. mock - add data to the study */
+            {
+                const mockDataVersion: IStudyDataVersion = {
+                    id: 'mockDataVersionId',
+                    contentId: 'mockContentId',
+                    version: '0.0.1',
+                    fileSize: 10000,
+                    uploadDate: 5000000,
+                    jobId: 'mockjobid',
+                    extractedFrom: 'mockfile',
+                    fieldTrees: [fieldTreeId]
+                };
+                const mockData: IDataEntry[] = [
+                    {
+                        m_eid: 'mock_patient1',
+                        m_jobId: 'mockjobId',
+                        m_study: createdStudy.id,
+                        m_versionId: mockDataVersion.id,
+                        31: {
+                            0: {
+                                0: 'male'
+                            }
+                        },
+                        49: {
+                            1: {
+                                0: 'England'
+                            },
+                            2: {
+                                0: 'Hong Kong'
+                            }
+                        }
+                    },
+                    {
+                        m_eid: 'mock_patient2',
+                        m_jobId: 'mockjobId',
+                        m_study: createdStudy.id,
+                        m_versionId: mockDataVersion.id,
+                        31: {
+                            0: {
+                                0: 'female'
+                            }
+                        },
+                        49: {
+                            1: {
+                                0: 'France'
+                            },
+                            2: {
+                                0: 'England'
+                            }
+                        }
+                    }
+                ];
+                mockFields = [
+                    {
+                        id: 'mockfield1',
+                        studyId: createdStudy.id,
+                        path: 'Demographic',
+                        fieldId: 32,
+                        fieldName: 'Sex',
+                        valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                        possibleValues: ['male', 'female'],
+                        itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                        numOfTimePoints: 1,
+                        numOfMeasurements: 1,
+                        startingTimePoint: 1,
+                        startingMeasurement: 1,
+                        jobId: 'mockjobId',
+                        dateAdded: 2314231,
+                        deleted: null,
+                        fieldTreeId
+                    },
+                    {
+                        id: 'mockfield2',
+                        studyId: createdStudy.id,
+                        path: 'Demographic',
+                        fieldId: 32,
+                        fieldName: 'Sex',
+                        valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                        possibleValues: ['male', 'female'],
+                        itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                        numOfTimePoints: 1,
+                        numOfMeasurements: 1,
+                        startingTimePoint: 1,
+                        startingMeasurement: 1,
+                        jobId: 'mockjobId',
+                        dateAdded: 2314231,
+                        deleted: null,
+                        fieldTreeId: 'fieldTree2'
+                    }
+                ];
+                await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections!.data_collection.insertMany(mockData);
+                await db.collections!.field_dictionary_collection.insertMany(mockFields);
             }
 
             /* 2. create projects for the study */
@@ -614,7 +746,7 @@ describe('STUDY API', () => {
                     id: createdProject.id,
                     studyId: createdStudy.id,
                     name: projectName,
-                    approvedFields: {},
+                    approvedFields: {}
                 });
             }
 
@@ -689,7 +821,7 @@ describe('STUDY API', () => {
                 });
             }
 
-            /* 5. create an authorised user (no role yet) */
+            /* 5. create an authorised project user (no role yet) */
             {
                 const username = uuid();
                 const res = await admin.post('/graphql').send({
@@ -783,12 +915,215 @@ describe('STUDY API', () => {
                     }
                 });
             }
+
+            /* 5. create an authorised study user (no role yet) */
+            {
+                const username = uuid();
+                const res = await admin.post('/graphql').send({
+                    query: print(CREATE_USER),
+                    variables: {
+                        username,
+                        password: 'admin',
+                        realName: `${username}_realname`,
+                        description: 'setupUser2',
+                        organisation: 'DSI',
+                        emailNotificationsActivated: true,
+                        email: `${username}@user.io`,
+                        type: userTypes.STANDARD
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                createdUserAuthorisedStudy = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
+                expect(res.body.data.createUser).toEqual({
+                    id: createdUserAuthorisedStudy.id,
+                    username,
+                    type: userTypes.STANDARD,
+                    realName: `${username}_realname`,
+                    description: 'setupUser2',
+                    organisation: 'DSI',
+                    email: `${username}@user.io`,
+                    createdBy: 'admin',
+                    access: {
+                        id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
+                        projects: [],
+                        studies: []
+                    }
+                });
+            }
+
+            /* 6. add authorised user to role */
+            {
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: createdRole_study.id,
+                        userChanges: {
+                            add: [createdUserAuthorisedStudy.id],
+                            remove: []
+                        },
+                        permissionChanges: {
+                            add: [permissions.specific_study.specific_study_readonly_access],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: createdRole_study.id,
+                    name: createdRole_study.name,
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    permissions: [permissions.specific_study.specific_study_readonly_access],
+                    users: [{
+                        id: createdUserAuthorisedStudy.id,
+                        organisation: 'DSI',
+                        realName: createdUserAuthorisedStudy.realName
+                    }]
+                });
+                const resUser = await admin.post('/graphql').send({
+                    query: print(GET_USERS),
+                    variables: {
+                        fetchDetailsAdminOnly: false,
+                        userId: createdUserAuthorisedStudy.id,
+                        fetchAccessPrivileges: true
+                    }
+                });
+                expect(resUser.status).toBe(200);
+                expect(resUser.body.errors).toBeUndefined();
+                expect(resUser.body.data.getUsers).toHaveLength(1);
+                expect(resUser.body.data.getUsers[0]).toEqual({
+                    id: createdUserAuthorisedStudy.id,
+                    type: userTypes.STANDARD,
+                    realName: `${createdUserAuthorisedStudy.username}_realname`,
+                    organisation: 'DSI',
+                    createdBy: 'admin',
+                    access: {
+                        id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
+                        projects: [{
+                            id: createdProject.id,
+                            name: createdProject.name,
+                            studyId: createdStudy.id
+                        }],
+                        studies: [{
+                            id: createdStudy.id,
+                            name: createdStudy.name
+                        }]
+                    }
+                });
+            }
+            /* fsdafs: admin who am i */
+            {
+                const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
+                expect(res.body.data.whoAmI).toEqual({
+                    username: 'admin',
+                    type: userTypes.ADMIN,
+                    realName: 'admin',
+                    createdBy: 'chon',
+                    organisation: 'DSI',
+                    email: 'admin@user.io',
+                    description: 'I am an admin user.',
+                    id: adminId,
+                    access: {
+                        id: `user_access_obj_user_id_${adminId}`,
+                        projects: [{
+                            id: createdProject.id,
+                            name: createdProject.name,
+                            studyId: createdStudy.id
+                        }],
+                        studies: [{
+                            id: createdStudy.id,
+                            name: createdStudy.name
+                        }]
+                    }
+                });
+            }
+            /* connecting users */
+            {
+                authorisedUser = request.agent(app);
+                await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin')
+                authorisedUserStudy = request.agent(app);
+                await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin')
+
+            }
         });
 
         afterAll(async () => {
-            /* delete study */
-            /* check projects and roles are also deleted */
+            /* project user cannot delete study */
+            {
+                const res = await authorisedUser.post('/graphql').send({
+                    query: print(DELETE_STUDY),
+                    variables: { studyId: createdStudy.id }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.deleteStudy).toBe(null);
+            }
 
+            /* study user cannot delete study */
+            {
+                const res = await authorisedUserStudy.post('/graphql').send({
+                    query: print(DELETE_STUDY),
+                    variables: { studyId: createdStudy.id }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                expect(res.body.data.deleteStudy).toBe(null);
+            }
+
+            /* admin can delete study */
+            {
+                const res = await admin.post('/graphql').send({
+                    query: print(DELETE_STUDY),
+                    variables: { studyId: createdStudy.id }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.getProject).toBe(null);
+            }
+
+            /* check projects and roles are also deleted */
+            {
+                const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
+                expect(res.body.data.whoAmI).toEqual({
+                    username: 'admin',
+                    type: userTypes.ADMIN,
+                    realName: 'admin',
+                    createdBy: 'chon',
+                    organisation: 'DSI',
+                    email: 'admin@user.io',
+                    description: 'I am an admin user.',
+                    id: adminId,
+                    access: {
+                        id: `user_access_obj_user_id_${adminId}`,
+                        projects: [],
+                        studies: []
+                    }
+                });
+
+                // study data is NOT deleted for audit purposes - unless explicitly requested separately
+                const roles = await db.collections!.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
+                const projects = await db.collections!.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
+                const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+                expect(roles).toEqual([]);
+                expect(projects).toEqual([]);
+                expect(study).toBe(null);
+            }
+
+            /* cannot get study from api anymore */
+            {
+                const res = await admin.post('/graphql').send({
+                    query: print(GET_STUDY),
+                    variables: { studyId: createdStudy.id }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                expect(res.body.data.getStudy).toBe(null);
+            }
         });
 
         test('Get a non-existent study (admin)', async () => {
@@ -837,16 +1172,31 @@ describe('STUDY API', () => {
                         {
                             id: createdRole_study.id,
                             name: createdRole_study.name,
-                            permissions: [],
+                            permissions: [permissions.specific_study.specific_study_readonly_access],
                             projectId: null,
                             studyId: createdStudy.id,
-                            users: []
+                            users: [{
+                                id: createdUserAuthorisedStudy.id,
+                                organisation: 'DSI',
+                                realName: createdUserAuthorisedStudy.realName,
+                                username: createdUserAuthorisedStudy.username
+                            }]
                         }
                     ],
                     files: [],
-                    numOfSubjects: 0,
-                    currentDataVersion: null,
-                    dataVersions: []
+                    numOfSubjects: 2,
+                    currentDataVersion: 0,
+                    dataVersions: [{
+                        id: 'mockDataVersionId',
+                        contentId: 'mockContentId',
+                        version: '0.0.1',
+                        fileSize: 10000,
+                        uploadDate: 5000000,
+                        tag: null,
+                        jobId: 'mockjobid',
+                        extractedFrom: 'mockfile',
+                        fieldTrees: [fieldTreeId]
+                    }]
                 });
             }
             {
@@ -879,10 +1229,75 @@ describe('STUDY API', () => {
                         }
                     ],
                     iCanEdit: true,
-                    fields: {},
+                    fields: [],
                     files: []
                 });
             }
+        });
+
+        test('Get patient mapping (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(GET_PROJECT_PATIENT_MAPPING),
+                variables: { projectId: createdProject.id }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.getProject).toEqual({
+                id: createdProject.id,
+                patientMapping: {
+                    'mock_patient1': createdProject.patientMapping.mock_patient1,
+                    'mock_patient2': createdProject.patientMapping.mock_patient2
+                }
+            });
+            const { patientMapping } = res.body.data.getProject;
+            expect(typeof patientMapping.mock_patient1).toBe('string');
+            expect(patientMapping.mock_patient1).not.toBe('mock_patient1'); // should not be the same as before mapped
+            expect(typeof patientMapping.mock_patient2).toBe('string');
+            expect(patientMapping.mock_patient2).not.toBe('mock_patient2'); // should not be the same as before mapped
+        });
+
+        test('Get patient mapping (user without privilege) (should fail)', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(GET_PROJECT_PATIENT_MAPPING),
+                variables: { projectId: createdProject.id }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.getProject).toBe(null);
+        });
+
+        test('Get patient mapping (user with project data privilege) (should fail)', async () => {
+            // patient mapping is obscured from users that can only access project data. They should only see the mapped id
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(GET_PROJECT_PATIENT_MAPPING),
+                variables: { projectId: createdProject.id }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.getProject).toBe(null);
+        });
+
+        test('Get patient mapping (user with study data privilege)', async () => {
+            const res = await authorisedUserStudy.post('/graphql').send({
+                query: print(GET_PROJECT_PATIENT_MAPPING),
+                variables: { projectId: createdProject.id }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.getProject).toEqual({
+                id: createdProject.id,
+                patientMapping: {
+                    'mock_patient1': createdProject.patientMapping.mock_patient1,
+                    'mock_patient2': createdProject.patientMapping.mock_patient2
+                }
+            });
+            const { patientMapping } = res.body.data.getProject;
+            expect(typeof patientMapping.mock_patient1).toBe('string');
+            expect(patientMapping.mock_patient1).not.toBe('mock_patient1'); // should not be the same as before mapped
+            expect(typeof patientMapping.mock_patient2).toBe('string');
+            expect(patientMapping.mock_patient2).not.toBe('mock_patient2'); // should not be the same as before mapped
         });
 
         test('Get study (user without privilege)' , async () => {
@@ -897,8 +1312,6 @@ describe('STUDY API', () => {
         });
 
         test('Get study (user with privilege)' , async () => {
-            const authorisedUser = request.agent(app);
-            await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin')
             {
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(GET_STUDY),
@@ -912,7 +1325,7 @@ describe('STUDY API', () => {
             {
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(GET_PROJECT),
-                    variables: { projectId: createdProject.id, admin: true }
+                    variables: { projectId: createdProject.id, admin: false }
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
@@ -920,38 +1333,111 @@ describe('STUDY API', () => {
                     id: createdProject.id,
                     studyId: createdStudy.id,
                     name: createdProject.name,
-                    approvedFields: {},
-                    approvedFiles: [],
                     jobs: [],
-                    roles: [
-                        {
-                            id: createdRole_project.id,
-                            name: createdRole_project.name,
-                            permissions: [permissions.specific_project.specific_project_readonly_access],
-                            projectId: createdProject.id,
-                            studyId: createdStudy.id,
-                            users: [{
-                                id: createdUserAuthorised.id,
-                                organisation: 'DSI',
-                                realName: createdUserAuthorised.realName,
-                                username: createdUserAuthorised.username
-                            }]
-                        }
-                    ],
                     iCanEdit: true,
-                    fields: {},
+                    fields: [],
                     files: []
                 });
             }
         });
+
+        test('Get study fields (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(GET_STUDY_FIELDS),
+                variables: {
+                    studyId: createdStudy.id,
+                    fieldTreeId
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.getStudyFields).toEqual([
+                {
+                    id: 'mockfield1',
+                    studyId: createdStudy.id,
+                    path: 'Demographic',
+                    fieldId: 32,
+                    fieldName: 'Sex',
+                    valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                    possibleValues: ['male', 'female'],
+                    unit: null,
+                    itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                    numOfTimePoints: 1,
+                    numOfMeasurements: 1,
+                    notes: null,
+                    fieldTreeId
+                }
+            ]);
+        });
+
+        test('Get study fields (user with project privilege) (should fail)', async () => {
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(GET_STUDY_FIELDS),
+                variables: {
+                    studyId: createdStudy.id,
+                    fieldTreeId
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.getStudyFields).toBe(null);
+        });
+
+        test('Edit project approved fields (admin)', async () => {
+            const tentativeApprovedFields = mockFields.filter(e => e.fieldTreeId === fieldTreeId).reduce((a: string[], e) => [...a, e.id], []);
+            const res = await admin.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FIELDS),
+                variables: {
+                    projectId: createdProject.id,
+                    fieldTreeId,
+                    approvedFields: tentativeApprovedFields
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.editProjectApprovedFields).toEqual({
+                id: createdProject.id,
+                approvedFields: { // seen by study user
+                    [fieldTreeId]: tentativeApprovedFields
+                },
+                fields: [  // seen by project user
+                    {
+                        fieldTreeId,
+                        fieldsInFieldTree: [
+                            {
+                                id: 'mockfield1',
+                                studyId: createdStudy.id,
+                                path: 'Demographic',
+                                fieldId: 32,
+                                fieldName: 'Sex',
+                                valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                                possibleValues: ['male', 'female'],
+                                unit: null,
+                                itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                                numOfTimePoints: 1,
+                                numOfMeasurements: 1,
+                                notes: null,
+                                fieldTreeId
+                            }
+                        ]
+                    }
+                ]
+            });
+        });
     });
 
     describe('CURATION MOCK', () => {
+        beforeAll(async () => {
+            /* setup: create a study */
+            /* setup: create a project under the study */
+
+        });
         /**
-         * patientMapping
          * getStudyFields
          * project fields
          * editProjectApprovedFields
+         * setDataversion as current
          */
     });
 });

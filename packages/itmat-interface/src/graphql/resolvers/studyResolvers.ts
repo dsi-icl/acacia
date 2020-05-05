@@ -30,12 +30,12 @@ export const studyResolvers = {
             }
             return study;
         },
-        getProject: async (parent: object, args: any, context: any, info: any): Promise<IProject | null> => {
+        getProject: async (parent: object, args: any, context: any, info: any): Promise<Omit<IProject, 'patientMapping'> | null> => {
             const requester: IUser = context.req.user;
             const projectId: string = args.projectId;
 
-            /* get project */
-            const project: IProject | null = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
+            /* get project */ // defer patientMapping since it's costly and not available to all users
+            const project: Omit<IProject, 'patientMapping'> | null = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
 
             if (project === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -96,46 +96,74 @@ export const studyResolvers = {
         }
     },
     Project: {
-        fields: async (project: IProject) => {
+        fields: async (project: Omit<IProject, 'patientMapping'>) => {
             const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields));
             const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, deleted: null }).toArray();
-            const fields = result.reduce((a: { [fieldTreeId: string]: IFieldEntry[] }, e: IFieldEntry) => {
-                if (!a[e.fieldTreeId]) {
-                    a[e.fieldTreeId] = [];
+            const fieldTrees: object = {};
+            const fields = result.reduce((a: { fieldTreeId: string, fieldsInFieldTree: IFieldEntry[] }[], e: IFieldEntry) => {
+                if (!fieldTrees[e.fieldTreeId]) {
+                    fieldTrees[e.fieldTreeId] = a.length;
+                    a.push({ fieldTreeId: e.fieldTreeId, fieldsInFieldTree: []});
                 }
-                a[e.fieldTreeId].push(e);
+                a[fieldTrees[e.fieldTreeId]].fieldsInFieldTree.push(e);
                 return a;
-            }, {});
+            }, []);
             return fields;
         },
-        jobs: async (project: IProject) => {
+        jobs: async (project: Omit<IProject, 'patientMapping'>) => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
-        files: async (project: IProject) => {
+        files: async (project: Omit<IProject, 'patientMapping'>) => {
             return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
         },
-        patientMapping: async (project: IProject) => {
-            /* check permission */
+        patientMapping: async (project: Omit<IProject, 'patientMapping'>, args: never, context: any) => {
+            const requester: IUser = context.req.user;
+            /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.access_study_data,  // patientMapping is not visible to project users; only to study users.
+                requester,
+                project.studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
-            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { patientMapping: 1 } });
+            /* returning */
+            const result =
+                await db.collections!.projects_collection.findOne(
+                    { id: project.id, deleted: null },
+                    { projection: { patientMapping: 1 } }
+                );
             if (result && result.patientMapping) {
                 return result.patientMapping;
             } else {
                 return null;
             }
         },
-        approvedFields: async (project: IProject) => {
-            /* check permission */
+        approvedFields: async (project: IProject, args: never, context: any) => {
+            const requester: IUser = context.req.user;
 
-            const result = await db.collections!.projects_collection.findOne({ id: project.id, deleted: null }, { projection: { approvedFields: 1 } });
-            if (result && result.approvedFields) {
-                return result.approvedFields;
-            } else {
-                return null;
+            /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_projects,
+                requester,
+                project.studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
+
+            return project.approvedFields;
         },
-        approvedFiles: async (project: IProject) => {
-            /* check permission */
+        approvedFiles: async (project: IProject, args: never, context: any) => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_projects,
+                requester,
+                project.studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             return project.approvedFiles;
         },
@@ -223,19 +251,27 @@ export const studyResolvers = {
         editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
-            /* check privileges */
-
             /* check study id for the project */
             const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
-            const studyId = project.studyId;
 
-            /* check all the adds are valid */
-            // const resultFields: string[] = fieldCore.getFieldsOfStudy(studyId, false, changes.add);
-            // if (resultFields.length !== changes.add.length) {
-            //     throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
-            // }
+            /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_projects,
+                requester,
+                project.studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             /* check field tree exists */
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(project.studyId);
+            const currentDataVersion = study.dataVersions[study.currentDataVersion];
+            if (!currentDataVersion || !currentDataVersion.fieldTrees.includes(fieldTreeId)) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
+            /* check all the fields are valid */
+            // TO_DO
 
             /* edit approved fields */
             const resultingProject = await studyCore.editProjectApprovedFields(projectId, fieldTreeId, approvedFields);
