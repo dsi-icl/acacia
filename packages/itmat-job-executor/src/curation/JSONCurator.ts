@@ -1,8 +1,10 @@
 import { Collection } from 'mongodb';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { Writable } from 'stream';
 import JSONStream from 'JSONStream';
-import { IFieldDescriptionObject, IDataEntry } from '../utils/Interfaces';
+import { Models } from 'itmat-commons';
+type IFieldDescriptionObject = Models.Data.IFieldDescriptionObject;
+type IDataEntry= Models.Data.IDataEntry;
+type IJobEntry<T> = Models.JobModels.IJobEntry<T>;
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
