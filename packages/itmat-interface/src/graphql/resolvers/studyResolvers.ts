@@ -271,7 +271,11 @@ export const studyResolvers = {
             }
 
             /* check all the fields are valid */
-            // TO_DO
+            const activefields = await db.collections!.field_dictionary_collection.find({ id: { $in: approvedFields }, deleted: null, fieldTreeId }).toArray();
+            if (activefields.length !== approvedFields.length) {
+                throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+
 
             /* edit approved fields */
             const resultingProject = await studyCore.editProjectApprovedFields(projectId, fieldTreeId, approvedFields);
@@ -280,17 +284,23 @@ export const studyResolvers = {
         editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
-            /* check privileges */
-
             /* check study id for the project */
             const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
-            const studyId = project.studyId;
 
-            /* check all the adds are valid */
-            // const resultFields: string[] = fieldCore.getFieldsOfStudy(studyId, false, changes.add);
-            // if (resultFields.length !== changes.add.length) {
-            //     throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
-            // }
+            /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_projects,
+                requester,
+                project.studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            /* check all the files are valid */
+            const activefiles = await db.collections!.files_collection.find({ id: { $in: approvedFiles }, deleted: null }).toArray();
+            if (activefiles.length !== approvedFiles.length) {
+                throw new ApolloError('Some of the files provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
+            }
 
             /* edit approved fields */
             const resultingProject = await studyCore.editProjectApprovedFiles(projectId, approvedFiles);
@@ -300,9 +310,15 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_data,
+                requester,
+                studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
 
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-
 
             /* check whether the dataversion exists */
             const selectedataVersionFiltered = study.dataVersions.filter((el) => el.id === dataVersionId);

@@ -20,7 +20,9 @@ const {
     CREATE_PROJECT,
     CREATE_STUDY,
     DELETE_STUDY,
-    DELETE_PROJECT
+    DELETE_PROJECT,
+    EDIT_PROJECT_APPROVED_FILES,
+    SET_DATAVERSION_AS_CURRENT
 } = itmatCommons.GQLRequests;
 const { userTypes } = itmatCommons.Models.UserModels;
 const { permissions } = itmatCommons;
@@ -29,9 +31,11 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import { IStudyDataVersion, IRole } from 'itmat-commons/dist/models/study';
 import { text } from 'body-parser';
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import { IFile } from 'itmat-commons/dist/models/file';
+import { IUser } from 'itmat-commons/dist/models/user';
 
 let app;
 let mongodb;
@@ -608,13 +612,29 @@ describe('STUDY API', () => {
         let createdProject;
         let createdStudy;
         let createdRole_study; // tslint:disable-line
+        let createdRole_study_manageProject; // tslint:disable-line
         let createdRole_project;// tslint:disable-line
-        let createdUserAuthorised;
-        let createdUserAuthorisedStudy;
-        let authorisedUser;
-        let authorisedUserStudy;
+        let createdUserAuthorised;  // profile
+        let createdUserAuthorisedStudy;  // profile
+        let createdUserAuthorisedStudyManageProjects;  // profile
+        let authorisedUser; // client
+        let authorisedUserStudy; // client
+        let authorisedUserStudyManageProject; // client
         const fieldTreeId = uuid();
         let mockFields: IFieldEntry[];
+        let mockFiles: IFile[];
+        let mockDataVersion: IStudyDataVersion;
+        const newMockDataVersion: IStudyDataVersion = { // this is not added right away; but multiple tests uses this
+            id: 'mockDataVersionId2',
+            contentId: 'mockContentId2',
+            version: '0.0.1',
+            fileSize: 10000,
+            uploadDate: 5000000,
+            tag: 'hey',
+            jobId: 'mockjobid2',
+            extractedFrom: 'mockfile2',
+            fieldTrees: []
+        };
 
         beforeAll(async () => {
             /*** setup: create a setup study ***/
@@ -636,7 +656,7 @@ describe('STUDY API', () => {
 
             /* x. mock - add data to the study */
             {
-                const mockDataVersion: IStudyDataVersion = {
+                mockDataVersion = {
                     id: 'mockDataVersionId',
                     contentId: 'mockContentId',
                     version: '0.0.1',
@@ -724,9 +744,33 @@ describe('STUDY API', () => {
                         fieldTreeId: 'fieldTree2'
                     }
                 ];
+
+                mockFiles = [
+                    {
+                        id: 'mockfile1_id',
+                        fileName: 'mockfile1_name',
+                        studyId: createdStudy.id,
+                        fileSize: 1000,
+                        description: 'Just a test file1',
+                        uploadedBy: adminId,
+                        uri: 'fakeuri',
+                        deleted: null
+                    },
+                    {
+                        id: 'mockfile2_id',
+                        fileName: 'mockfile2_name',
+                        studyId: createdStudy.id,
+                        fileSize: 1000,
+                        description: 'Just a test file2',
+                        uploadedBy: adminId,
+                        uri: 'fakeuri2',
+                        deleted: null
+                    }
+                ]
                 await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
                 await db.collections!.data_collection.insertMany(mockData);
                 await db.collections!.field_dictionary_collection.insertMany(mockFields);
+                await db.collections!.files_collection.insertMany(mockFiles);
             }
 
             /* 2. create projects for the study */
@@ -778,6 +822,41 @@ describe('STUDY API', () => {
                 });
                 expect(res.body.data.addRoleToStudyOrProject).toEqual({
                     id: createdRole_study.id,
+                    name: roleName,
+                    permissions: [],
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    users: []
+                });
+            }
+            /* create another role for study (this time it will have "manage project" privilege - equivalent to PI */
+            {
+                const roleName = uuid();
+                const res = await admin.post('/graphql').send({
+                    query: print(ADD_NEW_ROLE),
+                    variables: {
+                        roleName,
+                        studyId: createdStudy.id,
+                        projectId: null
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+
+                createdRole_study_manageProject = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+                expect(createdRole_study_manageProject).toEqual({
+                    _id: createdRole_study_manageProject._id,
+                    id: createdRole_study_manageProject.id,
+                    projectId: null,
+                    studyId: createdStudy.id,
+                    name: roleName,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+                expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                    id: createdRole_study_manageProject.id,
                     name: roleName,
                     permissions: [],
                     studyId: createdStudy.id,
@@ -1013,6 +1092,104 @@ describe('STUDY API', () => {
                     }
                 });
             }
+
+            /* 5. create an authorised study user that can manage projects (no role yet) */
+            {
+                const username = uuid();
+                const res = await admin.post('/graphql').send({
+                    query: print(CREATE_USER),
+                    variables: {
+                        username,
+                        password: 'admin',
+                        realName: `${username}_realname`,
+                        description: 'setupUser2',
+                        organisation: 'DSI',
+                        emailNotificationsActivated: true,
+                        email: `${username}@user.io`,
+                        type: userTypes.STANDARD
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
+                expect(res.body.data.createUser).toEqual({
+                    id: createdUserAuthorisedStudyManageProjects.id,
+                    username,
+                    type: userTypes.STANDARD,
+                    realName: `${username}_realname`,
+                    description: 'setupUser2',
+                    organisation: 'DSI',
+                    email: `${username}@user.io`,
+                    createdBy: 'admin',
+                    access: {
+                        id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
+                        projects: [],
+                        studies: []
+                    }
+                });
+            }
+
+            /* 6. add authorised user to role */
+            {
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: createdRole_study_manageProject.id,
+                        userChanges: {
+                            add: [createdUserAuthorisedStudyManageProjects.id],
+                            remove: []
+                        },
+                        permissionChanges: {
+                            add: [permissions.specific_study.specific_study_projects_management],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: createdRole_study_manageProject.id,
+                    name: createdRole_study_manageProject.name,
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    permissions: [permissions.specific_study.specific_study_projects_management],
+                    users: [{
+                        id: createdUserAuthorisedStudyManageProjects.id,
+                        organisation: 'DSI',
+                        realName: createdUserAuthorisedStudyManageProjects.realName
+                    }]
+                });
+                const resUser = await admin.post('/graphql').send({
+                    query: print(GET_USERS),
+                    variables: {
+                        fetchDetailsAdminOnly: false,
+                        userId: createdUserAuthorisedStudyManageProjects.id,
+                        fetchAccessPrivileges: true
+                    }
+                });
+                expect(resUser.status).toBe(200);
+                expect(resUser.body.errors).toBeUndefined();
+                expect(resUser.body.data.getUsers).toHaveLength(1);
+                expect(resUser.body.data.getUsers[0]).toEqual({
+                    id: createdUserAuthorisedStudyManageProjects.id,
+                    type: userTypes.STANDARD,
+                    realName: `${createdUserAuthorisedStudyManageProjects.username}_realname`,
+                    organisation: 'DSI',
+                    createdBy: 'admin',
+                    access: {
+                        id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
+                        projects: [{
+                            id: createdProject.id,
+                            name: createdProject.name,
+                            studyId: createdStudy.id
+                        }],
+                        studies: [{
+                            id: createdStudy.id,
+                            name: createdStudy.name
+                        }]
+                    }
+                });
+            }
             /* fsdafs: admin who am i */
             {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
@@ -1045,6 +1222,8 @@ describe('STUDY API', () => {
                 await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin')
                 authorisedUserStudy = request.agent(app);
                 await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin')
+                authorisedUserStudyManageProject = request.agent(app);
+                await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin')
 
             }
         });
@@ -1181,9 +1360,41 @@ describe('STUDY API', () => {
                                 realName: createdUserAuthorisedStudy.realName,
                                 username: createdUserAuthorisedStudy.username
                             }]
+                        },
+                        {
+                            id: createdRole_study_manageProject.id,
+                            name: createdRole_study_manageProject.name,
+                            permissions: [permissions.specific_study.specific_study_projects_management],
+                            projectId: null,
+                            studyId: createdStudy.id,
+                            users: [{
+                                id: createdUserAuthorisedStudyManageProjects.id,
+                                organisation: 'DSI',
+                                realName: createdUserAuthorisedStudyManageProjects.realName,
+                                username: createdUserAuthorisedStudyManageProjects.username
+                            }]
                         }
                     ],
-                    files: [],
+                    files: [
+                        {
+                            id: 'mockfile1_id',
+                            fileName: 'mockfile1_name',
+                            studyId: createdStudy.id,
+                            projectId: null,
+                            fileSize: 1000,
+                            description: 'Just a test file1',
+                            uploadedBy: adminId,
+                        },
+                        {
+                            id: 'mockfile2_id',
+                            fileName: 'mockfile2_name',
+                            studyId: createdStudy.id,
+                            projectId: null,
+                            fileSize: 1000,
+                            description: 'Just a test file2',
+                            uploadedBy: adminId,
+                        }
+                    ],
                     numOfSubjects: 2,
                     currentDataVersion: 0,
                     dataVersions: [{
@@ -1384,6 +1595,22 @@ describe('STUDY API', () => {
             expect(res.body.data.getStudyFields).toBe(null);
         });
 
+        test('Edit project approved fields with fields that are not in the field tree (admin) (should fail)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FIELDS),
+                variables: {
+                    projectId: createdProject.id,
+                    fieldTreeId,
+                    approvedFields: ['fakefieldhere']
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('Some of the fields provided in your changes are not valid.');
+            expect(res.body.data.editProjectApprovedFields).toBe(null);
+        });
+
+
         test('Edit project approved fields (admin)', async () => {
             const tentativeApprovedFields = mockFields.filter(e => e.fieldTreeId === fieldTreeId).reduce((a: string[], e) => [...a, e.id], []);
             const res = await admin.post('/graphql').send({
@@ -1424,20 +1651,453 @@ describe('STUDY API', () => {
                     }
                 ]
             });
+            /* cleanup: revert the adding of fields */
+            await db.collections!.projects_collection.updateOne({ id: createdProject.id }, { $set: { approvedFields: {} } });
         });
+
+        test('Edit project approved fields (user without privilege) (should fail)', async () => {
+            const tentativeApprovedFields = mockFields.filter(e => e.fieldTreeId === fieldTreeId).reduce((a: string[], e) => [...a, e.id], []);
+            const res = await user.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FIELDS),
+                variables: {
+                    projectId: createdProject.id,
+                    fieldTreeId,
+                    approvedFields: tentativeApprovedFields
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.editProjectApprovedFields).toEqual(null);
+        });
+
+        test('Edit project approved fields (user with study readonly privilege) (should fail)', async () => {
+            const tentativeApprovedFields = mockFields.filter(e => e.fieldTreeId === fieldTreeId).reduce((a: string[], e) => [...a, e.id], []);
+            const res = await authorisedUserStudy.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FIELDS),
+                variables: {
+                    projectId: createdProject.id,
+                    fieldTreeId,
+                    approvedFields: tentativeApprovedFields
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.editProjectApprovedFields).toEqual(null);
+        });
+
+        test('Edit project approved fields (user with study " manage project" privilege)', async () => {
+            const tentativeApprovedFields = mockFields.filter(e => e.fieldTreeId === fieldTreeId).reduce((a: string[], e) => [...a, e.id], []);
+            const res = await authorisedUserStudyManageProject.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FIELDS),
+                variables: {
+                    projectId: createdProject.id,
+                    fieldTreeId,
+                    approvedFields: tentativeApprovedFields
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.editProjectApprovedFields).toEqual({
+                id: createdProject.id,
+                approvedFields: { // seen by study user
+                    [fieldTreeId]: tentativeApprovedFields
+                },
+                fields: [  // seen by project user
+                    {
+                        fieldTreeId,
+                        fieldsInFieldTree: [
+                            {
+                                id: 'mockfield1',
+                                studyId: createdStudy.id,
+                                path: 'Demographic',
+                                fieldId: 32,
+                                fieldName: 'Sex',
+                                valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                                possibleValues: ['male', 'female'],
+                                unit: null,
+                                itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                                numOfTimePoints: 1,
+                                numOfMeasurements: 1,
+                                notes: null,
+                                fieldTreeId
+                            }
+                        ]
+                    }
+                ]
+            });
+            /* cleanup: revert the adding of fields */
+            await db.collections!.projects_collection.updateOne({ id: createdProject.id }, { $set: { approvedFields: {} } });
+        });
+
+        test('Edit project approved fields (user with project privilege) (should fail)', async () => {
+            const tentativeApprovedFields = mockFields.filter(e => e.fieldTreeId === fieldTreeId).reduce((a: string[], e) => [...a, e.id], []);
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FIELDS),
+                variables: {
+                    projectId: createdProject.id,
+                    fieldTreeId,
+                    approvedFields: tentativeApprovedFields
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.editProjectApprovedFields).toEqual(null);
+        });
+
+        test('Edit project approved files (user without privilege) (should fail)', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FILES),
+                variables: {
+                    projectId: createdProject.id,
+                    approvedFiles: [mockFiles[0].id]
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.editProjectApprovedFiles).toEqual(null);
+        });
+
+        test('Edit project approved files (user with project privilege) (should fail)', async () => {
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FILES),
+                variables: {
+                    projectId: createdProject.id,
+                    approvedFiles: [mockFiles[0].id]
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.editProjectApprovedFiles).toEqual(null);
+        });
+
+        test('Edit project approved files (user with project privilege) (should fail)', async () => {
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FILES),
+                variables: {
+                    projectId: createdProject.id,
+                    approvedFiles: [mockFiles[0].id]
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.editProjectApprovedFiles).toEqual(null);
+        });
+
+        test('Edit project approved files (user with study read-only privilege) (should fail)', async () => {
+            const res = await authorisedUserStudy.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FILES),
+                variables: {
+                    projectId: createdProject.id,
+                    approvedFiles: [mockFiles[0].id]
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.editProjectApprovedFiles).toEqual(null);
+        });
+
+        test('Edit project approved files (user with study "manage project" privilege)', async () => {
+            const res = await authorisedUserStudyManageProject.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FILES),
+                variables: {
+                    projectId: createdProject.id,
+                    approvedFiles: [mockFiles[0].id]
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            const { editProjectApprovedFiles } = res.body.data;
+            expect(editProjectApprovedFiles).toEqual({
+                id: createdProject.id,
+                approvedFiles: [mockFiles[0].id],
+                files: [{
+                    id: mockFiles[0].id,
+                    fileName: mockFiles[0].fileName,
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    fileSize: mockFiles[0].fileSize,
+                    description: mockFiles[0].description,
+                    uploadedBy: adminId
+                }]
+            });
+            expect(typeof editProjectApprovedFiles.id).toEqual('string');
+            expect(typeof editProjectApprovedFiles.files[0].fileName).toEqual('string');
+            expect(typeof editProjectApprovedFiles.files[0].studyId).toEqual('string');
+            expect(typeof editProjectApprovedFiles.files[0].fileSize).toEqual('number');
+            expect(typeof editProjectApprovedFiles.files[0].description).toEqual('string');
+            expect(typeof editProjectApprovedFiles.files[0].uploadedBy).toEqual('string');
+
+            /* cleanup: reverse adding project approvedfiles */
+            await mongoClient.collection(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { approvedFiles: [] } });
+        });
+
+        test('Edit project approved files (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FILES),
+                variables: {
+                    projectId: createdProject.id,
+                    approvedFiles: [mockFiles[0].id]
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            const { editProjectApprovedFiles } = res.body.data;
+            expect(editProjectApprovedFiles).toEqual({
+                id: createdProject.id,
+                approvedFiles: [mockFiles[0].id],
+                files: [{
+                    id: mockFiles[0].id,
+                    fileName: mockFiles[0].fileName,
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    fileSize: mockFiles[0].fileSize,
+                    description: mockFiles[0].description,
+                    uploadedBy: adminId
+                }]
+            });
+            expect(typeof editProjectApprovedFiles.id).toEqual('string');
+            expect(typeof editProjectApprovedFiles.files[0].fileName).toEqual('string');
+            expect(typeof editProjectApprovedFiles.files[0].studyId).toEqual('string');
+            expect(typeof editProjectApprovedFiles.files[0].fileSize).toEqual('number');
+            expect(typeof editProjectApprovedFiles.files[0].description).toEqual('string');
+            expect(typeof editProjectApprovedFiles.files[0].uploadedBy).toEqual('string');
+
+            /* cleanup: reverse adding project approvedfiles */
+            await mongoClient.collection(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { approvedFiles: [] } });
+        });
+
+        test('Edit project approved files for non-existnet file (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(EDIT_PROJECT_APPROVED_FILES),
+                variables: {
+                    projectId: createdProject.id,
+                    approvedFiles: ['Idontexist!']
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('Some of the files provided in your changes are not valid.');
+            expect(res.body.data.editProjectApprovedFiles).toBe(null)
+        });
+
+        test('Set a previous study dataversion as current (admin)', async () => {
+            /* setup: add an extra dataversion */
+            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+
+            const res = await admin.post('/graphql').send({
+                query: print(SET_DATAVERSION_AS_CURRENT),
+                variables: {
+                    studyId: createdStudy.id,
+                    dataVersionId: mockDataVersion.id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
+            expect(study).toBeDefined();
+            expect(res.body.data.setDataversionAsCurrent).toEqual({
+                id: createdStudy.id,
+                currentDataVersion: 2,
+                dataVersions: [
+                    { ...mockDataVersion, tag: null },
+                    { ...newMockDataVersion },
+                    { ...mockDataVersion, tag: null, id: study.dataVersions[2].id }
+                ]
+            });
+            // content id should be the same be id is different
+            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].id).not.toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].id);
+            expect(study.dataVersions[2].id).not.toBe(study.dataVersions[0].id);
+            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].contentId).toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].contentId);
+            expect(study.dataVersions[2].contentId).toBe(study.dataVersions[0].contentId);
+
+            /* cleanup: reverse setting dataversion */
+            await mongoClient.collection(config.database.collections.studies_collection)
+                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
+        });
+
+        test('Set a previous study dataversion as current (user without privilege) (should fail)', async () => {
+            /* setup: add an extra dataversion */
+            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+
+            const res = await user.post('/graphql').send({
+                query: print(SET_DATAVERSION_AS_CURRENT),
+                variables: {
+                    studyId: createdStudy.id,
+                    dataVersionId: mockDataVersion.id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.data.setDataversionAsCurrent).toEqual(null);
+
+            /* cleanup: reverse setting dataversion */
+            await mongoClient.collection(config.database.collections.studies_collection)
+                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
+        });
+
+        test('Set a previous study dataversion as current (user with project privilege) (should fail)', async () => {
+            /* setup: add an extra dataversion */
+            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(SET_DATAVERSION_AS_CURRENT),
+                variables: {
+                    studyId: createdStudy.id,
+                    dataVersionId: mockDataVersion.id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.data.setDataversionAsCurrent).toEqual(null);
+
+            /* cleanup: reverse setting dataversion */
+            await mongoClient.collection(config.database.collections.studies_collection)
+                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
+        });
+
+        test('Set a previous study dataversion as current (user with study read-only privilege) (should fail)', async () => {
+            /* setup: add an extra dataversion */
+            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+
+            const res = await authorisedUserStudy.post('/graphql').send({
+                query: print(SET_DATAVERSION_AS_CURRENT),
+                variables: {
+                    studyId: createdStudy.id,
+                    dataVersionId: mockDataVersion.id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.data.setDataversionAsCurrent).toEqual(null);
+
+            /* cleanup: reverse setting dataversion */
+            await mongoClient.collection(config.database.collections.studies_collection)
+                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
+        });
+
+        test('Set a previous study dataversion as current (user with study "manage project" privilege) (should fail)', async () => {
+            /* setup: add an extra dataversion */
+            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+
+            const res = await authorisedUserStudyManageProject.post('/graphql').send({
+                query: print(SET_DATAVERSION_AS_CURRENT),
+                variables: {
+                    studyId: createdStudy.id,
+                    dataVersionId: mockDataVersion.id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.data.setDataversionAsCurrent).toEqual(null);
+
+            /* cleanup: reverse setting dataversion */
+            await mongoClient.collection(config.database.collections.studies_collection)
+                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
+        });
+
+        test('Set a previous study dataversion as current (user with study "manage project" privilege) (should fail)', async () => {
+            /* setup: add an extra dataversion */
+            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+
+            const res = await authorisedUserStudyManageProject.post('/graphql').send({
+                query: print(SET_DATAVERSION_AS_CURRENT),
+                variables: {
+                    studyId: createdStudy.id,
+                    dataVersionId: mockDataVersion.id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.data.setDataversionAsCurrent).toEqual(null);
+
+            /* cleanup: reverse setting dataversion */
+            await mongoClient.collection(config.database.collections.studies_collection)
+                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
+        });
+
+        test('Set a previous study dataversion as current (user with study "manage data" privilege) (should fail)', async () => {
+            /* setup: create a new user */
+            const userDataCurator: IUser = {
+                id: uuid(),
+                username: 'datacurator',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                email: 'user@ic.ac.uk',
+                realName: 'DataCurator',
+                organisation: 'DSI',
+                type: userTypes.STANDARD,
+                description: 'just a data curator',
+                emailNotificationsActivated: true,
+                deleted: null,
+                createdBy: adminId
+            };
+            await db.collections!.users_collection.insertOne(userDataCurator);
+
+            /* setup: create a new role with data management */ 
+            const roleDataCurator: IRole = {
+                id: uuid(),
+                studyId: createdStudy.id,
+                name: 'Data Manager',
+                permissions: [permissions.specific_study.specific_study_data_management],
+                users: [userDataCurator.id],
+                createdBy: adminId,
+                deleted: null
+            };
+            await db.collections!.roles_collection.insertOne(roleDataCurator);
+
+            /* setup: connect user */
+            const dataCurator = request.agent(app);
+            await connectAgent(dataCurator, userDataCurator.username, 'admin')
+
+            /* setup: add an extra dataversion */
+            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+
+            /* test */
+            const res = await dataCurator.post('/graphql').send({
+                query: print(SET_DATAVERSION_AS_CURRENT),
+                variables: {
+                    studyId: createdStudy.id,
+                    dataVersionId: mockDataVersion.id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
+            expect(study).toBeDefined();
+            expect(res.body.data.setDataversionAsCurrent).toEqual({
+                id: createdStudy.id,
+                currentDataVersion: 2,
+                dataVersions: [
+                    { ...mockDataVersion, tag: null },
+                    { ...newMockDataVersion },
+                    { ...mockDataVersion, tag: null, id: study.dataVersions[2].id }
+                ]
+            });
+            // content id should be the same be id is different
+            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].id).not.toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].id);
+            expect(study.dataVersions[2].id).not.toBe(study.dataVersions[0].id);
+            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].contentId).toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].contentId);
+            expect(study.dataVersions[2].contentId).toBe(study.dataVersions[0].contentId);
+
+            /* cleanup: reverse setting dataversion */
+            await mongoClient.collection(config.database.collections.studies_collection)
+                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
+
+            /* cleanup: delete user and role */
+            await db.collections!.users_collection.deleteOne({ id: userDataCurator.id });
+            await db.collections!.roles_collection.deleteOne({ id: roleDataCurator.id });
+        });
+
+
     });
 
-    describe('CURATION MOCK', () => {
-        beforeAll(async () => {
-            /* setup: create a study */
-            /* setup: create a project under the study */
-
-        });
-        /**
-         * getStudyFields
-         * project fields
-         * editProjectApprovedFields
-         * setDataversion as current
-         */
-    });
+    /**
+     * setDataversion as current
+     */
 });
