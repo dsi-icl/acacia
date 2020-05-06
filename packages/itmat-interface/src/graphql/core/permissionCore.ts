@@ -19,7 +19,7 @@ export class PermissionCore {
         return db.collections!.roles_collection.find({ studyId, projectId }).toArray();
     }
 
-    public async userHasTheNeccessaryPermission(needOneOfThesePermissions: string[], user: IUser, studyId: string, projectId?: string): Promise<boolean> {
+    public async userHasTheNeccessaryPermission(needAnyOneOfThesePermissions: string[], user: IUser, studyId: string, projectId?: string): Promise<boolean> {
         if (user === undefined) {
             return false;
         }
@@ -46,8 +46,8 @@ export class PermissionCore {
         const hisPrivileges = result[0].arrPrivileges;   // example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
 
         /* checking privileges */
-        for (let i = 0, length = needOneOfThesePermissions.length; i < length; i++) {
-            if (hisPrivileges.includes(needOneOfThesePermissions[i])) {
+        for (let i = 0, length = needAnyOneOfThesePermissions.length; i < length; i++) {
+            if (hisPrivileges.includes(needAnyOneOfThesePermissions[i])) {
                 return true;
             }
         }
