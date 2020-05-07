@@ -36,26 +36,27 @@ export class JSONCurator {
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         return new Promise((resolve) => {
             console.log(`uploading for job ${this.job.id}`);
-            let objectNum = 0;
             let isHeader: boolean = true;
+            let objectNum = 0;
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
-            const jsonstream = JSONStream.parse([{emitKey: true}]);
-            
+            // const jsonstream = JSONStream.parse([{emitKey: true}]);
+            const jsonstream = JSONStream.parse([{}]);
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
                 write: async (chunk, _, callback) => {
                     objectNum++;
-                    if (chunk.key === "fields") {
-                        const { error, parsedHeader } = processJSONHeader(chunk.value);
+                    if (isHeader) {
+                        const { error, parsedHeader } = processJSONHeader(chunk);
                         if (error) {
                             this._errored = true;
                             this._errors.push(...error);
                         }
                         this._header = parsedHeader;
+                        isHeader = false;
                         
                     } else {
-                        subjectString.push(chunk.key);
+                        subjectString.push(chunk[0]);
                         const { error, dataEntry } = processEachSubject({
                             objectNum: objectNum,
                             subject: chunk,
@@ -95,7 +96,6 @@ export class JSONCurator {
                 if (set.size !== subjectString.length) {
                     this._errors.push('Data Error: There is duplicate subject id.');
                     this._errored = true;
-                    
                 }
 
                 if (!this._errored) {
@@ -120,16 +120,20 @@ export function processJSONHeader(header: string[]): {error?: string[], parsedHe
     const parsedHeader: Array<IFieldDescriptionObject | null> = Array(header.length);
     let colNum = 0;
     for (const each of header) {
-        if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
-            error.push(`Object 1: '${each}' is not a valid header field descriptor.`);
-            parsedHeader[colNum] = null;
+        if (colNum === 0) {
+            parsedHeader[0] = null;
         } else {
-            const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
-            const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
-            const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
-            const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
-            parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
-            fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
+            if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
+                error.push(`Object 1: '${each}' is not a valid header field descriptor.`);
+                parsedHeader[colNum] = null;
+            } else {
+                const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
+                const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
+                const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
+                const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
+                parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
+                fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
+            }
         }
         colNum++;
     }
@@ -142,7 +146,7 @@ export function processJSONHeader(header: string[]): {error?: string[], parsedHe
 
 }
 
-export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: JSON, parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // tslint:disable-line
+export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // tslint:disable-line
     const error: string[] = [];
     let colIndex = 0;
     const dataEntry: any = {
@@ -150,17 +154,28 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
         m_study: job.studyId,
         m_versionId: versionId
     };
-
+    
     /* extracting subject id */        
-    if (!subject['key']) {
-        error.push(`Object ${objectNum}: No subject id provided.`);
-    }
+    // if (!subject['key']) {
+    //     error.push(`Object ${objectNum}: No subject id provided.`);
+    // }
 
-    if (subject['value'].length !== parsedHeader.length) {
-        error.push(`Object ${subject['key']}: Uneven field Number; expected ${parsedHeader.length} fields but got ${subject['value'].length}`);
+    if (subject.length !== parsedHeader.length) {
+        error.push(`Object ${subject[0]}: Uneven field Number; expected ${parsedHeader.length} fields but got ${subject.length}`);
         return ({ error, dataEntry });
     }
-    for (const each of subject['value']) {
+    for (const each of subject) {
+        if (colIndex === 0) {
+            /* extracting subject id */
+            if (each === '') {
+                error.push(`Object ${objectNum}: No subject id provided.`);
+                colIndex++;
+                continue;
+            }
+            dataEntry.m_eid = each;
+            colIndex++;
+            continue;
+        }
         /* skip for missing data */
         if (each === '') {
             colIndex++;
@@ -171,7 +186,6 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
             colIndex++;
             continue;
         }
-        dataEntry.m_eid = subject['key'];
         const {fieldId, timepoint, measurement, datatype } = parsedHeader [colIndex] as IFieldDescriptionObject;
 
         /* adding value to dataEntry */
@@ -183,7 +197,7 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
                     break;
                 case 'd': // decimal
                     if (!/^\d+(.\d+)?$/.test(each)) {
-                        error.push(`The ${objectNum} object (subjectId: ${subject['key']}) column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
+                        error.push(`The ${objectNum} object (subjectId: ${dataEntry.m_eid}) column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
                         colIndex++;
                         continue;
                     }
@@ -191,7 +205,7 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
                     break;
                 case 'i': // integer
                     if (!/^\d+$/.test(each)) {
-                        error.push(`The ${objectNum} object (subjectId: ${subject['key']}) column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
+                        error.push(`The ${objectNum} object (subjectId: ${dataEntry.m_eid}) column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
                         colIndex++;
                         continue;
                     }
@@ -201,7 +215,7 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
                     if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
                         value = each.toLowerCase() === 'true';
                     } else {
-                        error.push(`The ${objectNum} object (subjectId: ${subject['key']}) column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
+                        error.push(`The ${objectNum} object (subjectId: ${dataEntry.m_eid}) column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
                         colIndex++;
                         continue;
                     }
@@ -210,7 +224,7 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
                     value = each;
                     break;
                 default:
-                    error.push(`The ${objectNum} object (subjectId: ${subject['key']}): Invalid data type '${datatype}'`);
+                    error.push(`The ${objectNum} object (subjectId: ${dataEntry.m_eid}): Invalid data type '${datatype}'`);
                     colIndex++;
                     continue;
             }
