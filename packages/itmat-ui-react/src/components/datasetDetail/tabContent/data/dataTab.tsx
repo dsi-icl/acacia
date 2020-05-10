@@ -94,6 +94,8 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
 
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title="Fields & Variables">
+                <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id} />
+                <br/><br/>
                 <FieldListSelectionSection
                     studyId={data.id}
                     selectedVersion={selectedVersion}
@@ -101,7 +103,6 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                     versions={data.dataVersions}
                     key={data.id}
                 />
-                <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id} />
             </Subsection>
         </div>
 
