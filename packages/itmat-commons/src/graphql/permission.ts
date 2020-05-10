@@ -13,10 +13,10 @@ export const EDIT_ROLE = gql`
             studyId
             projectId
             permissions
-                users {
-                    id
-                    organisation
-                    realName
+            users {
+                id
+                organisation
+                realName
             }
         }
     }
