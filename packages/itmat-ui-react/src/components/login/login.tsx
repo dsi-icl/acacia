@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import css from './login.module.css';
+import animation from '../../css/animation/animation.module.css';
 
 export const LoginBox: React.FunctionComponent = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
@@ -28,7 +29,7 @@ export const LoginBox: React.FunctionComponent = () => {
         >
             {(login, { loading, error }) =>
                 <div className={css.login_and_error_wrapper}>
-                    <div className={css.login_box}>
+                    <div className={`${css.login_box} appear_from_below`}>
                         <h1>ITMAT - BROKER</h1>
                         <br /><br />
                         <div>
