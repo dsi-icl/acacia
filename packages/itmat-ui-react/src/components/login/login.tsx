@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import css from './login.module.css';
-import animation from '../../css/animation/animation.module.css';
+import './login.global.css';
 
 export const LoginBox: React.FunctionComponent = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
@@ -29,9 +29,11 @@ export const LoginBox: React.FunctionComponent = () => {
         >
             {(login, { loading, error }) =>
                 <div className={css.login_and_error_wrapper}>
+                    <div className={css.top + ' appear_from_left'}></div>
+                    <div className={css.bottom + ' appear_from_right'}></div>
                     <div className={`${css.login_box} appear_from_below`}>
-                        <h1>ITMAT - BROKER</h1>
-                        <br /><br />
+                        <h1>Furnace</h1>
+                        <p>A high-octane data storage and analysis platform</p><br />
                         <div>
                             <input id='username_input' placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
                         </div>

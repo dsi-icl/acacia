@@ -1,17 +1,32 @@
 .login_and_error_wrapper {
+    height: 100%;
+    position: relative;
+}
+
+.top {
     position: absolute;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%);
+    background: var(--color-ariane-background);
+    height: 200px;
+    width: 200vw;
+}
+
+.bottom {
+    position: absolute;
+    background: #657280;
+    height: 110px;
+    width: 200vw;
 }
 
 .login_box {
-    /* height: 30%; */
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    text-align: center;
+    transform: translate(-50%);
 }
 
 .login_box input {
     text-align:center;
-    color: white;
     width: 100%;
     margin-bottom: 1.5rem;
     font-size: 1.2rem;
@@ -21,10 +36,15 @@
 }
 
 .login_box h1 {
-    font-family: 'Cairo';
     font-size: 5rem;
     color: var(--color-primary-color);
     margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.login_box p {
+    font-family: 'Cairo';
+    font-size: 1.1rem;
 }
 
 .error_message {
