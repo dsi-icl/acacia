@@ -55,6 +55,7 @@
     --color-popup: #131212;
     --color-popup-border: #4a4a4a;
     --color-status-cancelled: black;
+    --animation-duration: 0.4s;  /* set to 0 if customised */
 }
 
 @font-face {
@@ -244,6 +245,16 @@ input:read-only {
     height: 100%;
     font-size: 1rem;
     overflow: auto;
+    animation: var(--animation-duration) fade_in;
+}
+
+.fade_in {
+    animation: var(--animation-duration) fade_in;
+}
+
+@keyframes fade_in {
+    from { transform: translate(-15px); opacity: 0.5;}
+    to { transform: translate(0); opacity: 1;}
 }
 
 

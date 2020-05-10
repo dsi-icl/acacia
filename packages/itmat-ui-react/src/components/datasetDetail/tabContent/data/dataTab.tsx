@@ -16,7 +16,7 @@ import { UploadNewFields } from './uploadNewFields';
 
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return <div className={css.scaffold_wrapper}>
+    return <div className={css.scaffold_wrapper + ' fade_in'}>
         <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
                 if (loading) { return <LoadingBalls />; }
