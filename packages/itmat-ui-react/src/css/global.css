@@ -147,16 +147,6 @@ button:active {
     cursor: progress !important;
 }
 
-.button_grey {
-    background-image: none;
-    background-color: #4A4A4A;
-}
-
-.button_grey:hover{
-    background-image: none;
-    background-color: rgb(53, 53, 53);
-}
-
 table {
     border-collapse: collapse;
     border-spacing: 0;
