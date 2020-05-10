@@ -23,7 +23,7 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId
 
             return <div className={css.project_detail_scaffold}>
                 <div className={css.project_detail_title}>
-                    <NavLink to={`/datasets/${studyId}/projects`}><span style={{ marginRight: '1rem', color: 'var(--color-primary-color)' }}>&#11013;</span></NavLink>{data.getProject.name}
+                    <NavLink to={`/datasets/${studyId}/projects`}><div>&#11013;</div></NavLink>{data.getProject.name}
                 </div>
                 <div className={css.project_detail_left}>
                     <Subsection title='Role'>

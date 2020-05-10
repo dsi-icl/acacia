@@ -27,9 +27,9 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole, availa
 
     if (userFetchLoading) { return <LoadingBalls />; }
     return <div className={css.one_role}>
+        {removeRoleLoading ? <span className={css.right_aligned}><LoadingBalls /></span> : <span className={css.delete_role_button + ' ' + css.right_aligned} onClick={() => removeRole({ variables: { roleId: role.id } })}>X</span>}
         <div className={css.role_header}>
             <label className={css.role_name}>{role.name}</label>
-            {removeRoleLoading ? <span className={css.right_aligned}><LoadingBalls /></span> : <span className={css.delete_role_button + ' ' + css.right_aligned} onClick={() => removeRole({ variables: { roleId: role.id } })}>X</span>}
         </div>
         <label>Permissions: </label><br /><br />
         <PermissionsControlPanel roleId={role.id} availablePermissions={availablePermissions} originallySelectedPermissions={role.permissions} />

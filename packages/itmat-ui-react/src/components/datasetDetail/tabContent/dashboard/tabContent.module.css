@@ -26,29 +26,9 @@
     background: var(--color-status-cancelled);
 }
 
-.job_table {
-    font-size: 1rem;
-    background: var(--color-additional-panel-background);
-}
-
-.job_table tr {
-    height: 2rem;
-    line-height: 2rem;
-    border: 1px solid var(--color-background);
-}
-
-.job_table tr:hover {
-    border: 1px solid var(--color-background);
-}
-
-.job_table td, .job_table th {
-    padding: 0.5rem 2rem;
-}
-
 .job_table td:nth-child(3) {
     text-align: center;
 }
-
 
 .cancelButton {
     font-weight: bold;

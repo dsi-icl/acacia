@@ -64,7 +64,7 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
             <table>
                 <thead>
                     <tr>
-                        <th><Icons type="search" /><input name="search" value={searchString} onChange={(e) => { setSearchString(e.target.value); }} /></th>
+                        <th><input name="search" value={searchString} onChange={(e) => { setSearchString(e.target.value); }} /></th>
                         <th></th>
                         <th></th>
                         <th></th>

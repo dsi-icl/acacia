@@ -18,7 +18,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                 if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
                 if (!data || !data.getStudy) { return <div>Oops! Cannot find this dataset.</div>; }
                 return <div className={css.page_container}>
-                    <div className={`${css.ariane} colored_ariane`}>
+                    <div className={css.ariane}>
                         <h2>{data.getStudy.name.toUpperCase()}</h2>
                         <div className={css.tabs}>
                             <NavLink to={`/datasets/${studyId}/dashboard`} activeClassName={css.active}><div>DASHBOARD</div></NavLink>

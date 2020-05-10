@@ -46,7 +46,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
         <div className={css.top_panel}>
 
 
-            {data.dataVersions.length >= 2 ? <>
+            {data.dataVersions.length >= 1 ? <>
                 <div><h5>Data versions</h5>  <h5>Linear history<InfoCircle className={css.infocircle} />:  <Switch onChange={(checked) => setUseLinearHistory(checked)} checked={useLinearHistory} className={css.switchButton} /></h5></div>
 
                 {

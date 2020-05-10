@@ -15,8 +15,15 @@ export const AdminTabContent: React.FunctionComponent<{ studyId: string }> = ({ 
             <Subsection title='Roles'>
                 <RoleControlSection studyId={studyId} roles={data.getStudy.roles}/>
             </Subsection>
+
+            <Subsection title='Wipe patient data'>
+            </Subsection>
+
+            <Subsection title='Delete study'>
+                <p> wipe data or not?</p>
+            </Subsection>
         </div>
-        <div className={css.tab_page_wrapper + ' ' + css.sub_page}>
+        <div className={css.tab_page_wrapper + ' ' + css.sub_page + ' additional_panel'}>
             <Subsection title='User Access Log'>
                 <div>
 

@@ -10,6 +10,7 @@
 
 .ariane {
     position: relative;
+    background: var(--color-ariane-background);
     grid-area: ariane;
     padding: 0 2rem;
     line-height: 60px;
