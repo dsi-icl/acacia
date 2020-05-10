@@ -628,8 +628,8 @@ describe('STUDY API', () => {
             id: 'mockDataVersionId2',
             contentId: 'mockContentId2',
             version: '0.0.1',
-            fileSize: 10000,
-            uploadDate: 5000000,
+            fileSize: '10000',
+            uploadDate: '5000000',
             tag: 'hey',
             jobId: 'mockjobid2',
             extractedFrom: 'mockfile2',
@@ -660,8 +660,8 @@ describe('STUDY API', () => {
                     id: 'mockDataVersionId',
                     contentId: 'mockContentId',
                     version: '0.0.1',
-                    fileSize: 10000,
-                    uploadDate: 5000000,
+                    fileSize: '10000',
+                    uploadDate: '5000000',
                     jobId: 'mockjobid',
                     extractedFrom: 'mockfile',
                     fieldTrees: [fieldTreeId]
@@ -1383,7 +1383,7 @@ describe('STUDY API', () => {
                             projectId: null,
                             fileSize: 1000,
                             description: 'Just a test file1',
-                            uploadedBy: adminId,
+                            uploadedBy: adminId
                         },
                         {
                             id: 'mockfile2_id',
@@ -1392,7 +1392,7 @@ describe('STUDY API', () => {
                             projectId: null,
                             fileSize: 1000,
                             description: 'Just a test file2',
-                            uploadedBy: adminId,
+                            uploadedBy: adminId
                         }
                     ],
                     numOfSubjects: 2,
@@ -1401,8 +1401,8 @@ describe('STUDY API', () => {
                         id: 'mockDataVersionId',
                         contentId: 'mockContentId',
                         version: '0.0.1',
-                        fileSize: 10000,
-                        uploadDate: 5000000,
+                        fileSize: '10000',
+                        uploadDate: '5000000',
                         tag: null,
                         jobId: 'mockjobid',
                         extractedFrom: 'mockfile',

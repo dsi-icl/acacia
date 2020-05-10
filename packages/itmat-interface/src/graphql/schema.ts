@@ -90,10 +90,10 @@ type DataVersion {
     version: String!
     contentId: String!
     tag: String
-    uploadDate: Int!
+    uploadDate: String!
     jobId: String!
     extractedFrom: String!
-    fileSize: Int!
+    fileSize: String!
     fieldTrees: [String]!
 }
 

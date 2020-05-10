@@ -13,8 +13,8 @@ export interface IStudyDataVersion {
     contentId: string; // same contentId = same data
     version: string;
     tag?: string;
-    fileSize: number;
-    uploadDate: number;
+    fileSize: string;
+    uploadDate: string;
     jobId: string;
     extractedFrom: string;
     fieldTrees: string[];
