@@ -44,6 +44,7 @@
     box-shadow: none;
     font-size: 1rem;
     padding: 0rem;
+    transition: 0.3s background;
 }
 
 .tabs div:hover {
