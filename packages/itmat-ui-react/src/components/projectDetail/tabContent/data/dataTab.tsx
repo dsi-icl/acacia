@@ -17,7 +17,8 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string, projectI
                         if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
 
                         if (Object.keys(data.getProject.fields).length === 0) { return <p>No fields uploaded or available to you. If this should not be the case, check your permission with admin.</p>; }
-                        return <FieldListSelectionStateProject fields={data.getProject.fields} />;
+                        // return <FieldListSelectionStateProject fields={data.getProject.fields} />;
+                        return <></>;
                     }}
                 </Query>
 
