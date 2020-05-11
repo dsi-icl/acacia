@@ -26,7 +26,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                 }
                 return <div>
                     <p>There is no data uploaded for this study yet.</p>
-                    <UploadNewData studyId={studyId} cancelButton={() => { }} />
+                    <UploadNewData studyId={studyId} cancelButton={() => {}} />
                 </div>;
             }}
         </Query>

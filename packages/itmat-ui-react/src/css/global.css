@@ -4,12 +4,15 @@
     --font-size-big: 1.5rem;
      /* override the default colours and add class to <App/>*/
     --font-weight: normal;
-    --color-font-color: rgb(0, 0, 0);
+    --color-font-color: rgb(31, 31, 31);
     --color-background: 	#ffffff;
     --color-primary-color: #3a434c;
     --color-error:rgb(15, 9, 9);
     --color-main-menu-border: rgba(0,0,0,0);
     --color-main-menu: #3a434c;
+    --color-button-hover: #3a434c;
+    --color-button-active: #566371;
+    --color-button: #546479;
     --color-ariane-background: #d2dae2;
     --color-ariane-tab-active-background: #afb8c7;
     --color-data-background: #f5f5f5;
@@ -112,16 +115,16 @@ button {
     min-height: 20px;
     font-weight: bold;
     line-height: 20px;
-    background-color: var(--color-primary-color);
+    background: var(--color-button);
 }
 
 button:hover {
-    background-image: linear-gradient(to bottom right, blue, purple);
+    background: var(--color-button-hover);
     cursor: pointer;
 }
 
 button:active {
-    background-image: linear-gradient(to bottom right, hsl(197, 97%, 60%), rgb(222, 212, 255));
+    background: var(--color-button-active);
     cursor: pointer;
 }
 

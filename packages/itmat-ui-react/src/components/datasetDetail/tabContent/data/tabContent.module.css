@@ -121,7 +121,6 @@
 }
 
 .versioning_section_button {
-    background-color: var(--color-primary-color);
     margin-left: 3rem;
     width: unset;
     display: inline-block;

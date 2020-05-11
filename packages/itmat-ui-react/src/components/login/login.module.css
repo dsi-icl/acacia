@@ -27,12 +27,22 @@
 
 .login_box input {
     text-align:center;
-    width: 100%;
-    margin-bottom: 1.5rem;
+    width: 70%;
+    margin: 0 0 1rem 0;
     font-size: 1.2rem;
     height: 1.2rem;
     line-height: 1.2rem;
     padding-bottom: 0.2rem;
+}
+
+.login_box button {
+    width: 70%;
+    margin: 0 auto;
+    background: var(--color-button-hover);
+}
+
+.login_box button:hover {
+    background: var(--color-button);
 }
 
 .login_box h1 {
