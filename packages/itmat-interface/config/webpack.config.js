@@ -25,7 +25,7 @@ module.exports = {
         bcrypt: 'commonjs bcrypt',
         express: 'commonjs express',
         mongodb: 'commonjs mongodb',
-        "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
+        // "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
         "require_optional": 'commonjs require_optional'
     }],
     module: {
