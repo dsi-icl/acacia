@@ -17,7 +17,7 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
     if (!getStudy || !getStudy.dataVersions || getStudy.dataVersions.length === 0) {
         return <p>No data has been uploaded.</p>;
     }
-    if (getStudy.dataVersions[getStudy.currentDataVersion] === undefined || getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees === undefined) {
+    if (getStudy.dataVersions[getStudy.currentDataVersion] === undefined || getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees === undefined || getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees.length === 0) {
         return <p>No field tree uploaded.</p>;
     }
 
