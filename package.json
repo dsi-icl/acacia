@@ -8,8 +8,9 @@
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-utils --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
         "build": "lerna run --stream build",
         "publish": "lerna run tsc && lerna publish",
-        "test:unit": "lerna run --stream --parallel --scope itmat-interface --scope itmat-job-executor --scope itmat-utils test",
-        "test:e2e": "echo start-server-and-test to be activated",
+        "test:startCypress": "lerna run --scope itmat-ui-react test:cypress",
+        "test:unit": "lerna run --stream --parallel --scope itmat-interface --scope itmat-job-executor --scope itmat-utils --scope itmat-ui-react test",
+        "test:e2e": "start-server-and-test start http://localhost:3000 test:startCypress",
         "test": "npm run test:unit && npm run test:e2e"
     },
     "optionalDependencies": {
