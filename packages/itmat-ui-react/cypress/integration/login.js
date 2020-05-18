@@ -3,7 +3,7 @@
 describe('Login test', function() {
     it('fails to login with wrong password', function() {
         cy.visit('/');
-        cy.get('#username_input').type('chon.sou');
+        cy.get('#username_input').type('admin');
         cy.get('#password_input').type('wrongpassword');
         cy.get('#loginButton').click();
         cy.contains('Incorrect password.');
