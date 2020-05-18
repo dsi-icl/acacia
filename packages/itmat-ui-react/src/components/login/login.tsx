@@ -26,6 +26,7 @@ export const LoginBox: React.FunctionComponent = () => {
                     data: { whoAmI: login }
                 });
             }}
+            onError={() => {}}
         >
             {(login, { loading, error }) =>
                 <div className={css.login_and_error_wrapper}>
@@ -44,12 +45,12 @@ export const LoginBox: React.FunctionComponent = () => {
                         <br />
                         {loading ? <button>logging in..</button> :
                             (
-                                <button id='loginButton' onClick={() => { login({ variables: { password: passwordInput, username: usernameInput } }); }}> login</button>
+                                <button id='loginButton' onClick={() => { login({ variables: { password: passwordInput, username: usernameInput } }); }}>Login</button>
                             )
                         }
-                    </div>
-                    <div id='error_dialog' className={css.error_message}>
-                        {error ? error.message : (stateError ? stateError : null)}
+                        <div id='error_dialog' className={css.error_message}>
+                            {error ? error.message : (stateError ? stateError : null)}
+                        </div>
                     </div>
                 </div>
 

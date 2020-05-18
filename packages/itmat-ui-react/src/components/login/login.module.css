@@ -60,6 +60,5 @@
 .error_message {
     width: 100%;
     min-height: 20%;
-    border-left: calc(100px + 3rem) solid rgba(0,0,0,0);
-    color: var(--color-that-red);
+    /* transform: translate(-50%); */
 }
