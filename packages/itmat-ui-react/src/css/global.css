@@ -34,7 +34,7 @@
     --color-status-queued: #696969;
     --color-popup: #131212;
     --color-popup-border: #4a4a4a;
-    --color-status-cancelled: black;
+    --color-status-cancelled: #9e78d0;
     --animation-duration: 0.4s;  /* set to 0 if customised */   --font-family: 'Inter';
 }
 
@@ -241,6 +241,14 @@ input:read-only {
     to { transform: translate(0); opacity: 1;}
 }
 
+@keyframes fade_in_opacity {
+    from { opacity: 0.2;}
+    to { opacity: 1;}
+}
+
+.fade_in_opacity {
+    animation: 1s fade_in_opacity;
+}
 
 @keyframes error_banner_blink {
     0% { background: rgb(224, 66, 66)}
