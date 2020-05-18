@@ -47,7 +47,7 @@
 }
 
 .ant-tree {
-    color: white;
+    background: transparent !important;
 }
 
 .ant-tree li .ant-tree-node-content-wrapper {
@@ -55,7 +55,7 @@
 }
 
 .ant-tree-title {
-    color: white;
+    color: var(--color-font-color);
 }
 
 .anticon > svg {

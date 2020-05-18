@@ -18,7 +18,8 @@ class App extends React.Component {
                         if (loading) { return <div style={{ width: '100%', height: '100%', textAlign: 'center', paddingTop: '20%' }}><Spinner /></div>; }
                         if (error) { return <p>Error :( {error.message}</p>; }
                         if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) { // if logged in return the app
-                            return <div className={css.app}>
+                            // return <div className={css.app}>
+                            return <div className={css.app + ' dark_theme'}>
                                 <Router>
                                     <>
                                         <MainMenuBar projects={data.whoAmI.access.projects} />

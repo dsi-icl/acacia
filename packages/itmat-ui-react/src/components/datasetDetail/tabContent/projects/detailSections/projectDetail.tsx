@@ -21,9 +21,9 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string, studyId
             if (error) { return <p>{error.toString()}</p>; }
             if (!data || !data.getProject) { return <p>Cannot find this project! Please contact admin.</p>; }
 
-            return <div className={css.project_detail_scaffold}>
+            return <div className={css.project_detail_scaffold + ' fade_in'}>
                 <div className={css.project_detail_title}>
-                    <NavLink to={`/datasets/${studyId}/projects`}><span style={{ marginRight: '1rem', color: 'var(--color-primary-color)' }}>&#11013;</span></NavLink>{data.getProject.name}
+                    <NavLink to={`/datasets/${studyId}/projects`}><div>&#11013;</div></NavLink>{data.getProject.name}
                 </div>
                 <div className={css.project_detail_left}>
                     <Subsection title='Role'>

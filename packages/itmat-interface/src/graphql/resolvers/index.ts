@@ -42,17 +42,17 @@ const bounceNotLoggedInDecorator = (reducerFunction: any) => {
 const reduceInit: any = { JSON: GraphQLJSON };
 export const resolvers = modules.reduce((a, e) => {
     const types = Object.keys(e);
-    for (const each of types) {
-        if (a[each] === undefined) {
+    for (const each of types) {  // types can be Subscription | Query | Mutation | {{TYPE}}
+        if (a[each] === undefined) {  // if a doesnt have types then create a empty obj
             a[each] = {};
         }
         for (const funcName of Object.keys((e as any)[each])) {
             if (each === 'Subscription') {
-                (e as any)[each][funcName] = (e as any)[each][funcName];
+                (a as any)[each][funcName] = (e as any)[each][funcName];
+            } else {
+                (a as any)[each][funcName] = bounceNotLoggedInDecorator((e as any)[each][funcName]);
             }
-            (e as any)[each][funcName] = bounceNotLoggedInDecorator((e as any)[each][funcName]);
         }
-        a[each] = { ...a[each], ...(e as any)[each] };
     }
     return a;
 }, reduceInit);

@@ -2,45 +2,44 @@
     --font-size-root: 13px;
     --font-size: 0.9rem;
     --font-size-big: 1.5rem;
-    --font-family: 'Chivo';
-    --color-font-color: white;
-    --color-background: 	#1b1b1b;
-    --color-primary-color: #36a7b3;
-    --color-error:rgb(255, 82, 82);
+     /* override the default colours and add class to <App/>*/
+    --font-weight: normal;
+    --color-font-color: rgb(31, 31, 31);
+    --color-background: 	#ffffff;
+    --color-primary-color: #3a434c;
+    --color-error:rgb(15, 9, 9);
+    --color-main-menu-border: rgba(0,0,0,0);
+    --color-main-menu: #3a434c;
+    --color-button-hover: #3a434c;
+    --color-button-active: #566371;
+    --color-button: #546479;
+    --color-ariane-background: #d2dae2;
+    --color-ariane-tab-active-background: #afb8c7;
+    --color-data-background: #f5f5f5;
+    --color-additional-panel-background: #eaeaea;
+    --color-pop-up: #cacaca;
+    --color-additional-panel-ariane: #b1bfcc;
+    --color-dataversions-background: #e6e6e6;
+    --color-main-menu-button-hover: grey;
     --color-warning: yellow;
+    --color-permission-unselected: #c7c7c7;
     --color-notification: green;
-    --color-scroll-bar: #292929;
-    --color-scroll-bar-hover: #313131;
-    --color-scroll-bar-active: #3a3a3a;
+    --color-scroll-bar: #a7a7a7;
+    --color-scroll-bar-hover: #c1c1c1;
+    --color-scroll-bar-active: #a0a0a0;
     --input-background: #313131;
-    --color-status-finish: #b0e611;
-    --color-status-error: #d80000;
+    --color-status-finish: #16ff92;
+    --color-status-error: #ff4f44;
     --color-status-processing: #f3e313;
     --color-status-queued: #696969;
     --color-popup: #131212;
     --color-popup-border: #4a4a4a;
-    --color-status-cancelled: black;
+    --color-status-cancelled: #9e78d0;
+    --animation-duration: 0.4s;  /* set to 0 if customised */   --font-family: 'Inter';
 }
 
-.light_theme {
-    /* override the default colours and add class to <App/>*/
-    /* --color-font-color: rgb(0, 0, 0);
-    --color-background: 	#ffffff;
-    --color-primary-color: #36a7b3;
-    --color-error:rgb(255, 82, 82);
-    --color-warning: yellow;
-    --color-notification: green;
-    --color-scroll-bar: #292929;
-    --color-scroll-bar-hover: #313131;
-    --color-scroll-bar-active: #3a3a3a;
-    --input-background: #313131;
-    --color-status-finish: #b0e611;
-    --color-status-error: #d80000;
-    --color-status-processing: #f3e313;
-    --color-status-queued: #696969;
-    --color-popup: #131212;
-    --color-popup-border: #4a4a4a;
-    --color-status-cancelled: black; */
+.dark_theme {
+
 }
 
 @font-face {
@@ -68,6 +67,10 @@
     font-family: "Cairo";
     src: url("../font/Cairo/Cairo-Bold.ttf");
     font-weight: bold;
+}
+@font-face {
+    font-family: "Inter";
+    src: url("../font/Inter/Inter-VariableFont_slnt\,wght.ttf");
 }
 
 * {
@@ -104,23 +107,24 @@ button {
     display: block;
     padding: 0.5rem 0.7rem;
     font-size: 0.95rem;
+    color: var(--color-background);
     margin: 3px;
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
-    border-radius: 0.25rem;
+    border-radius: 0.1rem;
     width: 100%;
     min-height: 20px;
     font-weight: bold;
     line-height: 20px;
-    background-color: var(--color-primary-color);
+    background: var(--color-button);
 }
 
 button:hover {
-    background-image: linear-gradient(to bottom right, blue, purple);
+    background: var(--color-button-hover);
     cursor: pointer;
 }
 
 button:active {
-    background-image: linear-gradient(to bottom right, hsl(197, 97%, 60%), rgb(222, 212, 255));
+    background: var(--color-button-active);
     cursor: pointer;
 }
 
@@ -128,27 +132,24 @@ button:active {
     cursor: progress !important;
 }
 
-.button_grey {
-    background-image: none;
-    background-color: #4A4A4A;
-}
-
-.button_grey:hover{
-    background-image: none;
-    background-color: rgb(53, 53, 53);
-}
-
 table {
     border-collapse: collapse;
     border-spacing: 0;
     width: 100%;
+    font-size: 1rem;
+    background: var(--color-additional-panel-background);
 }
 
 th, td {
-    height: 1.4rem;
-    line-height: 1.4rem;
     text-align: left;
     vertical-align: middle;
+    padding: 0.5rem 2rem;
+}
+
+tr {
+    height: 2rem;
+    line-height: 2rem;
+    border: 1px solid var(--color-background);
 }
 
 a {
@@ -196,30 +197,58 @@ input:read-only {
     height: 100%;
     display: grid;
     grid-template-columns: 100%; 
-    grid-template-rows: 80px calc(100% - 80px); 
+    grid-template-rows: 60px calc(100% - 60px); 
     grid-template-areas: 
         "ariane"
         "content";
 }
 
+.additional_panel {
+    background: var(--color-additional-panel-background);
+}
+
+.additional_panel > .page_ariane {
+    background: var(--color-additional-panel-ariane);
+}
+
 .page_ariane {
     grid-area: ariane;
-    padding: 2rem 2rem 2.5rem 2rem;
-    line-height: calc(80px - 2rem - 2.5rem);
-    font-size: 2.5rem;
+    background: var(--color-ariane-background);
+    /* border-bottom: 1px solid var(--color-additional-panel-background-ariane-border); */
+    padding: 1rem 2rem 1rem 2rem;
+    line-height: calc(60px - 2 * 1rem);
+    font-size: 1.7rem;
     font-weight: lighter;
     overflow: hidden;
     height: 100%;
 }
 
 .page_content {
-    padding: 0rem 2rem 1rem 2rem;
+    padding: 2.5rem 2rem 1rem 2rem;
     grid-area: content;
     height: 100%;
     font-size: 1rem;
     overflow: auto;
+    animation: var(--animation-duration) fade_in;
 }
 
+.fade_in {
+    animation: var(--animation-duration) fade_in;
+}
+
+@keyframes fade_in {
+    from { transform: translate(-15px); opacity: 0.5;}
+    to { transform: translate(0); opacity: 1;}
+}
+
+@keyframes fade_in_opacity {
+    from { opacity: 0.2;}
+    to { opacity: 1;}
+}
+
+.fade_in_opacity {
+    animation: 1s fade_in_opacity;
+}
 
 @keyframes error_banner_blink {
     0% { background: rgb(224, 66, 66)}
@@ -262,6 +291,8 @@ input:read-only {
     50% { background: rgb(255, 249, 172)}
     100% { background: rgb(255, 238, 0)}
 }
+
+
 
 .warning_banner{
     background: rgb(255, 238, 0);
