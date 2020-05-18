@@ -32,7 +32,7 @@ export const LoginBox: React.FunctionComponent = () => {
                     <div className={css.top + ' appear_from_left'}></div>
                     <div className={css.bottom + ' appear_from_right'}></div>
                     <div className={`${css.login_box} appear_from_below`}>
-                        <h1>Kieros</h1>
+                        <h1>NAME</h1>
                         <p>A secure and high-performance clinical data storage and analysis platform</p>
                         <br />
                         <div>
