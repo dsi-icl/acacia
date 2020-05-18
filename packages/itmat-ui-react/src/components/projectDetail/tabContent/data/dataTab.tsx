@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
-import { FieldListSection } from '../../../reusable/fieldList/fieldList';
+// import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
+// import { IFieldEntry } from 'itmat-commons/dist/models/field';
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => {
     return <div className={css.scaffold_wrapper}>
@@ -29,13 +29,13 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string, projectI
     </div>;
 };
 
-const FieldListSelectionStateProject: React.FunctionComponent<{ fields: { [fieldTreeId: string]: IFieldEntry[] } }> = ({ fields }) => {
-    /* PRECONDITION: it is given (checked by parent component that fields at least have one key */
-    const [selectedTree, setSelectedTree] = React.useState(Object.keys(fields)[0]);
+// const FieldListSelectionStateProject: React.FunctionComponent<{ fields: { [fieldTreeId: string]: IFieldEntry[] } }> = ({ fields }) => {
+//     /* PRECONDITION: it is given (checked by parent component that fields at least have one key */
+//     const [selectedTree, setSelectedTree] = React.useState(Object.keys(fields)[0]);
 
-    return <>
-        <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{Object.keys(fields).map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
-        <FieldListSection checkable={false} fieldList={fields[selectedTree]} />
-    </>;
+//     return <>
+//         <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{Object.keys(fields).map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
+//         <FieldListSection checkable={false} fieldList={fields[selectedTree]} />
+//     </>;
 
-};
+// };

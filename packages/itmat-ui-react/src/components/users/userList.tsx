@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
-import { Icons } from '../icons';
+// import { Icons } from '../icons';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './userList.module.css';
 
