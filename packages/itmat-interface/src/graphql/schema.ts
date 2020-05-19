@@ -203,6 +203,18 @@ input CreateUserInput {
     description: String!
     organisation: String!
     emailNotificationsActivated: Boolean!
+    password: String!
+}
+
+input EditUserInput {
+    id: String!
+    username: String
+    type: USERTYPE
+    realName: String
+    email: String
+    description: String
+    organisation: String
+    emailNotificationsActivated: Boolean
     password: String
 }
 
