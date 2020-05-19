@@ -290,9 +290,9 @@ export const userResolvers = {
                     throw new ApolloError('User not found');
                 }
             }
-            // if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
-                // throw new ApolloError('Non-admin users are not authorised to change user type.');
-            // }
+            if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
+                throw new ApolloError('Non-admin users are not authorised to change user type.');
+            }
 
             const fieldsToUpdate: any = {
                 type,
