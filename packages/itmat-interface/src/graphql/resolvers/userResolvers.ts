@@ -95,7 +95,7 @@ export const userResolvers = {
         }
     },
     Mutation: {
-        forgotUsernameOrPassword: async (parent: object, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any, info: any): Promise<object> => {
+        requestUsernameOrResetPassword: async (parent: object, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any, info: any): Promise<object> => {
             /* checking the args are right */
             if (
                 forgotUsername && !email // should provide email if no username

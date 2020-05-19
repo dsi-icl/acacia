@@ -203,18 +203,6 @@ input CreateUserInput {
     description: String!
     organisation: String!
     emailNotificationsActivated: Boolean!
-    password: String!
-}
-
-input EditUserInput {
-    id: String!
-    username: String
-    type: USERTYPE
-    realName: String
-    email: String
-    description: String
-    organisation: String
-    emailNotificationsActivated: Boolean
     password: String
 }
 
@@ -250,7 +238,7 @@ type Mutation {
     # USER
     login(username: String!, password: String!): User
     logout: GenericResponse
-    forgotUsernameOrPassword(
+    requestUsernameOrResetPassword(
         forgotUsername: Boolean!,
         forgotPassword: Boolean!,
         email: String, # only provide email if forgotUsername
