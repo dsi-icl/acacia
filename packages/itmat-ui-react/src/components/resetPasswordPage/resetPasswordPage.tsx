@@ -1,0 +1,80 @@
+import * as React from 'react';
+import { Mutation } from 'react-apollo';
+import { GQLRequests } from 'itmat-commons';
+import { NavLink } from 'react-router-dom';
+import css from '../login/login.module.css';
+import '../login/login.global.css';
+
+export const ResetPasswordPage: React.FunctionComponent<{ matchparams: { username: string, token: string } }> = ({ matchparams: { username, token } }) => {
+    const [passwordInput, setPasswordInput] = React.useState('');
+    const [stateError, setStateError] = React.useState('');
+    const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);
+
+    function handlePasswordChange(e: any) {
+        setPasswordInput(e.target.value);
+        setStateError('');
+    }
+
+    if (passwordSuccessfullyChanged) {
+        return (
+            <div className={css.login_and_error_wrapper}>
+                <div className={`${css.login_box} appear_from_below`}>
+                    <h1>You're all set!</h1>
+                    <br />
+                    <div>
+                        <p>Your password has been successfully changed.</p>
+                    </div>
+                    <br/>
+                    <NavLink to='/'><button>Go to Login</button></NavLink>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <Mutation<any, any>
+            mutation={GQLRequests.RESET_PASSWORD}
+            onCompleted={() => {
+                setPasswordSuccessfullyChanged(true);
+            }}
+            onError={() => {}}
+        >
+            {(resetPassword, { loading, error }) =>
+                <div className={css.login_and_error_wrapper}>
+                    <div className={`${css.login_box} appear_from_below`}>
+                        <h1>Reset you password</h1>
+                        <br />
+                        <div>
+                            <label htmlFor='password_input'>Enter new password:</label><br/>
+                            <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
+                        </div>
+                        <br />
+                        {loading ? <button>Loading...</button> :
+                            (
+                                // <button
+                                //     id='submit_button'
+                                //     onClick={() => {
+                                //         if (passwordInput.length < 8) {
+                                //             setStateError('Password must have at least 8 characters');
+                                //             return;
+                                //         }
+                                //         resetPassword({ variables: { newPassword: passwordInput, username, token } });
+                                //     }}
+                                // >Reset my password</button>
+                                <button
+                                    id='submit_button'
+                                    onClick={() => setStateError('Password must have at least 8 characters')}
+                                        >Reset my password</button>
+                            )
+                        }
+                        <br/>
+                        <div id='error_dialog' className={css.error_message}>
+                            {error ? error.message : (stateError ? stateError : null)}
+                        </div>
+                    </div>
+                </div>
+
+            }
+        </Mutation>
+    );
+};
