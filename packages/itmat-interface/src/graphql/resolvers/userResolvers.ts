@@ -1,9 +1,11 @@
 import { ApolloError, UserInputError } from 'apollo-server-express';
 import bcrypt from 'bcrypt';
+import { mailer } from '../../emailer/emailer';
 import { Models } from 'itmat-commons';
 import { IProject, IRole, IStudy } from 'itmat-commons/dist/models/study';
 import { IUser, userTypes } from 'itmat-commons/dist/models/user';
 import { Logger } from 'itmat-utils';
+import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
@@ -93,6 +95,61 @@ export const userResolvers = {
         }
     },
     Mutation: {
+        forgotUsernameOrPassword: async (parent: object, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any, info: any): Promise<object> => {
+            /* checking the args are right */
+            if (
+                forgotUsername && !email // should provide email if no username
+                || forgotUsername && username // should not provide username if it's forgotten..
+                || !email && !username
+            ) {
+                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            } else if (email && username) {
+                // TO_DO : better client erro
+                /* only provide email if no username */
+                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+
+            /* check user existence */
+            const queryObj = email ? { deleted: null, email } : { deleted: null, username };
+            const user: IUser | null = await db.collections!.users_collection.findOne(queryObj);
+            if (!user) {
+                /* even user is null. send successful response: they should know that a user dosen't exist */
+                return makeGenericReponse();
+            }
+
+            if (forgotPassword) {
+                /* make link to change password */
+                const passwordResetToken = uuid();
+                const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                    { deleted: null, email },
+                    { $push: {
+                        resetPasswordRequests: {
+                            id: passwordResetToken,
+                            timeOfRequest: new Date().valueOf()
+                        }
+                    }}
+                );
+                if (updateResult.ok !== 1) {
+                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                }
+
+                /* send email to client */
+                await mailer.sendMail(formatEmailForForgottenPassword({
+                    to: user.email,
+                    resetPasswordToken: passwordResetToken,
+                    username: user.username,
+                    realname: user.realName
+                }));
+            } else {
+                /* send email to client */
+                await mailer.sendMail(formatEmailForFogettenUsername({
+                    to: user.email,
+                    username: user.username,
+                    realname: user.realName
+                }));
+            }
+            return makeGenericReponse();
+        },
         login: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const { req }: { req: Express.Request } = context;
             const result = await db.collections!.users_collection.findOne({ deleted: null, username: args.username });
@@ -239,3 +296,38 @@ export const userResolvers = {
     },
     Subscription: {}
 };
+
+
+function formatEmailForForgottenPassword({ realname, username, to, resetPasswordToken }: { resetPasswordToken: string, to: string, username: string, realname: string }) {
+    const link = `${config.useSSL ? 'https' : 'http'}://${config.host}/resetPassword?username=${username}&token=${resetPasswordToken}</p>`;
+    return ({
+        from: 'NAME',
+        to,
+        subject: 'Reset your NAME password',
+        html: `<p>Dear ${realname},<p>
+            <br/><br/>
+            <p>Your username is <b>${username}</b>.</p><br/><br/>
+            <p>You can reset you password by click the following link (active for 1 hour):</p>
+            <p><a href=${link}>${link}</a></p>
+            <br/><br/>
+
+            Yours truly,
+            NAME team.
+        `
+    });
+}
+
+function formatEmailForFogettenUsername({ username, to, realname }: { username: string, to: string, realname: string}) {
+    return ({
+        from: 'NAME',
+        to,
+        subject: 'Your NAME username reminder',
+        html: `<p>Dear ${realname},<p>
+            <br/><br/>
+            <p>Your username is <b>${username}</b>.</p><br/><br/>
+
+            Yours truly,
+            NAME team.
+        `
+    });
+}
