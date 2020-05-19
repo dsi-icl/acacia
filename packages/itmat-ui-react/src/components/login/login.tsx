@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { NavLink } from 'react-router-dom';
 import css from './login.module.css';
 import './login.global.css';
 
@@ -63,6 +64,8 @@ export const LoginBox: React.FunctionComponent = () => {
                                 >Login</button>
                             )
                         }
+                        <br/>
+                        <NavLink to='/requestResetPassword'><p>Forgot username or password</p></NavLink>
                         <br/>
                         <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}

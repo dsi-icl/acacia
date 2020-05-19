@@ -46,25 +46,21 @@ export const ResetPasswordPage: React.FunctionComponent<{ matchparams: { usernam
                         <br />
                         <div>
                             <label htmlFor='password_input'>Enter new password:</label><br/>
-                            <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
+                            <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('submit_button')!.click()} /> <br />
                         </div>
                         <br />
                         {loading ? <button>Loading...</button> :
                             (
-                                // <button
-                                //     id='submit_button'
-                                //     onClick={() => {
-                                //         if (passwordInput.length < 8) {
-                                //             setStateError('Password must have at least 8 characters');
-                                //             return;
-                                //         }
-                                //         resetPassword({ variables: { newPassword: passwordInput, username, token } });
-                                //     }}
-                                // >Reset my password</button>
                                 <button
                                     id='submit_button'
-                                    onClick={() => setStateError('Password must have at least 8 characters')}
-                                        >Reset my password</button>
+                                    onClick={() => {
+                                        if (passwordInput.length < 8) {
+                                            setStateError('Password must have at least 8 characters');
+                                            return;
+                                        }
+                                        resetPassword({ variables: { newPassword: passwordInput, username, token } });
+                                    }}
+                                >Reset my password</button>
                             )
                         }
                         <br/>

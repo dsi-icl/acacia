@@ -8,6 +8,7 @@ import { MainMenuBar } from './components/scaffold/mainMenuBar';
 import { MainPanel } from './components/scaffold/mainPanel';
 import css from './components/scaffold/scaffold.module.css';
 import { ResetPasswordPage } from './components/resetPasswordPage/resetPasswordPage';
+import { RequestResetPassword } from './components/resetPasswordPage/requestResetPasswordPage';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
 class App extends React.Component {
@@ -17,6 +18,7 @@ class App extends React.Component {
                 <Router>
                     <Switch>
                         <Route path='/resetPassword/:username/:token' render={({ match }: RouteComponentProps<{ username: string, token: string }>) => <ResetPasswordPage matchparams={match.params}/>}/>
+                        <Route path='/requestResetPassword' render={() => <RequestResetPassword/>}/>
                         <Route render={() =>
                             <Query<any, any> query={WHO_AM_I}>
                                 {({ loading, error, data }) => {
