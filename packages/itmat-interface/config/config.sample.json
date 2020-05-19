@@ -1,4 +1,6 @@
 {
+    "host": "localhost:3000",
+    "useSSL": false,
     "database": {
         "mongo_url": "mongodb://localhost:27017",
         "database": "itmat",
@@ -27,5 +29,14 @@
         "accessKey": "minioadmin",
         "secretKey": "minioadmin",
         "useSSL": false
+    },
+    "nodemailer": {
+        "host": "smtp.office365.com",
+        "port": 587,
+        "secure": false,
+        "auth": {
+            "user": "user",
+            "pass": "password" 
+        }
     }
 }

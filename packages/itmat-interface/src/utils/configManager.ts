@@ -5,9 +5,22 @@ import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
 
+export interface INodemailerConfig {
+    host: string,
+    port: number,
+    secure: boolean,
+    auth: {
+        user: string
+        pass: string
+    }
+}
+
 interface IConfiguration extends IServerConfig {
     database: IDatabaseBaseConfig;
     objectStore: IObjectStoreConfig;
+    nodemailer: INodemailerConfig;
+    host: string;
+    useSSL: boolean;
 }
 
 class ConfigurationManager {
