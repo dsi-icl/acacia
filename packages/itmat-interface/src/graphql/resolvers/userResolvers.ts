@@ -121,7 +121,7 @@ export const userResolvers = {
                 /* make link to change password */
                 const passwordResetToken = uuid();
                 const updateResult = await db.collections!.users_collection.findOneAndUpdate(
-                    { deleted: null, email },
+                    queryObj,
                     { $push: {
                         resetPasswordRequests: {
                             id: passwordResetToken,
@@ -253,8 +253,10 @@ export const userResolvers = {
             const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
                 username,
                 resetPasswordRequests: {
-                    id: token,
-                    timeOfRequest: { gt: TIME_NOW - ONE_HOUR_IN_MILLISEC }
+                    $elemMatch: {
+                        id: token,
+                        timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC }
+                    }
                 },
                 deleted: null
             });
@@ -268,6 +270,10 @@ export const userResolvers = {
             if (updateResult.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
+
+            /* need to log user out of all sessions */
+            // TO_DO
+
             return makeGenericReponse();
         },
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
@@ -335,14 +341,14 @@ export const userResolvers = {
 
 
 function formatEmailForForgottenPassword({ realname, username, to, resetPasswordToken }: { resetPasswordToken: string, to: string, username: string, realname: string }) {
-    const link = `${config.useSSL ? 'https' : 'http'}://${config.host}/resetPassword?username=${username}&token=${resetPasswordToken}</p>`;
+    const link = `${config.useSSL ? 'https' : 'http'}://${config.host}/resetPassword/${username}/${resetPasswordToken}`;
     return ({
-        from: 'NAME',
+        from: '"NAME"',
         to,
         subject: 'Reset your NAME password',
         html: `<p>Dear ${realname},<p>
-            <br/><br/>
-            <p>Your username is <b>${username}</b>.</p><br/><br/>
+            <br/>
+            <p>Your username is <b>${username}</b>.</p><br/>
             <p>You can reset you password by click the following link (active for 1 hour):</p>
             <p><a href=${link}>${link}</a></p>
             <br/><br/>
@@ -355,12 +361,12 @@ function formatEmailForForgottenPassword({ realname, username, to, resetPassword
 
 function formatEmailForFogettenUsername({ username, to, realname }: { username: string, to: string, realname: string}) {
     return ({
-        from: 'NAME',
+        from: '"NAME" <name@name.io>',
         to,
         subject: 'Your NAME username reminder',
         html: `<p>Dear ${realname},<p>
-            <br/><br/>
-            <p>Your username is <b>${username}</b>.</p><br/><br/>
+            <br/>
+            <p>Your username is <b>${username}</b>.</p><br/>
 
             Yours truly,
             NAME team.
