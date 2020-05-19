@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { mailer } from '../../emailer/emailer';
 import { Models } from 'itmat-commons';
 import { IProject, IRole, IStudy } from 'itmat-commons/dist/models/study';
-import { IUser, userTypes } from 'itmat-commons/dist/models/user';
+import { IUser, userTypes, IUserWithoutToken } from 'itmat-commons/dist/models/user';
 import { Logger } from 'itmat-utils';
 import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
@@ -240,11 +240,47 @@ export const userResolvers = {
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
         },
+        resetPassword: async (parent: object, { username, token, newPassword }: { username: string, token: string, newPassword: string }, context: any, info: any): Promise<object> => {
+            /* check password validity */
+            if (newPassword.length < 8) {
+                throw new ApolloError('Password has to be at least 8 character long.');
+            }
+
+            /* check whether username and token is valid */
+            /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
+            const TIME_NOW = new Date().valueOf();
+            const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
+            const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
+                username,
+                resetPasswordRequests: {
+                    id: token,
+                    timeOfRequest: { gt: TIME_NOW - ONE_HOUR_IN_MILLISEC }
+                },
+                deleted: null
+            });
+            if (!user) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
+            /* all ok; change the user's password */
+            const hashedPw = await bcrypt.hash(newPassword, config.bcrypt.saltround);
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate({ id: user.id }, { $set: { password: hashedPw }});
+            if (updateResult.ok !== 1) {
+                throw new ApolloError(errorCodes.DATABASE_ERROR);
+            }
+            return makeGenericReponse();
+        },
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
                 id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
             } = args.user;
+            if (password !== undefined && requester.id !== id) { // only the user themself can reset password
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+            if (password && password.length < 8) {
+                throw new ApolloError('Password has to be at least 8 character long.');
+            }
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
