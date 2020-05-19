@@ -71,11 +71,11 @@ describe('Studies page', function () {
             cy.get('a > div:contains(PROJECTS)').click();
 
             const createdProjectName = uuid().substring(0, 10);
-            cy.get('[placeholder="Enter name"]', { timeout: 100000 }).type(createdProjectName);
-            cy.contains('Add new project').click();
+            cy.get('[placeholder="Enter name"]', { timeout: 10000 }).type(createdProjectName);
+            cy.get('button:contains(Add new project)').click();
 
             /* should have created new project and redirected */
-            cy.contains(createdProjectName, { timeout: 100000 });
+            cy.contains(createdProjectName, { timeout: 10000 });
             cy.url().then(url => {
                 expect(url).to.match(new RegExp(`${Cypress.config().baseUrl}/datasets/${createdStudyId}/projects/(\\w|-)+$`));
                 const listOfHeadingsTobeExpected = [
@@ -114,11 +114,11 @@ describe('Studies page', function () {
             cy.visit(`/datasets/${createdStudyId}/projects`);
 
             /* error bar should not be visible */
-            cy.contains('Add new project', { timeout: 100000 });   // making sure ajax is finished 
+            cy.get('button:contains(Add new project)', { timeout: 100000 });   // making sure ajax is finished 
             cy.contains('Please enter project name.').should('not.exist');
 
             /* clicking the create new user button to go to page */
-            cy.contains('Add new project').click();
+            cy.get('button:contains(Add new project)').click();
             cy.contains('Please enter project name.').should('have.class', 'error_banner');
         });
     });
