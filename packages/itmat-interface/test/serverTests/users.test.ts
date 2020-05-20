@@ -175,7 +175,7 @@ describe('USERS API', () => {
             expect(modifiedUser.resetPasswordRequests).toHaveLength(1);
             expect(typeof modifiedUser.resetPasswordRequests[0].id).toBe('string');
             expect(typeof modifiedUser.resetPasswordRequests[0].timeOfRequest).toBe('number');
-            expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(5000); // less then 5 seconds
+            expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
             const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] }}, { returnOriginal: false });
@@ -209,7 +209,7 @@ describe('USERS API', () => {
             expect(modifiedUser.resetPasswordRequests).toHaveLength(1);
             expect(typeof modifiedUser.resetPasswordRequests[0].id).toBe('string');
             expect(typeof modifiedUser.resetPasswordRequests[0].timeOfRequest).toBe('number');
-            expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(5000); // less then 5 seconds
+            expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
             const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] }}, { returnOriginal: false });
