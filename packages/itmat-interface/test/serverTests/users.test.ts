@@ -81,7 +81,7 @@ describe('USERS API', () => {
             expect(res.status).toBe(200); // even though user doesnt exist. This should pass so people dont know the registered users
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.requestUsernameOrResetPassword).toEqual({ successful: true });
-        });
+        }, 6050);
 
         test('Request reset password with non-existent user providing email', async () => {
             const res = await loggedoutUser
@@ -97,7 +97,7 @@ describe('USERS API', () => {
             expect(res.status).toBe(200); // even though user doesnt exist. This should pass so people dont know the registered users
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.requestUsernameOrResetPassword).toEqual({ successful: true });
-        });
+        }, 6050);
 
         test('Request reset password with non-existent user but provide email as well as username (should fail)', async () => {
             const res = await loggedoutUser
