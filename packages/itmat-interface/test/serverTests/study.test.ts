@@ -24,18 +24,18 @@ const {
     EDIT_PROJECT_APPROVED_FILES,
     SET_DATAVERSION_AS_CURRENT
 } = itmatCommons.GQLRequests;
-const { userTypes } = itmatCommons.Models.UserModels;
-const { permissions } = itmatCommons;
-type IDataEntry = itmatCommons.Models.Data.IDataEntry;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
-import { IStudyDataVersion, IRole } from 'itmat-commons/dist/models/study';
 import { text } from 'body-parser';
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
-import { IFile } from 'itmat-commons/dist/models/file';
-import { IUser } from 'itmat-commons/dist/models/user';
+const { permissions } = itmatCommons;
+const { Models: { UserModels: { userTypes }} } = itmatCommons;
+type IDataEntry = itmatCommons.Models.Data.IDataEntry;
+type IUser = itmatCommons.Models.UserModels.IUser;
+type IFile = itmatCommons.Models.File.IFile;
+type IRole = itmatCommons.Models.Field.IFieldEntry;
+type IStudyDataVersion = itmatCommons.Models.Study.IStudyDataVersion;
 
 let app;
 let mongodb;
@@ -446,9 +446,9 @@ describe('STUDY API', () => {
         test('Create project (user with privilege)', async () => {
             /* setup: creating a privileged user */
             const username = uuid();
-            const authorisedUserProfile = {
+            const authorisedUserProfile: IUser = {
                 username, 
-                type: 'STANDARD', 
+                type: userTypes.STANDARD, 
                 realName: `${username}_realname`, 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
                 createdBy: 'admin', 
@@ -546,13 +546,14 @@ describe('STUDY API', () => {
         test('Delete project (user with privilege)', async () => {
             /* setup: creating a privileged user */
             const username = uuid();
-            const authorisedUserProfile = {
+            const authorisedUserProfile: IUser = {
                 username, 
-                type: 'STANDARD', 
+                type: userTypes.STANDARD, 
                 realName: `${username}_realname`, 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
                 createdBy: 'admin', 
                 email: `${username}@user.io`,
+                resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
@@ -2033,6 +2034,7 @@ describe('STUDY API', () => {
                 organisation: 'DSI',
                 type: userTypes.STANDARD,
                 description: 'just a data curator',
+                resetPasswordRequests: [],
                 emailNotificationsActivated: true,
                 deleted: null,
                 createdBy: adminId
