@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { GQLRequests } from 'itmat-commons';
 import css from '../login/login.module.css';
-import '../login/login.global.css';
 
 export const RequestResetPassword: React.FunctionComponent = () => {
     const [usernameInput, setUsernameInput] = React.useState('');

@@ -3,7 +3,6 @@ import { Mutation } from 'react-apollo';
 import { GQLRequests } from 'itmat-commons';
 import { NavLink } from 'react-router-dom';
 import css from '../login/login.module.css';
-import '../login/login.global.css';
 
 export const ResetPasswordPage: React.FunctionComponent<{ matchparams: { username: string, token: string } }> = ({ matchparams: { username, token } }) => {
     const [passwordInput, setPasswordInput] = React.useState('');
