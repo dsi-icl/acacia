@@ -2,8 +2,6 @@ import { ApolloError, UserInputError } from 'apollo-server-express';
 import bcrypt from 'bcrypt';
 import { mailer } from '../../emailer/emailer';
 import { Models } from 'itmat-commons';
-import { IProject, IRole, IStudy } from 'itmat-commons/dist/models/study';
-import { IUser, userTypes, IUserWithoutToken } from 'itmat-commons/dist/models/user';
 import { Logger } from 'itmat-utils';
 import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
@@ -12,6 +10,13 @@ import config from '../../utils/configManager';
 import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
 import { makeGenericReponse } from '../responses';
+type IProject = Models.Study.IProject;
+type IRole = Models.Study.IRole;
+type IStudy = Models.Study.IStudy;
+type IUser = Models.UserModels.IUser;
+type IUserWithoutToken = Models.UserModels.IUserWithoutToken;
+type IResetPasswordRequest = Models.UserModels.IResetPasswordRequest;
+const userTypes = Models.UserModels.userTypes;
 
 export const userResolvers = {
     Query: {
@@ -58,11 +63,11 @@ export const userResolvers = {
             );
 
             const projects: IProject[] = await db.collections!.projects_collection.find({
-                    $or: [
-                        { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
-                        { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
-                    ]
-                }).toArray();
+                $or: [
+                    { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
+                    { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
+                ]
+            }).toArray();
             const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
@@ -121,14 +126,29 @@ export const userResolvers = {
             if (forgotPassword) {
                 /* make link to change password */
                 const passwordResetToken = uuid();
+                const resetPasswordRequest: IResetPasswordRequest = {
+                    id: passwordResetToken,
+                    timeOfRequest: new Date().valueOf(),
+                    used: false
+                };
+                const invalidateAllTokens = await db.collections!.users_collection.findOneAndUpdate(
+                    queryObj,
+                    {
+                        $set: {
+                            'resetPasswordRequests.$[].used': true
+                        }
+                    }
+                );
+                if (invalidateAllTokens.ok !== 1) {
+                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                }
                 const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                     queryObj,
-                    { $push: {
-                        resetPasswordRequests: {
-                            id: passwordResetToken,
-                            timeOfRequest: new Date().valueOf()
+                    {
+                        $push: {
+                            resetPasswordRequests: resetPasswordRequest
                         }
-                    }}
+                    }
                 );
                 if (updateResult.ok !== 1) {
                     throw new ApolloError(errorCodes.DATABASE_ERROR);
@@ -256,7 +276,8 @@ export const userResolvers = {
                 resetPasswordRequests: {
                     $elemMatch: {
                         id: token,
-                        timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC }
+                        timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
+                        used: false
                     }
                 },
                 deleted: null
@@ -267,7 +288,18 @@ export const userResolvers = {
 
             /* all ok; change the user's password */
             const hashedPw = await bcrypt.hash(newPassword, config.bcrypt.saltround);
-            const updateResult = await db.collections!.users_collection.findOneAndUpdate({ id: user.id }, { $set: { password: hashedPw }});
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                {
+                    id: user.id,
+                    resetPasswordRequests: {
+                        $elemMatch: {
+                            id: token,
+                            timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
+                            used: false
+                        }
+                    }
+                },
+                { $set: { password: hashedPw, 'resetPasswordRequests.$.used': true } });
             if (updateResult.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
@@ -357,7 +389,7 @@ function formatEmailForForgottenPassword({ realname, username, to, resetPassword
     });
 }
 
-function formatEmailForFogettenUsername({ username, to, realname }: { username: string, to: string, realname: string}) {
+function formatEmailForFogettenUsername({ username, to, realname }: { username: string, to: string, realname: string }) {
     return ({
         from: '"NAME" <name@name.io>',
         to,

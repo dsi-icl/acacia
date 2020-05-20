@@ -20,6 +20,7 @@ export interface IUserWithoutToken {
 export interface IResetPasswordRequest {
     id: string;
     timeOfRequest: number;
+    used: boolean;
 }
 
 export interface IUser extends IUserWithoutToken {

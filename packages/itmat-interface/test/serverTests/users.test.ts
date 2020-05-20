@@ -10,6 +10,7 @@ const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNA
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
+import { IResetPasswordRequest } from 'itmat-commons/dist/models/user';
 const { Models: { UserModels: { userTypes }} } = itmatCommons;
 type IUser = itmatCommons.Models.UserModels.IUser;
 
@@ -175,6 +176,7 @@ describe('USERS API', () => {
             expect(modifiedUser.resetPasswordRequests).toHaveLength(1);
             expect(typeof modifiedUser.resetPasswordRequests[0].id).toBe('string');
             expect(typeof modifiedUser.resetPasswordRequests[0].timeOfRequest).toBe('number');
+            expect(modifiedUser.resetPasswordRequests[0].used).toBe(false);
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
@@ -209,6 +211,7 @@ describe('USERS API', () => {
             expect(modifiedUser.resetPasswordRequests).toHaveLength(1);
             expect(typeof modifiedUser.resetPasswordRequests[0].id).toBe('string');
             expect(typeof modifiedUser.resetPasswordRequests[0].timeOfRequest).toBe('number');
+            expect(modifiedUser.resetPasswordRequests[0].used).toBe(false);
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
@@ -236,12 +239,14 @@ describe('USERS API', () => {
 
         test('Reset password with incorrect token (should fail)', async () => {
             /* setup: add request entry to user */
+            const resetPWrequest: IResetPasswordRequest = {
+                id: 'faketoken',
+                timeOfRequest: new Date().valueOf(),
+                used: false
+            };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [{
-                    id: 'faketoken',
-                    timeOfRequest: new Date().valueOf()
-                }] }}
+                { $set: { resetPasswordRequests: [resetPWrequest] }}
             );
             expect(updateResult.ok).toBe(1);
 
@@ -271,12 +276,14 @@ describe('USERS API', () => {
 
         test('Reset password with expired token (should fail)', async () => {
             /* setup: add request entry to user */
+            const resetPWrequest: IResetPasswordRequest = {
+                id: 'faketoken',
+                timeOfRequest: new Date().valueOf() - 60 * 60 * 1000 /* (default expiry: 1hr) */ - 1,
+                used: false
+            };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [{
-                    id: 'token',
-                    timeOfRequest: new Date().valueOf() - 60 * 60 * 1000 /* (default expiry: 1hr) */ - 1
-                }] }}
+                { $set: { resetPasswordRequests: [resetPWrequest] }}
             );
             expect(updateResult.ok).toBe(1);
 
@@ -307,18 +314,21 @@ describe('USERS API', () => {
         test('Reset password with expired token (making sure id and expiry date belong to the same token) (should fail)', async () => {
             /* test whether a existent token that is not expired will be selected even if providing a expired token id (mongo array selection is a bit weird) */
             /* setup: add request entry to user */
+            const resetPWrequests: IResetPasswordRequest[] = [
+                {
+                    id: 'expiredtoken',
+                    timeOfRequest: new Date().valueOf() - 60 * 60 * 1000 /* (default expiry: 1hr) */ - 1,
+                    used: false
+                },
+                {
+                    id: 'token',
+                    timeOfRequest: new Date().valueOf(),
+                    used: false
+                }
+            ];
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [
-                    {
-                        id: 'expiredtoken',
-                        timeOfRequest: new Date().valueOf() - 60 * 60 * 1000 /* (default expiry: 1hr) */ - 1
-                    },
-                    {
-                        id: 'token',
-                        timeOfRequest: new Date().valueOf()
-                    }
-                ] }}
+                { $set: { resetPasswordRequests: resetPWrequests }}
             );
             expect(updateResult.ok).toBe(1);
 
@@ -348,12 +358,14 @@ describe('USERS API', () => {
 
         test('Reset password with valid token' , async () => {
             /* setup: add request entry to user */
+            const resetPWrequest: IResetPasswordRequest = {
+                id: 'token',
+                timeOfRequest: new Date().valueOf(),
+                used: false
+            };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [{
-                    id: 'token',
-                    timeOfRequest: new Date().valueOf()
-                }] }}
+                { $set: { resetPasswordRequests: [resetPWrequest] }}
             );
             expect(updateResult.ok).toBe(1);
 
@@ -393,6 +405,85 @@ describe('USERS API', () => {
                     studies: []
                 }
             });
+
+            /* cleanup */
+            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [], password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi' } }
+            );
+            expect(updateResult2.ok).toBe(1);
+        });
+
+        test('Reset password with used token (should fail)' , async () => {
+            /* setup: add request entry to user */
+            const resetPWrequest: IResetPasswordRequest[] = [
+                {
+                    id: 'will-not-be-used-token',
+                    timeOfRequest: new Date().valueOf(),
+                    used: false
+                },
+                {
+                    id: 'token',
+                    timeOfRequest: new Date().valueOf(),
+                    used: false
+                }
+            ];
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: resetPWrequest }}
+            );
+            expect(updateResult.ok).toBe(1);
+            const newloggedoutuser = request.agent(app, null);
+            const res = await newloggedoutuser
+                .post('/graphql')
+                .send({
+                    query: print(RESET_PASSWORD),
+                    variables: {
+                        username: SEED_STANDARD_USER_USERNAME,
+                        token: 'token',
+                        newPassword: 'securepasswordrighthere'
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.resetPassword).toEqual({ successful: true });
+            await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            await connectAgent(newloggedoutuser, SEED_STANDARD_USER_USERNAME, 'securepasswordrighthere');
+            const whoami = await newloggedoutuser.post('/graphql').send({ query: print(WHO_AM_I) });
+            expect(whoami.status).toBe(200);
+            expect(whoami.body.error).toBeUndefined();
+            expect(whoami.body.data.whoAmI.id).toBeDefined();
+            expect(whoami.body.data.whoAmI).toEqual({
+                username: 'standardUser',
+                type: userTypes.STANDARD,
+                realName: 'Chan Tai Man',
+                createdBy: 'admin',
+                organisation: 'DSI',
+                email: 'standard@user.io',
+                description: 'I am a standard user.',
+                id: whoami.body.data.whoAmI.id,
+                access: {
+                    id: `user_access_obj_user_id_${whoami.body.data.whoAmI.id}`,
+                    projects: [],
+                    studies: []
+                }
+            });
+
+            /* test */
+            const resAgain = await newloggedoutuser
+                .post('/graphql')
+                .send({
+                    query: print(RESET_PASSWORD),
+                    variables: {
+                        username: SEED_STANDARD_USER_USERNAME,
+                        token: 'token',
+                        newPassword: 'securepasswordrighthere'
+                    }
+                });
+            expect(resAgain.status).toBe(200);
+            expect(resAgain.body.errors).toHaveLength(1);
+            expect(resAgain.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(resAgain.body.data.resetPassword).toEqual(null);
 
             /* cleanup */
             const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
