@@ -33,7 +33,7 @@
     "nodemailer": {
         "host": "smtp.office365.com",
         "port": 587,
-        "secure": false,
+        "secure": true,
         "auth": {
             "user": "user",
             "pass": "password" 
