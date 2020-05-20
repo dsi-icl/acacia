@@ -24,3 +24,8 @@ jobs:
       run: npm run test:unit
       env:
         CI: true
+        TEST_SMTP_CRED: ${{ secrets.TEST_SMTP_CRED }}
+        TEST_SMTP_USERNAME: ${{ secrets.TEST_SMTP_USERNAME }} 
+        TEST_SMTP_HOST: ${{ secrets.TEST_SMTP_HOST }}
+        TEST_SMTP_PORT: ${{ secrets.TEST_SMTP_PORT }}
+        TEST_RECEIVER_EMAIL_ADDR: ${{ secrets.TEST_RECEIVER_EMAIL_ADDR }}

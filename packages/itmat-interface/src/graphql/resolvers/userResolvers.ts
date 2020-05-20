@@ -289,6 +289,7 @@ export const userResolvers = {
                 throw new ApolloError('Password has to be at least 8 character long.');
             }
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
+                console.log('there');
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
             if (requester.type === Models.UserModels.userTypes.ADMIN) {
@@ -296,9 +297,6 @@ export const userResolvers = {
                 if (result === null || result === undefined) {
                     throw new ApolloError('User not found');
                 }
-            }
-            if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
-                throw new ApolloError('Non-admin users are not authorised to change user type.');
             }
 
             const fieldsToUpdate: any = {

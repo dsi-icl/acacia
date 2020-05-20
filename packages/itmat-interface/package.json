@@ -11,7 +11,7 @@
     "scripts": {
         "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
         "build": "npm run clean && npm run compile",
-        "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
+        "test": "cross-env TESTING=true jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
         "clean": "rimraf -rf ./build",
         "compile": "webpack --config ./config/webpack.config.js",
         "prepublishOnly": "npm run build"

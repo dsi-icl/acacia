@@ -6,7 +6,7 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER } = itmatCommons.GQLRequests;
+const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
@@ -18,6 +18,10 @@ let admin;
 let user;
 let mongoConnection;
 let mongoClient;
+
+const SEED_STANDARD_USER_USERNAME = 'standardUser';
+const SEED_STANDARD_USER_EMAIL = 'standard@user.io';
+const TEMP_USER_TEST_EMAIL = process.env.TEST_RECEIVER_EMAIL_ADDR || SEED_STANDARD_USER_EMAIL;
 
 afterAll(async () => {
     await db.closeConnection();
@@ -47,13 +51,358 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
     /* Connecting clients for testing later */
     app = router.getApp();
-    admin = request.agent(app);
-    user = request.agent(app);
+    admin = request.agent(app, null);
+    user = request.agent(app, null);
     await connectAdmin(admin);
     await connectUser(user);
 });
 
 describe('USERS API', () => {
+    describe('RESET PASSWORD FUNCTION', () => {
+        let loggedoutUser;
+
+        beforeAll(async () => {
+            loggedoutUser = request.agent(app, null);
+        });
+
+
+        test('Request reset password with non-existent user providing username', async () => {
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(REQUEST_USERNAME_OR_RESET_PASSWORD),
+                    variables: {
+                        forgotUsername: false,
+                        forgotPassword: true,
+                        username: 'Idontexist'
+                    }
+                });
+            expect(res.status).toBe(200); // even though user doesnt exist. This should pass so people dont know the registered users
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.requestUsernameOrResetPassword).toEqual({ successful: true });
+        });
+
+        test('Request reset password with non-existent user providing email', async () => {
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(REQUEST_USERNAME_OR_RESET_PASSWORD),
+                    variables: {
+                        forgotUsername: true,
+                        forgotPassword: true,
+                        email: 'email@email.io'
+                    }
+                });
+            expect(res.status).toBe(200); // even though user doesnt exist. This should pass so people dont know the registered users
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.requestUsernameOrResetPassword).toEqual({ successful: true });
+        });
+
+        test('Request reset password with non-existent user but provide email as well as username (should fail)', async () => {
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(REQUEST_USERNAME_OR_RESET_PASSWORD),
+                    variables: {
+                        forgotUsername: false,
+                        forgotPassword: true,
+                        username: 'fakeuser',
+                        email: 'email@email.io'
+                    }
+                });
+            expect(res.status).toBe(200);
+            console.log(res.body);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+            expect(res.body.data.requestUsernameOrResetPassword).toBe(null);
+        });
+
+        test('Request reset password and username but do not provide any email nor username (should fail)', async () => {
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(REQUEST_USERNAME_OR_RESET_PASSWORD),
+                    variables: {
+                        forgotUsername: true,
+                        forgotPassword: true
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+        });
+
+        test('Request reset password and username but provide username (should fail)', async () => {
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(REQUEST_USERNAME_OR_RESET_PASSWORD),
+                    variables: {
+                        forgotUsername: true,
+                        forgotPassword: true,
+                        username: 'Iamauser',
+                        email: 'email@email.io'
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
+        });
+
+        test('Request reset password with existing user providing email', async () => {
+            /* setup: replacing the seed user's email with slurp test email */
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate({
+                username: SEED_STANDARD_USER_USERNAME
+            }, { $set: { email: TEMP_USER_TEST_EMAIL } });
+            expect(updateResult.ok).toBe(1);
+
+            /* test */
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(REQUEST_USERNAME_OR_RESET_PASSWORD),
+                    variables: {
+                        forgotUsername: true,
+                        forgotPassword: true,
+                        email: TEMP_USER_TEST_EMAIL
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.requestUsernameOrResetPassword).toEqual({ successful: true });
+            const modifiedUser = await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            expect(modifiedUser).toBeDefined();
+            expect(modifiedUser.resetPasswordRequests).toHaveLength(1);
+            expect(typeof modifiedUser.resetPasswordRequests[0].id).toBe('string');
+            expect(typeof modifiedUser.resetPasswordRequests[0].timeOfRequest).toBe('number');
+            expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(5000); // less then 5 seconds
+
+            /* cleanup: changing the user's email back */
+            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] }}, { returnOriginal: false });
+            expect(cleanupResult.ok).toBe(1);
+            expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
+        }, 30000);
+
+        test('Request reset password with existing user providing username', async () => {
+            /* setup: replacing the seed user's email with slurp test email */
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate({
+                username: SEED_STANDARD_USER_USERNAME
+            }, { $set: { email: TEMP_USER_TEST_EMAIL } });
+            expect(updateResult.ok).toBe(1);
+
+            /* test */
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(REQUEST_USERNAME_OR_RESET_PASSWORD),
+                    variables: {
+                        forgotUsername: false,
+                        forgotPassword: true,
+                        username: SEED_STANDARD_USER_USERNAME
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.requestUsernameOrResetPassword).toEqual({ successful: true });
+            const modifiedUser = await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            expect(modifiedUser).toBeDefined();
+            expect(modifiedUser.resetPasswordRequests).toHaveLength(1);
+            expect(typeof modifiedUser.resetPasswordRequests[0].id).toBe('string');
+            expect(typeof modifiedUser.resetPasswordRequests[0].timeOfRequest).toBe('number');
+            expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(5000); // less then 5 seconds
+
+            /* cleanup: changing the user's email back */
+            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] }}, { returnOriginal: false });
+            expect(cleanupResult.ok).toBe(1);
+            expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
+        }, 30000);
+
+        test('Reset password with password length < 8', async () => {
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(RESET_PASSWORD),
+                    variables: {
+                        username: SEED_STANDARD_USER_USERNAME,
+                        token: 'token',
+                        newPassword: 'admin'
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('Password has to be at least 8 character long.');
+            expect(res.body.data.resetPassword).toBe(null);
+        });
+
+        test('Reset password with incorrect token (should fail)', async () => {
+            /* setup: add request entry to user */
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [{
+                    id: 'faketoken',
+                    timeOfRequest: new Date().valueOf()
+                }] }}
+            );
+            expect(updateResult.ok).toBe(1);
+
+            /* test */
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(RESET_PASSWORD),
+                    variables: {
+                        username: SEED_STANDARD_USER_USERNAME,
+                        token: 'wrongtoken',
+                        newPassword: 'securepasswordrighthere'
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(res.body.data.resetPassword).toBe(null);
+
+            /* cleanup */
+            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [] } }
+            );
+            expect(updateResult2.ok).toBe(1);
+        });
+
+        test('Reset password with expired token (should fail)', async () => {
+            /* setup: add request entry to user */
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [{
+                    id: 'token',
+                    timeOfRequest: new Date().valueOf() - 60 * 60 * 1000 /* (default expiry: 1hr) */ - 1
+                }] }}
+            );
+            expect(updateResult.ok).toBe(1);
+
+            /* test */
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(RESET_PASSWORD),
+                    variables: {
+                        username: SEED_STANDARD_USER_USERNAME,
+                        token: 'token',
+                        newPassword: 'securepasswordrighthere'
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(res.body.data.resetPassword).toBe(null);
+
+            /* cleanup */
+            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [] } }
+            );
+            expect(updateResult2.ok).toBe(1);
+        });
+
+        test('Reset password with expired token (making sure id and expiry date belong to the same token) (should fail)', async () => {
+            /* test whether a existent token that is not expired will be selected even if providing a expired token id (mongo array selection is a bit weird) */
+            /* setup: add request entry to user */
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [
+                    {
+                        id: 'expiredtoken',
+                        timeOfRequest: new Date().valueOf() - 60 * 60 * 1000 /* (default expiry: 1hr) */ - 1
+                    },
+                    {
+                        id: 'token',
+                        timeOfRequest: new Date().valueOf()
+                    }
+                ] }}
+            );
+            expect(updateResult.ok).toBe(1);
+
+            /* test */
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(RESET_PASSWORD),
+                    variables: {
+                        username: SEED_STANDARD_USER_USERNAME,
+                        token: 'expiredtoken',
+                        newPassword: 'securepasswordrighthere'
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(res.body.data.resetPassword).toBe(null);
+
+            /* cleanup */
+            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [] } }
+            );
+            expect(updateResult2.ok).toBe(1);
+        });
+
+        test('Reset password with valid token' , async () => {
+            /* setup: add request entry to user */
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [{
+                    id: 'token',
+                    timeOfRequest: new Date().valueOf()
+                }] }}
+            );
+            expect(updateResult.ok).toBe(1);
+
+            /* test */
+            const newloggedoutuser = request.agent(app, null);
+            const res = await newloggedoutuser
+                .post('/graphql')
+                .send({
+                    query: print(RESET_PASSWORD),
+                    variables: {
+                        username: SEED_STANDARD_USER_USERNAME,
+                        token: 'token',
+                        newPassword: 'securepasswordrighthere'
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.resetPassword).toEqual({ successful: true });
+            await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            await connectAgent(newloggedoutuser, SEED_STANDARD_USER_USERNAME, 'securepasswordrighthere');
+            const whoami = await newloggedoutuser.post('/graphql').send({ query: print(WHO_AM_I) });
+            expect(whoami.status).toBe(200);
+            expect(whoami.body.error).toBeUndefined();
+            expect(whoami.body.data.whoAmI.id).toBeDefined();
+            expect(whoami.body.data.whoAmI).toEqual({
+                username: 'standardUser',
+                type: Models.UserModels.userTypes.STANDARD,
+                realName: 'Chan Tai Man',
+                createdBy: 'admin',
+                organisation: 'DSI',
+                email: 'standard@user.io',
+                description: 'I am a standard user.',
+                id: whoami.body.data.whoAmI.id,
+                access: {
+                    id: `user_access_obj_user_id_${whoami.body.data.whoAmI.id}`,
+                    projects: [],
+                    studies: []
+                }
+            });
+
+            /* cleanup */
+            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [], password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi' } }
+            );
+            expect(updateResult2.ok).toBe(1);
+        });
+    });
+
     describe('END USERS API', () => {
         let adminId;
         let userId;
@@ -580,8 +929,46 @@ describe('USERS API', () => {
             expect(res.body.data.createUser).toBe(null);
         });
 
+        test('edit user password (admin) (should fail)', async () => {
+            /* setup: getting the id of the created user from mongo */
+            const newUser = {
+                username : 'new_user_333333', 
+                type: 'STANDARD', 
+                realName: 'Chan Ming Ming', 
+                password: 'fakepassword', 
+                createdBy: 'admin', 
+                email: 'new3333@user.io', 
+                description: 'I am a new user 33333.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null,
+                id: 'fakeid2'
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
-        test('edit user (admin)', async () => {
+            /* assertion */
+            const res = await admin.post('/graphql').send(
+                {
+                    query: print(EDIT_USER),
+                    variables: {
+                        id: 'fakeid2',
+                        password: 'ishouldfail'
+                    }
+                }
+            );
+            const result = await mongoClient
+                .collection(config.database.collections.users_collection)
+                .findOne({ id: 'fakeid2' });
+            expect(result.password).toBe('fakepassword');
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            expect(res.body.data.editUser).toEqual(null);
+
+        });
+
+
+        test('edit user without password (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
                 username : 'new_user_3', 
@@ -594,7 +981,7 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true, 
                 organisation:  'DSI',
                 deleted: null, 
-                id: 'fakeid2',
+                id: 'fakeid2222',
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -603,8 +990,7 @@ describe('USERS API', () => {
                 {
                     query: print(EDIT_USER),
                     variables: {
-                        id: 'fakeid2',
-                        password: 'admin',
+                        id: 'fakeid2222',
                         username: 'fakeusername',
                         type: Models.UserModels.userTypes.ADMIN,
                         realName: 'Man',
@@ -616,9 +1002,8 @@ describe('USERS API', () => {
             );
             const result = await mongoClient
                 .collection(config.database.collections.users_collection)
-                .findOne({ id: 'fakeid2' });
-            expect(result.password).not.toBe('fakepassword');
-            expect(result.password).toHaveLength(60);
+                .findOne({ id: 'fakeid2222' });
+            expect(result.password).toBe('fakepassword');
             expect(res.status).toBe(200);
             expect(res.body.data.editUser).toEqual(
                 {
@@ -630,14 +1015,50 @@ describe('USERS API', () => {
                     organisation: 'DSI-ICL',
                     email: 'hey@uk.io', 
                     description: 'DSI director',
-                    id: 'fakeid2',
+                    id: 'fakeid2222',
                     access: {
-                        id: `user_access_obj_user_id_fakeid2`,
+                        id: `user_access_obj_user_id_fakeid2222`,
                         projects: [],
                         studies: []
                     }
                 }
             );
+        });
+
+        test('edit own password with length < 8 (user) (should fail)', async () => {
+            /* setup: getting the id of the created user from mongo */
+            const newUser = {
+                username : 'new_user_4444',
+                type: 'STANDARD',
+                realName: 'Ming Man San',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                createdBy: 'admin',
+                email: 'new4444@user.io',
+                description: 'I am a new user 44444.',
+                emailNotificationsActivated: true,
+                organisation:  'DSI',
+                deleted: null,
+                id: 'fakeid44444'
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            const createdUser = request.agent(app);
+            await connectAgent(createdUser, 'new_user_4444', 'admin');
+
+            /* assertion */
+            const res = await createdUser.post('/graphql').send(
+                {
+                    query: print(EDIT_USER),
+                    variables: {
+                        id: 'fakeid44444',
+                        password: 'admin',
+                        email: 'new_email@ic.ac.uk'
+                    }
+                }
+            );
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('Password has to be at least 8 character long.');
+            expect(res.body.data.editUser).toEqual(null);
         });
 
         test('edit own password (user)', async () => {
@@ -665,7 +1086,7 @@ describe('USERS API', () => {
                     query: print(EDIT_USER),
                     variables: {
                         id: 'fakeid4',
-                        password: 'admin',
+                        password: 'securepasswordhere',
                         email: 'new_email@ic.ac.uk'
                     }
                 }
@@ -687,6 +1108,9 @@ describe('USERS API', () => {
                     studies: []
                 }
             });
+            const modifieduser = await mongoClient.collection(config.database.collections.users_collection).findOne({ username: 'new_user_4' });
+            expect(modifieduser.password).not.toBe(newUser.password);
+            expect(modifieduser.password).toHaveLength(60);
         });
 
         test('edit own non-password fields (user) (should fail)', async () => {
