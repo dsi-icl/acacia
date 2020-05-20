@@ -19,6 +19,10 @@ class Mailer {
             auth: {
                 user: config.auth.user,
                 pass: config.auth.pass
+            },
+            requireTLS: true,
+            tls: {
+                ciphers: 'SSLv3'
             }
         });
     }
