@@ -44,10 +44,34 @@ class ConfigurationManager {
         }
 
         if (process.env.CI === 'true') {
-            if (process.env.TEST_SMTP_CRED) config.nodemailer.auth.pass = process.env.TEST_SMTP_CRED;
-            if (process.env.TEST_SMTP_USERNAME) config.nodemailer.auth.user = process.env.TEST_SMTP_USERNAME;
-            if (process.env.TEST_SMTP_HOST) config.nodemailer.host = process.env.TEST_SMTP_HOST;
-            if (process.env.TEST_SMTP_PORT) config.nodemailer.port = parseInt(process.env.TEST_SMTP_PORT, 10);
+            const { TEST_SMTP_CRED, TEST_SMTP_HOST, TEST_SMTP_PORT, TEST_SMTP_USERNAME, TEST_RECEIVER_EMAIL_ADDR } = process.env;
+            if (TEST_SMTP_CRED) {
+                console.log(chalk.green('Using env secret TEST_SMTP_CRED.'));
+                config.nodemailer.auth.pass = TEST_SMTP_CRED;
+            } else {
+                console.log(chalk.blue('Cannot find env secret TEST_SMTP_CRED. Using default.'));
+            }
+            if (TEST_SMTP_USERNAME) {
+                console.log(chalk.green('Using env secret TEST_SMTP_USERNAME.'));
+                config.nodemailer.auth.user = TEST_SMTP_USERNAME;
+            } else {
+                console.log(chalk.blue('Cannot find env secret TEST_SMTP_USERNAME. Using default.'));
+            }
+            if (TEST_SMTP_HOST) {
+                console.log(chalk.green('Using env secret TEST_SMTP_HOST.'));
+                config.nodemailer.host = TEST_SMTP_HOST;
+            } else {
+                console.log(chalk.blue('Cannot find env secret TEST_SMTP_HOST. Using default.'));
+            }
+            if (TEST_SMTP_PORT) {
+                console.log(chalk.green('Using env secret TEST_SMTP_PORT.'));
+                config.nodemailer.port = parseInt(TEST_SMTP_PORT, 10);
+            } else {
+                console.log(chalk.blue('Cannot find env secret TEST_SMTP_PORT. Using default.'));
+            }
+            if (!TEST_RECEIVER_EMAIL_ADDR) {
+                console.log(chalk.blue('Cannot find env secret TEST_RECEIVER_EMAIL_ADDR. Using default.'));
+            }
         }
 
         return config;
