@@ -7,9 +7,7 @@ import { IServerConfig } from '../server/server.js';
 import chalk from 'chalk';
 
 export interface INodemailerConfig {
-    host: string,
-    port: number,
-    secure: boolean,
+    service: string,
     auth: {
         user: string
         pass: string
@@ -44,7 +42,7 @@ class ConfigurationManager {
         }
 
         if (process.env.CI === 'true') {
-            const { TEST_SMTP_CRED, TEST_SMTP_HOST, TEST_SMTP_PORT, TEST_SMTP_USERNAME, TEST_RECEIVER_EMAIL_ADDR } = process.env;
+            const { TEST_SMTP_CRED, TEST_SMTP_USERNAME, TEST_RECEIVER_EMAIL_ADDR } = process.env;
             if (TEST_SMTP_CRED) {
                 console.log(chalk.green('Using env secret TEST_SMTP_CRED.'));
                 config.nodemailer.auth.pass = TEST_SMTP_CRED;
@@ -56,18 +54,6 @@ class ConfigurationManager {
                 config.nodemailer.auth.user = TEST_SMTP_USERNAME;
             } else {
                 console.log(chalk.blue('Cannot find env secret TEST_SMTP_USERNAME. Using default.'));
-            }
-            if (TEST_SMTP_HOST) {
-                console.log(chalk.green('Using env secret TEST_SMTP_HOST.'));
-                config.nodemailer.host = TEST_SMTP_HOST;
-            } else {
-                console.log(chalk.blue('Cannot find env secret TEST_SMTP_HOST. Using default.'));
-            }
-            if (TEST_SMTP_PORT) {
-                console.log(chalk.green('Using env secret TEST_SMTP_PORT.'));
-                config.nodemailer.port = parseInt(TEST_SMTP_PORT, 10);
-            } else {
-                console.log(chalk.blue('Cannot find env secret TEST_SMTP_PORT. Using default.'));
             }
             if (!TEST_RECEIVER_EMAIL_ADDR) {
                 console.log(chalk.blue('Cannot find env secret TEST_RECEIVER_EMAIL_ADDR. Using default.'));

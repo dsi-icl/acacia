@@ -31,9 +31,7 @@
         "useSSL": false
     },
     "nodemailer": {
-        "host": "smtp.office365.com",
-        "port": 587,
-        "secure": true,
+        "service": "Outlook365",
         "auth": {
             "user": "user",
             "pass": "password" 

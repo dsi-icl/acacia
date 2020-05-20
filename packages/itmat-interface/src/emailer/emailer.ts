@@ -13,17 +13,11 @@ class Mailer {
 
     constructor(config: INodemailerConfig) {
         this._client = nodemailer.createTransport({
-            host: config.host,
-            port: config.port,
-            secure: config.secure,
             auth: {
                 user: config.auth.user,
                 pass: config.auth.pass
             },
-            requireTLS: true,
-            tls: {
-                ciphers: 'SSLv3'
-            }
+            service: config.service
         });
     }
 
