@@ -34,7 +34,8 @@ const { Models: { UserModels: { userTypes }} } = itmatCommons;
 type IDataEntry = itmatCommons.Models.Data.IDataEntry;
 type IUser = itmatCommons.Models.UserModels.IUser;
 type IFile = itmatCommons.Models.File.IFile;
-type IRole = itmatCommons.Models.Field.IFieldEntry;
+type IFieldEntry = itmatCommons.Models.Field.IFieldEntry;
+type IRole = itmatCommons.Models.Study.IRole;
 type IStudyDataVersion = itmatCommons.Models.Study.IStudyDataVersion;
 
 let app;
@@ -453,6 +454,7 @@ describe('STUDY API', () => {
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
                 createdBy: 'admin', 
                 email: `${username}@user.io`, 
+                resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true, 
                 organisation:  'DSI',
