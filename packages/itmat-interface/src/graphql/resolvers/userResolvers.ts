@@ -243,7 +243,7 @@ export const userResolvers = {
         },
         resetPassword: async (parent: object, { username, token, newPassword }: { username: string, token: string, newPassword: string }, context: any, info: any): Promise<object> => {
             /* check password validity */
-            if (newPassword.length < 8) {
+            if (!passwordIsGoodEnough(newPassword)) {
                 throw new ApolloError('Password has to be at least 8 character long.');
             }
 
@@ -285,7 +285,7 @@ export const userResolvers = {
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
-            if (password && password.length < 8) {
+            if (password && !passwordIsGoodEnough(password)) {
                 throw new ApolloError('Password has to be at least 8 character long.');
             }
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
@@ -371,4 +371,11 @@ function formatEmailForFogettenUsername({ username, to, realname }: { username: 
             NAME team.
         `
     });
+}
+
+function passwordIsGoodEnough(pw: string): boolean {
+    if (pw.length < 8) {
+        return false;
+    }
+    return true;
 }
