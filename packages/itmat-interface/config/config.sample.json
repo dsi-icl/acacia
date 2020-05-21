@@ -23,6 +23,7 @@
     "bcrypt": {
         "saltround": 2
     },
+    "aesSecret": "change_this",
     "objectStore": {
         "host": "localhost",
         "port": 8080,

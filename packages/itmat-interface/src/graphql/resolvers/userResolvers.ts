@@ -1,5 +1,6 @@
 import { ApolloError, UserInputError } from 'apollo-server-express';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { mailer } from '../../emailer/emailer';
 import { Models } from 'itmat-commons';
 import { Logger } from 'itmat-utils';
@@ -155,11 +156,11 @@ export const userResolvers = {
                 }
 
                 /* send email to client */
-                await mailer.sendMail(formatEmailForForgottenPassword({
+                await mailer.sendMail(await formatEmailForForgottenPassword({
                     to: user.email,
                     resetPasswordToken: passwordResetToken,
                     username: user.username,
-                    realname: user.realName
+                    realname: user.realName,
                 }));
             } else {
                 /* send email to client */
@@ -261,18 +262,35 @@ export const userResolvers = {
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
         },
-        resetPassword: async (parent: object, { username, token, newPassword }: { username: string, token: string, newPassword: string }, context: any, info: any): Promise<object> => {
+        resetPassword: async (parent: object, { encryptedEmail, token, newPassword }: { encryptedEmail: string, token: string, newPassword: string }, context: any, info: any): Promise<object> => {
             /* check password validity */
             if (!passwordIsGoodEnough(newPassword)) {
                 throw new ApolloError('Password has to be at least 8 character long.');
             }
+
+            /* decrypt email */
+            if (token.length < 16) {
+                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+            const salt = makeAESKeySalt(token);
+            const iv = makeAESIv(token);
+            const algorithm = 'aes-256-cbc';
+            const email = await new Promise((resolve, reject) => {
+                crypto.scrypt(config.aesSecret, salt, 32, (err, derivedKey) => {
+                    if (err) reject(err);
+                    const decipher = crypto.createDecipheriv(algorithm, derivedKey, iv);
+                    let decoded = decipher.update(encryptedEmail, 'hex', 'utf8');
+                    decoded += decipher.final('utf-8');
+                    resolve(decoded);
+                });
+            });
 
             /* check whether username and token is valid */
             /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
             const TIME_NOW = new Date().valueOf();
             const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
             const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
-                username,
+                email,
                 resetPasswordRequests: {
                     $elemMatch: {
                         id: token,
@@ -370,8 +388,31 @@ export const userResolvers = {
 };
 
 
-function formatEmailForForgottenPassword({ realname, username, to, resetPasswordToken }: { resetPasswordToken: string, to: string, username: string, realname: string }) {
-    const link = `${config.useSSL ? 'https' : 'http'}://${config.host}/resetPassword/${username}/${resetPasswordToken}`;
+function makeAESKeySalt(str) {
+    return str;
+}
+
+function makeAESIv(str) {
+    if (str.length < 16) { throw new Error('IV cannot be less than 16 bytes long.'); }
+    return str.slice(0, 16);
+}
+
+async function formatEmailForForgottenPassword({ realname, to, resetPasswordToken, username }: { username: string, resetPasswordToken: string, to: string, realname: string }) {
+    const algorithm = 'aes-256-cbc';
+    const keySalt = makeAESKeySalt(resetPasswordToken);
+    const iv = makeAESIv(resetPasswordToken);
+
+    const encryptedEmail = await new Promise((resolve, reject) => {
+        crypto.scrypt(config.aesSecret, keySalt, 32, (err, derivedKey) => {
+            if (err) reject(err);
+            const cipher = crypto.createCipheriv(algorithm, derivedKey, iv);
+            let encoded = cipher.update(to, 'utf8', 'hex');
+            encoded += cipher.final('hex');
+            resolve(encoded);
+        });
+    });
+
+    const link = `${config.useSSL ? 'https' : 'http'}://${config.host}/resetPassword/${encryptedEmail}/${resetPasswordToken}`;
     return ({
         from: '"NAME"',
         to,

@@ -4,7 +4,7 @@ import { GQLRequests } from 'itmat-commons';
 import { NavLink } from 'react-router-dom';
 import css from '../login/login.module.css';
 
-export const ResetPasswordPage: React.FunctionComponent<{ matchparams: { username: string, token: string } }> = ({ matchparams: { username, token } }) => {
+export const ResetPasswordPage: React.FunctionComponent<{ matchparams: { encryptedEmail: string, token: string } }> = ({ matchparams: { encryptedEmail, token } }) => {
     const [passwordInput, setPasswordInput] = React.useState('');
     const [stateError, setStateError] = React.useState('');
     const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);
@@ -57,7 +57,7 @@ export const ResetPasswordPage: React.FunctionComponent<{ matchparams: { usernam
                                             setStateError('Password must have at least 8 characters');
                                             return;
                                         }
-                                        resetPassword({ variables: { newPassword: passwordInput, username, token } });
+                                        resetPassword({ variables: { newPassword: passwordInput, encryptedEmail, token } });
                                     }}
                                 >Reset my password</button>
                             )

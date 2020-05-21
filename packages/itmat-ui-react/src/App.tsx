@@ -17,7 +17,7 @@ class App extends React.Component {
             <ApolloProvider client={client}>
                 <Router>
                     <Switch>
-                        <Route path='/resetPassword/:username/:token' render={({ match }: RouteComponentProps<{ username: string, token: string }>) => <ResetPasswordPage matchparams={match.params}/>}/>
+                        <Route path='/resetPassword/:encryptedEmail/:token' render={({ match }: RouteComponentProps<{ encryptedEmail: string, token: string }>) => <ResetPasswordPage matchparams={match.params}/>}/>
                         <Route path='/requestResetPassword' render={() => <RequestResetPassword/>}/>
                         <Route render={() =>
                             <Query<any, any> query={WHO_AM_I}>

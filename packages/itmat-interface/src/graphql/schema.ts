@@ -256,7 +256,7 @@ type Mutation {
         email: String, # only provide email if forgotUsername
         username: String
     ): GenericResponse
-    resetPassword(username: String!, token: String!, newPassword: String!): GenericResponse
+    resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
 
     # APP USERS
     createUser(user: CreateUserInput!): User

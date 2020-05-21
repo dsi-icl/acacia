@@ -20,6 +20,7 @@ interface IConfiguration extends IServerConfig {
     nodemailer: INodemailerConfig;
     host: string;
     useSSL: boolean;
+    aesSecret: string;
 }
 
 class ConfigurationManager {

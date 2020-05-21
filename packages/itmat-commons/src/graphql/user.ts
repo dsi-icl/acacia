@@ -73,12 +73,12 @@ export const REQUEST_USERNAME_OR_RESET_PASSWORD = gql`
 
 export const RESET_PASSWORD = gql`
     mutation resetPassword(
-        $username: String!,
+        $encryptedEmail: String!,
         $token: String!,
         $newPassword: String!
     ) {
         resetPassword(
-            username: $username,
+            encryptedEmail: $encryptedEmail,
             token: $token,
             newPassword: $newPassword
         ) {
