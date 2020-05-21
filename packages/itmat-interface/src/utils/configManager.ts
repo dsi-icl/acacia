@@ -18,7 +18,6 @@ interface IConfiguration extends IServerConfig {
     database: IDatabaseBaseConfig;
     objectStore: IObjectStoreConfig;
     nodemailer: INodemailerConfig;
-    host: string;
     useSSL: boolean;
     aesSecret: string;
 }

@@ -161,6 +161,7 @@ export const userResolvers = {
                     resetPasswordToken: passwordResetToken,
                     username: user.username,
                     realname: user.realName,
+                    host: context.req.host
                 }));
             } else {
                 /* send email to client */
@@ -274,16 +275,7 @@ export const userResolvers = {
             }
             const salt = makeAESKeySalt(token);
             const iv = makeAESIv(token);
-            const algorithm = 'aes-256-cbc';
-            const email = await new Promise((resolve, reject) => {
-                crypto.scrypt(config.aesSecret, salt, 32, (err, derivedKey) => {
-                    if (err) reject(err);
-                    const decipher = crypto.createDecipheriv(algorithm, derivedKey, iv);
-                    let decoded = decipher.update(encryptedEmail, 'hex', 'utf8');
-                    decoded += decipher.final('utf-8');
-                    resolve(decoded);
-                });
-            });
+            const email = await decryptEmail(encryptedEmail, salt, iv);
 
             /* check whether username and token is valid */
             /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
@@ -397,22 +389,41 @@ function makeAESIv(str) {
     return str.slice(0, 16);
 }
 
-async function formatEmailForForgottenPassword({ realname, to, resetPasswordToken, username }: { username: string, resetPasswordToken: string, to: string, realname: string }) {
+async function encryptEmail(email: string, keySalt: string, iv: string): Promise<string> {
     const algorithm = 'aes-256-cbc';
-    const keySalt = makeAESKeySalt(resetPasswordToken);
-    const iv = makeAESIv(resetPasswordToken);
-
-    const encryptedEmail = await new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
         crypto.scrypt(config.aesSecret, keySalt, 32, (err, derivedKey) => {
             if (err) reject(err);
             const cipher = crypto.createCipheriv(algorithm, derivedKey, iv);
-            let encoded = cipher.update(to, 'utf8', 'hex');
+            let encoded = cipher.update(email, 'utf8', 'hex');
             encoded += cipher.final('hex');
             resolve(encoded);
         });
     });
 
-    const link = `${config.useSSL ? 'https' : 'http'}://${config.host}/resetPassword/${encryptedEmail}/${resetPasswordToken}`;
+}
+
+async function decryptEmail(encryptedEmail: string, keySalt: string, iv: string): Promise<string> {
+    const algorithm = 'aes-256-cbc';
+    return await new Promise((resolve, reject) => {
+        crypto.scrypt(config.aesSecret, keySalt, 32, (err, derivedKey) => {
+            if (err) reject(err);
+            const decipher = crypto.createDecipheriv(algorithm, derivedKey, iv);
+            let decoded = decipher.update(encryptedEmail, 'hex', 'utf8');
+            decoded += decipher.final('utf-8');
+            resolve(decoded);
+        });
+    });
+}
+
+
+async function formatEmailForForgottenPassword({ realname, to, resetPasswordToken, username, host }: { host: string, username: string, resetPasswordToken: string, to: string, realname: string }) {
+    const keySalt = makeAESKeySalt(resetPasswordToken);
+    const iv = makeAESIv(resetPasswordToken);
+    const encryptedEmail = await encryptEmail(to, keySalt, iv);
+
+
+    const link = `${config.useSSL ? 'https' : 'http'}://${host}${process.env.NODE_ENV === 'development' ? `:${config.server.port}` : ''}/resetPassword/${encryptedEmail}/${resetPasswordToken}`;
     return ({
         from: '"NAME"',
         to,
