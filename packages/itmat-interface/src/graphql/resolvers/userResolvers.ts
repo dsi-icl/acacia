@@ -161,7 +161,7 @@ export const userResolvers = {
                     resetPasswordToken: passwordResetToken,
                     username: user.username,
                     realname: user.realName,
-                    host: context.req.host
+                    host: context.req.hostname
                 }));
             } else {
                 /* send email to client */
@@ -275,7 +275,12 @@ export const userResolvers = {
             }
             const salt = makeAESKeySalt(token);
             const iv = makeAESIv(token);
-            const email = await decryptEmail(encryptedEmail, salt, iv);
+            let email;
+            try {
+                email = await decryptEmail(encryptedEmail, salt, iv);
+            } catch (e) {
+                throw new ApolloError('Token is not valid.');
+            }
 
             /* check whether username and token is valid */
             /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
@@ -380,18 +385,18 @@ export const userResolvers = {
 };
 
 
-function makeAESKeySalt(str) {
+export function makeAESKeySalt(str) {
     return str;
 }
 
-function makeAESIv(str) {
+export function makeAESIv(str) {
     if (str.length < 16) { throw new Error('IV cannot be less than 16 bytes long.'); }
     return str.slice(0, 16);
 }
 
-async function encryptEmail(email: string, keySalt: string, iv: string): Promise<string> {
+export async function encryptEmail(email: string, keySalt: string, iv: string): Promise<string> {
     const algorithm = 'aes-256-cbc';
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         crypto.scrypt(config.aesSecret, keySalt, 32, (err, derivedKey) => {
             if (err) reject(err);
             const cipher = crypto.createCipheriv(algorithm, derivedKey, iv);
@@ -403,15 +408,19 @@ async function encryptEmail(email: string, keySalt: string, iv: string): Promise
 
 }
 
-async function decryptEmail(encryptedEmail: string, keySalt: string, iv: string): Promise<string> {
+export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: string): Promise<string> {
     const algorithm = 'aes-256-cbc';
-    return await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         crypto.scrypt(config.aesSecret, keySalt, 32, (err, derivedKey) => {
             if (err) reject(err);
-            const decipher = crypto.createDecipheriv(algorithm, derivedKey, iv);
-            let decoded = decipher.update(encryptedEmail, 'hex', 'utf8');
-            decoded += decipher.final('utf-8');
-            resolve(decoded);
+            try {
+                const decipher = crypto.createDecipheriv(algorithm, derivedKey, iv);
+                let decoded = decipher.update(encryptedEmail, 'hex', 'utf8');
+                decoded += decipher.final('utf-8');
+                resolve(decoded);
+            } catch (e) {
+                reject(e);
+            }
         });
     });
 }

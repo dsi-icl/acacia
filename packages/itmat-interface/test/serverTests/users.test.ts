@@ -2,8 +2,11 @@ import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
+import { makeAESIv, makeAESKeySalt, encryptEmail, decryptEmail } from '../../src/graphql/resolvers/userResolvers';
+import { v4 as uuid } from 'uuid';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
+import chalk from 'chalk';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
 const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD } = itmatCommons.GQLRequests;
@@ -24,6 +27,7 @@ let mongoClient;
 const SEED_STANDARD_USER_USERNAME = 'standardUser';
 const SEED_STANDARD_USER_EMAIL = 'standard@user.io';
 const TEMP_USER_TEST_EMAIL = process.env.TEST_RECEIVER_EMAIL_ADDR || SEED_STANDARD_USER_EMAIL;
+const SKIP_EMAIL_TEST = process.env.SKIP_EMAIL_TEST === 'true';
 
 afterAll(async () => {
     await db.closeConnection();
@@ -62,9 +66,14 @@ beforeAll(async () => { // eslint-disable-line no-undef
 describe('USERS API', () => {
     describe('RESET PASSWORD FUNCTION', () => {
         let loggedoutUser;
+        const presetToken = uuid();
+        let encryptedEmailForStandardUser;
+
 
         beforeAll(async () => {
             loggedoutUser = request.agent(app, null);
+            encryptedEmailForStandardUser =
+                await encryptEmail(SEED_STANDARD_USER_EMAIL, makeAESKeySalt(presetToken), makeAESIv(presetToken));
         });
 
 
@@ -151,6 +160,11 @@ describe('USERS API', () => {
         });
 
         test('Request reset password with existing user providing email', async () => {
+            /* skip: this test if email env is not set up */
+            if (SKIP_EMAIL_TEST) {
+                console.warn(chalk.yellow('[[WARNING]]: Skipping test "Request reset password with existing user providing username" because SKIP_EMAIL_TEST is set to "true".'));
+                return;
+            }
             /* setup: replacing the seed user's email with slurp test email */
             const updateResult = await db.collections!.users_collection.findOneAndUpdate({
                 username: SEED_STANDARD_USER_USERNAME
@@ -186,7 +200,12 @@ describe('USERS API', () => {
         }, 30000);
 
         test('Request reset password with existing user providing username', async () => {
-            /* setup: replacing the seed user's email with slurp test email */
+            /* skip: this test if email env is not set up */
+            if (SKIP_EMAIL_TEST) {
+                console.warn(chalk.yellow('[[WARNING]]: Skipping test "Request reset password with existing user providing username" because SKIP_EMAIL_TEST is set to "true".'));
+                return;
+            }
+            /* setup: replacing the seed user's email with test email */
             const updateResult = await db.collections!.users_collection.findOneAndUpdate({
                 username: SEED_STANDARD_USER_USERNAME
             }, { $set: { email: TEMP_USER_TEST_EMAIL } });
@@ -226,7 +245,7 @@ describe('USERS API', () => {
                 .send({
                     query: print(RESET_PASSWORD),
                     variables: {
-                        username: SEED_STANDARD_USER_USERNAME,
+                        encryptedEmail: encryptedEmailForStandardUser,
                         token: 'token',
                         newPassword: 'admin'
                     }
@@ -240,7 +259,7 @@ describe('USERS API', () => {
         test('Reset password with incorrect token (should fail)', async () => {
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest = {
-                id: 'faketoken',
+                id: presetToken,
                 timeOfRequest: new Date().valueOf(),
                 used: false
             };
@@ -256,14 +275,53 @@ describe('USERS API', () => {
                 .send({
                     query: print(RESET_PASSWORD),
                     variables: {
-                        username: SEED_STANDARD_USER_USERNAME,
-                        token: 'wrongtoken',
+                        encryptedEmail: encryptedEmailForStandardUser,
+                        token: 'wrongtoken_wrong_token_wrong_token',
                         newPassword: 'securepasswordrighthere'
                     }
                 });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            expect(res.body.errors[0].message).toBe('Token is not valid.');
+            expect(res.body.data.resetPassword).toBe(null);
+
+            /* cleanup */
+            const updateResult2 = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [] } }
+            );
+            expect(updateResult2.ok).toBe(1);
+        });
+
+        test('Reset password with incorrect token length < 16 (should fail)', async () => {
+            /* NOTE: token length < 16 is a constraint needed because of the way makeAESIv() works; */
+            /* NOTE: if makeAESIv() implementation changes, remove this */
+            /* setup: add request entry to user */
+            const resetPWrequest: IResetPasswordRequest = {
+                id: presetToken,
+                timeOfRequest: new Date().valueOf(),
+                used: false
+            };
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [resetPWrequest] }}
+            );
+            expect(updateResult.ok).toBe(1);
+
+            /* test */
+            const res = await loggedoutUser
+                .post('/graphql')
+                .send({
+                    query: print(RESET_PASSWORD),
+                    variables: {
+                        encryptedEmail: encryptedEmailForStandardUser,
+                        token: 'shorttoken',
+                        newPassword: 'securepasswordrighthere'
+                    }
+                });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
             expect(res.body.data.resetPassword).toBe(null);
 
             /* cleanup */
@@ -277,7 +335,7 @@ describe('USERS API', () => {
         test('Reset password with expired token (should fail)', async () => {
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest = {
-                id: 'faketoken',
+                id: presetToken,
                 timeOfRequest: new Date().valueOf() - 60 * 60 * 1000 /* (default expiry: 1hr) */ - 1,
                 used: false
             };
@@ -293,8 +351,8 @@ describe('USERS API', () => {
                 .send({
                     query: print(RESET_PASSWORD),
                     variables: {
-                        username: SEED_STANDARD_USER_USERNAME,
-                        token: 'token',
+                        encryptedEmail: encryptedEmailForStandardUser,
+                        token: presetToken,
                         newPassword: 'securepasswordrighthere'
                     }
                 });
@@ -316,12 +374,12 @@ describe('USERS API', () => {
             /* setup: add request entry to user */
             const resetPWrequests: IResetPasswordRequest[] = [
                 {
-                    id: 'expiredtoken',
+                    id: presetToken,
                     timeOfRequest: new Date().valueOf() - 60 * 60 * 1000 /* (default expiry: 1hr) */ - 1,
                     used: false
                 },
                 {
-                    id: 'token',
+                    id: 'still_not_expired_token',
                     timeOfRequest: new Date().valueOf(),
                     used: false
                 }
@@ -338,8 +396,8 @@ describe('USERS API', () => {
                 .send({
                     query: print(RESET_PASSWORD),
                     variables: {
-                        username: SEED_STANDARD_USER_USERNAME,
-                        token: 'expiredtoken',
+                        encryptedEmail: encryptedEmailForStandardUser,
+                        token: presetToken,
                         newPassword: 'securepasswordrighthere'
                     }
                 });
@@ -359,7 +417,7 @@ describe('USERS API', () => {
         test('Reset password with valid token' , async () => {
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest = {
-                id: 'token',
+                id: presetToken,
                 timeOfRequest: new Date().valueOf(),
                 used: false
             };
@@ -376,8 +434,8 @@ describe('USERS API', () => {
                 .send({
                     query: print(RESET_PASSWORD),
                     variables: {
-                        username: SEED_STANDARD_USER_USERNAME,
-                        token: 'token',
+                        encryptedEmail: encryptedEmailForStandardUser,
+                        token: presetToken,
                         newPassword: 'securepasswordrighthere'
                     }
                 });
@@ -423,7 +481,7 @@ describe('USERS API', () => {
                     used: false
                 },
                 {
-                    id: 'token',
+                    id: presetToken,
                     timeOfRequest: new Date().valueOf(),
                     used: false
                 }
@@ -439,8 +497,8 @@ describe('USERS API', () => {
                 .send({
                     query: print(RESET_PASSWORD),
                     variables: {
-                        username: SEED_STANDARD_USER_USERNAME,
-                        token: 'token',
+                        encryptedEmail: encryptedEmailForStandardUser,
+                        token: presetToken,
                         newPassword: 'securepasswordrighthere'
                     }
                 });
@@ -475,8 +533,8 @@ describe('USERS API', () => {
                 .send({
                     query: print(RESET_PASSWORD),
                     variables: {
-                        username: SEED_STANDARD_USER_USERNAME,
-                        token: 'token',
+                        encryptedEmail: encryptedEmailForStandardUser,
+                        token: presetToken,
                         newPassword: 'securepasswordrighthere'
                     }
                 });
