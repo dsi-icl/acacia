@@ -24,6 +24,25 @@ jobs:
       run: npm run test:unit
       env:
         CI: true
+  email_test:
+    runs-on: itmat
+    strategy:
+      matrix:
+        node: [10.x, 12.x, 13.x]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Using Node.js ${{ matrix.node }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node }}
+    - name: Installing dependencies
+      run: npm install
+    - name: Building packages
+      run: npm run build --if-present
+    - name: Running unit tests
+      run: npm run test:unit
+      env:
+        CI: true
         TEST_SMTP_CRED: ${{ secrets.TEST_SMTP_CRED }}
         TEST_SMTP_USERNAME: ${{ secrets.TEST_SMTP_USERNAME }} 
         TEST_RECEIVER_EMAIL_ADDR: ${{ secrets.TEST_RECEIVER_EMAIL_ADDR }}
