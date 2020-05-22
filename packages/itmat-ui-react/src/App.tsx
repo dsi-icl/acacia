@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ApolloProvider, Query } from 'react-apollo';
-import { BrowserRouter as Router, Switch, Route, RouteComponentProps } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { client } from './components/apolloClient';
 import { LoginBox } from './components/login/login';
 import { Spinner } from './components/reusable/icons/spinner';
@@ -17,8 +17,8 @@ class App extends React.Component {
             <ApolloProvider client={client}>
                 <Router>
                     <Switch>
-                        <Route path='/resetPassword/:encryptedEmail/:token' render={({ match }: RouteComponentProps<{ encryptedEmail: string, token: string }>) => <ResetPasswordPage matchparams={match.params}/>}/>
-                        <Route path='/requestResetPassword' render={() => <RequestResetPassword/>}/>
+                        <Route path='/resetPassword/:encryptedEmail/:token' component={ResetPasswordPage}/>
+                        <Route path='/requestResetPassword' component={RequestResetPassword}/>
                         <Route render={() =>
                             <Query<any, any> query={WHO_AM_I}>
                                 {({ loading, error, data }) => {

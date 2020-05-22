@@ -1,10 +1,15 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { GQLRequests } from 'itmat-commons';
-import { NavLink } from 'react-router-dom';
+import { NavLink, RouteComponentProps } from 'react-router-dom';
 import css from '../login/login.module.css';
 
-export const ResetPasswordPage: React.FunctionComponent<{ matchparams: { encryptedEmail: string, token: string } }> = ({ matchparams: { encryptedEmail, token } }) => {
+type ResetPasswordPageProps = RouteComponentProps<{
+    encryptedEmail: string,
+    token: string
+}>
+
+export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> = ({ match: { params: { encryptedEmail, token } } }) => {
     const [passwordInput, setPasswordInput] = React.useState('');
     const [stateError, setStateError] = React.useState('');
     const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);

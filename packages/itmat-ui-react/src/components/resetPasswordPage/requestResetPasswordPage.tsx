@@ -1,9 +1,13 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
+import { RouteComponentProps } from 'react-router-dom';
 import { GQLRequests } from 'itmat-commons';
 import css from '../login/login.module.css';
 
-export const RequestResetPassword: React.FunctionComponent = () => {
+type ResetPasswordPageProps = RouteComponentProps<{}>
+
+
+export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProps> = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [emailInput, setEmailInput] = React.useState('');
     const [stateError, setStateError] = React.useState('');
