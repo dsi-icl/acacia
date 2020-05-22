@@ -162,7 +162,7 @@ describe('USERS API', () => {
         test('Request reset password with existing user providing email', async () => {
             /* skip: this test if email env is not set up */
             if (SKIP_EMAIL_TEST) {
-                console.warn(chalk.yellow('[[WARNING]]: Skipping test "Request reset password with existing user providing username" because SKIP_EMAIL_TEST is set to "true".'));
+                console.warn(chalk.yellow('[[WARNING]]: Skipping test "Request reset password with existing user providing email" because SKIP_EMAIL_TEST is set to "true".'));
                 return;
             }
             /* setup: replacing the seed user's email with slurp test email */
