@@ -42,21 +42,25 @@ class ConfigurationManager {
         }
 
         if (process.env.CI === 'true') {
-            const { TEST_SMTP_CRED, TEST_SMTP_USERNAME, TEST_RECEIVER_EMAIL_ADDR } = process.env;
-            if (TEST_SMTP_CRED) {
-                console.log(chalk.green('Using env secret TEST_SMTP_CRED.'));
-                config.nodemailer.auth.pass = TEST_SMTP_CRED;
+            const { TEST_SMTP_CRED, TEST_SMTP_USERNAME, TEST_RECEIVER_EMAIL_ADDR, SKIP_EMAIL_TEST } = process.env;
+            if (SKIP_EMAIL_TEST !== 'true') {
+                if (TEST_SMTP_CRED) {
+                    console.log(chalk.green('Using env secret TEST_SMTP_CRED.'));
+                    config.nodemailer.auth.pass = TEST_SMTP_CRED;
+                } else {
+                    console.log(chalk.blue('Cannot find env secret TEST_SMTP_CRED. Using default.'));
+                }
+                if (TEST_SMTP_USERNAME) {
+                    console.log(chalk.green('Using env secret TEST_SMTP_USERNAME.'));
+                    config.nodemailer.auth.user = TEST_SMTP_USERNAME;
+                } else {
+                    console.log(chalk.blue('Cannot find env secret TEST_SMTP_USERNAME. Using default.'));
+                }
+                if (!TEST_RECEIVER_EMAIL_ADDR) {
+                    console.log(chalk.blue('Cannot find env secret TEST_RECEIVER_EMAIL_ADDR. Using default.'));
+                }
             } else {
-                console.log(chalk.blue('Cannot find env secret TEST_SMTP_CRED. Using default.'));
-            }
-            if (TEST_SMTP_USERNAME) {
-                console.log(chalk.green('Using env secret TEST_SMTP_USERNAME.'));
-                config.nodemailer.auth.user = TEST_SMTP_USERNAME;
-            } else {
-                console.log(chalk.blue('Cannot find env secret TEST_SMTP_USERNAME. Using default.'));
-            }
-            if (!TEST_RECEIVER_EMAIL_ADDR) {
-                console.log(chalk.blue('Cannot find env secret TEST_RECEIVER_EMAIL_ADDR. Using default.'));
+                console.warn(chalk.yellow('[[WARNING]]: Skipping email tests because SKIP_EMAIL_TEST has been set to "true".'));
             }
         }
 

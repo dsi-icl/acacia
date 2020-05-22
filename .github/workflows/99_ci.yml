@@ -24,6 +24,7 @@ jobs:
       run: npm run test:unit
       env:
         CI: true
+        SKIP_EMAIL_TEST: true
   email_test:
     runs-on: itmat
     strategy:
