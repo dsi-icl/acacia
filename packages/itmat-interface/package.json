@@ -26,6 +26,7 @@
         "express-session": "1.17.0",
         "fs-extra": "9.0.0",
         "graphql-type-json": "0.3.1",
+        "hi-base32": "^0.5.0",
         "itmat-commons": "0.5.0",
         "itmat-utils": "1.1.8",
         "mongodb": "3.5.5",
@@ -59,9 +60,8 @@
         "eslint-plugin-typescript": "0.14.0",
         "get-port": "5.1.1",
         "jest": "25.2.7",
-        "mongodb-memory-server": "6.2.4",
-        "node-fetch": "2.6.0",
         "mongodb-memory-server": "6.5.2",
+        "node-fetch": "2.6.0",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
@@ -76,10 +76,10 @@
         "globals": {
             "ts-jest": {
                 "ts-jest": {
-	                "tsConfig": {
-	                    "strictNullChecks": false
-	                }
-	            }
+                    "tsConfig": {
+                        "strictNullChecks": false
+                    }
+                }
             }
         },
         "transform": {
