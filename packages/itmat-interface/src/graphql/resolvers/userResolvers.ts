@@ -10,6 +10,8 @@ import config from '../../utils/configManager';
 import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
 import { makeGenericReponse } from '../responses';
+import * as mfa from '../../utils/mfa';
+
 
 export const userResolvers = {
     Query: {
@@ -106,6 +108,12 @@ export const userResolvers = {
             delete result.password;
             delete result.deleted;
 
+        	// validate the TOTP
+			const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
+			if (!totpValidated) {
+                throw new UserInputError('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
+			}
+
             return new Promise((resolve) => {
                 req.login(result, (err: any) => {
                     if (err) {
@@ -161,8 +169,12 @@ export const userResolvers = {
                 throw new UserInputError('User already exists.');
             }
 
+            /* generate a secret for One Time Password*/			
+			const otpSecret = mfa.generateSecret();	
+
             const createdUser = await userCore.createUser(requester.username, {
                 password,
+                otpSecret,
                 username,
                 type,
                 description,
