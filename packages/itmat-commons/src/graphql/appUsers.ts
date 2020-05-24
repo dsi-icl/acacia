@@ -42,7 +42,7 @@ export const CREATE_USER = gql`
     ){
         createUser(user: {
             username: $username
-            password: $password
+            password: $password            
             realName: $realName
             description: $description
             organisation: $organisation

@@ -4,6 +4,7 @@ export const user_fragment = gql`
     fragment ALL_FOR_USER on User {
         id
         username
+        otpSecret
         type
         realName
         email

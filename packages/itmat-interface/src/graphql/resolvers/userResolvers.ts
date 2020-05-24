@@ -169,8 +169,8 @@ export const userResolvers = {
                 throw new UserInputError('User already exists.');
             }
 
-            /* generate a secret for One Time Password*/			
-			const otpSecret = mfa.generateSecret();	
+            /* randomly generate a secret for Time-based One Time Password*/            
+            const otpSecret = mfa.generateSecret();	
 
             const createdUser = await userCore.createUser(requester.username, {
                 password,

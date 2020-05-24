@@ -3,6 +3,8 @@
 import gql from 'graphql-tag';
 import { print } from 'graphql';
 import * as itmatCommons from 'itmat-commons';
+import * as mfa from '../../src/utils/mfa';
+
 const { LOGIN, LOGOUT } = itmatCommons.GQLRequests;
 
 export function connectAdmin(agent) {
@@ -13,12 +15,14 @@ export function connectUser(agent) {
     return connectAgent(agent, 'standardUser', 'admin');
 }
 
-export function connectAgent(agent, user, pw) {
+export function connectAgent(agent, user, pw, otpSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA") {    
+    const otp = mfa.generateTOTP(otpSecret);
+
     return new Promise((resolve, reject) => agent.post('/graphql')
         .set('Content-type', 'application/json')
         .send({
             query: print(LOGIN),
-            variables: { username: user, password: pw }
+            variables: { username: user, password: pw, totp: otp.toString()}
         })
         .then(res => {
             if (res.statusCode === 200)
