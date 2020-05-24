@@ -70,7 +70,7 @@ const collections = {
     }
 };
 
-async function setupDatabase(mongostr, databaseName) {
+export async function setupDatabase(mongostr: string, databaseName: string, dropCollectionIfExists: boolean) {
     const conn = await mongo.MongoClient.connect(mongostr, {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -79,9 +79,14 @@ async function setupDatabase(mongostr, databaseName) {
     const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 
     /* creating collections and indexes */
-    for (let each of Object.keys(collections)) {
+    for (const each of Object.keys(collections)) {
         if (existingCollections.includes(collections[each].name)) {
-            await db.dropCollection(collections[each].name);
+            if (dropCollectionIfExists) {
+                await db.dropCollection(collections[each].name);
+            } else {
+                console.error(`[[ERROR]]: Collection ${each} already exists. Call with dropCollectionIfExists=true to force through setup.`);
+                process.exit(1);
+            }
         }
         const collection = await db.createCollection(collections[each].name);
         await collection.createIndexes(collections[each].indexes);
