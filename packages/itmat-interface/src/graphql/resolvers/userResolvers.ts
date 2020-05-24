@@ -142,8 +142,8 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
+            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation, createdAt, expiredAt, locked }: {
+                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string, createdAt: number, expiredAt: number, locked: boolean
             } = args.user;
 
             /* check email is valid form */
@@ -169,7 +169,10 @@ export const userResolvers = {
                 realName,
                 email,
                 organisation,
-                emailNotificationsActivated
+                emailNotificationsActivated,
+                createdAt,
+                expiredAt,
+                locked
             });
 
             return createdUser;

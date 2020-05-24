@@ -38,6 +38,9 @@ export const CREATE_USER = gql`
         $emailNotificationsActivated: Boolean!
         $email: String!
         $type: USERTYPE!
+        $createdAt: Float!
+        $expiredAt: Float!
+        $locked: Boolean!
     ){
         createUser(user: {
             username: $username
@@ -48,6 +51,9 @@ export const CREATE_USER = gql`
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
             type: $type
+            createdAt: $createdAt
+            expiredAt: $expiredAt
+            locked: $locked
         }) {
             ...ALL_FOR_USER
         }

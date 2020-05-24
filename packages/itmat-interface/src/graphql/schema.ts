@@ -54,7 +54,9 @@ type User {
     description: String # admin only
     emailNotificationsActivated: Boolean!
     createdBy: String
-
+    createdAt: Float
+    expiredAt: Float
+    locked: Boolean
     # external to mongo documents:
     access: UserAccess # admin or self only
 }
@@ -204,6 +206,9 @@ input CreateUserInput {
     organisation: String!
     emailNotificationsActivated: Boolean!
     password: String!
+    createdAt: Float!
+    expiredAt: Float!
+    locked: Boolean!
 }
 
 input EditUserInput {

@@ -14,6 +14,9 @@ export interface IUserWithoutToken {
     emailNotificationsActivated: boolean;
     deleted: number | null;
     createdBy: string;
+    createdAt: number;
+    expiredAt: number;
+    locked: boolean
 }
 
 export interface IUser extends IUserWithoutToken {
