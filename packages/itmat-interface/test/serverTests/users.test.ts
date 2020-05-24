@@ -89,6 +89,7 @@ describe('USERS API', () => {
             adminId = res.body.data.whoAmI.id;
             expect(res.body.data.whoAmI).toEqual({
                 username: 'admin', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 type: Models.UserModels.userTypes.ADMIN, 
                 realName: 'admin', 
                 createdBy: 'chon', 
@@ -112,6 +113,7 @@ describe('USERS API', () => {
             userId = res.body.data.whoAmI.id;
             expect(res.body.data.whoAmI).toEqual({
                 username: 'standardUser', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 type: Models.UserModels.userTypes.STANDARD, 
                 realName: 'Chan Tai Man', 
                 createdBy: 'admin', 
@@ -145,6 +147,7 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'admin', 
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.ADMIN, 
                     realName: 'admin', 
                     createdBy: 'chon', 
@@ -155,6 +158,7 @@ describe('USERS API', () => {
                 },
                 {
                     username: 'standardUser', 
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.STANDARD, 
                     realName: 'Chan Tai Man', 
                     createdBy: 'admin', 
@@ -172,6 +176,7 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'admin', 
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.ADMIN, 
                     realName: 'admin', 
                     createdBy: 'chon', 
@@ -187,6 +192,7 @@ describe('USERS API', () => {
                 },
                 {
                     username: 'standardUser', 
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.STANDARD, 
                     realName: 'Chan Tai Man', 
                     createdBy: 'admin', 
@@ -212,6 +218,7 @@ describe('USERS API', () => {
                 null,
                 {
                     username: 'standardUser', 
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.STANDARD, 
                     realName: 'Chan Tai Man', 
                     createdBy: 'admin', 
@@ -235,6 +242,7 @@ describe('USERS API', () => {
                 null,
                 {
                     username: 'standardUser', 
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.STANDARD, 
                     realName: 'Chan Tai Man', 
                     createdBy: 'admin', 
@@ -257,6 +265,7 @@ describe('USERS API', () => {
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.ADMIN, 
                     realName: 'admin', 
                     createdBy: 'chon', 
@@ -264,6 +273,7 @@ describe('USERS API', () => {
                     id: adminId
                 },
                 {
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.STANDARD, 
                     realName: 'Chan Tai Man', 
                     createdBy: 'admin', 
@@ -279,6 +289,7 @@ describe('USERS API', () => {
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.ADMIN, 
                     realName: 'admin', 
                     createdBy: 'chon', 
@@ -286,6 +297,7 @@ describe('USERS API', () => {
                     id: adminId
                 },
                 {
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.STANDARD, 
                     realName: 'Chan Tai Man', 
                     createdBy: 'admin', 
@@ -302,6 +314,7 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'standardUser', 
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.STANDARD, 
                     realName: 'Chan Tai Man', 
                     createdBy: 'admin', 
@@ -337,6 +350,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.ADMIN, 
                     realName: 'admin', 
                     createdBy: 'chon', 
@@ -353,6 +367,7 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'standardUser', 
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.STANDARD, 
                     realName: 'Chan Tai Man', 
                     createdBy: 'admin', 
@@ -375,6 +390,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.STANDARD, 
                     createdBy: 'admin', 
                     organisation: 'DSI',
@@ -420,24 +436,29 @@ describe('USERS API', () => {
             });
 
             /* getting the id of the created user from mongo */
-            const createdUserId = (await mongoClient
+            // const createdUserId = (await mongoClient
+            //     .collection(config.database.collections.users_collection)
+            //     .findOne({ username: 'testuser1' }, { projection: { id: 1 } })).id;
+
+            const createdUser = (await mongoClient
                 .collection(config.database.collections.users_collection)
-                .findOne({ username: 'testuser1' }, { projection: { id: 1 } })).id;
+                .findOne({ username: 'testuser1' }, { projection: { } }));
 
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.createUser).toEqual(
                 {
                     username: 'testuser1', 
+                    otpSecret: createdUser.otpSecret,
                     type: Models.UserModels.userTypes.STANDARD, 
                     realName: 'User Testing', 
                     createdBy: 'admin', 
                     organisation: 'DSI-ICL',
                     email: 'fake@email.io', 
                     description: 'I am fake!',
-                    id: createdUserId,
+                    id: createdUser.id,
                     access: {
-                        id: `user_access_obj_user_id_${createdUserId}`,
+                        id: `user_access_obj_user_id_${createdUser.id}`,
                         projects: [],
                         studies: []
                     }
@@ -513,6 +534,7 @@ describe('USERS API', () => {
                 type: 'STANDARD', 
                 realName: 'Chan Siu Man', 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin', 
                 email: 'new@user.io', 
                 description: 'I am a new user.',
@@ -550,6 +572,7 @@ describe('USERS API', () => {
                 type: 'STANDARD', 
                 realName: 'Chan Ming', 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin', 
                 email: 'new2@user.io', 
                 description: 'I am a new user 2.',
@@ -588,6 +611,7 @@ describe('USERS API', () => {
                 type: 'STANDARD', 
                 realName: 'Chan Ming Man', 
                 password: 'fakepassword', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin', 
                 email: 'new3@user.io', 
                 description: 'I am a new user 3.',
@@ -604,7 +628,7 @@ describe('USERS API', () => {
                     query: print(EDIT_USER),
                     variables: {
                         id: 'fakeid2',
-                        password: 'admin',
+                        password: 'admin',                        
                         username: 'fakeusername',
                         type: Models.UserModels.userTypes.ADMIN,
                         realName: 'Man',
@@ -622,8 +646,8 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.data.editUser).toEqual(
                 {
-
                     username: 'fakeusername', 
+                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: Models.UserModels.userTypes.ADMIN, 
                     realName: 'Man', 
                     createdBy: 'admin', 
@@ -647,6 +671,7 @@ describe('USERS API', () => {
                 type: 'STANDARD', 
                 realName: 'Ming Man', 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin', 
                 email: 'new4@user.io', 
                 description: 'I am a new user 4.',
@@ -674,6 +699,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.editUser).toEqual({
                 username: 'new_user_4',
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 type: Models.UserModels.userTypes.STANDARD,
                 realName: 'Ming Man',
                 createdBy: 'admin',
@@ -696,6 +722,7 @@ describe('USERS API', () => {
                 type: 'STANDARD',
                 realName: 'Ming Man Chon',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin',
                 email: 'new5@user.io',
                 description: 'I am a new user 5.',
@@ -734,6 +761,7 @@ describe('USERS API', () => {
                 type: 'STANDARD',
                 realName: 'Ming Man',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin',
                 email: 'new6@user.io',
                 description: 'I am a new user 6.',
@@ -769,6 +797,7 @@ describe('USERS API', () => {
                 type: 'STANDARD',
                 realName: 'Ming Man Tai',
                 password: 'fakepassword',
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin',
                 email: 'new7@user.io',
                 description: 'I am a new user 7.',
@@ -802,6 +831,7 @@ describe('USERS API', () => {
                 type: 'STANDARD',
                 realName: 'Chan Mei',
                 password: 'fakepassword',
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin',
                 email: 'new8@user.io',
                 description: 'I am a new user 8.',
@@ -819,6 +849,7 @@ describe('USERS API', () => {
             });
 
             expect(getUserRes.body.data.getUsers).toEqual([{
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 realName: 'Chan Mei',
                 type: Models.UserModels.userTypes.STANDARD,
                 createdBy: 'admin',
@@ -857,6 +888,7 @@ describe('USERS API', () => {
                 type: 'STANDARD', 
                 realName: 'Chan Mei Fong', 
                 password: 'fakepassword', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin', 
                 email: 'new9@user.io', 
                 description: 'I am a new user 9.',
@@ -908,6 +940,7 @@ describe('USERS API', () => {
                 type: 'STANDARD', 
                 realName: 'Chan Mei Yi', 
                 password: 'fakepassword', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin', 
                 email: 'new10@user.io', 
                 description: 'I am a new user 10.',
@@ -925,6 +958,7 @@ describe('USERS API', () => {
             });
 
             expect(getUserRes.body.data.getUsers).toEqual([{
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 realName: 'Chan Mei Yi',
                 type: Models.UserModels.userTypes.STANDARD, 
                 createdBy: 'admin', 
@@ -952,6 +986,7 @@ describe('USERS API', () => {
             });
 
             expect(getUserResAfter.body.data.getUsers).toEqual([{
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 realName: 'Chan Mei Yi',
                 type: Models.UserModels.userTypes.STANDARD, 
                 createdBy: 'admin', 
