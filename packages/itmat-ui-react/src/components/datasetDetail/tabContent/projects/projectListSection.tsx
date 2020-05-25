@@ -8,16 +8,15 @@ import css from './tabContent.module.css';
 export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: Array<{ id: string, name: string }> }> = ({ studyId, projectList }) => {
     return <div>
         {projectList.map((el) => <OneProject studyId={studyId} key={el.id} id={el.id} name={el.name} />)}
-        <AddNewProject studyId={studyId} />
     </div>;
 };
 
 const OneProject: React.FunctionComponent<{ studyId: string, id: string, name: string }> = ({ id, name, studyId }) =>
-    <NavLink to={`/datasets/${studyId}/projects/${id}`} activeClassName={css.active_project}><button className={css.project_badge + ' button_grey'}>{name}</button></NavLink>;
+    <NavLink to={`/datasets/${studyId}/projects/${id}`}><button className={css.project_badge}>{name}</button></NavLink>;
 
 
 
-const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [input, setInput] = React.useState('');
     const [error, setError] = React.useState('');
 

@@ -11,6 +11,8 @@ export const ProjectListPage: React.FunctionComponent = (props) => {
                     <ProjectList />
                 </div>
             </div>
+            <div>
+            </div>
         </div>
     );
 };

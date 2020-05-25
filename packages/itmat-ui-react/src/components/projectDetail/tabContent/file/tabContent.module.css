@@ -3,21 +3,3 @@
     height: 100%;
     overflow: auto;
 }
-
-.scaffold_wrapper {
-    display: grid;
-    grid-template-columns: 35% 65%;
-    grid-template-rows: 100%;
-    height: 100%;
-    grid-template-areas: "leftPanel rightPanel"
-}
-
-.left_panel {
-    grid-area: leftPanel;
-    border-right: 1px solid rgb(77, 77, 77);
-    padding-right: 1rem;
-}
-
-.right_panel {
-    grid-area: rightPanel;
-}
