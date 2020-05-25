@@ -1,0 +1,30 @@
+@keyframes appear_from_below {
+    from { opacity: 0; transform: translate(-50%, 30%); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.appear_from_below {
+    animation: 0.7s appear_from_below;
+}
+
+@keyframes appear_from_left {
+    from { opacity: 0; transform: rotate(30deg) translateX(-200vw); }
+    to { opacity: 1; transform: rotate(30deg) translateX(-10vw); }
+}
+
+.appear_from_left {
+    animation: 1s appear_from_left;
+    transform-origin: left;
+    animation-fill-mode: forwards;
+}
+
+@keyframes appear_from_right {
+    from { opacity: 0; transform: rotate(-40deg) translate(70vw, 140vh); }
+    to { opacity: 1; transform: rotate(-40deg) translate(-80vw, 140vh); }
+}
+
+.appear_from_right {
+    animation: 1s appear_from_right ;
+    transform-origin: left;
+    animation-fill-mode: forwards;
+}

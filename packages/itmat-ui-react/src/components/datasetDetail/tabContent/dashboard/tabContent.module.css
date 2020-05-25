@@ -4,40 +4,30 @@
     overflow: auto;
 }
 
-.status_td > span {
-    width: 100%;
-    padding: 0.1rem 0.5rem 0.1rem 0.5rem;
-}
-
-.finishedStatus_span {
+.finishedStatus_td {
     background: var(--color-status-finish);
     color: black;
 }
 
-.errorStatus_span {
+.errorStatus_td {
     background: var(--color-status-error);
 }
 
-.processingStatus_span {
+.processingStatus_td {
     background: var(--color-status-processing);
     color: black;
 }
 
-.queuedStatus_span {
+.queuedStatus_td {
     background: var(--color-status-queued);
 }
 
-.cancelledStatus_span {
+.cancelledStatus_td {
     background: var(--color-status-cancelled);
 }
 
-.job_table {
-    font-size: 0.95rem;
-}
-
-.job_table tr {
-    height: 1.6rem;
-    line-height: 1.6rem;
+.job_table td:nth-child(3) {
+    text-align: center;
 }
 
 .cancelButton {
@@ -54,7 +44,7 @@
     position: relative;
 }
 
-.errorStatus_span + svg {
+.errorStatus_td > svg {
     height: 1rem;
     width: 1rem;
     cursor: context-menu
@@ -74,7 +64,7 @@
     position: absolute;
 }
 
-.errorStatus_span + svg:hover + .error_wrapper > div {
+.errorStatus_td > svg:hover + .error_wrapper > div {
     display: unset;
 }
 

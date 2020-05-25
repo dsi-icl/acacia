@@ -16,7 +16,7 @@ export const UserPage: React.FunctionComponent = (props) => {
                     <UserListSection />
                 </div>
             </div>
-            <div className="page_section">
+            <div className="page_section additional_panel">
                 <Switch>
                     <Route path="/users/createNewUser" render={() =>
                         <>
