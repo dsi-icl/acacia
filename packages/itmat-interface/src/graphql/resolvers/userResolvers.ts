@@ -99,6 +99,14 @@ export const userResolvers = {
             if (!result) {
                 throw new UserInputError('User does not exist.');
             }
+            console.log(result);
+            console.log((new Date()).valueOf());
+            if (result.expiredAt < (new Date()).valueOf() && result.type === 'STANDARD') {
+                throw new UserInputError('Account Expired.');
+            }
+            if (result.locked === true && result.type === 'STANDARD') {
+                throw new UserInputError('Account Locked.');
+            }
             const passwordMatched = await bcrypt.compare(args.password, result.password);
             if (!passwordMatched) {
                 throw new UserInputError('Incorrect password.');
@@ -188,8 +196,8 @@ export const userResolvers = {
         },
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
+            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation, expiredAt, locked }: {
+                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number, locked?: boolean
             } = args.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
@@ -212,7 +220,9 @@ export const userResolvers = {
                 emailNotificationsActivated,
                 password,
                 description,
-                organisation
+                organisation,
+                expiredAt,
+                locked
             };
 
             /* check email is valid form */
