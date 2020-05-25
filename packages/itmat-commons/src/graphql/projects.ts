@@ -1,5 +1,6 @@
 import gql from 'graphql-tag';
 import { job_fragment } from './curation';
+import { field_fragment } from './fields';
 
 
 export const GET_PROJECT = gql`
@@ -27,7 +28,12 @@ export const GET_PROJECT = gql`
                 }
             }
             iCanEdit
-            fields
+            fields {
+                fieldTreeId
+                fieldsInFieldTree {
+                    ...ALL_FOR_FIELD
+                }
+            }
             files {
                 id
                 fileName
@@ -40,6 +46,7 @@ export const GET_PROJECT = gql`
         }
     }
     ${job_fragment}
+    ${field_fragment}
 `;
 
 export const GET_PROJECT_PATIENT_MAPPING = gql`
@@ -56,9 +63,15 @@ export const EDIT_PROJECT_APPROVED_FIELDS = gql`
         editProjectApprovedFields(projectId: $projectId, fieldTreeId: $fieldTreeId, approvedFields: $approvedFields) {
             id
             approvedFields
-            fields
+            fields {
+                fieldTreeId
+                fieldsInFieldTree {
+                    ...ALL_FOR_FIELD
+                }
+            }
         }
     }
+    ${field_fragment}
 `;
 
 export const EDIT_PROJECT_APPROVED_FILES = gql`

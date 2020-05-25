@@ -673,16 +673,16 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.editUser).toEqual({
-                username: 'new_user_4', 
-                type: Models.UserModels.userTypes.STANDARD, 
-                realName: 'Ming Man', 
-                createdBy: 'admin', 
+                username: 'new_user_4',
+                type: Models.UserModels.userTypes.STANDARD,
+                realName: 'Ming Man',
+                createdBy: 'admin',
                 organisation: 'DSI',
-                email: 'new_email@ic.ac.uk', 
+                email: 'new_email@ic.ac.uk',
                 description: 'I am a new user 4.',
                 id: 'fakeid4',
                 access: {
-                    id: `user_access_obj_user_id_fakeid4`,
+                    id: 'user_access_obj_user_id_fakeid4',
                     projects: [],
                     studies: []
                 }
@@ -692,17 +692,17 @@ describe('USERS API', () => {
         test('edit own non-password fields (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user_5', 
-                type: 'STANDARD', 
+                username : 'new_user_5',
+                type: 'STANDARD',
                 realName: 'Ming Man Chon',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                createdBy: 'admin', 
-                email: 'new5@user.io', 
+                createdBy: 'admin',
+                email: 'new5@user.io',
                 description: 'I am a new user 5.',
-                emailNotificationsActivated: true, 
+                emailNotificationsActivated: true,
                 organisation:  'DSI',
-                deleted: null, 
-                id: 'fakeid5',
+                deleted: null,
+                id: 'fakeid5'
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -714,10 +714,10 @@ describe('USERS API', () => {
                     query: print(EDIT_USER),
                     variables: {
                         id: 'fakeid5',
-                        username: 'new_username', 
-                        type: 'ADMIN', 
+                        username: 'new_username',
+                        type: 'ADMIN',
                         realName: 'Ming Man Chon',
-                        description: 'I am a new user 5.',
+                        description: 'I am a new user 5.'
                     }
                 }
             );
@@ -730,17 +730,17 @@ describe('USERS API', () => {
         test('edit own email with malformed email (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user_6', 
-                type: 'STANDARD', 
-                realName: 'Ming Man', 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                createdBy: 'admin', 
-                email: 'new6@user.io', 
+                username : 'new_user_6',
+                type: 'STANDARD',
+                realName: 'Ming Man',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                createdBy: 'admin',
+                email: 'new6@user.io',
                 description: 'I am a new user 6.',
-                emailNotificationsActivated: true, 
+                emailNotificationsActivated: true,
                 organisation:  'DSI',
-                deleted: null, 
-                id: 'fakeid6',
+                deleted: null,
+                id: 'fakeid6'
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -765,17 +765,17 @@ describe('USERS API', () => {
         test('edit other user (user)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user_7', 
-                type: 'STANDARD', 
-                realName: 'Ming Man Tai', 
-                password: 'fakepassword', 
-                createdBy: 'admin', 
-                email: 'new7@user.io', 
+                username : 'new_user_7',
+                type: 'STANDARD',
+                realName: 'Ming Man Tai',
+                password: 'fakepassword',
+                createdBy: 'admin',
+                email: 'new7@user.io',
                 description: 'I am a new user 7.',
-                emailNotificationsActivated: true, 
+                emailNotificationsActivated: true,
                 organisation:  'DSI',
-                deleted: null, 
-                id: 'fakeid7',
+                deleted: null,
+                id: 'fakeid7'
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -798,17 +798,17 @@ describe('USERS API', () => {
         test('delete user (admin)', async () => {
             /* setup: create a new user to be deleted */
             const newUser = {
-                username : 'new_user_8', 
-                type: 'STANDARD', 
-                realName: 'Chan Mei', 
-                password: 'fakepassword', 
-                createdBy: 'admin', 
-                email: 'new8@user.io', 
+                username : 'new_user_8',
+                type: 'STANDARD',
+                realName: 'Chan Mei',
+                password: 'fakepassword',
+                createdBy: 'admin',
+                email: 'new8@user.io',
                 description: 'I am a new user 8.',
-                emailNotificationsActivated: true, 
+                emailNotificationsActivated: true,
                 organisation:  'DSI',
-                deleted: null, 
-                id: 'fakeid8',
+                deleted: null,
+                id: 'fakeid8'
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -820,10 +820,10 @@ describe('USERS API', () => {
 
             expect(getUserRes.body.data.getUsers).toEqual([{
                 realName: 'Chan Mei',
-                type: Models.UserModels.userTypes.STANDARD, 
-                createdBy: 'admin', 
+                type: Models.UserModels.userTypes.STANDARD,
+                createdBy: 'admin',
                 organisation: 'DSI',
-                id: newUser.id,
+                id: newUser.id
             }]);
 
 

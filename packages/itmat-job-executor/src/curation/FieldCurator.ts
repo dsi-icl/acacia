@@ -1,9 +1,11 @@
 import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
-import { IJobEntryForFieldCuration } from 'itmat-commons/dist/models/job';
 import { Writable } from 'stream';
-import { IFieldEntry, enumValueType, enumItemType } from 'itmat-commons/dist/models/field';
 import { v4 as uuid } from 'uuid';
+import { Models } from 'itmat-commons';
+type IJobEntryForFieldCuration = Models.JobModels.IJobEntryForFieldCuration;
+type IFieldEntry = Models.Field.IFieldEntry;
+type enumValueType = Models.Field.enumValueType;
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -194,7 +196,7 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
         valueType: row[2] as enumValueType,
         possibleValues: row[3] === '' ? undefined : row[3].split(','),
         unit: row[4],
-        itemType: enumItemType.CLINICAL,
+        itemType: Models.Field.enumItemType.CLINICAL,
         numOfTimePoints,
         numOfMeasurements,
         startingTimePoint,

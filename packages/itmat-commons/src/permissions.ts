@@ -45,12 +45,14 @@ export const task_required_permissions = {
     ],
     access_study_data: [
         permissions.all_study.all_studies_data_management,
+        permissions.specific_study.specific_study_projects_management,
         permissions.specific_study.specific_study_data_management,
         permissions.specific_study.specific_study_readonly_access
     ],
     access_project_data: [
         permissions.all_study.all_studies_data_management,
         permissions.specific_study.specific_study_readonly_access,
+        permissions.specific_study.specific_study_projects_management,
         permissions.specific_study.specific_study_data_management,
         permissions.specific_project.specific_project_readonly_access
     ],

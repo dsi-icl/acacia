@@ -98,7 +98,7 @@ type DataVersion {
     uploadDate: String!
     jobId: String!
     extractedFrom: String!
-    fileSize: String
+    fileSize: String!
     fieldTrees: [String]!
 }
 
@@ -119,6 +119,11 @@ type Study {
     numOfSubjects: Int!
 }
 
+type ProjectFields {
+    fieldTreeId: String!
+    fieldsInFieldTree: [Field]!
+}
+
 type Project {
     id: String!
     studyId: String!
@@ -133,7 +138,7 @@ type Project {
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
-    fields: JSON! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
+    fields: [ProjectFields]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
     files: [File]!
 }
 

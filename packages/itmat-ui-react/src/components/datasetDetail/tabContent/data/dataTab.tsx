@@ -16,7 +16,7 @@ import { UploadNewFields } from './uploadNewFields';
 
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return <div className={css.scaffold_wrapper}>
+    return <div className={css.scaffold_wrapper + ' fade_in'}>
         <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
                 if (loading) { return <LoadingBalls />; }
@@ -26,7 +26,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                 }
                 return <div>
                     <p>There is no data uploaded for this study yet.</p>
-                    <UploadNewData studyId={studyId} cancelButton={() => { }} />
+                    <UploadNewData studyId={studyId} cancelButton={() => {}} />
                 </div>;
             }}
         </Query>
@@ -46,7 +46,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
         <div className={css.top_panel}>
 
 
-            {data.dataVersions.length >= 2 ? <>
+            {data.dataVersions.length >= 1 ? <>
                 <div><h5>Data versions</h5>  <h5>Linear history<InfoCircle className={css.infocircle} />:  <Switch onChange={(checked) => setUseLinearHistory(checked)} checked={useLinearHistory} className={css.switchButton} /></h5></div>
 
                 {
@@ -94,6 +94,8 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
 
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title="Fields & Variables">
+                <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id} />
+                <br/><br/>
                 <FieldListSelectionSection
                     studyId={data.id}
                     selectedVersion={selectedVersion}
@@ -101,7 +103,6 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                     versions={data.dataVersions}
                     key={data.id}
                 />
-                <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id} />
             </Subsection>
         </div>
 

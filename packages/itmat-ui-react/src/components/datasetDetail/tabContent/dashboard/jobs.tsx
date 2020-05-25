@@ -7,10 +7,10 @@ import { useSubscription } from 'react-apollo';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 
 const STATUSES: { [status: string]: any } = {
-    finished: () => <span className={css.finishedStatus_span}>Finished</span>,
+    finished: () => <td  className={css.finishedStatus_td}><span>Finished</span></td>,
     // error: (errors: string[]) => <><span className={css.errorStatus_span}>Errored</span><InfoCircle/></>,
-    error: (errors: string[]) => <>
-        <span className={css.errorStatus_span}>Errored</span>
+    error: (errors: string[]) => <td className={css.errorStatus_td}>
+        <span>Errored</span>
         <InfoCircle/>
         <div className={css.error_wrapper}>
             <div>
@@ -19,10 +19,10 @@ const STATUSES: { [status: string]: any } = {
                 </ul>
             </div>
         </div>
-        </>,
-    QUEUED: () => <span className={css.queuedStatus_span}>Queued</span>,
-    PROCESSING: () => <span className={css.processingStatus_span}>Processing</span>,
-    CANCELLED: () => <span className={css.cancelledStatus_span}>Cancelled</span>
+        </td>,
+    QUEUED: () => <td className={css.queuedStatus_td}><span>Queued</span></td>,
+    PROCESSING: () => <td className={css.processingStatus_td}><span>Processing</span></td>,
+    CANCELLED: () => <td className={css.cancelledStatus_td}><span>Cancelled</span></td>
 };
 
 const JOBTYPES: { [type: string]: any } = {
@@ -56,7 +56,7 @@ export const JobSection: React.FunctionComponent<{ studyId: string, jobs: Array<
                     <tr>
                         <th>Date</th>
                         <th>Type</th>
-                        <th>Status</th>
+                        <th></th>
                         <th>Metadata</th>
                         <th>Cancel</th>
                     </tr>
@@ -74,7 +74,7 @@ const OneJob: React.FunctionComponent<{ job: IJobEntry<any> }> = ({ job }) => {
         <tr>
             <td>{new Date(job.requestTime).toLocaleString()}</td>
             <td>{JOBTYPES[job.jobType]}</td>
-            <td className={css.status_td}>{job.cancelled ? STATUSES.CANCELLED() : (STATUSES[job.status] || (() => null))(job.error)}</td>
+            {job.cancelled ? STATUSES.CANCELLED() : (STATUSES[job.status] || (() => null))(job.error)}
             <td>{JSON.stringify(job.data, null, 4)}</td>
             <td className={css.cancelButton}>x</td>
         </tr>
