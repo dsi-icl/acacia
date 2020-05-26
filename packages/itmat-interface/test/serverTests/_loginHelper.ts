@@ -8,21 +8,22 @@ import * as mfa from '../../src/utils/mfa';
 const { LOGIN, LOGOUT } = itmatCommons.GQLRequests;
 
 export function connectAdmin(agent) {
-    return connectAgent(agent, 'admin', 'admin');
+    const adminSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA";
+    return connectAgent(agent, 'admin', 'admin', adminSecret);
 }
 
 export function connectUser(agent) {
-    return connectAgent(agent, 'standardUser', 'admin');
+    const userSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA";
+    return connectAgent(agent, 'standardUser', 'admin', userSecret);
 }
 
-export function connectAgent(agent, user, pw, otpSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA") {    
-    const otp = mfa.generateTOTP(otpSecret);
-
+export function connectAgent(agent, user, pw, secret) {
+    const otp = mfa.generateTOTP(secret).toString();
     return new Promise((resolve, reject) => agent.post('/graphql')
         .set('Content-type', 'application/json')
         .send({
             query: print(LOGIN),
-            variables: { username: user, password: pw, totp: otp.toString()}
+            variables: { username: user, password: pw, totp: otp}
         })
         .then(res => {
             if (res.statusCode === 200)

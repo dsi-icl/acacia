@@ -130,7 +130,7 @@ if (global.hasMinio) {
                     await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
                     authorisedUser = request.agent(app);
-                    await connectAgent(authorisedUser, username, 'admin');
+                    await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
                 });
 
                 test('Upload file to study (admin)', async () => { 
@@ -319,7 +319,7 @@ if (global.hasMinio) {
                     await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
                     authorisedUser = request.agent(app);
-                    await connectAgent(authorisedUser, username, 'admin');
+                    await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
                 });
 
                 test('Download file from study (admin)', async () => {
@@ -459,7 +459,7 @@ if (global.hasMinio) {
                     await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
                     authorisedUser = request.agent(app);
-                    await connectAgent(authorisedUser, username, 'admin')
+                    await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
                 });
 
                 test('Delete file from study (admin)', async () => {

@@ -214,7 +214,7 @@ describe('JOB API', () => {
         await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
         const authorisedUser = request.agent(app);
-        await connectAgent(authorisedUser, username, 'admin')
+        await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
         /* test */
         const res = await authorisedUser.post('/graphql').send({

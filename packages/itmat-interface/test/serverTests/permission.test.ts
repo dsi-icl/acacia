@@ -116,7 +116,7 @@ describe('ROLE API', () => {
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
             authorisedUser = request.agent(app);
-            await connectAgent(authorisedUser, username, 'admin');
+            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
         });
 
         test('Creating a new role for study (admin)', async () => {
@@ -484,7 +484,7 @@ describe('ROLE API', () => {
                 await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin');
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
                 /* setup: giving authorised user privilege */
                 const roleId = [uuid(), uuid()];
@@ -1468,7 +1468,7 @@ describe('ROLE API', () => {
                 await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin');
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
                 /* setup: giving authorised user privilege */
                 const roleId = [uuid(), uuid()];
@@ -1834,7 +1834,7 @@ describe('ROLE API', () => {
                 await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin');
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
                 /* setup: giving authorised user privilege */
                 const roleId = [uuid(), uuid()];
@@ -1977,7 +1977,7 @@ describe('ROLE API', () => {
                 await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin');
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
                 /* setup: giving authorised user privilege */
                 const roleId = [uuid(), uuid()];

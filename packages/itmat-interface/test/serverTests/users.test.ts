@@ -6,10 +6,11 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER } = itmatCommons.GQLRequests;
+const { WHO_AM_I, LOGIN, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
+import * as mfa from '../../src/utils/mfa';
 const { Models } = itmatCommons;
 
 let app;
@@ -420,6 +421,39 @@ describe('USERS API', () => {
             userId = result.filter(e => e.username === 'standardUser')[0].id;
         });
 
+        test('log in with incorrect totp (user)', async () => {            
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_USER),
+                variables: {
+                    username: 'testuser0',
+                    password: 'testpassword0',
+                    realName: 'User Testing',
+                    description: 'I am fake!',
+                    organisation: 'DSI-ICL',
+                    emailNotificationsActivated: false,
+                    email: 'user0email@email.io',
+                    type: Models.UserModels.userTypes.STANDARD
+                }
+            });
+
+            /* getting the created user from mongo */
+            const createdUser = (await mongoClient
+                .collection(config.database.collections.users_collection)
+                .findOne({ username: 'testuser0' }));
+
+            const incorrectTotp = mfa.generateTOTP(createdUser.otpSecret) + 1;
+            const res_login = await admin.post('/graphql')
+                .set('Content-type', 'application/json')
+                .send({
+                    query: print(LOGIN),
+                    variables: { username: 'testuser0', password: 'testpassword0', totp: incorrectTotp.toString()}
+                });
+            
+            expect(res_login.status).toBe(200);
+            expect(res_login.body.errors).toHaveLength(1);
+            expect(res_login.body.errors[0].message).toBe('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
+        });
+
         test('create user (admin)', async () => {
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_USER),
@@ -435,14 +469,10 @@ describe('USERS API', () => {
                 }
             });
 
-            /* getting the id of the created user from mongo */
-            // const createdUserId = (await mongoClient
-            //     .collection(config.database.collections.users_collection)
-            //     .findOne({ username: 'testuser1' }, { projection: { id: 1 } })).id;
-
+            /* getting the created user from mongo */
             const createdUser = (await mongoClient
                 .collection(config.database.collections.users_collection)
-                .findOne({ username: 'testuser1' }, { projection: { } }));
+                .findOne({ username: 'testuser1' }));
 
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
@@ -628,7 +658,7 @@ describe('USERS API', () => {
                     query: print(EDIT_USER),
                     variables: {
                         id: 'fakeid2',
-                        password: 'admin',                        
+                        password: 'admin',
                         username: 'fakeusername',
                         type: Models.UserModels.userTypes.ADMIN,
                         realName: 'Man',
@@ -682,7 +712,7 @@ describe('USERS API', () => {
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
-            await connectAgent(createdUser, 'new_user_4', 'admin');
+            await connectAgent(createdUser, 'new_user_4', 'admin', newUser.otpSecret);
 
             /* assertion */
             const res = await createdUser.post('/graphql').send(
@@ -733,7 +763,7 @@ describe('USERS API', () => {
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
-            await connectAgent(createdUser, 'new_user_5', 'admin');
+            await connectAgent(createdUser, 'new_user_5', 'admin', newUser.otpSecret);
 
             /* assertion */
             const res = await createdUser.post('/graphql').send(
@@ -772,7 +802,7 @@ describe('USERS API', () => {
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
-            await connectAgent(createdUser, 'new_user_6', 'admin');
+            await connectAgent(createdUser, 'new_user_6', 'admin', newUser.otpSecret);
 
             /* assertion */
             const res = await createdUser.post('/graphql').send(
