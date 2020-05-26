@@ -39,7 +39,6 @@ export class JSONCurator {
         return new Promise((resolve) => {
             console.log(`uploading for job ${this.job.id}`);
             let objectNum = 0;
-            let isHeader: boolean = true;
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
             const jsonstream = JSONStream.parse([{ emitKey: true }]);
@@ -75,7 +74,7 @@ export class JSONCurator {
                             return;
                         }
                         bulkInsert.insert(dataEntry);
-                        this, this._numOfSubj++;
+                        this._numOfSubj++;
 
                     }
                     if (this._numOfSubj > 999) {
