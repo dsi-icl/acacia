@@ -42,7 +42,7 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
                                         } else {
                                             setError('Please select file.');
                                         }
-                                    }}>Upload</button>
+                                    }}>NOT IMPLEMENTED</button>
                                 );
                             }}
                         </Mutation>

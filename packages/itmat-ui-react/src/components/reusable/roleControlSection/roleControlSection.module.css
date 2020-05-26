@@ -23,6 +23,9 @@
 
 .one_role {
     margin-bottom: 3rem;
+    position: relative;
+    background: var(--color-additional-panel-background);
+    padding: 1rem;
 }
 
 .role_name {
@@ -45,16 +48,9 @@
 }
 
 .add_new_role_section {
-    background: repeating-linear-gradient(
-        -40deg,
-        rgb(37, 37, 37),
-        rgb(37, 37, 37) 10px,
-        rgba(255, 96, 61, 0) 10px,
-        rgba(255, 96, 61, 0) 20px
-    );
-    border-radius: 0.6rem;
-    padding: 0.8rem;
-    width: 100%;
+    background: var(--color-ariane-background);
+    border-radius: 0.2rem;
+    padding: 1rem;
 }
 
 .add_new_role_section .add_new_role_buttons_wrapper {
@@ -64,7 +60,6 @@
 }
 
 .role_header {
-    position: relative;
     width: 100%;
 }
 
@@ -79,19 +74,22 @@
 }
 
 .delete_role_button {
-    width: 1.2rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 35px;
     text-align: center;
-    height: 1.2rem;
-    line-height: 1.2rem;
+    height: 35px;
+    line-height: 35px;
     background-color: var(--color-primary-color);
-    border-radius: 52%;
-    font-size: 0.7rem;
+    font-size: 1rem;
+    color: var(--color-background);
     cursor: pointer;
     font-weight: bold;
 }
 
 .delete_role_button:hover {
-    background-color: var(--color-that-red);
+    background-color: var(--color-status-error);
 }
 
 .permissions_section {
@@ -99,22 +97,21 @@
 }
 
 .permissions_section > div {
-    padding: 0.4rem;
+    padding: 0.4rem 1rem;
     display: inline-block;
     margin: 0 1rem 1rem 0;
-    background-color: rgba(193, 193, 193, 0.1);
+    background: var(--color-permission-unselected);
     cursor: pointer;
     box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.3);
-    color: #9c9c9c;
 }
 
 .permissions_section > div:not(.permission_selected):hover {
-    background-color: rgba(200, 200, 200, 0.15); 
+    background: var(--color-permission-unselected);
 }
 
 .permissions_section > .permission_selected {
     color: black;
-    background-color: rgba(255, 255, 255, 0.9);
+    background: var(--color-status-finish);
 }
 
 .permissions_section > .permission_selected::after {

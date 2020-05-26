@@ -48,8 +48,8 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
             jobId: job.id,
             version: job.data!.dataVersion,
             tag: job.data!.versionTag,
-            uploadDate: new Date().valueOf(),
-            fileSize: file.fileSize!,
+            uploadDate: (new Date().valueOf()).toString(),
+            fileSize: (file.fileSize!).toString(),
             extractedFrom: file.fileName,
             fieldTrees: []
         };

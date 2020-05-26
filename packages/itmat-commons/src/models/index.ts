@@ -4,5 +4,6 @@ import * as JobModels from './job';
 import * as Query from './query';
 import * as Study from './study';
 import * as UserModels from './user';
+import * as Data from './data';
 
-export { File, JobModels, UserModels, Study, Query, Field };
+export { File, JobModels, UserModels, Study, Query, Field, Data };

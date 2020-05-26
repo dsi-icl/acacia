@@ -55,7 +55,12 @@ export const userResolvers = {
                 }, init
             );
 
-            const projects: IProject[] = await db.collections!.projects_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null }).toArray();
+            const projects: IProject[] = await db.collections!.projects_collection.find({
+                    $or: [
+                        { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
+                        { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
+                    ]
+                }).toArray();
             const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },

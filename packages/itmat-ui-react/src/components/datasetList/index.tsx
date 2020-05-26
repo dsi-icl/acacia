@@ -13,6 +13,7 @@ export const DatasetListPage: React.FunctionComponent = () => {
                     <DatasetList />
                 </div>
             </div>
+            <div></div>
         </div>
     );
 };
