@@ -84,7 +84,7 @@ export class JSONCurator {
                                 console.log((err as any).writeErrors[1].err);
                                 return;
                             }
-                        })
+                        });
                     }
                     callback();
                 }
@@ -165,7 +165,7 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
         /* skip for missing data */
         if (each === '') {
             colIndex++;
-            continue
+            continue;
         }
 
         if (parsedHeader[colIndex] === null) {
