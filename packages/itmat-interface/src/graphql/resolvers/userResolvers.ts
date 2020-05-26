@@ -17,8 +17,6 @@ export const userResolvers = {
             return context.req.user;
         },
         getUsers: async (parent: object, args: any, context: any, info: any): Promise<IUser[]> => {
-            const requester: Models.UserModels.IUser = context.req.user;
-
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
             const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
@@ -56,11 +54,11 @@ export const userResolvers = {
             );
 
             const projects: IProject[] = await db.collections!.projects_collection.find({
-                    $or: [
-                        { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
-                        { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
-                    ]
-                }).toArray();
+                $or: [
+                    { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
+                    { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
+                ]
+            }).toArray();
             const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
@@ -198,7 +196,7 @@ export const userResolvers = {
                 }
             }
             // if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
-                // throw new ApolloError('Non-admin users are not authorised to change user type.');
+            // throw new ApolloError('Non-admin users are not authorised to change user type.');
             // }
 
             const fieldsToUpdate: any = {

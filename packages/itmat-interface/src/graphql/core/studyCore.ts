@@ -4,7 +4,6 @@ import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
-import { makeGenericReponse, IGenericResponse } from '../responses';
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -30,12 +29,14 @@ export class StudyCore {
         const existingStudies = await db.collections!.studies_collection.aggregate(
             [
                 { $match: { deleted: null } },
-                { $group:{
+                {
+                    $group: {
                         _id: '',
                         name: {
-                            $push : { $toLower: '$name' }
+                            $push: { $toLower: '$name' }
                         }
-                }},
+                    }
+                },
                 { $project: { name: 1 } }
             ]
         ).toArray();

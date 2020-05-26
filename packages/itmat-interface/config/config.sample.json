@@ -27,5 +27,6 @@
         "accessKey": "minioadmin",
         "secretKey": "minioadmin",
         "useSSL": false
-    }
+    },
+    "sessionsSecret": "Change_Me"
 }

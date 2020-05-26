@@ -3,7 +3,7 @@ import { Writable } from 'stream';
 import JSONStream from 'JSONStream';
 import { Models } from 'itmat-commons';
 type IFieldDescriptionObject = Models.Data.IFieldDescriptionObject;
-type IDataEntry= Models.Data.IDataEntry;
+type IDataEntry = Models.Data.IDataEntry;
 type IJobEntry<T> = Models.JobModels.IJobEntry<T>;
 
 /* update should be audit trailed */
@@ -39,7 +39,6 @@ export class JSONCurator {
         return new Promise((resolve) => {
             console.log(`uploading for job ${this.job.id}`);
             let objectNum = 0;
-            let isHeader: boolean = true;
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
             const jsonstream = JSONStream.parse([{ emitKey: true }]);
@@ -75,7 +74,7 @@ export class JSONCurator {
                             return;
                         }
                         bulkInsert.insert(dataEntry);
-                        this, this._numOfSubj++;
+                        this._numOfSubj++;
 
                     }
                     if (this._numOfSubj > 999) {
@@ -85,7 +84,7 @@ export class JSONCurator {
                                 console.log((err as any).writeErrors[1].err);
                                 return;
                             }
-                        })
+                        });
                     }
                     callback();
                 }
@@ -122,7 +121,7 @@ export function processJSONHeader(header: string[]): { error?: string[], parsedH
     const parsedHeader: Array<IFieldDescriptionObject | null> = Array(header.length);
     let colNum = 0;
     for (const each of header) {
-        if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
+        if (!/^\d+@\d+.\d+(:[cidbt])?$/.test(each)) {
             error.push(`Object 1: '${each}' is not a valid header field descriptor.`);
             parsedHeader[colNum] = null;
         } else {
@@ -166,7 +165,7 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
         /* skip for missing data */
         if (each === '') {
             colIndex++;
-            continue
+            continue;
         }
 
         if (parsedHeader[colIndex] === null) {

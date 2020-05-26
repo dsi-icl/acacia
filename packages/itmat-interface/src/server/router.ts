@@ -6,8 +6,7 @@ import express from 'express';
 import { Express, NextFunction, Request, Response } from 'express';
 import session from 'express-session';
 import http from 'http';
-import { CustomError, Logger } from 'itmat-utils';
-import multer from 'multer';
+import { CustomError } from 'itmat-utils';
 import passport from 'passport';
 import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
@@ -16,13 +15,12 @@ import { fileDownloadController } from '../rest/fileDownload';
 import { userLoginUtils } from '../utils/userLoginUtils';
 
 const MongoStore = connectMongo(session);
-const upload = multer();
 
 export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
 
-    constructor() {
+    constructor(config: any) {
         this.app = express();
 
         this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
@@ -33,7 +31,7 @@ export class Router {
 
         /* save persistent sessions in mongo */
         this.app.use(session({
-            secret: 'IAmATeapot',
+            secret: config.sessionsSecret,
             resave: true,
             saveUninitialized: true,
             store: new MongoStore({ client: db.client } as any)

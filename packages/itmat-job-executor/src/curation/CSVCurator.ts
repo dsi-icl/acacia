@@ -142,7 +142,7 @@ export function processHeader(header: string[]): { error?: string[], parsedHeade
         if (colNum === 0) {
             parsedHeader[0] = null;
         } else {
-            if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
+            if (!/^\d+@\d+.\d+(:[cidbt])?$/.test(each)) {
                 error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
                 parsedHeader[colNum] = null;
             } else {

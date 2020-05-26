@@ -1,5 +1,4 @@
 import { ApolloError } from 'apollo-server-core';
-import { permissions } from 'itmat-commons';
 import { IRole } from 'itmat-commons/dist/models/study';
 import { IUser, userTypes } from 'itmat-commons/dist/models/user';
 import { BulkWriteResult } from 'mongodb';
