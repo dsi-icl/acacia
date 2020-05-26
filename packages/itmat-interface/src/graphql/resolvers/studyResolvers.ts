@@ -103,7 +103,7 @@ export const studyResolvers = {
             const fields = result.reduce((a: { fieldTreeId: string, fieldsInFieldTree: IFieldEntry[] }[], e: IFieldEntry) => {
                 if (!fieldTrees[e.fieldTreeId]) {
                     fieldTrees[e.fieldTreeId] = a.length;
-                    a.push({ fieldTreeId: e.fieldTreeId, fieldsInFieldTree: []});
+                    a.push({ fieldTreeId: e.fieldTreeId, fieldsInFieldTree: [] });
                 }
                 a[fieldTrees[e.fieldTreeId]].fieldsInFieldTree.push(e);
                 return a;

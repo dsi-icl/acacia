@@ -45,6 +45,6 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     public async updateFieldTreesInMongo(job: IJobEntryForFieldCuration, fieldTreeId: string) {
         const queryObject = { 'id': job.studyId, 'deleted': null, 'dataVersions.id': job.data!.dataVersionId };
         const updateObject = { $push: { 'dataVersions.$.fieldTrees': fieldTreeId } };
-        const result = await db.collections!.studies_collection.findOneAndUpdate(queryObject, updateObject);
+        return await db.collections!.studies_collection.findOneAndUpdate(queryObject, updateObject);
     }
 }
