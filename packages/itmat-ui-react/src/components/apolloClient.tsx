@@ -7,14 +7,14 @@ import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { createUploadLink } from 'apollo-upload-client';
 import { getMainDefinition } from 'apollo-utilities';
 
-const wsClient = new SubscriptionClient(process.env.REACT_APP_GRAPHQL_SERVICE?.replace('http', 'ws') ?? '/', {
+const wsClient = new SubscriptionClient(`${window.location.origin?.replace('http', 'ws')}/graphql`, {
     reconnect: true
 })
 
 const wsLink = new WebSocketLink(wsClient);
 
 const uploadLink = createUploadLink({
-    uri: process.env.REACT_APP_GRAPHQL_SERVICE,
+    uri: '/graphql',
     credentials: 'include'
 });
 

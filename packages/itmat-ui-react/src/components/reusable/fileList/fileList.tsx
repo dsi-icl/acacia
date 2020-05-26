@@ -66,7 +66,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         },
         {
             render: (rec, file) => (
-                <Button icon={<CloudDownloadOutlined />} download={file.fileName} href={`${process.env.REACT_APP_FILE_SERVICE}/${file.id}`}>
+                <Button icon={<CloudDownloadOutlined />} download={file.fileName} href={`/file/${file.id}`}>
                     Download
                 </Button>
             ),
