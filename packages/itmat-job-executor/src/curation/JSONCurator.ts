@@ -3,7 +3,7 @@ import { Writable } from 'stream';
 import JSONStream from 'JSONStream';
 import { Models } from 'itmat-commons';
 type IFieldDescriptionObject = Models.Data.IFieldDescriptionObject;
-type IDataEntry= Models.Data.IDataEntry;
+type IDataEntry = Models.Data.IDataEntry;
 type IJobEntry<T> = Models.JobModels.IJobEntry<T>;
 
 /* update should be audit trailed */
@@ -122,7 +122,7 @@ export function processJSONHeader(header: string[]): { error?: string[], parsedH
     const parsedHeader: Array<IFieldDescriptionObject | null> = Array(header.length);
     let colNum = 0;
     for (const each of header) {
-        if (!/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(each)) {
+        if (!/^\d+@\d+.\d+(:[cidbt])?$/.test(each)) {
             error.push(`Object 1: '${each}' is not a valid header field descriptor.`);
             parsedHeader[colNum] = null;
         } else {
