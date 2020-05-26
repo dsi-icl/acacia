@@ -20,7 +20,7 @@ export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
 
-    constructor() {
+    constructor(config: any) {
         this.app = express();
 
         this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
@@ -31,7 +31,7 @@ export class Router {
 
         /* save persistent sessions in mongo */
         this.app.use(session({
-            secret: 'IAmATeapot',
+            secret: config.sessionsSecret,
             resave: true,
             saveUninitialized: true,
             store: new MongoStore({ client: db.client } as any)
