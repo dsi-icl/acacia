@@ -106,6 +106,7 @@ button {
     margin: 3px;
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
     border-radius: 0.1rem;
+    width: 100%;
     min-height: 20px;
     font-weight: bold;
     line-height: 20px;
