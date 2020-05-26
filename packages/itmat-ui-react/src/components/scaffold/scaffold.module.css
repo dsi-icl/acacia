@@ -1,11 +1,11 @@
 .app {
     color: var(--color-font-color);
-    background: var(--color-background);
+    background-color: var(--color-background);
     height: 100%;
     width: 100%;
     font-weight: var(--font-weight);
     display: grid;
-    grid-template-columns: 10em 1fr;
+    grid-template-columns: 10rem 1fr;
     grid-template-rows: 100%;
     grid-template-areas:
         "mainMenuBar mainPanel"

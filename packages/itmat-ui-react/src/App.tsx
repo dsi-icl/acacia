@@ -32,12 +32,14 @@ export const App: React.FunctionComponent = () => (
                     );
                 }
                 if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) { // if logged in return the app
-                    return (
-                        <div className={css.app}>
-                            <MainMenuBar projects={data.whoAmI.access.projects} />
-                            <MainPanel />
-                        </div>
-                    );
+                    return <div className={css.app + ' dark_theme'}>
+                        <Router>
+                            <>
+                                <MainMenuBar projects={data.whoAmI.access.projects} />
+                                <MainPanel />
+                            </>
+                        </Router>
+                    </div>;
                 }
                 return <LoginBox />; // if not logged in return the login boxs
             }}

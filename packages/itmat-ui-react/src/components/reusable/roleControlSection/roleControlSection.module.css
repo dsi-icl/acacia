@@ -24,7 +24,7 @@
 .one_role {
     margin-bottom: 3rem;
     position: relative;
-    background: var(--color-additional-panel-background);
+    background-color: var(--color-additional-panel-background);
     padding: 1rem;
 }
 
@@ -48,9 +48,10 @@
 }
 
 .add_new_role_section {
-    background: var(--color-ariane-background);
+    background-color: var(--color-ariane-background);
     border-radius: 0.2rem;
     padding: 1rem;
+    width: 100%;
 }
 
 .add_new_role_section .add_new_role_buttons_wrapper {
@@ -60,6 +61,7 @@
 }
 
 .role_header {
+    position: relative;
     width: 100%;
 }
 
@@ -77,12 +79,12 @@
     position: absolute;
     right: 0;
     top: 0;
-    width: 35px;
+    width: 1.2rem;
     text-align: center;
     height: 35px;
     line-height: 35px;
     background-color: var(--color-primary-color);
-    font-size: 1rem;
+    font-size: 0.7rem;
     color: var(--color-background);
     cursor: pointer;
     font-weight: bold;
@@ -100,18 +102,18 @@
     padding: 0.4rem 1rem;
     display: inline-block;
     margin: 0 1rem 1rem 0;
-    background: var(--color-permission-unselected);
+    background-color: var(--color-permission-unselected);
     cursor: pointer;
     box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.3);
 }
 
 .permissions_section > div:not(.permission_selected):hover {
-    background: var(--color-permission-unselected);
+    background-color: var(--color-permission-unselected);
 }
 
 .permissions_section > .permission_selected {
     color: black;
-    background: var(--color-status-finish);
+    background-color: var(--color-status-finish);
 }
 
 .permissions_section > .permission_selected::after {
