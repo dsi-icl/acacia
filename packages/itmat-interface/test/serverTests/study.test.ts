@@ -767,7 +767,7 @@ describe('STUDY API', () => {
                         deleted: null
                     }
                 ]
-                await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
                 await db.collections!.data_collection.insertMany(mockData);
                 await db.collections!.field_dictionary_collection.insertMany(mockFields);
                 await db.collections!.files_collection.insertMany(mockFiles);
@@ -1889,7 +1889,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (admin)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await admin.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -1924,7 +1924,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user without privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await user.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -1944,7 +1944,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user with project privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await authorisedUser.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -1964,7 +1964,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user with study read-only privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await authorisedUserStudy.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -1984,7 +1984,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user with study "manage project" privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await authorisedUserStudyManageProject.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -2004,7 +2004,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user with study "manage project" privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await authorisedUserStudyManageProject.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -2056,7 +2056,7 @@ describe('STUDY API', () => {
             await connectAgent(dataCurator, userDataCurator.username, 'admin')
 
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             /* test */
             const res = await dataCurator.post('/graphql').send({
@@ -2067,28 +2067,7 @@ describe('STUDY API', () => {
                 }
             });
             expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
-            expect(study).toBeDefined();
-            expect(res.body.data.setDataversionAsCurrent).toEqual({
-                id: createdStudy.id,
-                currentDataVersion: 2,
-                dataVersions: [
-                    { ...mockDataVersion, tag: null },
-                    { ...newMockDataVersion },
-                    { ...mockDataVersion, tag: null, id: study.dataVersions[2].id }
-                ]
-            });
-            // content id should be the same be id is different
-            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].id).not.toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].id);
-            expect(study.dataVersions[2].id).not.toBe(study.dataVersions[0].id);
-            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].contentId).toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].contentId);
-            expect(study.dataVersions[2].contentId).toBe(study.dataVersions[0].contentId);
-
-            /* cleanup: reverse setting dataversion */
-            await mongoClient.collection(config.database.collections.studies_collection)
-                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
-
+            expect(res.body.errors).toHaveLength(1);
             /* cleanup: delete user and role */
             await db.collections!.users_collection.deleteOne({ id: userDataCurator.id });
             await db.collections!.roles_collection.deleteOne({ id: roleDataCurator.id });
