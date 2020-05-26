@@ -61,7 +61,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     config.database.mongo_url = connectionString;
     config.database.database = database;
     await db.connect(config.database);
-    const router = new Router();
+    const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString, {
@@ -294,7 +294,7 @@ describe('STUDY API', () => {
             /* test */
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_STUDY),
-                variables: { studyId: newStudy.id } 
+                variables: { studyId: newStudy.id }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
@@ -447,16 +447,16 @@ describe('STUDY API', () => {
             /* setup: creating a privileged user */
             const username = uuid();
             const authorisedUserProfile = {
-                username, 
-                type: 'STANDARD', 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                createdBy: 'admin', 
-                email: `${username}@user.io`, 
+                username,
+                type: 'STANDARD',
+                realName: `${username}_realname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                createdBy: 'admin',
+                email: `${username}@user.io`,
                 description: 'I am a new user.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: `new_user_id_${username}`
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -497,7 +497,7 @@ describe('STUDY API', () => {
                 createdBy: authorisedUserProfile.id,
                 patientMapping: {},
                 name: projectName,
-                approvedFields: {}, 
+                approvedFields: {},
                 approvedFiles: [],
                 lastModified: createdProject.lastModified,
                 deleted: null
@@ -547,16 +547,16 @@ describe('STUDY API', () => {
             /* setup: creating a privileged user */
             const username = uuid();
             const authorisedUserProfile = {
-                username, 
-                type: 'STANDARD', 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                createdBy: 'admin', 
+                username,
+                type: 'STANDARD',
+                realName: `${username}_realname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                createdBy: 'admin',
                 email: `${username}@user.io`,
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
-                deleted: null, 
+                deleted: null,
                 id: `new_user_id_${username}`
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -598,7 +598,7 @@ describe('STUDY API', () => {
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_PROJECT),
                 variables: {
-                    projectId: 'I dont exist' 
+                    projectId: 'I dont exist'
                 }
             });
             expect(res.status).toBe(200);
@@ -1327,7 +1327,7 @@ describe('STUDY API', () => {
             expect(res.body.data.getProject).toBe(null);
         });
 
-        test('Get study (admin)' , async () => {
+        test('Get study (admin)', async () => {
             {
                 const res = await admin.post('/graphql').send({
                     query: print(GET_STUDY),
@@ -1511,7 +1511,7 @@ describe('STUDY API', () => {
             expect(patientMapping.mock_patient2).not.toBe('mock_patient2'); // should not be the same as before mapped
         });
 
-        test('Get study (user without privilege)' , async () => {
+        test('Get study (user without privilege)', async () => {
             const res = await user.post('/graphql').send({
                 query: print(GET_STUDY),
                 variables: { studyId: createdStudy.id }
@@ -1522,7 +1522,7 @@ describe('STUDY API', () => {
             expect(res.body.data.getStudy).toBe(null);
         });
 
-        test('Get study (user with privilege)' , async () => {
+        test('Get study (user with privilege)', async () => {
             {
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(GET_STUDY),
@@ -2027,7 +2027,7 @@ describe('STUDY API', () => {
             const userDataCurator: IUser = {
                 id: uuid(),
                 username: 'datacurator',
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 email: 'user@ic.ac.uk',
                 realName: 'DataCurator',
                 organisation: 'DSI',
@@ -2039,7 +2039,7 @@ describe('STUDY API', () => {
             };
             await db.collections!.users_collection.insertOne(userDataCurator);
 
-            /* setup: create a new role with data management */ 
+            /* setup: create a new role with data management */
             const roleDataCurator: IRole = {
                 id: uuid(),
                 studyId: createdStudy.id,
