@@ -43,7 +43,6 @@ if (global.hasMinio) {
         await setupDatabase(connectionString, database);
 
         /* Wiring up the backend server */
-        // @ts-expect-error
         config.objectStore.port = global.minioContainerPort;
         config.database.mongo_url = connectionString;
         config.database.database = database;
