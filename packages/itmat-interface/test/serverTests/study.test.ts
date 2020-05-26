@@ -2045,7 +2045,7 @@ describe('STUDY API', () => {
                 studyId: createdStudy.id,
                 name: 'Data Manager',
                 permissions: [permissions.specific_study.specific_study_data_management],
-                users: [userDataCurator.id],
+                users: [userDataCurator],
                 createdBy: adminId,
                 deleted: null
             };
