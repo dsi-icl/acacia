@@ -28,6 +28,7 @@
         "port": 8080,
         "accessKey": "minioadmin",
         "secretKey": "minioadmin",
+        "bucketRegion": "region",
         "useSSL": false
     },
     "nodemailer": {
