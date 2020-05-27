@@ -6,6 +6,7 @@ export interface IObjectStoreConfig {
     port: number;
     accessKey: string;
     secretKey: string;
+    bucketRegion: string;
     useSSL: boolean;
 }
 
@@ -46,7 +47,7 @@ export class ObjectStore {
         const bucketExists = await this.client!.bucketExists(lowercasestudyid);
 
         if (!bucketExists) {
-            await this.client!.makeBucket(lowercasestudyid, 'us-east-1');
+            await this.client!.makeBucket(lowercasestudyid, this.config?.bucketRegion ?? '');
         }
 
         /* check if object already exists because if it does, minio supplant the old file without warning*/
