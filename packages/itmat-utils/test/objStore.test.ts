@@ -30,6 +30,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
             port: global.minioContainerPort,
             accessKey: ACCESS_KEY,
             secretKey: SECRET_KEY,
+            bucketRegion: 'test-bucket',
             useSSL: false
         });
         expect(connectresult).toEqual([]);

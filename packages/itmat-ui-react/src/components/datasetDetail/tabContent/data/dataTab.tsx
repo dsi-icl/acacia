@@ -16,7 +16,7 @@ import { UploadNewFields } from './uploadNewFields';
 
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return <div className={css.scaffold_wrapper + ' fade_in'}>
+    return <div className={`${css.scaffold_wrapper} fade_in`}>
         <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
                 if (loading) { return <LoadingBalls />; }
@@ -26,7 +26,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                 }
                 return <div>
                     <p>There is no data uploaded for this study yet.</p>
-                    <UploadNewData studyId={studyId} cancelButton={() => {}} />
+                    <UploadNewData studyId={studyId} cancelButton={() => { }} />
                 </div>;
             }}
         </Query>
@@ -95,7 +95,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title="Fields & Variables">
                 <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id} />
-                <br/><br/>
+                <br /><br />
                 <FieldListSelectionSection
                     studyId={data.id}
                     selectedVersion={selectedVersion}
