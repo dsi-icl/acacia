@@ -7,6 +7,7 @@ import { Subsection } from '../reusable';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
+import QRCode from 'qrcode';
 
 export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
     return (
@@ -61,6 +62,12 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
 
     if (userIsDeleted) { return <p> User {user.username} is deleted. </p>; }
 
+    // get QR Code for the otpSecret
+    let qrcode_url = "";
+    QRCode.toDataURL(inputs.otpSecret, function(err, data_url) {
+        qrcode_url = data_url;
+    });
+
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
@@ -77,6 +84,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }) }} /> </label><br /><br />
                     <label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }) }} /></label> <br /><br />
                     <label>OTP Secret (readonly): <input type='text' readOnly value={inputs.otpSecret} /> </label><br /><br />
+                    <label>OTP Secret QR Code: </label> <img src={qrcode_url} width="150" height="150" /> <br /><br />
                     <label>Email: <input type='text' value={inputs.email} onChange={e => { setInputs({ ...inputs, email: e.target.value }) }} /></label><br /><br />
                     <label>Email Notification:  <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({ ...inputs, emailNotificationsActivated: e.target.checked }) }} /></label><br /><br />
                     <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }) }} /></label> <br /><br />
