@@ -4,6 +4,7 @@ import { CreateNewUser } from './createNewUser';
 import { UserDetailsSection } from './userDetails';
 import { UserListSection } from './userList';
 import css from './userList.module.css';
+import { ManageBatchUsers } from './manageBatchUsers';
 
 export const UserPage: React.FunctionComponent = (props) => {
     return (
@@ -23,6 +24,14 @@ export const UserPage: React.FunctionComponent = (props) => {
                             <div className="page_ariane">CREATE NEW USER</div>
                             <div className={css.create_new_user + ' page_content'}>
                                 <CreateNewUser />
+                            </div>
+                        </>
+                    } />
+                    <Route path="/users/manageBatchUsers" render={() =>
+                        <>
+                            <div className="page_ariane">CREATE NEW USER</div>
+                            <div className={css.create_new_user + ' page_content'}>
+                                <ManageBatchUsers />
                             </div>
                         </>
                     } />

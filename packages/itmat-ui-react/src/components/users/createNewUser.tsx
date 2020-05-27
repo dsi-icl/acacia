@@ -36,7 +36,6 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
             inputs['createdAt'] = new Date().valueOf();
             inputs['expiredAt'] = new Date().valueOf();
             inputs['locked'] = false;
-            
             const allFields = Object.keys(inputs);
             for (const each of allFields) {
                 if (inputs[each] === undefined || inputs[each] === '') {
