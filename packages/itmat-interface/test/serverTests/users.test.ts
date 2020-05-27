@@ -21,7 +21,7 @@ let mongoClient;
 
 afterAll(async () => {
     await db.closeConnection();
-    await mongoConnection.close();
+    await mongoConnection?.close();
     await mongodb.stop();
 });
 
@@ -36,7 +36,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     config.database.mongo_url = connectionString;
     config.database.database = database;
     await db.connect(config.database);
-    const router = new Router();
+    const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString, {
@@ -82,18 +82,18 @@ describe('USERS API', () => {
             expect(res.body.data.whoAmI).toBe(null);
         });
 
-        test('Who am I (admin)',  async () => {
+        test('Who am I (admin)', async () => {
             const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
             expect(res.status).toBe(200);
             expect(res.body.data.whoAmI.id).toBeDefined();
             adminId = res.body.data.whoAmI.id;
             expect(res.body.data.whoAmI).toEqual({
-                username: 'admin', 
-                type: Models.UserModels.userTypes.ADMIN, 
-                realName: 'admin', 
-                createdBy: 'chon', 
+                username: 'admin',
+                type: Models.UserModels.userTypes.ADMIN,
+                realName: 'admin',
+                createdBy: 'chon',
                 organisation: 'DSI',
-                email: 'admin@user.io', 
+                email: 'admin@user.io',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -104,19 +104,19 @@ describe('USERS API', () => {
             });
         });
 
-        test('Who am I (user)', async () => { 
+        test('Who am I (user)', async () => {
             const res = await user.post('/graphql').send({ query: print(WHO_AM_I) });
             expect(res.status).toBe(200);
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.whoAmI.id).toBeDefined();
             userId = res.body.data.whoAmI.id;
             expect(res.body.data.whoAmI).toEqual({
-                username: 'standardUser', 
-                type: Models.UserModels.userTypes.STANDARD, 
-                realName: 'Chan Tai Man', 
-                createdBy: 'admin', 
+                username: 'standardUser',
+                type: Models.UserModels.userTypes.STANDARD,
+                realName: 'Chan Tai Man',
+                createdBy: 'admin',
                 organisation: 'DSI',
-                email: 'standard@user.io', 
+                email: 'standard@user.io',
                 description: 'I am a standard user.',
                 id: userId,
                 access: {
@@ -144,22 +144,22 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.data.getUsers).toEqual([
                 {
-                    username: 'admin', 
-                    type: Models.UserModels.userTypes.ADMIN, 
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    username: 'admin',
+                    type: Models.UserModels.userTypes.ADMIN,
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
-                    email: 'admin@user.io', 
+                    email: 'admin@user.io',
                     description: 'I am an admin user.',
                     id: adminId
                 },
                 {
-                    username: 'standardUser', 
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    username: 'standardUser',
+                    type: Models.UserModels.userTypes.STANDARD,
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId
                 }
@@ -171,12 +171,12 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.data.getUsers).toEqual([
                 {
-                    username: 'admin', 
-                    type: Models.UserModels.userTypes.ADMIN, 
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    username: 'admin',
+                    type: Models.UserModels.userTypes.ADMIN,
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
-                    email: 'admin@user.io', 
+                    email: 'admin@user.io',
                     description: 'I am an admin user.',
                     id: adminId,
                     access: {
@@ -186,12 +186,12 @@ describe('USERS API', () => {
                     }
                 },
                 {
-                    username: 'standardUser', 
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    username: 'standardUser',
+                    type: Models.UserModels.userTypes.STANDARD,
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -204,19 +204,19 @@ describe('USERS API', () => {
         });
 
         test('Get all users list with detail (no access info) (user) (should fail)', async () => {
-            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }});
+            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: false } });
             expect(res.status).toBe(200); //graphql returns 200 for application layer errors
             expect(res.body.errors).toHaveLength(3);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
             expect(res.body.data.getUsers).toEqual([   // user still has permission to his own data
                 null,
                 {
-                    username: 'standardUser', 
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    username: 'standardUser',
+                    type: Models.UserModels.userTypes.STANDARD,
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId
                 }
@@ -224,7 +224,7 @@ describe('USERS API', () => {
         });
 
         test('Get all users list with detail (w/ access info) (user) (should fail)', async () => {
-            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: true }});
+            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
             expect(res.status).toBe(200); //graphql returns 200 for application layer errors
             expect(res.body.errors).toHaveLength(4);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
@@ -234,12 +234,12 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([   // user still has permission to his own data
                 null,
                 {
-                    username: 'standardUser', 
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    username: 'standardUser',
+                    type: Models.UserModels.userTypes.STANDARD,
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -257,16 +257,16 @@ describe('USERS API', () => {
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    type: Models.UserModels.userTypes.ADMIN, 
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    type: Models.UserModels.userTypes.ADMIN,
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
                     id: adminId
                 },
                 {
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    type: Models.UserModels.userTypes.STANDARD,
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
                     id: userId
                 }
@@ -279,16 +279,16 @@ describe('USERS API', () => {
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    type: Models.UserModels.userTypes.ADMIN, 
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    type: Models.UserModels.userTypes.ADMIN,
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
                     id: adminId
                 },
                 {
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    type: Models.UserModels.userTypes.STANDARD,
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
                     id: userId
                 }
@@ -301,12 +301,12 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers instanceof Array).toBe(true);
             expect(res.body.data.getUsers).toEqual([
                 {
-                    username: 'standardUser', 
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    username: 'standardUser',
+                    type: Models.UserModels.userTypes.STANDARD,
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -337,9 +337,9 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    type: Models.UserModels.userTypes.ADMIN, 
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    type: Models.UserModels.userTypes.ADMIN,
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
                     id: adminId
                 }
@@ -352,12 +352,12 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    username: 'standardUser', 
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    username: 'standardUser',
+                    type: Models.UserModels.userTypes.STANDARD,
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -375,8 +375,8 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    createdBy: 'admin', 
+                    type: Models.UserModels.userTypes.STANDARD,
+                    createdBy: 'admin',
                     organisation: 'DSI',
                     realName: 'Chan Tai Man',
                     id: userId,
@@ -428,12 +428,12 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.createUser).toEqual(
                 {
-                    username: 'testuser1', 
-                    type: Models.UserModels.userTypes.STANDARD, 
-                    realName: 'User Testing', 
-                    createdBy: 'admin', 
+                    username: 'testuser1',
+                    type: Models.UserModels.userTypes.STANDARD,
+                    realName: 'User Testing',
+                    createdBy: 'admin',
                     organisation: 'DSI-ICL',
-                    email: 'fake@email.io', 
+                    email: 'fake@email.io',
                     description: 'I am fake!',
                     id: createdUserId,
                     access: {
@@ -509,16 +509,16 @@ describe('USERS API', () => {
         test('create user that already exists (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user', 
-                type: 'STANDARD', 
-                realName: 'Chan Siu Man', 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                createdBy: 'admin', 
-                email: 'new@user.io', 
+                username: 'new_user',
+                type: 'STANDARD',
+                realName: 'Chan Siu Man',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                createdBy: 'admin',
+                email: 'new@user.io',
                 description: 'I am a new user.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'replaced_at_runtime1',
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
@@ -546,16 +546,16 @@ describe('USERS API', () => {
         test('create user that already exists (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user_2', 
-                type: 'STANDARD', 
-                realName: 'Chan Ming', 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                createdBy: 'admin', 
-                email: 'new2@user.io', 
+                username: 'new_user_2',
+                type: 'STANDARD',
+                realName: 'Chan Ming',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                createdBy: 'admin',
+                email: 'new2@user.io',
                 description: 'I am a new user 2.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'fakeid1',
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
@@ -584,16 +584,16 @@ describe('USERS API', () => {
         test('edit user (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user_3', 
-                type: 'STANDARD', 
-                realName: 'Chan Ming Man', 
-                password: 'fakepassword', 
-                createdBy: 'admin', 
-                email: 'new3@user.io', 
+                username: 'new_user_3',
+                type: 'STANDARD',
+                realName: 'Chan Ming Man',
+                password: 'fakepassword',
+                createdBy: 'admin',
+                email: 'new3@user.io',
                 description: 'I am a new user 3.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'fakeid2',
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
@@ -623,12 +623,12 @@ describe('USERS API', () => {
             expect(res.body.data.editUser).toEqual(
                 {
 
-                    username: 'fakeusername', 
-                    type: Models.UserModels.userTypes.ADMIN, 
-                    realName: 'Man', 
-                    createdBy: 'admin', 
+                    username: 'fakeusername',
+                    type: Models.UserModels.userTypes.ADMIN,
+                    realName: 'Man',
+                    createdBy: 'admin',
                     organisation: 'DSI-ICL',
-                    email: 'hey@uk.io', 
+                    email: 'hey@uk.io',
                     description: 'DSI director',
                     id: 'fakeid2',
                     access: {
@@ -643,16 +643,16 @@ describe('USERS API', () => {
         test('edit own password (user)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user_4', 
-                type: 'STANDARD', 
-                realName: 'Ming Man', 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                createdBy: 'admin', 
-                email: 'new4@user.io', 
+                username: 'new_user_4',
+                type: 'STANDARD',
+                realName: 'Ming Man',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                createdBy: 'admin',
+                email: 'new4@user.io',
                 description: 'I am a new user 4.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'fakeid4',
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
@@ -692,15 +692,15 @@ describe('USERS API', () => {
         test('edit own non-password fields (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user_5',
+                username: 'new_user_5',
                 type: 'STANDARD',
                 realName: 'Ming Man Chon',
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 createdBy: 'admin',
                 email: 'new5@user.io',
                 description: 'I am a new user 5.',
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid5'
             };
@@ -730,7 +730,7 @@ describe('USERS API', () => {
         test('edit own email with malformed email (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user_6',
+                username: 'new_user_6',
                 type: 'STANDARD',
                 realName: 'Ming Man',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -738,7 +738,7 @@ describe('USERS API', () => {
                 email: 'new6@user.io',
                 description: 'I am a new user 6.',
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid6'
             };
@@ -765,7 +765,7 @@ describe('USERS API', () => {
         test('edit other user (user)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser = {
-                username : 'new_user_7',
+                username: 'new_user_7',
                 type: 'STANDARD',
                 realName: 'Ming Man Tai',
                 password: 'fakepassword',
@@ -773,7 +773,7 @@ describe('USERS API', () => {
                 email: 'new7@user.io',
                 description: 'I am a new user 7.',
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid7'
             };
@@ -798,7 +798,7 @@ describe('USERS API', () => {
         test('delete user (admin)', async () => {
             /* setup: create a new user to be deleted */
             const newUser = {
-                username : 'new_user_8',
+                username: 'new_user_8',
                 type: 'STANDARD',
                 realName: 'Chan Mei',
                 password: 'fakepassword',
@@ -806,7 +806,7 @@ describe('USERS API', () => {
                 email: 'new8@user.io',
                 description: 'I am a new user 8.',
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid8'
             };
@@ -853,16 +853,16 @@ describe('USERS API', () => {
         test('delete user that has been deleted (admin)', async () => {
             /* setup: create a "deleted" new user to be deleted */
             const newUser = {
-                username : 'new_user_9', 
-                type: 'STANDARD', 
-                realName: 'Chan Mei Fong', 
-                password: 'fakepassword', 
-                createdBy: 'admin', 
-                email: 'new9@user.io', 
+                username: 'new_user_9',
+                type: 'STANDARD',
+                realName: 'Chan Mei Fong',
+                password: 'fakepassword',
+                createdBy: 'admin',
+                email: 'new9@user.io',
                 description: 'I am a new user 9.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: (new Date()).valueOf(), 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: (new Date()).valueOf(),
                 id: 'fakeid9',
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
@@ -889,7 +889,7 @@ describe('USERS API', () => {
                 {
                     query: print(DELETE_USER),
                     variables: {
-                        userId: 'I never existed' 
+                        userId: 'I never existed'
                     }
                 }
             );
@@ -904,16 +904,16 @@ describe('USERS API', () => {
         test('delete user (user)', async () => {
             /* setup: create a new user to be deleted */
             const newUser = {
-                username : 'new_user_10', 
-                type: 'STANDARD', 
-                realName: 'Chan Mei Yi', 
-                password: 'fakepassword', 
-                createdBy: 'admin', 
-                email: 'new10@user.io', 
+                username: 'new_user_10',
+                type: 'STANDARD',
+                realName: 'Chan Mei Yi',
+                password: 'fakepassword',
+                createdBy: 'admin',
+                email: 'new10@user.io',
                 description: 'I am a new user 10.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'fakeid10',
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
@@ -926,8 +926,8 @@ describe('USERS API', () => {
 
             expect(getUserRes.body.data.getUsers).toEqual([{
                 realName: 'Chan Mei Yi',
-                type: Models.UserModels.userTypes.STANDARD, 
-                createdBy: 'admin', 
+                type: Models.UserModels.userTypes.STANDARD,
+                createdBy: 'admin',
                 organisation: 'DSI',
                 id: newUser.id,
             }]);
@@ -953,8 +953,8 @@ describe('USERS API', () => {
 
             expect(getUserResAfter.body.data.getUsers).toEqual([{
                 realName: 'Chan Mei Yi',
-                type: Models.UserModels.userTypes.STANDARD, 
-                createdBy: 'admin', 
+                type: Models.UserModels.userTypes.STANDARD,
+                createdBy: 'admin',
                 organisation: 'DSI',
                 id: newUser.id,
             }]);

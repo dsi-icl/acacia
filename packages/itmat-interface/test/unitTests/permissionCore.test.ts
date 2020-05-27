@@ -13,7 +13,7 @@ let mongoClient;
 
 afterAll(async () => {
     await db.closeConnection();
-    await mongoConnection.close();
+    await mongoConnection?.close();
     await mongodb.stop();
 });
 
@@ -46,68 +46,68 @@ describe('PERMISSION CORE CLASS', () => {
             /* setup: create new users to be tested on */
             newUsers = [
                 {
-                    username : 'new_user_1', 
-                    type: 'STANDARD', 
-                    realName: 'real_name_1', 
-                    password: 'fake_password', 
-                    createdBy: 'admin', 
-                    email: 'new1@user.io', 
+                    username: 'new_user_1',
+                    type: 'STANDARD',
+                    realName: 'real_name_1',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new1@user.io',
                     description: 'I am a new user.',
-                    emailNotificationsActivated: true, 
-                    organisation:  'DSI',
-                    deleted: null, 
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
                     id: 'new_user_id_1'
                 },
                 {
-                    username : 'new_user_2', 
-                    type: 'STANDARD', 
-                    realName: 'real_name_2', 
-                    password: 'fake_password', 
-                    createdBy: 'admin', 
-                    email: 'new2@user.io', 
+                    username: 'new_user_2',
+                    type: 'STANDARD',
+                    realName: 'real_name_2',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new2@user.io',
                     description: 'I am a new user.',
-                    emailNotificationsActivated: true, 
-                    organisation:  'DSI',
-                    deleted: null, 
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
                     id: 'new_user_id_2'
                 },
                 {
-                    username : 'new_user_3', 
-                    type: 'STANDARD', 
-                    realName: 'real_name_3', 
-                    password: 'fake_password', 
-                    createdBy: 'admin', 
-                    email: 'new3@user.io', 
+                    username: 'new_user_3',
+                    type: 'STANDARD',
+                    realName: 'real_name_3',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new3@user.io',
                     description: 'I am a new user.',
-                    emailNotificationsActivated: true, 
-                    organisation:  'DSI',
-                    deleted: null, 
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
                     id: 'new_user_id_3'
                 },
                 {
-                    username : 'new_user_4', 
-                    type: 'STANDARD', 
-                    realName: 'real_name_4', 
-                    password: 'fake_password', 
-                    createdBy: 'admin', 
-                    email: 'new4@user.io', 
+                    username: 'new_user_4',
+                    type: 'STANDARD',
+                    realName: 'real_name_4',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new4@user.io',
                     description: 'I am a new user.',
-                    emailNotificationsActivated: true, 
-                    organisation:  'DSI',
-                    deleted: null, 
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
                     id: 'new_user_id_4'
                 },
                 {
-                    username : 'new_user_5', 
-                    type: 'STANDARD', 
-                    realName: 'real_name_5', 
-                    password: 'fake_password', 
-                    createdBy: 'admin', 
-                    email: 'new5@user.io', 
+                    username: 'new_user_5',
+                    type: 'STANDARD',
+                    realName: 'real_name_5',
+                    password: 'fake_password',
+                    createdBy: 'admin',
+                    email: 'new5@user.io',
                     description: 'I am a new user.',
-                    emailNotificationsActivated: true, 
-                    organisation:  'DSI',
-                    deleted: null, 
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
                     id: 'new_user_id_5'
                 }
             ];
@@ -153,7 +153,7 @@ describe('PERMISSION CORE CLASS', () => {
                         permissions.specific_project.specific_project_readonly_access
                     ],
                     users: [user.id, newUsers[0].id],
-                    deleted: null 
+                    deleted: null
                 },
                 {
                     id: 'role002',
@@ -164,7 +164,7 @@ describe('PERMISSION CORE CLASS', () => {
                         permissions.specific_project.specific_project_readonly_access
                     ],
                     users: [newUsers[1].id, newUsers[0].id],
-                    deleted: null 
+                    deleted: null
                 },
                 {
                     id: 'role003',
@@ -175,7 +175,7 @@ describe('PERMISSION CORE CLASS', () => {
                         permissions.specific_study.specific_study_data_management,
                     ],
                     users: [newUsers[2].id],
-                    deleted: null 
+                    deleted: null
                 },
                 {
                     id: 'role004',
@@ -189,7 +189,7 @@ describe('PERMISSION CORE CLASS', () => {
                         permissions.specific_study.specific_study_projects_management
                     ],
                     users: [newUsers[3].id],
-                    deleted: null 
+                    deleted: null
                 },
                 {
                     id: 'role005',
@@ -201,7 +201,7 @@ describe('PERMISSION CORE CLASS', () => {
                         permissions.specific_project.specific_project_readonly_access
                     ],
                     users: [user.id, newUsers[2].id],
-                    deleted: null 
+                    deleted: null
                 }
             ]);
         });
@@ -257,58 +257,58 @@ describe('PERMISSION CORE CLASS', () => {
             ]);
         }
 
-        test('User belonging to two studies', async () => { 
+        test('User belonging to two studies', async () => {
             const result = await testUser(user);
             expect(result).toEqual([
-                [ false, false, false, false, true, false ],
-                [ false, false, false, false, false, false ],
-                [ false, false, false, false, false, false ],
-                [ false, false, false, false, true, true ],
-                [ false, false, false, false, false, false ]
+                [false, false, false, false, true, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, true, true],
+                [false, false, false, false, false, false]
             ]);
         });
 
-        test('User belonging to two projects', async () => { 
+        test('User belonging to two projects', async () => {
             const result = await testUser(newUsers[0]);
             expect(result).toEqual([
-                [ false, false, false, false, true, false ],
-                [ false, false, false, false, true, false ],
-                [ false, false, false, false, false, false ],
-                [ false, false, false, false, false, false ],
-                [ false, false, false, false, false, false ]
+                [false, false, false, false, true, false],
+                [false, false, false, false, true, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false]
             ]);
         });
 
-        test('User belonging to one project', async () => { 
+        test('User belonging to one project', async () => {
             const result = await testUser(newUsers[1]);
             expect(result).toEqual([
-                [ false, false, false, false, false, false ],
-                [ false, false, false, false, true, false ],
-                [ false, false, false, false, false, false ],
-                [ false, false, false, false, false, false ],
-                [ false, false, false, false, false, false ]
+                [false, false, false, false, false, false],
+                [false, false, false, false, true, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false]
             ]);
         });
 
-        test('User belonging to one project and one study', async () => { 
+        test('User belonging to one project and one study', async () => {
             const result = await testUser(newUsers[2]);
             expect(result).toEqual([
-                [ false, true, false, true, true, false ],
-                [ false, true, false, true, true, false ],
-                [ false, true, false, true, true, false ],
-                [ false, false, false, false, true, true ],
-                [ false, false, false, false, false, false ]
+                [false, true, false, true, true, false],
+                [false, true, false, true, true, false],
+                [false, true, false, true, true, false],
+                [false, false, false, false, true, true],
+                [false, false, false, false, false, false]
             ]);
         });
 
-        test('User belonging to one study (PI)', async () => { 
+        test('User belonging to one study (PI)', async () => {
             const result = await testUser(newUsers[3]);
             expect(result).toEqual([
-                [ true, true, true, true, true, true ],
-                [ true, true, true, true, true, true ],
-                [ true, true, true, true, true, true ],
-                [ false, false, false, false, false, false ],
-                [ false, false, false, false, false, false ]
+                [true, true, true, true, true, true],
+                [true, true, true, true, true, true],
+                [true, true, true, true, true, true],
+                [false, false, false, false, false, false],
+                [false, false, false, false, false, false]
             ]);
         });
     });
