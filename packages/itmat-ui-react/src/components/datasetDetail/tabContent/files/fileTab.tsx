@@ -8,7 +8,7 @@ import css from './tabContent.module.css';
 import { UploadFileSection } from './uploadFile';
 
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return <div className={css.scaffold_wrapper}>
+    return <div className={css.scaffold_wrapper + ' fade_in'}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title="Existing files">
                 <Query<any, any> query={GET_STUDY} variables={{ studyId }}>

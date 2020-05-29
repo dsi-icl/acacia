@@ -2,14 +2,12 @@ import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
-import { objStore } from '../../src/objStore/objStore';
 import { Router } from '../../src/server/router';
-import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE, CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
+const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
@@ -225,7 +223,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toBeUndefined();

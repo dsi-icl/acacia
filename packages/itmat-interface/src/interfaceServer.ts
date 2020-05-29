@@ -43,7 +43,7 @@ class ITMATInterfaceServer extends Server {
                                 jobId: data.fullDocument.id,
                                 studyId: data.fullDocument.studyId,
                                 newStatus: data.fullDocument.status,
-                                errors: data.fullDocument.status === 'error' ? data.fullDocument.errors : null
+                                errors: data.fullDocument.status === 'error' ? data.fullDocument.error : null
                             } });
                         }
                     });

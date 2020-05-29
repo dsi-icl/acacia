@@ -154,7 +154,7 @@ export class StudyCore {
     private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string } {
         let rangeArray: Array<string | number> = [...Array.from(listOfPatientId.keys())];
         if (prefix === undefined) {
-            prefix = uuid().substring(0, 2);
+            prefix = uuid().substring(0, 10);
         }
         rangeArray = rangeArray.map((e) => `${prefix}${e}`);
         rangeArray = this.shuffle(rangeArray);

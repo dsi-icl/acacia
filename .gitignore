@@ -92,3 +92,5 @@ kubernetes/*.yaml
 
 itmat-client-old/
 .idea/
+
+target
