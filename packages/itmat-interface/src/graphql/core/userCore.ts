@@ -50,6 +50,7 @@ export class UserCore {
             rootDir: baseUserDir.id,
             email,
             emailNotificationsActivated,
+            resetPasswordRequests: [],
             deleted: null
         };
 
