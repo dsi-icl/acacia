@@ -2,7 +2,6 @@ import bcrypt from 'bcrypt';
 import { Models } from 'itmat-commons';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
-
 import { ApolloError } from 'apollo-server-core';
 import { IUser, IUserWithoutToken, userTypes } from 'itmat-commons/dist/models/user';
 import { v4 as uuid } from 'uuid';
@@ -20,8 +19,27 @@ export class UserCore {
     public async createUser(requester: string, user: { password: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
         const { password, organisation, username, type, description, realName, email, emailNotificationsActivated } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
-        const entry: Models.UserModels.IUser = {
+
+        const userId = uuid();
+
+        const baseUserDir: Models.File.IFileForUserPersonalDir = {
             id: uuid(),
+            fileName: 'home',
+            fileType: Models.File.fileType.USER_PERSONAL_DIR,
+            uploadedBy: userId,
+            deleted: null,
+            extraData: {
+                userId,
+                childFileIds: []
+            }
+        }
+        const createDirResult = await db.collections!.files_collection.insertOne(baseUserDir);
+        if (createDirResult.result.ok !== 1) {
+            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
+        }
+
+        const entry: Models.UserModels.IUser = {
+            id: userId,
             username,
             type,
             description,
@@ -29,6 +47,7 @@ export class UserCore {
             realName,
             password: hashedPassword,
             createdBy: requester,
+            rootDir: baseUserDir.id,
             email,
             emailNotificationsActivated,
             deleted: null
@@ -53,10 +72,6 @@ export class UserCore {
         }
         return;
     }
-
-
-
-
 }
 
 export const userCore = Object.freeze(new UserCore());

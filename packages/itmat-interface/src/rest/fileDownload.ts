@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { IFile } from 'itmat-commons/dist/models/file';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
 import { Models, task_required_permissions } from 'itmat-commons';
+type IFile = Models.File.IFile;
+const { fileType } = Models.File;
 
 export const fileDownloadController = async (req: Request, res: Response) => {
     const requester: Models.UserModels.IUser = req.user as any;
@@ -16,7 +17,15 @@ export const fileDownloadController = async (req: Request, res: Response) => {
 
     try {
         /* download file */
-        const file: IFile = await db.collections!.files_collection.findOne({ id: requestedFile, deleted: null })!;
+        const file: IFile = await db.collections!.files_collection.findOne({
+            id: requestedFile,
+            deleted: null,
+            fileType: { $nin: [  // cannot download a directory!
+                fileType.USER_PERSONAL_DIR,
+                fileType.STUDY_REPO_DIR,
+                fileType.PATIENT_DATA_BLOB_DIR
+            ] }
+        })!;
         if (!file) {
             res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
             return;

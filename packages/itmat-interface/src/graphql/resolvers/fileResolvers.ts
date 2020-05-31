@@ -1,5 +1,6 @@
 import { ApolloError } from 'apollo-server-express';
 import { Models, permissions, task_required_permissions } from 'itmat-commons';
+const { fileType } = Models.File;
 import { IFile } from 'itmat-commons/dist/models/file';
 import { Logger } from 'itmat-utils';
 import { v4 as uuid } from 'uuid';
@@ -14,15 +15,37 @@ export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async (parent: object, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
+        uploadFile: async (
+            parent: object,
+            args: {
+                fileLength?: number,
+                studyId: string,
+                file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>,
+                description: string,
+                fileType?: Models.File.fileType,
+                isZipped?: boolean
+            },
+            context: any,
+            info: any
+        ): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
+            /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 task_required_permissions.manage_study_data,
                 requester,
                 args.studyId
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+
+            /* only dir can be zipped */
+            if (args.isZipped && args.fileType !== undefined &&
+                args.fileType !== fileType.STUDY_REPO_DIR &&
+                args.fileType !== fileType.PATIENT_DATA_BLOB_DIR &&
+                args.fileType !== fileType.USER_PERSONAL_DIR
+            ) {
+                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            }
 
             const file = await args.file;
 
@@ -41,11 +64,14 @@ export const fileResolvers = {
                         id: uuid(),
                         fileName: file.filename,
                         studyId: args.studyId,
+                        fileType: args.fileType ?? fileType.STUDY_REPO_FILE,
                         fileSize: args.fileLength === undefined ? 0 : args.fileLength,
+                        isZipped: args.isZipped === true,
                         description: args.description,
                         uploadedBy: requester.id,
                         uri: fileUri,
-                        deleted: null
+                        deleted: null,
+                        extraData: undefined
                     };
 
                     const insertResult = await db.collections!.files_collection.insertOne(fileEntry);

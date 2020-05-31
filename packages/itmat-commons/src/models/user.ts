@@ -13,6 +13,7 @@ export interface IUserWithoutToken {
     description: string;
     emailNotificationsActivated: boolean;
     deleted: number | null;
+    rootDir: string; // file id
     createdBy: string;
 }
 

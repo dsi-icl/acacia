@@ -78,11 +78,19 @@ type StudyOrProjectUserRole {
 type File {
     id: String!
     fileName: String!
-    studyId: String!
+    studyId: String
     projectId: String
     fileSize: Int
-    description: String!
+    description: String
     uploadedBy: String!
+}
+
+type FileType {
+    STUDY_REPO_FILE
+    PATIENT_DATA_BLOB
+    USER_PERSONAL_FILE
+    USER_PERSONAL_DIR
+    STUDY_REPO_DIR
 }
 
 type DataVersion {
@@ -272,7 +280,7 @@ type Mutation {
     removeRole(roleId: String!): GenericResponse
 
     # FILES
-    uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: Int): File
+    uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: Int, fileType: FileType, isZipped: Boolean): File
     deleteFile(fileId: String!): GenericResponse
 
     # QUERY

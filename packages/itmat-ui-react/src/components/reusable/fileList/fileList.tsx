@@ -32,7 +32,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
 const OneFile: React.FunctionComponent<{ file: IFile }> = ({ file }) => {
     return <tr>
         <td>{file.fileName}</td>
-        <td>{file.description}</td>
+        <td>{file.description ?? '-'}</td>
         <td>{(file.fileSize && formatBytes(file.fileSize, 1)) || 'Unknown'}</td>
         <td><a download={file.fileName} href={`http://localhost:3003/file/${file.id}`}
         ><button>Download</button></a></td>
