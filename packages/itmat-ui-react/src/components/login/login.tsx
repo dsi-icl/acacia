@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { NavLink } from 'react-router-dom';
 import css from './login.module.css';
 import './login.global.css';
 
@@ -8,14 +9,16 @@ export const LoginBox: React.FunctionComponent = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [passwordInput, setPasswordInput] = React.useState('');
     const [totpInput, setTotpInput] = React.useState('');
-    const [stateError] = React.useState('');
+    const [stateError, setStateError] = React.useState('');
 
     function handleUsernameChange(e: any) {
         setUsernameInput(e.target.value);
+        setStateError('');
     }
 
     function handlePasswordChange(e: any) {
         setPasswordInput(e.target.value);
+        setStateError('');
     }
 
     function handleTotpChange(e: any) {
@@ -53,9 +56,25 @@ export const LoginBox: React.FunctionComponent = () => {
                         <br />
                         {loading ? <button>logging in..</button> :
                             (
-                                <button id='loginButton' onClick={() => { login({ variables: { password: passwordInput, username: usernameInput, totp: totpInput } }); }}>Login</button>
+                                <button
+                                    id='loginButton'
+                                    onClick={() => {
+                                        if (usernameInput === '') {
+                                            setStateError('Missing username.');
+                                            return;
+                                        }
+                                        if (passwordInput === '') {
+                                            setStateError('Missing password.');
+                                            return;
+                                        }
+                                        login({ variables: { password: passwordInput, username: usernameInput, totp: totpInput } });
+                                    }}
+                                >Login</button>
                             )
                         }
+                        <br/>
+                        <NavLink to='/requestResetPassword'><p>Forgot username or password</p></NavLink>
+                        <br/>
                         <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}
                         </div>

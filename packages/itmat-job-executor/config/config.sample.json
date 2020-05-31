@@ -23,6 +23,7 @@
         "port": 9000,
         "accessKey": "minioadmin",
         "secretKey": "minioadmin",
+        "bucketRegion": "region",
         "useSSL": false
     },
     "pollingInterval": 10000

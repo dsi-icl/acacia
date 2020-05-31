@@ -251,6 +251,13 @@ type Mutation {
     # USER
     login(username: String!, password: String!, totp: String!): User
     logout: GenericResponse
+    requestUsernameOrResetPassword(
+        forgotUsername: Boolean!,
+        forgotPassword: Boolean!,
+        email: String, # only provide email if forgotUsername
+        username: String
+    ): GenericResponse
+    resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
 
     # APP USERS
     createUser(user: CreateUserInput!): User

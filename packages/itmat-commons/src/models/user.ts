@@ -15,6 +15,13 @@ export interface IUserWithoutToken {
     emailNotificationsActivated: boolean;
     deleted: number | null;
     createdBy: string;
+    resetPasswordRequests: IResetPasswordRequest[]
+}
+
+export interface IResetPasswordRequest {
+    id: string;
+    timeOfRequest: number;
+    used: boolean;
 }
 
 export interface IUser extends IUserWithoutToken {
