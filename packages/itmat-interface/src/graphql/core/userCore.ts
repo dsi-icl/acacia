@@ -31,6 +31,7 @@ export class UserCore {
             createdBy: requester,
             email,
             emailNotificationsActivated,
+            resetPasswordRequests: [],
             deleted: null
         };
 

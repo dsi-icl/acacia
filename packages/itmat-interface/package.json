@@ -30,6 +30,7 @@
         "itmat-utils": "1.1.8",
         "mongodb": "3.5.5",
         "multer": "2.0.0-beta.1",
+        "nodemailer": "6.4.6",
         "os2": "0.0.13",
         "passport": "0.4.1",
         "passport-local": "1.0.0",
@@ -48,6 +49,7 @@
         "@types/multer": "1.4.2",
         "@types/node": "13.11.0",
         "@types/node-fetch": "2.5.6",
+        "@types/nodemailer": "6.4.0",
         "@types/passport": "1.0.3",
         "@types/passport-local": "1.0.33",
         "@types/uuid": "7.0.2",
@@ -61,12 +63,12 @@
         "jest": "25.2.7",
         "node-fetch": "2.6.0",
         "mongodb-memory-server": "6.5.2",
+        "node-fetch": "2.6.0",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
         "ts-jest": "25.2.1",
         "ts-loader": "6.2.2",
-        "typescript": "3.8.3",
         "typescript-eslint-parser": "22.0.0",
         "webpack": "4.42.1",
         "webpack-cli": "3.3.11"
@@ -75,10 +77,10 @@
         "globals": {
             "ts-jest": {
                 "ts-jest": {
-	                "tsConfig": {
-	                    "strictNullChecks": false
-	                }
-	            }
+                    "tsConfig": {
+                        "strictNullChecks": false
+                    }
+                }
             }
         },
         "transform": {
