@@ -31,9 +31,10 @@ export class UserCore {
             createdBy: requester,
             email,
             emailNotificationsActivated,
-            createdAt: createdAt,
-            expiredAt: expiredAt,
-            locked: locked,
+            createdAt,
+            expiredAt,
+            locked,
+            resetPasswordRequests: [],
             deleted: null
         };
 
