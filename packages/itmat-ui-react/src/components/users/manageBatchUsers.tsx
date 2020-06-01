@@ -53,8 +53,6 @@ export const BatchFilter: React.FunctionComponent<{projects: Models.Study.IProje
     const [selectedUsers, setSelectedUsers] = React.useState(initialUsers); 
 
     const [submitConfirm, setSubmitConfirm] = React.useState(true);
-    const [locked, setLocked] = React.useState(false);
-
     function checkObjectExists(element: any, array: any) {
         var i;
         for (i = 0; i < array.length; i++){
@@ -84,10 +82,8 @@ export const BatchFilter: React.FunctionComponent<{projects: Models.Study.IProje
         {Object.keys(selectedProjects).filter(function(key){ return selectedProjects[key] === true}).map((el) => <QueryProject projectID={el} recordFunc={stateFunction}/>)}
         <div className={css.submit_cancel_button_wrapper}>
                 <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
-                <button onClick={() => {setSubmitConfirm(true);setLocked(true)}}>Lock All</button> 
-                <button onClick={() => {setSubmitConfirm(true);setLocked(false)}}>Unlock All</button> 
         </div>
-        {selectedUsers.map((el) => <SubmitUser user={el} confirm={submitConfirm} operation={locked} />)}
+        {selectedUsers.map((el) => <SubmitUser user={el} confirm={submitConfirm} />)}
         </form>
     );
 }
@@ -113,13 +109,12 @@ export const QueryUser: React.FunctionComponent<{user: Models.UserModels.IUser, 
 
 } 
 
-export const SubmitUser: React.FunctionComponent<{user: Models.UserModels.IUser, confirm: boolean, operation: any}> = ({user, confirm, operation}) => {
+export const SubmitUser: React.FunctionComponent<{user: Models.UserModels.IUser, confirm: boolean}> = ({user, confirm}) => {
     const [inputs, setInputs] = React.useState({ ...user, password: '' });
     const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
     
     function formatSubmitObj() {
         const editUserObj = { ...inputs };
-        editUserObj.locked = operation;
         return editUserObj;
     }
     if (confirm) {

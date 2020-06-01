@@ -100,7 +100,6 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <label>Created by (readonly): <input type='text' readOnly value={inputs.createdBy} /> </label><br /><br />
                     <label>Created at (readOnly): <input type='text' readOnly value={(new Date(inputs.createdAt)).toLocaleString()} /></label><br /><br />
                     <label>Expired at: <input type='datetime-local' value={(new Date(inputs.expiredAt)).toISOString().substring(0, 16) } onChange={e => { setInputs({ ...inputs, expiredAt: (new Date(e.target.value)).getTime() }) }} /></label><br /><br />
-                    <label>Locked:  <input type='checkbox' checked={inputs.locked} onChange={e => { setInputs({ ...inputs, locked: e.target.checked }) }} /></label><br /><br />
                     <div className={css.submit_cancel_button_wrapper}>
                         <NavLink to={'/users'}><button className='button_grey'>Cancel</button></NavLink>
                         {loading ? <button>Loading</button> : <button onClick={() => { submit({ variables: { ...formatSubmitObj() } }); }}>Save</button>}

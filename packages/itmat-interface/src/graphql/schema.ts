@@ -56,7 +56,6 @@ type User {
     createdBy: String
     createdAt: Float
     expiredAt: Float
-    locked: Boolean
     # external to mongo documents:
     access: UserAccess # admin or self only
 }
@@ -208,7 +207,6 @@ input CreateUserInput {
     password: String!
     createdAt: Float!
     expiredAt: Float!
-    locked: Boolean!
 }
 
 input EditUserInput {
@@ -222,7 +220,6 @@ input EditUserInput {
     emailNotificationsActivated: Boolean
     password: String,
     expiredAt: Float,
-    locked: Boolean
 }
 
 input IntArrayChangesInput {

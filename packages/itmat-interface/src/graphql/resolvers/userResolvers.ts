@@ -182,9 +182,6 @@ export const userResolvers = {
             if (result.expiredAt < (new Date()).valueOf() && result.type === 'STANDARD') {
                 throw new UserInputError('Account Expired.');
             }
-            if (result.locked === true && result.type === 'STANDARD') {
-                throw new UserInputError('Account Locked.');
-            }
             const passwordMatched = await bcrypt.compare(args.password, result.password);
             if (!passwordMatched) {
                 throw new UserInputError('Incorrect password.');
@@ -228,8 +225,8 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation, createdAt, expiredAt, locked }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string, createdAt: number, expiredAt: number, locked: boolean
+            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation, createdAt, expiredAt }: {
+                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string, createdAt: number, expiredAt: number
             } = args.user;
 
             /* check email is valid form */
@@ -258,7 +255,6 @@ export const userResolvers = {
                 emailNotificationsActivated,
                 createdAt,
                 expiredAt,
-                locked
             });
 
             return createdUser;
@@ -335,8 +331,8 @@ export const userResolvers = {
         },
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation, expiredAt, locked }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number, locked?: boolean
+            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation, expiredAt }: {
+                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number,
             } = args.user;
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
@@ -364,7 +360,6 @@ export const userResolvers = {
                 description,
                 organisation,
                 expiredAt,
-                locked
             };
 
             /* check email is valid form */

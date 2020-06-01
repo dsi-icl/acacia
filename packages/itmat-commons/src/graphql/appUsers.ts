@@ -13,7 +13,6 @@ export const GET_USERS = gql`
             organisation
             createdAt
             expiredAt
-            locked
             description @include (if: $fetchDetailsAdminOnly)
             access  @include (if: $fetchAccessPrivileges) {
                 id
@@ -43,7 +42,6 @@ export const CREATE_USER = gql`
         $type: USERTYPE!
         $createdAt: Float!
         $expiredAt: Float!
-        $locked: Boolean!
     ){
         createUser(user: {
             username: $username
@@ -56,7 +54,6 @@ export const CREATE_USER = gql`
             type: $type
             createdAt: $createdAt
             expiredAt: $expiredAt
-            locked: $locked
         }) {
             ...ALL_FOR_USER
         }
@@ -76,7 +73,6 @@ export const EDIT_USER = gql`
         $description: String
         $organisation: String
         $expiredAt: Float
-        $locked: Boolean
     ) {
         editUser(user: {
             id: $id
@@ -89,7 +85,6 @@ export const EDIT_USER = gql`
             organisation: $organisation
             type: $type
             expiredAt: $expiredAt
-            locked: $locked
         }) {
             ...ALL_FOR_USER
         }

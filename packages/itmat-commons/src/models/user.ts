@@ -16,7 +16,6 @@ export interface IUserWithoutToken {
     createdBy: string;
     createdAt: number;
     expiredAt: number;
-    locked: boolean
     resetPasswordRequests: IResetPasswordRequest[]
 }
 
