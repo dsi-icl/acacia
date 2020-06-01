@@ -42,7 +42,6 @@ export class JSONCurator {
             let objectNum = 0;
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
-            // const jsonstream = JSONStream.parse([{emitKey: true}]);
             const jsonstream = JSONStream.parse([{}]);
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
@@ -157,11 +156,6 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
         m_versionId: versionId
     };
     
-    /* extracting subject id */        
-    // if (!subject['key']) {
-    //     error.push(`Object ${objectNum}: No subject id provided.`);
-    // }
-
     if (subject.length !== parsedHeader.length) {
         error.push(`Object ${subject[0]}: Uneven field Number; expected ${parsedHeader.length} fields but got ${subject.length}`);
         return ({ error, dataEntry });
