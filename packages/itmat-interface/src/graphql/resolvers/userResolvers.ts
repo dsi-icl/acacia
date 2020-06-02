@@ -253,7 +253,6 @@ export const userResolvers = {
                 email,
                 organisation,
                 emailNotificationsActivated,
-                createdAt,
                 expiredAt,
             });
 
