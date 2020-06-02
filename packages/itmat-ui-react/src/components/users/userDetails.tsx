@@ -85,7 +85,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }) }} /> </label><br /><br />
                     <label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }) }} /></label> <br /><br />
                     <label>Authenticator Key (readonly): <input type='text' readOnly value={inputs.otpSecret.toLowerCase()} /> </label><br /><br />
-                    <label>Authenticator QR Code: </label> <img src={qrcode_url} width="150" height="150" /> <br /><br />
+                    <label>Authenticator QR Code: </label> <img src={qrcode_url} alt="QR code for Google authenticator" width="150" height="150" /> <br /><br />
                     <label>Email: <input type='text' value={inputs.email} onChange={e => { setInputs({ ...inputs, email: e.target.value }) }} /></label><br /><br />
                     <label>Email Notification:  <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({ ...inputs, emailNotificationsActivated: e.target.checked }) }} /></label><br /><br />
                     <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }) }} /></label> <br /><br />
