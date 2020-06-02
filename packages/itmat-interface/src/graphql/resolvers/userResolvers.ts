@@ -1,9 +1,10 @@
 import { ApolloError, UserInputError } from 'apollo-server-express';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import { mailer } from '../../emailer/emailer';
 import { Models } from 'itmat-commons';
-import { IProject, IRole, IStudy } from 'itmat-commons/dist/models/study';
-import { IUser, userTypes } from 'itmat-commons/dist/models/user';
 import { Logger } from 'itmat-utils';
+import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
@@ -12,6 +13,13 @@ import { errorCodes } from '../errors';
 import { makeGenericReponse } from '../responses';
 import * as mfa from '../../utils/mfa';
 
+type IProject = Models.Study.IProject;
+type IRole = Models.Study.IRole;
+type IStudy = Models.Study.IStudy;
+type IUser = Models.UserModels.IUser;
+type IUserWithoutToken = Models.UserModels.IUserWithoutToken;
+type IResetPasswordRequest = Models.UserModels.IResetPasswordRequest;
+const userTypes = Models.UserModels.userTypes;
 
 export const userResolvers = {
     Query: {
@@ -58,11 +66,11 @@ export const userResolvers = {
             );
 
             const projects: IProject[] = await db.collections!.projects_collection.find({
-                    $or: [
-                        { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
-                        { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
-                    ]
-                }).toArray();
+                $or: [
+                    { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
+                    { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
+                ]
+            }).toArray();
             const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
@@ -95,6 +103,78 @@ export const userResolvers = {
         }
     },
     Mutation: {
+        requestUsernameOrResetPassword: async (parent: object, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any, info: any): Promise<object> => {
+            /* checking the args are right */
+            if (
+                forgotUsername && !email // should provide email if no username
+                || forgotUsername && username // should not provide username if it's forgotten..
+                || !email && !username
+            ) {
+                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            } else if (email && username) {
+                // TO_DO : better client erro
+                /* only provide email if no username */
+                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+
+            /* check user existence */
+            const queryObj = email ? { deleted: null, email } : { deleted: null, username };
+            const user: IUser | null = await db.collections!.users_collection.findOne(queryObj);
+            if (!user) {
+                /* even user is null. send successful response: they should know that a user dosen't exist */
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
+                return makeGenericReponse();
+            }
+
+            if (forgotPassword) {
+                /* make link to change password */
+                const passwordResetToken = uuid();
+                const resetPasswordRequest: IResetPasswordRequest = {
+                    id: passwordResetToken,
+                    timeOfRequest: new Date().valueOf(),
+                    used: false
+                };
+                const invalidateAllTokens = await db.collections!.users_collection.findOneAndUpdate(
+                    queryObj,
+                    {
+                        $set: {
+                            'resetPasswordRequests.$[].used': true
+                        }
+                    }
+                );
+                if (invalidateAllTokens.ok !== 1) {
+                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                }
+                const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                    queryObj,
+                    {
+                        $push: {
+                            resetPasswordRequests: resetPasswordRequest
+                        }
+                    }
+                );
+                if (updateResult.ok !== 1) {
+                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                }
+
+                /* send email to client */
+                await mailer.sendMail(await formatEmailForForgottenPassword({
+                    to: user.email,
+                    resetPasswordToken: passwordResetToken,
+                    username: user.username,
+                    realname: user.realName,
+                    host: context.req.hostname
+                }));
+            } else {
+                /* send email to client */
+                await mailer.sendMail(formatEmailForFogettenUsername({
+                    to: user.email,
+                    username: user.username,
+                    realname: user.realName
+                }));
+            }
+            return makeGenericReponse();
+        },
         login: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const { req }: { req: Express.Request } = context;
             const result = await db.collections!.users_collection.findOne({ deleted: null, username: args.username });
@@ -195,11 +275,78 @@ export const userResolvers = {
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
         },
+        resetPassword: async (parent: object, { encryptedEmail, token, newPassword }: { encryptedEmail: string, token: string, newPassword: string }, context: any, info: any): Promise<object> => {
+            /* check password validity */
+            if (!passwordIsGoodEnough(newPassword)) {
+                throw new ApolloError('Password has to be at least 8 character long.');
+            }
+
+            /* decrypt email */
+            if (token.length < 16) {
+                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+            const salt = makeAESKeySalt(token);
+            const iv = makeAESIv(token);
+            let email;
+            try {
+                email = await decryptEmail(encryptedEmail, salt, iv);
+            } catch (e) {
+                throw new ApolloError('Token is not valid.');
+            }
+
+            /* check whether username and token is valid */
+            /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
+            const TIME_NOW = new Date().valueOf();
+            const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
+            const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
+                email,
+                resetPasswordRequests: {
+                    $elemMatch: {
+                        id: token,
+                        timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
+                        used: false
+                    }
+                },
+                deleted: null
+            });
+            if (!user) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
+            /* all ok; change the user's password */
+            const hashedPw = await bcrypt.hash(newPassword, config.bcrypt.saltround);
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate(
+                {
+                    id: user.id,
+                    resetPasswordRequests: {
+                        $elemMatch: {
+                            id: token,
+                            timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
+                            used: false
+                        }
+                    }
+                },
+                { $set: { password: hashedPw, 'resetPasswordRequests.$.used': true } });
+            if (updateResult.ok !== 1) {
+                throw new ApolloError(errorCodes.DATABASE_ERROR);
+            }
+
+            /* need to log user out of all sessions */
+            // TO_DO
+
+            return makeGenericReponse();
+        },
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
                 id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
             } = args.user;
+            if (password !== undefined && requester.id !== id) { // only the user themself can reset password
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+            if (password && !passwordIsGoodEnough(password)) {
+                throw new ApolloError('Password has to be at least 8 character long.');
+            }
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
@@ -209,9 +356,6 @@ export const userResolvers = {
                     throw new ApolloError('User not found');
                 }
             }
-            // if (requester.type !== Models.UserModels.userTypes.ADMIN && type !== undefined) {
-                // throw new ApolloError('Non-admin users are not authorised to change user type.');
-            // }
 
             const fieldsToUpdate: any = {
                 type,
@@ -251,3 +395,91 @@ export const userResolvers = {
     },
     Subscription: {}
 };
+
+
+export function makeAESKeySalt(str) {
+    return str;
+}
+
+export function makeAESIv(str) {
+    if (str.length < 16) { throw new Error('IV cannot be less than 16 bytes long.'); }
+    return str.slice(0, 16);
+}
+
+export async function encryptEmail(email: string, keySalt: string, iv: string): Promise<string> {
+    const algorithm = 'aes-256-cbc';
+    return new Promise((resolve, reject) => {
+        crypto.scrypt(config.aesSecret, keySalt, 32, (err, derivedKey) => {
+            if (err) reject(err);
+            const cipher = crypto.createCipheriv(algorithm, derivedKey, iv);
+            let encoded = cipher.update(email, 'utf8', 'hex');
+            encoded += cipher.final('hex');
+            resolve(encoded);
+        });
+    });
+
+}
+
+export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: string): Promise<string> {
+    const algorithm = 'aes-256-cbc';
+    return new Promise((resolve, reject) => {
+        crypto.scrypt(config.aesSecret, keySalt, 32, (err, derivedKey) => {
+            if (err) reject(err);
+            try {
+                const decipher = crypto.createDecipheriv(algorithm, derivedKey, iv);
+                let decoded = decipher.update(encryptedEmail, 'hex', 'utf8');
+                decoded += decipher.final('utf-8');
+                resolve(decoded);
+            } catch (e) {
+                reject(e);
+            }
+        });
+    });
+}
+
+
+async function formatEmailForForgottenPassword({ realname, to, resetPasswordToken, username, host }: { host: string, username: string, resetPasswordToken: string, to: string, realname: string }) {
+    const keySalt = makeAESKeySalt(resetPasswordToken);
+    const iv = makeAESIv(resetPasswordToken);
+    const encryptedEmail = await encryptEmail(to, keySalt, iv);
+
+
+    const link = `${config.useSSL ? 'https' : 'http'}://${host}${process.env.NODE_ENV === 'development' ? `:${config.server.port}` : ''}/resetPassword/${encryptedEmail}/${resetPasswordToken}`;
+    return ({
+        from: '"NAME"',
+        to,
+        subject: 'Reset your NAME password',
+        html: `<p>Dear ${realname},<p>
+            <br/>
+            <p>Your username is <b>${username}</b>.</p><br/>
+            <p>You can reset you password by click the following link (active for 1 hour):</p>
+            <p><a href=${link}>${link}</a></p>
+            <br/><br/>
+
+            Yours truly,
+            NAME team.
+        `
+    });
+}
+
+function formatEmailForFogettenUsername({ username, to, realname }: { username: string, to: string, realname: string }) {
+    return ({
+        from: '"NAME" <name@name.io>',
+        to,
+        subject: 'Your NAME username reminder',
+        html: `<p>Dear ${realname},<p>
+            <br/>
+            <p>Your username is <b>${username}</b>.</p><br/>
+
+            Yours truly,
+            NAME team.
+        `
+    });
+}
+
+function passwordIsGoodEnough(pw: string): boolean {
+    if (pw.length < 8) {
+        return false;
+    }
+    return true;
+}

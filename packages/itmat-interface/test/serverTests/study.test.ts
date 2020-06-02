@@ -24,18 +24,19 @@ const {
     EDIT_PROJECT_APPROVED_FILES,
     SET_DATAVERSION_AS_CURRENT
 } = itmatCommons.GQLRequests;
-const { userTypes } = itmatCommons.Models.UserModels;
-const { permissions } = itmatCommons;
-type IDataEntry = itmatCommons.Models.Data.IDataEntry;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
-import { IStudyDataVersion, IRole } from 'itmat-commons/dist/models/study';
 import { text } from 'body-parser';
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
-import { IFile } from 'itmat-commons/dist/models/file';
-import { IUser } from 'itmat-commons/dist/models/user';
+const { permissions } = itmatCommons;
+const { Models: { UserModels: { userTypes }} } = itmatCommons;
+type IDataEntry = itmatCommons.Models.Data.IDataEntry;
+type IUser = itmatCommons.Models.UserModels.IUser;
+type IFile = itmatCommons.Models.File.IFile;
+type IFieldEntry = itmatCommons.Models.Field.IFieldEntry;
+type IRole = itmatCommons.Models.Study.IRole;
+type IStudyDataVersion = itmatCommons.Models.Study.IStudyDataVersion;
 
 let app;
 let mongodb;
@@ -297,7 +298,7 @@ describe('STUDY API', () => {
             /* test */
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_STUDY),
-                variables: { studyId: newStudy.id } 
+                variables: { studyId: newStudy.id }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
@@ -449,18 +450,19 @@ describe('STUDY API', () => {
         test('Create project (user with privilege)', async () => {
             /* setup: creating a privileged user */
             const username = uuid();
-            const authorisedUserProfile = {
+            const authorisedUserProfile: IUser = {
                 username, 
-                type: 'STANDARD', 
+                type: userTypes.STANDARD, 
                 realName: `${username}_realname`, 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
                 otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin', 
                 email: `${username}@user.io`, 
+                resetPasswordRequests: [],
                 description: 'I am a new user.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: `new_user_id_${username}`
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -501,7 +503,7 @@ describe('STUDY API', () => {
                 createdBy: authorisedUserProfile.id,
                 patientMapping: {},
                 name: projectName,
-                approvedFields: {}, 
+                approvedFields: {},
                 approvedFiles: [],
                 lastModified: createdProject.lastModified,
                 deleted: null
@@ -550,18 +552,19 @@ describe('STUDY API', () => {
         test('Delete project (user with privilege)', async () => {
             /* setup: creating a privileged user */
             const username = uuid();
-            const authorisedUserProfile = {
+            const authorisedUserProfile: IUser = {
                 username, 
-                type: 'STANDARD', 
+                type: userTypes.STANDARD, 
                 realName: `${username}_realname`, 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
                 otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin', 
                 email: `${username}@user.io`,
+                resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
-                deleted: null, 
+                deleted: null,
                 id: `new_user_id_${username}`
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -603,7 +606,7 @@ describe('STUDY API', () => {
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_PROJECT),
                 variables: {
-                    projectId: 'I dont exist' 
+                    projectId: 'I dont exist'
                 }
             });
             expect(res.status).toBe(200);
@@ -772,7 +775,7 @@ describe('STUDY API', () => {
                         deleted: null
                     }
                 ]
-                await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
                 await db.collections!.data_collection.insertMany(mockData);
                 await db.collections!.field_dictionary_collection.insertMany(mockFields);
                 await db.collections!.files_collection.insertMany(mockFiles);
@@ -1339,7 +1342,7 @@ describe('STUDY API', () => {
             expect(res.body.data.getProject).toBe(null);
         });
 
-        test('Get study (admin)' , async () => {
+        test('Get study (admin)', async () => {
             {
                 const res = await admin.post('/graphql').send({
                     query: print(GET_STUDY),
@@ -1523,7 +1526,7 @@ describe('STUDY API', () => {
             expect(patientMapping.mock_patient2).not.toBe('mock_patient2'); // should not be the same as before mapped
         });
 
-        test('Get study (user without privilege)' , async () => {
+        test('Get study (user without privilege)', async () => {
             const res = await user.post('/graphql').send({
                 query: print(GET_STUDY),
                 variables: { studyId: createdStudy.id }
@@ -1534,7 +1537,7 @@ describe('STUDY API', () => {
             expect(res.body.data.getStudy).toBe(null);
         });
 
-        test('Get study (user with privilege)' , async () => {
+        test('Get study (user with privilege)', async () => {
             {
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(GET_STUDY),
@@ -1901,7 +1904,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (admin)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await admin.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -1936,7 +1939,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user without privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await user.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -1956,7 +1959,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user with project privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await authorisedUser.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -1976,7 +1979,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user with study read-only privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await authorisedUserStudy.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -1996,7 +1999,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user with study "manage project" privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await authorisedUserStudyManageProject.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -2016,7 +2019,7 @@ describe('STUDY API', () => {
 
         test('Set a previous study dataversion as current (user with study "manage project" privilege) (should fail)', async () => {
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             const res = await authorisedUserStudyManageProject.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
@@ -2046,13 +2049,14 @@ describe('STUDY API', () => {
                 organisation: 'DSI',
                 type: userTypes.STANDARD,
                 description: 'just a data curator',
+                resetPasswordRequests: [],
                 emailNotificationsActivated: true,
                 deleted: null,
                 createdBy: adminId
             };
             await db.collections!.users_collection.insertOne(userDataCurator);
 
-            /* setup: create a new role with data management */ 
+            /* setup: create a new role with data management */
             const roleDataCurator: IRole = {
                 id: uuid(),
                 studyId: createdStudy.id,
@@ -2069,7 +2073,7 @@ describe('STUDY API', () => {
             await connectAgent(dataCurator, userDataCurator.username, 'admin', userDataCurator.otpSecret)
 
             /* setup: add an extra dataversion */
-            await db.collections!.studies_collection.update({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             /* test */
             const res = await dataCurator.post('/graphql').send({

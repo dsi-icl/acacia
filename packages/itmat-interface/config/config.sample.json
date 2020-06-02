@@ -1,4 +1,5 @@
 {
+    "useSSL": false,
     "database": {
         "mongo_url": "mongodb://localhost:27017",
         "database": "itmat",
@@ -21,11 +22,20 @@
     "bcrypt": {
         "saltround": 2
     },
+    "aesSecret": "change_this",
     "objectStore": {
         "host": "localhost",
         "port": 8080,
         "accessKey": "minioadmin",
         "secretKey": "minioadmin",
+        "bucketRegion": "region",
         "useSSL": false
+    },
+    "nodemailer": {
+        "service": "Outlook365",
+        "auth": {
+            "user": "user",
+            "pass": "password" 
+        }
     }
 }

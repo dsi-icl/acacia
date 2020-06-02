@@ -52,3 +52,37 @@ export const LOGOUT = gql`
         }
     }
 `;
+
+export const REQUEST_USERNAME_OR_RESET_PASSWORD = gql`
+    mutation requestUsernameOrResetPassword(
+        $forgotUsername: Boolean!,
+        $forgotPassword: Boolean!,
+        $email: String,
+        $username: String
+    ) {
+        requestUsernameOrResetPassword(
+            forgotUsername: $forgotUsername,
+            forgotPassword: $forgotPassword,
+            email: $email,
+            username: $username
+        ) {
+            successful
+        }
+    }
+`;
+
+export const RESET_PASSWORD = gql`
+    mutation resetPassword(
+        $encryptedEmail: String!,
+        $token: String!,
+        $newPassword: String!
+    ) {
+        resetPassword(
+            encryptedEmail: $encryptedEmail,
+            token: $token,
+            newPassword: $newPassword
+        ) {
+            successful
+        }
+    }
+`;
