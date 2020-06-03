@@ -17,10 +17,11 @@ export class UserCore {
         return user;
     }
 
-    public async createUser(requester: string, user: { password: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean, expiredAt: number }): Promise<IUserWithoutToken> {
-        const { password, organisation, username, type, description, realName, email, emailNotificationsActivated, expiredAt } = user;
+    public async createUser(requester: string, user: { password: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
+        const { password, organisation, username, type, description, realName, email, emailNotificationsActivated  } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
         const createdAt = new Date().getTime();
+        const expiredAt = new Date().getTime() + 86400 * 1000;    
         const entry: Models.UserModels.IUser = {
             id: uuid(),
             username,
@@ -37,7 +38,6 @@ export class UserCore {
             resetPasswordRequests: [],
             deleted: null
         };
-
         const result = await db.collections!.users_collection.insertOne(entry);
         if (result.result.ok === 1) {
             delete entry.password;

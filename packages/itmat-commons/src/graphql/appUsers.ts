@@ -11,8 +11,8 @@ export const GET_USERS = gql`
             email @include (if: $fetchDetailsAdminOnly)
             createdBy
             organisation
-            createdAt
-            expiredAt
+            createdAt @include (if: $fetchDetailsAdminOnly)
+            expiredAt @include (if: $fetchDetailsAdminOnly)
             description @include (if: $fetchDetailsAdminOnly)
             access  @include (if: $fetchAccessPrivileges) {
                 id
@@ -40,8 +40,6 @@ export const CREATE_USER = gql`
         $emailNotificationsActivated: Boolean!
         $email: String!
         $type: USERTYPE!
-        $createdAt: Float!
-        $expiredAt: Float!
     ){
         createUser(user: {
             username: $username
@@ -52,8 +50,6 @@ export const CREATE_USER = gql`
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
             type: $type
-            createdAt: $createdAt
-            expiredAt: $expiredAt
         }) {
             ...ALL_FOR_USER
         }

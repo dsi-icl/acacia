@@ -461,7 +461,9 @@ describe('USERS API', () => {
                     id: `user_access_obj_user_id_${whoami.body.data.whoAmI.id}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* cleanup */
@@ -524,7 +526,9 @@ describe('USERS API', () => {
                     id: `user_access_obj_user_id_${whoami.body.data.whoAmI.id}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* test */
@@ -598,7 +602,9 @@ describe('USERS API', () => {
                     id: `user_access_obj_user_id_${adminId}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
         });
 
@@ -621,7 +627,9 @@ describe('USERS API', () => {
                     id: `user_access_obj_user_id_${userId}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
         });
     });
@@ -649,7 +657,9 @@ describe('USERS API', () => {
                     organisation: 'DSI',
                     email: 'admin@user.io', 
                     description: 'I am an admin user.',
-                    id: adminId
+                    id: adminId,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 },
                 {
                     username: 'standardUser', 
@@ -659,7 +669,9 @@ describe('USERS API', () => {
                     organisation: 'DSI',
                     email: 'standard@user.io', 
                     description: 'I am a standard user.',
-                    id: userId
+                    id: userId,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -681,7 +693,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${adminId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 },
                 {
                     username: 'standardUser', 
@@ -696,7 +710,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${userId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -716,7 +732,9 @@ describe('USERS API', () => {
                     organisation: 'DSI',
                     email: 'standard@user.io', 
                     description: 'I am a standard user.',
-                    id: userId
+                    id: userId,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -744,7 +762,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${userId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -767,7 +787,8 @@ describe('USERS API', () => {
                     createdBy: 'admin', 
                     organisation: 'DSI',
                     id: userId
-                }
+                },
+                
             ]);
         });
 
@@ -811,7 +832,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${userId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -862,7 +885,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${userId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -913,7 +938,7 @@ describe('USERS API', () => {
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
                     email: 'fake@email.io',
-                    type: userTypes.STANDARD
+                    type: userTypes.STANDARD,
                 }
             });
 
@@ -924,7 +949,7 @@ describe('USERS API', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.createUser).toEqual(
+            expect(res.body.data.createUser).toMatchObject(
                 {
                     username: 'testuser1', 
                     type: userTypes.STANDARD, 
@@ -938,9 +963,11 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${createdUserId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
                 }
-            )
+            );
+            expect(res.body.data.createUser.expiredAt - 
+                res.body.data.createUser.createdAt).toBeCloseTo(86400000.0);
         });
 
         test('create user with wrong email format (admin)', async () => {
@@ -974,7 +1001,9 @@ describe('USERS API', () => {
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
                     email: 'fake@email.io',
-                    type: userTypes.STANDARD
+                    type: userTypes.STANDARD,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             });
             expect(res.status).toBe(200);
@@ -997,7 +1026,7 @@ describe('USERS API', () => {
                     type: userTypes.STANDARD
                 }
             });
-
+            
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
@@ -1019,6 +1048,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'replaced_at_runtime1',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1057,6 +1088,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'fakeid1',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1094,7 +1127,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true, 
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid2'
+                id: 'fakeid2',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1135,6 +1170,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'fakeid2222',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1173,7 +1210,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_fakeid2222`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             );
         });
@@ -1192,7 +1231,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid44444'
+                id: 'fakeid44444',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -1230,6 +1271,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'fakeid4',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -1261,7 +1304,9 @@ describe('USERS API', () => {
                     id: 'user_access_obj_user_id_fakeid4',
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
             const modifieduser = await mongoClient.collection(config.database.collections.users_collection).findOne({ username: 'new_user_4' });
             expect(modifieduser.password).not.toBe(newUser.password);
@@ -1282,7 +1327,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid5'
+                id: 'fakeid5',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -1321,7 +1368,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid6'
+                id: 'fakeid6',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -1357,7 +1406,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid7'
+                id: 'fakeid7',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1391,7 +1442,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid8'
+                id: 'fakeid8',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1448,6 +1501,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: (new Date()).valueOf(), 
                 id: 'fakeid9',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1500,6 +1555,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'fakeid10',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 

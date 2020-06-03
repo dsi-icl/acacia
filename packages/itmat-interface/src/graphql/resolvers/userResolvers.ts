@@ -179,6 +179,7 @@ export const userResolvers = {
             if (!result) {
                 throw new UserInputError('User does not exist.');
             }
+            
             if (result.expiredAt < (new Date()).valueOf() && result.type === 'STANDARD') {
                 throw new UserInputError('Account Expired.');
             }
@@ -225,8 +226,8 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation, createdAt, expiredAt }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string, createdAt: number, expiredAt: number
+            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
+                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
 
             /* check email is valid form */
@@ -243,7 +244,6 @@ export const userResolvers = {
             if (alreadyExist !== null && alreadyExist !== undefined) {
                 throw new UserInputError('User already exists.');
             }
-
             const createdUser = await userCore.createUser(requester.username, {
                 password,
                 username,
@@ -253,7 +253,6 @@ export const userResolvers = {
                 email,
                 organisation,
                 emailNotificationsActivated,
-                expiredAt,
             });
 
             return createdUser;

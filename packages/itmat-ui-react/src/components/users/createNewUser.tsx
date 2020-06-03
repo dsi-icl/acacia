@@ -33,8 +33,6 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
     function clickedSubmit(mutationFunc: (data: { variables: any }) => {}) {
         return function(e: any) {
             e.preventDefault();
-            inputs['createdAt'] = new Date().valueOf();
-            inputs['expiredAt'] = new Date().valueOf();
             const allFields = Object.keys(inputs);
             for (const each of allFields) {
                 if (inputs[each] === undefined || inputs[each] === '') {

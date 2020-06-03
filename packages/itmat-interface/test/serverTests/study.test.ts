@@ -125,7 +125,9 @@ describe('STUDY API', () => {
                         id: createdStudy.id,
                         name: studyName
                     }]
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* cleanup: delete study */
@@ -240,7 +242,9 @@ describe('STUDY API', () => {
                         id: newStudy.id,
                         name: studyName
                     }]
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* test */
@@ -274,7 +278,9 @@ describe('STUDY API', () => {
                     id: `user_access_obj_user_id_${adminId}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
         });
 
@@ -459,7 +465,9 @@ describe('STUDY API', () => {
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
                 deleted: null,
-                id: `new_user_id_${username}`
+                id: `new_user_id_${username}`,
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -560,7 +568,9 @@ describe('STUDY API', () => {
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
                 deleted: null,
-                id: `new_user_id_${username}`
+                id: `new_user_id_${username}`,
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -922,7 +932,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
+                expect(res.body.data.createUser).toMatchObject({
                     id: createdUserAuthorised.id,
                     username,
                     type: userTypes.STANDARD,
@@ -937,6 +947,8 @@ describe('STUDY API', () => {
                         studies: []
                     }
                 });
+                expect(res.body.data.createUser.expiredAt - 
+                    res.body.data.createUser.createdAt).toBeCloseTo(86400000.0);
             }
 
             /* 6. add authorised user to role */
@@ -1017,7 +1029,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorisedStudy = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
+                expect(res.body.data.createUser).toMatchObject({
                     id: createdUserAuthorisedStudy.id,
                     username,
                     type: userTypes.STANDARD,
@@ -1030,8 +1042,10 @@ describe('STUDY API', () => {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
                         projects: [],
                         studies: []
-                    }
+                    },
                 });
+                expect(res.body.data.createUser.expiredAt - 
+                    res.body.data.createUser.createdAt).toBeCloseTo(86400000.0);
             }
 
             /* 6. add authorised user to role */
@@ -1115,7 +1129,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
+                expect(res.body.data.createUser).toMatchObject({
                     id: createdUserAuthorisedStudyManageProjects.id,
                     username,
                     type: userTypes.STANDARD,
@@ -1130,6 +1144,8 @@ describe('STUDY API', () => {
                         studies: []
                     }
                 });
+                expect(res.body.data.createUser.expiredAt - 
+                    res.body.data.createUser.createdAt).toBeCloseTo(86400000.0);
             }
 
             /* 6. add authorised user to role */
@@ -1196,7 +1212,7 @@ describe('STUDY API', () => {
             /* fsdafs: admin who am i */
             {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
-                expect(res.body.data.whoAmI).toEqual({
+                expect(res.body.data.whoAmI).toMatchObject({
                     username: 'admin',
                     type: userTypes.ADMIN,
                     realName: 'admin',
@@ -1218,6 +1234,8 @@ describe('STUDY API', () => {
                         }]
                     }
                 });
+                expect(res.body.data.whoAmI.expiredAt - 
+                    res.body.data.whoAmI.createdAt).toBeCloseTo(400000000000.0);
             }
             /* connecting users */
             {
@@ -2039,7 +2057,9 @@ describe('STUDY API', () => {
                 resetPasswordRequests: [],
                 emailNotificationsActivated: true,
                 deleted: null,
-                createdBy: adminId
+                createdBy: adminId,
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await db.collections!.users_collection.insertOne(userDataCurator);
 
