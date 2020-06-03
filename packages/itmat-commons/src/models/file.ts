@@ -1,20 +1,62 @@
-export interface IFile<T = undefined> {
+interface IFileNode {
     id: string;
     fileName: string;
-    studyId?: string;
-    projectId?: string;
     fileSize?: number;
     fileType: fileType;
-    // if this is a zip file -> isZipped == true -> unzip -> isZipped == false; if not a zip file, then just false
-    // only fileType of DIR can be zipped
-    isZipped?: boolean;
-    fromZippedFileId?: string; // fileId of original zipped file from which this file is extracted, if applicable
     description?: string;
     uploadedBy: string;  // userId
-    uri?: string;
     deleted: number | null;
-    extraData: T
 }
+
+export interface IDirectory extends IFileNode {
+    root: boolean; // if root then can't delete
+    childFileIds: string[];
+}
+
+interface IScriptFile extends IFileNode {
+    content: string;
+}
+
+interface IObjStoreFile extends IFileNode {
+    uri: string;
+}
+
+interface IStudyFile extends IFileNode {
+    studyId: string;
+}
+
+interface IUserPersonalFile extends IFileNode {
+    userId: string;
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+export interface IFileForUserPersonalFile extends IUserPersonalFile, IFileNode, IScriptFile {}
+export interface IFileForUserPersonalDir extends IUserPersonalFile, IDirectory {}
+export interface IFileForStudyRepoScriptFile extends IFileNode, IStudyFile, IScriptFile {}
+export interface IFileForStudyRepoObjStoreFile extends IFileNode, IStudyFile, IObjStoreFile {}
+export interface IFileForStudyRepoDir extends IDirectory, IStudyFile {}
+export interface IFileForPatientDataBlobFile extends IFileNode, IStudyFile, IObjStoreFile {
+    patientId?: string;
+}
+export interface IFileForPatientDataBlobDir extends IDirectory, IStudyFile {
+    dataVersionId: string;
+}
+
+interface _IFileInMongo extends // tslint:disable-line
+    IFileNode,
+    IDirectory,
+    IScriptFile,
+    IObjStoreFile,
+    IStudyFile,
+    IUserPersonalFile,
+    IFileForUserPersonalFile,
+    IFileForUserPersonalDir,
+    IFileForStudyRepoScriptFile,
+    IFileForStudyRepoObjStoreFile,
+    IFileForStudyRepoDir,
+    IFileForPatientDataBlobFile,
+    IFileForPatientDataBlobDir {}
+export type IFileInMongo = Partial<_IFileInMongo>;
 
 export enum fileType {
     STUDY_REPO_FILE = 'STUDY_REPO_FILE',
@@ -25,13 +67,3 @@ export enum fileType {
     USER_PERSONAL_DIR = 'USER_PERSONAL_DIR'
 }
 
-// all users will have a root USER_PERSONAL_DIR that includes all their files and dir.
-// Therefore, there should be no orphan personal file (file that do not belong to any dir)
-// 'userId' is not needed for constructing the tree, because the user's files are traced recursively from root dir
-// but it can be handy for actions like 'deleting all files belonging to xxx user
-export type IFileForStudyRepoFile = IFile;
-export type IFileForStudyRepoDir = IFile<{ childFileIds: string[] }>;
-export type IFileForUserPersonalFile = IFile<{ userId: string }>;
-export type IFileForUserPersonalDir = IFile<{ userId: string, childFileIds: string[]}>;
-export type IFileForPatientDataBlobDir = IFile<{ childFileIds: string[] }>;
-export type IFileForPatientDataBlobFile = IFile<{ patientId?: string }>;  // patientId present after patient curation
