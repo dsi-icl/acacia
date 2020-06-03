@@ -18,7 +18,7 @@ export class JobUtils {
 
 /* validate a field string */
 export function fieldValidator(field: string) {
-    if (/^\d+@\d+.\d+(:[c|i|d|b|t])?$/.test(field)) {
+    if (/^\d+@\d+.\d+(:[cidbt])?$/.test(field)) {
         return true;
     } else {
         return false;
