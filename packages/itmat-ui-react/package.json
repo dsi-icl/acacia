@@ -12,6 +12,8 @@
         "start": "cross-env BROWSER=none SKIP_PREFLIGHT_CHECK=true react-scripts start",
         "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
         "test": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts test",
+        "lint": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts --fix ./",
         "clean": "rimraf -rf ./dist ./build",
         "prepublishOnly": "yarn run build"
     },
