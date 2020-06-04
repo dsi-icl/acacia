@@ -16,8 +16,8 @@ export class UserCore {
         return user;
     }
 
-    public async createUser(requester: string, user: { password: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
-        const { password, organisation, username, type, description, realName, email, emailNotificationsActivated } = user;
+    public async createUser(requester: string, user: { password: string, otpSecret: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
+        const { password, otpSecret, organisation, username, type, description, realName, email, emailNotificationsActivated } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
 
         const userId = uuid();
@@ -41,6 +41,7 @@ export class UserCore {
         const entry: Models.UserModels.IUser = {
             id: userId,
             username,
+            otpSecret,
             type,
             description,
             organisation,

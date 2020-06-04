@@ -47,6 +47,7 @@ type UserAccess {
 type User {
     id: String!
     username: String! # admin only
+    otpSecret: String!
     type: USERTYPE!
     realName: String
     organisation: String
@@ -260,7 +261,7 @@ type Query {
 
 type Mutation {
     # USER
-    login(username: String!, password: String!): User
+    login(username: String!, password: String!, totp: String!): User
     logout: GenericResponse
     requestUsernameOrResetPassword(
         forgotUsername: Boolean!,
