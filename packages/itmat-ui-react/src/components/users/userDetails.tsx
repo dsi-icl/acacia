@@ -6,6 +6,7 @@ import { Subsection } from '../reusable';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
+import QRCode from 'qrcode';
 import { GQLRequests } from 'itmat-commons';
 const {
     WHO_AM_I,
@@ -72,6 +73,13 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (whoamiloading) { return <p>Loading..</p>; }
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
+    // get QR Code for the otpSecret.  Google Authenticator requires oauth_uri format for the QR code
+    let qrcode_url = "";
+    const oauth_uri = "otpauth://totp/IDEAFAST:" + inputs.username + "?secret=" + inputs.otpSecret + "&issuer=IDEAFAST";
+    QRCode.toDataURL(oauth_uri, function(err, data_url) {
+        qrcode_url = data_url;
+    });
+
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
@@ -86,6 +94,8 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                             <option value="ADMIN">System admin</option>
                         </select></label><br /><br />
                     <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }) }} /> </label><br /><br />
+                    <label>Authenticator Key (readonly): <input type='text' readOnly value={inputs.otpSecret.toLowerCase()} /> </label><br /><br />
+                    <label>Authenticator QR Code: </label> <img src={qrcode_url} alt="QR code for Google Authenticator" width="150" height="150" /> <br /><br />
                     {
                         whoamidata.whoAmI.id === user.id
                             ?

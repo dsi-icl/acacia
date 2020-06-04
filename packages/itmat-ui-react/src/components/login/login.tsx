@@ -8,6 +8,7 @@ import './login.global.css';
 export const LoginBox: React.FunctionComponent = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [passwordInput, setPasswordInput] = React.useState('');
+    const [totpInput, setTotpInput] = React.useState('');
     const [stateError, setStateError] = React.useState('');
 
     function handleUsernameChange(e: any) {
@@ -18,6 +19,10 @@ export const LoginBox: React.FunctionComponent = () => {
     function handlePasswordChange(e: any) {
         setPasswordInput(e.target.value);
         setStateError('');
+    }
+
+    function handleTotpChange(e: any) {
+        setTotpInput(e.target.value);
     }
 
     return (
@@ -45,6 +50,9 @@ export const LoginBox: React.FunctionComponent = () => {
                         <div>
                             <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
                         </div>
+                        <div>
+                            <input id='totp_input' placeholder='totp' type='password' value={totpInput} onChange={handleTotpChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
+                        </div>
                         <br />
                         {loading ? <button>logging in..</button> :
                             (
@@ -59,7 +67,7 @@ export const LoginBox: React.FunctionComponent = () => {
                                             setStateError('Missing password.');
                                             return;
                                         }
-                                        login({ variables: { password: passwordInput, username: usernameInput } });
+                                        login({ variables: { password: passwordInput, username: usernameInput, totp: totpInput } });
                                     }}
                                 >Login</button>
                             )
