@@ -7,6 +7,7 @@ import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
 import { GQLRequests } from 'itmat-commons';
+
 const {
     WHO_AM_I,
     DELETE_USER,
@@ -49,6 +50,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
     const [requestResetPassword] = useMutation(REQUEST_USERNAME_OR_RESET_PASSWORD, { onCompleted: () => { setRequestResetPasswordSent(true); } });
     const [requestResetPasswordSent, setRequestResetPasswordSent] = React.useState(false);
+    const [myTime, setMyTime] = React.useState("");
 
     if (inputs.id !== user.id) {
         setUserIsDeleted(false);
@@ -71,6 +73,41 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (userIsDeleted) { return <p> User {user.username} is deleted. </p>; }
     if (whoamiloading) { return <p>Loading..</p>; }
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
+
+    function formatTime(timestamps: number) {
+        const date = new Date(timestamps);
+        return date.toISOString().substring(0, 19);
+    }
+    const showTimeFunc = {
+        showDate: function(timestamps: number) {
+            return new Date(timestamps).toISOString().substring(0, 10);
+        },
+        showTime: function(timestamps: number) {
+            return new Date(timestamps).toISOString().substring(11, 19);
+        }
+    }
+
+    /* More control due to different behaviors in chrome and firefox, also correct errors of summer/winter time offset */
+    const changeTimeFunc = {
+        changeDate: function(value: any) {
+            let offsetTime = new Date(inputs.expiredAt - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000);
+            let newDate;
+            let recordTime = offsetTime.toISOString().substring(11, 19);
+            /* If the input date is invalid, the shown date will keep the original one */
+            if (isNaN(new Date(value + 'T' + recordTime).valueOf()) || (new Date(value + 'T' + recordTime).valueOf() < 0) ) {
+                newDate = new Date(inputs.expiredAt)
+            } else {
+                newDate = new Date(value + 'T' + recordTime)   
+            }
+            setInputs({...inputs, expiredAt: newDate.valueOf()});
+        },
+        changeTime: function(value: any) {
+            const recordedDate = new Date(inputs.expiredAt).toISOString().substring(0, 10);
+            setInputs({...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000});
+            setMyTime(new Date(recordedDate + 'T' + value).toISOString());   
+        }
+    }
+
 
     return (
         <Mutation<any, any>
@@ -98,8 +135,14 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }) }} /></label> <br /><br />
                     <label>Organisation: <input type='text' value={inputs.organisation} onChange={e => setInputs({ ...inputs, organisation: e.target.value })} /> </label><br /><br />
                     <label>Created by (readonly): <input type='text' readOnly value={inputs.createdBy} /> </label><br /><br />
-                    <label>Created at (readOnly): <input type='text' readOnly value={(new Date(inputs.createdAt)).toLocaleString()} /></label><br /><br />
-                    <label>Expired at: <input type='datetime-local' value={(new Date(inputs.expiredAt)).toISOString().substring(0, 16) } onChange={e => { setInputs({ ...inputs, expiredAt: (new Date(e.target.value)).getTime() }) }} /></label><br /><br />
+                    <label>
+                        Created at (readOnly): <input type='date' readOnly value={showTimeFunc.showDate(inputs.createdAt)} />
+                        <input type='time' readOnly value={showTimeFunc.showTime(inputs.createdAt)} />
+                    </label><br /><br />
+                     <label>
+                        Expired at: <input type='date' value={showTimeFunc.showDate(inputs.expiredAt)} onChange={e => { changeTimeFunc.changeDate(e.target.value)  }} />
+                        <input type='time' step="1" value={showTimeFunc.showTime(inputs.expiredAt)} onChange={e => { changeTimeFunc.changeTime(e.target.value)   }} />
+                    </label><br /><br />
                     <div className={css.submit_cancel_button_wrapper}>
                         <NavLink to={'/users'}><button className='button_grey'>Cancel</button></NavLink>
                         {loading ? <button>Loading</button> : <button onClick={() => { submit({ variables: { ...formatSubmitObj() } }); }}>Save</button>}
