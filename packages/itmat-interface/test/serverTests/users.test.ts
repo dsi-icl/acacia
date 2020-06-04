@@ -1062,8 +1062,8 @@ describe('USERS API', () => {
                     },
                 }
             );
-            expect(res.body.data.createUser.expiredAt - 
-                res.body.data.createUser.createdAt).toBeCloseTo(86400000.0);
+            expect((res.body.data.createUser.expiredAt - 
+                res.body.data.createUser.createdAt) / 1000).toBeCloseTo(86400.0, 1);
         });
 
         test('create user with wrong email format (admin)', async () => {

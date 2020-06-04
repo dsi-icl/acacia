@@ -947,8 +947,8 @@ describe('STUDY API', () => {
                         studies: []
                     }
                 });
-                expect(res.body.data.createUser.expiredAt - 
-                    res.body.data.createUser.createdAt).toBeCloseTo(86400000.0);
+                expect((res.body.data.createUser.expiredAt - 
+                    res.body.data.createUser.createdAt) / 1000).toBeCloseTo(86400.0, 1);
             }
 
             /* 6. add authorised user to role */
@@ -1044,8 +1044,8 @@ describe('STUDY API', () => {
                         studies: []
                     },
                 });
-                expect(res.body.data.createUser.expiredAt - 
-                    res.body.data.createUser.createdAt).toBeCloseTo(86400000.0);
+                expect((res.body.data.createUser.expiredAt - 
+                    res.body.data.createUser.createdAt) / 1000).toBeCloseTo(86400.0, 1);
             }
 
             /* 6. add authorised user to role */
@@ -1144,8 +1144,8 @@ describe('STUDY API', () => {
                         studies: []
                     }
                 });
-                expect(res.body.data.createUser.expiredAt - 
-                    res.body.data.createUser.createdAt).toBeCloseTo(86400000.0);
+                expect((res.body.data.createUser.expiredAt - 
+                    res.body.data.createUser.createdAt) / 1000).toBeCloseTo(86400.0, 1);
             }
 
             /* 6. add authorised user to role */
@@ -1234,8 +1234,8 @@ describe('STUDY API', () => {
                         }]
                     }
                 });
-                expect(res.body.data.whoAmI.expiredAt - 
-                    res.body.data.whoAmI.createdAt).toBeCloseTo(400000000000.0);
+                expect((res.body.data.whoAmI.expiredAt - 
+                    res.body.data.whoAmI.createdAt) / 1000).toBeCloseTo(400000000.0, 1);
             }
             /* connecting users */
             {
