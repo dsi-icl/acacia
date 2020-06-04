@@ -6,6 +6,7 @@ export enum userTypes {
 export interface IUserWithoutToken {
     id: string;
     username: string;
+    otpSecret: string;
     email: string;
     realName: string;
     organisation: string;
