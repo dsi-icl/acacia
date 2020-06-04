@@ -15,7 +15,7 @@ import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { IResetPasswordRequest } from 'itmat-commons/dist/models/user';
 import * as mfa from '../../src/utils/mfa';
-const { Models: { UserModels: { userTypes }} } = itmatCommons;
+const { Models: { UserModels: { userTypes } } } = itmatCommons;
 type IUser = itmatCommons.Models.UserModels.IUser;
 
 let app;
@@ -195,7 +195,7 @@ describe('USERS API', () => {
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
-            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] }}, { returnOriginal: false });
+            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnOriginal: false });
             expect(cleanupResult.ok).toBe(1);
             expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
@@ -235,7 +235,7 @@ describe('USERS API', () => {
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
-            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] }}, { returnOriginal: false });
+            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnOriginal: false });
             expect(cleanupResult.ok).toBe(1);
             expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
@@ -266,7 +266,7 @@ describe('USERS API', () => {
             };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [resetPWrequest] }}
+                { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
             expect(updateResult.ok).toBe(1);
 
@@ -305,7 +305,7 @@ describe('USERS API', () => {
             };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [resetPWrequest] }}
+                { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
             expect(updateResult.ok).toBe(1);
 
@@ -342,7 +342,7 @@ describe('USERS API', () => {
             };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [resetPWrequest] }}
+                { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
             expect(updateResult.ok).toBe(1);
 
@@ -387,7 +387,7 @@ describe('USERS API', () => {
             ];
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: resetPWrequests }}
+                { $set: { resetPasswordRequests: resetPWrequests } }
             );
             expect(updateResult.ok).toBe(1);
 
@@ -415,7 +415,7 @@ describe('USERS API', () => {
             expect(updateResult2.ok).toBe(1);
         });
 
-        test('Reset password with valid token' , async () => {
+        test('Reset password with valid token', async () => {
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest = {
                 id: presetToken,
@@ -423,8 +423,8 @@ describe('USERS API', () => {
                 used: false
             };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
-                { username: SEED_STANDARD_USER_USERNAME },                
-                { $set: { resetPasswordRequests: [resetPWrequest] }}
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
             expect(updateResult.ok).toBe(1);
 
@@ -474,7 +474,7 @@ describe('USERS API', () => {
             expect(updateResult2.ok).toBe(1);
         });
 
-        test('Reset password with used token (should fail)' , async () => {
+        test('Reset password with used token (should fail)', async () => {
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest[] = [
                 {
@@ -490,7 +490,7 @@ describe('USERS API', () => {
             ];
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: resetPWrequest }}
+                { $set: { resetPasswordRequests: resetPWrequest } }
             );
             expect(updateResult.ok).toBe(1);
             const newloggedoutuser = request.agent(app, null);
@@ -732,7 +732,7 @@ describe('USERS API', () => {
         });
 
         test('Get all users list with detail (w/ access info) (user) (should fail)', async () => {
-            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: true }});
+            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
             expect(res.status).toBe(200); // graphql returns 200 for application layer errors
             expect(res.body.errors).toHaveLength(4);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
@@ -921,7 +921,7 @@ describe('USERS API', () => {
             userId = result.filter(e => e.username === 'standardUser')[0].id;
         });
 
-        test('log in with incorrect totp (user)', async () => {            
+        test('log in with incorrect totp (user)', async () => {
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
@@ -946,9 +946,9 @@ describe('USERS API', () => {
                 .set('Content-type', 'application/json')
                 .send({
                     query: print(LOGIN),
-                    variables: { username: 'testuser0', password: 'testpassword0', totp: incorrectTotp.toString()}
+                    variables: { username: 'testuser0', password: 'testpassword0', totp: incorrectTotp.toString() }
                 });
-            
+
             expect(res_login.status).toBe(200);
             expect(res_login.body.errors).toHaveLength(1);
             expect(res_login.body.errors[0].message).toBe('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
@@ -1060,7 +1060,7 @@ describe('USERS API', () => {
         test('create user that already exists (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user',
+                username: 'new_user',
                 type: userTypes.STANDARD,
                 realName: 'Chan Siu Man',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -1099,7 +1099,7 @@ describe('USERS API', () => {
         test('create user that already exists (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_2',
+                username: 'new_user_2',
                 type: userTypes.STANDARD,
                 realName: 'Chan Ming',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -1138,7 +1138,7 @@ describe('USERS API', () => {
         test('edit user password (admin) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_333333',
+                username: 'new_user_333333',
                 type: userTypes.STANDARD,
                 realName: 'Chan Ming Ming',
                 password: 'fakepassword',
@@ -1147,8 +1147,8 @@ describe('USERS API', () => {
                 email: 'new3333@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 33333.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid2'
             };
@@ -1179,7 +1179,7 @@ describe('USERS API', () => {
         test('edit user without password (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_3',
+                username: 'new_user_3',
                 type: userTypes.STANDARD,
                 realName: 'Chan Ming Man',
                 password: 'fakepassword',
@@ -1238,7 +1238,7 @@ describe('USERS API', () => {
         test('edit own password with length < 8 (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_4444',
+                username: 'new_user_4444',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man San',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -1248,7 +1248,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user 44444.',
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid44444'
             };
@@ -1276,7 +1276,7 @@ describe('USERS API', () => {
         test('edit own password (user)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_4',
+                username: 'new_user_4',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -1331,7 +1331,7 @@ describe('USERS API', () => {
         test('edit own non-password fields (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_5',
+                username: 'new_user_5',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man Chon',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -1371,7 +1371,7 @@ describe('USERS API', () => {
         test('edit own email with malformed email (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_6',
+                username: 'new_user_6',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
@@ -1408,7 +1408,7 @@ describe('USERS API', () => {
         test('edit other user (user)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_7',
+                username: 'new_user_7',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man Tai',
                 password: 'fakepassword',
@@ -1443,7 +1443,7 @@ describe('USERS API', () => {
         test('delete user (admin)', async () => {
             /* setup: create a new user to be deleted */
             const newUser: IUser = {
-                username : 'new_user_8',
+                username: 'new_user_8',
                 type: userTypes.STANDARD,
                 realName: 'Chan Mei',
                 password: 'fakepassword',
@@ -1501,7 +1501,7 @@ describe('USERS API', () => {
         test('delete user that has been deleted (admin)', async () => {
             /* setup: create a "deleted" new user to be deleted */
             const newUser: IUser = {
-                username : 'new_user_9',
+                username: 'new_user_9',
                 type: userTypes.STANDARD,
                 realName: 'Chan Mei Fong',
                 password: 'fakepassword',
@@ -1554,7 +1554,7 @@ describe('USERS API', () => {
         test('delete user (user)', async () => {
             /* setup: create a new user to be deleted */
             const newUser: IUser = {
-                username : 'new_user_10',
+                username: 'new_user_10',
                 type: userTypes.STANDARD,
                 realName: 'Chan Mei Yi',
                 password: 'fakepassword',
@@ -1607,7 +1607,7 @@ describe('USERS API', () => {
             expect(getUserResAfter.body.data.getUsers).toEqual([{
                 otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 realName: 'Chan Mei Yi',
-                type: userTypes.STANDARD
+                type: userTypes.STANDARD,
                 createdBy: 'admin',
                 organisation: 'DSI',
                 id: newUser.id
