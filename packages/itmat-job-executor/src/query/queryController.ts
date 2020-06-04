@@ -13,36 +13,36 @@ let query_test = {
     data_requested: [ '31.0.0',  '102.0.1', '102.0.2'],
     cohort: [
         [{ field: '102.0',
-        value: '> 1',
-        op: 'count'},
+            value: '> 1',
+            op: 'count'},
         { field: '31.0.0',
             value: 'Male',
             op: '='}],
         [{ field: '31.0.0',
             value: 'Female',
             op: '='},
-            { field: '102.0.1',
+        { field: '102.0.1',
             value: '',
             op: 'exists'}]
     ],
     new_fields: [
-   {
-        name: 'BMI',
-        value: {
-            left: {
-                left: '12143.0.0',
-                right: '',
-                op: 'field'
+        {
+            name: 'BMI',
+            value: {
+                left: {
+                    left: '12143.0.0',
+                    right: '',
+                    op: 'field'
+                },
+                right: {
+                    left: '12144.0.0',
+                    right: '2',
+                    op: '^'
+                },
+                op: '/'
             },
-            right: {
-                left: '12144.0.0',
-                right: '2',
-                op: '^'
-            },
-            op: '/'
-        },
-        op: 'derived'
-   }
+            op: 'derived'
+        }
     ]
 };
 

@@ -9,7 +9,8 @@ module.exports = {
         node: true
     },
     ignorePatterns: [
-        '**/dist/**'
+        '**/dist/**',
+        '**/build/**'
     ],
     rules: {
         'indent': [
