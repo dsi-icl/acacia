@@ -17,7 +17,7 @@
         "lint:fix": "eslint --ext .js --ext .ts --fix ./",
         "clean": "rimraf -rf ./dist",
         "compile": "tsc -p tsconfig.build.json",
-        "prepublishOnly": "yarn run build",
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "minio": "7.0.16",
