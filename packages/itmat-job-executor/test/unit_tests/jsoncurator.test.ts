@@ -78,14 +78,14 @@ describe('Unit tests for processEachSubject function', () => {
             studyId: 'mockStudyId',
             data: {
                 dataVersion: '0.0.1',
-                versionTag: 'testData' 
+                versionTag: 'testData'
             }
         },
         versionId: 'mockVersionId'
     };
 
     it('processEachSubject function correctly parse data row', () => {
-        const { error, dataEntry } = processEachSubject({ ...templateParams, subject: ['A001', 'male', '95', 'true', '4.64']});
+        const { error, dataEntry } = processEachSubject({ ...templateParams, subject: ['A001', 'male', '95', 'true', '4.64'] });
         expect(error).toBeUndefined();
         expect(dataEntry).toEqual({
             m_eid: 'A001',
@@ -164,7 +164,7 @@ describe('JSONCuratorClass', () => {
         this._insertArray = [];
         this._executeCalled = []; // array of length of _insertArray when execute() is called
         this.insert = (object) => { this._insertArray.push(object); };
-        this.execute = () => new Promise((resolve, reject) => {
+        this.execute = () => new Promise((resolve) => {
             setTimeout(() => {
                 this._executeCalled.push(this._insertArray.length);
                 resolve();
@@ -201,7 +201,7 @@ describe('JSONCuratorClass', () => {
                 studyId: 'mockStudyId',
                 data: {
                     dataVersion: '0.0.1',
-                    versionTag: 'testData' 
+                    versionTag: 'testData'
                 }
             },
             'mockVersionId'
@@ -231,7 +231,7 @@ describe('JSONCuratorClass', () => {
                 studyId: 'mockStudyId',
                 data: {
                     dataVersion: '0.0.1',
-                    versionTag: 'testData' 
+                    versionTag: 'testData'
                 }
             },
             'mockVersionId'
@@ -257,7 +257,7 @@ describe('JSONCuratorClass', () => {
                 studyId: 'mockStudyId',
                 data: {
                     dataVersion: '0.0.1',
-                    versionTag: 'testData' 
+                    versionTag: 'testData'
                 }
             },
             'mockVersionId'
@@ -287,7 +287,7 @@ describe('JSONCuratorClass', () => {
                 studyId: 'mockStudyId',
                 data: {
                     dataVersion: '0.0.1',
-                    versionTag: 'testData' 
+                    versionTag: 'testData'
                 }
             },
             'mockVersionId'
@@ -320,7 +320,7 @@ describe('JSONCuratorClass', () => {
                 studyId: 'mockStudyId',
                 data: {
                     dataVersion: '0.0.1',
-                    versionTag: 'testData' 
+                    versionTag: 'testData'
                 }
             },
             'mockVersionId'
@@ -353,7 +353,7 @@ describe('JSONCuratorClass', () => {
                 studyId: 'mockStudyId',
                 data: {
                     dataVersion: '0.0.1',
-                    versionTag: 'testData' 
+                    versionTag: 'testData'
                 }
             },
             'mockVersionId'
