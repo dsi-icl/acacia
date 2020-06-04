@@ -56,12 +56,16 @@
         "webpack": "4.43.0",
         "webpack-cli": "3.3.11"
     },
+    "babel": {
+        "extends": "./config/babel.config.js"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
+    },
     "jest": {
         "globals": {
             "ts-jest": {
-                "tsConfig": {
-                    "strictNullChecks": false
-                }
+                "tsConfig": "./config/tsconfig.json"
             }
         },
         "transform": {

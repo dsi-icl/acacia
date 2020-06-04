@@ -76,13 +76,17 @@
         "**/graphql-upload": "^9.0.0",
         "**/graphql": "14.5.3"
     },
+    "babel": {
+        "extends": "./config/babel.config.js"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
+    },
     "jest": {
         "globals": {
             "ts-jest": {
                 "ts-jest": {
-                    "tsConfig": {
-                        "strictNullChecks": false
-                    }
+                    "tsConfig": "./config/tsconfig.json"
                 }
             }
         },

@@ -1,5 +1,8 @@
-const { processJSONHeader, processEachSubject, JSONCurator } = require('../../src/curation/JSONCurator');
-const fs = require('fs');
+import { processJSONHeader, processEachSubject, JSONCurator } from '../../src/curation/JSONCurator';
+import fs from 'fs';
+import { stub } from './_stubHelper';
+import { IJobEntryForDataCuration } from 'itmat-commons/dist/models/job';
+
 describe('Unit tests for processJSONHeader function', () => {
     it('processJSONHeader function weeds out syntax error', () => {
         const exampleheader = ['Eid', '1-3.3', '1-4.3'];
@@ -69,18 +72,19 @@ describe('Unit tests for processJSONHeader function', () => {
 });
 
 describe('Unit tests for processEachSubject function', () => {
+    const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+        id: 'mockJobId',
+        studyId: 'mockStudyId',
+        data: {
+            dataVersion: '0.0.1',
+            versionTag: 'testData'
+        }
+    });
     const templateParams = {
         objectNum: 22,
         subject: [],
         parsedHeader: processJSONHeader(['Eid', '1@3.3:c', '1@2.1:i', '2@3.2:b', '3@3.1:d']).parsedHeader,
-        job: {  // subset of the IJobEntry interface
-            id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData'
-            }
-        },
+        job: jobEntry,
         versionId: 'mockVersionId'
     };
 
@@ -193,17 +197,18 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator uploads json file okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const csvcurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData'
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
@@ -223,17 +228,18 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches wrong headers', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error1.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData'
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
@@ -249,17 +255,18 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches duplicate subject before first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error2.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData'
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
@@ -279,17 +286,18 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error3.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData'
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
@@ -312,17 +320,18 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error4.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData'
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
@@ -345,17 +354,18 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error5.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData'
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();

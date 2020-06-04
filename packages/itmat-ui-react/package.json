@@ -60,6 +60,12 @@
     "resolutions": {
         "**/moment": "2.24.0"
     },
+    "babel": {
+        "extends": "./config/babel.config.js"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
+    },
     "browserslist": [
         ">0.2%",
         "not dead",
