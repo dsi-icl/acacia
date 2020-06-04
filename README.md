@@ -31,6 +31,10 @@ Building the library is easy. First run `yarn install && yarn start`, to build t
 - itmat-ui-react
 - itmat-utils
 
+## Credits
+
+Big shout out goes to all the members of the Data Science Institute team at Imperial College London with special thanks to [@sou-chon](https://github.com/sou-chon) for laying the ground work this portal it built on.
+
 ## Contributing
 Pull requests are welcome!
 See the [list of open issues](https://github.com/ideafast/ideafast-portal/issues) to get an idea of what you could work on.
