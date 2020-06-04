@@ -6,55 +6,50 @@ export class PatientDataBlobFile extends StudyRepoObjStoreFile {
     private readonly _patientId: string;
     private readonly _dataVersionId: string;
 
-    constructor(
+    constructor({
+        studyFile,
+        patientId,
+        dataVersionId
+    }: {
         studyFile: StudyRepoObjStoreFile,
         patientId: string,
         dataVersionId: string
-    ) {
-        super(
-            studyFile.id,
-            studyFile.fileName,
-            studyFile.uploadedBy,
-            studyFile.description,
-            studyFile.uri,
-            studyFile.fileSize,
-            studyFile.studyId
-        );
+    }) {
+        super({
+            id: studyFile.id,
+            fileName: studyFile.fileName,
+            uploadedBy: studyFile.uploadedBy,
+            deleted: studyFile.deleted,
+            description: studyFile.description,
+            uri: studyFile.uri,
+            fileSize: studyFile.fileSize,
+            studyId: studyFile.studyId
+        });
         this._patientId = patientId;
         this._dataVersionId = dataVersionId;
     }
 
-    static makeFromMongoEntry(entry: IFileMongoEntry): StudyRepoObjStoreFile {
+    static makeFromMongoEntry(entry: IFileMongoEntry): PatientDataBlobFile {
+        const { id, fileName, fileType, uploadedBy, deleted, uri, fileSize, description, studyId, patientId, dataVersionId } = entry;
         if (entry.fileType !== fileTypes.STUDY_REPO_OBJ_STORE_FILE) {
-            throw new Error(`Cannot instantiate PatientDataBlobFile with entry of type ${entry.fileType}.`);
+            throw new Error('Cannot instantiate FileNode with entry: wrong type.');
         }
-        const mustHaveProperties = [
-            'id',
-            'fileName',
-            'fileType',
-            'uploadedBy',
-            'studyId',
-            'uri',
-            'description',
-            'patientId',
-            'dataVersionId'
-        ];
-        for (const each of mustHaveProperties) {
-            if (!entry.hasOwnProperty(each)) {
-                throw new Error(`Cannot instantiate FileNode with entry: missing key "${each}"`);
-            }
+        if (
+            id === undefined ||
+            fileName === undefined ||
+            fileType === undefined ||
+            uploadedBy === undefined ||
+            deleted === undefined ||
+            uri === undefined ||
+            description === undefined ||
+            studyId === undefined ||
+            patientId === undefined ||
+            dataVersionId === undefined
+        ) {
+            throw new Error('Cannot instantiate FileNode with entry: missing key.');
         }
-        const studyFile = new StudyRepoObjStoreFile(
-            entry.id,
-            entry.fileName,
-            entry.uploadedBy,
-            entry.description!,
-            entry.uri!,
-            entry.fileSize,
-            entry.studyId!
-        );
-        const file = new PatientDataBlobFile(studyFile, entry.patientId!, entry.dataVersionId!);
-        return file;
+        const studyFile = new StudyRepoObjStoreFile({ id, fileName, uploadedBy, deleted, uri, description, fileSize, studyId });
+        return new PatientDataBlobFile({ studyFile, patientId, dataVersionId });
     }
 
     // @override

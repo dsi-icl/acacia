@@ -6,36 +6,42 @@ import { IFileMongoEntry } from '../abstract/mongoEntry';
 export class StudyRepoScriptFile extends ScriptFileNode implements IStudyFileNode {
     private readonly _studyId: string;
 
-    constructor(
-        id: string | undefined,
+    constructor({
+        id,
+        fileName,
+        uploadedBy,
+        deleted,
+        content,
+        studyId
+    }:{
+        id?: string,
         fileName: string,
         uploadedBy: string,
-        studyId: string,
-        content: string | undefined
-    ) {
-        super(id, fileName, fileTypes.STUDY_REPO_SCRIPT_FILE, uploadedBy, content);
+        deleted?: number | null,
+        content?: string,
+        studyId: string
+    }) {
+        super({ id, fileName, fileType: fileTypes.STUDY_REPO_SCRIPT_FILE, uploadedBy, deleted, content });
         this._studyId = studyId;
     }
 
     static makeFromMongoEntry(entry: IFileMongoEntry): StudyRepoScriptFile {
+        const { id, fileName, fileType, uploadedBy, deleted, content, studyId } = entry;
         if (entry.fileType !== fileTypes.STUDY_REPO_SCRIPT_FILE) {
-            throw new Error(`Cannot instantiate StudyRepoScriptFile with entry of type ${entry.fileType}.`);
+            throw new Error('Cannot instantiate FileNode with entry: wrong type.');
         }
-        const mustHaveProperties = [
-            'id',
-            'fileName',
-            'fileType',
-            'uploadedBy',
-            'content',
-            'studyId'
-        ];
-        for (const each of mustHaveProperties) {
-            if (!entry.hasOwnProperty(each)) {
-                throw new Error(`Cannot instantiate FileNode with entry: missing key "${each}"`);
-            }
+        if (
+            id === undefined ||
+            fileName === undefined ||
+            fileType === undefined ||
+            uploadedBy === undefined ||
+            deleted === undefined ||
+            content === undefined ||
+            studyId === undefined
+        ) {
+            throw new Error('Cannot instantiate FileNode with entry: missing key.');
         }
-        const file = new StudyRepoScriptFile(entry.id, entry.fileName, entry.uploadedBy, entry.studyId!, entry.content);
-        return file;
+        return new StudyRepoScriptFile({ id, fileName, uploadedBy, deleted, content, studyId });
     }
 
     // @override

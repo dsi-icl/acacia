@@ -6,35 +6,39 @@ import { IFileMongoEntry } from '../abstract/mongoEntry';
 export class UserPersonalFile extends ScriptFileNode implements IUserPersonalFileNode {
     private readonly _userId: string;
 
-    constructor(
-        id: string | undefined,
+    constructor({
+        id,
+        fileName,
+        userId,
+        deleted,
+        content
+    }: {
+        id?: string,
         fileName: string,
         userId: string,
-        content: string | undefined
-    ) {
-        super(id, fileName, fileTypes.USER_PERSONAL_FILE, userId, content);
+        deleted?: number | null,
+        content?: string
+    }) {
+        super({ id, fileName, fileType: fileTypes.USER_PERSONAL_FILE, uploadedBy: userId, deleted, content });
         this._userId = userId;
     }
 
     static makeFromMongoEntry(entry: IFileMongoEntry): UserPersonalFile {
-        if (entry.fileType !== fileTypes.USER_PERSONAL_FILE) {
-            throw new Error(`Cannot instantiate FileNode with entry: wrong type.`);
+        const { id, fileName, fileType, uploadedBy, deleted, content } = entry;
+        if (fileType !== fileTypes.USER_PERSONAL_FILE) {
+            throw new Error('Cannot instantiate FileNode with entry: wrong type.');
         }
-        const mustHaveProperties = [
-            'id',
-            'fileName',
-            'fileType',
-            'uploadedBy',
-            'isRoot',
-            'content'
-        ];
-        for (const each of mustHaveProperties) {
-            if (!entry.hasOwnProperty(each)) {
-                throw new Error(`Cannot instantiate FileNode with entry: missing key "${each}"`);
-            }
+        if (
+            id === undefined ||
+            fileName === undefined ||
+            fileType === undefined ||
+            uploadedBy === undefined ||
+            deleted === undefined ||
+            content === undefined
+        ) {
+            throw new Error('Cannot instantiate FileNode with entry: missing key.');
         }
-        const file = new UserPersonalFile(entry.id, entry.fileName, entry.uploadedBy, entry.content);
-        return file;
+        return new UserPersonalFile({ id, fileName, userId: uploadedBy, content, deleted });
     }
 
     // @override

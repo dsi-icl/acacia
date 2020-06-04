@@ -6,38 +6,45 @@ import { fileTypes } from '../abstract/fileTypes';
 export class StudyRepoDir extends DirectoryNode implements IStudyFileNode {
     private readonly _studyId: string;
 
-    constructor(
-        id: string | undefined,
+    constructor({
+        id,
+        fileName,
+        uploadedBy,
+        deleted,
+        isRoot,
+        childFileIds,
+        studyId
+    }: {
+        id?: string,
         fileName: string,
-        requesterId: string,
-        isRoot: boolean | undefined,
-        childFileIds: string[] | undefined,
+        uploadedBy: string,
+        deleted?: number | null,
+        isRoot?: boolean,
+        childFileIds?: string[],
         studyId: string
-    ) {
-        super(id, fileName, fileTypes.USER_PERSONAL_DIR, requesterId, isRoot, childFileIds);
+    }) {
+        super({ id, fileName, fileType: fileTypes.USER_PERSONAL_DIR, uploadedBy, isRoot, childFileIds, deleted });
         this._studyId = studyId;
     }
 
     static makeFromMongoEntry(entry: IFileMongoEntry): StudyRepoDir {
-        if (entry.fileType !== fileTypes.STUDY_REPO_DIR) {
-            throw new Error(`Cannot instantiate StudyRepoDir with entry of type ${entry.fileType}.`);
+        const { id, fileName, fileType, uploadedBy, deleted, isRoot, childFileIds, studyId } = entry;
+        if (fileType !== fileTypes.STUDY_REPO_DIR) {
+            throw new Error('Cannot instantiate FileNode with entry: wrong type.');
         }
-        const mustHaveProperties = [
-            'id',
-            'fileName',
-            'fileType',
-            'uploadedBy',
-            'isRoot',
-            'childFileIds',
-            'studyId'
-        ];
-        for (const each of mustHaveProperties) {
-            if (!entry.hasOwnProperty(each)) {
-                throw new Error(`Cannot instantiate FileNode with entry: missing key "${each}"`);
-            }
+        if (
+            id === undefined ||
+            fileName === undefined ||
+            fileType === undefined ||
+            uploadedBy === undefined ||
+            deleted === undefined ||
+            isRoot === undefined  ||
+            childFileIds === undefined ||
+            studyId === undefined
+        ) {
+            throw new Error('Cannot instantiate FileNode with entry: missing key.');
         }
-        const file = new StudyRepoDir(entry.id, entry.fileName, entry.uploadedBy, entry.isRoot, entry.childFileIds, entry.studyId!);
-        return file;
+        return new StudyRepoDir({ id, fileName, uploadedBy, deleted, isRoot, childFileIds, studyId });
     }
 
     // @override

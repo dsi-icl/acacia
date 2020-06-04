@@ -1,5 +1,6 @@
 import { ApolloError } from 'apollo-server-express';
 import { Models, permissions, task_required_permissions } from 'itmat-commons';
+const { File: { UserPersonalDir, UserPersonalFile, StudyRepoDir, StudyRepoScriptFile, ObjStoreFileNode, StudyRepoObjStoreFile } } = Models;
 const { fileTypes } = Models.File;
 import { Logger } from 'itmat-utils';
 import { v4 as uuid } from 'uuid';
@@ -8,14 +9,11 @@ import { objStore } from '../../objStore/objStore';
 import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
-import { IFileForStudyRepoDir, IFileForUserPersonalDir, IFileForUserPersonalFile } from 'itmat-commons/dist/models/file';
-type IDirectory = Models.File.IDirectory;
-type IFileInMongo = Models.File.IFileInMongo;
-type IFileForStudyRepoScriptFile = Models.File.IFileForStudyRepoScriptFile;
+type IFileMongoEntry = Models.File.IFileMongoEntry;
 
 export const fileResolvers = {
     File: {
-        childFiles: async(file: IDirectory) => {
+        childFiles: async(file: IFileMongoEntry) => {
             return await db.collections!.files_collection.find({ id: { $in: file.childFileIds }, deleted: null }).toArray();
         }
     },
@@ -31,33 +29,36 @@ export const fileResolvers = {
          * - user create script for study
          * - user unzip file -> create job -> may fail
          */
-        createFile: async(parent: object, args: any, context: any, info: any): Promise<IFileInMongo> => {
+        createFile: async(parent: object, args: any, context: any, info: any): Promise<IFileMongoEntry> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const { fileName, studyId, fileType } = args;
 
-            let file: FileNode | undefined;
-            switch fileType {
+            let file: Models.File.FileNode | undefined;
+            switch (fileType) {
                 case fileTypes.STUDY_REPO_DIR:
                     /* check permissions */
-                    file = new StudyRepoDir(undefined, fileName, requester.id, studyId);
+                    file = new StudyRepoDir({ fileName, uploadedBy: requester.id, studyId });
                     break;
                 case fileTypes.STUDY_REPO_SCRIPT_FILE:
                     /* check permissions */
-                    file = new StudyRepoScriptFile(undefined, fileName, requester.id, studyId);
+                    file = new StudyRepoScriptFile({ fileName, uploadedBy: requester.id, studyId });
                     break;
                 case fileTypes.USER_PERSONAL_DIR:
                     /* check permissions */
 
-                    file = new UserPersonalDir(undefined, fileName, requester.id);
+                    file = new UserPersonalDir({ fileName, userId: requester.id });
                     break;
                 case fileTypes.USER_PERSONAL_FILE:
                     /* check permissions */
 
-                    file = new UserPersonalFile(undefined, fileName, requester.id);
+                    file = new UserPersonalFile({ fileName, userId: requester.id });
                     break;
                 default:
                     /* some fileTypes are not usable for this function */
                     throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+            if (!file) {
+                throw new ApolloError(errorCodes.SERVER_ERROR);
             }
             const uploadResult = await file.uploadFileToMongo(db.collections!.files_collection);
             if (uploadResult.result.ok !== 1) {
@@ -72,11 +73,11 @@ export const fileResolvers = {
                 studyId: string,
                 file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>,
                 description: string,
-                fileType: Models.File.fileType,
+                fileType: Models.File.fileTypes,
             },
             context: any,
             info: any
-        ): Promise<IFileInMongo> => {
+        ): Promise<IFileMongoEntry> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -89,7 +90,7 @@ export const fileResolvers = {
 
             const file = await args.file;
 
-            return new Promise<IFileInMongo>(async (resolve, reject) => {
+            return new Promise<IFileMongoEntry>(async (resolve, reject) => {
                 const stream: NodeJS.ReadableStream = (file as any).createReadStream();
                 const fileUri = uuid();
 
@@ -100,18 +101,20 @@ export const fileResolvers = {
                 });
 
                 stream.on('end', async () => {
-                    let fileObj: ObjStoreFileNode;
+                    let fileObj: Models.File.ObjStoreFileNode;
                     switch (args.fileType) {
                         case fileTypes.STUDY_REPO_OBJ_STORE_FILE:
-                            fileObj = new StudyRepoObjStoreFile(
-                                undefined,
-                                file.fileName,
-                                requester.id,
-                                args.description,
-                                fileUri,
-                                args.studyId,
-                                args.fileLength
-                            );
+                            fileObj = new StudyRepoObjStoreFile({
+                                fileName: file.filename,
+                                uploadedBy: requester.id,
+                                description: args.description,
+                                uri: fileUri,
+                                fileSize: args.fileLength,
+                                studyId: args.studyId
+                            });
+                            break;
+                        default:
+                            throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
                     }
 
                     const uploadResult = await fileObj.uploadFileToMongo(db.collections!.files_collection);

@@ -13,17 +13,17 @@ export class DirectoryNode extends FileNode {
             fileName,
             fileType,
             uploadedBy,
+            deleted,
             isRoot = false,
-            childFileIds = [],
-            deleted = null
+            childFileIds = []
         }: {
             id?: string,
             fileName: string,
             fileType: fileTypes,
             uploadedBy: string,
-            isRoot: boolean,
-            childFileIds: string[],
-            deleted?: number | null
+            deleted?: number | null,
+            isRoot?: boolean,
+            childFileIds?: string[]
         }
     ) {
         super({ id, fileName, fileType, uploadedBy, deleted });

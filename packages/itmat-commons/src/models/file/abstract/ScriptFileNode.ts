@@ -11,15 +11,15 @@ export class ScriptFileNode extends FileNode {
             fileName,
             fileType,
             uploadedBy,
-            content = '',
-            deleted = null
+            deleted,
+            content = ''
         }: {
             id?: string,
             fileName: string,
             fileType: fileTypes,
             uploadedBy: string,
-            content: string,
-            deleted?: number | null
+            deleted?: number | null,
+            content?: string
         }
     ) {
         super({ id, fileName, fileType, uploadedBy, deleted });
@@ -39,8 +39,8 @@ export class ScriptFileNode extends FileNode {
             fileName === undefined ||
             fileType === undefined ||
             uploadedBy === undefined ||
-            content === undefined ||
-            deleted === undefined
+            deleted === undefined ||
+            content === undefined
         ) {
             throw new Error('Cannot instantiate FileNode with entry: missing key.');
         }

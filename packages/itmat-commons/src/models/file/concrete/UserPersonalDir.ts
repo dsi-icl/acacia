@@ -3,39 +3,45 @@ import { DirectoryNode } from '../abstract/DirectoryNode';
 import { fileTypes } from '../abstract/fileTypes';
 import { IFileMongoEntry } from '../abstract/mongoEntry';
 
-class UserPersonalDir extends DirectoryNode implements IUserPersonalFileNode {
+export class UserPersonalDir extends DirectoryNode implements IUserPersonalFileNode {
     private readonly _userId: string;
 
-    constructor(
-        id: string | undefined,
+    constructor({
+            id,
+            fileName,
+            userId,
+            deleted,
+            isRoot,
+            childFileIds
+    }: {
+        id?: string,
         fileName: string,
         userId: string,
-        isRoot: boolean | undefined,
-        childFileIds: string[] | undefined
-    ) {
-        super(id, fileName, fileTypes.USER_PERSONAL_DIR, userId, isRoot, childFileIds);
+        deleted?: number | null,
+        isRoot?: boolean,
+        childFileIds?: string[]
+    }) {
+        super({ id, fileName, fileType: fileTypes.USER_PERSONAL_DIR, uploadedBy: userId, deleted, isRoot, childFileIds });
         this._userId = userId;
     }
 
     static makeFromMongoEntry(entry: IFileMongoEntry): UserPersonalDir {
-        if (entry.fileType !== fileTypes.USER_PERSONAL_DIR) {
-            throw new Error(`Cannot instantiate FileNode with entry: wrong type.`);
+        const { id, fileName, fileType, uploadedBy, deleted, isRoot, childFileIds, studyId } = entry;
+        if (fileType !== fileTypes.USER_PERSONAL_DIR) {
+            throw new Error('Cannot instantiate FileNode with entry: wrong type.');
         }
-        const mustHaveProperties = [
-            'id',
-            'fileName',
-            'fileType',
-            'uploadedBy',
-            'isRoot',
-            'childFileIds'
-        ];
-        for (const each of mustHaveProperties) {
-            if (!entry.hasOwnProperty(each)) {
-                throw new Error(`Cannot instantiate FileNode with entry: missing key "${each}"`);
-            }
+        if (
+            id === undefined ||
+            fileName === undefined ||
+            fileType === undefined ||
+            uploadedBy === undefined ||
+            deleted === undefined ||
+            isRoot === undefined  ||
+            childFileIds === undefined
+        ) {
+            throw new Error('Cannot instantiate FileNode with entry: missing key.');
         }
-        const file = new UserPersonalDir(entry.id, entry.fileName, entry.uploadedBy, entry.isRoot, entry.childFileIds);
-        return file;
+        return new UserPersonalDir({ id, fileName, userId: uploadedBy, deleted, isRoot, childFileIds });
     }
 
     // @override

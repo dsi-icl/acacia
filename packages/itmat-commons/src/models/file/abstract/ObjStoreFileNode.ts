@@ -7,27 +7,25 @@ export abstract class ObjStoreFileNode extends FileNode {
     private readonly _fileSize?: number;
     private _description: string;
 
-    constructor(
-        {
-            id,
-            fileName,
-            fileType,
-            uploadedBy,
-            description,
-            uri,
-            fileSize,
-            deleted = null
-        }: {
-            id?: string,
-            fileName: string,
-            fileType: fileTypes,
-            uploadedBy: string,
-            description: string,
-            uri: string,
-            fileSize?: number,
-            deleted: number | null
-        }
-    ) {
+    constructor({
+        id,
+        fileName,
+        fileType,
+        uploadedBy,
+        deleted,
+        description = '',
+        uri,
+        fileSize
+    }: {
+        id?: string,
+        fileName: string,
+        fileType: fileTypes,
+        uploadedBy: string,
+        deleted?: number | null,
+        description?: string,
+        uri: string,
+        fileSize?: number,
+    }) {
         super({ id, fileName, fileType, uploadedBy, deleted });
         if (!fileTypesObjStore.includes(fileType)) {
             throw new Error(`Cannot instantiate ObjStoreFileNode with filetype ${fileType}`);
