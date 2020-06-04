@@ -50,7 +50,6 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
     const [requestResetPassword] = useMutation(REQUEST_USERNAME_OR_RESET_PASSWORD, { onCompleted: () => { setRequestResetPasswordSent(true); } });
     const [requestResetPasswordSent, setRequestResetPasswordSent] = React.useState(false);
-    const [myTime, setMyTime] = React.useState("");
 
     if (inputs.id !== user.id) {
         setUserIsDeleted(false);
@@ -103,11 +102,9 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
         },
         changeTime: function(value: any) {
             const recordedDate = new Date(inputs.expiredAt).toISOString().substring(0, 10);
-            setInputs({...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000});
-            setMyTime(new Date(recordedDate + 'T' + value).toISOString());   
+            setInputs({...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000});   
         }
     }
-
 
     return (
         <Mutation<any, any>
