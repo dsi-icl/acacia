@@ -80,17 +80,21 @@ type File {
     fileName: String!
     studyId: String
     projectId: String
+    fileType: FileType!
     fileSize: Int
     description: String
     uploadedBy: String!
+    userId: String
+    patientId: String
+    childFiles: [File]
 }
 
-type FileType {
-    STUDY_REPO_FILE
-    PATIENT_DATA_BLOB
-    USER_PERSONAL_FILE
-    USER_PERSONAL_DIR
+enum FileType {
+    STUDY_REPO_SCRIPT_FILE
+    STUDY_REPO_OBJ_STORE_FILE
     STUDY_REPO_DIR
+    USER_PERSONAL_FILE # default if not given
+    USER_PERSONAL_DIR
 }
 
 type DataVersion {
@@ -118,7 +122,7 @@ type Study {
     projects: [Project]!
     roles: [StudyOrProjectUserRole]!
     # fields: [Field]!
-    files: [File]!
+    files: File!
     numOfSubjects: Int!
 }
 
@@ -283,11 +287,12 @@ type Mutation {
 
     # ACCESS MANAGEMENT
     addRoleToStudyOrProject(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole
-    editRole(roleId: String!, name: String, permissionChanges: StringArrayChangesInput, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
+    editRole(roleId: String!, name: String, permissionChanges: StringArrayChangesInput = {}, userChanges: StringArrayChangesInput = {}): StudyOrProjectUserRole
     removeRole(roleId: String!): GenericResponse
 
     # FILES
-    uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: Int, fileType: FileType, isZipped: Boolean): File
+    createFile(fileName: String!, fileType: FileType = USER_PERSONAL_FILE, studyId: String): File
+    uploadFile(studyId: String!, description: String = "", file: Upload!, fileLength: Int, fileType: FileType = STUDY_REPO_OBJ_STORE_FILE): File
     deleteFile(fileId: String!): GenericResponse
 
     # QUERY

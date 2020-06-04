@@ -1,10 +1,14 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy } from 'itmat-commons/dist/models/study';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
 import { makeGenericReponse, IGenericResponse } from '../responses';
+import { Models } from 'itmat-commons';
+const { fileType } = Models.File;
+type IProject = Models.Study.IProject;
+type IStudy = Models.Study.IStudy;
+type IFileForStudyRepoDir = Models.File.IFileForStudyRepoDir;
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -44,13 +48,31 @@ export class StudyCore {
             throw new ApolloError(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
         }
 
-        const study: IStudy = {
+        /* create root file system for study */
+        const studyId = uuid();
+        const rootDirFile: IFileForStudyRepoDir = {
             id: uuid(),
+            fileName: 'home',
+            fileType: fileType.STUDY_REPO_DIR,
+            uploadedBy: requestedBy,
+            deleted: null,
+            studyId,
+            root: true,
+            childFileIds: []
+        };
+        const result = await db.collections!.studies_collection.insertOne(rootDirFile);
+        if (result.result.ok !== 1) {
+            throw new ApolloError(errorCodes.DATABASE_ERROR);
+        }
+
+        const study: IStudy = {
+            id: studyId,
             name: studyName,
             createdBy: requestedBy,
             currentDataVersion: -1,
             lastModified: new Date().valueOf(),
             dataVersions: [],
+            rootDir: rootDirFile.id,
             deleted: null
         };
         await db.collections!.studies_collection.insertOne(study);

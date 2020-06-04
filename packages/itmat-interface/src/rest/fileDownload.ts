@@ -35,14 +35,14 @@ export const fileDownloadController = async (req: Request, res: Response) => {
         const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
             task_required_permissions.access_project_data,
             requester,
-            file.studyId
+            file.studyId || ''
         );
         if (!hasPermission) {
             res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
             return;
         }
 
-        const stream = await objStore.downloadFile(file.studyId, file.uri);
+        const stream = await objStore.downloadFile(file.studyId!, file.uri!);
         res.set('Content-Type', 'application/octet-stream');
         res.set('Content-Type', 'application/download');
         res.set('Content-Disposition', `attachment; filename="${file.fileName}"`);

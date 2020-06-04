@@ -6,6 +6,7 @@ export const UPLOAD_FILE = gql`
             id
             fileName
             studyId
+            fileType
             projectId
             fileSize
             description
