@@ -73,10 +73,6 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (whoamiloading) { return <p>Loading..</p>; }
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
-    function formatTime(timestamps: number) {
-        const date = new Date(timestamps);
-        return date.toISOString().substring(0, 19);
-    }
     const showTimeFunc = {
         showDate: function(timestamps: number) {
             return new Date(timestamps).toISOString().substring(0, 10);
