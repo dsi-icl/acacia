@@ -2,6 +2,7 @@ import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable } from 'stream';
 import { Models } from 'itmat-commons';
+import { fieldValidator, fieldParser } from '../utils/jobUtils'
 type IFieldDescriptionObject = Models.Data.IFieldDescriptionObject;
 type IDataEntry = Models.Data.IDataEntry;
 type IJobEntry<dataobj> = Models.JobModels.IJobEntry<dataobj>;
@@ -142,14 +143,11 @@ export function processHeader(header: string[]): { error?: string[], parsedHeade
         if (colNum === 0) {
             parsedHeader[0] = null;
         } else {
-            if (!/^\d+@\d+.\d+(:[cidbt])?$/.test(each)) {
+            if (!fieldValidator(each)) {
                 error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
                 parsedHeader[colNum] = null;
             } else {
-                const fieldId = parseInt(each.substring(0, each.indexOf('@')), 10);
-                const timepoint = parseInt(each.substring(each.indexOf('@') + 1, each.indexOf('.')), 10);
-                const measurement = parseInt(each.substring(each.indexOf('.') + 1, each.indexOf(':') === -1 ? each.length : each.indexOf(':')), 10);
-                const datatype: 'c' | 'i' | 'd' | 'b' | 't' = each.indexOf(':') === -1 ? 'c' : each.substring(each.indexOf(':') + 1, each.length) as ('c' | 'i' | 'd' | 'b');
+                const { fieldId, timepoint, measurement, datatype } = fieldParser(each);
                 parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
                 fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
             }

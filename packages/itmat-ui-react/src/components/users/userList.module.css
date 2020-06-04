@@ -49,3 +49,15 @@
     cursor: pointer;
     margin-right: 1rem;
 }
+
+.request_sent_button {
+    cursor: unset;
+    background: var(--color-status-finish);
+    color: var(--color-font-color);
+}
+
+.request_sent_button:hover {
+    cursor: unset;
+    background: var(--color-status-finish);
+    color: var(--color-font-color);
+}
