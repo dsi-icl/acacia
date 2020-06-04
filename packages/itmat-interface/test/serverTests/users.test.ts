@@ -9,11 +9,12 @@ import { errorCodes } from '../../src/graphql/errors';
 import chalk from 'chalk';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD } = itmatCommons.GQLRequests;
+const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD, LOGIN } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { IResetPasswordRequest } from 'itmat-commons/dist/models/user';
+import { async } from 'rxjs/internal/scheduler/async';
 const { Models: { UserModels: { userTypes }} } = itmatCommons;
 type IUser = itmatCommons.Models.UserModels.IUser;
 
@@ -631,6 +632,101 @@ describe('USERS API', () => {
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
             });
+        });
+
+        test('Expired standard user log in (should fail)', async() => {
+            const newUser: IUser = {
+                username : 'expired_user', 
+                type: userTypes.STANDARD, 
+                realName: 'expired user', 
+                password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2', 
+                createdBy: 'admin', 
+                email: 'expire@user.io', 
+                resetPasswordRequests: [],
+                description: 'I am an expired user.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'expiredId0',
+                createdAt: 1591134065000,
+                expiredAt: 1501134065000
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            const newloggedoutuser = request.agent(app, null);
+            const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
+                query: print(LOGIN),
+                variables: {
+                    username: 'expired_user',
+                    password: 'admin'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.data.login).toBeNull();
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('Account Expired.');
+            await admin.post('/graphql').send(
+                {
+                    query: print(DELETE_USER),
+                    variables: {
+                        userId: newUser.id
+                    }
+                }
+            );
+        });
+
+        test('Expired admin user log in', async() => {
+            const newUser: IUser = {
+                username : 'expired_admin', 
+                type: userTypes.ADMIN, 
+                realName: 'expired admin', 
+                password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2', 
+                createdBy: 'admin', 
+                email: 'admine@user.io', 
+                resetPasswordRequests: [],
+                description: 'I am an expired admin.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'expiredId1',
+                createdAt: 1591134065000,
+                expiredAt: 1501134065000
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            const newloggedoutuser = request.agent(app, null);
+            const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
+                query: print(LOGIN),
+                variables: {
+                    username: 'expired_admin',
+                    password: 'admin'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.data.login).toEqual({
+                id: 'expiredId1',
+                username: 'expired_admin',
+                type: 'ADMIN',
+                realName: 'expired admin',
+                email: 'admine@user.io',
+                createdBy: 'admin',
+                organisation: 'DSI',
+                description: 'I am an expired admin.',
+                access: {
+                    id: 'user_access_obj_user_id_expiredId1',
+                    projects: [],
+                    studies: []
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1501134065000
+            });
+            expect(res.body.errors).toBeUndefined();
+            await admin.post('/graphql').send(
+                {
+                    query: print(DELETE_USER),
+                    variables: {
+                        userId: newUser.id
+                    }
+                }
+            );
         });
     });
 

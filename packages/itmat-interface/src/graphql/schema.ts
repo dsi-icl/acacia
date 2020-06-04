@@ -44,12 +44,6 @@ type UserAccess {
     studies: [Study]!
 }
 
-type ResetPasswordRequest {
-    id: String
-    timeOfRequest: Float
-    used: Boolean
-}
-
 type User {
     id: String!
     username: String! # admin only
@@ -62,7 +56,6 @@ type User {
     createdBy: String
     createdAt: Float!
     expiredAt: Float!
-    resetPasswordRequests: [ResetPasswordRequest]
     # external to mongo documents:
     access: UserAccess # admin or self only
 }
