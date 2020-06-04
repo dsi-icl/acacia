@@ -1,27 +1,45 @@
 import { FileNode } from './FileNode';
-import { fileTypes } from './fileTypes';
+import { fileTypes, fileTypesObjStore } from './fileTypes';
+import { ObjectStore } from 'itmat-utils';
 
 export abstract class ObjStoreFileNode extends FileNode {
     private readonly _uri: string;
-    private readonly _fileSize: number?;
+    private readonly _fileSize?: number;
+    private _description: string;
 
     constructor(
-        id: string | undefined,
-        fileName: string,
-        fileType: fileTypes,
-        uploadedBy: string,
-        private description: string
-    ) {
-        super(id, fileName, fileType, uploadedBy);
-        if (![
-            fileTypes.STUDY_REPO_FILE,
-            fileTypes.PATIENT_DATA_BLOB_FILE
-        ].includes(fileType)) {
-            throw new Error(`Cannot instantiate Directory with filetype ${fileType}`);
+        {
+            id,
+            fileName,
+            fileType,
+            uploadedBy,
+            description,
+            uri,
+            fileSize,
+            deleted = null
+        }: {
+            id?: string,
+            fileName: string,
+            fileType: fileTypes,
+            uploadedBy: string,
+            description: string,
+            uri: string,
+            fileSize?: number,
+            deleted: number | null
         }
+    ) {
+        super({ id, fileName, fileType, uploadedBy, deleted });
+        if (!fileTypesObjStore.includes(fileType)) {
+            throw new Error(`Cannot instantiate ObjStoreFileNode with filetype ${fileType}`);
+        }
+        this._uri = uri;
+        this._fileSize = fileSize;
+        this._description = description;
     }
 
-    getFileStream(objStore: any): NodeJS.ReadableStream {
+    abstract getFileStream(objStore: ObjectStore): Promise<NodeJS.ReadableStream>;
 
-    }
+    get uri() { return this._uri; }
+    get fileSize() { return this._fileSize; }
+    get description() { return this._description; }
 }

@@ -23,9 +23,11 @@
         "chalk": "4.0.0",
         "graphql": "15.0.0",
         "graphql-tag": "2.10.3",
+        "itmat-utils": "^1.1.8",
         "mongodb": "3.5.5"
     },
     "devDependencies": {
+        "@types/mongodb": "^3.5.20",
         "@types/node": "13.11.0",
         "rimraf": "3.0.2",
         "typescript": "3.8.3"

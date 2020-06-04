@@ -86,7 +86,7 @@ export const studyResolvers = {
             return await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray();
         },
         files: async (study: IStudy) => {
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
+            return await db.collections!.files_collection.find({ id: study.rootDir, deleted: null });
         },
         numOfSubjects: async (study: IStudy) => {
             return await db.collections!.data_collection.countDocuments({ m_study: study.id });

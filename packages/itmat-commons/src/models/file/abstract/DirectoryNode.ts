@@ -1,44 +1,99 @@
 import { FileNode } from './FileNode';
-import { fileTypes } from './fileTypes';
+import { fileTypes, fileTypesDirs } from './fileTypes';
+import { IFileMongoEntry } from './mongoEntry';
 import { Collection, FindAndModifyWriteOpResultObject } from 'mongodb';
 
-export abstract class DirectoryNode extends FileNode {
-    private readonly _childFiles: string[];
+export class DirectoryNode extends FileNode {
+    private _childFileIds: string[];
+    private _isRoot: boolean;
 
     constructor(
-        id: string | undefined,
-        fileName: string,
-        fileType: fileTypes,
-        uploadedBy: string,
-        private readonly _isRoot: boolean = false
+        {
+            id,
+            fileName,
+            fileType,
+            uploadedBy,
+            isRoot = false,
+            childFileIds = [],
+            deleted = null
+        }: {
+            id?: string,
+            fileName: string,
+            fileType: fileTypes,
+            uploadedBy: string,
+            isRoot: boolean,
+            childFileIds: string[],
+            deleted?: number | null
+        }
     ) {
-        super(id, fileName, fileType, uploadedBy);
-        if (![
-            fileTypes.PATIENT_DATA_BLOB_DIR,
-            fileTypes.STUDY_REPO_DIR,
-            fileTypes.USER_PERSONAL_DIR
-        ].includes(fileType)) {
+        super({ id, fileName, fileType, uploadedBy, deleted });
+        if (!fileTypesDirs.includes(fileType)) {
             throw new Error(`Cannot instantiate Directory with filetype ${fileType}`);
         }
-        this._childFiles = [];
+        this._childFileIds = childFileIds;
+        this._isRoot = isRoot;
     }
 
-    async addChildNodeAndUpdateMongo(collection: Collection, file: FileNode): Promise<FindAndModifyWriteOpResultObject>{
-        // TO_DO
-        // this.childFileIds
+    static makeFromMongoEntry(entry: IFileMongoEntry): DirectoryNode {
+        const { id, fileName, fileType, uploadedBy, deleted, isRoot, childFileIds } = entry;
+        if (!fileTypesDirs.includes(fileType)) {
+            throw new Error('Cannot instantiate FileNode with entry: wrong type.');
+        }
+        if (
+            id === undefined ||
+            fileName === undefined ||
+            fileType === undefined ||
+            uploadedBy === undefined ||
+            deleted === undefined ||
+            isRoot === undefined  ||
+            childFileIds === undefined
+        ) {
+            throw new Error('Cannot instantiate FileNode with entry: missing key.');
+        }
+        return new DirectoryNode({ id, fileName, fileType, uploadedBy, deleted, isRoot, childFileIds });
     }
 
-    async deleteFileOnMongo(collection: Collection): Promise<FindAndModifyWriteOpResultObject> {
-        if (this.root === true) {
+    // @override
+    serialiseToMongoObj(): IFileMongoEntry {
+        return ({
+            id: this.id,
+            fileName: this.fileName,
+            studyId: undefined,
+            projectId: undefined,
+            fileType: this.fileType,
+            fileSize: undefined,
+            content: undefined,
+            description: undefined,
+            uploadedBy: this.uploadedBy,
+            isRoot: this._isRoot,
+            patientId: undefined,
+            dataVersionId: undefined,
+            childFileIds: this._childFileIds,
+            deleted: this.deleted
+        });
+    }
+
+
+    // addChildNodeAndUpdateMongo(collection: Collection, file: FileNode): Promise<FindAndModifyWriteOpResultObject<IFileMongoEntry>>{
+    //     // TO_DO
+    //     // this.childFileIds
+    // }
+
+    // @override
+    deleteFileOnMongo(collection: Collection): Promise<FindAndModifyWriteOpResultObject<IFileMongoEntry>> {
+        if (this._isRoot === true) {
             throw new Error('Cannot delete root directory');
         }
-        //TO_DO
+        return super.deleteFileOnMongo(collection);
     }
 
     get isRoot() { return this._isRoot; }
+    protected get childFileIds() { return this._childFileIds; }
 
-    get childFiles() {
+    protected setChildFileIds(value: string[]) { this._childFileIds = value; }
 
+    getChildFiles(collection: Collection): Promise<FileNode[]> {
+        return collection.find({ deleted: null, id: { $in: this._childFileIds } }).toArray();
     }
 
 }
