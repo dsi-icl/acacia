@@ -218,7 +218,7 @@ input EditUserInput {
     organisation: String
     emailNotificationsActivated: Boolean
     password: String,
-    expiredAt: Float,
+    expiredAt: Float
 }
 
 input IntArrayChangesInput {

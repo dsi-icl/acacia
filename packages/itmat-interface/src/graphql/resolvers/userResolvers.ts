@@ -265,7 +265,7 @@ export const userResolvers = {
                 realName,
                 email,
                 organisation,
-                emailNotificationsActivated,
+                emailNotificationsActivated
             });
 
             return createdUser;
@@ -343,7 +343,7 @@ export const userResolvers = {
         editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation, expiredAt }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number,
+                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number
             } = args.user;
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
@@ -370,7 +370,7 @@ export const userResolvers = {
                 password,
                 description,
                 organisation,
-                expiredAt,
+                expiredAt
             };
 
             /* check email is valid form */

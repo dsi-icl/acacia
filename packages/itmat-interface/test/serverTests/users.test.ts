@@ -904,7 +904,7 @@ describe('USERS API', () => {
                     createdBy: 'admin', 
                     organisation: 'DSI',
                     id: userId
-                },
+                }
                 
             ]);
         });
@@ -1094,7 +1094,7 @@ describe('USERS API', () => {
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
                     email: 'fake@email.io',
-                    type: userTypes.STANDARD,
+                    type: userTypes.STANDARD
                 }
             });
 
@@ -1120,7 +1120,7 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${createdUser.id}`,
                         projects: [],
                         studies: []
-                    },
+                    }
                 }
             );
             expect((res.body.data.createUser.expiredAt - 
@@ -1183,7 +1183,6 @@ describe('USERS API', () => {
                     type: userTypes.STANDARD
                 }
             });
-            
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');

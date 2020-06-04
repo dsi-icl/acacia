@@ -13,7 +13,7 @@ const users = [{
     "deleted" : null, 
     "id" : "replaced_at_runtime2", 
     "createdAt": 1591134065000,
-    "expiredAt": 1991134065000,
+    "expiredAt": 1991134065000
 },
 { 
     "username" : "standardUser", 
@@ -30,7 +30,7 @@ const users = [{
     "deleted" : null, 
     "id" : "replaced_at_runtime1",
     "createdAt": 1591134065000,
-    "expiredAt": 1991134065000,
+    "expiredAt": 1991134065000
 }];
 
 module.exports = users;
