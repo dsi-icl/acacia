@@ -18,6 +18,10 @@ import * as mfa from '../../src/utils/mfa';
 const { Models: { UserModels: { userTypes }} } = itmatCommons;
 type IUser = itmatCommons.Models.UserModels.IUser;
 
+/* set minimal acceptable error of timestamps, in millisec */
+const oneDayDiff = 86400 * 1000; /* one day in millisec */
+const minTimeError = 10.0; /* errors less than 10ms will be ignored */
+
 let app;
 let mongodb;
 let admin;
@@ -1123,8 +1127,8 @@ describe('USERS API', () => {
                     }
                 }
             );
-            expect((res.body.data.createUser.expiredAt - 
-                res.body.data.createUser.createdAt) / 1000).toBeCloseTo(86400.0, 1);
+            expect(Math.abs(res.body.data.createUser.expiredAt - 
+                res.body.data.createUser.createdAt - oneDayDiff) < minTimeError).toBeTruthy();
         });
 
         test('create user with wrong email format (admin)', async () => {

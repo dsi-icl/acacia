@@ -20,7 +20,7 @@ export class UserCore {
         const { password, otpSecret, organisation, username, type, description, realName, email, emailNotificationsActivated  } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
         const createdAt = new Date().getTime();
-        const expiredAt = new Date().getTime() + 86400 * 1000;    
+        const expiredAt = new Date().getTime() + 86400 * 1000 /* millisec per day */;    
         const entry: Models.UserModels.IUser = {
             id: uuid(),
             username,

@@ -38,6 +38,10 @@ type IFieldEntry = itmatCommons.Models.Field.IFieldEntry;
 type IRole = itmatCommons.Models.Study.IRole;
 type IStudyDataVersion = itmatCommons.Models.Study.IStudyDataVersion;
 
+/* set minimal acceptable error of timestamps, in millisec */
+const oneDayDiff = 86400 * 1000; /* one day in millisec */
+const minTimeError = 10.0; /* errors less than 10ms will be ignored */
+
 let app;
 let mongodb;
 let admin;
@@ -953,8 +957,8 @@ describe('STUDY API', () => {
                         studies: []
                     }
                 });
-                expect((res.body.data.createUser.expiredAt - 
-                    res.body.data.createUser.createdAt) / 1000).toBeCloseTo(86400.0, 1);
+                expect(Math.abs(res.body.data.createUser.expiredAt - 
+                    res.body.data.createUser.createdAt - oneDayDiff) < minTimeError).toBeTruthy();
             }
 
             /* 6. add authorised user to role */
@@ -1052,8 +1056,8 @@ describe('STUDY API', () => {
                         studies: []
                     },
                 });
-                expect((res.body.data.createUser.expiredAt - 
-                    res.body.data.createUser.createdAt) / 1000).toBeCloseTo(86400.0, 1);
+                expect(Math.abs(res.body.data.createUser.expiredAt - 
+                    res.body.data.createUser.createdAt - oneDayDiff) < minTimeError).toBeTruthy();
             }
 
             /* 6. add authorised user to role */
@@ -1154,8 +1158,8 @@ describe('STUDY API', () => {
                         studies: []
                     }
                 });
-                expect((res.body.data.createUser.expiredAt - 
-                    res.body.data.createUser.createdAt) / 1000).toBeCloseTo(86400.0, 1);
+                expect(Math.abs(res.body.data.createUser.expiredAt - 
+                    res.body.data.createUser.createdAt - oneDayDiff) < minTimeError).toBeTruthy();
             }
 
             /* 6. add authorised user to role */
@@ -1246,8 +1250,8 @@ describe('STUDY API', () => {
                         }]
                     }
                 });
-                expect((res.body.data.whoAmI.expiredAt - 
-                    res.body.data.whoAmI.createdAt) / 1000).toBeCloseTo(400000000.0, 1);
+                expect(Math.abs(res.body.data.whoAmI.expiredAt - 
+                    res.body.data.whoAmI.createdAt - 400000000.0 * 1000 /* to millisec */) < minTimeError).toBeTruthy();
             }
             /* connecting users */
             {

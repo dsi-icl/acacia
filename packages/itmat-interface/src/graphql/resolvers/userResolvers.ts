@@ -182,7 +182,7 @@ export const userResolvers = {
                 throw new UserInputError('User does not exist.');
             }
             
-            if (result.expiredAt < (new Date()).valueOf() && result.type === 'STANDARD') {
+            if (result.expiredAt < (new Date()).valueOf() && result.type === userTypes.STANDARD) {
                 throw new UserInputError('Account Expired.');
             }
             const passwordMatched = await bcrypt.compare(args.password, result.password);
