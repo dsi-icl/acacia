@@ -54,7 +54,7 @@
         "@types/passport": "1.0.3",
         "@types/passport-local": "1.0.33",
         "@types/uuid": "7.0.4",
-        "@types/webpack-env": "1.15.1",
+        "@types/webpack-env": "1.15.2",
         "chalk": "4.0.0",
         "cors": "2.8.5",
         "cross-env": "7.0.2",
