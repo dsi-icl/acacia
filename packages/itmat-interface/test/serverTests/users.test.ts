@@ -664,7 +664,7 @@ describe('USERS API', () => {
             expect(res.body.data.login).toBeNull();
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('Account Expired.');
-            await admin.post('/graphql').send(
+            const dres = await admin.post('/graphql').send(
                 {
                     query: print(DELETE_USER),
                     variables: {
@@ -719,7 +719,7 @@ describe('USERS API', () => {
                 expiredAt: 1501134065000
             });
             expect(res.body.errors).toBeUndefined();
-            await admin.post('/graphql').send(
+            const dres = await admin.post('/graphql').send(
                 {
                     query: print(DELETE_USER),
                     variables: {
