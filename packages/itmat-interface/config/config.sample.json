@@ -29,5 +29,14 @@
         "bucketRegion": "region",
         "useSSL": false
     },
-    "sessionsSecret": "Change_Me"
+    "sessionsSecret": "Change_Me",
+    "aesSecret": "change_this",
+    "useSSL": false,
+    "nodemailer": {
+        "service": "Outlook365",
+        "auth": {
+            "user": "user",
+            "pass": "password" 
+        }
+    }
 }
