@@ -1,7 +1,11 @@
 import React from 'react';
 import { useApolloClient, useMutation } from 'react-apollo';
-import { UPLOAD_FILE } from 'itmat-commons/dist/graphql/files';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { Models, GQLRequests } from 'itmat-commons';
+const {
+    UPLOAD_FILE,
+    GET_STUDY
+} = GQLRequests;
+const { STUDY_REPO_FILE, STUDY_REPO_DIR } = Models.File.fileType;
 
 export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [description, setDescription] = React.useState('');
@@ -40,8 +44,16 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
                         return;
                     }
 
-                    const file = (fileRef.current! as any).files[0];
-                    uploadFile({ variables: { file, studyId, description, fileLength: file.size } });
+                    const file: File = (fileRef.current! as any).files[0];
+                    const isZipped = file.name.substring(file.name.lastIndexOf('.') + 1) === 'zip';
+                    uploadFile({ variables: {
+                        file,
+                        studyId,
+                        description,
+                        fileLength: file.size,
+                        fileType: isZipped ? STUDY_REPO_DIR : STUDY_REPO_FILE,
+                        isZipped
+                    } });
                 }}>Upload</button>
         }
         {error ? <div className="error_banner">{error}</div> : null}
