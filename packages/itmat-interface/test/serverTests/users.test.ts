@@ -9,7 +9,7 @@ import { errorCodes } from '../../src/graphql/errors';
 import chalk from 'chalk';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD } = itmatCommons.GQLRequests;
+const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD, LOGIN } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
@@ -930,7 +930,7 @@ describe('USERS API', () => {
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
                     email: 'user0email@email.io',
-                    type: Models.UserModels.userTypes.STANDARD
+                    type: userTypes.STANDARD
                 }
             });
 
