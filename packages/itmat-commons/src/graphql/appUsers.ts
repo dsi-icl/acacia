@@ -6,6 +6,7 @@ export const GET_USERS = gql`
         getUsers (userId: $userId) {
             id
             username @include (if: $fetchDetailsAdminOnly)
+            otpSecret
             type
             realName
             email @include (if: $fetchDetailsAdminOnly)
@@ -43,7 +44,7 @@ export const CREATE_USER = gql`
     ){
         createUser(user: {
             username: $username
-            password: $password
+            password: $password            
             realName: $realName
             description: $description
             organisation: $organisation

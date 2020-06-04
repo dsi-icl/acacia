@@ -11,6 +11,8 @@ import config from '../../utils/configManager';
 import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
 import { makeGenericReponse } from '../responses';
+import * as mfa from '../../utils/mfa';
+
 type IProject = Models.Study.IProject;
 type IRole = Models.Study.IRole;
 type IStudy = Models.Study.IStudy;
@@ -190,6 +192,12 @@ export const userResolvers = {
             delete result.password;
             delete result.deleted;
 
+        	// validate the TOTP
+			const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
+			if (!totpValidated) {
+                throw new UserInputError('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
+			}
+
             return new Promise((resolve) => {
                 req.login(result, (err: any) => {
                     if (err) {
@@ -244,8 +252,13 @@ export const userResolvers = {
             if (alreadyExist !== null && alreadyExist !== undefined) {
                 throw new UserInputError('User already exists.');
             }
+
+            /* randomly generate a secret for Time-based One Time Password*/            
+            const otpSecret = mfa.generateSecret();	
+
             const createdUser = await userCore.createUser(requester.username, {
                 password,
+                otpSecret,
                 username,
                 type,
                 description,

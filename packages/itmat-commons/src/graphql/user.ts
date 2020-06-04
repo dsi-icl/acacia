@@ -1,10 +1,10 @@
 import gql from 'graphql-tag';
 
-
 export const user_fragment = gql`
     fragment ALL_FOR_USER on User {
         id
         username
+        otpSecret
         type
         realName
         email
@@ -29,8 +29,8 @@ export const user_fragment = gql`
 `;
 
 export const LOGIN = gql`
-mutation login($username: String!, $password: String!) {
-  login(username: $username, password: $password) {
+mutation login($username: String!, $password: String!, $totp: String!) {
+  login(username: $username, password: $password, totp: $totp) {
       ...ALL_FOR_USER
   }
 }
