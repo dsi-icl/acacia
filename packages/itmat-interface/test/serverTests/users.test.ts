@@ -423,7 +423,7 @@ describe('USERS API', () => {
                 used: false
             };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
-                { username: SEED_STANDARD_USER_USERNAME },
+                { username: SEED_STANDARD_USER_USERNAME },                
                 { $set: { resetPasswordRequests: [resetPWrequest] }}
             );
             expect(updateResult.ok).toBe(1);
@@ -443,14 +443,15 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.resetPassword).toEqual({ successful: true });
-            await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
-            await connectAgent(newloggedoutuser, SEED_STANDARD_USER_USERNAME, 'securepasswordrighthere');
+            const checkedUser = await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            await connectAgent(newloggedoutuser, SEED_STANDARD_USER_USERNAME, 'securepasswordrighthere', checkedUser.otpSecret);
             const whoami = await newloggedoutuser.post('/graphql').send({ query: print(WHO_AM_I) });
             expect(whoami.status).toBe(200);
             expect(whoami.body.error).toBeUndefined();
             expect(whoami.body.data.whoAmI.id).toBeDefined();
             expect(whoami.body.data.whoAmI).toEqual({
                 username: 'standardUser',
+                otpSecret: checkedUser.otpSecret,
                 type: userTypes.STANDARD,
                 realName: 'Chan Tai Man',
                 createdBy: 'admin',
@@ -506,14 +507,15 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.resetPassword).toEqual({ successful: true });
-            await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
-            await connectAgent(newloggedoutuser, SEED_STANDARD_USER_USERNAME, 'securepasswordrighthere');
+            const checkedUser = await db.collections!.users_collection.findOne({ username: SEED_STANDARD_USER_USERNAME });
+            await connectAgent(newloggedoutuser, SEED_STANDARD_USER_USERNAME, 'securepasswordrighthere', checkedUser.otpSecret);
             const whoami = await newloggedoutuser.post('/graphql').send({ query: print(WHO_AM_I) });
             expect(whoami.status).toBe(200);
             expect(whoami.body.error).toBeUndefined();
             expect(whoami.body.data.whoAmI.id).toBeDefined();
             expect(whoami.body.data.whoAmI).toEqual({
                 username: 'standardUser',
+                otpSecret: checkedUser.otpSecret,
                 type: userTypes.STANDARD,
                 realName: 'Chan Tai Man',
                 createdBy: 'admin',
@@ -1140,6 +1142,7 @@ describe('USERS API', () => {
                 type: userTypes.STANDARD, 
                 realName: 'Chan Ming Ming', 
                 password: 'fakepassword', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin', 
                 email: 'new3333@user.io', 
                 resetPasswordRequests: [],
@@ -1239,6 +1242,7 @@ describe('USERS API', () => {
                 type: userTypes.STANDARD,
                 realName: 'Ming Man San',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 createdBy: 'admin',
                 email: 'new4444@user.io',
                 resetPasswordRequests: [],
@@ -1250,7 +1254,7 @@ describe('USERS API', () => {
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
-            await connectAgent(createdUser, 'new_user_4444', 'admin');
+            await connectAgent(createdUser, 'new_user_4444', 'admin', newUser.otpSecret);
 
             /* assertion */
             const res = await createdUser.post('/graphql').send(
