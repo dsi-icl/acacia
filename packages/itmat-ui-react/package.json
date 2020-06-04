@@ -60,9 +60,6 @@
     "resolutions": {
         "**/moment": "2.24.0"
     },
-    "eslintConfig": {
-        "extends": "react-app"
-    },
     "browserslist": [
         ">0.2%",
         "not dead",
