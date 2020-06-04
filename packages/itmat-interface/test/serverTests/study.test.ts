@@ -111,7 +111,7 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 realName: 'admin',
                 createdBy: 'chon',
@@ -227,7 +227,7 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 realName: 'admin',
                 createdBy: 'chon',
@@ -265,7 +265,7 @@ describe('STUDY API', () => {
             expect(resWhoAmIAfter.body.data.errors).toBeUndefined();
             expect(resWhoAmIAfter.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 realName: 'admin',
                 createdBy: 'chon',
@@ -455,7 +455,7 @@ describe('STUDY API', () => {
                 type: userTypes.STANDARD, 
                 realName: `${username}_realname`, 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin', 
                 email: `${username}@user.io`, 
                 resetPasswordRequests: [],
@@ -482,7 +482,7 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
             const authorisedUser = request.agent(app);
-            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret)
+            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
             /* test */
             const projectName = uuid();
@@ -557,7 +557,7 @@ describe('STUDY API', () => {
                 type: userTypes.STANDARD, 
                 realName: `${username}_realname`, 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin', 
                 email: `${username}@user.io`,
                 resetPasswordRequests: [],
@@ -584,7 +584,7 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
             const authorisedUser = request.agent(app);
-            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret)
+            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
             /* test */
             const res = await authorisedUser.post('/graphql').send({
@@ -774,7 +774,7 @@ describe('STUDY API', () => {
                         uri: 'fakeuri2',
                         deleted: null
                     }
-                ]
+                ];
                 await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
                 await db.collections!.data_collection.insertMany(mockData);
                 await db.collections!.field_dictionary_collection.insertMany(mockFields);
@@ -1209,7 +1209,7 @@ describe('STUDY API', () => {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
                 expect(res.body.data.whoAmI).toEqual({
                     username: 'admin',
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
                     realName: 'admin',
                     createdBy: 'chon',
@@ -1234,11 +1234,11 @@ describe('STUDY API', () => {
             /* connecting users */
             {
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin', createdUserAuthorised.otpSecret)
+                await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin', createdUserAuthorised.otpSecret);
                 authorisedUserStudy = request.agent(app);
-                await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin', createdUserAuthorisedStudy.otpSecret)
+                await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin', createdUserAuthorisedStudy.otpSecret);
                 authorisedUserStudyManageProject = request.agent(app);
-                await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin', createdUserAuthorisedStudyManageProjects.otpSecret)
+                await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin', createdUserAuthorisedStudyManageProjects.otpSecret);
 
             }
         });
@@ -1899,7 +1899,7 @@ describe('STUDY API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('Some of the files provided in your changes are not valid.');
-            expect(res.body.data.editProjectApprovedFiles).toBe(null)
+            expect(res.body.data.editProjectApprovedFiles).toBe(null);
         });
 
         test('Set a previous study dataversion as current (admin)', async () => {
@@ -2043,7 +2043,7 @@ describe('STUDY API', () => {
                 id: uuid(),
                 username: 'datacurator',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'user@ic.ac.uk',
                 realName: 'DataCurator',
                 organisation: 'DSI',
@@ -2070,7 +2070,7 @@ describe('STUDY API', () => {
 
             /* setup: connect user */
             const dataCurator = request.agent(app);
-            await connectAgent(dataCurator, userDataCurator.username, 'admin', userDataCurator.otpSecret)
+            await connectAgent(dataCurator, userDataCurator.username, 'admin', userDataCurator.otpSecret);
 
             /* setup: add an extra dataversion */
             await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });

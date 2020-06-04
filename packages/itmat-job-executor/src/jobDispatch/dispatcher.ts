@@ -20,7 +20,7 @@ export class JobDispatcher {
     }
 
     public async dispatch(job: IJobEntry<any>) {
-        console.log(this._handlerCollection, job.jobType)
+        console.log(this._handlerCollection, job.jobType);
         if (!this._handlerCollection[job.jobType]) {
             // set job to UNPROCESSED
             console.log('NO JOB HANDLER AVAILLABLE');

@@ -38,14 +38,14 @@ function dynamicTruncationFn(hmacValue) {
     );
 }
     
-    //  Generate TOTP based on the HOTP function
-    // The algorithm is specified in RFC6238
+//  Generate TOTP based on the HOTP function
+// The algorithm is specified in RFC6238
 export function generateTOTP(secret, window = 0) {
     const counter = Math.floor(Date.now() / 30000);
     return generateHOTP(secret, counter + window);
 }
     
-    // Verify the TOTP
+// Verify the TOTP
 export function verifyTOTP(token, secret, window = 1) {
     if (Math.abs(+window) > 10) {
         console.error('Window size is too large');

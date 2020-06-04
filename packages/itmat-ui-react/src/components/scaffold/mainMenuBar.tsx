@@ -27,7 +27,7 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
         <Query<any, any> query={GET_GRANTED_PERMISSIONS}>
             {({ loading, data, error }) => {
                 if (loading) return <LoadingBalls />;
-                if (error) return <p>{error.toString()}</p>
+                if (error) return <p>{error.toString()}</p>;
                 return (
                     <div>
                         <NavLink to="/users" title="Users" activeClassName={css.clickedButton}>

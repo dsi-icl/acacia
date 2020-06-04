@@ -27,7 +27,7 @@ export const permissionResolvers = {
             const grantedPermissions = {
                 studies: await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray(),
                 projects: await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray()
-            }
+            };
             return grantedPermissions;
         }
     },

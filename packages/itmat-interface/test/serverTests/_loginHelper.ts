@@ -8,12 +8,12 @@ import * as mfa from '../../src/utils/mfa';
 const { LOGIN, LOGOUT } = itmatCommons.GQLRequests;
 
 export function connectAdmin(agent) {
-    const adminSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA";
+    const adminSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';
     return connectAgent(agent, 'admin', 'admin', adminSecret);
 }
 
 export function connectUser(agent) {
-    const userSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA";
+    const userSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';
     return connectAgent(agent, 'standardUser', 'admin', userSecret);
 }
 

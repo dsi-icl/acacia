@@ -79,7 +79,7 @@ async function setupDatabase(mongostr, databaseName) {
     const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 
     /* creating collections and indexes */
-    for (let each of Object.keys(collections)) {
+    for (const each of Object.keys(collections)) {
         if (existingCollections.includes(collections[each].name)) {
             await db.dropCollection(collections[each].name);
         }

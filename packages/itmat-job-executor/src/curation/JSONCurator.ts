@@ -2,7 +2,7 @@ import { Collection } from 'mongodb';
 import { Writable } from 'stream';
 import JSONStream from 'JSONStream';
 import { Models } from 'itmat-commons';
-import { fieldValidator, fieldParser } from '../utils/jobUtils'
+import { fieldValidator, fieldParser } from '../utils/jobUtils';
 type IFieldDescriptionObject = Models.Data.IFieldDescriptionObject;
 type IDataEntry = Models.Data.IDataEntry;
 type IJobEntry<T> = Models.JobModels.IJobEntry<T>;
@@ -39,10 +39,10 @@ export class JSONCurator {
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         return new Promise((resolve) => {
             console.log(`uploading for job ${this.job.id}`);
-            let isHeader: boolean = true;
+            let isHeader = true;
             let objectNum = 0;
             const subjectString: string[] = [];
-            let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+            const bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
             const jsonstream = JSONStream.parse([{}]);
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,

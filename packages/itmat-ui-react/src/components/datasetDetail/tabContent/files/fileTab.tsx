@@ -45,7 +45,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 description: error.message ?? 'Unknown Error Occurred!',
                 placement: 'topRight',
                 duration: 0,
-            })
+            });
         }
     });
 
@@ -53,7 +53,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         fileFilter(acceptedFiles.map(file => {
             (file as RcFile).uid = `${Math.random()}`;
             return file as RcFile;
-        }))
+        }));
     };
 
     const onDragEnter = () => setisDropOverlayShowing(true);
@@ -76,7 +76,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     const fileFilter = (files: RcFile[]) => {
         setFileList([...fileList, ...files]);
-    }
+    };
 
     const uploadHandler = () => {
 
@@ -108,13 +108,13 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
         Promise.all(uploads).then(() => {
             setIsUploading(false);
-        })
+        });
     };
 
     const uploaderProps = {
         onRemove: (file) => {
             const target = fileList.indexOf(file);
-            setFileList(fileList.splice(0, target).concat(fileList.splice(target + 1)))
+            setFileList(fileList.splice(0, target).concat(fileList.splice(target + 1)));
         },
         beforeUpload: (file) => {
             fileFilter([file]);

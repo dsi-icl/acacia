@@ -14,7 +14,7 @@ export const UserListSection: React.FunctionComponent = (props) => {
             variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
         >
             {({ loading, error, data }) => {
-            if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadingBalls />; }
 	            if (error) {
 	                return (
 	                    <p>

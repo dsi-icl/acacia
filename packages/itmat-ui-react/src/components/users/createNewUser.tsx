@@ -63,7 +63,7 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
                 <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
                 { loading ? <button>Loading...</button> : <button onClick={clickedSubmit(createUser)}>Submit</button> }
             </div>
-        { inputError !== '' ? <div className='error_banner'>{inputError}</div> : null }
+            { inputError !== '' ? <div className='error_banner'>{inputError}</div> : null }
         </form>
     );
 };

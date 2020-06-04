@@ -36,5 +36,5 @@ export function fieldParser(field: string) {
         timepoint,
         measurement,
         datatype
-    }
+    };
 }

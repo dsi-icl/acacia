@@ -59,4 +59,4 @@ module.exports = {
         libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
         umdNamedDefine: NODE_ENV === 'development' ? undefined : true
     }
-}
+};

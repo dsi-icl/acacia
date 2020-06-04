@@ -1,6 +1,6 @@
 // TEST QUERY example
 //
-let query_test = {
+const query_test = {
     id : '474b9676-8b2c-4983-9dbe-a6ba84370288',
     queryString : '{"31.0.0":"Male"}',
     study : null,

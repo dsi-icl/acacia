@@ -71,4 +71,4 @@ module.exports = (on) => {
     };
 
     on('file:preprocessor', wp({ webpackOptions: webpackconfig }));
-}
+};

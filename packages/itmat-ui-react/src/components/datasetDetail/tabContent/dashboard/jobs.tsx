@@ -19,7 +19,7 @@ const STATUSES: { [status: string]: any } = {
                 </ul>
             </div>
         </div>
-        </td>,
+    </td>,
     QUEUED: () => <td className={css.queuedStatus_td}><span>Queued</span></td>,
     PROCESSING: () => <td className={css.processingStatus_td}><span>Processing</span></td>,
     CANCELLED: () => <td className={css.cancelledStatus_td}><span>Cancelled</span></td>

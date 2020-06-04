@@ -2,7 +2,7 @@ import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable } from 'stream';
 import { Models } from 'itmat-commons';
-import { fieldValidator, fieldParser } from '../utils/jobUtils'
+import { fieldValidator, fieldParser } from '../utils/jobUtils';
 type IFieldDescriptionObject = Models.Data.IFieldDescriptionObject;
 type IDataEntry = Models.Data.IDataEntry;
 type IJobEntry<dataobj> = Models.JobModels.IJobEntry<dataobj>;
@@ -41,7 +41,7 @@ export class CSVCurator {
         return new Promise((resolve) => {
             console.log(`uploading for job ${this.job.id}`);
             let lineNum = 0;
-            let isHeader: boolean = true;
+            let isHeader = true;
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
             const csvparseStream = csvparse(this.parseOptions);

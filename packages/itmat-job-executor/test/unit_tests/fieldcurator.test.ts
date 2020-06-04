@@ -11,7 +11,7 @@ describe('Unit tests for processFieldRow function', () => {
             dataVersionId: 'mockVersionId',
             tag: 'testFieldTree'
         }
-    })
+    });
     const templateParams = {
         lineNum: 22,
         row: [],
@@ -52,8 +52,8 @@ describe('Unit tests for processFieldRow function', () => {
         ] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(2);
-        expect(error[0]).toBe("Line 22 column 2: Field Name cannot be empty.");
-        expect(error[1]).toBe("Line 22 column 7: Number of Time Points cannot be empty.");
+        expect(error[0]).toBe('Line 22 column 2: Field Name cannot be empty.');
+        expect(error[1]).toBe('Line 22 column 7: Number of Time Points cannot be empty.');
         expect(dataEntry).toEqual({});
     });
 
@@ -63,7 +63,7 @@ describe('Unit tests for processFieldRow function', () => {
         ] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
-        expect(error[0]).toBe("Line 22: Uneven field Number; expected 11 fields but got 9.");
+        expect(error[0]).toBe('Line 22: Uneven field Number; expected 11 fields but got 9.');
         expect(dataEntry).toEqual({});
     });
 
@@ -83,9 +83,9 @@ describe('Unit tests for processFieldRow function', () => {
         ] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(3);
-        expect(error[0]).toBe(`Line 22 column 1: Cannot parse field ID as number.`);
-        expect(error[1]).toBe(`Line 22 column 7: Cannot parse number of time points as number.`);
-        expect(error[2]).toBe(`Line 22 column 8: Cannot parse number of measurements as number.`);
+        expect(error[0]).toBe('Line 22 column 1: Cannot parse field ID as number.');
+        expect(error[1]).toBe('Line 22 column 7: Cannot parse number of time points as number.');
+        expect(error[2]).toBe('Line 22 column 8: Cannot parse number of measurements as number.');
         expect(dataEntry).toEqual({});
     });
 
@@ -117,7 +117,7 @@ describe('FieldCuratorClass', () => {
     function MongoStub() {
         this._bulkinsert = new BulkInsert();
         this.initializeUnorderedBulkOp = () => this._bulkinsert;
-    };
+    }
 
     it('test mongostub', () => {
         const bulkinsert = (new MongoStub).initializeUnorderedBulkOp();
@@ -186,7 +186,7 @@ describe('FieldCuratorClass', () => {
                 dataVersionId: 'mockDataVersionId',
                 tag: 'mockTag'
             }
-        })
+        });
         const fieldcurator = new FieldCurator(
             mongoStub,
             readStream,

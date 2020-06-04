@@ -74,8 +74,8 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
     // get QR Code for the otpSecret.  Google Authenticator requires oauth_uri format for the QR code
-    let qrcode_url = "";
-    const oauth_uri = "otpauth://totp/IDEAFAST:" + inputs.username + "?secret=" + inputs.otpSecret + "&issuer=IDEAFAST";
+    let qrcode_url = '';
+    const oauth_uri = 'otpauth://totp/IDEAFAST:' + inputs.username + '?secret=' + inputs.otpSecret + '&issuer=IDEAFAST';
     QRCode.toDataURL(oauth_uri, function(err, data_url) {
         qrcode_url = data_url;
     });
@@ -87,25 +87,25 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
         >
             {(submit, { loading, error, data }) =>
                 <>
-                    <label>Username: <input type='text' value={inputs.username} onChange={e => { setInputs({ ...inputs, username: e.target.value }) }} /> </label><br /><br />
+                    <label>Username: <input type='text' value={inputs.username} onChange={e => { setInputs({ ...inputs, username: e.target.value }); }} /> </label><br /><br />
                     <label>Type:
-                    <select value={inputs.type} onChange={e => { setInputs({ ...inputs, type: e.target.value } as any); }}>
+                        <select value={inputs.type} onChange={e => { setInputs({ ...inputs, type: e.target.value } as any); }}>
                             <option value="STANDARD">System user</option>
                             <option value="ADMIN">System admin</option>
                         </select></label><br /><br />
-                    <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }) }} /> </label><br /><br />
+                    <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }); }} /> </label><br /><br />
                     <label>Authenticator Key (readonly): <input type='text' readOnly value={inputs.otpSecret.toLowerCase()} /> </label><br /><br />
                     <label>Authenticator QR Code: </label> <img src={qrcode_url} alt="QR code for Google Authenticator" width="150" height="150" /> <br /><br />
                     {
                         whoamidata.whoAmI.id === user.id
                             ?
-                            <><label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }) }} /></label><br/><br/></>
+                            <><label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }); }} /></label><br/><br/></>
                             :
                             null
                     }
-                    <label>Email: <input type='text' value={inputs.email} onChange={e => { setInputs({ ...inputs, email: e.target.value }) }} /></label><br /><br />
-                    <label>Email Notification:  <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({ ...inputs, emailNotificationsActivated: e.target.checked }) }} /></label><br /><br />
-                    <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }) }} /></label> <br /><br />
+                    <label>Email: <input type='text' value={inputs.email} onChange={e => { setInputs({ ...inputs, email: e.target.value }); }} /></label><br /><br />
+                    <label>Email Notification:  <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({ ...inputs, emailNotificationsActivated: e.target.checked }); }} /></label><br /><br />
+                    <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }); }} /></label> <br /><br />
                     <label>Organisation: <input type='text' value={inputs.organisation} onChange={e => setInputs({ ...inputs, organisation: e.target.value })} /> </label><br /><br />
                     <label>Created by (readonly): <input type='text' readOnly value={inputs.createdBy} /> </label><br /><br />
                     <div className={css.submit_cancel_button_wrapper}>
@@ -133,7 +133,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                                                 forgotUsername: false,
                                                 forgotPassword: true,
                                                 username: user.username
-                                            } })}}
+                                            } });}}
                                     >Request reset password for user</button>
                             )
                             :
@@ -147,11 +147,11 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
 
                         {(deleteUser, { loading, error, data: UserDeletedData }) => {
                             if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
-                            if (error) return <p>{error.message}</p>
+                            if (error) return <p>{error.message}</p>;
                             return (
                                 <>
-                                    <label>Delete this user:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true) }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
-                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }) }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false) }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
+                                    <label>Delete this user:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
+                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }); }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
                                 </>
                             );
                         }}
