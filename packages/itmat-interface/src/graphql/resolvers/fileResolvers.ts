@@ -1,7 +1,20 @@
 import { ApolloError } from 'apollo-server-express';
 import { Models, permissions, task_required_permissions } from 'itmat-commons';
-const { File: { UserPersonalDir, UserPersonalFile, StudyRepoDir, StudyRepoScriptFile, ObjStoreFileNode, StudyRepoObjStoreFile } } = Models;
-const { fileTypes } = Models.File;
+const { File: {
+        FileNode,
+        UserPersonalDir,
+        UserPersonalFile,
+        StudyRepoDir,
+        StudyRepoScriptFile,
+        ObjStoreFileNode,
+        StudyRepoObjStoreFile,
+        PatientDataBlobFile,
+        fileTypes,
+        fileTypesStudy,
+        fileTypesPersonal
+    }, JobModels: {
+        zipFormats
+    }} = Models;
 import { Logger } from 'itmat-utils';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -10,6 +23,13 @@ import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 type IFileMongoEntry = Models.File.IFileMongoEntry;
+type IStudyFileNode = Models.File.IStudyFileNode;
+type FileNode = Models.File.FileNode;
+type IUser = Models.UserModels.IUser;
+type ObjStoreFileNode = Models.File.ObjStoreFileNode;
+type StudyRepoObjStoreFile = Models.File.StudyRepoObjStoreFile;
+type IJobEntryForUnzippingFile = Models.JobModels.IJobEntryForUnzippingFile;
+
 
 export const fileResolvers = {
     File: {
@@ -22,18 +42,72 @@ export const fileResolvers = {
     Mutation: {
         /**
          * user actions:
-         * - user create dir for himself
-         * - user create file for himself
-         * - user upload a zipped/unzipped file for study
-         * - user create dir for study
-         * - user create script for study
-         * - user unzip file -> create job -> may fail
+         * - user create dir for himself (createFile)
+         * - user create file for himself (createFile)
+         * - user create dir for study (createFile)
+         * - user create script for study (createFile)
+         *
+         * - user delete file (deleteFile)
+         *
+         * - user upload a zipped/unzipped file for study (uploadFile)
+         *
+         * - user turn study objstore file to patient blob (in job resolver, handled by job executor)
+         *
+         * - user unzip file -> create job -> may fail (createJobForUnzippingFile)
          */
+        createJobForUnzippingFile: async(parent: object, args: { fileId: string }, context: any, info: any): Promise<IJobEntryForUnzippingFile> => {
+            const requester: IUser = context.req.user;
+            const { fileId } = args;
+
+            /* check permission */
+
+            /* check if file exists */
+            const fileEntry: IFileMongoEntry | null = await FileNode.findFileOnMongo(db.collections!.files_collection, { id: fileId });
+            if (!fileEntry) {
+                throw new Error(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
+            /* file type must be object store file */
+            let file: StudyRepoObjStoreFile;
+            try {
+                file = StudyRepoObjStoreFile.makeFromMongoEntry(fileEntry);
+            } catch (e) {
+                throw new Error(`Cannot unzip file of type ${fileEntry.fileType}.`);
+            }
+
+            /* check permissions */
+            if (!/.zip$/.test(file.fileName)) {
+                throw new Error('Trying to unzip file with wrong extension.');
+            }
+
+            /* create job */
+            const job: IJobEntryForUnzippingFile = {
+                id: uuid(),
+                jobType: 'UNZIP',
+                studyId: file.studyId,
+                requester: requester.id,
+                requestTime: new Date().valueOf(),
+                receivedFiles: [],
+                status: 'QUEUED',
+                error: null,
+                cancelled: false,
+                data: {
+                    fileId,
+                    zipFormat: zipFormats.ZIP
+                }
+            };
+
+            const insertResult = await db.collections!.files_collection.insertOne(job);
+            if (insertResult.result.ok !== 1) {
+                throw new ApolloError(errorCodes.DATABASE_ERROR);
+            }
+            return job;
+        },
         createFile: async(parent: object, args: any, context: any, info: any): Promise<IFileMongoEntry> => {
-            const requester: Models.UserModels.IUser = context.req.user;
+            const requester: IUser = context.req.user;
             const { fileName, studyId, fileType } = args;
 
-            let file: Models.File.FileNode | undefined;
+            let file: FileNode | undefined;
             switch (fileType) {
                 case fileTypes.STUDY_REPO_DIR:
                     /* check permissions */
@@ -78,7 +152,7 @@ export const fileResolvers = {
             context: any,
             info: any
         ): Promise<IFileMongoEntry> => {
-            const requester: Models.UserModels.IUser = context.req.user;
+            const requester: IUser = context.req.user;
 
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -101,7 +175,7 @@ export const fileResolvers = {
                 });
 
                 stream.on('end', async () => {
-                    let fileObj: Models.File.ObjStoreFileNode;
+                    let fileObj: ObjStoreFileNode;
                     switch (args.fileType) {
                         case fileTypes.STUDY_REPO_OBJ_STORE_FILE:
                             fileObj = new StudyRepoObjStoreFile({
@@ -132,30 +206,45 @@ export const fileResolvers = {
             });
         },
         deleteFile: async (parent: object, args: { fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
-            const requester: Models.UserModels.IUser = context.req.user;
+            const requester: IUser = context.req.user;
 
-            const file: IFileMongoEntry = await db.collections!.files_collection.findOne({ deleted: null, id: args.fileId });
-
-            if (!file) {
+            const fileentry: IFileMongoEntry | null = await db.collections!.files_collection.findOne({ deleted: null, id: args.fileId });
+            if (!fileentry) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
-                requester,
-                file.studyId
-            );
+
+            let file: FileNode;
+            try {
+                file = FileNode.makeFromMongoEntry(fileentry);
+            } catch (e) {
+                throw new ApolloError(errorCodes.DATABASE_ERROR);
+            }
+
+            /* check permission */
+            let hasPermission: boolean = false;
+            if (fileTypesStudy.includes(file.fileType)) { // if file is of study type
+                if (PatientDataBlobFile.validateInstance(fileentry)) { // if file is of type patient blob
+
+                } else {
+                    hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                        task_required_permissions.manage_study_data,
+                        requester,
+                        (file as FileNode & IStudyFileNode).studyId
+                    );
+                }
+            } else if (fileTypesPersonal.includes(file.fileType)) { // if file is a personal file then only user themself can delete
+                hasPermission = requester.id === file.uploadedBy;
+            } else {
+                throw new ApolloError(errorCodes.DATABASE_ERROR);
+            }
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
+            /* delete file */
             const deleteResult = await file.deleteFileOnMongo(db.collections!.files_collection);
             if (deleteResult.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
-            // const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
-            // if (updateResult.result.ok === 1) {
-                return makeGenericReponse();
-            // } else {
-            //     throw new ApolloError(errorCodes.DATABASE_ERROR);
-            // }
+            return makeGenericReponse();
         }
     },
     Subscription: {}

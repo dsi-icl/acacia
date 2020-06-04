@@ -65,6 +65,10 @@ export class FileNode {
         });
     }
 
+    static findFileOnMongo(fileCollection: Collection, query: { id?: string, fileName?: string }): Promise<IFileMongoEntry | null> {
+        return fileCollection.findOne({ ...query, deleted: null });
+    }
+
     deleteFileOnMongo(fileCollection: Collection): Promise<FindAndModifyWriteOpResultObject<IFileMongoEntry>> {
         return fileCollection.findOneAndUpdate({ id: this._id, deleted: null }, { deleted: new Date().valueOf() });
     };

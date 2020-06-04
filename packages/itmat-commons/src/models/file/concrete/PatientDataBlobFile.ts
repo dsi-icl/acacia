@@ -52,6 +52,26 @@ export class PatientDataBlobFile extends StudyRepoObjStoreFile {
         return new PatientDataBlobFile({ studyFile, patientId, dataVersionId });
     }
 
+    static validateInstance(entry: IFileMongoEntry): boolean {
+        const { id, fileName, fileType, uploadedBy, deleted, uri, fileSize, description, studyId, patientId, dataVersionId } = entry;
+        if (
+            id === undefined ||
+            fileName === undefined ||
+            fileType === undefined ||
+            uploadedBy === undefined ||
+            deleted === undefined ||
+            uri === undefined ||
+            description === undefined ||
+            studyId === undefined ||
+            patientId === undefined ||
+            dataVersionId === undefined ||
+            (fileSize !== undefined && typeof fileSize !== 'number')
+        ) {
+            return false;
+        }
+        return true;
+    }
+
     // @override
     serialiseToMongoObj(): IFileMongoEntry {
         return ({

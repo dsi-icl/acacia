@@ -34,6 +34,10 @@ export class DirectoryNode extends FileNode {
         this._isRoot = isRoot;
     }
 
+    // static validateInstance(entry: IFileMongoEntry): boolean {
+
+    // }
+
     static makeFromMongoEntry(entry: IFileMongoEntry): DirectoryNode {
         const { id, fileName, fileType, uploadedBy, deleted, isRoot, childFileIds } = entry;
         if (!fileTypesDirs.includes(fileType)) {

@@ -21,4 +21,8 @@ export interface IJobEntry<dataobj> {
 export type IJobEntryForDataCuration = IJobEntry<{ dataVersion: string, versionTag?: string }>;
 export type IJobEntryForFieldCuration = IJobEntry<{ dataVersionId: string, tag: string }>;
 export type IJobEntryForBlobCuration = IJobEntry<{ mappingFile: string }>;
-export type IJobEntryForUnzippingFile = IJobEntry<{ fileId: string }>;
+export type IJobEntryForUnzippingFile = IJobEntry<{ fileId: string, zipFormat: zipFormats }>;
+
+export enum zipFormats {
+    ZIP = 'ZIP'
+}
