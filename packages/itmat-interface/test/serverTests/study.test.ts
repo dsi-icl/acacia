@@ -29,7 +29,7 @@ import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 import { text } from 'body-parser';
-import { parse } from 'querystring';
+
 const { permissions } = itmatCommons;
 const { Models: { UserModels: { userTypes }} } = itmatCommons;
 type IDataEntry = itmatCommons.Models.Data.IDataEntry;
