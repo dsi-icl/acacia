@@ -6,7 +6,6 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-
 const {
     GET_STUDY_FIELDS,
     EDIT_PROJECT_APPROVED_FIELDS,
@@ -30,7 +29,6 @@ import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 import { text } from 'body-parser';
-
 const { permissions } = itmatCommons;
 const { Models: { UserModels: { userTypes }} } = itmatCommons;
 type IDataEntry = itmatCommons.Models.Data.IDataEntry;
