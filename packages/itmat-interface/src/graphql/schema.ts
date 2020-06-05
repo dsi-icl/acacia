@@ -217,7 +217,7 @@ input EditUserInput {
     description: String
     organisation: String
     emailNotificationsActivated: Boolean
-    password: String,
+    password: String
     expiredAt: Float
 }
 

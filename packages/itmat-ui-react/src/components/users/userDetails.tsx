@@ -74,7 +74,6 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (whoamiloading) { return <p>Loading..</p>; }
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
-    
     // get QR Code for the otpSecret.  Google Authenticator requires oauth_uri format for the QR code
     let qrcode_url = "";
     const oauth_uri = "otpauth://totp/IDEAFAST:" + inputs.username + "?secret=" + inputs.otpSecret + "&issuer=IDEAFAST";
