@@ -183,7 +183,7 @@ export const userResolvers = {
             }
             
             /* validate if account expired */
-            if (result.expiredAt < (new Date()).valueOf() && result.type === userTypes.STANDARD) {
+            if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
                 throw new UserInputError('Account Expired.');
             }
 

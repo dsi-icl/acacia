@@ -6,6 +6,7 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
+
 const {
     GET_STUDY_FIELDS,
     EDIT_PROJECT_APPROVED_FIELDS,
@@ -39,8 +40,6 @@ type IFieldEntry = itmatCommons.Models.Field.IFieldEntry;
 type IRole = itmatCommons.Models.Study.IRole;
 type IStudyDataVersion = itmatCommons.Models.Study.IStudyDataVersion;
 
-const oneDayDiff = 86400 * 1000; /* one day in millisec */
-
 let app;
 let mongodb;
 let admin;
@@ -52,6 +51,9 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection.close();
     await mongodb.stop();
+
+    /* claer all mocks */
+    jest.clearAllMocks();
 });
 
 beforeAll(async () => { // eslint-disable-line no-undef
@@ -80,6 +82,9 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
+
+    /* Mock Date for testing */
+    jest.spyOn(Date, 'now').mockImplementation(() => 1591134065000);
 });
 
 describe('STUDY API', () => {
@@ -940,7 +945,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toMatchObject({
+                expect(res.body.data.createUser).toStrictEqual({
                     id: createdUserAuthorised.id,
                     username,
                     otpSecret: createdUserAuthorised.otpSecret,
@@ -954,10 +959,10 @@ describe('STUDY API', () => {
                         id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1591220465000
                 });
-                expect(parseInt(res.body.data.createUser.expiredAt) - 
-                    parseInt(res.body.data.createUser.createdAt)).toBe(oneDayDiff);
             }
 
             /* 6. add authorised user to role */
@@ -1039,7 +1044,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorisedStudy = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toMatchObject({
+                expect(res.body.data.createUser).toStrictEqual({
                     id: createdUserAuthorisedStudy.id,
                     username,
                     otpSecret: createdUserAuthorisedStudy.otpSecret,
@@ -1054,9 +1059,9 @@ describe('STUDY API', () => {
                         projects: [],
                         studies: []
                     },
+                    createdAt: 1591134065000,
+                    expiredAt: 1591220465000
                 });
-                expect(parseInt(res.body.data.createUser.expiredAt) - 
-                    parseInt(res.body.data.createUser.createdAt)).toBe(oneDayDiff);
             }
 
             /* 6. add authorised user to role */
@@ -1141,7 +1146,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toMatchObject({
+                expect(res.body.data.createUser).toStrictEqual({
                     id: createdUserAuthorisedStudyManageProjects.id,
                     username,
                     otpSecret: createdUserAuthorisedStudyManageProjects.otpSecret,
@@ -1155,10 +1160,10 @@ describe('STUDY API', () => {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1591220465000
                 });
-                expect(parseInt(res.body.data.createUser.expiredAt) - 
-                    parseInt(res.body.data.createUser.createdAt)).toBe(oneDayDiff);
             }
 
             /* 6. add authorised user to role */
@@ -1226,7 +1231,7 @@ describe('STUDY API', () => {
             /* fsdafs: admin who am i */
             {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
-                expect(res.body.data.whoAmI).toMatchObject({
+                expect(res.body.data.whoAmI).toStrictEqual({
                     username: 'admin',
                     otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: userTypes.ADMIN,
@@ -1247,10 +1252,10 @@ describe('STUDY API', () => {
                             id: createdStudy.id,
                             name: createdStudy.name
                         }]
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 });
-                expect(parseInt(res.body.data.whoAmI.expiredAt) - 
-                    parseInt(res.body.data.whoAmI.createdAt)).toBe(400000000 * 1000 /* to millisec */);
             }
             /* connecting users */
             {

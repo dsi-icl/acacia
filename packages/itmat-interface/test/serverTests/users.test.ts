@@ -15,12 +15,9 @@ import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { IResetPasswordRequest } from 'itmat-commons/dist/models/user';
 import * as mfa from '../../src/utils/mfa';
+
 const { Models: { UserModels: { userTypes }} } = itmatCommons;
 type IUser = itmatCommons.Models.UserModels.IUser;
-
-/* set minimal acceptable error of timestamps, in millisec */
-const oneDayDiff = 86400 * 1000; /* one day in millisec */
-const minTimeError = 10.0; /* errors less than 10ms will be ignored */
 
 let app;
 let mongodb;
@@ -38,6 +35,9 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection.close();
     await mongodb.stop();
+
+    /* claer all mocks */
+    jest.clearAllMocks();
 });
 
 beforeAll(async () => { // eslint-disable-line no-undef
@@ -66,6 +66,9 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app, null);
     await connectAdmin(admin);
     await connectUser(user);
+
+    /* Mock Date for testing */
+    jest.spyOn(Date, 'now').mockImplementation(() => 1591134065000);
 });
 
 describe('USERS API', () => {
@@ -1106,10 +1109,10 @@ describe('USERS API', () => {
             const createdUser = (await mongoClient
                 .collection(config.database.collections.users_collection)
                 .findOne({ username: 'testuser1' }));
-
+            
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.createUser).toMatchObject(
+            expect(res.body.data.createUser).toStrictEqual(
                 {
                     username: 'testuser1',
                     otpSecret: createdUser.otpSecret,
@@ -1124,11 +1127,11 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${createdUser.id}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1591220465000
                 }
             );
-            expect(Math.abs(res.body.data.createUser.expiredAt - 
-                res.body.data.createUser.createdAt - oneDayDiff) < minTimeError).toBeTruthy();
         });
 
         test('create user with wrong email format (admin)', async () => {
@@ -1162,9 +1165,7 @@ describe('USERS API', () => {
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
                     email: 'fake@email.io',
-                    type: userTypes.STANDARD,
-                    createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    type: userTypes.STANDARD
                 }
             });
             expect(res.status).toBe(200);

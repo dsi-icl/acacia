@@ -19,8 +19,8 @@ export class UserCore {
     public async createUser(requester: string, user: { password: string, otpSecret: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
         const { password, otpSecret, organisation, username, type, description, realName, email, emailNotificationsActivated  } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
-        const createdAt = new Date().getTime();
-        const expiredAt = new Date().getTime() + 86400 * 1000 /* millisec per day */;    
+        const createdAt = Date.now();
+        const expiredAt = Date.now() + 86400 * 1000 /* millisec per day */;    
         const entry: Models.UserModels.IUser = {
             id: uuid(),
             username,
