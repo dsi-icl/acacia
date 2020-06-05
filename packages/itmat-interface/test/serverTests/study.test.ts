@@ -1221,15 +1221,12 @@ describe('STUDY API', () => {
                 });
             }
             /* connecting users */
-            {
-                authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin', createdUserAuthorised.otpSecret);
-                authorisedUserStudy = request.agent(app);
-                await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin', createdUserAuthorisedStudy.otpSecret);
-                authorisedUserStudyManageProject = request.agent(app);
-                await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin', createdUserAuthorisedStudyManageProjects.otpSecret);
-
-            }
+            authorisedUser = request.agent(app);
+            await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin', createdUserAuthorised.otpSecret);
+            authorisedUserStudy = request.agent(app);
+            await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin', createdUserAuthorisedStudy.otpSecret);
+            authorisedUserStudyManageProject = request.agent(app);
+            await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin', createdUserAuthorisedStudyManageProjects.otpSecret);
         });
 
         afterAll(async () => {

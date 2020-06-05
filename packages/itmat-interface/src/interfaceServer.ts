@@ -5,15 +5,10 @@ import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
 import { Server } from './server/server';
 import { pubsub, subscriptionEvents } from './graphql/pubsub';
-import { IConfiguration } from './utils/configManager';
 
 class ITMATInterfaceServer extends Server {
 
     private router;
-
-    constructor(config: IConfiguration) {
-        super(config);
-    }
 
     /**
      * @fn start
