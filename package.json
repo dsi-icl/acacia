@@ -44,7 +44,7 @@
         "eslint-plugin-react-hooks": "4.0.4",
         "jest-environment-node": "26.0.1",
         "lerna": "3.22.0",
-        "typescript": "3.9.3"
+        "typescript": "3.9.5"
     },
     "resolutions": {
         "**/**/fs-capacitor": "^5.0.0",
