@@ -911,7 +911,6 @@ describe('USERS API', () => {
                     organisation: 'DSI',
                     id: userId
                 }
-                
             ]);
         });
 
@@ -1108,7 +1107,6 @@ describe('USERS API', () => {
             const createdUser = (await mongoClient
                 .collection(config.database.collections.users_collection)
                 .findOne({ username: 'testuser1' }));
-            
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.createUser).toStrictEqual(
