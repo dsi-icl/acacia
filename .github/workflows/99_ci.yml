@@ -21,7 +21,7 @@ jobs:
     - name: Building packages
       run: yarn run build
     - name: Running unit tests
-      run: yarn run test:unit
+      run: yarn run test
       env:
         CI: true
         SKIP_EMAIL_TEST: true
@@ -41,7 +41,7 @@ jobs:
   #   - name: Building packages
   #     run: npm run build --if-present
   #   - name: Running unit tests
-  #     run: npm run test:unit
+  #     run: npm run test
   #     env:
   #       CI: true
   #       TEST_SMTP_CRED: ${{ secrets.TEST_SMTP_CRED }}
