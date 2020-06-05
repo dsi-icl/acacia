@@ -15,7 +15,6 @@ import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { IResetPasswordRequest } from 'itmat-commons/dist/models/user';
 import * as mfa from '../../src/utils/mfa';
-
 const { Models: { UserModels: { userTypes }} } = itmatCommons;
 type IUser = itmatCommons.Models.UserModels.IUser;
 
