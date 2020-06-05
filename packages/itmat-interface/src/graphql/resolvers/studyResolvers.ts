@@ -12,7 +12,7 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 
 export const studyResolvers = {
     Query: {
-        getStudy: async (parent: object, args: any, context: any, info: any): Promise<IStudy | null> => {
+        getStudy: async (__unused__parent: Record<string, unknown>, args: Record<string, string>, context: any): Promise<IStudy | null> => {
             const requester: IUser = context.req.user;
             const studyId: string = args.studyId;
 
@@ -30,7 +30,7 @@ export const studyResolvers = {
             }
             return study;
         },
-        getProject: async (parent: object, args: any, context: any, info: any): Promise<Omit<IProject, 'patientMapping'> | null> => {
+        getProject: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Omit<IProject, 'patientMapping'> | null> => {
             const requester: IUser = context.req.user;
             const projectId: string = args.projectId;
 
@@ -59,7 +59,7 @@ export const studyResolvers = {
 
             return project;
         },
-        getStudyFields: async (parent: object, { fieldTreeId, studyId }: { fieldTreeId: string, studyId: string }, context: any): Promise<IFieldEntry[]> => {
+        getStudyFields: async (__unused__parent: Record<string, unknown>, { fieldTreeId, studyId }: { fieldTreeId: string, studyId: string }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
 
             /* user can get study if he has readonly permission */
@@ -76,30 +76,30 @@ export const studyResolvers = {
         }
     },
     Study: {
-        projects: async (study: IStudy) => {
+        projects: async (study: IStudy): Promise<Array<unknown>> => {
             return await db.collections!.projects_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
-        jobs: async (study: IStudy) => {
+        jobs: async (study: IStudy): Promise<Array<unknown>> => {
             return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
         },
-        roles: async (study: IStudy) => {
+        roles: async (study: IStudy): Promise<Array<unknown>> => {
             return await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray();
         },
-        files: async (study: IStudy) => {
+        files: async (study: IStudy): Promise<Array<unknown>> => {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
-        numOfSubjects: async (study: IStudy) => {
+        numOfSubjects: async (study: IStudy): Promise<number> => {
             return await db.collections!.data_collection.countDocuments({ m_study: study.id });
         },
-        currentDataVersion: async (study: IStudy) => {
+        currentDataVersion: async (study: IStudy): Promise<null | number> => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
         }
     },
     Project: {
-        fields: async (project: Omit<IProject, 'patientMapping'>) => {
+        fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Record<string, any>> => {
             const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields));
             const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, deleted: null }).toArray();
-            const fieldTrees: object = {};
+            const fieldTrees: Record<string, number> = {};
             const fields = result.reduce((a: { fieldTreeId: string, fieldsInFieldTree: IFieldEntry[] }[], e: IFieldEntry) => {
                 if (!fieldTrees[e.fieldTreeId]) {
                     fieldTrees[e.fieldTreeId] = a.length;
@@ -110,13 +110,13 @@ export const studyResolvers = {
             }, []);
             return fields;
         },
-        jobs: async (project: Omit<IProject, 'patientMapping'>) => {
+        jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
-        files: async (project: Omit<IProject, 'patientMapping'>) => {
+        files: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
             return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
         },
-        patientMapping: async (project: Omit<IProject, 'patientMapping'>, args: never, context: any) => {
+        patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
@@ -139,7 +139,7 @@ export const studyResolvers = {
                 return null;
             }
         },
-        approvedFields: async (project: IProject, args: never, context: any) => {
+        approvedFields: async (project: IProject, args: never, context: any): Promise<Record<string, string[]>> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -153,7 +153,7 @@ export const studyResolvers = {
 
             return project.approvedFields;
         },
-        approvedFiles: async (project: IProject, args: never, context: any) => {
+        approvedFiles: async (project: IProject, args: never, context: any): Promise<string[]> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -167,10 +167,10 @@ export const studyResolvers = {
 
             return project.approvedFiles;
         },
-        roles: async (project: IProject) => {
+        roles: async (project: IProject): Promise<Array<any>> => {
             return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray();
         },
-        iCanEdit: async (project: IProject) => { // TO_DO
+        iCanEdit: async (project: IProject): Promise<boolean> => { // TO_DO
             const result = await db.collections!.roles_collection.findOne({
                 studyId: project.studyId,
                 projectId: project.id
@@ -180,7 +180,7 @@ export const studyResolvers = {
         }
     },
     Mutation: {
-        createStudy: async (parent: object, { name }: { name: string }, context: any, info: any): Promise<IStudy> => {
+        createStudy: async (__unused__parent: Record<string, unknown>, { name }: { name: string }, context: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -192,7 +192,7 @@ export const studyResolvers = {
             const study = await studyCore.createNewStudy(name, requester.id);
             return study;
         },
-        createProject: async (parent: object, { studyId, projectName }: { studyId: string, projectName: string }, context: any, info: any): Promise<IProject> => {
+        createProject: async (__unused__parent: Record<string, unknown>, { studyId, projectName }: { studyId: string, projectName: string }, context: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -211,7 +211,7 @@ export const studyResolvers = {
             const project = await studyCore.createProjectForStudy(studyId, projectName, requester.id);
             return project;
         },
-        deleteProject: async (parent: object, { projectId }: { projectId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteProject: async (__unused__parent: Record<string, unknown>, { projectId }: { projectId: string }, context: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
 
             const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
@@ -229,7 +229,7 @@ export const studyResolvers = {
             await studyCore.deleteProject(projectId);
             return makeGenericReponse(projectId);
         },
-        deleteStudy: async (parent: object, { studyId }: { studyId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteStudy: async (__unused__parent: Record<string, unknown>, { studyId }: { studyId: string }, context: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -248,7 +248,7 @@ export const studyResolvers = {
 
             return makeGenericReponse(studyId);
         },
-        editProjectApprovedFields: async (parent: object, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any, info: any): Promise<IProject> => {
+        editProjectApprovedFields: async (__unused__parent: Record<string, unknown>, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check study id for the project */
@@ -281,7 +281,7 @@ export const studyResolvers = {
             const resultingProject = await studyCore.editProjectApprovedFields(projectId, fieldTreeId, approvedFields);
             return resultingProject;
         },
-        editProjectApprovedFiles: async (parent: object, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any, info: any): Promise<IProject> => {
+        editProjectApprovedFiles: async (__unused__parent: Record<string, unknown>, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check study id for the project */
@@ -306,7 +306,7 @@ export const studyResolvers = {
             const resultingProject = await studyCore.editProjectApprovedFiles(projectId, approvedFiles);
             return resultingProject;
         },
-        setDataversionAsCurrent: async (parent: object, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context: any, info: any): Promise<IStudy> => {
+        setDataversionAsCurrent: async (__unused__parent: Record<string, unknown>, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */

@@ -6,12 +6,12 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
-const { Models, permissions } = itmatCommons;
 import { v4 as uuid } from 'uuid';
+const { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } = itmatCommons.GQLRequests;
+const { permissions } = itmatCommons;
 
 let app;
 let mongodb;
@@ -56,13 +56,11 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
 describe('ROLE API', () => {
     let adminId;
-    let userId;
 
     beforeAll(async () => {
         /* setup: first retrieve the generated user id */
         const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
-        userId = result.filter(e => e.username === 'standardUser')[0].id;
     });
 
     describe('ADDING ROLE', () => {

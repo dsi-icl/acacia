@@ -1,7 +1,7 @@
 import { processFieldRow, FieldCurator } from '../../src/curation/FieldCurator';
 import fs from 'fs';
 import { IJobEntryForFieldCuration, IJobEntry } from 'itmat-commons/dist/models/job';
-import {stub} from './_stubHelper';
+import { stub } from './_stubHelper';
 
 describe('Unit tests for processFieldRow function', () => {
     const job = stub<IJobEntryForFieldCuration>({  // subset of the IJobEntry interface
@@ -20,9 +20,11 @@ describe('Unit tests for processFieldRow function', () => {
     };
 
     it('processFieldRow function correctly parse data row', () => {
-        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
-            '42', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
-        ]}));
+        const { error, dataEntry } = processFieldRow(stub<any>({
+            ...templateParams, row: [
+                '42', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
+            ]
+        }));
         expect(error).toBeUndefined();
         expect(dataEntry.id).toBeDefined();
         expect(typeof dataEntry.id).toBe('string');
@@ -47,9 +49,11 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function detects necessary fields that are empty', () => {
-        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
-            '42', '', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '', '1', '1', '1', 'Sex / Gender'
-        ] }));
+        const { error, dataEntry } = processFieldRow(stub<any>({
+            ...templateParams, row: [
+                '42', '', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '', '1', '1', '1', 'Sex / Gender'
+            ]
+        }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(2);
         expect(error[0]).toBe('Line 22 column 2: Field Name cannot be empty.');
@@ -58,9 +62,11 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function detects uneven fields', () => {
-        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
-            '42', 'Fieldname', 'c', 'Demographic>Baseline', '3', '1', '1', '1', 'Sex / Gender'
-        ] }));
+        const { error, dataEntry } = processFieldRow(stub<any>({
+            ...templateParams, row: [
+                '42', 'Fieldname', 'c', 'Demographic>Baseline', '3', '1', '1', '1', 'Sex / Gender'
+            ]
+        }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
         expect(error[0]).toBe('Line 22: Uneven field Number; expected 11 fields but got 9.');
@@ -68,9 +74,11 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function requires possibleValues if valueType is "C"', () => {
-        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
-            '42', 'Gender', 'c', '', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
-        ] }));
+        const { error, dataEntry } = processFieldRow(stub<any>({
+            ...templateParams, row: [
+                '42', 'Gender', 'c', '', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
+            ]
+        }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
         expect(error[0]).toBe('Line 22 column 4: "Possible values" cannot be empty if value type is categorical.');
@@ -78,9 +86,11 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function catches unparsable entries for supposed number', () => {
-        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
-            'fsl3', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1a', 'b1', '1', '1', 'Sex / Gender'
-        ] }));
+        const { error, dataEntry } = processFieldRow(stub<any>({
+            ...templateParams, row: [
+                'fsl3', 'Gender', 'c', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1a', 'b1', '1', '1', 'Sex / Gender'
+            ]
+        }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(3);
         expect(error[0]).toBe('Line 22 column 1: Cannot parse field ID as number.');
@@ -90,9 +100,11 @@ describe('Unit tests for processFieldRow function', () => {
     });
 
     it('processFieldRow function catches invalid value type', () => {
-        const { error, dataEntry } = processFieldRow(stub<any>({ ...templateParams, row: [
-            '42', 'Gender', 'O', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
-        ] }));
+        const { error, dataEntry } = processFieldRow(stub<any>({
+            ...templateParams, row: [
+                '42', 'Gender', 'O', 'Male,Female,Prefer not to say', '', 'Demographic>Baseline', '1', '1', '1', '1', 'Sex / Gender'
+            ]
+        }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
         expect(error[0]).toBe('Line 22 column 3: Invalid value type "O": use "c" for categorical, "i" for integer, "d" for decimal, "b" for boolean and "t" for free text.');
@@ -106,7 +118,7 @@ describe('FieldCuratorClass', () => {
         this._insertArray = [];
         this._executeCalled = []; // array of length of _insertArray when execute() is called
         this.insert = (object) => { this._insertArray.push(object); };
-        this.execute = () => new Promise((resolve, reject) => {
+        this.execute = () => new Promise((resolve) => {
             setTimeout(() => {
                 this._executeCalled.push(this._insertArray.length);
                 resolve();
@@ -120,7 +132,7 @@ describe('FieldCuratorClass', () => {
     }
 
     it('test mongostub', () => {
-        const bulkinsert = (new MongoStub).initializeUnorderedBulkOp();
+        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({});
         bulkinsert.insert({});
         bulkinsert.execute().then(() => {

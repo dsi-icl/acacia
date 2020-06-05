@@ -182,7 +182,7 @@ describe('JSONCuratorClass', () => {
     }
 
     it('test mongostub', () => {
-        const bulkinsert = (new MongoStub).initializeUnorderedBulkOp();
+        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({});
         bulkinsert.insert({});
         bulkinsert.execute().then(() => {

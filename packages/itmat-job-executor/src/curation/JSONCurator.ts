@@ -56,7 +56,7 @@ export class JSONCurator {
                         }
                         this._header = parsedHeader;
                         isHeader = false;
-                        
+
                     } else {
                         subjectString.push(chunk[0]);
                         const { error, dataEntry } = processEachSubject({
@@ -81,9 +81,9 @@ export class JSONCurator {
                     }
                     if (this._numOfSubj > 999) {
                         this._numOfSubj = 0;
-                        await bulkInsert.execute((err: Error) => {
+                        await bulkInsert.execute((err, res) => {
                             if (err) {
-                                console.log((err as any).writeErrors[1].err);
+                                console.log(res.getWriteErrors()[1]);
                                 return;
                             }
                         });
@@ -129,7 +129,7 @@ export function processJSONHeader(header: string[]): { error?: string[], parsedH
                 error.push(`Object 1: '${each}' is not a valid header field descriptor.`);
                 parsedHeader[colNum] = null;
             } else {
-                const {fieldId, timepoint, measurement, datatype} = fieldParser(each);
+                const { fieldId, timepoint, measurement, datatype } = fieldParser(each);
                 parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
                 fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
             }
@@ -145,15 +145,15 @@ export function processJSONHeader(header: string[]): { error?: string[], parsedH
 
 }
 
-export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // eslint:disable-line
+export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } { // eslint:disable-line
     const error: string[] = [];
     let colIndex = 0;
-    const dataEntry: any = {
+    const dataEntry: Partial<IDataEntry> = {
         m_jobId: job.id,
         m_study: job.studyId,
         m_versionId: versionId
     };
-    
+
     if (subject.length !== parsedHeader.length) {
         error.push(`Object ${subject[0]}: Uneven field Number; expected ${parsedHeader.length} fields but got ${subject.length}`);
         return ({ error, dataEntry });
@@ -180,10 +180,10 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
             colIndex++;
             continue;
         }
-        const {fieldId, timepoint, measurement, datatype } = parsedHeader [colIndex] as IFieldDescriptionObject;
+        const { fieldId, timepoint, measurement, datatype } = parsedHeader[colIndex] as IFieldDescriptionObject;
 
         /* adding value to dataEntry */
-        let value: any;
+        let value: unknown;
         try {
             switch (datatype) {
                 case 'c': // categorical

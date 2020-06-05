@@ -6,7 +6,7 @@ export class JobDispatcher {
         [jobType: string]: () => Promise<JobHandler>
     };
 
-    constructor() { // eslint:disable-line
+    constructor() {
         this.dispatch = this.dispatch.bind(this);
         this._handlerCollection = {};
     }
@@ -19,7 +19,7 @@ export class JobDispatcher {
         delete this._handlerCollection[jobType];
     }
 
-    public async dispatch(job: IJobEntry<any>) {
+    public async dispatch(job: IJobEntry<any>): Promise<void> {
         console.log(this._handlerCollection, job.jobType);
         if (!this._handlerCollection[job.jobType]) {
             // set job to UNPROCESSED

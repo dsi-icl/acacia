@@ -7,10 +7,10 @@ import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
+const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 const { permissions } = itmatCommons;
 
 let app;

@@ -22,7 +22,7 @@ const UserList: React.FunctionComponent<{
     onClickAddButton: (studyId: string, projectId: string | undefined, user: IUser) => void
 }> = ({ submitButtonString, onClickAddButton, studyId, projectId, children, availableUserList }) => {
 
-    const [addUserInput, setAddUserInput]: [string | undefined, Function] = React.useState(undefined);
+    const [addUserInput, setAddUserInput] = React.useState<string | undefined>(undefined);
     const selectedUser = availableUserList.filter((el) => el.id === addUserInput)[0] || null;
 
     return <div>
@@ -42,7 +42,7 @@ const UserList: React.FunctionComponent<{
                     {availableUserList.map((el: IUser) => <Select.Option key={el.id} value={el.id}>{`${el.realName} (${el.organisation || 'unknown organisation'})`}</Select.Option>)}
                 </Select>
             </div>
-            <div className={css.button} onClick={selectedUser ? () => { onClickAddButton(studyId, projectId, selectedUser); setAddUserInput(undefined); } : () => { }}>
+            <div className={css.button} onClick={selectedUser ? () => { onClickAddButton(studyId, projectId, selectedUser); setAddUserInput(undefined); } : () => { return; }}>
                 {submitButtonString}
             </div>
         </div>

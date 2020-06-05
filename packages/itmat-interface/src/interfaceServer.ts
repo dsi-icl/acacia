@@ -5,12 +5,13 @@ import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
 import { Server } from './server/server';
 import { pubsub, subscriptionEvents } from './graphql/pubsub';
+import { IConfiguration } from './utils/configManager';
 
 class ITMATInterfaceServer extends Server {
 
     private router;
 
-    constructor(config) {
+    constructor(config: IConfiguration) {
         super(config);
     }
 
@@ -27,7 +28,7 @@ class ITMATInterfaceServer extends Server {
 
             // Operate database migration if necessary
             db.connect(this.config.database)
-                .then(() => objStore.connect((this.config as any).objectStore))
+                .then(() => objStore.connect(this.config.objectStore))
                 .then(() => {
 
                     const jobChangestream = db.collections!.jobs_collection.watch([
@@ -65,7 +66,7 @@ class ITMATInterfaceServer extends Server {
      * express router MUST be released and this service endpoints are expected to fail.
      * @return {Promise} Resolve to true on success, ErrorStack otherwise
      */
-    public stop() {
+    public stop(): Promise<void> {
         return Promise.resolve();
     }
 }

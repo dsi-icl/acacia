@@ -6,7 +6,7 @@ import { DeleteOutlined, CloudDownloadOutlined } from '@ant-design/icons';
 import { DELETE_FILE } from 'itmat-commons/dist/graphql/files';
 import { ApolloError } from 'apollo-client';
 
-export function formatBytes(size: number, decimal = 2) {
+export function formatBytes(size: number, decimal = 2): string {
     if (size === 0) {
         return '0 B';
     }
@@ -20,9 +20,6 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
 
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
     const [deleteFile] = useMutation(DELETE_FILE, {
-        onCompleted: ({ deleteFile }) => {
-
-        },
         onError: (error: ApolloError) => {
             notification.error({
                 message: 'Upload error!',

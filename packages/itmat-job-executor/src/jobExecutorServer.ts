@@ -13,10 +13,6 @@ class ITMATJobExecutorServer extends Server {
 
     private router;
 
-    constructor(config) {
-        super(config);
-    }
-
     /**
      * @fn start
      * @desc Start the ITMATServer service, routes are setup and
@@ -29,8 +25,8 @@ class ITMATJobExecutorServer extends Server {
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect((this.config as any).database)
-                .then(() => objStore.connect((this.config as any).objectStore))
+            db.connect(this.config.database)
+                .then(() => objStore.connect(this.config.objectStore))
                 .then(() => {
 
                     _this.router = new Router();
@@ -45,7 +41,7 @@ class ITMATJobExecutorServer extends Server {
                     const poller = new JobPoller({
                         identity: 'me',
                         jobCollection: db.collections!.jobs_collection,
-                        pollingInterval: (this.config as any).pollingInterval,
+                        pollingInterval: this.config.pollingInterval,
                         action: jobDispatcher.dispatch
                     });
                     poller.setInterval();
@@ -63,7 +59,7 @@ class ITMATJobExecutorServer extends Server {
      * express router MUST be released and this service endpoints are expected to fail.
      * @return {Promise} Resolve to true on success, ErrorStack otherwise
      */
-    public stop() {
+    public stop(): Promise<void> {
         return Promise.resolve();
     }
 }

@@ -14,7 +14,7 @@ export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async (parent: object, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
+        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -26,7 +26,7 @@ export const fileResolvers = {
 
             const file = await args.file;
 
-            return new Promise<IFile>(async (resolve, reject) => {
+            return new Promise<IFile>((resolve, reject) => {
                 try {
 
                     const stream: NodeJS.ReadableStream = (file as any).createReadStream();
@@ -58,13 +58,13 @@ export const fileResolvers = {
                         }
                     });
 
-                    await objStore.uploadFile(stream, args.studyId, fileUri);
+                    objStore.uploadFile(stream, args.studyId, fileUri);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }
             });
         },
-        deleteFile: async (parent: object, args: { fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteFile: async (__unused__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const file = await db.collections!.files_collection.findOne({ deleted: null, id: args.fileId });

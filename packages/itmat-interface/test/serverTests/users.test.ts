@@ -2,19 +2,19 @@ import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
-import { makeAESIv, makeAESKeySalt, encryptEmail, decryptEmail } from '../../src/graphql/resolvers/userResolvers';
+import { makeAESIv, makeAESKeySalt, encryptEmail } from '../../src/graphql/resolvers/userResolvers';
 import { v4 as uuid } from 'uuid';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import chalk from 'chalk';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD, LOGIN } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { IResetPasswordRequest } from 'itmat-commons/dist/models/user';
 import * as mfa from '../../src/utils/mfa';
+const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD, LOGIN } = itmatCommons.GQLRequests;
 const { Models: { UserModels: { userTypes } } } = itmatCommons;
 type IUser = itmatCommons.Models.UserModels.IUser;
 
@@ -908,21 +908,9 @@ describe('USERS API', () => {
     });
 
     describe('APP USER MUTATION API', () => {
-        let adminId;
-        let userId;
-
-        beforeAll(async () => {
-            /* setup: first retrieve the generated user id */
-            const result = await mongoClient
-                .collection(config.database.collections.users_collection)
-                .find({}, { projection: { id: 1, username: 1 } })
-                .toArray();
-            adminId = result.filter(e => e.username === 'admin')[0].id;
-            userId = result.filter(e => e.username === 'standardUser')[0].id;
-        });
 
         test('log in with incorrect totp (user)', async () => {
-            const res = await admin.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
                     username: 'testuser0',

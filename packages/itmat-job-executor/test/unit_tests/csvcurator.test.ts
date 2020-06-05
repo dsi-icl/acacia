@@ -168,7 +168,7 @@ describe('CSVCuratorClass', () => {
         this._insertArray = [];
         this._executeCalled = []; // array of length of _insertArray when execute() is called
         this.insert = (object) => { this._insertArray.push(object); };
-        this.execute = () => new Promise((resolve, reject) => {
+        this.execute = () => new Promise((resolve) => {
             setTimeout(() => {
                 this._executeCalled.push(this._insertArray.length);
                 resolve();
@@ -182,7 +182,7 @@ describe('CSVCuratorClass', () => {
     }
 
     it('test mongostub', () => {
-        const bulkinsert = (new MongoStub).initializeUnorderedBulkOp();
+        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({});
         bulkinsert.insert({});
         bulkinsert.execute().then(() => {

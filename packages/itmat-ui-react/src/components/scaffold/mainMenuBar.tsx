@@ -25,7 +25,7 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
             </NavLink>
         </div>
         <Query<any, any> query={GET_GRANTED_PERMISSIONS}>
-            {({ loading, data, error }) => {
+            {({ loading, error }) => {
                 if (loading) return <LoadingBalls />;
                 if (error) return <p>{error.toString()}</p>;
                 return (

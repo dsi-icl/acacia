@@ -1,9 +1,8 @@
 import React from 'react';
 import { CreateNewUser } from '../components/users/createNewUser';
-import { shallow, mount } from 'enzyme';
+import { mount } from 'enzyme';
 import { MockedProvider } from '@apollo/react-testing';
 import { MemoryRouter } from 'react-router';
-import ReactDOM from 'react-dom';
 
 describe('Create new users', () => {
     it('mounts', () => {

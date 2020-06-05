@@ -216,8 +216,6 @@ type UsersControlPanelProps = {
 
 const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
     roleId,
-    studyId,
-    projectId,
     availableUserList,
     originallySelectedUsers
 }) => {
@@ -247,7 +245,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
         });
     };
 
-    const tagRender = (props: any) => {
+    const tagRender = (props) => {
 
         const { label, value, onClose } = props;
 

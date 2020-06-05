@@ -6,6 +6,10 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import config from '../../config/config.sample.json';
+import { v4 as uuid } from 'uuid';
 const {
     GET_STUDY_FIELDS,
     EDIT_PROJECT_APPROVED_FIELDS,
@@ -24,13 +28,8 @@ const {
     EDIT_PROJECT_APPROVED_FILES,
     SET_DATAVERSION_AS_CURRENT
 } = itmatCommons.GQLRequests;
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
-import config from '../../config/config.sample.json';
-import { v4 as uuid } from 'uuid';
-import { text } from 'body-parser';
 const { permissions } = itmatCommons;
-const { Models: { UserModels: { userTypes }} } = itmatCommons;
+const { Models: { UserModels: { userTypes } } } = itmatCommons;
 type IDataEntry = itmatCommons.Models.Data.IDataEntry;
 type IUser = itmatCommons.Models.UserModels.IUser;
 type IFile = itmatCommons.Models.File.IFile;
@@ -81,13 +80,11 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
 describe('STUDY API', () => {
     let adminId;
-    let userId;
 
     beforeAll(async () => {
         /* setup: first retrieve the generated user id */
         const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
-        userId = result.filter(e => e.username === 'standardUser')[0].id;
     });
 
     describe('MANIPULATING STUDIES EXISTENCE', () => {
@@ -306,10 +303,6 @@ describe('STUDY API', () => {
             expect(res.body.data.deleteStudy).toEqual(null);
         });
 
-        test('Delete study (with attached projects) (admin)', async () => {
-
-        });
-
         test('Delete study that never existed (admin)', async () => {
             const res = await admin.post('/graphql').send({
                 query: print(DELETE_STUDY),
@@ -429,10 +422,6 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { deleted: 10000 } });
         });
 
-        test('Create project (existing patients in study) (admin)', async () => {
-
-        });
-
         test('Create project (user with no privilege) (should fail)', async () => {
             const res = await user.post('/graphql').send({
                 query: print(CREATE_PROJECT),
@@ -451,13 +440,13 @@ describe('STUDY API', () => {
             /* setup: creating a privileged user */
             const username = uuid();
             const authorisedUserProfile: IUser = {
-                username, 
-                type: userTypes.STANDARD, 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                username,
+                type: userTypes.STANDARD,
+                realName: `${username}_realname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                createdBy: 'admin', 
-                email: `${username}@user.io`, 
+                createdBy: 'admin',
+                email: `${username}@user.io`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
@@ -553,12 +542,12 @@ describe('STUDY API', () => {
             /* setup: creating a privileged user */
             const username = uuid();
             const authorisedUserProfile: IUser = {
-                username, 
-                type: userTypes.STANDARD, 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                username,
+                type: userTypes.STANDARD,
+                realName: `${username}_realname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                createdBy: 'admin', 
+                createdBy: 'admin',
                 email: `${username}@user.io`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
@@ -2042,7 +2031,7 @@ describe('STUDY API', () => {
             const userDataCurator: IUser = {
                 id: uuid(),
                 username: 'datacurator',
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'user@ic.ac.uk',
                 realName: 'DataCurator',

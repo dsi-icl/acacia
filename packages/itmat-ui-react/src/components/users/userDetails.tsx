@@ -17,9 +17,11 @@ const {
 } = GQLRequests;
 
 export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
-    const { loading, error, data } = useQuery(GET_USERS, { variables: {
-        fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId
-    } });
+    const { loading, error, data } = useQuery(GET_USERS, {
+        variables: {
+            fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId
+        }
+    });
     if (loading) { return <LoadingBalls />; }
     if (error) { return <p>Error :( {error.message}</p>; }
     const user: IUserWithoutToken = data.getUsers[0];
@@ -42,7 +44,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
     );
 };
 
-export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: object }) }> = ({ user }) => {
+export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: Record<string, unknown> }) }> = ({ user }) => {
     const [inputs, setInputs] = React.useState({ ...user, password: '' });
     const [deleteButtonShown, setDeleteButtonShown] = React.useState(false);
     const [userIsDeleted, setUserIsDeleted] = React.useState(false);
@@ -76,7 +78,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     // get QR Code for the otpSecret.  Google Authenticator requires oauth_uri format for the QR code
     let qrcode_url = '';
     const oauth_uri = 'otpauth://totp/IDEAFAST:' + inputs.username + '?secret=' + inputs.otpSecret + '&issuer=IDEAFAST';
-    QRCode.toDataURL(oauth_uri, function(err, data_url) {
+    QRCode.toDataURL(oauth_uri, function (err, data_url) {
         qrcode_url = data_url;
     });
 
@@ -85,7 +87,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
             mutation={EDIT_USER}
             onCompleted={() => setSavedSuccessfully(true)}
         >
-            {(submit, { loading, error, data }) =>
+            {(submit, { loading, error }) =>
                 <>
                     <label>Username: <input type='text' value={inputs.username} onChange={e => { setInputs({ ...inputs, username: e.target.value }); }} /> </label><br /><br />
                     <label>Type:
@@ -99,7 +101,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     {
                         whoamidata.whoAmI.id === user.id
                             ?
-                            <><label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }); }} /></label><br/><br/></>
+                            <><label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }); }} /></label><br /><br /></>
                             :
                             null
                     }
@@ -129,11 +131,14 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                                     :
                                     <button
                                         onClick={() => {
-                                            requestResetPassword({ variables: {
-                                                forgotUsername: false,
-                                                forgotPassword: true,
-                                                username: user.username
-                                            } });}}
+                                            requestResetPassword({
+                                                variables: {
+                                                    forgotUsername: false,
+                                                    forgotPassword: true,
+                                                    username: user.username
+                                                }
+                                            });
+                                        }}
                                     >Request reset password for user</button>
                             )
                             :

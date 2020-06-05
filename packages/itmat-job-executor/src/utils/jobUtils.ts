@@ -2,14 +2,16 @@ import { Logger } from 'itmat-utils';
 import mongodb from 'mongodb';
 
 export class JobUtils {
-    constructor(private readonly jobCollection: mongodb.Collection) {}
+    constructor(private readonly jobCollection: mongodb.Collection) { }
 
-    public async setJobError(jobId: string, msg: string) {
+    public async setJobError(jobId: string, msg: string): Promise<void> {
         try {
-            await this.jobCollection.updateOne({ id: jobId }, { $set: {
-                error: msg,
-                status: 'TERMINATED WITH ERROR'
-            }});
+            await this.jobCollection.updateOne({ id: jobId }, {
+                $set: {
+                    error: msg,
+                    status: 'TERMINATED WITH ERROR'
+                }
+            });
         } catch (e) {
             Logger.error(`Cannot set job ${jobId} with error "${msg}"`);
         }
@@ -17,7 +19,7 @@ export class JobUtils {
 }
 
 /* validate a field string */
-export function fieldValidator(field: string) {
+export function fieldValidator(field: string): boolean {
     if (/^\d+@\d+.\d+(:[cidbt])?$/.test(field)) {
         return true;
     } else {

@@ -43,7 +43,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
             }}
             onCompleted={() => setDeleted(true)}
         >
-            {(deleteProject, { data, loading }) =>
+            {(deleteProject, { data: __unused__data, loading }) =>
                 loading ?
                     <button style={{ display: 'inline-block', width: '30%' }}>Loading...</button> :
                     <button onClick={() => {
@@ -52,8 +52,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
                         } else {
                             deleteProject({ variables: { projectId } });
                         }
-                    }}
-                    style={{ display: 'inline-block', width: '30%' }}>Really delete!
+                    }} style={{ display: 'inline-block', width: '30%' }}>Really delete!
                     </button>
             }
         </Mutation><button style={{ display: 'inline-block', width: '30%' }} className="button_grey" onClick={() => setIsExpanded(false)}>Cancel</button>
