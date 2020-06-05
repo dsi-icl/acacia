@@ -38,7 +38,7 @@ export class JobPoller {
         if (this.jobType !== undefined) { this.matchObj.jobType = this.jobType; }
     }
 
-    public setInterval() {
+    public setInterval(): void {
         this.intervalObj = setInterval(this.checkForJobs, this.pollingInterval);
     }
 

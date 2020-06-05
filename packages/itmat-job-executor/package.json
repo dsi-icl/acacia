@@ -12,8 +12,10 @@
     "scripts": {
         "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
         "build": "yarn run clean && yarn run compile",
-        "clean": "rimraf -rf ./build",
         "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
+        "lint": "eslint --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .js --ext .ts --fix ./",
+        "clean": "rimraf -rf ./build",
         "compile": "webpack --config ./config/webpack.config.js",
         "prepublishOnly": "yarn run build"
     },
@@ -26,42 +28,45 @@
         "json2csv": "5.0.1",
         "itmat-commons": "0.5.0",
         "itmat-utils": "1.1.8",
-        "mongodb": "3.5.7",
+        "mongodb": "3.5.8",
         "node-fetch": "2.6.0",
         "saslprep": "1.0.3",
         "JSONStream": "1.3.5",
         "uuid": "8.1.0"
     },
     "devDependencies": {
-        "@babel/core": "7.9.6",
-        "@babel/preset-env": "7.9.6",
+        "@babel/core": "7.10.2",
+        "@babel/preset-env": "7.10.2",
         "@types/connect-timeout": "0.0.34",
         "@types/express": "4.17.6",
         "@types/jest": "25.2.3",
         "@types/json2csv": "5.0.1",
-        "@types/mongodb": "3.5.18",
-        "@types/node": "14.0.5",
+        "@types/mongodb": "3.5.20",
+        "@types/node": "14.0.10",
         "@types/node-fetch": "2.5.7",
+        "@types/supertest": "2.0.9",
         "@types/uuid": "8.0.0",
-        "@typescript-eslint/eslint-plugin": "3.0.1",
-        "@typescript-eslint/parser": "3.0.1",
         "cross-env": "7.0.2",
         "jest": "26.0.1",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
-        "ts-jest": "26.0.0",
+        "ts-jest": "26.1.0",
         "ts-loader": "7.0.5",
         "typescript": "3.9.3",
         "webpack": "4.43.0",
         "webpack-cli": "3.3.11"
     },
+    "babel": {
+        "extends": "./config/babel.config.js"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
+    },
     "jest": {
         "globals": {
             "ts-jest": {
-                "tsConfig": {
-                    "strictNullChecks": false
-                }
+                "tsConfig": "./config/tsconfig.json"
             }
         },
         "transform": {

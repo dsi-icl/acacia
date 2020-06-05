@@ -1,6 +1,17 @@
 {
+    "include": [
+        "../test/**/*",
+        "../global.d.ts"
+    ],
     "compilerOptions": {
+        "baseUrl": "..",
+        "paths": {
+            "itmat-*": [
+                "../packages/*/src"
+            ]
+        },
         "strict": true,
+        "allowJs": true,
         "declaration": true,
         "noImplicitAny": false,
         "strictNullChecks": true,
@@ -15,10 +26,5 @@
         "target": "es5",
         "sourceMap": true,
         "moduleResolution": "node"
-    },
-    "exclude": [
-        "node_modules",
-        "build",
-        "dist"
-    ]
+    }
 }

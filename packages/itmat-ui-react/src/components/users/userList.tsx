@@ -7,23 +7,23 @@ import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './userList.module.css';
 
-export const UserListSection: React.FunctionComponent = (props) => {
+export const UserListSection: React.FunctionComponent = () => {
     return (
         <Query<any, any>
             query={GET_USERS}
             variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
         >
             {({ loading, error, data }) => {
-            if (loading) { return <LoadingBalls />; }
-	            if (error) {
-	                return (
-	                    <p>
-	                        Error :(
-	                        {error.message}
-	                    </p>
-	                );
-	            }
-	            const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
+                if (loading) { return <LoadingBalls />; }
+                if (error) {
+                    return (
+                        <p>
+                            Error :(
+                            {error.message}
+                        </p>
+                    );
+                }
+                const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
                 return (
                     <UserList list={userList} />
                 );

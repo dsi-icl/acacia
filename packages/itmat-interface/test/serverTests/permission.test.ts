@@ -6,12 +6,12 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
-const { Models, permissions } = itmatCommons;
 import { v4 as uuid } from 'uuid';
+const { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } = itmatCommons.GQLRequests;
+const { permissions } = itmatCommons;
 
 let app;
 let mongodb;
@@ -56,13 +56,11 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
 describe('ROLE API', () => {
     let adminId;
-    let userId;
 
     beforeAll(async () => {
         /* setup: first retrieve the generated user id */
         const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
-        userId = result.filter(e => e.username === 'standardUser')[0].id;
     });
 
     describe('ADDING ROLE', () => {
@@ -104,6 +102,7 @@ describe('ROLE API', () => {
                 type: 'STANDARD',
                 realName: `${username}_realname`,
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin',
                 email: `${username}@user.io`,
                 description: 'I am a new user.',
@@ -115,7 +114,7 @@ describe('ROLE API', () => {
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
             authorisedUser = request.agent(app);
-            await connectAgent(authorisedUser, username, 'admin');
+            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
         });
 
         test('Creating a new role for study (admin)', async () => {
@@ -471,6 +470,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${username}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${username}@user.io`,
                     description: 'I am a new user.',
@@ -482,7 +482,7 @@ describe('ROLE API', () => {
                 await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin');
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
                 /* setup: giving authorised user privilege */
                 const roleId = [uuid(), uuid()];
@@ -715,6 +715,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${newUsername}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
@@ -772,6 +773,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${newUsername}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
@@ -829,6 +831,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${newUsername}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
@@ -876,6 +879,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${newUsername}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
@@ -1327,6 +1331,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${newUsername}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
@@ -1449,6 +1454,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${username}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${username}@user.io`,
                     description: 'I am a new user.',
@@ -1460,7 +1466,7 @@ describe('ROLE API', () => {
                 await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin');
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
                 /* setup: giving authorised user privilege */
                 const roleId = [uuid(), uuid()];
@@ -1639,6 +1645,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${newUsername}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
@@ -1696,6 +1703,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${newUsername}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
@@ -1812,6 +1820,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${username}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${username}@user.io`,
                     description: 'I am a new user.',
@@ -1823,7 +1832,7 @@ describe('ROLE API', () => {
                 await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin');
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
                 /* setup: giving authorised user privilege */
                 const roleId = [uuid(), uuid()];
@@ -1954,6 +1963,7 @@ describe('ROLE API', () => {
                     type: 'STANDARD',
                     realName: `${username}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: `${username}@user.io`,
                     description: 'I am a new user.',
@@ -1965,7 +1975,7 @@ describe('ROLE API', () => {
                 await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                 authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, username, 'admin');
+                await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
                 /* setup: giving authorised user privilege */
                 const roleId = [uuid(), uuid()];

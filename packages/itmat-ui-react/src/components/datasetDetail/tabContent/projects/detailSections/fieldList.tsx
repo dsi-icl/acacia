@@ -21,7 +21,7 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
         return <p>No field tree uploaded.</p>;
     }
 
-    return <FieldListSelectionState originalCheckedList={originalCheckedList} projectId={projectId} studyId={studyId} fieldTreeIds={getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees} />
+    return <FieldListSelectionState originalCheckedList={originalCheckedList} projectId={projectId} studyId={studyId} fieldTreeIds={getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees} />;
 };
 
 const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }, projectId: string, studyId: string, fieldTreeIds: string[] }> = ({ originalCheckedList, projectId, studyId, fieldTreeIds }) => {
@@ -41,7 +41,7 @@ const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { 
     </>;
 };
 
-const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ selectedTree: string, originalCheckedList: { [fieldTreeId: string]: string[] }, fieldList: IFieldEntry[], studyId: string, projectId: string }> = ({ selectedTree, fieldList, originalCheckedList, projectId, studyId }) => {
+const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ selectedTree: string, originalCheckedList: { [fieldTreeId: string]: string[] }, fieldList: IFieldEntry[], studyId: string, projectId: string }> = ({ selectedTree, fieldList, originalCheckedList, projectId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList[selectedTree] || []);
     const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
     const [currentProjectId, setCurrentProjectId] = React.useState(projectId);

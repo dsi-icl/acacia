@@ -25,8 +25,8 @@ module.exports = {
         bcrypt: 'commonjs bcrypt',
         express: 'commonjs express',
         mongodb: 'commonjs mongodb',
-        "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
-        "require_optional": 'commonjs require_optional'
+        'subscriptions-transport-ws': 'commonjs subscriptions-transport-ws',
+        'require_optional': 'commonjs require_optional'
     }],
     module: {
         rules: [
@@ -59,4 +59,4 @@ module.exports = {
         libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
         umdNamedDefine: NODE_ENV === 'development' ? undefined : true
     }
-}
+};

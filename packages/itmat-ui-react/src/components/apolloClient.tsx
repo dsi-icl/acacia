@@ -9,7 +9,7 @@ import { getMainDefinition } from 'apollo-utilities';
 
 const wsClient = new SubscriptionClient(`${window.location.origin?.replace('http', 'ws')}/graphql`, {
     reconnect: true
-})
+});
 
 const wsLink = new WebSocketLink(wsClient);
 

@@ -13,7 +13,7 @@ export const GET_GRANTED_PERMISSIONS = gql`
             }
         }
     }
-`
+`;
 
 export const EDIT_ROLE = gql`
     mutation editRole(

@@ -4,8 +4,8 @@ import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
-const { Models, permissions, task_required_permissions } = itmatCommons;
 import { permissionCore } from '../../src/graphql/core/permissionCore';
+const { permissions, task_required_permissions } = itmatCommons;
 
 let mongodb;
 let mongoConnection;
@@ -39,7 +39,6 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
 describe('PERMISSION CORE CLASS', () => {
     describe('Check userHasTheNeccessaryPermission()', () => {
-        let admin;
         let user;
         let newUsers;
         beforeAll(async () => {
@@ -50,6 +49,7 @@ describe('PERMISSION CORE CLASS', () => {
                     type: 'STANDARD',
                     realName: 'real_name_1',
                     password: 'fake_password',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: 'new1@user.io',
                     description: 'I am a new user.',
@@ -63,6 +63,7 @@ describe('PERMISSION CORE CLASS', () => {
                     type: 'STANDARD',
                     realName: 'real_name_2',
                     password: 'fake_password',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: 'new2@user.io',
                     description: 'I am a new user.',
@@ -76,6 +77,7 @@ describe('PERMISSION CORE CLASS', () => {
                     type: 'STANDARD',
                     realName: 'real_name_3',
                     password: 'fake_password',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: 'new3@user.io',
                     description: 'I am a new user.',
@@ -89,6 +91,7 @@ describe('PERMISSION CORE CLASS', () => {
                     type: 'STANDARD',
                     realName: 'real_name_4',
                     password: 'fake_password',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: 'new4@user.io',
                     description: 'I am a new user.',
@@ -102,6 +105,7 @@ describe('PERMISSION CORE CLASS', () => {
                     type: 'STANDARD',
                     realName: 'real_name_5',
                     password: 'fake_password',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
                     email: 'new5@user.io',
                     description: 'I am a new user.',
@@ -115,7 +119,6 @@ describe('PERMISSION CORE CLASS', () => {
 
             /* setup: first retrieve the generated user id */
             const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
-            admin = result.filter(e => e.username === 'admin')[0];
             user = result.filter(e => e.username === 'standardUser')[0];
 
             /* setup: create roles to be tested on */

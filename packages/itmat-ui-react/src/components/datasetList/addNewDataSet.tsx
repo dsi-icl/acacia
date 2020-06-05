@@ -6,7 +6,7 @@ import { CREATE_STUDY } from 'itmat-commons/dist/graphql/study';
 
 export const AddNewDataSet: React.FunctionComponent = () => {
     const [showMore, setShowMore] = React.useState(false);
-    const [createStudy, { loading: createStudyLoading, error: createStudyError }] = useMutation(CREATE_STUDY, { onCompleted: () => { setNewName(''); setShowMore(false); }, refetchQueries: [{ query: WHO_AM_I }], onError: () => {} });
+    const [createStudy, { loading: createStudyLoading, error: createStudyError }] = useMutation(CREATE_STUDY, { onCompleted: () => { setNewName(''); setShowMore(false); }, refetchQueries: [{ query: WHO_AM_I }], onError: () => { return; } });
     const [newName, setNewName] = React.useState('');
     const [inputError, setInputError] = React.useState('');
     return (

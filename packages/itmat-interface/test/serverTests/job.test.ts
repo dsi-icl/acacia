@@ -7,10 +7,10 @@ import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
+const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 const { permissions } = itmatCommons;
 
 let app;
@@ -188,6 +188,7 @@ describe('JOB API', () => {
             type: 'STANDARD',
             realName: `${username}_realname`,
             password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+            otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
             createdBy: 'admin',
             email: `${username}@user.io`,
             description: 'I am a new user.',
@@ -213,7 +214,7 @@ describe('JOB API', () => {
         await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
         const authorisedUser = request.agent(app);
-        await connectAgent(authorisedUser, username, 'admin')
+        await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
         /* test */
         const res = await authorisedUser.post('/graphql').send({

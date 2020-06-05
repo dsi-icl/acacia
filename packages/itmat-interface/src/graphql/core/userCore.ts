@@ -17,12 +17,13 @@ export class UserCore {
         return user;
     }
 
-    public async createUser(requester: string, user: { password: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
-        const { password, organisation, username, type, description, realName, email, emailNotificationsActivated } = user;
+    public async createUser(requester: string, user: { password: string, otpSecret: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
+        const { password, otpSecret, organisation, username, type, description, realName, email, emailNotificationsActivated } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
         const entry: Models.UserModels.IUser = {
             id: uuid(),
             username,
+            otpSecret,
             type,
             description,
             organisation,
@@ -31,6 +32,7 @@ export class UserCore {
             createdBy: requester,
             email,
             emailNotificationsActivated,
+            resetPasswordRequests: [],
             deleted: null
         };
 
@@ -43,7 +45,7 @@ export class UserCore {
         }
     }
 
-    public async deleteUser(userId: string) {
+    public async deleteUser(userId: string): Promise<void> {
         const result = await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnOriginal: false, projection: { deleted: 1 } });
         if (result.value === null) {
             return;
@@ -53,10 +55,6 @@ export class UserCore {
         }
         return;
     }
-
-
-
-
 }
 
 export const userCore = Object.freeze(new UserCore());

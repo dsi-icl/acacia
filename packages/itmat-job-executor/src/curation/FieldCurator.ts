@@ -38,7 +38,7 @@ export class FieldCurator {
             console.log(`uploading for job ${this.job.id}`);
             const fieldIdString: string[] = [];
             let lineNum = 0;
-            let isHeader: boolean = true;
+            let isHeader = true;
             let bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
             const csvparseStream = csvparse(this.parseOptions);
             const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream

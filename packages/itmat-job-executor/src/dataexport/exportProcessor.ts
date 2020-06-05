@@ -11,9 +11,9 @@ export class ExportProcessor {
     private fieldCSVHeaderList?: string[]; // [32-0-0, 32-1-0]
     private inputStream?: Readable;
     private outputParseStream?: Readable;
-    constructor(private readonly dataCursor: mongodb.Cursor, private readonly studyId: string, private readonly wantedFields?: string[], private readonly projectId?: string, private readonly patientIdMap?: { [originalId: string]: string }) { }
+    constructor(private readonly dataCursor: mongodb.Cursor, private readonly studyId: string, private readonly wantedFields?: string[], private readonly __unused__projectId?: string, private readonly patientIdMap?: { [originalId: string]: string }) { }
 
-    public async fetchFieldInfo() {
+    public async fetchFieldInfo(): Promise<void> {
         const queryobj = this.wantedFields === undefined ? { studyId: this.studyId } : { studyId: this.studyId, fieldId: { $in: this.wantedFields } };
         const cursor = db.collections!.field_dictionary_collection.find(queryobj, { projection: { _id: 0 } });
         this.fieldInfo = await cursor.toArray();
@@ -28,7 +28,7 @@ export class ExportProcessor {
         this.fieldCSVHeaderList = tmp;
     }
 
-    public getOutputParseStream() {
+    public getOutputParseStream(): Readable {
         if (!this.fieldInfo || !this.fieldCSVHeaderList) { throw new Error('Cannot set output stream before fetching field info.'); }
         this.inputStream = new Readable({ objectMode: true });
         const opts = { fields: ['eid', 'study', ...this.fieldCSVHeaderList!] };
@@ -38,10 +38,11 @@ export class ExportProcessor {
         return this.outputParseStream;
     }
 
-    public async startStreamParsing() {
+    public async startStreamParsing(): Promise<void> {
         if (!this.fieldInfo) { throw new Error('Cannot create export file before fetching field info and setting output stream.'); }
-        let nextDocument: Object | null;
-        while (nextDocument = await this.dataCursor.next()) {
+        let nextDocument: Record<string, string | number> | null;
+        while (await this.dataCursor.hasNext()) {
+            nextDocument = await this.dataCursor.next();
             const flattenedData = this.formatDataIntoJSON(nextDocument);
             if (this.patientIdMap) {
                 this.replacePatientId(flattenedData);
@@ -51,7 +52,7 @@ export class ExportProcessor {
         this.writeOneLineToCSV(null);
     }
 
-    private formatDataIntoJSON(onePatientData: any): Object {
+    private formatDataIntoJSON(onePatientData: Record<string, string | number>): Record<string, string | number> {
         const metadata = {
             eid: onePatientData.m_eid,
             study: onePatientData.m_study
@@ -71,7 +72,7 @@ export class ExportProcessor {
         return ({ ...flattenData, ...metadata });
     }
 
-    private replacePatientId(flattenData: any): Object {
+    private replacePatientId(flattenData: Record<string, string | number>): Record<string, unknown> {
         let newId;
         try {
             newId = this.patientIdMap![flattenData.m_eid];
@@ -83,7 +84,7 @@ export class ExportProcessor {
         return flattenData;
     }
 
-    private writeOneLineToCSV(flattenedData: Object | null): void {
+    private writeOneLineToCSV(flattenedData: Record<string, unknown> | null): void {
         this.inputStream!.push(flattenedData);
     }
 

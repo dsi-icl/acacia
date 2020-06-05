@@ -13,8 +13,8 @@ describe('Unit tests for processHeader function', () => {
         expect(parsedHeader[2]).toBeNull();
         expect(error).toBeDefined();
         expect(error.length).toBe(2);
-        expect(error[0]).toBe("Line 1: '1-3.3' is not a valid header field descriptor.");
-        expect(error[1]).toBe("Line 1: '1-4.3' is not a valid header field descriptor.");
+        expect(error[0]).toBe('Line 1: \'1-3.3\' is not a valid header field descriptor.');
+        expect(error[1]).toBe('Line 1: \'1-4.3\' is not a valid header field descriptor.');
     });
 
     it('processHeader function weeds out duplicates', () => {
@@ -28,7 +28,7 @@ describe('Unit tests for processHeader function', () => {
         expect(parsedHeader[4]).toEqual({ fieldId: 2, timepoint: 3, measurement: 2, datatype: 'c' });
         expect(error).toBeDefined();
         expect(error.length).toBe(1);
-        expect(error[0]).toBe("Line 1: There is duplicate (field, timepoint, measurement) combination.");
+        expect(error[0]).toBe('Line 1: There is duplicate (field, timepoint, measurement) combination.');
     });
 
     it('processHeader function, user can annotate data type', () => {
@@ -42,7 +42,7 @@ describe('Unit tests for processHeader function', () => {
         expect(parsedHeader[4]).toEqual({ fieldId: 2, timepoint: 3, measurement: 2, datatype: 'c' });
         expect(error).toBeDefined();
         expect(error.length).toBe(1);
-        expect(error[0]).toBe("Line 1: There is duplicate (field, timepoint, measurement) combination.");
+        expect(error[0]).toBe('Line 1: There is duplicate (field, timepoint, measurement) combination.');
     });
 
     it('processHeader function weeds out wrong data type', () => {
@@ -55,8 +55,8 @@ describe('Unit tests for processHeader function', () => {
         expect(parsedHeader[3]).toBeNull();
         expect(error).toBeDefined();
         expect(error.length).toBe(2);
-        expect(error[0]).toBe("Line 1: '1@3.3:p' is not a valid header field descriptor.");
-        expect(error[1]).toBe("Line 1: '2@3.2:e' is not a valid header field descriptor.");
+        expect(error[0]).toBe('Line 1: \'1@3.3:p\' is not a valid header field descriptor.');
+        expect(error[1]).toBe('Line 1: \'2@3.2:e\' is not a valid header field descriptor.');
     });
 
     it('processHeader function correctly parsed header', () => {
@@ -106,8 +106,8 @@ describe('Unit tests for processDataRow function', () => {
         const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', 'male', 'female', 'male', '4.64'] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(2);
-        expect(error[0]).toBe("Line 22 column 3: Cannot parse 'female' as integer.");
-        expect(error[1]).toBe("Line 22 column 4: value for boolean type must be 'true' or 'false'.");
+        expect(error[0]).toBe('Line 22 column 3: Cannot parse \'female\' as integer.');
+        expect(error[1]).toBe('Line 22 column 4: value for boolean type must be \'true\' or \'false\'.');
         expect(dataEntry).toEqual({
             m_eid: 'A001',
             m_jobId: 'mockJobId',
@@ -122,7 +122,7 @@ describe('Unit tests for processDataRow function', () => {
         const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', '45', '53', 'false', '5a'] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
-        expect(error[0]).toBe("Line 22 column 5: Cannot parse '5a' as decimal.");
+        expect(error[0]).toBe('Line 22 column 5: Cannot parse \'5a\' as decimal.');
         expect(dataEntry).toEqual({
             m_eid: 'A001',
             m_jobId: 'mockJobId',
@@ -150,7 +150,7 @@ describe('Unit tests for processDataRow function', () => {
         const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['', 'male', '53', 'false', '5.3'] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
-        expect(error[0]).toBe("Line 22: No subject id provided.");
+        expect(error[0]).toBe('Line 22: No subject id provided.');
         expect(dataEntry).toEqual({
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
@@ -168,7 +168,7 @@ describe('CSVCuratorClass', () => {
         this._insertArray = [];
         this._executeCalled = []; // array of length of _insertArray when execute() is called
         this.insert = (object) => { this._insertArray.push(object); };
-        this.execute = () => new Promise((resolve, reject) => {
+        this.execute = () => new Promise((resolve) => {
             setTimeout(() => {
                 this._executeCalled.push(this._insertArray.length);
                 resolve();
@@ -179,10 +179,10 @@ describe('CSVCuratorClass', () => {
     function MongoStub() {
         this._bulkinsert = new BulkInsert();
         this.initializeUnorderedBulkOp = () => this._bulkinsert;
-    };
+    }
 
     it('test mongostub', () => {
-        const bulkinsert = (new MongoStub).initializeUnorderedBulkOp();
+        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({});
         bulkinsert.insert({});
         bulkinsert.execute().then(() => {
@@ -246,8 +246,8 @@ describe('CSVCuratorClass', () => {
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            "Line 1: '2@1.1:p' is not a valid header field descriptor.",
-            "Line 1: There is duplicate (field, timepoint, measurement) combination.",
+            'Line 1: \'2@1.1:p\' is not a valid header field descriptor.',
+            'Line 1: There is duplicate (field, timepoint, measurement) combination.',
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0); // nothing gets uploaded if errors are caught in header
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
@@ -307,8 +307,8 @@ describe('CSVCuratorClass', () => {
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            "Line 18: Uneven field Number; expected 5 fields but got 4",
-            "Line 28: Uneven field Number; expected 5 fields but got 4"
+            'Line 18: Uneven field Number; expected 5 fields but got 4',
+            'Line 28: Uneven field Number; expected 5 fields but got 4'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(16);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
@@ -343,8 +343,8 @@ describe('CSVCuratorClass', () => {
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            "Line 1530: Uneven field Number; expected 5 fields but got 3",
-            "Line 1836: Uneven field Number; expected 5 fields but got 4"
+            'Line 1530: Uneven field Number; expected 5 fields but got 3',
+            'Line 1836: Uneven field Number; expected 5 fields but got 4'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(1528);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000]);
@@ -379,13 +379,13 @@ describe('CSVCuratorClass', () => {
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            "Line 1: '1@2.1:8' is not a valid header field descriptor.",
-            "Line 7 column 3: Cannot parse 'as.d' as decimal.",
-            "Line 31: Uneven field Number; expected 5 fields but got 4",
-            "Line 32: Uneven field Number; expected 5 fields but got 4",
-            "Line 1531: Uneven field Number; expected 5 fields but got 3",
-            "Line 1837: Uneven field Number; expected 5 fields but got 4",
-            "Data Error: There is duplicate subject id."
+            'Line 1: \'1@2.1:8\' is not a valid header field descriptor.',
+            'Line 7 column 3: Cannot parse \'as.d\' as decimal.',
+            'Line 31: Uneven field Number; expected 5 fields but got 4',
+            'Line 32: Uneven field Number; expected 5 fields but got 4',
+            'Line 1531: Uneven field Number; expected 5 fields but got 3',
+            'Line 1837: Uneven field Number; expected 5 fields but got 4',
+            'Data Error: There is duplicate subject id.'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);

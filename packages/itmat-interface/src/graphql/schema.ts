@@ -52,6 +52,7 @@ type UserPermissions {
 type User {
     id: String!
     username: String! # admin only
+    otpSecret: String!
     type: USERTYPE!
     realName: String
     organisation: String
@@ -63,13 +64,6 @@ type User {
     # external to mongo documents:
     access: UserAccess # admin or self only
 }
-
-# type ShortCut {
-#     id: String!
-#     study: String!
-#     project: String
-# }
-
 
 type StudyOrProjectUserRole {
     id: String!
@@ -253,8 +247,15 @@ type Query {
 
 type Mutation {
     # USER
-    login(username: String!, password: String!): User
+    login(username: String!, password: String!, totp: String!): User
     logout: GenericResponse
+    requestUsernameOrResetPassword(
+        forgotUsername: Boolean!,
+        forgotPassword: Boolean!,
+        email: String, # only provide email if forgotUsername
+        username: String
+    ): GenericResponse
+    resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
 
     # APP USERS
     createUser(user: CreateUserInput!): User

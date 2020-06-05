@@ -10,32 +10,38 @@
         "dist"
     ],
     "scripts": {
+        "start": "tsc -p ./config/tsconfig.json -w --preserveWatchOutput",
         "build": "yarn run clean && yarn run compile",
-        "clean": "rimraf -rf ./dist",
-        "compile": "tsc -p tsconfig.build.json",
-        "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
-        "prepublishOnly": "yarn run build",
         "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
-        "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
-        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
+        "lint": "eslint --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .js --ext .ts --fix ./",
+        "clean": "rimraf -rf ./dist",
+        "compile": "tsc -p ./config/tsconfig.json",
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "minio": "7.0.16",
-        "mongodb": "3.5.7"
+        "mongodb": "3.5.8"
     },
     "devDependencies": {
         "@types/express": "4.17.6",
         "@types/jest": "25.2.3",
         "@types/minio": "7.0.5",
-        "@types/mongodb": "3.5.18",
-        "@types/node": "14.0.5",
+        "@types/mongodb": "3.5.20",
+        "@types/node": "14.0.10",
         "chalk": "4.0.0",
         "jest": "26.0.1",
         "node-fetch": "2.6.0",
         "rimraf": "3.0.2",
         "supertest": "4.0.2",
-        "ts-jest": "26.0.0",
+        "ts-jest": "26.1.0",
         "typescript": "3.9.3"
+    },
+    "babel": {
+        "extends": "./config/babel.config.js"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
     },
     "jest": {
         "transform": {

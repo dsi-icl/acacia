@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
-const { CREATE_PROJECT, CREATE_STUDY, UPLOAD_FILE } = require('itmat-commons').GQLRequests;
+const { CREATE_STUDY, UPLOAD_FILE } = require('itmat-commons').GQLRequests;
 const { print } = require('graphql');
 const { v4: uuid } = require('uuid');
 
@@ -126,7 +126,7 @@ describe('File upload page', function () {
 
                 /* see the errors */
                 cy.get('span:contains(Errored) + svg').trigger('mouseenter');
-                cy.contains("Line 1: '1@2.1:8' is not a valid header field descriptor.").should('be.visible');
+                cy.contains('Line 1: \'1@2.1:8\' is not a valid header field descriptor.').should('be.visible');
             });
         });
     });

@@ -5,8 +5,8 @@ import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
 import { Models, task_required_permissions } from 'itmat-commons';
 
-export const fileDownloadController = async (req: Request, res: Response) => {
-    const requester: Models.UserModels.IUser = req.user as any;
+export const fileDownloadController = async (req: Request, res: Response): Promise<void> => {
+    const requester = req.user as Models.UserModels.IUser;
     const requestedFile = req.params.fileId;
 
     if (!requester) {
