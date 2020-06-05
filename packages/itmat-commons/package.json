@@ -26,9 +26,9 @@
         "mongodb": "3.5.8"
     },
     "devDependencies": {
-        "@types/node": "14.0.10",
+        "@types/node": "14.0.11",
         "rimraf": "3.0.2",
-        "typescript": "3.9.3"
+        "typescript": "3.9.5"
     },
     "babel": {
         "extends": "./config/babel.config.js"
