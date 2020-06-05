@@ -29,6 +29,7 @@ import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 import { text } from 'body-parser';
+import { parse } from 'querystring';
 const { permissions } = itmatCommons;
 const { Models: { UserModels: { userTypes }} } = itmatCommons;
 type IDataEntry = itmatCommons.Models.Data.IDataEntry;
@@ -38,9 +39,7 @@ type IFieldEntry = itmatCommons.Models.Field.IFieldEntry;
 type IRole = itmatCommons.Models.Study.IRole;
 type IStudyDataVersion = itmatCommons.Models.Study.IStudyDataVersion;
 
-/* set minimal acceptable error of timestamps, in millisec */
 const oneDayDiff = 86400 * 1000; /* one day in millisec */
-const minTimeError = 10.0; /* errors less than 10ms will be ignored */
 
 let app;
 let mongodb;
@@ -957,8 +956,8 @@ describe('STUDY API', () => {
                         studies: []
                     }
                 });
-                expect(Math.abs(res.body.data.createUser.expiredAt - 
-                    res.body.data.createUser.createdAt - oneDayDiff) < minTimeError).toBeTruthy();
+                expect(parseInt(res.body.data.createUser.expiredAt) - 
+                    parseInt(res.body.data.createUser.createdAt)).toBe(oneDayDiff);
             }
 
             /* 6. add authorised user to role */
@@ -1056,8 +1055,8 @@ describe('STUDY API', () => {
                         studies: []
                     },
                 });
-                expect(Math.abs(res.body.data.createUser.expiredAt - 
-                    res.body.data.createUser.createdAt - oneDayDiff) < minTimeError).toBeTruthy();
+                expect(parseInt(res.body.data.createUser.expiredAt) - 
+                    parseInt(res.body.data.createUser.createdAt)).toBe(oneDayDiff);
             }
 
             /* 6. add authorised user to role */
@@ -1158,8 +1157,8 @@ describe('STUDY API', () => {
                         studies: []
                     }
                 });
-                expect(Math.abs(res.body.data.createUser.expiredAt - 
-                    res.body.data.createUser.createdAt - oneDayDiff) < minTimeError).toBeTruthy();
+                expect(parseInt(res.body.data.createUser.expiredAt) - 
+                    parseInt(res.body.data.createUser.createdAt)).toBe(oneDayDiff);
             }
 
             /* 6. add authorised user to role */
@@ -1250,8 +1249,8 @@ describe('STUDY API', () => {
                         }]
                     }
                 });
-                expect(Math.abs(res.body.data.whoAmI.expiredAt - 
-                    res.body.data.whoAmI.createdAt - 400000000.0 * 1000 /* to millisec */) < minTimeError).toBeTruthy();
+                expect(parseInt(res.body.data.whoAmI.expiredAt) - 
+                    parseInt(res.body.data.whoAmI.createdAt)).toBe(400000000 * 1000 /* to millisec */);
             }
             /* connecting users */
             {
