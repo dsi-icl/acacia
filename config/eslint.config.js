@@ -43,6 +43,9 @@ var defaultRules = {
     '@typescript-eslint/interface-name-prefix': [
         'off'
     ],
+    '@typescript-eslint/no-non-null-assertion': [
+        'off'
+    ],
     '@typescript-eslint/no-this-alias': [
         'off'
     ],
