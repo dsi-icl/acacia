@@ -7,11 +7,18 @@ var defaultEnv = {
 
 var defaultPlugins = [
     '@typescript-eslint',
-    'jest'
+    'cypress',
+    'flowtype',
+    'import',
+    'jest',
+    'jsx-a11y',
+    'react',
+    'react-hooks',
 ];
 
 var javascriptExtensions = [
-    'eslint:recommended'
+    'eslint:recommended',
+    'react-app'
 ];
 
 var typescriptExtensions = javascriptExtensions.concat([
@@ -37,6 +44,9 @@ var defaultRules = {
         'error',
         'always'
     ],
+    'no-explicit-any': [
+        'off'
+    ],
     '@typescript-eslint/camelcase': [
         'off'
     ],
@@ -47,6 +57,9 @@ var defaultRules = {
         'off'
     ],
     '@typescript-eslint/no-this-alias': [
+        'off'
+    ],
+    '@typescript-eslint/no-explicit-any': [
         'off'
     ],
     '@typescript-eslint/no-unused-vars': [
@@ -105,6 +118,41 @@ module.exports = {
             ],
             env: Object.assign({}, defaultEnv, {
                 'jest/globals': true
+            }),
+            globals: {
+                Atomics: 'readonly',
+                SharedArrayBuffer: 'readonly',
+                hasMinio: true,
+                minioContainerPort: true
+            },
+            extends: typescriptExtensions,
+            rules: defaultRules
+        },
+        {
+            files: [
+                '**/cypress/**/*.test.js',
+                '**/cypress/**/*.test.jsx',
+                '**/cypress/**/test/**/*.js',
+                '**/cypress/support/index.js'
+            ],
+            env: Object.assign({}, defaultEnv, {
+                'cypress/globals': true
+            }),
+            globals: {
+                hasMinio: true,
+                minioContainerPort: true
+            },
+            extends: javascriptExtensions,
+            rules: defaultRules
+        },
+        {
+            files: [
+                '**/cypress/**/*.test.ts',
+                '**/cypress/**/*.test.tsx',
+                '**/cypress/**/test/**/*.ts'
+            ],
+            env: Object.assign({}, defaultEnv, {
+                'cypress/globals': true
             }),
             globals: {
                 Atomics: 'readonly',
