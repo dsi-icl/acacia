@@ -8,7 +8,6 @@ import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
 import QRCode from 'qrcode';
 import { GQLRequests } from 'itmat-commons';
-
 const {
     WHO_AM_I,
     DELETE_USER,
@@ -203,3 +202,4 @@ export const changeTimeFunc = {
         return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};   
     }
 }
+                        
