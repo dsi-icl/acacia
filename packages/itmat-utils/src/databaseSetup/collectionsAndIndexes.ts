@@ -99,3 +99,7 @@ async function setupDatabase(mongostr, databaseName) {
 };
 
 export default setupDatabase;
+
+const mongostr = "mongodb://localhost:27017";
+const databaseName = "itmat"
+setupDatabase(mongostr, databaseName).then(() => {});;
