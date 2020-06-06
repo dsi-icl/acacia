@@ -36,7 +36,7 @@
         "passport": "0.4.1",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
-        "uuid": "7.0.3"
+        "uuid": "8.1.0"
     },
     "devDependencies": {
         "@types/bcrypt": "3.0.0",
@@ -53,7 +53,7 @@
         "@types/nodemailer": "6.4.0",
         "@types/passport": "1.0.3",
         "@types/passport-local": "1.0.33",
-        "@types/uuid": "7.0.4",
+        "@types/uuid": "8.0.0",
         "@types/webpack-env": "1.15.2",
         "chalk": "4.0.0",
         "cors": "2.8.5",
