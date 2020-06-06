@@ -63,7 +63,7 @@
         "get-port": "5.1.1",
         "jest": "25.2.7",
         "node-fetch": "2.6.0",
-        "mongodb-memory-server": "6.5.2",
+        "mongodb-memory-server": "6.6.1",
         "node-fetch": "2.6.0",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
