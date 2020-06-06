@@ -18,10 +18,10 @@ export class JSONCurator {
      * - uneven column number
      * - parse / encoding error
      */
-    private _header: (IFieldDescriptionObject| null)[]; // tslint:disable-line
-    private _numOfSubj: number; // tslint:disable-line
-    private _errored: boolean; // tslint:disable-line
-    private _errors: string[]; // tslint:disable-line
+    private _header: (IFieldDescriptionObject | null)[]; // eslint:disable-line
+    private _numOfSubj: number; // eslint:disable-line
+    private _errored: boolean; // eslint:disable-line
+    private _errors: string[]; // eslint:disable-line
 
     constructor(
         private readonly dataCollection: Collection,
@@ -145,7 +145,7 @@ export function processJSONHeader(header: string[]): {error?: string[], parsedHe
 
 }
 
-export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // tslint:disable-line
+export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // eslint:disable-line
     const error: string[] = [];
     let colIndex = 0;
     const dataEntry: any = {

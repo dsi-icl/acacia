@@ -635,9 +635,9 @@ describe('STUDY API', () => {
     describe('MINI END-TO-END API TEST, NO UI, NO DATA', () => {
         let createdProject;
         let createdStudy;
-        let createdRole_study; // tslint:disable-line
-        let createdRole_study_manageProject; // tslint:disable-line
-        let createdRole_project;// tslint:disable-line
+        let createdRole_study; // eslint:disable-line
+        let createdRole_study_manageProject; // eslint:disable-line
+        let createdRole_project;// eslint:disable-line
         let createdUserAuthorised;  // profile
         let createdUserAuthorisedStudy;  // profile
         let createdUserAuthorisedStudyManageProjects;  // profile
@@ -2066,7 +2066,7 @@ describe('STUDY API', () => {
             const userDataCurator: IUser = {
                 id: uuid(),
                 username: 'datacurator',
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 email: 'user@ic.ac.uk',
                 realName: 'DataCurator',
