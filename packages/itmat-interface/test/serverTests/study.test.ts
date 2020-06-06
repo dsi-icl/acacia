@@ -624,9 +624,9 @@ describe('STUDY API', () => {
     describe('MINI END-TO-END API TEST, NO UI, NO DATA', () => {
         let createdProject;
         let createdStudy;
-        let createdRole_study; // tslint:disable-line
-        let createdRole_study_manageProject; // tslint:disable-line
-        let createdRole_project;// tslint:disable-line
+        let createdRole_study; // eslint:disable-line
+        let createdRole_study_manageProject; // eslint:disable-line
+        let createdRole_project;// eslint:disable-line
         let createdUserAuthorised;  // profile
         let createdUserAuthorisedStudy;  // profile
         let createdUserAuthorisedStudyManageProjects;  // profile
@@ -2096,7 +2096,28 @@ describe('STUDY API', () => {
                 }
             });
             expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors).toBeUndefined();
+            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
+            expect(study).toBeDefined();
+            expect(res.body.data.setDataversionAsCurrent).toEqual({
+                id: createdStudy.id,
+                currentDataVersion: 2,
+                dataVersions: [
+                    { ...mockDataVersion, tag: null },
+                    { ...newMockDataVersion },
+                    { ...mockDataVersion, tag: null, id: study.dataVersions[2].id }
+                ]
+            });
+            // content id should be the same be id is different
+            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].id).not.toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].id);
+            expect(study.dataVersions[2].id).not.toBe(study.dataVersions[0].id);
+            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].contentId).toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].contentId);
+            expect(study.dataVersions[2].contentId).toBe(study.dataVersions[0].contentId);
+
+            /* cleanup: reverse setting dataversion */
+            await mongoClient.collection(config.database.collections.studies_collection)
+                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
+
             /* cleanup: delete user and role */
             await db.collections!.users_collection.deleteOne({ id: userDataCurator.id });
             await db.collections!.roles_collection.deleteOne({ id: roleDataCurator.id });
