@@ -40,7 +40,7 @@
         "@types/json2csv": "5.0.0",
         "@types/mongodb": "3.5.5",
         "@types/multer": "1.4.3",
-        "@types/node": "13.11.0",
+        "@types/node": "13.13.10",
         "@types/node-fetch": "2.5.7",
         "@types/uuid": "7.0.4",
         "cross-env": "7.0.2",
