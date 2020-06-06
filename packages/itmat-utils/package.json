@@ -19,7 +19,7 @@
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
     "dependencies": {
-        "minio": "7.0.15",
+        "minio": "7.0.16",
         "mongodb": "3.5.5"
     },
     "devDependencies": {
