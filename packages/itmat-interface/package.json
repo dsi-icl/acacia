@@ -31,7 +31,7 @@
         "itmat-utils": "1.1.8",
         "mongodb": "3.5.5",
         "multer": "2.0.0-rc.2",
-        "nodemailer": "6.4.6",
+        "nodemailer": "6.4.8",
         "os2": "0.0.13",
         "passport": "0.4.1",
         "passport-local": "1.0.0",
