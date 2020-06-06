@@ -31,12 +31,12 @@
         "itmat-utils": "1.1.8",
         "mongodb": "3.5.5",
         "multer": "2.0.0-rc.2",
-        "nodemailer": "6.4.6",
+        "nodemailer": "6.4.8",
         "os2": "0.0.13",
         "passport": "0.4.1",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
-        "uuid": "7.0.3"
+        "uuid": "8.1.0"
     },
     "devDependencies": {
         "@types/bcrypt": "3.0.0",
@@ -53,7 +53,7 @@
         "@types/nodemailer": "6.4.0",
         "@types/passport": "1.0.3",
         "@types/passport-local": "1.0.33",
-        "@types/uuid": "7.0.4",
+        "@types/uuid": "8.0.0",
         "@types/webpack-env": "1.15.2",
         "chalk": "4.0.0",
         "cors": "2.8.5",
@@ -68,10 +68,10 @@
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
-        "ts-jest": "25.2.1",
+        "ts-jest": "26.1.0",
         "ts-loader": "7.0.5",
         "typescript-eslint-parser": "22.0.0",
-        "webpack": "4.42.1",
+        "webpack": "4.43.0",
         "webpack-cli": "3.3.11"
     },
     "jest": {
