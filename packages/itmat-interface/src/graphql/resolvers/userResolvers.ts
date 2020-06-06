@@ -103,11 +103,9 @@ export const userResolvers = {
     Mutation: {
         requestUsernameOrResetPassword: async (__unused__parent: Record<string, unknown>, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any): Promise<IGenericResponse> => {
             /* checking the args are right */
-            if (
-                forgotUsername && !email // should provide email if no username
-                || forgotUsername && username // should not provide username if it's forgotten..
-                || !email && !username
-            ) {
+            if ((forgotUsername && !email) // should provide email if no username
+                || (forgotUsername && username) // should not provide username if it's forgotten..
+                || (!email && !username)) {
                 throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
             } else if (email && username) {
                 // TO_DO : better client erro

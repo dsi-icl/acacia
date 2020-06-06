@@ -139,7 +139,7 @@ export const studyResolvers = {
                 return null;
             }
         },
-        approvedFields: async (project: IProject, args: never, context: any): Promise<Record<string, string[]>> => {
+        approvedFields: async (project: IProject, __unused__args: never, context: any): Promise<Record<string, string[]>> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -153,7 +153,7 @@ export const studyResolvers = {
 
             return project.approvedFields;
         },
-        approvedFiles: async (project: IProject, args: never, context: any): Promise<string[]> => {
+        approvedFiles: async (project: IProject, __unused__args: never, context: any): Promise<string[]> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -171,7 +171,7 @@ export const studyResolvers = {
             return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray();
         },
         iCanEdit: async (project: IProject): Promise<boolean> => { // TO_DO
-            const result = await db.collections!.roles_collection.findOne({
+            await db.collections!.roles_collection.findOne({
                 studyId: project.studyId,
                 projectId: project.id
                 // permissions: permissions.specific_project.specifi
