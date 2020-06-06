@@ -18,6 +18,8 @@ jobs:
         node-version: ${{ matrix.node }}
     - name: Installing dependencies
       run: yarn install
+    - name: Checking for lint
+      run: yarn run lint
     - name: Building packages
       run: yarn run build
     - name: Running unit tests
@@ -38,6 +40,8 @@ jobs:
   #       node-version: ${{ matrix.node }}
   #   - name: Installing dependencies
   #     run: npm install
+  #   - name: Checking for lint
+  #     run: yarn run lint
   #   - name: Building packages
   #     run: npm run build --if-present
   #   - name: Running unit tests
