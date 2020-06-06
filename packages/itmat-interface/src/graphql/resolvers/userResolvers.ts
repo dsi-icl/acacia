@@ -177,6 +177,12 @@ export const userResolvers = {
             if (!result) {
                 throw new UserInputError('User does not exist.');
             }
+            
+            /* validate if account expired */
+            if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
+                throw new UserInputError('Account Expired.');
+            }
+
             const passwordMatched = await bcrypt.compare(args.password, result.password);
             if (!passwordMatched) {
                 throw new UserInputError('Incorrect password.');
@@ -334,8 +340,8 @@ export const userResolvers = {
         },
         editUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Record<string, unknown>> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
+            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation, expiredAt }: {
+                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number
             } = args.user;
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
@@ -361,7 +367,8 @@ export const userResolvers = {
                 emailNotificationsActivated,
                 password,
                 description,
-                organisation
+                organisation,
+                expiredAt
             };
 
             /* check email is valid form */

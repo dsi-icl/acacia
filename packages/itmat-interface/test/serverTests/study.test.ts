@@ -48,6 +48,9 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection?.close();
     await mongodb.stop();
+
+    /* claer all mocks */
+    jest.clearAllMocks();
 });
 
 beforeAll(async () => { // eslint-disable-line no-undef
@@ -76,6 +79,9 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
+
+    /* Mock Date for testing */
+    jest.spyOn(Date, 'now').mockImplementation(() => 1591134065000);
 });
 
 describe('STUDY API', () => {
@@ -123,7 +129,9 @@ describe('STUDY API', () => {
                         id: createdStudy.id,
                         name: studyName
                     }]
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* cleanup: delete study */
@@ -239,7 +247,9 @@ describe('STUDY API', () => {
                         id: newStudy.id,
                         name: studyName
                     }]
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* test */
@@ -274,7 +284,9 @@ describe('STUDY API', () => {
                     id: `user_access_obj_user_id_${adminId}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
         });
 
@@ -452,7 +464,9 @@ describe('STUDY API', () => {
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
                 deleted: null,
-                id: `new_user_id_${username}`
+                id: `new_user_id_${username}`,
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -554,7 +568,9 @@ describe('STUDY API', () => {
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
                 deleted: null,
-                id: `new_user_id_${username}`
+                id: `new_user_id_${username}`,
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -916,7 +932,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
+                expect(res.body.data.createUser).toStrictEqual({
                     id: createdUserAuthorised.id,
                     username,
                     otpSecret: createdUserAuthorised.otpSecret,
@@ -930,7 +946,9 @@ describe('STUDY API', () => {
                         id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1591220465000
                 });
             }
 
@@ -1013,7 +1031,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorisedStudy = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
+                expect(res.body.data.createUser).toStrictEqual({
                     id: createdUserAuthorisedStudy.id,
                     username,
                     otpSecret: createdUserAuthorisedStudy.otpSecret,
@@ -1027,7 +1045,9 @@ describe('STUDY API', () => {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1591220465000
                 });
             }
 
@@ -1113,7 +1133,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
+                expect(res.body.data.createUser).toStrictEqual({
                     id: createdUserAuthorisedStudyManageProjects.id,
                     username,
                     otpSecret: createdUserAuthorisedStudyManageProjects.otpSecret,
@@ -1127,7 +1147,9 @@ describe('STUDY API', () => {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1591220465000
                 });
             }
 
@@ -1196,7 +1218,7 @@ describe('STUDY API', () => {
             /* fsdafs: admin who am i */
             {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
-                expect(res.body.data.whoAmI).toEqual({
+                expect(res.body.data.whoAmI).toStrictEqual({
                     username: 'admin',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
@@ -1217,7 +1239,9 @@ describe('STUDY API', () => {
                             id: createdStudy.id,
                             name: createdStudy.name
                         }]
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 });
             }
             /* connecting users */
@@ -2038,7 +2062,9 @@ describe('STUDY API', () => {
                 resetPasswordRequests: [],
                 emailNotificationsActivated: true,
                 deleted: null,
-                createdBy: adminId
+                createdBy: adminId,
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await db.collections!.users_collection.insertOne(userDataCurator);
 

@@ -110,6 +110,14 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }); }} /></label> <br /><br />
                     <label>Organisation: <input type='text' value={inputs.organisation} onChange={e => setInputs({ ...inputs, organisation: e.target.value })} /> </label><br /><br />
                     <label>Created by (readonly): <input type='text' readOnly value={inputs.createdBy} /> </label><br /><br />
+                    <label>
+                        Created at (readOnly): <input type='date' readOnly value={showTimeFunc.showDate(inputs.createdAt)} />
+                        <input type='time' readOnly value={showTimeFunc.showTime(inputs.createdAt)} />
+                    </label><br /><br />
+                    <label>
+                        Expired at: <input type='date' value={showTimeFunc.showDate(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeDate(inputs, e.target.value));  }} />
+                        <input type='time' step="1" value={showTimeFunc.showTime(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeTime(inputs, e.target.value));   }} />
+                    </label><br /><br />
                     <div className={css.submit_cancel_button_wrapper}>
                         <NavLink to={'/users'}><button className='button_grey'>Cancel</button></NavLink>
                         {loading ? <button>Loading</button> : <button onClick={() => { submit({ variables: { ...formatSubmitObj() } }); }}>Save</button>}
@@ -168,3 +176,35 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     );
 };
 
+/* show date and time separately */
+export const showTimeFunc = {
+    showDate: function(timestamps: number) {
+        return new Date(timestamps).toISOString().substring(0, 10);
+    },
+    showTime: function(timestamps: number) {
+        return new Date(timestamps).toISOString().substring(11, 19);
+    }
+};
+
+/* More time control due to different behaviors in chrome and firefox, also correct errors of summer/winter time offset */
+export const changeTimeFunc = {
+    changeDate: function(inputs: any, value: any) {
+        /* When in summer time, there is non-zero timezoneoffset which should be considered */
+        const offsetTime = new Date(inputs.expiredAt - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000);
+        let newDate;
+        const recordTime = offsetTime.toISOString().substring(11, 19);
+        /* If the input date is invalid, the shown date will keep the original one */
+        if (isNaN(new Date(value + 'T' + recordTime).valueOf()) || (new Date(value + 'T' + recordTime).valueOf() < 0) ) {
+            newDate = new Date(inputs.expiredAt);
+        } else {
+            newDate = new Date(value + 'T' + recordTime);   
+        }
+        return {...inputs, expiredAt: newDate.valueOf()};
+    },
+    changeTime: function(inputs: any, value: any) {
+        const recordedDate = new Date(inputs.expiredAt).toISOString().substring(0, 10);
+        /* When in summer time, there is non-zero timezoneoffset which should be considered */
+        return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};   
+    }
+};
+                        
