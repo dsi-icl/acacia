@@ -14,7 +14,8 @@ const collections = {
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { username: 1, deleted: 1 }, unique: true },
-            { key: { email: 1, deleted: 1 }, unique: true }
+            { key: { email: 1, deleted: 1 }, unique: true },
+            { key: { rootDir: 1 }, unique: true },
         ]
     },
     "studies_collection": {

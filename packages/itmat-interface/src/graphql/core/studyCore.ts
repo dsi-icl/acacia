@@ -5,10 +5,10 @@ import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
 import { makeGenericReponse, IGenericResponse } from '../responses';
 import { Models } from 'itmat-commons';
-const { fileType } = Models.File;
+const { fileTypes, StudyRepoDir } = Models.File;
 type IProject = Models.Study.IProject;
 type IStudy = Models.Study.IStudy;
-type IFileForStudyRepoDir = Models.File.IFileForStudyRepoDir;
+type StudyRepoDir = Models.File.StudyRepoDir;
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -50,16 +50,12 @@ export class StudyCore {
 
         /* create root file system for study */
         const studyId = uuid();
-        const rootDirFile: IFileForStudyRepoDir = {
-            id: uuid(),
+        const rootDirFile: StudyRepoDir = new StudyRepoDir({
             fileName: 'home',
-            fileType: fileType.STUDY_REPO_DIR,
             uploadedBy: requestedBy,
-            deleted: null,
             studyId,
-            root: true,
-            childFileIds: []
-        };
+            isRoot: true
+        });
         const result = await db.collections!.studies_collection.insertOne(rootDirFile);
         if (result.result.ok !== 1) {
             throw new ApolloError(errorCodes.DATABASE_ERROR);

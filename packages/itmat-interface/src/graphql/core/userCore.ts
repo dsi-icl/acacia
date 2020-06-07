@@ -3,9 +3,13 @@ import { Models } from 'itmat-commons';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { ApolloError } from 'apollo-server-core';
-import { IUser, IUserWithoutToken, userTypes } from 'itmat-commons/dist/models/user';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
+const { File: { UserPersonalDir } } = Models;
+type UserPersonalDir = Models.File.UserPersonalDir;
+type IUser = Models.UserModels.IUser;
+type IUserWithoutToken = Models.UserModels.IUserWithoutToken;
+type userTypes = Models.UserModels.userTypes;
 
 export class UserCore {
     public async getOneUser_throwErrorIfNotExists(username: string): Promise<IUser> {
@@ -22,27 +26,20 @@ export class UserCore {
 
         const userId = uuid();
 
-        const baseUserDir: Models.File.IFileForUserPersonalDir = {
-            id: uuid(),
+        const baseUserDir: UserPersonalDir = new UserPersonalDir({
             fileName: 'home',
-            fileType: Models.File.fileType.USER_PERSONAL_DIR,
-            uploadedBy: userId,
-            deleted: null,
-            extraData: {
-                userId,
-                childFileIds: []
-            }
-        };
+            userId,
+            isRoot: true
+        });
 
-        const createDirResult = await db.collections!.files_collection.insertOne(baseUserDir);
+        const createDirResult = await baseUserDir.uploadFileToMongo(db.collections!.files_collection);
         if (createDirResult.result.ok !== 1) {
             throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
         }
 
         const createdAt = Date.now();
         const expiredAt = Date.now() + 86400 * 1000 /* millisec per day */;    
-
-        const entry: Models.UserModels.IUser = {
+        const entry: IUser = {
             id: userId,
             username,
             otpSecret,

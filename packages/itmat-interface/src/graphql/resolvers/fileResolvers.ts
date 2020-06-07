@@ -59,8 +59,6 @@ export const fileResolvers = {
             const requester: IUser = context.req.user;
             const { fileId } = args;
 
-            /* check permission */
-
             /* check if file exists */
             const fileEntry: IFileMongoEntry | null = await FileNode.findFileOnMongo(db.collections!.files_collection, { id: fileId });
             if (!fileEntry) {
@@ -75,7 +73,15 @@ export const fileResolvers = {
                 throw new Error(`Cannot unzip file of type ${fileEntry.fileType}.`);
             }
 
-            /* check permissions */
+            /* check permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_data,
+                requester,
+                file.studyId
+            );
+            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+
+            /* check extension */
             if (!/.zip$/.test(file.fileName)) {
                 throw new Error('Trying to unzip file with wrong extension.');
             }
@@ -107,33 +113,49 @@ export const fileResolvers = {
             const requester: IUser = context.req.user;
             const { fileName, studyId, fileType } = args;
 
+            /* check permissions */
+            let hasPermission = false;
+            if (fileTypesStudy.includes(fileType)) {
+                hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.manage_study_data,
+                    requester,
+                    studyId
+                );
+            } else if (fileTypesPersonal.includes(fileType)){
+                hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.manage_study_data,
+                    requester,
+                    studyId
+                );
+            } else {
+                /* some fileTypes are not usable for this function */
+                throw new ApolloError('File type not supported');
+            }
+            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);}
+
+            /* create the appropriate file */
             let file: FileNode | undefined;
             switch (fileType) {
                 case fileTypes.STUDY_REPO_DIR:
-                    /* check permissions */
                     file = new StudyRepoDir({ fileName, uploadedBy: requester.id, studyId });
                     break;
                 case fileTypes.STUDY_REPO_SCRIPT_FILE:
-                    /* check permissions */
                     file = new StudyRepoScriptFile({ fileName, uploadedBy: requester.id, studyId });
                     break;
                 case fileTypes.USER_PERSONAL_DIR:
-                    /* check permissions */
-
                     file = new UserPersonalDir({ fileName, userId: requester.id });
                     break;
                 case fileTypes.USER_PERSONAL_FILE:
-                    /* check permissions */
-
                     file = new UserPersonalFile({ fileName, userId: requester.id });
                     break;
                 default:
-                    /* some fileTypes are not usable for this function */
                     throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
             if (!file) {
                 throw new ApolloError(errorCodes.SERVER_ERROR);
             }
+
+            /* upload file to mongo */
             const uploadResult = await file.uploadFileToMongo(db.collections!.files_collection);
             if (uploadResult.result.ok !== 1) {
                 throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);

@@ -296,6 +296,7 @@ type Mutation {
     # FILES
     createFile(fileName: String!, fileType: FileType = USER_PERSONAL_FILE, studyId: String): File
     uploadFile(studyId: String!, description: String = "", file: Upload!, fileLength: Int, fileType: FileType = STUDY_REPO_OBJ_STORE_FILE): File
+    createJobForUnzippingFile(fileId: String!): GenericResponse
     deleteFile(fileId: String!): GenericResponse
 
     # QUERY

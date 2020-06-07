@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "minio": "7.0.16",
-        "mongodb": "3.5.5"
+        "mongodb": "3.5.8"
     },
     "devDependencies": {
         "chalk": "4.0.0",

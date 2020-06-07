@@ -38,17 +38,17 @@ export const GET_STUDY = gql`
                 }
             }
             files {
-                id: String!
-                fileName: String!
-                studyId: String
-                projectId: String
-                fileType: FileType!
-                fileSize: Int
-                description: String
-                uploadedBy: String!
-                userId: String
-                patientId: String
-                childFiles: [File]
+                id
+                fileName
+                studyId
+                projectId
+                fileType
+                fileSize
+                description
+                uploadedBy
+                userId
+                patientId
+                childFiles
             }
             numOfSubjects
             currentDataVersion
