@@ -1,4 +1,4 @@
-import { IFile } from 'itmat-commons/dist/models/file';
+import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
@@ -25,7 +25,7 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelBut
     </div>;
 };
 
-const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile[], cancelButton: (shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
+const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFileMongoEntry[], cancelButton: (shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above
@@ -34,7 +34,7 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
 
     return <>
         <label>Data file:</label>
-        <select value={selectedFile} onChange={(e) => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
+        <select value={selectedFile} onChange={(e) => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.map((el: IFileMongoEntry) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
         <label>Version number:</label>
         <input value={versionNumber} onChange={(e) => { setSuccessfullySaved(false); setVersionNumber(e.target.value); setError(''); }} placeholder="x.y.z (y and z optional)" type="text" /> <br /><br />
         <label>Tag:</label>

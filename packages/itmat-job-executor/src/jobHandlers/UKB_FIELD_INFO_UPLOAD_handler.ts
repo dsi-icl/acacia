@@ -2,7 +2,7 @@ import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
 import { IJobEntryForFieldCuration } from 'itmat-commons/dist/models/job';
-import { IFile } from 'itmat-commons/dist/models/file';
+import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import { v4 as uuid } from 'uuid';
 import { FieldCurator } from '../curation/FieldCurator';
 
@@ -17,11 +17,11 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     }
 
     public async execute(job: IJobEntryForFieldCuration) {
-        const file: IFile = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: null })!;
+        const file: IFileMongoEntry = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: null })!;
         if (!file) {
             // throw error
         }
-        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
+        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri!);
         const fieldTreeId: string = uuid();
         const fieldcurator = new FieldCurator(
             db.collections!.field_dictionary_collection,

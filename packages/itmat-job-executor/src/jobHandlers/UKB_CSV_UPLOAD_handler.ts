@@ -1,4 +1,4 @@
-import { IFile } from 'itmat-commons/dist/models/file';
+import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { v4 as uuid } from 'uuid';
@@ -19,11 +19,11 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
     }
 
     public async execute(job: IJobEntry<{ dataVersion: string, versionTag?: string }>) {
-        const file: IFile = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: null })!;
+        const file: IFileMongoEntry = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: null })!;
         if (!file) {
             // throw error
         }
-        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
+        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri!);
         const versionId: string = uuid();
         const csvcurator = new CSVCurator(
             db.collections!.data_collection,
