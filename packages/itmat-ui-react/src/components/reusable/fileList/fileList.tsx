@@ -1,4 +1,4 @@
-import { IFile } from 'itmat-commons/dist/models/file';
+import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import React from 'react';
 
 export function formatBytes(size: number, decimal: number = 2) {
@@ -11,7 +11,7 @@ export function formatBytes(size: number, decimal: number = 2) {
     return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + ' ' + units[order];
 }
 
-export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files }) => {
+export const FileList: React.FunctionComponent<{ files: IFileMongoEntry[] }> = ({ files }) => {
     return <div>
         <table>
             <thead>
@@ -29,7 +29,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
     </div>;
 };
 
-const OneFile: React.FunctionComponent<{ file: IFile }> = ({ file }) => {
+const OneFile: React.FunctionComponent<{ file: IFileMongoEntry }> = ({ file }) => {
     return <tr>
         <td>{file.fileName}</td>
         <td>{file.description ?? '-'}</td>

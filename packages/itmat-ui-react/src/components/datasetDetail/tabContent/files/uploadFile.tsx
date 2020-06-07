@@ -5,7 +5,7 @@ const {
     UPLOAD_FILE,
     GET_STUDY
 } = GQLRequests;
-const { STUDY_REPO_FILE, STUDY_REPO_DIR } = Models.File.fileType;
+const { STUDY_REPO_OBJ_STORE_FILE, STUDY_REPO_DIR } = Models.File.fileTypes;
 
 export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [description, setDescription] = React.useState('');
@@ -51,7 +51,7 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
                         studyId,
                         description,
                         fileLength: file.size,
-                        fileType: isZipped ? STUDY_REPO_DIR : STUDY_REPO_FILE,
+                        fileType: isZipped ? STUDY_REPO_DIR : STUDY_REPO_OBJ_STORE_FILE,
                         isZipped
                     } });
                 }}>Upload</button>

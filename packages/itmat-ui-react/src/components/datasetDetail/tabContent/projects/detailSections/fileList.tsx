@@ -1,5 +1,5 @@
 import { Tree } from 'antd';
-import { IFile } from 'itmat-commons/dist/models/file';
+import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { EDIT_PROJECT_APPROVED_FILES } from 'itmat-commons/dist/graphql/projects';
@@ -32,7 +32,7 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                     onCheck={onCheck as any}
                     checkedKeys={checkedList}
                 >
-                    {fileData.getStudy.files.map((el: IFile) => <Tree.TreeNode title={el.fileName} key={el.id} isLeaf={true} />)}
+                    {fileData.getStudy.files.map((el: IFileMongoEntry) => <Tree.TreeNode title={el.fileName} key={el.id} isLeaf={true} />)}
                 </Tree>
                 <Mutation<any, any>
                     mutation={EDIT_PROJECT_APPROVED_FILES}
