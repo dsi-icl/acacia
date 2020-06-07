@@ -21,7 +21,7 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selec
             <NewestVersionOfData version={version || 'n/a'} />
             <VersionTag tag={tag || 'n/a'} />
             <DateOfUpload date={uploadDate} />
-            <FileSize size={(fileSize && formatBytes(parseInt(fileSize), 10)) || 'n/a'} />
+            <FileSize size={(fileSize && formatBytes(parseInt(fileSize, 10))) || 'n/a'} />
             <OriginalFile fileName={extractedFrom || 'n/a'} />
         </div>
 
