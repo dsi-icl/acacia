@@ -1,4 +1,4 @@
-import { IFieldDescriptionObject } from 'itmat-commons/dist/models/data';
+import { Models } from 'itmat-commons';
 
 /* validate a field string */
 export function fieldValidator(field: string): boolean {
@@ -9,7 +9,7 @@ export function fieldValidator(field: string): boolean {
 }
 
 /* decompose a field string */
-export function fieldParser(field: string): IFieldDescriptionObject {
+export function fieldParser(field: string): Models.Data.IFieldDescriptionObject {
     const fieldId = parseInt(field.substring(0, field.indexOf('@')), 10);
     const timepoint = parseInt(field.substring(field.indexOf('@') + 1, field.indexOf('.')), 10);
     const measurement = parseInt(field.substring(field.indexOf('.') + 1, field.indexOf(':') === -1 ? field.length : field.indexOf(':')), 10);
