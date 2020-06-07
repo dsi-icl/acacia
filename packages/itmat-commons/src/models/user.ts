@@ -16,6 +16,8 @@ export interface IUserWithoutToken {
     deleted: number | null;
     rootDir: string; // file id
     createdBy: string;
+    createdAt: number;
+    expiredAt: number;
     resetPasswordRequests: IResetPasswordRequest[]
 }
 

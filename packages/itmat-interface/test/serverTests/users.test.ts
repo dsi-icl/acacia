@@ -34,6 +34,9 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection.close();
     await mongodb.stop();
+
+    /* claer all mocks */
+    jest.clearAllMocks();
 });
 
 beforeAll(async () => { // eslint-disable-line no-undef
@@ -62,6 +65,9 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app, null);
     await connectAdmin(admin);
     await connectUser(user);
+
+    /* Mock Date for testing */
+    jest.spyOn(Date, 'now').mockImplementation(() => 1591134065000);
 });
 
 describe('USERS API', () => {
@@ -463,7 +469,9 @@ describe('USERS API', () => {
                     id: `user_access_obj_user_id_${whoami.body.data.whoAmI.id}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* cleanup */
@@ -527,7 +535,9 @@ describe('USERS API', () => {
                     id: `user_access_obj_user_id_${whoami.body.data.whoAmI.id}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* test */
@@ -602,7 +612,9 @@ describe('USERS API', () => {
                     id: `user_access_obj_user_id_${adminId}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
         });
 
@@ -626,8 +638,114 @@ describe('USERS API', () => {
                     id: `user_access_obj_user_id_${userId}`,
                     projects: [],
                     studies: []
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
+            });
+        });
+
+        test('Expired standard user log in (should fail)', async() => {
+            const userSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA";
+            const newUser: IUser = {
+                username : 'expired_user', 
+                type: userTypes.STANDARD, 
+                realName: 'expired user', 
+                password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                createdBy: 'admin', 
+                email: 'expire@user.io', 
+                resetPasswordRequests: [],
+                description: 'I am an expired user.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'expiredId0',
+                createdAt: 1591134065000,
+                expiredAt: 1501134065000
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            const newloggedoutuser = request.agent(app, null);
+            const otp = mfa.generateTOTP(userSecret).toString();
+            const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
+                query: print(LOGIN),
+                variables: {
+                    username: 'expired_user',
+                    password: 'admin',
+                    totp: otp
                 }
             });
+            expect(res.status).toBe(200);
+            expect(res.body.data.login).toBeNull();
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('Account Expired.');
+            const dres = await admin.post('/graphql').send(
+                {
+                    query: print(DELETE_USER),
+                    variables: {
+                        userId: newUser.id
+                    }
+                }
+            );
+        });
+
+        test('Expired admin user log in', async() => {
+            const adminSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA";
+            const newUser: IUser = {
+                username : 'expired_admin', 
+                type: userTypes.ADMIN, 
+                realName: 'expired admin', 
+                password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2', 
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                createdBy: 'admin', 
+                email: 'admine@user.io', 
+                resetPasswordRequests: [],
+                description: 'I am an expired admin.',
+                emailNotificationsActivated: true, 
+                organisation:  'DSI',
+                deleted: null, 
+                id: 'expiredId1',
+                createdAt: 1591134065000,
+                expiredAt: 1501134065000
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            const newloggedoutuser = request.agent(app, null);
+            const otp = mfa.generateTOTP(adminSecret).toString();
+            const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
+                query: print(LOGIN),
+                variables: {
+                    username: 'expired_admin',
+                    password: 'admin',
+                    totp: otp
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.data.login).toEqual({
+                id: 'expiredId1',
+                username: 'expired_admin',
+                type: 'ADMIN',
+                realName: 'expired admin',
+                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                email: 'admine@user.io',
+                createdBy: 'admin',
+                organisation: 'DSI',
+                description: 'I am an expired admin.',
+                access: {
+                    id: 'user_access_obj_user_id_expiredId1',
+                    projects: [],
+                    studies: []
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1501134065000
+            });
+            expect(res.body.errors).toBeUndefined();
+            const dres = await admin.post('/graphql').send(
+                {
+                    query: print(DELETE_USER),
+                    variables: {
+                        userId: newUser.id
+                    }
+                }
+            );
         });
     });
 
@@ -655,7 +773,9 @@ describe('USERS API', () => {
                     organisation: 'DSI',
                     email: 'admin@user.io', 
                     description: 'I am an admin user.',
-                    id: adminId
+                    id: adminId,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 },
                 {
                     username: 'standardUser', 
@@ -666,7 +786,9 @@ describe('USERS API', () => {
                     organisation: 'DSI',
                     email: 'standard@user.io', 
                     description: 'I am a standard user.',
-                    id: userId
+                    id: userId,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -689,7 +811,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${adminId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 },
                 {
                     username: 'standardUser', 
@@ -705,7 +829,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${userId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -726,7 +852,9 @@ describe('USERS API', () => {
                     organisation: 'DSI',
                     email: 'standard@user.io', 
                     description: 'I am a standard user.',
-                    id: userId
+                    id: userId,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -755,7 +883,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${userId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -827,7 +957,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${userId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -880,7 +1012,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${userId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             ]);
         });
@@ -973,10 +1107,9 @@ describe('USERS API', () => {
             const createdUser = (await mongoClient
                 .collection(config.database.collections.users_collection)
                 .findOne({ username: 'testuser1' }));
-
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.createUser).toEqual(
+            expect(res.body.data.createUser).toStrictEqual(
                 {
                     username: 'testuser1',
                     otpSecret: createdUser.otpSecret,
@@ -991,9 +1124,11 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_${createdUser.id}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1591220465000
                 }
-            )
+            );
         });
 
         test('create user with wrong email format (admin)', async () => {
@@ -1050,7 +1185,6 @@ describe('USERS API', () => {
                     type: userTypes.STANDARD
                 }
             });
-
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
@@ -1073,6 +1207,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'replaced_at_runtime1',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1112,6 +1248,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'fakeid1',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1150,7 +1288,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true, 
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid2'
+                id: 'fakeid2',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1192,6 +1332,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'fakeid2222',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1230,7 +1372,9 @@ describe('USERS API', () => {
                         id: `user_access_obj_user_id_fakeid2222`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 }
             );
         });
@@ -1250,7 +1394,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid44444'
+                id: 'fakeid44444',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -1289,6 +1435,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'fakeid4',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -1321,7 +1469,9 @@ describe('USERS API', () => {
                     id: 'user_access_obj_user_id_fakeid4',
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
             const modifieduser = await mongoClient.collection(config.database.collections.users_collection).findOne({ username: 'new_user_4' });
             expect(modifieduser.password).not.toBe(newUser.password);
@@ -1343,7 +1493,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid5'
+                id: 'fakeid5',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -1383,7 +1535,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid6'
+                id: 'fakeid6',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
             const createdUser = request.agent(app);
@@ -1420,7 +1574,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid7'
+                id: 'fakeid7',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1455,7 +1611,9 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 organisation:  'DSI',
                 deleted: null,
-                id: 'fakeid8'
+                id: 'fakeid8',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1514,6 +1672,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: (new Date()).valueOf(), 
                 id: 'fakeid9',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1567,6 +1727,8 @@ describe('USERS API', () => {
                 organisation:  'DSI',
                 deleted: null, 
                 id: 'fakeid10',
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
 

@@ -32,11 +32,15 @@ export class UserCore {
                 userId,
                 childFileIds: []
             }
-        }
+        };
+
         const createDirResult = await db.collections!.files_collection.insertOne(baseUserDir);
         if (createDirResult.result.ok !== 1) {
             throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
         }
+
+        const createdAt = Date.now();
+        const expiredAt = Date.now() + 86400 * 1000 /* millisec per day */;    
 
         const entry: Models.UserModels.IUser = {
             id: userId,
@@ -51,6 +55,8 @@ export class UserCore {
             rootDir: baseUserDir.id,
             email,
             emailNotificationsActivated,
+            createdAt,
+            expiredAt,
             resetPasswordRequests: [],
             deleted: null
         };

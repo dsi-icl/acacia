@@ -8,7 +8,7 @@
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-utils --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
         "build": "lerna run --stream build",
         "publish": "lerna run tsc && lerna publish",
-        "test:unit": "lerna run --stream --parallel --scope itmat-interface --scope itmat-job-executor --scope itmat-utils test",
+        "test:unit": "lerna run --no-bail --concurrency 1 --stream --scope itmat-interface --scope itmat-job-executor --scope itmat-utils test",
         "test:e2e": "echo start-server-and-test to be activated",
         "test": "npm run test:unit && npm run test:e2e"
     },
@@ -16,13 +16,12 @@
         "mongodb-client-encryption": "1.0.1"
     },
     "devDependencies": {
-        "@types/jest": "25.2.1",
-        "eslint": "6.8.0",
-        "eslint-plugin-jest": "23.8.2",
+        "@types/jest": "25.2.3",
+        "eslint": "7.2.0",
+        "eslint-plugin-jest": "23.13.2",
         "jest-environment-node": "25.3.0",
-        "lerna": "3.20.2",
-        "start-server-and-test": "1.10.11",
-        "tslint": "6.1.1",
+        "lerna": "3.22.0",
+        "start-server-and-test": "1.11.0",
         "typescript": "3.8.3"
     },
     "resolutions": {

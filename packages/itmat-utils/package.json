@@ -19,7 +19,7 @@
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
     },
     "dependencies": {
-        "minio": "7.0.15",
+        "minio": "7.0.16",
         "mongodb": "3.5.5"
     },
     "devDependencies": {
@@ -27,12 +27,12 @@
         "jest": "25.2.7",
         "node-fetch": "2.6.0",
         "supertest": "4.0.2",
-        "ts-jest": "25.2.1",
-        "@types/express": "4.17.4",
-        "@types/jest": "25.2.1",
+        "ts-jest": "26.1.0",
+        "@types/express": "4.17.6",
+        "@types/jest": "25.2.3",
         "@types/minio": "7.0.5",
         "@types/mongodb": "3.5.20",
-        "@types/node": "13.11.0",
+        "@types/node": "13.13.10",
         "rimraf": "3.0.2",
         "typescript": "3.8.3"
     },
