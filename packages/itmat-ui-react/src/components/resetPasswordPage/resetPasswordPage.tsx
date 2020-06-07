@@ -29,7 +29,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                         <p>Your password has been successfully changed.</p>
                     </div>
                     <br />
-                    <NavLink to="/"><button>Go to Login</button></NavLink>
+                    <NavLink to='/'><button>Go to Login</button></NavLink>
                 </div>
             </div>
         );
@@ -49,14 +49,14 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                         <h1>Reset you password</h1>
                         <br />
                         <div>
-                            <label htmlFor="password_input">Enter new password:</label><br />
-                            <input id="password_input" placeholder="password" type="password" value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('submit_button')!.click()} /> <br />
+                            <label htmlFor='password_input'>Enter new password:</label><br />
+                            <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('submit_button')!.click()} /> <br />
                         </div>
                         <br />
                         {loading ? <button>Loading...</button> :
                             (
                                 <button
-                                    id="submit_button"
+                                    id='submit_button'
                                     onClick={() => {
                                         if (passwordInput.length < 8) {
                                             setStateError('Password must have at least 8 characters');
@@ -68,7 +68,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                             )
                         }
                         <br />
-                        <div id="error_dialog" className={css.error_message}>
+                        <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}
                         </div>
                     </div>

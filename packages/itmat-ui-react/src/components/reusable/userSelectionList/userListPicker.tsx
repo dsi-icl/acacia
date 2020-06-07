@@ -37,7 +37,7 @@ const UserList: React.FunctionComponent<{
                     style={{ width: '100%' }}
                     value={addUserInput}
                     onChange={(e) => { setAddUserInput(e); }}
-                    notFoundContent="No user matches your search"
+                    notFoundContent='No user matches your search'
                 >
                     {availableUserList.map((el: IUser) => <Select.Option key={el.id} value={el.id}>{`${el.realName} (${el.organisation || 'unknown organisation'})`}</Select.Option>)}
                 </Select>

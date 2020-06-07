@@ -15,7 +15,7 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selec
     const { id, version, tag, uploadDate, fileSize, extractedFrom } = versions[selectedVersion];
 
     return <>
-        {selectedVersion === currentVersion ? null : <><span className="warning_banner">Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
+        {selectedVersion === currentVersion ? null : <><span className='warning_banner'>Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
         <div className={css.data_summary_section}>
             <NumberOfPatients studyId={studyId} key={id} />
             <NewestVersionOfData version={version || 'n/a'} />

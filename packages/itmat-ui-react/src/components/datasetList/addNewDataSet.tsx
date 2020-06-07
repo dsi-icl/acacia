@@ -23,8 +23,8 @@ export const AddNewDataSet: React.FunctionComponent = () => {
                             <button onClick={() => setShowMore(true)}>Add new dataset</button>
                             :
                             <div>
-                                <label>Enter name: <input value={newName} onChange={e => { setNewName(e.target.value); setInputError(''); }} type="text" /> </label>
-                                <button className="button_grey" onClick={() => { setShowMore(false); setNewName(''); }}>Cancel</button>
+                                <label>Enter name: <input value={newName} onChange={e => { setNewName(e.target.value); setInputError(''); }} type='text' /> </label>
+                                <button className='button_grey' onClick={() => { setShowMore(false); setNewName(''); }}>Cancel</button>
                                 {
                                     createStudyLoading ?
                                         <button>Loading...</button>
@@ -39,13 +39,13 @@ export const AddNewDataSet: React.FunctionComponent = () => {
                                 }
                                 {
                                     createStudyError ?
-                                        <div className="error_banner">Error creating study. Please contact admin.</div>
+                                        <div className='error_banner'>Error creating study. Please contact admin.</div>
                                         :
                                         null
                                 }
                                 {
                                     inputError !== '' ?
-                                        <div className="error_banner">{inputError}</div>
+                                        <div className='error_banner'>{inputError}</div>
                                         :
                                         null
                                 }

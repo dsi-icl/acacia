@@ -39,7 +39,7 @@ export const OneRole: React.FunctionComponent<{ role: Models.Study.IRole; availa
         <UserListPicker.UserList
             studyId={role.studyId}
             projectId={role.projectId}
-            submitButtonString="Add user"
+            submitButtonString='Add user'
             availableUserList={userData.getUsers}
             onClickAddButton={loadingAddUser ? () => { return; } : (__unused__studyId, __unused__projectId, user) => { addUserToRole({ variables: { roleId: role.id, userChanges: { add: [user.id], remove: [] } } }); }}
         >
@@ -58,9 +58,9 @@ export const AddRole: React.FunctionComponent<{ studyId: string; projectId?: str
     if (!isExpanded) { return <span className={css.add_new_role_button} onClick={() => setIsExpanded(true)}>Add new role</span>; }
     return <div className={css.add_new_role_section}>
         <span>Create new role</span><br /><br />
-        <label>Name: </label><input placeholder="Role name" value={inputNameString} onChange={(e) => setInputNameString(e.target.value)} /> <br />
+        <label>Name: </label><input placeholder='Role name' value={inputNameString} onChange={(e) => setInputNameString(e.target.value)} /> <br />
         <div className={css.add_new_role_buttons_wrapper}>
-            <button className="button_grey" onClick={() => setIsExpanded(false)}>Cancel</button>
+            <button className='button_grey' onClick={() => setIsExpanded(false)}>Cancel</button>
             <Mutation<any, any>
                 mutation={ADD_NEW_ROLE}
                 refetchQueries={refetchQueries}
@@ -100,7 +100,7 @@ const PermissionsControlPanel: React.FunctionComponent<{ roleId: string; availab
                 <React.Fragment key={el}>
                     <Mutation<any, any> mutation={EDIT_ROLE}>
                         {(editRole, { loading }) => {
-                            if (loading) { return <div key={el} className="button_loading">{el}</div>; }
+                            if (loading) { return <div key={el} className='button_loading'>{el}</div>; }
 
                             return <div onClick={() => {
                                 editRole({

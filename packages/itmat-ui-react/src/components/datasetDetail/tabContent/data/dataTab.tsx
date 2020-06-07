@@ -76,9 +76,9 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy; showSaveVer
                         )
                 }
 
-                <button key="new data" className={css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</button>
+                <button key='new data' className={css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</button>
                 {showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ?
-                    <button key="save version" onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</button>
+                    <button key='save version' onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</button>
                     : null
                 }<br />
             </> : null}
@@ -93,7 +93,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy; showSaveVer
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title="Fields & Variables">
+            <Subsection title='Fields & Variables'>
                 <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id} />
                 <br /><br />
                 <FieldListSelectionSection
@@ -107,7 +107,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy; showSaveVer
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title="Data">
+            <Subsection title='Data'>
                 <DataSummaryVisual
                     studyId={data.id}
                     selectedVersion={selectedVersion}

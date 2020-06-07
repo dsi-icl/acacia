@@ -48,11 +48,11 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                                     }}>Save</button>
                             }
                             {
-                                error ? <div className="error_banner">{JSON.stringify(error)}</div> : null
+                                error ? <div className='error_banner'>{JSON.stringify(error)}</div> : null
                             }
 
                             {
-                                savedSuccessfully ? <div className="saved_banner">Saved!</div> : null
+                                savedSuccessfully ? <div className='saved_banner'>Saved!</div> : null
                             }
                         </>
                     }

@@ -52,19 +52,19 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                             !forgotUsername
                                 ?
                                 <div>
-                                    <input placeholder="username" value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('submit_button')!.click()} /> <br />
+                                    <input placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('submit_button')!.click()} /> <br />
                                     <p onClick={() => setForgotUsername(true)} style={{ cursor: 'pointer' }}>Forgot your username?</p>
                                 </div>
                                 :
                                 <div>
-                                    <input placeholder="email" type="email" value={emailInput} onChange={handleEmailChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('submit_button')!.click()} /> <br />
+                                    <input placeholder='email' type='email' value={emailInput} onChange={handleEmailChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('submit_button')!.click()} /> <br />
                                 </div>
                         }
                         <br />
                         {loading ? <button>loading..</button> :
                             (
                                 <button
-                                    id="submit_button"
+                                    id='submit_button'
                                     onClick={() => {
                                         if (!forgotUsername) {
                                             if (usernameInput === '') {
@@ -90,7 +90,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                             )
                         }
                         <br />
-                        <div id="error_dialog" className={css.error_message}>
+                        <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}
                         </div>
                     </div>

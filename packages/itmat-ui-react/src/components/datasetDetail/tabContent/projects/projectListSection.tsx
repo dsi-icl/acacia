@@ -21,7 +21,7 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
     const [error, setError] = React.useState('');
 
     return <div>
-        <input value={input} onChange={(e) => { setError(''); setInput(e.target.value); }} type="text" placeholder="Enter name" />
+        <input value={input} onChange={(e) => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name' />
         <Mutation<any, any>
             mutation={CREATE_PROJECT}
             update={(store, { data: { createProject } }) => {
@@ -60,7 +60,7 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
             }
         </Mutation>
         {
-            error ? <div className="error_banner">{error}</div> : null
+            error ? <div className='error_banner'>{error}</div> : null
         }
     </div>;
 };

@@ -45,19 +45,19 @@ export const LoginBox: React.FunctionComponent = () => {
                         <p>A secure and high-performance clinical data storage and analysis platform</p>
                         <br />
                         <div>
-                            <input id="username_input" placeholder="username" value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
+                            <input id='username_input' placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
                         </div>
                         <div>
-                            <input id="password_input" placeholder="password" type="password" value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
+                            <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
                         </div>
                         <div>
-                            <input id="totp_input" placeholder="totp" type="password" value={totpInput} onChange={handleTotpChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
+                            <input id='totp_input' placeholder='totp' type='password' value={totpInput} onChange={handleTotpChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
                         </div>
                         <br />
                         {loading ? <button>logging in..</button> :
                             (
                                 <button
-                                    id="loginButton"
+                                    id='loginButton'
                                     onClick={() => {
                                         if (usernameInput === '') {
                                             setStateError('Missing username.');
@@ -73,9 +73,9 @@ export const LoginBox: React.FunctionComponent = () => {
                             )
                         }
                         <br />
-                        <NavLink to="/requestResetPassword"><p>Forgot username or password</p></NavLink>
+                        <NavLink to='/requestResetPassword'><p>Forgot username or password</p></NavLink>
                         <br />
-                        <div id="error_dialog" className={css.error_message}>
+                        <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}
                         </div>
                     </div>

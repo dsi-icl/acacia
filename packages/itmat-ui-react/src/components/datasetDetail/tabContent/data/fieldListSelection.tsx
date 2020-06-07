@@ -15,7 +15,7 @@ export const FieldListSelectionSection: React.FunctionComponent<{ studyId: strin
     const { fieldTrees } = versions[selectedVersion];
 
     return <>
-        {selectedVersion === currentVersion ? null : <><span className="warning_banner">Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
+        {selectedVersion === currentVersion ? null : <><span className='warning_banner'>Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
 
         {
             fieldTrees.length === 0 ?

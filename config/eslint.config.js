@@ -30,7 +30,7 @@ var defaultRules = {
     'indent': [
         'error',
         4,
-        { 'SwitchCase': 1 }
+        { SwitchCase: 1 }
     ],
     'eol-last': [
         'error',
@@ -38,7 +38,7 @@ var defaultRules = {
     ],
     'no-unused-vars': [
         'warn',
-        { 'argsIgnorePattern': '^__unused__' }
+        { argsIgnorePattern: '^__unused__' }
     ],
     'quotes': [
         'error',
@@ -50,7 +50,7 @@ var defaultRules = {
     ],
     'jsx-quotes': [
         'error',
-        'prefer-double'
+        'prefer-single'
     ],
     'semi': [
         'error',
@@ -82,7 +82,7 @@ var defaultRules = {
     ],
     '@typescript-eslint/no-unused-vars': [
         'warn',
-        { 'argsIgnorePattern': '^__unused__' }
+        { argsIgnorePattern: '^__unused__' }
     ],
 };
 

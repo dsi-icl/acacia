@@ -71,12 +71,12 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
                 <thead>
                     <tr>
                         <th>
-                            <input name="search" value={searchString} onChange={(e) => { setSearchString(e.target.value); }} />
+                            <input name='search' value={searchString} onChange={(e) => { setSearchString(e.target.value); }} />
                         </th>
                         <th />
                         <th />
                         <th />
-                        <th><NavLink to="/users/createNewUser" activeClassName={css.button_clicked}><button>Create new user</button></NavLink></th>
+                        <th><NavLink to='/users/createNewUser' activeClassName={css.button_clicked}><button>Create new user</button></NavLink></th>
                     </tr>
                 </thead>
             </table>

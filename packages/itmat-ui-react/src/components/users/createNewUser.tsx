@@ -48,22 +48,22 @@ export const CreateNewUser: React.FunctionComponent = () => {
 
     return (
         <form>
-            <label>Username: <input type="text" {...inputControl('username')} /> </label><br /><br />
-            <label>Password: <input type="password" {...inputControl('password')} /> </label><br /><br />
-            <label>Real name: <input type="text" {...inputControl('realName')} /> </label><br /><br />
-            <label>Organisation: <input type="text" {...inputControl('organisation')} /> </label><br /><br />
-            <label>Description: <input type="text" {...inputControl('description')} /> </label><br /><br />
-            <label>Email: <input type="text" {...inputControl('email')} /> </label><br /><br />
+            <label>Username: <input type='text' {...inputControl('username')} /> </label><br /><br />
+            <label>Password: <input type='password' {...inputControl('password')} /> </label><br /><br />
+            <label>Real name: <input type='text' {...inputControl('realName')} /> </label><br /><br />
+            <label>Organisation: <input type='text' {...inputControl('organisation')} /> </label><br /><br />
+            <label>Description: <input type='text' {...inputControl('description')} /> </label><br /><br />
+            <label>Email: <input type='text' {...inputControl('email')} /> </label><br /><br />
             <label>Type: <select {...inputControl('type')}>
-                <option value="STANDARD">System user</option>
-                <option value="ADMIN">System admin</option>
+                <option value='STANDARD'>System user</option>
+                <option value='ADMIN'>System admin</option>
             </select></label>
             <br /><br /><br /><br />
             <div className={css.submit_cancel_button_wrapper}>
-                <NavLink to="/users"><button className="button_grey">Cancel</button></NavLink>
+                <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
                 {loading ? <button>Loading...</button> : <button onClick={clickedSubmit(createUser)}>Submit</button>}
             </div>
-            {inputError !== '' ? <div className="error_banner">{inputError}</div> : null}
+            {inputError !== '' ? <div className='error_banner'>{inputError}</div> : null}
         </form>
     );
 };
