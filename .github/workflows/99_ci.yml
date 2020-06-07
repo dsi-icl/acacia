@@ -18,10 +18,12 @@ jobs:
         node-version: ${{ matrix.node }}
     - name: Installing dependencies
       run: yarn install
+    - name: Checking for lint
+      run: yarn run lint
     - name: Building packages
       run: yarn run build
     - name: Running unit tests
-      run: yarn run test:unit
+      run: yarn run test
       env:
         CI: true
         SKIP_EMAIL_TEST: true
@@ -38,10 +40,12 @@ jobs:
   #       node-version: ${{ matrix.node }}
   #   - name: Installing dependencies
   #     run: yarn install
+  #   - name: Checking for lint
+  #     run: yarn run lint
   #   - name: Building packages
   #     run: yarn run build
   #   - name: Running unit tests
-  #     run: yarn run test:unit
+  #     run: yarn run test
   #     env:
   #       CI: true
   #       TEST_SMTP_CRED: ${{ secrets.TEST_SMTP_CRED }}

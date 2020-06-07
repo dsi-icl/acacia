@@ -1,5 +1,8 @@
-const { processJSONHeader, processEachSubject, JSONCurator } = require('../../src/curation/JSONCurator');
-const fs = require('fs');
+import { processJSONHeader, processEachSubject, JSONCurator } from '../../src/curation/JSONCurator';
+import fs from 'fs';
+import { stub } from './_stubHelper';
+import { IJobEntryForDataCuration } from 'itmat-commons/dist/models/job';
+
 describe('Unit tests for processJSONHeader function', () => {
     it('processJSONHeader function weeds out syntax error', () => {
         const exampleheader = ['Eid', '1-3.3', '1-4.3'];
@@ -10,8 +13,8 @@ describe('Unit tests for processJSONHeader function', () => {
         expect(parsedHeader[1]).toBeNull();
         expect(error).toBeDefined();
         expect(error.length).toBe(2);
-        expect(error[0]).toBe("Object 1: '1-3.3' is not a valid header field descriptor.");
-        expect(error[1]).toBe("Object 1: '1-4.3' is not a valid header field descriptor.");
+        expect(error[0]).toBe('Object 1: \'1-3.3\' is not a valid header field descriptor.');
+        expect(error[1]).toBe('Object 1: \'1-4.3\' is not a valid header field descriptor.');
     });
 
     it('processJSONHeader function weeds out duplicates', () => {
@@ -25,7 +28,7 @@ describe('Unit tests for processJSONHeader function', () => {
         expect(parsedHeader[4]).toEqual({ fieldId: 2, timepoint: 3, measurement: 2, datatype: 'c' });
         expect(error).toBeDefined();
         expect(error.length).toBe(1);
-        expect(error[0]).toBe("Object 1: There is duplicate (field, timepoint, measurement) combination.");
+        expect(error[0]).toBe('Object 1: There is duplicate (field, timepoint, measurement) combination.');
     });
 
     it('processJSONHeader function, user can annotate data type', () => {
@@ -39,7 +42,7 @@ describe('Unit tests for processJSONHeader function', () => {
         expect(parsedHeader[4]).toEqual({ fieldId: 2, timepoint: 3, measurement: 2, datatype: 'c' });
         expect(error).toBeDefined();
         expect(error.length).toBe(1);
-        expect(error[0]).toBe("Object 1: There is duplicate (field, timepoint, measurement) combination.");
+        expect(error[0]).toBe('Object 1: There is duplicate (field, timepoint, measurement) combination.');
     });
 
     it('processJSONHeader function weeds out wrong data type', () => {
@@ -52,8 +55,8 @@ describe('Unit tests for processJSONHeader function', () => {
         expect(parsedHeader[3]).toBeNull();
         expect(error).toBeDefined();
         expect(error.length).toBe(2);
-        expect(error[0]).toBe("Object 1: '1@3.3:p' is not a valid header field descriptor.");
-        expect(error[1]).toBe("Object 1: '2@3.2:e' is not a valid header field descriptor.");
+        expect(error[0]).toBe('Object 1: \'1@3.3:p\' is not a valid header field descriptor.');
+        expect(error[1]).toBe('Object 1: \'2@3.2:e\' is not a valid header field descriptor.');
     });
 
     it('processJSONHeader function correctly parsed header', () => {
@@ -69,23 +72,24 @@ describe('Unit tests for processJSONHeader function', () => {
 });
 
 describe('Unit tests for processEachSubject function', () => {
+    const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+        id: 'mockJobId',
+        studyId: 'mockStudyId',
+        data: {
+            dataVersion: '0.0.1',
+            versionTag: 'testData'
+        }
+    });
     const templateParams = {
         objectNum: 22,
         subject: [],
         parsedHeader: processJSONHeader(['Eid', '1@3.3:c', '1@2.1:i', '2@3.2:b', '3@3.1:d']).parsedHeader,
-        job: {  // subset of the IJobEntry interface
-            id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData' 
-            }
-        },
+        job: jobEntry,
         versionId: 'mockVersionId'
     };
 
     it('processEachSubject function correctly parse data row', () => {
-        const { error, dataEntry } = processEachSubject({ ...templateParams, subject: ['A001', 'male', '95', 'true', '4.64']});
+        const { error, dataEntry } = processEachSubject({ ...templateParams, subject: ['A001', 'male', '95', 'true', '4.64'] });
         expect(error).toBeUndefined();
         expect(dataEntry).toEqual({
             m_eid: 'A001',
@@ -102,8 +106,8 @@ describe('Unit tests for processEachSubject function', () => {
         const { error, dataEntry } = processEachSubject({ ...templateParams, subject: ['A001', 'male', 'female', 'male', '4.64'] });
         expect(error).toBeDefined();
         expect(error).toHaveLength(2);
-        expect(error[0]).toBe("The 22 object (subjectId: A001) column 3: Cannot parse 'female' as integer.");
-        expect(error[1]).toBe("The 22 object (subjectId: A001) column 4: value for boolean type must be 'true' or 'false'.");
+        expect(error[0]).toBe('The 22 object (subjectId: A001) column 3: Cannot parse \'female\' as integer.');
+        expect(error[1]).toBe('The 22 object (subjectId: A001) column 4: value for boolean type must be \'true\' or \'false\'.');
         expect(dataEntry).toEqual({
             m_eid: 'A001',
             m_jobId: 'mockJobId',
@@ -118,7 +122,7 @@ describe('Unit tests for processEachSubject function', () => {
         const { error, dataEntry } = processEachSubject({ ...templateParams, subject: ['A001', '45', '53', 'false', '5a'] });
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
-        expect(error[0]).toBe("The 22 object (subjectId: A001) column 5: Cannot parse '5a' as decimal.");
+        expect(error[0]).toBe('The 22 object (subjectId: A001) column 5: Cannot parse \'5a\' as decimal.');
         expect(dataEntry).toEqual({
             m_eid: 'A001',
             m_jobId: 'mockJobId',
@@ -146,7 +150,7 @@ describe('Unit tests for processEachSubject function', () => {
         const { error, dataEntry } = processEachSubject({ ...templateParams, subject: ['', 'male', '53', 'false', '5.3'] });
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
-        expect(error[0]).toBe("Object 22: No subject id provided.");
+        expect(error[0]).toBe('Object 22: No subject id provided.');
         expect(dataEntry).toEqual({
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
@@ -164,7 +168,7 @@ describe('JSONCuratorClass', () => {
         this._insertArray = [];
         this._executeCalled = []; // array of length of _insertArray when execute() is called
         this.insert = (object) => { this._insertArray.push(object); };
-        this.execute = () => new Promise((resolve, reject) => {
+        this.execute = () => new Promise((resolve) => {
             setTimeout(() => {
                 this._executeCalled.push(this._insertArray.length);
                 resolve();
@@ -175,10 +179,10 @@ describe('JSONCuratorClass', () => {
     function MongoStub() {
         this._bulkinsert = new BulkInsert();
         this.initializeUnorderedBulkOp = () => this._bulkinsert;
-    };
+    }
 
     it('test mongostub', () => {
-        const bulkinsert = (new MongoStub).initializeUnorderedBulkOp();
+        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({});
         bulkinsert.insert({});
         bulkinsert.execute().then(() => {
@@ -193,17 +197,18 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator uploads json file okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const csvcurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
@@ -223,23 +228,24 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches wrong headers', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error1.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            "Object 1: '2@1.1:p' is not a valid header field descriptor.",
-            "Object 1: There is duplicate (field, timepoint, measurement) combination.",
+            'Object 1: \'2@1.1:p\' is not a valid header field descriptor.',
+            'Object 1: There is duplicate (field, timepoint, measurement) combination.',
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0); // nothing gets uploaded if errors are caught in header
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
@@ -249,17 +255,18 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches duplicate subject before first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error2.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
@@ -279,23 +286,24 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error3.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            "Object sub17: Uneven field Number; expected 5 fields but got 4",
-            "Object sub27: Uneven field Number; expected 5 fields but got 4"
+            'Object sub17: Uneven field Number; expected 5 fields but got 4',
+            'Object sub27: Uneven field Number; expected 5 fields but got 4'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(17);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
@@ -312,23 +320,24 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error4.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            "Object sub1530: Uneven field Number; expected 5 fields but got 3",
-            "Object sub1836: Uneven field Number; expected 5 fields but got 4"
+            'Object sub1530: Uneven field Number; expected 5 fields but got 3',
+            'Object sub1836: Uneven field Number; expected 5 fields but got 4'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(1530);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000]);
@@ -345,28 +354,29 @@ describe('JSONCuratorClass', () => {
     it('jsoncurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error5.json');
         const mongoStub = new MongoStub();
+        const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
+            id: 'mockJobId',
+            studyId: 'mockStudyId',
+            data: {
+                dataVersion: '0.0.1',
+                versionTag: 'testData'
+            }
+        });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
-            {  // subset of the IJobEntry interface
-                id: 'mockJobId',
-                studyId: 'mockStudyId',
-                data: {
-                    dataVersion: '0.0.1',
-                    versionTag: 'testData' 
-                }
-            },
+            jobEntry,
             'mockVersionId'
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            "Object 1: '1@2.1:8' is not a valid header field descriptor.",
-            "The 9 object (subjectId: sub7) column 3: Cannot parse 'as.d' as decimal.",
-            "Object sub31: Uneven field Number; expected 5 fields but got 4",
-            "Object sub32: Uneven field Number; expected 5 fields but got 4",
-            "Object sub1531: Uneven field Number; expected 5 fields but got 4",
-            "Object sub1837: Uneven field Number; expected 5 fields but got 3",
-            "Data Error: There is duplicate subject id."
+            'Object 1: \'1@2.1:8\' is not a valid header field descriptor.',
+            'The 9 object (subjectId: sub7) column 3: Cannot parse \'as.d\' as decimal.',
+            'Object sub31: Uneven field Number; expected 5 fields but got 4',
+            'Object sub32: Uneven field Number; expected 5 fields but got 4',
+            'Object sub1531: Uneven field Number; expected 5 fields but got 4',
+            'Object sub1837: Uneven field Number; expected 5 fields but got 3',
+            'Data Error: There is duplicate subject id.'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);

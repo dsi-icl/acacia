@@ -1,6 +1,8 @@
 {
     "name": "itmat-ui-react",
     "version": "0.5.0",
+    "description": "",
+    "license": "MIT",
     "main": "build/index",
     "types": "build/index",
     "files": [
@@ -11,6 +13,8 @@
         "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
         "test": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts test",
         "test:cypress": "npx cypress open",
+        "lint": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts --fix ./",
         "clean": "rimraf -rf ./dist ./build",
         "prepublishOnly": "yarn run build"
     },
@@ -57,7 +61,7 @@
         "**/moment": "2.24.0"
     },
     "eslintConfig": {
-        "extends": "react-app"
+        "extends": "./config/eslint.config.js"
     },
     "browserslist": [
         ">0.2%",

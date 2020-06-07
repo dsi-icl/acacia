@@ -1,7 +1,7 @@
-import { IFile } from 'itmat-commons/dist/models/file';
 import React from 'react';
+import { IFile } from 'itmat-commons/dist/models/file';
 
-export function formatBytes(size: number, decimal: number = 2) {
+export function formatBytes(size: number, decimal = 2): string {
     if (size === 0) {
         return '0 B';
     }

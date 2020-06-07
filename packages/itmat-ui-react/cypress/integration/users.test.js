@@ -193,7 +193,7 @@ describe('User management page', function() {
 
             /* cleanup: delete the user via API */
             cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
-            .its('body.data.deleteUser.successful').should('eq', true);
+                .its('body.data.deleteUser.successful').should('eq', true);
         });
     }); 
 });

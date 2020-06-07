@@ -1,15 +1,19 @@
 {
     "name": "itmat-broker",
     "private": true,
+    "license": "MIT",
     "scripts": {
         "preinstall": "node ./scripts/hintYarn.js",
-        "clean": "lerna run clean",
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-utils --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
+        "start:ui": "lerna run --stream --scope itmat-ui-react start",
+        "start:interface": "lerna run --stream --scope itmat-interface start",
+        "start:executor": "lerna run --stream --scope itmat-job-executor start",
         "build": "lerna run --stream build",
-        "publish": "lerna run tsc && lerna publish",
-        "test:unit": "lerna run --no-bail --concurrency 1 --stream --scope itmat-interface --scope itmat-job-executor --scope itmat-utils test",
-        "test:e2e": "echo start-server-and-test to be activated",
-        "test": "yarn run test:unit && yarn run test:e2e"
+        "test": "lerna run --no-bail --concurrency 1 --stream --scope itmat-interface --scope itmat-job-executor --scope itmat-utils test",
+        "lint": "lerna run --no-bail --stream lint",
+        "lint:fix": "lerna run --no-bail --stream lint:fix",
+        "clean": "lerna run clean",
+        "publish": "lerna run tsc && lerna publish"
     },
     "workspaces": {
         "packages": [
@@ -25,22 +29,31 @@
             "**/babel-jest"
         ]
     },
-    "optionalDependencies": {
-        "mongodb-client-encryption": "1.0.1"
-    },
     "devDependencies": {
         "@types/jest": "25.2.3",
+        "@typescript-eslint/eslint-plugin": "3.1.0",
+        "@typescript-eslint/parser": "3.1.0",
+        "babel-eslint": "10.1.0",
         "eslint": "7.2.0",
+        "eslint-config-react-app": "5.2.1",
+        "eslint-plugin-cypress": "2.11.1",
+        "eslint-plugin-flowtype": "5.1.3",
+        "eslint-plugin-import": "2.20.2",
         "eslint-plugin-jest": "23.13.2",
+        "eslint-plugin-jsx-a11y": "6.2.3",
+        "eslint-plugin-react": "7.20.0",
+        "eslint-plugin-react-hooks": "4.0.4",
         "jest-environment-node": "25.3.0",
         "lerna": "3.22.0",
-        "start-server-and-test": "1.11.0",
-        "typescript": "3.8.3"
+        "typescript": "3.9.5"
     },
     "resolutions": {
         "**/**/fs-capacitor": "^5.0.0",
         "**/graphql-upload": "^9.0.0",
         "**/graphql": "14.5.3",
         "**/moment": "2.24.0"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
     }
 }

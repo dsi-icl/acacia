@@ -10,7 +10,7 @@ import css from './tabContent.module.css';
 // data curation pipeline
 // upload new sets of data
 
-export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
 
     const { id, version, tag, uploadDate, fileSize, extractedFrom } = versions[selectedVersion];
 
@@ -21,7 +21,7 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selec
             <NewestVersionOfData version={version || 'n/a'} />
             <VersionTag tag={tag || 'n/a'} />
             <DateOfUpload date={uploadDate} />
-            <FileSize size={(fileSize && formatBytes(parseInt(fileSize, 10))) || 'n/a'} />
+            <FileSize size={(fileSize && formatBytes(parseInt(fileSize), 10)) || 'n/a'} />
             <OriginalFile fileName={extractedFrom || 'n/a'} />
         </div>
 

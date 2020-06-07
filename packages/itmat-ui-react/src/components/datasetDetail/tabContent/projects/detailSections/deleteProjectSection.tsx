@@ -5,7 +5,7 @@ import { Redirect } from 'react-router';
 import { DELETE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
-export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, projectId: string, projectName: string }> = ({ studyId, projectId, projectName }) => {
+export const DeleteProjectSection: React.FunctionComponent<{ studyId: string; projectId: string; projectName: string }> = ({ studyId, projectId, projectName }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputText, setInput] = React.useState('');
     const [error, setError] = React.useState('');
@@ -43,7 +43,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
             }}
             onCompleted={() => setDeleted(true)}
         >
-            {(deleteProject, { data, loading }) =>
+            {(deleteProject, { data: __unused__data, loading }) =>
                 loading ?
                     <button style={{ display: 'inline-block', width: '30%' }}>Loading...</button> :
                     <button onClick={() => {
@@ -52,9 +52,8 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
                         } else {
                             deleteProject({ variables: { projectId } });
                         }
-                    }}
-                        style={{ display: 'inline-block', width: '30%' }}>Really delete!
-            </button>
+                    }} style={{ display: 'inline-block', width: '30%' }}>Really delete!
+                    </button>
             }
         </Mutation><button style={{ display: 'inline-block', width: '30%' }} className="button_grey" onClick={() => setIsExpanded(false)}>Cancel</button>
         <br />

@@ -61,13 +61,6 @@ type User {
     access: UserAccess # admin or self only
 }
 
-# type ShortCut {
-#     id: String!
-#     study: String!
-#     project: String
-# }
-
-
 type StudyOrProjectUserRole {
     id: String!
     name: String!

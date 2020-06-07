@@ -12,7 +12,7 @@ const mountApp = () => {
         </React.StrictMode>,
         document.getElementById('root') as HTMLElement
     );
-}
+};
 
 mountApp();
 registerServiceWorker();

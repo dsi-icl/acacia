@@ -14,12 +14,13 @@ export interface INodemailerConfig {
     }
 }
 
-interface IConfiguration extends IServerConfig {
+export interface IConfiguration extends IServerConfig {
     database: IDatabaseBaseConfig;
     objectStore: IObjectStoreConfig;
     nodemailer: INodemailerConfig;
     useSSL: boolean;
     aesSecret: string;
+    sessionsSecret: string;
 }
 
 class ConfigurationManager {

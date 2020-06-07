@@ -10,7 +10,7 @@ import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 // data curation pipeline
 // upload new sets of data
 
-export const FieldListSelectionSection: React.FunctionComponent<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+export const FieldListSelectionSection: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
 
     const { fieldTrees } = versions[selectedVersion];
 
@@ -26,7 +26,7 @@ export const FieldListSelectionSection: React.FunctionComponent<{ studyId: strin
     </>;
 };
 
-const FieldListSelectionState: React.FunctionComponent<{ studyId: string, fieldTreeIds: string[] }> = ({ studyId, fieldTreeIds }) => {
+const FieldListSelectionState: React.FunctionComponent<{ studyId: string; fieldTreeIds: string[] }> = ({ studyId, fieldTreeIds }) => {
     const [selectedTree, setSelectedTree] = React.useState(fieldTreeIds[0]);
 
     return <>

@@ -5,7 +5,7 @@ import { UserDetailsSection } from './userDetails';
 import { UserListSection } from './userList';
 import css from './userList.module.css';
 
-export const UserPage: React.FunctionComponent = (props) => {
+export const UserPage: React.FunctionComponent = () => {
     return (
         <div className={css.page_container}>
             <div className={css.user_list_section + ' page_section'}>

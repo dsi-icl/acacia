@@ -49,7 +49,7 @@ export class UserCore {
         }
     }
 
-    public async deleteUser(userId: string) {
+    public async deleteUser(userId: string): Promise<void> {
         const result = await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnOriginal: false, projection: { deleted: 1 } });
         if (result.value === null) {
             return;

@@ -2,11 +2,11 @@ import base32 from 'hi-base32';
 import crypto from 'crypto';
 
 
-export function generateSecret(length = 20) {
+export function generateSecret(length = 20): string {
     const randomBuffer = crypto.randomBytes(length);
     return base32.encode(randomBuffer).replace(/=/g, '');
 }
-    
+
 // HMAC-based OTPs algorithm specified in RFC4226. 
 function generateHOTP(secret, counter) {
     const decodedSecret = base32.decode.asBytes(secret);
@@ -15,19 +15,19 @@ function generateHOTP(secret, counter) {
         buffer[7 - i] = counter & 0xff;
         counter = counter >> 8;
     }
-    
+
     // Step 1: Generate an HMAC-SHA-1 value
     const hmac = crypto.createHmac('sha1', Buffer.from(decodedSecret));
     hmac.update(buffer);
     const hmacResult = hmac.digest();
-    
+
     // Step 2: Generate a 4-byte string (Dynamic Truncation)
     const code = dynamicTruncationFn(hmacResult);
-    
+
     // Step 3: Compute an HOTP value
     return code % 10 ** 6;
 }
-    
+
 function dynamicTruncationFn(hmacValue) {
     const offset = hmacValue[hmacValue.length - 1] & 0xf;
     return (
@@ -37,21 +37,21 @@ function dynamicTruncationFn(hmacValue) {
         (hmacValue[offset + 3] & 0xff)
     );
 }
-    
-    //  Generate TOTP based on the HOTP function
-    // The algorithm is specified in RFC6238
-export function generateTOTP(secret, window = 0) {
+
+//  Generate TOTP based on the HOTP function
+// The algorithm is specified in RFC6238
+export function generateTOTP(secret: string, window = 0): number {
     const counter = Math.floor(Date.now() / 30000);
     return generateHOTP(secret, counter + window);
 }
-    
-    // Verify the TOTP
-export function verifyTOTP(token, secret, window = 1) {
+
+// Verify the TOTP
+export function verifyTOTP(token: string, secret: string, window = 1): boolean {
     if (Math.abs(+window) > 10) {
         console.error('Window size is too large');
         return false;
     }
-    
+
     for (let errorWindow = -window; errorWindow <= +window; errorWindow++) {
         const totp = generateTOTP(secret, errorWindow);
         if (parseInt(token) === totp) {

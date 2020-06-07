@@ -17,9 +17,11 @@ const {
 } = GQLRequests;
 
 export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
-    const { loading, error, data } = useQuery(GET_USERS, { variables: {
-        fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId
-    } });
+    const { loading, error, data } = useQuery(GET_USERS, {
+        variables: {
+            fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId
+        }
+    });
     if (loading) { return <LoadingBalls />; }
     if (error) { return <p>Error :( {error.message}</p>; }
     const user: IUserWithoutToken = data.getUsers[0];
@@ -42,7 +44,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
     );
 };
 
-export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: object }) }> = ({ user }) => {
+export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: Record<string, unknown> }) }> = ({ user }) => {
     const [inputs, setInputs] = React.useState({ ...user, password: '' });
     const [deleteButtonShown, setDeleteButtonShown] = React.useState(false);
     const [userIsDeleted, setUserIsDeleted] = React.useState(false);
@@ -74,9 +76,9 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
     // get QR Code for the otpSecret.  Google Authenticator requires oauth_uri format for the QR code
-    let qrcode_url = "";
-    const oauth_uri = "otpauth://totp/IDEAFAST:" + inputs.username + "?secret=" + inputs.otpSecret + "&issuer=IDEAFAST";
-    QRCode.toDataURL(oauth_uri, function(err, data_url) {
+    let qrcode_url = '';
+    const oauth_uri = 'otpauth://totp/IDEAFAST:' + inputs.username + '?secret=' + inputs.otpSecret + '&issuer=IDEAFAST';
+    QRCode.toDataURL(oauth_uri, function (err, data_url) {
         qrcode_url = data_url;
     });
 
@@ -85,43 +87,43 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
             mutation={EDIT_USER}
             onCompleted={() => setSavedSuccessfully(true)}
         >
-            {(submit, { loading, error, data }) =>
+            {(submit, { loading, error }) =>
                 <>
-                    <label>Username: <input type='text' value={inputs.username} onChange={e => { setInputs({ ...inputs, username: e.target.value }) }} /> </label><br /><br />
+                    <label>Username: <input type="text" value={inputs.username} onChange={e => { setInputs({ ...inputs, username: e.target.value }); }} /> </label><br /><br />
                     <label>Type:
-                    <select value={inputs.type} onChange={e => { setInputs({ ...inputs, type: e.target.value } as any); }}>
+                        <select value={inputs.type} onChange={e => { setInputs({ ...inputs, type: e.target.value } as any); }}>
                             <option value="STANDARD">System user</option>
                             <option value="ADMIN">System admin</option>
                         </select></label><br /><br />
-                    <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }) }} /> </label><br /><br />
-                    <label>Authenticator Key (readonly): <input type='text' readOnly value={inputs.otpSecret.toLowerCase()} /> </label><br /><br />
+                    <label>Real name: <input type="text" value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }); }} /> </label><br /><br />
+                    <label>Authenticator Key (readonly): <input type="text" readOnly value={inputs.otpSecret.toLowerCase()} /> </label><br /><br />
                     <label>Authenticator QR Code: </label> <img src={qrcode_url} alt="QR code for Google Authenticator" width="150" height="150" /> <br /><br />
                     {
                         whoamidata.whoAmI.id === user.id
                             ?
-                            <><label>Password:  <input type='password' value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }) }} /></label><br/><br/></>
+                            <><label>Password:  <input type="password" value={inputs.password} onChange={e => { setInputs({ ...inputs, password: e.target.value }); }} /></label><br /><br /></>
                             :
                             null
                     }
-                    <label>Email: <input type='text' value={inputs.email} onChange={e => { setInputs({ ...inputs, email: e.target.value }) }} /></label><br /><br />
-                    <label>Email Notification:  <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({ ...inputs, emailNotificationsActivated: e.target.checked }) }} /></label><br /><br />
-                    <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }) }} /></label> <br /><br />
-                    <label>Organisation: <input type='text' value={inputs.organisation} onChange={e => setInputs({ ...inputs, organisation: e.target.value })} /> </label><br /><br />
-                    <label>Created by (readonly): <input type='text' readOnly value={inputs.createdBy} /> </label><br /><br />
+                    <label>Email: <input type="text" value={inputs.email} onChange={e => { setInputs({ ...inputs, email: e.target.value }); }} /></label><br /><br />
+                    <label>Email Notification:  <input type="checkbox" checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({ ...inputs, emailNotificationsActivated: e.target.checked }); }} /></label><br /><br />
+                    <label>Description:  <input type="text" value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }); }} /></label> <br /><br />
+                    <label>Organisation: <input type="text" value={inputs.organisation} onChange={e => setInputs({ ...inputs, organisation: e.target.value })} /> </label><br /><br />
+                    <label>Created by (readonly): <input type="text" readOnly value={inputs.createdBy} /> </label><br /><br />
                     <label>
-                        Created at (readOnly): <input type='date' readOnly value={showTimeFunc.showDate(inputs.createdAt)} />
-                        <input type='time' readOnly value={showTimeFunc.showTime(inputs.createdAt)} />
+                        Created at (readOnly): <input type="date" readOnly value={showTimeFunc.showDate(inputs.createdAt)} />
+                        <input type="time" readOnly value={showTimeFunc.showTime(inputs.createdAt)} />
                     </label><br /><br />
-                     <label>
-                        Expired at: <input type='date' value={showTimeFunc.showDate(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeDate(inputs, e.target.value))  }} />
-                        <input type='time' step="1" value={showTimeFunc.showTime(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeTime(inputs, e.target.value))   }} />
+                    <label>
+                        Expired at: <input type="date" value={showTimeFunc.showDate(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeDate(inputs, e.target.value));  }} />
+                        <input type="time" step="1" value={showTimeFunc.showTime(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeTime(inputs, e.target.value));   }} />
                     </label><br /><br />
                     <div className={css.submit_cancel_button_wrapper}>
-                        <NavLink to={'/users'}><button className='button_grey'>Cancel</button></NavLink>
+                        <NavLink to={'/users'}><button className="button_grey">Cancel</button></NavLink>
                         {loading ? <button>Loading</button> : <button onClick={() => { submit({ variables: { ...formatSubmitObj() } }); }}>Save</button>}
                     </div>
                     {
-                        error ? <div className='error_banner'>{JSON.stringify(error)}</div> : null
+                        error ? <div className="error_banner">{JSON.stringify(error)}</div> : null
                     }
                     {
                         savedSuccessfully ? <div className="saved_banner">Saved!</div> : null
@@ -137,11 +139,14 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                                     :
                                     <button
                                         onClick={() => {
-                                            requestResetPassword({ variables: {
-                                                forgotUsername: false,
-                                                forgotPassword: true,
-                                                username: user.username
-                                            } })}}
+                                            requestResetPassword({
+                                                variables: {
+                                                    forgotUsername: false,
+                                                    forgotPassword: true,
+                                                    username: user.username
+                                                }
+                                            });
+                                        }}
                                     >Request reset password for user</button>
                             )
                             :
@@ -155,11 +160,11 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
 
                         {(deleteUser, { loading, error, data: UserDeletedData }) => {
                             if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
-                            if (error) return <p>{error.message}</p>
+                            if (error) return <p>{error.message}</p>;
                             return (
                                 <>
-                                    <label>Delete this user:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true) }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
-                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }) }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false) }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
+                                    <label>Delete this user:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
+                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }); }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
                                 </>
                             );
                         }}
@@ -179,20 +184,20 @@ export const showTimeFunc = {
     showTime: function(timestamps: number) {
         return new Date(timestamps).toISOString().substring(11, 19);
     }
-}
+};
 
 /* More time control due to different behaviors in chrome and firefox, also correct errors of summer/winter time offset */
 export const changeTimeFunc = {
     changeDate: function(inputs: any, value: any) {
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
-        let offsetTime = new Date(inputs.expiredAt - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000);
+        const offsetTime = new Date(inputs.expiredAt - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000);
         let newDate;
-        let recordTime = offsetTime.toISOString().substring(11, 19);
+        const recordTime = offsetTime.toISOString().substring(11, 19);
         /* If the input date is invalid, the shown date will keep the original one */
         if (isNaN(new Date(value + 'T' + recordTime).valueOf()) || (new Date(value + 'T' + recordTime).valueOf() < 0) ) {
-            newDate = new Date(inputs.expiredAt)
+            newDate = new Date(inputs.expiredAt);
         } else {
-            newDate = new Date(value + 'T' + recordTime)   
+            newDate = new Date(value + 'T' + recordTime);   
         }
         return {...inputs, expiredAt: newDate.valueOf()};
     },
@@ -201,5 +206,5 @@ export const changeTimeFunc = {
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
         return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};   
     }
-}
+};
                         

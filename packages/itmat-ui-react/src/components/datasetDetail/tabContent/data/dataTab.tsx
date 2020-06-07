@@ -16,7 +16,7 @@ import { UploadNewFields } from './uploadNewFields';
 
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return <div className={css.scaffold_wrapper + ' fade_in'}>
+    return <div className={`${css.scaffold_wrapper} fade_in`}>
         <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
                 if (loading) { return <LoadingBalls />; }
@@ -26,7 +26,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                 }
                 return <div>
                     <p>There is no data uploaded for this study yet.</p>
-                    <UploadNewData studyId={studyId} cancelButton={() => {}} />
+                    <UploadNewData studyId={studyId} cancelButton={() => { return; }} />
                 </div>;
             }}
         </Query>
@@ -34,7 +34,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
 };
 
 
-export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
+export const DataManagement: React.FunctionComponent<{ data: IStudy; showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
     const [selectedVersion, setSelectedVersion] = React.useState(data.currentDataVersion);
     const [addNewDataSectionShown, setAddNewDataSectionShown] = React.useState(false);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
@@ -76,9 +76,9 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
                         )
                 }
 
-                <button key='new data' className={css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</button>
+                <button key="new data" className={css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</button>
                 {showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ?
-                    <button key='save version' onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</button>
+                    <button key="save version" onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</button>
                     : null
                 }<br />
             </> : null}
@@ -95,7 +95,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title="Fields & Variables">
                 <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id} />
-                <br/><br/>
+                <br /><br />
                 <FieldListSelectionSection
                     studyId={data.id}
                     selectedVersion={selectedVersion}

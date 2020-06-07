@@ -97,9 +97,9 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
             return new Promise((resolve, reject) => {
                 let string = '';
                 inputStream
-                    .on('data', data => { string = `${string}${data.toString()}` })
+                    .on('data', data => { string = `${string}${data.toString()}`; })
                     .on('end', () => { resolve(string); })
-                    .on('error', reject)
+                    .on('error', reject);
             });
         };
         expect(await streamToString(downloadResult)).toBe('just a fake file 2.');

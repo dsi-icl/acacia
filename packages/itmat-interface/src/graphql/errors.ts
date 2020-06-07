@@ -1,17 +1,3 @@
-// import { ApolloError } from 'apollo-server-express';
-
-// interface IErrorForClient {
-//     errors: Array<{
-//         error: string,
-//         detail: string,
-//         error_type_ref: string,
-//         error_id: string,
-//     }>;
-// }
-
-// export function formatGraphqlErrorForClient(err: ApolloError) {
-// }
-
 export enum errorCodes {
     DATABASE_ERROR = 'DATABASE_ERROR',
     NOT_LOGGED_IN = 'NOT_LOGGED_IN',
