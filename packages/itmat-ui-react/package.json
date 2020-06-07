@@ -12,7 +12,7 @@
         "test": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts test",
         "test:cypress": "npx cypress open",
         "clean": "rimraf -rf ./dist ./build",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "antd": "4.3.2",
@@ -29,7 +29,7 @@
         "react-dom": "16.13.1",
         "react-router-dom": "5.2.0",
         "react-scripts": "3.4.0",
-        "subscriptions-transport-ws": "0.9.16",        
+        "subscriptions-transport-ws": "0.9.16",
         "qrcode": "^1.4.4"
     },
     "devDependencies": {
@@ -52,6 +52,9 @@
         "rimraf": "3.0.2",
         "typescript": "3.8.3",
         "uuid": "8.1.0"
+    },
+    "resolutions": {
+        "**/moment": "2.24.0"
     },
     "eslintConfig": {
         "extends": "react-app"

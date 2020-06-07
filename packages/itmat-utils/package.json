@@ -9,11 +9,11 @@
         "dist"
     ],
     "scripts": {
-        "build": "npm run clean && npm run compile",
+        "build": "yarn run clean && yarn run compile",
         "clean": "rimraf -rf ./dist",
         "compile": "tsc -p tsconfig.build.json",
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
-        "prepublishOnly": "npm run build",
+        "prepublishOnly": "yarn run build",
         "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"

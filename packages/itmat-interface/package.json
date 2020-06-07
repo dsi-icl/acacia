@@ -10,11 +10,11 @@
     ],
     "scripts": {
         "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
-        "build": "npm run clean && npm run compile",
+        "build": "yarn run clean && yarn run compile",
         "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
         "clean": "rimraf -rf ./build",
         "compile": "webpack --config ./config/webpack.config.js",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "apollo-server-express": "2.14.2",
@@ -73,6 +73,11 @@
         "typescript-eslint-parser": "22.0.0",
         "webpack": "4.43.0",
         "webpack-cli": "3.3.11"
+    },
+    "resolutions": {
+        "**/**/fs-capacitor": "^5.0.0",
+        "**/graphql-upload": "^9.0.0",
+        "**/graphql": "14.5.3"
     },
     "jest": {
         "globals": {

@@ -10,11 +10,11 @@
     ],
     "scripts": {
         "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
-        "build": "npm run clean && npm run compile",
+        "build": "yarn run clean && yarn run compile",
         "clean": "rimraf -rf ./build",
         "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
         "compile": "webpack --config ./config/webpack.config.js",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "@babel/preset-env": "7.10.2",
