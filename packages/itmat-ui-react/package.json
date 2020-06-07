@@ -19,7 +19,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "antd": "4.3.2",
+        "antd": "4.3.3",
         "apollo-cache-inmemory": "1.6.6",
         "apollo-client": "2.6.10",
         "apollo-link": "1.2.14",
