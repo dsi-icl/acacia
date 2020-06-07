@@ -32,6 +32,10 @@ var defaultRules = {
         4,
         { 'SwitchCase': 1 }
     ],
+    'eol-last': [
+        'error',
+        'always'
+    ],
     'no-unused-vars': [
         'warn',
         { 'argsIgnorePattern': '^__unused__' }
