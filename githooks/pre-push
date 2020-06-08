@@ -17,8 +17,7 @@ else
 fi
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-GIT_DIR=$(dirname $SCRIPT_DIR)
-PROJECT_ROOT_DIR=$(dirname $GIT_DIR)
+PROJECT_ROOT_DIR=$(dirname $SCRIPT_DIR)
 echo "Project root: $PROJECT_ROOT_DIR"
 cd $PROJECT_ROOT_DIR
 
