@@ -37,7 +37,7 @@ var defaultRules = {
         'always'
     ],
     'no-unused-vars': [
-        'warn',
+        'error',
         { argsIgnorePattern: '^__unused__' }
     ],
     'quotes': [
@@ -81,7 +81,7 @@ var defaultRules = {
         'off'
     ],
     '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         { argsIgnorePattern: '^__unused__' }
     ],
 };
