@@ -1,5 +1,4 @@
-import { IQueryEntry, IProject } from 'itmat-commons';
-import { Logger } from 'itmat-commons';
+import { IQueryEntry, IProject, Logger } from 'itmat-commons';
 import { db } from '../database/database';
 import { pipelineGenerator } from './pipeLineGenerator';
 
