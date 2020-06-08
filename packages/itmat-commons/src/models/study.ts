@@ -1,5 +1,3 @@
-import { Models } from '..';
-
 export interface IStudy {
     id: string;
     name: string;
