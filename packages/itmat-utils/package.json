@@ -24,7 +24,7 @@
     },
     "devDependencies": {
         "chalk": "4.0.0",
-        "jest": "25.2.7",
+        "jest": "26.0.1",
         "node-fetch": "2.6.0",
         "supertest": "4.0.2",
         "ts-jest": "26.1.0",
