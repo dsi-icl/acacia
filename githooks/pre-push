@@ -1,0 +1,25 @@
+#!/bin/sh
+
+NODE_LOCATION_WHERE=$(whereis npm)
+NODE_LOCATION_WHICH=$(which npm)
+
+if [ "$NODE_LOCATION_WHERE" = "" ] && [ "$NODE_LOCATION_WHICH" = "" ]
+	then echo "[WARNING]: Cannot find node. Linting is not run."
+	exit 0
+else
+	if [ "$NODE_LOCATION_WHERE" != "" ]
+		then echo "[LOG]: Found node in $NODE_LOCATION_WHERE. Running linting before git push."
+		NODE_LOCATION=$NODE_LOCATION_WHERE
+	elif [ "$NODE_LOCATION_WHICH" != "" ]	
+		then echo "[LOG]: Found node in $NODE_LOCATION_WHICH. Running linting before git push."
+		NODE_LOCATION=$NODE_LOCATION_WHICH
+	fi
+fi
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+GIT_DIR=$(dirname $SCRIPT_DIR)
+PROJECT_ROOT_DIR=$(dirname $GIT_DIR)
+echo "Project root: $PROJECT_ROOT_DIR"
+cd $PROJECT_ROOT_DIR
+
+npm run lint
