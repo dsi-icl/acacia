@@ -26,7 +26,7 @@
         "mongodb": "3.5.5"
     },
     "devDependencies": {
-        "@types/node": "13.13.10",
+        "@types/node": "13.13.11",
         "rimraf": "3.0.2",
         "typescript": "3.8.3"
     },
