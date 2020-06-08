@@ -1,7 +1,7 @@
 import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable } from 'stream';
-import { Models, IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
+import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
 import { fieldValidator, fieldParser } from '../utils/jobUtils';
 
 /* update should be audit trailed */
