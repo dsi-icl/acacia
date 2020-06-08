@@ -7,7 +7,7 @@
 //  */
 
 class PipelineGenerator {
-    constructor(private readonly config = {}) {}
+    constructor(private readonly config = {}) { }
 
     /*
     * @fn buildPipeline
@@ -46,7 +46,7 @@ class PipelineGenerator {
     }
     */
     public buildPipeline(query: any) {
-        const fields = {_id: 0, m_eid: 1};
+        const fields = { _id: 0, m_eid: 1 };
         // We send back the requested fields
         query.data_requested.forEach((field: any) => {
             (fields as any)[field] = 1;
@@ -168,7 +168,7 @@ class PipelineGenerator {
     private _translateCohort(cohort: any) {
         const match = {};
 
-        cohort.forEach(function(select: any) {
+        cohort.forEach(function (select: any) {
 
             switch (select.op) {
                 case '=':
@@ -187,7 +187,7 @@ class PipelineGenerator {
                     // select.value must be a float
                     (match as any)[select.field] = { $gt: parseFloat(select.value) };
                     break;
-                case 'derived':
+                case 'derived': {
                     // equation must only have + - * /
                     const derivedOperation = select.value.split(' ');
                     if (derivedOperation[0] === '=') {
@@ -200,12 +200,13 @@ class PipelineGenerator {
                         (match as any)[select.field] = { $lt: parseFloat(select.value) };
                     }
                     break;
+                }
                 case 'exists':
                     // We check if the field exists. This is to be used for checking if a patient
                     // has an image
                     (match as any)[select.field] = { $exists: true };
                     break;
-                case 'count':
+                case 'count': {
                     // counts can only be positive. NB: > and < are inclusive e.g. < is <=
                     const countOperation = select.value.split(' ');
                     const countfield = select.field + '.count';
@@ -219,6 +220,7 @@ class PipelineGenerator {
                         (match as any)[countfield] = { $lt: parseInt(countOperation[1], 10) };
                     }
                     break;
+                }
                 default:
                     break;
             }

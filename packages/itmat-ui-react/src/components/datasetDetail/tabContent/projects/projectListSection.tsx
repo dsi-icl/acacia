@@ -5,13 +5,13 @@ import { CREATE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import css from './tabContent.module.css';
 
-export const ProjectListSection: React.FunctionComponent<{ studyId: string, projectList: Array<{ id: string, name: string }> }> = ({ studyId, projectList }) => {
+export const ProjectListSection: React.FunctionComponent<{ studyId: string; projectList: Array<{ id: string; name: string }> }> = ({ studyId, projectList }) => {
     return <div>
         {projectList.map((el) => <OneProject studyId={studyId} key={el.id} id={el.id} name={el.name} />)}
     </div>;
 };
 
-const OneProject: React.FunctionComponent<{ studyId: string, id: string, name: string }> = ({ id, name, studyId }) =>
+const OneProject: React.FunctionComponent<{ studyId: string; id: string; name: string }> = ({ id, name, studyId }) =>
     <NavLink to={`/datasets/${studyId}/projects/${id}`}><button className={css.project_badge}>{name}</button></NavLink>;
 
 
@@ -21,7 +21,7 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
     const [error, setError] = React.useState('');
 
     return <div>
-        <input value={input} onChange={(e) => { setError(''); setInput(e.target.value); }} type="text" placeholder="Enter name" />
+        <input value={input} onChange={(e) => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name' />
         <Mutation<any, any>
             mutation={CREATE_PROJECT}
             update={(store, { data: { createProject } }) => {
@@ -60,7 +60,7 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
             }
         </Mutation>
         {
-            error ? <div className="error_banner">{error}</div> : null
+            error ? <div className='error_banner'>{error}</div> : null
         }
     </div>;
 };

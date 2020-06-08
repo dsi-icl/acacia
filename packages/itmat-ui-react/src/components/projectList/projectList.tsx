@@ -4,7 +4,7 @@ import { Query } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
-export const ProjectList: React.FunctionComponent = (props) => {
+export const ProjectList: React.FunctionComponent = () => {
     return (
         <Query<any, any>
             query={WHO_AM_I}

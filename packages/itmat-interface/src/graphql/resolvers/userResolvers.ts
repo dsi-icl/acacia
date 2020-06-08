@@ -10,7 +10,7 @@ import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
-import { makeGenericReponse } from '../responses';
+import { makeGenericReponse, IGenericResponse } from '../responses';
 import * as mfa from '../../utils/mfa';
 
 type IProject = Models.Study.IProject;
@@ -23,12 +23,10 @@ const userTypes = Models.UserModels.userTypes;
 
 export const userResolvers = {
     Query: {
-        whoAmI(parent: object, args: any, context: any, info: any): object {
+        whoAmI(parent: Record<string, unknown>, __unused__args: any, context: any): Record<string, unknown> {
             return context.req.user;
         },
-        getUsers: async (parent: object, args: any, context: any, info: any): Promise<IUser[]> => {
-            const requester: Models.UserModels.IUser = context.req.user;
-
+        getUsers: async (__unused__parent: Record<string, unknown>, args: any): Promise<IUser[]> => {
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
             const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
@@ -36,7 +34,7 @@ export const userResolvers = {
         }
     },
     User: {
-        access: async (user: IUser, arg: any, context: any): Promise<{ projects: IProject[], studies: IStudy[], id: string }> => {
+        access: async (user: IUser, __unused__arg: any, context: any): Promise<{ projects: IProject[], studies: IStudy[], id: string }> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* only admin can access this field */
@@ -74,7 +72,7 @@ export const userResolvers = {
             const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
-        username: async (user: IUser, arg: any, context: any): Promise<string | null> => {
+        username: async (user: IUser, __unused__arg: any, context: any): Promise<string | null> => {
             const requester: Models.UserModels.IUser = context.req.user;
             /* only admin can access this field */
             if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
@@ -83,7 +81,7 @@ export const userResolvers = {
 
             return user.username;
         },
-        description: async (user: IUser, arg: any, context: any): Promise<string | null> => {
+        description: async (user: IUser, __unused__arg: any, context: any): Promise<string | null> => {
             const requester: Models.UserModels.IUser = context.req.user;
             /* only admin can access this field */
             if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
@@ -92,7 +90,7 @@ export const userResolvers = {
 
             return user.description;
         },
-        email: async (user: IUser, arg: any, context: any): Promise<string | null> => {
+        email: async (user: IUser, __unused__arg: any, context: any): Promise<string | null> => {
             const requester: Models.UserModels.IUser = context.req.user;
             /* only admin can access this field */
             if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
@@ -103,13 +101,11 @@ export const userResolvers = {
         }
     },
     Mutation: {
-        requestUsernameOrResetPassword: async (parent: object, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any, info: any): Promise<object> => {
+        requestUsernameOrResetPassword: async (__unused__parent: Record<string, unknown>, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any): Promise<IGenericResponse> => {
             /* checking the args are right */
-            if (
-                forgotUsername && !email // should provide email if no username
-                || forgotUsername && username // should not provide username if it's forgotten..
-                || !email && !username
-            ) {
+            if ((forgotUsername && !email) // should provide email if no username
+                || (forgotUsername && username) // should not provide username if it's forgotten..
+                || (!email && !username)) {
                 throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
             } else if (email && username) {
                 // TO_DO : better client erro
@@ -175,7 +171,7 @@ export const userResolvers = {
             }
             return makeGenericReponse();
         },
-        login: async (parent: object, args: any, context: any, info: any): Promise<object> => {
+        login: async (parent: Record<string, unknown>, args: any, context: any): Promise<Record<string, unknown>> => {
             const { req }: { req: Express.Request } = context;
             const result = await db.collections!.users_collection.findOne({ deleted: null, username: args.username });
             if (!result) {
@@ -194,11 +190,11 @@ export const userResolvers = {
             delete result.password;
             delete result.deleted;
 
-        	// validate the TOTP
-			const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
-			if (!totpValidated) {
+            // validate the TOTP
+            const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
+            if (!totpValidated) {
                 throw new UserInputError('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
-			}
+            }
 
             return new Promise((resolve) => {
                 req.login(result, (err: any) => {
@@ -210,7 +206,7 @@ export const userResolvers = {
                 });
             });
         },
-        logout: async (parent: object, args: any, context: any, info: any): Promise<object> => {
+        logout: async (parent: Record<string, unknown>, __unused__args: any, context: any): Promise<IGenericResponse> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const req: Express.Request = context.req;
             if (requester === undefined || requester === null) {
@@ -228,7 +224,7 @@ export const userResolvers = {
                 });
             });
         },
-        createUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
+        createUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IUserWithoutToken> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* only admin can create new users */
@@ -241,7 +237,7 @@ export const userResolvers = {
             } = args.user;
 
             /* check email is valid form */
-            if (!/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
+            if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
                 throw new UserInputError('Email is not the right format.');
             }
 
@@ -255,8 +251,8 @@ export const userResolvers = {
                 throw new UserInputError('User already exists.');
             }
 
-            /* randomly generate a secret for Time-based One Time Password*/            
-            const otpSecret = mfa.generateSecret();	
+            /* randomly generate a secret for Time-based One Time Password*/
+            const otpSecret = mfa.generateSecret();
 
             const createdUser = await userCore.createUser(requester.username, {
                 password,
@@ -272,7 +268,7 @@ export const userResolvers = {
 
             return createdUser;
         },
-        deleteUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
+        deleteUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IGenericResponse> => {
             /* only admin can delete users */
             const requester: Models.UserModels.IUser = context.req.user;
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
@@ -281,7 +277,7 @@ export const userResolvers = {
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
         },
-        resetPassword: async (parent: object, { encryptedEmail, token, newPassword }: { encryptedEmail: string, token: string, newPassword: string }, context: any, info: any): Promise<object> => {
+        resetPassword: async (__unused__parent: Record<string, unknown>, { encryptedEmail, token, newPassword }: { encryptedEmail: string, token: string, newPassword: string }): Promise<IGenericResponse> => {
             /* check password validity */
             if (!passwordIsGoodEnough(newPassword)) {
                 throw new ApolloError('Password has to be at least 8 character long.');
@@ -332,7 +328,7 @@ export const userResolvers = {
                         }
                     }
                 },
-                { $set: { password: hashedPw, 'resetPasswordRequests.$.used': true } });
+                { $set: { 'password': hashedPw, 'resetPasswordRequests.$.used': true } });
             if (updateResult.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
@@ -342,7 +338,7 @@ export const userResolvers = {
 
             return makeGenericReponse();
         },
-        editUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
+        editUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Record<string, unknown>> => {
             const requester: Models.UserModels.IUser = context.req.user;
             const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation, expiredAt }: {
                 id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number
@@ -363,7 +359,7 @@ export const userResolvers = {
                 }
             }
 
-            const fieldsToUpdate: any = {
+            const fieldsToUpdate = {
                 type,
                 realName,
                 username,
@@ -376,7 +372,7 @@ export const userResolvers = {
             };
 
             /* check email is valid form */
-            if (email && !/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
+            if (email && !/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
                 throw new UserInputError('User not updated: Email is not the right format.');
             }
 
@@ -403,12 +399,11 @@ export const userResolvers = {
     Subscription: {}
 };
 
-
-export function makeAESKeySalt(str) {
+export function makeAESKeySalt(str: string): string {
     return str;
 }
 
-export function makeAESIv(str) {
+export function makeAESIv(str: string): string {
     if (str.length < 16) { throw new Error('IV cannot be less than 16 bytes long.'); }
     return str.slice(0, 16);
 }

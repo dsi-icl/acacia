@@ -2,6 +2,7 @@
     "name": "itmat-commons",
     "version": "0.5.0",
     "description": "",
+    "license": "MIT",
     "author": "Florian Guitton",
     "main": "dist/index",
     "types": "dist/index",
@@ -10,14 +11,13 @@
     ],
     "scripts": {
         "build": "yarn run clean && yarn run compile",
-        "clean": "rimraf -rf ./dist",
-        "compile": "tsc -p tsconfig.build.json",
         "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
-        "start:testServer": "yarn start",
-        "prepublishOnly": "yarn run build",
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
-        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
+        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./",
+        "clean": "rimraf -rf ./dist",
+        "compile": "tsc -p tsconfig.build.json",
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "chalk": "4.0.0",
@@ -29,5 +29,8 @@
         "@types/node": "13.13.10",
         "rimraf": "3.0.2",
         "typescript": "3.8.3"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
     }
 }

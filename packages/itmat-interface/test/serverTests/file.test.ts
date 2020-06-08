@@ -14,10 +14,10 @@ import chalk from 'chalk';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
+const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } = itmatCommons.GQLRequests;
 const { permissions } = itmatCommons;
 
 if (global.hasMinio) {
@@ -30,12 +30,12 @@ if (global.hasMinio) {
 
     afterAll(async () => {
         await db.closeConnection();
-        await mongoConnection.close();
+        await mongoConnection?.close();
         await mongodb.stop();
     });
 
     beforeAll(async () => { // eslint-disable-line no-undef
-        
+
         /* Creating a in-memory MongoDB instance for testing */
         mongodb = new MongoMemoryServer();
         const connectionString = await mongodb.getUri();
@@ -48,7 +48,7 @@ if (global.hasMinio) {
         config.database.database = database;
         await db.connect(config.database);
         await objStore.connect(config.objectStore);
-        const router = new Router();
+        const router = new Router(config);
 
         /* Connect mongo client (for test setup later / retrieve info later) */
         mongoConnection = await MongoClient.connect(connectionString, {
@@ -100,17 +100,17 @@ if (global.hasMinio) {
                     /* setup: creating a privileged user */
                     const username = uuid();
                     authorisedUserProfile = {
-                        username, 
-                        type: 'STANDARD', 
-                        realName: `${username}_realname`, 
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                        otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                        createdBy: 'admin', 
-                        email: `${username}@user.io`, 
+                        username,
+                        type: 'STANDARD',
+                        realName: `${username}_realname`,
+                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                        createdBy: 'admin',
+                        email: `${username}@user.io`,
                         description: 'I am a new user.',
-                        emailNotificationsActivated: true, 
-                        organisation:  'DSI',
-                        deleted: null, 
+                        emailNotificationsActivated: true,
+                        organisation: 'DSI',
+                        deleted: null,
                         id: `new_user_id_${username}`
                     };
                     await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -133,7 +133,7 @@ if (global.hasMinio) {
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
                 });
 
-                test('Upload file to study (admin)', async () => { 
+                test('Upload file to study (admin)', async () => {
                     /* test: upload file */
                     const res = await admin.post('/graphql')
                         .field('operations', JSON.stringify({
@@ -145,7 +145,7 @@ if (global.hasMinio) {
                                 fileLength: 10000
                             }
                         }))
-                        .field('map', JSON.stringify({ 1: ['variables.file']}))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
@@ -175,7 +175,7 @@ if (global.hasMinio) {
                                 fileLength: 10000
                             }
                         }))
-                        .field('map', JSON.stringify({ 1: ['variables.file']}))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     expect(res.status).toBe(200);
@@ -196,7 +196,7 @@ if (global.hasMinio) {
                                 fileLength: 10000
                             }
                         }))
-                        .field('map', JSON.stringify({ 1: ['variables.file']}))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
@@ -226,7 +226,7 @@ if (global.hasMinio) {
                                 fileLength: 0
                             }
                         }))
-                        .field('map', JSON.stringify({ 1: ['variables.file']}))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_empty_file.txt'));
 
                     /* setup: geting the created file Id */
@@ -280,7 +280,7 @@ if (global.hasMinio) {
                                 fileLength: 10000
                             }
                         }))
-                        .field('map', JSON.stringify({ 1: ['variables.file']}))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
@@ -289,17 +289,17 @@ if (global.hasMinio) {
                     /* setup: creating a privileged user */
                     const username = uuid();
                     authorisedUserProfile = {
-                        username, 
-                        type: 'STANDARD', 
-                        realName: `${username}_realname`, 
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                        otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                        createdBy: 'admin', 
-                        email: `${username}@user.io`, 
+                        username,
+                        type: 'STANDARD',
+                        realName: `${username}_realname`,
+                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                        createdBy: 'admin',
+                        email: `${username}@user.io`,
                         description: 'I am a new user.',
-                        emailNotificationsActivated: true, 
-                        organisation:  'DSI',
-                        deleted: null, 
+                        emailNotificationsActivated: true,
+                        organisation: 'DSI',
+                        deleted: null,
                         id: `new_user_id_${username}`
                     };
                     await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -410,7 +410,7 @@ if (global.hasMinio) {
                                 fileLength: 10000
                             }
                         }))
-                        .field('map', JSON.stringify({ 1: ['variables.file']}))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
@@ -429,17 +429,17 @@ if (global.hasMinio) {
                     /* setup: creating a privileged user */
                     const username = uuid();
                     authorisedUserProfile = {
-                        username, 
-                        type: 'STANDARD', 
-                        realName: `${username}_realname`, 
-                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                        otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                        createdBy: 'admin', 
-                        email: `${username}@user.io`, 
+                        username,
+                        type: 'STANDARD',
+                        realName: `${username}_realname`,
+                        password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                        otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                        createdBy: 'admin',
+                        email: `${username}@user.io`,
                         description: 'I am a new user.',
-                        emailNotificationsActivated: true, 
-                        organisation:  'DSI',
-                        deleted: null, 
+                        emailNotificationsActivated: true,
+                        organisation: 'DSI',
+                        deleted: null,
                         id: `new_user_id_${username}`
                     };
                     await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -470,7 +470,7 @@ if (global.hasMinio) {
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.deleteFile).toEqual({ successful: true });
-                    
+
                     const downloadFileRes = await admin.get(`/file/${createdFile.id}`);
                     expect(downloadFileRes.status).toBe(404);
                     expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
@@ -484,7 +484,7 @@ if (global.hasMinio) {
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.deleteFile).toEqual({ successful: true });
-                    
+
                     const downloadFileRes = await authorisedUser.get(`/file/${createdFile.id}`);
                     expect(downloadFileRes.status).toBe(404);
                     expect(downloadFileRes.body).toEqual({ error: 'File not found or you do not have the necessary permission.' });
@@ -499,7 +499,7 @@ if (global.hasMinio) {
                     expect(res.body.errors).toHaveLength(1);
                     expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
                     expect(res.body.data.deleteFile).toBe(null);
-                    
+
                     const downloadFileRes = await admin.get(`/file/${createdFile.id}`);
                     expect(downloadFileRes.status).toBe(200);
                     expect(downloadFileRes.headers['content-type']).toBe('application/download');

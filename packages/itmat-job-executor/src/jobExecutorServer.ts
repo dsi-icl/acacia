@@ -13,10 +13,6 @@ class ITMATJobExecutorServer extends Server {
 
     private router;
 
-    constructor(config) {
-        super(config);
-    }
-
     /**
      * @fn start
      * @desc Start the ITMATServer service, routes are setup and
@@ -29,8 +25,8 @@ class ITMATJobExecutorServer extends Server {
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect((this.config as any).database)
-                .then(() => objStore.connect((this.config as any).objectStore))
+            db.connect(this.config.database)
+                .then(() => objStore.connect(this.config.objectStore))
                 .then(() => {
 
                     _this.router = new Router();
@@ -38,7 +34,6 @@ class ITMATJobExecutorServer extends Server {
                     const jobDispatcher = new JobDispatcher();
 
                     /* TO_DO: can we figure out the files at runtime and import at runtime */
-                    console.log(UKB_CSV_UPLOAD_Handler.prototype.getInstance);
                     jobDispatcher.registerJobType('DATA_UPLOAD', UKB_CSV_UPLOAD_Handler.prototype.getInstance);
                     jobDispatcher.registerJobType('FIELD_INFO_UPLOAD', UKB_FIELD_INFO_UPLOAD_Handler.prototype.getInstance);
                     // jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKB_IMAGE_UPLOAD_Handler.prototype.getInstance);
@@ -46,7 +41,7 @@ class ITMATJobExecutorServer extends Server {
                     const poller = new JobPoller({
                         identity: 'me',
                         jobCollection: db.collections!.jobs_collection,
-                        pollingFrequency: 10000,
+                        pollingInterval: this.config.pollingInterval,
                         action: jobDispatcher.dispatch
                     });
                     poller.setInterval();
@@ -64,7 +59,7 @@ class ITMATJobExecutorServer extends Server {
      * express router MUST be released and this service endpoints are expected to fail.
      * @return {Promise} Resolve to true on success, ErrorStack otherwise
      */
-    public stop() {
+    public stop(): Promise<void> {
         return Promise.resolve();
     }
 }

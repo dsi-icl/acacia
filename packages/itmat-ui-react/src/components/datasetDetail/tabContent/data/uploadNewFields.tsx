@@ -7,7 +7,7 @@ import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import css from './tabContent.module.css';
 
-export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVersionId: string }> = ({ studyId, dataVersionId }) => {
+export const UploadNewFields: React.FunctionComponent<{ studyId: string; dataVersionId: string }> = ({ studyId, dataVersionId }) => {
     const [expanded, setExpanded] = React.useState(false);
     const [error, setError] = React.useState('');
     const [uploadFileTabSelected, setUploadFileTabSelected] = React.useState(true);
@@ -26,7 +26,7 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
                 uploadFileTabSelected ?
                     <>
                         <br />
-                        <input type="file" ref={fileRef as any} />
+                        <input type='file' ref={fileRef as any} />
                         <Mutation<any, any> mutation={CREATE_FIELD_CURATION_JOB}>
                             {(createCurationJob, { loading }) => {
                                 if (loading) { return <button>Loading...</button>; }
@@ -46,8 +46,8 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
                                 );
                             }}
                         </Mutation>
-                        <button onClick={() => setExpanded(false)} className="button_grey">Cancel</button>
-                        {error ? <div className="error_banner">{error}</div> : null}
+                        <button onClick={() => setExpanded(false)} className='button_grey'>Cancel</button>
+                        {error ? <div className='error_banner'>{error}</div> : null}
                     </>
                     :
                     <UploadFieldBySelectingFileFormFetch {...{ studyId, dataVersionId, cancel: setExpanded }} />
@@ -57,11 +57,11 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string, dataVer
 };
 
 
-const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: string, dataVersionId: string, cancel: (expanded: boolean) => void }> = ({ dataVersionId, studyId, cancel }) => {
+const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: string; dataVersionId: string; cancel: (expanded: boolean) => void }> = ({ dataVersionId, studyId, cancel }) => {
     return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data, error }) => {
             if (loading) return <LoadingBalls />;
-            if (error) return <p>{error.toString()}</p>
+            if (error) return <p>{error.toString()}</p>;
             if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
                 return <p>No file has been uploaded to this dataset yet. You can do this in the <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>file repository</span></NavLink></p>;
             }
@@ -70,7 +70,7 @@ const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: st
     </Query>;
 };
 
-const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string, files: IFile[], dataVersionId: string, cancel: (expanded: boolean) => void }> = ({ cancel, dataVersionId, studyId, files }) => {
+const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string; files: IFile[]; dataVersionId: string; cancel: (expanded: boolean) => void }> = ({ cancel, dataVersionId, studyId, files }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above
@@ -80,7 +80,7 @@ const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string,
         <label>Data file:</label>
         <select value={selectedFile} onChange={(e) => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
         <label>Tag:</label>
-        <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder="e.g main tree" type="text" /><br /><br />
+        <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder='e.g main tree' type='text' /><br /><br />
         <Mutation<any, any> mutation={CREATE_FIELD_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
             {(createCurationJob, { loading }) => {
                 if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
@@ -108,9 +108,9 @@ const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string,
                 }}>Submit</button>;
             }}
         </Mutation>
-        <button style={{ width: '45%', display: 'inline-block' }} className="button_grey" onClick={() => cancel(false)}>Cancel</button>
+        <button style={{ width: '45%', display: 'inline-block' }} className='button_grey' onClick={() => cancel(false)}>Cancel</button>
 
-        {error ? <div className="error_banner">{error}</div> : null}
-        {successfullySaved ? <div className="saved_banner">Job created and queued.</div> : null}
+        {error ? <div className='error_banner'>{error}</div> : null}
+        {successfullySaved ? <div className='saved_banner'>Job created and queued.</div> : null}
     </div>;
 };

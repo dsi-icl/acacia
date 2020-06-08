@@ -5,7 +5,7 @@ import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
 
-interface IConfiguration extends IServerConfig {
+export interface IConfiguration extends IServerConfig {
     database: IDatabaseBaseConfig;
     objectStore: IObjectStoreConfig;
 }

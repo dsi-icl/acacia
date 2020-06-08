@@ -4,8 +4,7 @@ import { RouteComponentProps } from 'react-router-dom';
 import { GQLRequests } from 'itmat-commons';
 import css from '../login/login.module.css';
 
-type ResetPasswordPageProps = RouteComponentProps<{}>
-
+type ResetPasswordPageProps = RouteComponentProps
 
 export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProps> = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
@@ -31,7 +30,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                     <h1>Done!</h1>
                     <p>{`A link for password reset ${forgotUsername ? 'together with your username ' : ''}has been sent to your email.`}</p>
                     <p>The link will be active for 1 hour.</p>
-                    <br/>
+                    <br />
                 </div>
             </div>
         );
@@ -41,20 +40,20 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
     return (
         <Mutation<any, any>
             mutation={GQLRequests.REQUEST_USERNAME_OR_RESET_PASSWORD}
-            onError={() => {}}
+            onError={() => { return; }}
             onCompleted={() => setRequestCompleted(true)}
         >
             {(requestPasswordReset, { loading, error }) =>
                 <div className={css.login_and_error_wrapper}>
                     <div className={`${css.login_box} appear_from_below`}>
                         <h1>Forgot your password?</h1>
-                        <br/>
+                        <br />
                         {
                             !forgotUsername
                                 ?
                                 <div>
                                     <input placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('submit_button')!.click()} /> <br />
-                                    <p onClick={() => setForgotUsername(true)} style={{ cursor: 'pointer'}}>Forgot your username?</p>
+                                    <p onClick={() => setForgotUsername(true)} style={{ cursor: 'pointer' }}>Forgot your username?</p>
                                 </div>
                                 :
                                 <div>
@@ -90,7 +89,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                                 >Reset my password</button>
                             )
                         }
-                        <br/>
+                        <br />
                         <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}
                         </div>

@@ -34,7 +34,7 @@ export const LoginBox: React.FunctionComponent = () => {
                     data: { whoAmI: login }
                 });
             }}
-            onError={() => {}}
+            onError={() => { return; }}
         >
             {(login, { loading, error }) =>
                 <div className={css.login_and_error_wrapper}>
@@ -72,9 +72,9 @@ export const LoginBox: React.FunctionComponent = () => {
                                 >Login</button>
                             )
                         }
-                        <br/>
+                        <br />
                         <NavLink to='/requestResetPassword'><p>Forgot username or password</p></NavLink>
-                        <br/>
+                        <br />
                         <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}
                         </div>
