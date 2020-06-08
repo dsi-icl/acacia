@@ -1,4 +1,4 @@
-import { Database as DatabaseBase, IDatabaseBaseConfig } from 'itmat-utils';
+import { Database as DatabaseBase, IDatabaseBaseConfig } from 'itmat-commons';
 
 export interface IDatabaseConfig extends IDatabaseBaseConfig {
     collections: {

@@ -1,14 +1,9 @@
 import { ApolloError } from 'apollo-server-core';
+import { IProject, IStudy } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
-import { makeGenericReponse, IGenericResponse } from '../responses';
-import { Models } from 'itmat-commons';
-const { fileTypes, StudyRepoDir } = Models.File;
-type IProject = Models.Study.IProject;
-type IStudy = Models.Study.IStudy;
-type StudyRepoDir = Models.File.StudyRepoDir;
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -34,12 +29,14 @@ export class StudyCore {
         const existingStudies = await db.collections!.studies_collection.aggregate(
             [
                 { $match: { deleted: null } },
-                { $group:{
+                {
+                    $group: {
                         _id: '',
                         name: {
-                            $push : { $toLower: '$name' }
+                            $push: { $toLower: '$name' }
                         }
-                }},
+                    }
+                },
                 { $project: { name: 1 } }
             ]
         ).toArray();
@@ -149,7 +146,7 @@ export class StudyCore {
         await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });
     }
 
-    public async editProjectApprovedFields(projectId: string, fieldTreeId: string, approvedFields: string[]) {
+    public async editProjectApprovedFields(projectId: string, fieldTreeId: string, approvedFields: string[]): Promise<IProject> {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
         const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { [`approvedFields.${fieldTreeId}`]: approvedFields } }, { returnOriginal: false });
         if (result.ok === 1) {
@@ -159,7 +156,7 @@ export class StudyCore {
         }
     }
 
-    public async editProjectApprovedFiles(projectId: string, approvedFiles: string[]) {
+    public async editProjectApprovedFiles(projectId: string, approvedFiles: string[]): Promise<IProject> {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
         const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFiles } }, { returnOriginal: false });
         if (result.ok === 1) {

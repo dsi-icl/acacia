@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY } from 'itmat-commons';
 import { FileList } from '../../../reusable/fileList/fileList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
@@ -10,7 +10,7 @@ import { UploadFileSection } from './uploadFile';
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper + ' fade_in'}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title="Existing files">
+            <Subsection title='Existing files'>
                 <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
                         if (loading) { return <LoadingBalls />; }
@@ -24,7 +24,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             </Subsection>
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title="Upload new file">
+            <Subsection title='Upload new file'>
                 <UploadFileSection studyId={studyId} />
             </Subsection>
         </div>

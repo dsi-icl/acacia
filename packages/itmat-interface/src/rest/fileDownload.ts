@@ -2,13 +2,12 @@ import { Request, Response } from 'express';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
-import { Models, task_required_permissions } from 'itmat-commons';
+import { Models, task_required_permissions, fileTypes } from 'itmat-commons';
 import { fileTypesFiles } from 'itmat-commons/dist/models/file';
 type IFileMongoEntry = Models.File.IFileMongoEntry;
-const { fileTypes } = Models.File;
 
-export const fileDownloadController = async (req: Request, res: Response) => {
-    const requester: Models.UserModels.IUser = req.user as any;
+export const fileDownloadController = async (req: Request, res: Response): Promise<void> => {
+    const requester = req.user as Models.UserModels.IUser;
     const requestedFile = req.params.fileId;
 
     if (!requester) {

@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
-import { userTypes } from 'itmat-commons/dist/models/user';
-import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
-import { CREATE_STUDY } from 'itmat-commons/dist/graphql/study';
+import { userTypes, WHO_AM_I, CREATE_STUDY } from 'itmat-commons';
 
 export const AddNewDataSet: React.FunctionComponent = () => {
     const [showMore, setShowMore] = React.useState(false);
-    const [createStudy, { loading: createStudyLoading, error: createStudyError }] = useMutation(CREATE_STUDY, { onCompleted: () => { setNewName(''); setShowMore(false); }, refetchQueries: [{ query: WHO_AM_I }], onError: () => {} });
+    const [createStudy, { loading: createStudyLoading, error: createStudyError }] = useMutation(CREATE_STUDY, { onCompleted: () => { setNewName(''); setShowMore(false); }, refetchQueries: [{ query: WHO_AM_I }], onError: () => { return; } });
     const [newName, setNewName] = React.useState('');
     const [inputError, setInputError] = React.useState('');
     return (

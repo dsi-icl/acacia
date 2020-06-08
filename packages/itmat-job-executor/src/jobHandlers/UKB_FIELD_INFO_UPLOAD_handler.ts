@@ -1,8 +1,7 @@
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
-import { IJobEntryForFieldCuration } from 'itmat-commons/dist/models/job';
-import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
+import { IFile, IJobEntryForFieldCuration } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { FieldCurator } from '../curation/FieldCurator';
 
@@ -45,6 +44,6 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     public async updateFieldTreesInMongo(job: IJobEntryForFieldCuration, fieldTreeId: string) {
         const queryObject = { 'id': job.studyId, 'deleted': null, 'dataVersions.id': job.data!.dataVersionId };
         const updateObject = { $push: { 'dataVersions.$.fieldTrees': fieldTreeId } };
-        const result = await db.collections!.studies_collection.findOneAndUpdate(queryObject, updateObject);
+        return await db.collections!.studies_collection.findOneAndUpdate(queryObject, updateObject);
     }
 }

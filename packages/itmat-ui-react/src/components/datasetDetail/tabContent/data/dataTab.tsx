@@ -1,9 +1,8 @@
 import { Switch } from 'antd';
 import 'antd/lib/switch/style/css';
-import { IStudy, IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
-import { GET_STUDY, SET_DATAVERSION_AS_CURRENT } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY, SET_DATAVERSION_AS_CURRENT, IStudy, IStudyDataVersion } from 'itmat-commons';
 import { InfoCircle } from '../../../reusable/icons/infoCircle';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
@@ -16,7 +15,7 @@ import { UploadNewFields } from './uploadNewFields';
 
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return <div className={css.scaffold_wrapper + ' fade_in'}>
+    return <div className={`${css.scaffold_wrapper} fade_in`}>
         <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
                 if (loading) { return <LoadingBalls />; }
@@ -26,7 +25,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                 }
                 return <div>
                     <p>There is no data uploaded for this study yet.</p>
-                    <UploadNewData studyId={studyId} cancelButton={() => {}} />
+                    <UploadNewData studyId={studyId} cancelButton={() => { return; }} />
                 </div>;
             }}
         </Query>
@@ -34,7 +33,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
 };
 
 
-export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
+export const DataManagement: React.FunctionComponent<{ data: IStudy; showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
     const [selectedVersion, setSelectedVersion] = React.useState(data.currentDataVersion);
     const [addNewDataSectionShown, setAddNewDataSectionShown] = React.useState(false);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
@@ -93,9 +92,9 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title="Fields & Variables">
+            <Subsection title='Fields & Variables'>
                 <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id} />
-                <br/><br/>
+                <br /><br />
                 <FieldListSelectionSection
                     studyId={data.id}
                     selectedVersion={selectedVersion}
@@ -107,7 +106,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy, showSaveVer
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title="Data">
+            <Subsection title='Data'>
                 <DataSummaryVisual
                     studyId={data.id}
                     selectedVersion={selectedVersion}

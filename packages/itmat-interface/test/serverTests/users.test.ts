@@ -2,21 +2,29 @@ import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
-import { makeAESIv, makeAESKeySalt, encryptEmail, decryptEmail } from '../../src/graphql/resolvers/userResolvers';
+import { makeAESIv, makeAESKeySalt, encryptEmail } from '../../src/graphql/resolvers/userResolvers';
 import { v4 as uuid } from 'uuid';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import chalk from 'chalk';
 import { MongoClient } from 'mongodb';
-import * as itmatCommons from 'itmat-commons';
-const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD, LOGIN } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import setupDatabase from 'itmat-commons/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
-import { IResetPasswordRequest } from 'itmat-commons/dist/models/user';
 import * as mfa from '../../src/utils/mfa';
-const { Models: { UserModels: { userTypes }} } = itmatCommons;
-type IUser = itmatCommons.Models.UserModels.IUser;
+import {
+    IResetPasswordRequest,
+    WHO_AM_I,
+    GET_USERS,
+    CREATE_USER,
+    EDIT_USER,
+    DELETE_USER,
+    REQUEST_USERNAME_OR_RESET_PASSWORD,
+    RESET_PASSWORD,
+    LOGIN,
+    IUser,
+    userTypes
+} from 'itmat-commons';
 
 let app;
 let mongodb;
@@ -32,7 +40,7 @@ const SKIP_EMAIL_TEST = process.env.SKIP_EMAIL_TEST === 'true';
 
 afterAll(async () => {
     await db.closeConnection();
-    await mongoConnection.close();
+    await mongoConnection?.close();
     await mongodb.stop();
 
     /* claer all mocks */
@@ -50,7 +58,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     config.database.mongo_url = connectionString;
     config.database.database = database;
     await db.connect(config.database);
-    const router = new Router();
+    const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString, {
@@ -61,8 +69,8 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
     /* Connecting clients for testing later */
     app = router.getApp();
-    admin = request.agent(app, null);
-    user = request.agent(app, null);
+    admin = request.agent(app);
+    user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
 
@@ -78,7 +86,7 @@ describe('USERS API', () => {
 
 
         beforeAll(async () => {
-            loggedoutUser = request.agent(app, null);
+            loggedoutUser = request.agent(app);
             encryptedEmailForStandardUser =
                 await encryptEmail(SEED_STANDARD_USER_EMAIL, makeAESKeySalt(presetToken), makeAESIv(presetToken));
         });
@@ -201,7 +209,7 @@ describe('USERS API', () => {
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
-            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] }}, { returnOriginal: false });
+            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnOriginal: false });
             expect(cleanupResult.ok).toBe(1);
             expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
@@ -241,7 +249,7 @@ describe('USERS API', () => {
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
-            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] }}, { returnOriginal: false });
+            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnOriginal: false });
             expect(cleanupResult.ok).toBe(1);
             expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
@@ -272,7 +280,7 @@ describe('USERS API', () => {
             };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [resetPWrequest] }}
+                { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
             expect(updateResult.ok).toBe(1);
 
@@ -311,7 +319,7 @@ describe('USERS API', () => {
             };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [resetPWrequest] }}
+                { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
             expect(updateResult.ok).toBe(1);
 
@@ -348,7 +356,7 @@ describe('USERS API', () => {
             };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: [resetPWrequest] }}
+                { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
             expect(updateResult.ok).toBe(1);
 
@@ -393,7 +401,7 @@ describe('USERS API', () => {
             ];
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: resetPWrequests }}
+                { $set: { resetPasswordRequests: resetPWrequests } }
             );
             expect(updateResult.ok).toBe(1);
 
@@ -421,7 +429,7 @@ describe('USERS API', () => {
             expect(updateResult2.ok).toBe(1);
         });
 
-        test('Reset password with valid token' , async () => {
+        test('Reset password with valid token', async () => {
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest = {
                 id: presetToken,
@@ -429,13 +437,13 @@ describe('USERS API', () => {
                 used: false
             };
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
-                { username: SEED_STANDARD_USER_USERNAME },                
-                { $set: { resetPasswordRequests: [resetPWrequest] }}
+                { username: SEED_STANDARD_USER_USERNAME },
+                { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
             expect(updateResult.ok).toBe(1);
 
             /* test */
-            const newloggedoutuser = request.agent(app, null);
+            const newloggedoutuser = request.agent(app);
             const res = await newloggedoutuser
                 .post('/graphql')
                 .send({
@@ -482,7 +490,7 @@ describe('USERS API', () => {
             expect(updateResult2.ok).toBe(1);
         });
 
-        test('Reset password with used token (should fail)' , async () => {
+        test('Reset password with used token (should fail)', async () => {
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest[] = [
                 {
@@ -498,10 +506,10 @@ describe('USERS API', () => {
             ];
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                 { username: SEED_STANDARD_USER_USERNAME },
-                { $set: { resetPasswordRequests: resetPWrequest }}
+                { $set: { resetPasswordRequests: resetPWrequest } }
             );
             expect(updateResult.ok).toBe(1);
-            const newloggedoutuser = request.agent(app, null);
+            const newloggedoutuser = request.agent(app);
             const res = await newloggedoutuser
                 .post('/graphql')
                 .send({
@@ -593,19 +601,19 @@ describe('USERS API', () => {
             expect(res.body.data.whoAmI).toBe(null);
         });
 
-        test('Who am I (admin)',  async () => {
+        test('Who am I (admin)', async () => {
             const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
             expect(res.status).toBe(200);
             expect(res.body.data.whoAmI.id).toBeDefined();
             adminId = res.body.data.whoAmI.id;
             expect(res.body.data.whoAmI).toEqual({
-                username: 'admin', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                username: 'admin',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
-                realName: 'admin', 
-                createdBy: 'chon', 
+                realName: 'admin',
+                createdBy: 'chon',
                 organisation: 'DSI',
-                email: 'admin@user.io', 
+                email: 'admin@user.io',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -618,7 +626,7 @@ describe('USERS API', () => {
             });
         });
 
-        test('Who am I (user)', async () => { 
+        test('Who am I (user)', async () => {
             const res = await user.post('/graphql').send({ query: print(WHO_AM_I) });
             expect(res.status).toBe(200);
             expect(res.body.error).toBeUndefined();
@@ -626,12 +634,12 @@ describe('USERS API', () => {
             userId = res.body.data.whoAmI.id;
             expect(res.body.data.whoAmI).toEqual({
                 username: 'standardUser',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.STANDARD,
-                realName: 'Chan Tai Man', 
-                createdBy: 'admin', 
+                realName: 'Chan Tai Man',
+                createdBy: 'admin',
                 organisation: 'DSI',
-                email: 'standard@user.io', 
+                email: 'standard@user.io',
                 description: 'I am a standard user.',
                 id: userId,
                 access: {
@@ -644,27 +652,27 @@ describe('USERS API', () => {
             });
         });
 
-        test('Expired standard user log in (should fail)', async() => {
-            const userSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA";
+        test('Expired standard user log in (should fail)', async () => {
+            const userSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';
             const newUser: IUser = {
-                username : 'expired_user', 
-                type: userTypes.STANDARD, 
-                realName: 'expired user', 
-                password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: 'expire@user.io', 
+                username: 'expired_user',
+                type: userTypes.STANDARD,
+                realName: 'expired user',
+                password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: 'expire@user.io',
                 resetPasswordRequests: [],
                 description: 'I am an expired user.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'expiredId0',
                 createdAt: 1591134065000,
                 expiredAt: 1501134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
-            const newloggedoutuser = request.agent(app, null);
+            const newloggedoutuser = request.agent(app);
             const otp = mfa.generateTOTP(userSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),
@@ -678,7 +686,7 @@ describe('USERS API', () => {
             expect(res.body.data.login).toBeNull();
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('Account Expired.');
-            const dres = await admin.post('/graphql').send(
+            await admin.post('/graphql').send(
                 {
                     query: print(DELETE_USER),
                     variables: {
@@ -688,27 +696,27 @@ describe('USERS API', () => {
             );
         });
 
-        test('Expired admin user log in', async() => {
-            const adminSecret = "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA";
+        test('Expired admin user log in', async () => {
+            const adminSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';
             const newUser: IUser = {
-                username : 'expired_admin', 
-                type: userTypes.ADMIN, 
-                realName: 'expired admin', 
-                password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: 'admine@user.io', 
+                username: 'expired_admin',
+                type: userTypes.ADMIN,
+                realName: 'expired admin',
+                password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: 'admine@user.io',
                 resetPasswordRequests: [],
                 description: 'I am an expired admin.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'expiredId1',
                 createdAt: 1591134065000,
                 expiredAt: 1501134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
-            const newloggedoutuser = request.agent(app, null);
+            const newloggedoutuser = request.agent(app);
             const otp = mfa.generateTOTP(adminSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),
@@ -724,7 +732,7 @@ describe('USERS API', () => {
                 username: 'expired_admin',
                 type: 'ADMIN',
                 realName: 'expired admin',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'admine@user.io',
                 createdBy: 'admin',
                 organisation: 'DSI',
@@ -738,7 +746,7 @@ describe('USERS API', () => {
                 expiredAt: 1501134065000
             });
             expect(res.body.errors).toBeUndefined();
-            const dres = await admin.post('/graphql').send(
+            await admin.post('/graphql').send(
                 {
                     query: print(DELETE_USER),
                     variables: {
@@ -765,26 +773,26 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.data.getUsers).toEqual([
                 {
-                    username: 'admin', 
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    username: 'admin',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
-                    email: 'admin@user.io', 
+                    email: 'admin@user.io',
                     description: 'I am an admin user.',
                     id: adminId,
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
                 },
                 {
-                    username: 'standardUser', 
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    username: 'standardUser',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     createdAt: 1591134065000,
@@ -798,13 +806,13 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.data.getUsers).toEqual([
                 {
-                    username: 'admin', 
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    username: 'admin',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
-                    email: 'admin@user.io', 
+                    email: 'admin@user.io',
                     description: 'I am an admin user.',
                     id: adminId,
                     access: {
@@ -816,13 +824,13 @@ describe('USERS API', () => {
                     expiredAt: 1991134065000
                 },
                 {
-                    username: 'standardUser', 
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    username: 'standardUser',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -837,7 +845,7 @@ describe('USERS API', () => {
         });
 
         test('Get all users list with detail (no access info) (user) (should fail)', async () => {
-            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }});
+            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: false } });
             expect(res.status).toBe(200); //graphql returns 200 for application layer errors
             expect(res.body.errors).toHaveLength(3);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
@@ -845,12 +853,12 @@ describe('USERS API', () => {
                 null,
                 {
                     username: 'standardUser',
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     createdAt: 1591134065000,
@@ -860,7 +868,7 @@ describe('USERS API', () => {
         });
 
         test('Get all users list with detail (w/ access info) (user) (should fail)', async () => {
-            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: true }});
+            const res = await user.post('/graphql').send({ query: print(GET_USERS), variables: { fetchDetailsAdminOnly: true, fetchAccessPrivileges: true } });
             expect(res.status).toBe(200); // graphql returns 200 for application layer errors
             expect(res.body.errors).toHaveLength(4);
             expect(res.body.errors[0].message).toBe('NO_PERMISSION_ERROR');
@@ -871,12 +879,12 @@ describe('USERS API', () => {
                 null,
                 {
                     username: 'standardUser',
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -896,18 +904,18 @@ describe('USERS API', () => {
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                    type: userTypes.ADMIN, 
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    type: userTypes.ADMIN,
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
                     id: adminId
                 },
                 {
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
                     id: userId
                 }
@@ -920,18 +928,18 @@ describe('USERS API', () => {
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
                     id: adminId
                 },
                 {
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
                     id: userId
                 }
@@ -945,12 +953,12 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'standardUser',
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -983,10 +991,10 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                    type: userTypes.ADMIN, 
-                    realName: 'admin', 
-                    createdBy: 'chon', 
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    type: userTypes.ADMIN,
+                    realName: 'admin',
+                    createdBy: 'chon',
                     organisation: 'DSI',
                     id: adminId
                 }
@@ -1000,12 +1008,12 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'standardUser',
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man', 
-                    createdBy: 'admin', 
+                    realName: 'Chan Tai Man',
+                    createdBy: 'admin',
                     organisation: 'DSI',
-                    email: 'standard@user.io', 
+                    email: 'standard@user.io',
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -1025,9 +1033,9 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    createdBy: 'admin', 
+                    createdBy: 'admin',
                     organisation: 'DSI',
                     realName: 'Chan Tai Man',
                     id: userId,
@@ -1042,21 +1050,9 @@ describe('USERS API', () => {
     });
 
     describe('APP USER MUTATION API', () => {
-        let adminId;
-        let userId;
 
-        beforeAll(async () => {
-            /* setup: first retrieve the generated user id */
-            const result = await mongoClient
-                .collection(config.database.collections.users_collection)
-                .find({}, { projection: { id: 1, username: 1 } })
-                .toArray();
-            adminId = result.filter(e => e.username === 'admin')[0].id;
-            userId = result.filter(e => e.username === 'standardUser')[0].id;
-        });
-
-        test('log in with incorrect totp (user)', async () => {            
-            const res = await admin.post('/graphql').send({
+        test('log in with incorrect totp (user)', async () => {
+            await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
                     username: 'testuser0',
@@ -1080,9 +1076,9 @@ describe('USERS API', () => {
                 .set('Content-type', 'application/json')
                 .send({
                     query: print(LOGIN),
-                    variables: { username: 'testuser0', password: 'testpassword0', totp: incorrectTotp.toString()}
+                    variables: { username: 'testuser0', password: 'testpassword0', totp: incorrectTotp.toString() }
                 });
-            
+
             expect(res_login.status).toBe(200);
             expect(res_login.body.errors).toHaveLength(1);
             expect(res_login.body.errors[0].message).toBe('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
@@ -1114,10 +1110,10 @@ describe('USERS API', () => {
                     username: 'testuser1',
                     otpSecret: createdUser.otpSecret,
                     type: userTypes.STANDARD,
-                    realName: 'User Testing', 
-                    createdBy: 'admin', 
+                    realName: 'User Testing',
+                    createdBy: 'admin',
                     organisation: 'DSI-ICL',
-                    email: 'fake@email.io', 
+                    email: 'fake@email.io',
                     description: 'I am fake!',
                     id: createdUser.id,
                     access: {
@@ -1194,18 +1190,18 @@ describe('USERS API', () => {
         test('create user that already exists (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user', 
-                type: userTypes.STANDARD, 
-                realName: 'Chan Siu Man', 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: 'new@user.io', 
+                username: 'new_user',
+                type: userTypes.STANDARD,
+                realName: 'Chan Siu Man',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: 'new@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'replaced_at_runtime1',
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
@@ -1235,18 +1231,18 @@ describe('USERS API', () => {
         test('create user that already exists (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_2', 
+                username: 'new_user_2',
                 type: userTypes.STANDARD,
-                realName: 'Chan Ming', 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: 'new2@user.io', 
+                realName: 'Chan Ming',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: 'new2@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 2.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'fakeid1',
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
@@ -1276,17 +1272,17 @@ describe('USERS API', () => {
         test('edit user password (admin) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_333333', 
-                type: userTypes.STANDARD, 
-                realName: 'Chan Ming Ming', 
-                password: 'fakepassword', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: 'new3333@user.io', 
+                username: 'new_user_333333',
+                type: userTypes.STANDARD,
+                realName: 'Chan Ming Ming',
+                password: 'fakepassword',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: 'new3333@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 33333.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid2',
                 createdAt: 1591134065000,
@@ -1319,18 +1315,18 @@ describe('USERS API', () => {
         test('edit user without password (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_3', 
-                type: userTypes.STANDARD, 
-                realName: 'Chan Ming Man', 
-                password: 'fakepassword', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: 'new3@user.io', 
+                username: 'new_user_3',
+                type: userTypes.STANDARD,
+                realName: 'Chan Ming Man',
+                password: 'fakepassword',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: 'new3@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 3.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'fakeid2222',
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
@@ -1360,16 +1356,16 @@ describe('USERS API', () => {
             expect(res.body.data.editUser).toEqual(
                 {
                     username: 'fakeusername',
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'Man', 
-                    createdBy: 'admin', 
+                    realName: 'Man',
+                    createdBy: 'admin',
                     organisation: 'DSI-ICL',
-                    email: 'hey@uk.io', 
+                    email: 'hey@uk.io',
                     description: 'DSI director',
                     id: 'fakeid2222',
                     access: {
-                        id: `user_access_obj_user_id_fakeid2222`,
+                        id: 'user_access_obj_user_id_fakeid2222',
                         projects: [],
                         studies: []
                     },
@@ -1382,17 +1378,17 @@ describe('USERS API', () => {
         test('edit own password with length < 8 (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_4444',
+                username: 'new_user_4444',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man San',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin',
                 email: 'new4444@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 44444.',
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid44444',
                 createdAt: 1591134065000,
@@ -1422,18 +1418,18 @@ describe('USERS API', () => {
         test('edit own password (user)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_4', 
-                type: userTypes.STANDARD, 
-                realName: 'Ming Man', 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: 'new4@user.io', 
+                username: 'new_user_4',
+                type: userTypes.STANDARD,
+                realName: 'Ming Man',
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: 'new4@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 4.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'fakeid4',
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
@@ -1457,7 +1453,7 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.editUser).toEqual({
                 username: 'new_user_4',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man',
                 createdBy: 'admin',
@@ -1481,17 +1477,17 @@ describe('USERS API', () => {
         test('edit own non-password fields (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_5',
+                username: 'new_user_5',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man Chon',
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin',
                 email: 'new5@user.io',
                 description: 'I am a new user 5.',
                 resetPasswordRequests: [],
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid5',
                 createdAt: 1591134065000,
@@ -1523,17 +1519,17 @@ describe('USERS API', () => {
         test('edit own email with malformed email (user) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_6',
+                username: 'new_user_6',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin',
                 email: 'new6@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 6.',
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid6',
                 createdAt: 1591134065000,
@@ -1562,17 +1558,17 @@ describe('USERS API', () => {
         test('edit other user (user)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_7',
+                username: 'new_user_7',
                 type: userTypes.STANDARD,
                 realName: 'Ming Man Tai',
                 password: 'fakepassword',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin',
                 email: 'new7@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 7.',
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid7',
                 createdAt: 1591134065000,
@@ -1599,17 +1595,17 @@ describe('USERS API', () => {
         test('delete user (admin)', async () => {
             /* setup: create a new user to be deleted */
             const newUser: IUser = {
-                username : 'new_user_8',
+                username: 'new_user_8',
                 type: userTypes.STANDARD,
                 realName: 'Chan Mei',
                 password: 'fakepassword',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin',
                 email: 'new8@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 8.',
                 emailNotificationsActivated: true,
-                organisation:  'DSI',
+                organisation: 'DSI',
                 deleted: null,
                 id: 'fakeid8',
                 createdAt: 1591134065000,
@@ -1624,7 +1620,7 @@ describe('USERS API', () => {
             });
 
             expect(getUserRes.body.data.getUsers).toEqual([{
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 realName: 'Chan Mei',
                 type: userTypes.STANDARD,
                 createdBy: 'admin',
@@ -1659,18 +1655,18 @@ describe('USERS API', () => {
         test('delete user that has been deleted (admin)', async () => {
             /* setup: create a "deleted" new user to be deleted */
             const newUser: IUser = {
-                username : 'new_user_9', 
-                type: userTypes.STANDARD, 
-                realName: 'Chan Mei Fong', 
-                password: 'fakepassword', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: 'new9@user.io', 
+                username: 'new_user_9',
+                type: userTypes.STANDARD,
+                realName: 'Chan Mei Fong',
+                password: 'fakepassword',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: 'new9@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 9.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: (new Date()).valueOf(), 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: (new Date()).valueOf(),
                 id: 'fakeid9',
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
@@ -1699,7 +1695,7 @@ describe('USERS API', () => {
                 {
                     query: print(DELETE_USER),
                     variables: {
-                        userId: 'I never existed' 
+                        userId: 'I never existed'
                     }
                 }
             );
@@ -1714,18 +1710,18 @@ describe('USERS API', () => {
         test('delete user (user)', async () => {
             /* setup: create a new user to be deleted */
             const newUser: IUser = {
-                username : 'new_user_10', 
-                type: userTypes.STANDARD, 
-                realName: 'Chan Mei Yi', 
-                password: 'fakepassword', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: 'new10@user.io', 
+                username: 'new_user_10',
+                type: userTypes.STANDARD,
+                realName: 'Chan Mei Yi',
+                password: 'fakepassword',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: 'new10@user.io',
                 resetPasswordRequests: [],
                 description: 'I am a new user 10.',
-                emailNotificationsActivated: true, 
-                organisation:  'DSI',
-                deleted: null, 
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
                 id: 'fakeid10',
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
@@ -1739,10 +1735,10 @@ describe('USERS API', () => {
             });
 
             expect(getUserRes.body.data.getUsers).toEqual([{
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 realName: 'Chan Mei Yi',
-                type: userTypes.STANDARD, 
-                createdBy: 'admin', 
+                type: userTypes.STANDARD,
+                createdBy: 'admin',
                 organisation: 'DSI',
                 id: newUser.id,
             }]);
@@ -1767,12 +1763,12 @@ describe('USERS API', () => {
             });
 
             expect(getUserResAfter.body.data.getUsers).toEqual([{
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 realName: 'Chan Mei Yi',
-                createdBy: 'admin', 
+                type: userTypes.STANDARD,
+                createdBy: 'admin',
                 organisation: 'DSI',
-                id: newUser.id,
-                type: userTypes.STANDARD
+                id: newUser.id
             }]);
         });
     });

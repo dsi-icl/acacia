@@ -1,6 +1,8 @@
 {
     "name": "itmat-ui-react",
     "version": "0.5.0",
+    "description": "",
+    "license": "MIT",
     "main": "build/index",
     "types": "build/index",
     "files": [
@@ -8,11 +10,13 @@
     ],
     "scripts": {
         "start": "cross-env BROWSER=none SKIP_PREFLIGHT_CHECK=true react-scripts start",
-        "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
+        "build": "cross-env CI=false SKIP_PREFLIGHT_CHECK=true react-scripts build",
         "test": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts test",
         "test:cypress": "npx cypress open",
+        "lint": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts --fix ./",
         "clean": "rimraf -rf ./dist ./build",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "antd": "4.3.3",
@@ -23,14 +27,15 @@
         "apollo-link-ws": "1.0.20",
         "apollo-upload-client": "13.0.0",
         "axe-core": "3.5.4",
-        "itmat-commons": "0.5.0",
+        "itmat-commons": "0.6.0",
+        "mongodb-client-encryption": "^1.0.1",
+        "qrcode": "^1.4.4",
         "react": "16.13.1",
         "react-apollo": "3.1.5",
         "react-dom": "16.13.1",
         "react-router-dom": "5.2.0",
         "react-scripts": "3.4.0",
-        "subscriptions-transport-ws": "0.9.16",        
-        "qrcode": "^1.4.4"
+        "subscriptions-transport-ws": "0.9.16"
     },
     "devDependencies": {
         "@apollo/react-testing": "3.1.4",
@@ -53,8 +58,11 @@
         "typescript": "3.8.3",
         "uuid": "8.1.0"
     },
+    "resolutions": {
+        "**/moment": "2.24.0"
+    },
     "eslintConfig": {
-        "extends": "react-app"
+        "extends": "./config/eslint.config.js"
     },
     "browserslist": [
         ">0.2%",

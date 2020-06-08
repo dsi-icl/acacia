@@ -1,5 +1,4 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models, permissions, task_required_permissions } from 'itmat-commons';
 const { File: {
         FileNode,
         UserPersonalDir,
@@ -16,6 +15,7 @@ const { File: {
         zipFormats
     }} = Models;
 import { Logger } from 'itmat-utils';
+import { Models, task_required_permissions, IFile, Logger } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
@@ -187,41 +187,61 @@ export const fileResolvers = {
             const file = await args.file;
 
             return new Promise<IFileMongoEntry>(async (resolve, reject) => {
-                const stream: NodeJS.ReadableStream = (file as any).createReadStream();
-                const fileUri = uuid();
-
-                /* if the client cancelled the request mid-stream it will throw an error */
-                stream.on('error', (e) => {
-                    Logger.error(e);
-                    reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
-                });
-
-                stream.on('end', async () => {
-                    let fileObj: ObjStoreFileNode;
-                    switch (args.fileType) {
-                        case fileTypes.STUDY_REPO_OBJ_STORE_FILE:
-                            fileObj = new StudyRepoObjStoreFile({
-                                fileName: file.filename,
-                                uploadedBy: requester.id,
-                                description: args.description,
-                                uri: fileUri,
-                                fileSize: args.fileLength,
-                                studyId: args.studyId
-                            });
-                            break;
-                        default:
-                            throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
-                    }
-
-                    const uploadResult = await fileObj.uploadFileToMongo(db.collections!.files_collection);
-                    if (uploadResult.result.ok !== 1) {
-                        throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
-                    }
-                    resolve(fileObj.serialiseToMongoObj());
-                });
-
                 try {
-                    await objStore.uploadFile(stream, args.studyId, fileUri);
+                    const stream: NodeJS.ReadableStream = (file as any).createReadStream();
+                    const fileUri = uuid();
+
+                    stream.on('end', async () => {
+                        let fileObj: ObjStoreFileNode;
+                        switch (args.fileType) {
+                            case fileTypes.STUDY_REPO_OBJ_STORE_FILE:
+                                fileObj = new StudyRepoObjStoreFile({
+                                    fileName: file.filename,
+                                    uploadedBy: requester.id,
+                                    description: args.description,
+                                    uri: fileUri,
+                                    fileSize: args.fileLength,
+                                    studyId: args.studyId
+                                });
+                                break;
+                            default:
+                                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                        }
+
+                        const uploadResult = await fileObj.uploadFileToMongo(db.collections!.files_collection);
+                        if (uploadResult.result.ok !== 1) {
+                            throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                        }
+                        resolve(fileObj.serialiseToMongoObj());
+                    });
+
+                    /* if the client cancelled the request mid-stream it will throw an error */
+                    stream.on('error', (e) => {
+                        Logger.error(e);
+                        reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
+                    });
+
+                    stream.on('end', async () => {
+                        const fileEntry: IFile = {
+                            id: uuid(),
+                            fileName: file.filename,
+                            studyId: args.studyId,
+                            fileSize: args.fileLength === undefined ? 0 : args.fileLength,
+                            description: args.description,
+                            uploadedBy: requester.id,
+                            uri: fileUri,
+                            deleted: null
+                        };
+
+                        const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
+                        if (insertResult.result.ok === 1) {
+                            resolve(fileEntry);
+                        } else {
+                            throw new ApolloError(errorCodes.DATABASE_ERROR);
+                        }
+                    });
+
+                    objStore.uploadFile(stream, args.studyId, fileUri);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }

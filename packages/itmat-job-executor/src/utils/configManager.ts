@@ -1,11 +1,10 @@
 import merge from 'deepmerge';
 import fs from 'fs-extra';
-import { IObjectStoreConfig } from 'itmat-utils';
-import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
+import { IObjectStoreConfig, IDatabaseBaseConfig } from 'itmat-commons';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
 
-interface IConfiguration extends IServerConfig {
+export interface IConfiguration extends IServerConfig {
     database: IDatabaseBaseConfig;
     objectStore: IObjectStoreConfig;
 }

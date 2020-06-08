@@ -1,8 +1,7 @@
-import { IProject } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { LOGOUT, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { LOGOUT, WHO_AM_I, IProject } from 'itmat-commons';
 import { Icons } from '../icons';
 import css from './scaffold.module.css';
 
@@ -10,20 +9,20 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
     return (
         <div className={css.main_menubar}>
             <div>
-                <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title="Projects" activeClassName={css.clickedButton}>
-                    <div className={css.button}><Icons type="query" /></div>
+                <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title='Projects' activeClassName={css.clickedButton}>
+                    <div className={css.button}><Icons type='query' /></div>
                 </NavLink>
             </div>
 
             <div>
-                <NavLink to="/datasets" title="Datasets" activeClassName={css.clickedButton}>
-                    <div className={css.button}><Icons type="studies" /></div>
+                <NavLink to='/datasets' title='Datasets' activeClassName={css.clickedButton}>
+                    <div className={css.button}><Icons type='studies' /></div>
                 </NavLink>
             </div>
 
             <div>
-                <NavLink to="/users" title="Users" activeClassName={css.clickedButton}>
-                    <div className={css.button}><Icons type="users" /></div>
+                <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
+                    <div className={css.button}><Icons type='users' /></div>
                 </NavLink>
             </div>
 
@@ -42,7 +41,7 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
             */}
 
             <div>
-                <NavLink title="Logout" to="/logout" id="logoutButton">
+                <NavLink title='Logout' to='/logout' id='logoutButton'>
                     <Mutation<any, any>
                         mutation={LOGOUT}
                         update={(cache, { data: { logout } }) => {
@@ -55,7 +54,7 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
                         }}
                     >
                         {(logout) => (
-                            <div className={css.button} onClick={() => { logout(); }}><Icons type="logout" /></div>
+                            <div className={css.button} onClick={() => { logout(); }}><Icons type='logout' /></div>
                         )}
                     </Mutation>
                 </NavLink>

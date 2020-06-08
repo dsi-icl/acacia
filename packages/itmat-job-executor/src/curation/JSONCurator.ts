@@ -1,11 +1,8 @@
 import { Collection } from 'mongodb';
 import { Writable } from 'stream';
 import JSONStream from 'JSONStream';
-import { Models } from 'itmat-commons';
-import { fieldValidator, fieldParser } from '../utils/jobUtils'
-type IFieldDescriptionObject = Models.Data.IFieldDescriptionObject;
-type IDataEntry= Models.Data.IDataEntry;
-type IJobEntry<T> = Models.JobModels.IJobEntry<T>;
+import { IFieldDescriptionObject, IDataEntry, IJobEntry  } from 'itmat-commons';
+import { fieldValidator, fieldParser } from '../utils/jobUtils';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -18,10 +15,10 @@ export class JSONCurator {
      * - uneven column number
      * - parse / encoding error
      */
-    private _header: (IFieldDescriptionObject | null)[]; // eslint:disable-line
-    private _numOfSubj: number; // eslint:disable-line
-    private _errored: boolean; // eslint:disable-line
-    private _errors: string[]; // eslint:disable-line
+    private _header: (IFieldDescriptionObject | null)[];
+    private _numOfSubj: number;
+    private _errored: boolean;
+    private _errors: string[];
 
     constructor(
         private readonly dataCollection: Collection,
@@ -39,10 +36,10 @@ export class JSONCurator {
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         return new Promise((resolve) => {
             console.log(`uploading for job ${this.job.id}`);
-            let isHeader: boolean = true;
+            let isHeader = true;
             let objectNum = 0;
             const subjectString: string[] = [];
-            let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+            const bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
             const jsonstream = JSONStream.parse([{}]);
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
@@ -56,7 +53,7 @@ export class JSONCurator {
                         }
                         this._header = parsedHeader;
                         isHeader = false;
-                        
+
                     } else {
                         subjectString.push(chunk[0]);
                         const { error, dataEntry } = processEachSubject({
@@ -65,7 +62,7 @@ export class JSONCurator {
                             parsedHeader: this._header,
                             job: this.job,
                             versionId: this.versionId
-                        }); 
+                        });
                         if (error) {
                             this._errored = true;
                             this._errors.push(...error);
@@ -76,22 +73,22 @@ export class JSONCurator {
                             return;
                         }
                         bulkInsert.insert(dataEntry);
-                        this,this._numOfSubj++;
-                        
+                        this._numOfSubj++;
+
                     }
                     if (this._numOfSubj > 999) {
                         this._numOfSubj = 0;
-                        await bulkInsert.execute((err: Error) => {
+                        await bulkInsert.execute((err, res) => {
                             if (err) {
-                                console.log((err as any).writeErrors[1].err);
+                                console.log(res.getWriteErrors()[1]);
                                 return;
                             }
-                        })
+                        });
                     }
                     callback();
                 }
             });
-            
+
             uploadWriteStream.on('finish', async () => {
                 /* check for subject Id duplicate */
                 const set = new Set(subjectString);
@@ -116,7 +113,7 @@ export class JSONCurator {
     }
 }
 
-export function processJSONHeader(header: string[]): {error?: string[], parsedHeader: Array<IFieldDescriptionObject | null>} {
+export function processJSONHeader(header: string[]): { error?: string[], parsedHeader: Array<IFieldDescriptionObject | null> } {
     const fieldstrings: string[] = [];
     const error: string[] = [];
     const parsedHeader: Array<IFieldDescriptionObject | null> = Array(header.length);
@@ -129,7 +126,7 @@ export function processJSONHeader(header: string[]): {error?: string[], parsedHe
                 error.push(`Object 1: '${each}' is not a valid header field descriptor.`);
                 parsedHeader[colNum] = null;
             } else {
-                const {fieldId, timepoint, measurement, datatype} = fieldParser(each);
+                const { fieldId, timepoint, measurement, datatype } = fieldParser(each);
                 parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
                 fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
             }
@@ -145,7 +142,7 @@ export function processJSONHeader(header: string[]): {error?: string[], parsedHe
 
 }
 
-export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }>}): { error?: string[], dataEntry: IDataEntry } { // eslint:disable-line
+export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
     const error: string[] = [];
     let colIndex = 0;
     const dataEntry: any = {
@@ -153,7 +150,7 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
         m_study: job.studyId,
         m_versionId: versionId
     };
-    
+
     if (subject.length !== parsedHeader.length) {
         error.push(`Object ${subject[0]}: Uneven field Number; expected ${parsedHeader.length} fields but got ${subject.length}`);
         return ({ error, dataEntry });
@@ -173,17 +170,17 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
         /* skip for missing data */
         if (each === '') {
             colIndex++;
-            continue
+            continue;
         }
 
         if (parsedHeader[colIndex] === null) {
             colIndex++;
             continue;
         }
-        const {fieldId, timepoint, measurement, datatype } = parsedHeader [colIndex] as IFieldDescriptionObject;
+        const { fieldId, timepoint, measurement, datatype } = parsedHeader[colIndex] as IFieldDescriptionObject;
 
         /* adding value to dataEntry */
-        let value: any;
+        let value: unknown;
         try {
             switch (datatype) {
                 case 'c': // categorical
@@ -235,10 +232,9 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
         }
         dataEntry[fieldId][timepoint][measurement] = value;
         colIndex++;
-    
+
     }
 
     return ({ error: error.length === 0 ? undefined : error, dataEntry });
-    
 }
 

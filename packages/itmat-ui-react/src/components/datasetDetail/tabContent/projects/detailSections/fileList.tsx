@@ -2,11 +2,10 @@ import { Tree } from 'antd';
 import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
-import { EDIT_PROJECT_APPROVED_FILES } from 'itmat-commons/dist/graphql/projects';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { EDIT_PROJECT_APPROVED_FILES, IFile, GET_STUDY } from 'itmat-commons';
 import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 
-export const GrantedFileListSelection: React.FunctionComponent<{ originalCheckedList: string[], studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
+export const GrantedFileListSelection: React.FunctionComponent<{ originalCheckedList: string[]; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);
     const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
     const [currentProjectId, setCurrentProjectId] = React.useState(projectId);
@@ -48,11 +47,11 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                                     }}>Save</button>
                             }
                             {
-                                error ? <div className="error_banner">{JSON.stringify(error)}</div> : null
+                                error ? <div className='error_banner'>{JSON.stringify(error)}</div> : null
                             }
 
                             {
-                                savedSuccessfully ? <div className="saved_banner">Saved!</div> : null
+                                savedSuccessfully ? <div className='saved_banner'>Saved!</div> : null
                             }
                         </>
                     }

@@ -10,7 +10,7 @@ export interface IJobEntry<dataobj> {
     requestTime: number;
     receivedFiles: string[];
     status: string;
-    error: null | object;
+    error: null | Record<string, unknown>;
     cancelled: boolean;
     cancelledTime?: number;
     claimedBy?: string;

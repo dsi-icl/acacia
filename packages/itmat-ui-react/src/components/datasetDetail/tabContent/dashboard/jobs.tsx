@@ -1,10 +1,9 @@
-import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { GQLRequests } from 'itmat-commons';
 import * as React from 'react';
 import { InfoCircle } from '../../../reusable/icons/infoCircle';
 import css from './tabContent.module.css';
 import { useSubscription } from 'react-apollo';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY, IJobEntry } from 'itmat-commons';
 
 const STATUSES: { [status: string]: any } = {
     finished: () => <td  className={css.finishedStatus_td}><span>Finished</span></td>,
@@ -19,7 +18,7 @@ const STATUSES: { [status: string]: any } = {
                 </ul>
             </div>
         </div>
-        </td>,
+    </td>,
     QUEUED: () => <td className={css.queuedStatus_td}><span>Queued</span></td>,
     PROCESSING: () => <td className={css.processingStatus_td}><span>Processing</span></td>,
     CANCELLED: () => <td className={css.cancelledStatus_td}><span>Cancelled</span></td>
@@ -30,7 +29,7 @@ const JOBTYPES: { [type: string]: any } = {
     FIELD_INFO_UPLOAD: <span>Field annotation upload</span>
 };
 
-export const JobSection: React.FunctionComponent<{ studyId: string, jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
+export const JobSection: React.FunctionComponent<{ studyId: string; jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
     useSubscription(
         GQLRequests.SUBSCRIBE_TO_JOB_STATUS,
         { variables: { studyId }, onSubscriptionData: ({ client: store, subscriptionData })  => {

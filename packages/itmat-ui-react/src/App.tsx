@@ -9,7 +9,7 @@ import { MainPanel } from './components/scaffold/mainPanel';
 import css from './components/scaffold/scaffold.module.css';
 import { ResetPasswordPage } from './components/resetPasswordPage/resetPasswordPage';
 import { RequestResetPassword } from './components/resetPasswordPage/requestResetPasswordPage';
-import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { WHO_AM_I } from 'itmat-commons';
 
 class App extends React.Component {
     public render() {
@@ -27,8 +27,8 @@ class App extends React.Component {
                                     if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) { // if logged in return the app
                                         // return <div className={css.app}>
                                         return <div className={css.app + ' dark_theme'}>
-                                                <MainMenuBar projects={data.whoAmI.access.projects} />
-                                                <MainPanel/>
+                                            <MainMenuBar projects={data.whoAmI.access.projects} />
+                                            <MainPanel/>
                                         </div>;
                                     }
                                     return <LoginBox />; // if not logged in return the login boxs

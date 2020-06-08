@@ -3,7 +3,6 @@ import * as React from 'react';
 
 import { Tree } from 'antd';
 import 'antd/lib/tree/style/css';
-import '../../../css/antdOverride.css';
 const { TreeNode } = Tree;
 
 // class DraggableTreeNode extends TreeNode {
@@ -20,8 +19,8 @@ const { TreeNode } = Tree;
 //     }
 // }
 
-export const FieldListSection: React.FunctionComponent<{ onCheck?: any, checkedList?: string[], checkable: boolean, fieldList: Models.Field.IFieldEntry[] }> = ({ onCheck, checkedList, checkable, fieldList }) => {
-    if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p> }
+export const FieldListSection: React.FunctionComponent<{ onCheck?: any; checkedList?: string[]; checkable: boolean; fieldList: Models.Field.IFieldEntry[] }> = ({ onCheck, checkedList, checkable, fieldList }) => {
+    if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p>; }
     const transformedList = fieldList.map(el => `${el.path}>>${el.id}|${el.fieldName}`);
     const makeTree = (paths: string[]) => {
         const output: any = [];

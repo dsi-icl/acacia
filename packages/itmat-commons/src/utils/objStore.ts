@@ -71,6 +71,6 @@ export class ObjectStore {
         // PRECONDITION: studyId and file exists (checked by interface resolver)
         const lowercasestudyid = studyId.toLowerCase();
         const stream = this.client!.getObject(lowercasestudyid, uri);
-        return (stream as any);
+        return stream as Promise<NodeJS.ReadableStream>;
     }
 }

@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { useMutation } from 'react-apollo';
+import { useMutation, ExecutionResult } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
+import { CREATE_USER, GET_USERS } from 'itmat-commons';
 import css from './userList.module.css';
 
-export const CreateNewUser: React.FunctionComponent = (props) => {
+export const CreateNewUser: React.FunctionComponent = () => {
     const [completedCreationId, setCompletedCreationId] = React.useState(undefined);
     const [inputError, setError] = React.useState('');
     const [createUser, { loading }] = useMutation(CREATE_USER, {
@@ -30,8 +30,8 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
         }
     });
 
-    function clickedSubmit(mutationFunc: (data: { variables: any }) => {}) {
-        return function(e: any) {
+    function clickedSubmit(mutationFunc: (data: { variables: any }) => Promise<ExecutionResult<any>>) {
+        return function (e: any) {
             e.preventDefault();
             const allFields = Object.keys(inputs);
             for (const each of allFields) {
@@ -48,22 +48,22 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
 
     return (
         <form>
-            <label>Username: <input type='text' {...inputControl('username')}/> </label><br/><br/>
-            <label>Password: <input type='password' {...inputControl('password')} /> </label><br/><br/>
-            <label>Real name: <input type='text' {...inputControl('realName')}/> </label><br/><br/>
-            <label>Organisation: <input type='text' {...inputControl('organisation')}/> </label><br/><br/>
-            <label>Description: <input type='text' {...inputControl('description')}/> </label><br/><br/>
-            <label>Email: <input type='text' {...inputControl('email')}/> </label><br/><br/>
+            <label>Username: <input type='text' {...inputControl('username')} /> </label><br /><br />
+            <label>Password: <input type='password' {...inputControl('password')} /> </label><br /><br />
+            <label>Real name: <input type='text' {...inputControl('realName')} /> </label><br /><br />
+            <label>Organisation: <input type='text' {...inputControl('organisation')} /> </label><br /><br />
+            <label>Description: <input type='text' {...inputControl('description')} /> </label><br /><br />
+            <label>Email: <input type='text' {...inputControl('email')} /> </label><br /><br />
             <label>Type: <select {...inputControl('type')}>
                 <option value='STANDARD'>System user</option>
                 <option value='ADMIN'>System admin</option>
             </select></label>
-            <br/><br/><br/><br/>
+            <br /><br /><br /><br />
             <div className={css.submit_cancel_button_wrapper}>
                 <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
-                { loading ? <button>Loading...</button> : <button onClick={clickedSubmit(createUser)}>Submit</button> }
+                {loading ? <button>Loading...</button> : <button onClick={clickedSubmit(createUser)}>Submit</button>}
             </div>
-        { inputError !== '' ? <div className='error_banner'>{inputError}</div> : null }
+            {inputError !== '' ? <div className='error_banner'>{inputError}</div> : null}
         </form>
     );
 };

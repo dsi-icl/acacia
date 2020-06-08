@@ -5,8 +5,11 @@ import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
-import * as itmatCommons from 'itmat-commons';
-const {
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import setupDatabase from 'itmat-commons/src/databaseSetup/collectionsAndIndexes';
+import config from '../../config/config.sample.json';
+import { v4 as uuid } from 'uuid';
+import {
     GET_STUDY_FIELDS,
     EDIT_PROJECT_APPROVED_FIELDS,
     GET_PROJECT_PATIENT_MAPPING,
@@ -22,21 +25,17 @@ const {
     DELETE_STUDY,
     DELETE_PROJECT,
     EDIT_PROJECT_APPROVED_FILES,
-    SET_DATAVERSION_AS_CURRENT
-} = itmatCommons.GQLRequests;
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
-import config from '../../config/config.sample.json';
-import { v4 as uuid } from 'uuid';
-import { text } from 'body-parser';
-const { permissions } = itmatCommons;
-const { Models: { UserModels: { userTypes }} } = itmatCommons;
-type IDataEntry = itmatCommons.Models.Data.IDataEntry;
-type IUser = itmatCommons.Models.UserModels.IUser;
-type IFile = itmatCommons.Models.File.IFile;
-type IFieldEntry = itmatCommons.Models.Field.IFieldEntry;
-type IRole = itmatCommons.Models.Study.IRole;
-type IStudyDataVersion = itmatCommons.Models.Study.IStudyDataVersion;
+    SET_DATAVERSION_AS_CURRENT,
+    userTypes,
+    permissions,
+    IDataEntry,
+    IUser,
+    IFile,
+    IFieldEntry,
+    IStudyDataVersion,
+    enumValueType,
+    enumItemType
+} from 'itmat-commons';
 
 let app;
 let mongodb;
@@ -47,7 +46,7 @@ let mongoClient;
 
 afterAll(async () => {
     await db.closeConnection();
-    await mongoConnection.close();
+    await mongoConnection?.close();
     await mongodb.stop();
 
     /* claer all mocks */
@@ -65,7 +64,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     config.database.mongo_url = connectionString;
     config.database.database = database;
     await db.connect(config.database);
-    const router = new Router();
+    const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString, {
@@ -87,13 +86,11 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
 describe('STUDY API', () => {
     let adminId;
-    let userId;
 
     beforeAll(async () => {
         /* setup: first retrieve the generated user id */
         const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
-        userId = result.filter(e => e.username === 'standardUser')[0].id;
     });
 
     describe('MANIPULATING STUDIES EXISTENCE', () => {
@@ -117,7 +114,7 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 realName: 'admin',
                 createdBy: 'chon',
@@ -235,7 +232,7 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 realName: 'admin',
                 createdBy: 'chon',
@@ -275,7 +272,7 @@ describe('STUDY API', () => {
             expect(resWhoAmIAfter.body.data.errors).toBeUndefined();
             expect(resWhoAmIAfter.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 realName: 'admin',
                 createdBy: 'chon',
@@ -316,10 +313,6 @@ describe('STUDY API', () => {
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             expect(res.body.data.deleteStudy).toEqual(null);
-        });
-
-        test('Delete study (with attached projects) (admin)', async () => {
-
         });
 
         test('Delete study that never existed (admin)', async () => {
@@ -391,7 +384,7 @@ describe('STUDY API', () => {
                 studyId: setupStudy.id,
                 createdBy: 'admin',
                 name: projectName,
-                patientMapping: { 'patient001': 'patientA' },
+                patientMapping: { patient001: 'patientA' },
                 approvedFields: [],
                 approvedFiles: [],
                 lastModified: 20000002,
@@ -441,10 +434,6 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { deleted: 10000 } });
         });
 
-        test('Create project (existing patients in study) (admin)', async () => {
-
-        });
-
         test('Create project (user with no privilege) (should fail)', async () => {
             const res = await user.post('/graphql').send({
                 query: print(CREATE_PROJECT),
@@ -463,13 +452,13 @@ describe('STUDY API', () => {
             /* setup: creating a privileged user */
             const username = uuid();
             const authorisedUserProfile: IUser = {
-                username, 
-                type: userTypes.STANDARD, 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
-                email: `${username}@user.io`, 
+                username,
+                type: userTypes.STANDARD,
+                realName: `${username}_realname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
+                email: `${username}@user.io`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
@@ -496,7 +485,7 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
             const authorisedUser = request.agent(app);
-            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret)
+            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
             /* test */
             const projectName = uuid();
@@ -567,12 +556,12 @@ describe('STUDY API', () => {
             /* setup: creating a privileged user */
             const username = uuid();
             const authorisedUserProfile: IUser = {
-                username, 
-                type: userTypes.STANDARD, 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
+                username,
+                type: userTypes.STANDARD,
+                realName: `${username}_realname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                createdBy: 'admin',
                 email: `${username}@user.io`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
@@ -600,7 +589,7 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
             const authorisedUser = request.agent(app);
-            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret)
+            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
             /* test */
             const res = await authorisedUser.post('/graphql').send({
@@ -635,9 +624,9 @@ describe('STUDY API', () => {
     describe('MINI END-TO-END API TEST, NO UI, NO DATA', () => {
         let createdProject;
         let createdStudy;
-        let createdRole_study; // eslint:disable-line
-        let createdRole_study_manageProject; // eslint:disable-line
-        let createdRole_project;// eslint:disable-line
+        let createdRole_study;
+        let createdRole_study_manageProject;
+        let createdRole_project;
         let createdUserAuthorised;  // profile
         let createdUserAuthorisedStudy;  // profile
         let createdUserAuthorisedStudyManageProjects;  // profile
@@ -737,9 +726,9 @@ describe('STUDY API', () => {
                         path: 'Demographic',
                         fieldId: 32,
                         fieldName: 'Sex',
-                        valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                        valueType: enumValueType.CATEGORICAL,
                         possibleValues: ['male', 'female'],
-                        itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                        itemType: enumItemType.CLINICAL,
                         numOfTimePoints: 1,
                         numOfMeasurements: 1,
                         startingTimePoint: 1,
@@ -755,9 +744,9 @@ describe('STUDY API', () => {
                         path: 'Demographic',
                         fieldId: 32,
                         fieldName: 'Sex',
-                        valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                        valueType: enumValueType.CATEGORICAL,
                         possibleValues: ['male', 'female'],
-                        itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                        itemType: enumItemType.CLINICAL,
                         numOfTimePoints: 1,
                         numOfMeasurements: 1,
                         startingTimePoint: 1,
@@ -790,7 +779,7 @@ describe('STUDY API', () => {
                         uri: 'fakeuri2',
                         deleted: null
                     }
-                ]
+                ];
                 await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
                 await db.collections!.data_collection.insertMany(mockData);
                 await db.collections!.field_dictionary_collection.insertMany(mockFields);
@@ -1231,7 +1220,7 @@ describe('STUDY API', () => {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
                 expect(res.body.data.whoAmI).toStrictEqual({
                     username: 'admin',
-                    otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
                     realName: 'admin',
                     createdBy: 'chon',
@@ -1256,15 +1245,12 @@ describe('STUDY API', () => {
                 });
             }
             /* connecting users */
-            {
-                authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin', createdUserAuthorised.otpSecret)
-                authorisedUserStudy = request.agent(app);
-                await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin', createdUserAuthorisedStudy.otpSecret)
-                authorisedUserStudyManageProject = request.agent(app);
-                await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin', createdUserAuthorisedStudyManageProjects.otpSecret)
-
-            }
+            authorisedUser = request.agent(app);
+            await connectAgent(authorisedUser, createdUserAuthorised.username, 'admin', createdUserAuthorised.otpSecret);
+            authorisedUserStudy = request.agent(app);
+            await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin', createdUserAuthorisedStudy.otpSecret);
+            authorisedUserStudyManageProject = request.agent(app);
+            await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin', createdUserAuthorisedStudyManageProjects.otpSecret);
         });
 
         afterAll(async () => {
@@ -1495,8 +1481,8 @@ describe('STUDY API', () => {
             expect(res.body.data.getProject).toEqual({
                 id: createdProject.id,
                 patientMapping: {
-                    'mock_patient1': createdProject.patientMapping.mock_patient1,
-                    'mock_patient2': createdProject.patientMapping.mock_patient2
+                    mock_patient1: createdProject.patientMapping.mock_patient1,
+                    mock_patient2: createdProject.patientMapping.mock_patient2
                 }
             });
             const { patientMapping } = res.body.data.getProject;
@@ -1539,8 +1525,8 @@ describe('STUDY API', () => {
             expect(res.body.data.getProject).toEqual({
                 id: createdProject.id,
                 patientMapping: {
-                    'mock_patient1': createdProject.patientMapping.mock_patient1,
-                    'mock_patient2': createdProject.patientMapping.mock_patient2
+                    mock_patient1: createdProject.patientMapping.mock_patient1,
+                    mock_patient2: createdProject.patientMapping.mock_patient2
                 }
             });
             const { patientMapping } = res.body.data.getProject;
@@ -1608,10 +1594,10 @@ describe('STUDY API', () => {
                     path: 'Demographic',
                     fieldId: 32,
                     fieldName: 'Sex',
-                    valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                    valueType: enumValueType.CATEGORICAL,
                     possibleValues: ['male', 'female'],
                     unit: null,
-                    itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                    itemType: enumItemType.CLINICAL,
                     numOfTimePoints: 1,
                     numOfMeasurements: 1,
                     notes: null,
@@ -1677,10 +1663,10 @@ describe('STUDY API', () => {
                                 path: 'Demographic',
                                 fieldId: 32,
                                 fieldName: 'Sex',
-                                valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                                valueType: enumValueType.CATEGORICAL,
                                 possibleValues: ['male', 'female'],
                                 unit: null,
-                                itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                                itemType: enumItemType.CLINICAL,
                                 numOfTimePoints: 1,
                                 numOfMeasurements: 1,
                                 notes: null,
@@ -1753,10 +1739,10 @@ describe('STUDY API', () => {
                                 path: 'Demographic',
                                 fieldId: 32,
                                 fieldName: 'Sex',
-                                valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                                valueType: enumValueType.CATEGORICAL,
                                 possibleValues: ['male', 'female'],
                                 unit: null,
-                                itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                                itemType: enumItemType.CLINICAL,
                                 numOfTimePoints: 1,
                                 numOfMeasurements: 1,
                                 notes: null,
@@ -1923,7 +1909,7 @@ describe('STUDY API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe('Some of the files provided in your changes are not valid.');
-            expect(res.body.data.editProjectApprovedFiles).toBe(null)
+            expect(res.body.data.editProjectApprovedFiles).toBe(null);
         });
 
         test('Set a previous study dataversion as current (admin)', async () => {
@@ -2067,7 +2053,7 @@ describe('STUDY API', () => {
                 id: uuid(),
                 username: 'datacurator',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'user@ic.ac.uk',
                 realName: 'DataCurator',
                 organisation: 'DSI',
@@ -2083,7 +2069,7 @@ describe('STUDY API', () => {
             await db.collections!.users_collection.insertOne(userDataCurator);
 
             /* setup: create a new role with data management */
-            const roleDataCurator: IRole = {
+            const roleDataCurator: any = {
                 id: uuid(),
                 studyId: createdStudy.id,
                 name: 'Data Manager',
@@ -2096,7 +2082,7 @@ describe('STUDY API', () => {
 
             /* setup: connect user */
             const dataCurator = request.agent(app);
-            await connectAgent(dataCurator, userDataCurator.username, 'admin', userDataCurator.otpSecret)
+            await connectAgent(dataCurator, userDataCurator.username, 'admin', userDataCurator.otpSecret);
 
             /* setup: add an extra dataversion */
             await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });

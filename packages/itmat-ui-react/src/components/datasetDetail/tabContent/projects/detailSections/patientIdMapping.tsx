@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Query } from 'react-apollo';
-import { GET_PROJECT_PATIENT_MAPPING } from 'itmat-commons/dist/graphql/projects';
+import { GET_PROJECT_PATIENT_MAPPING } from 'itmat-commons';
 import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 
 export const PatientIdMappingSection: React.FunctionComponent<{ projectId: string }> = ({ projectId }) => {

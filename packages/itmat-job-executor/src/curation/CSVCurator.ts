@@ -1,11 +1,8 @@
 import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable } from 'stream';
-import { Models } from 'itmat-commons';
-import { fieldValidator, fieldParser } from '../utils/jobUtils'
-type IFieldDescriptionObject = Models.Data.IFieldDescriptionObject;
-type IDataEntry = Models.Data.IDataEntry;
-type IJobEntry<dataobj> = Models.JobModels.IJobEntry<dataobj>;
+import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
+import { fieldValidator, fieldParser } from '../utils/jobUtils';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -18,10 +15,10 @@ export class CSVCurator {
      * - uneven column number
      * - parse / encoding error
      */
-    private _header: (IFieldDescriptionObject | null)[]; // eslint:disable-line
-    private _numOfSubj: number; // eslint:disable-line
-    private _errored: boolean; // eslint:disable-line
-    private _errors: string[]; // eslint:disable-line
+    private _header: (IFieldDescriptionObject | null)[];
+    private _numOfSubj: number;
+    private _errored: boolean;
+    private _errors: string[];
 
     constructor(
         private readonly dataCollection: Collection,
@@ -41,7 +38,7 @@ export class CSVCurator {
         return new Promise((resolve) => {
             console.log(`uploading for job ${this.job.id}`);
             let lineNum = 0;
-            let isHeader: boolean = true;
+            let isHeader = true;
             const subjectString: string[] = [];
             let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
             const csvparseStream = csvparse(this.parseOptions);
@@ -164,7 +161,7 @@ export function processHeader(header: string[]): { error?: string[], parsedHeade
     return ({ parsedHeader, error: error.length === 0 ? undefined : error });
 }
 
-export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: IDataEntry } { // eslint:disable-line
+export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;

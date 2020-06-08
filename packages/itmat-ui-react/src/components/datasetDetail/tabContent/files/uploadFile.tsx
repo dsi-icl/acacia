@@ -6,7 +6,6 @@ const {
     GET_STUDY
 } = GQLRequests;
 const { STUDY_REPO_OBJ_STORE_FILE, STUDY_REPO_DIR } = Models.File.fileTypes;
-
 export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [description, setDescription] = React.useState('');
     const [error, setError] = React.useState('');
@@ -26,8 +25,8 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
     });
 
     return <div>
-        <label>Select file: <input type="file" ref={fileRef as any} /></label><br /><br />
-        <label>Description: <input type="text" value={description} onChange={(e) => { setDescription(e.target.value); setError(''); setSuccess(false); }} /></label>
+        <label>Select file: <input type='file' ref={fileRef as any} /></label><br /><br />
+        <label>Description: <input type='text' value={description} onChange={(e) => { setDescription(e.target.value); setError(''); setSuccess(false); }} /></label>
         <br /><br /><br />
         {
             loading ? <button>Loading...</button> :
@@ -56,7 +55,7 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
                     } });
                 }}>Upload</button>
         }
-        {error ? <div className="error_banner">{error}</div> : null}
-        {success ? <div className="saved_banner">Uploaded.</div> : null}
+        {error ? <div className='error_banner'>{error}</div> : null}
+        {success ? <div className='saved_banner'>Uploaded.</div> : null}
     </div>;
 };
