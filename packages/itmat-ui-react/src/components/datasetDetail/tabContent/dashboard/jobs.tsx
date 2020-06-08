@@ -1,10 +1,9 @@
-import { IJobEntry } from 'itmat-commons/dist/models/job';
 import { GQLRequests } from 'itmat-commons';
 import * as React from 'react';
 import { InfoCircle } from '../../../reusable/icons/infoCircle';
 import css from './tabContent.module.css';
 import { useSubscription } from 'react-apollo';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY, IJobEntry } from 'itmat-commons';
 
 const STATUSES: { [status: string]: any } = {
     finished: () => <td  className={css.finishedStatus_td}><span>Finished</span></td>,

@@ -1,7 +1,6 @@
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import React from 'react';
 import { Query } from 'react-apollo';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY, IStudyDataVersion } from 'itmat-commons';
 import { formatBytes } from '../../../reusable/fileList/fileList';
 import css from './tabContent.module.css';
 // number of patients

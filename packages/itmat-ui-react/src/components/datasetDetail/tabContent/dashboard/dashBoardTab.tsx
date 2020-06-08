@@ -1,4 +1,4 @@
-import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntry } from 'itmat-commons';
 import * as React from 'react';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import { JobSection } from './jobs';

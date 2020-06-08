@@ -7,7 +7,7 @@ import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
 import { ApolloError } from 'apollo-server-core';
 import { errorCodes } from '../errors';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { IUser } from 'itmat-commons';
 
 const modules = [
     studyResolvers,
