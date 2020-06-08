@@ -1,5 +1,5 @@
 import { IFieldEntry } from 'itmat-commons/dist/models/field';
-import { Logger } from 'itmat-utils';
+import { Logger } from 'itmat-commons';
 import { Transform } from 'json2csv';
 import mongodb from 'mongodb';
 import { Readable } from 'stream';

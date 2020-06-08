@@ -27,7 +27,7 @@
         "apollo-link-ws": "1.0.20",
         "apollo-upload-client": "13.0.0",
         "axe-core": "3.5.4",
-        "itmat-commons": "0.5.0",
+        "itmat-commons": "0.6.0",
         "react": "16.13.1",
         "react-apollo": "3.1.5",
         "react-dom": "16.13.1",

@@ -1,6 +1,6 @@
 import merge from 'deepmerge';
 import fs from 'fs-extra';
-import { IObjectStoreConfig } from 'itmat-utils';
+import { IObjectStoreConfig } from 'itmat-commons';
 import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';

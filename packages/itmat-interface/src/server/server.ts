@@ -1,4 +1,4 @@
-import { CustomError, IServerBaseConfig, ServerBase } from 'itmat-utils';
+import { CustomError, IServerBaseConfig, ServerBase } from 'itmat-commons';
 import { IConfiguration } from '../utils/configManager';
 
 export interface IServerConfig extends IServerBaseConfig {

@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { mailer } from '../../emailer/emailer';
 import { Models } from 'itmat-commons';
-import { Logger } from 'itmat-utils';
+import { Logger } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
