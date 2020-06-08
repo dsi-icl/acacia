@@ -2,6 +2,7 @@
     "name": "itmat-interface",
     "version": "0.5.0",
     "description": "",
+    "license": "MIT",
     "author": "Chon Sou",
     "main": "build/index",
     "types": "build/index",
@@ -10,11 +11,13 @@
     ],
     "scripts": {
         "start": "cross-env NODE_ENV=development webpack --config ./config/webpack.config.js",
-        "build": "npm run clean && npm run compile",
+        "build": "yarn run clean && yarn run compile",
         "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
+        "lint": "eslint --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .js --ext .ts --fix ./",
         "clean": "rimraf -rf ./build",
         "compile": "webpack --config ./config/webpack.config.js",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "apollo-server-express": "2.14.2",
@@ -53,6 +56,7 @@
         "@types/nodemailer": "6.4.0",
         "@types/passport": "1.0.3",
         "@types/passport-local": "1.0.33",
+        "@types/supertest": "2.0.4",
         "@types/uuid": "8.0.0",
         "@types/webpack-env": "1.15.2",
         "chalk": "4.0.0",
@@ -62,7 +66,6 @@
         "eslint-plugin-typescript": "0.14.0",
         "get-port": "5.1.1",
         "jest": "25.2.7",
-        "node-fetch": "2.6.0",
         "mongodb-memory-server": "6.6.1",
         "node-fetch": "2.6.0",
         "rimraf": "3.0.2",
@@ -73,6 +76,14 @@
         "typescript-eslint-parser": "22.0.0",
         "webpack": "4.43.0",
         "webpack-cli": "3.3.11"
+    },
+    "resolutions": {
+        "**/**/fs-capacitor": "^5.0.0",
+        "**/graphql-upload": "^9.0.0",
+        "**/graphql": "14.5.3"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
     },
     "jest": {
         "globals": {

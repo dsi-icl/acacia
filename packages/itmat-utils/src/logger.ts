@@ -1,26 +1,18 @@
 import chalk from 'chalk';
 
 export class Logger {
-    public static log(message: any): void {
+    public static log(message: string | Record<string, unknown> | unknown): void {
         if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
         console.log(`[${new Date().toUTCString()}] ${message}`);
     }
 
-    public static warn(message: any): void {
+    public static warn(message: string | Record<string, unknown> | unknown): void {
         if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
-        console.log(`[${new Date().toUTCString()}] ${chalk.bold.yellow('WARN!')} ${message}`);
+        console.warn(`[${new Date().toUTCString()}] ${chalk.bold.yellow('WARN!')} ${message}`);
     }
 
-    public static error(message: any): void {
+    public static error(message: string | Record<string, unknown> | unknown): void {
         if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
-        console.log(`[${new Date().toUTCString()}] ${chalk.bold.red('ERROR!')} ${message}`);
+        console.error(`[${new Date().toUTCString()}] ${chalk.bold.red('ERROR!')} ${message}`);
     }
-
-    // constructor(private readonly identity: string, private readonly logCollection: mongodb.Collection) {
-    // }
-
-    // public static audit(user: string, message: any): void {
-    //     if (message instanceof Object) { message = JSON.stringify(message, null, '\t'); }
-    //     console.log(`[${new Date().toUTCString()}] ${chalk.bold.blue('Audit')} ${message}`);
-    // }
 }

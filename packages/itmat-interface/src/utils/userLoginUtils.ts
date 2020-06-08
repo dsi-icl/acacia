@@ -7,11 +7,11 @@ export class UserLoginUtils {
         this.deserialiseUser = this.deserialiseUser.bind(this);
     }
 
-    public serialiseUser(user: Models.UserModels.IUser, done: Function): void {
+    public serialiseUser(user: Models.UserModels.IUser, done: (err: any, id?: any) => void): void {
         done(null, user.username);
     }
 
-    public async deserialiseUser(username: string, done: Function): Promise<void> {
+    public async deserialiseUser(username: string, done: (err: any, id?: any) => void): Promise<void> {
         const user: Models.UserModels.IUserWithoutToken = await this._getUser(username);
         done(null, user);
     }

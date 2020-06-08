@@ -56,4 +56,6 @@
 
 .content {
     overflow: auto;
+    grid-area: content;
+    position: relative;
 }

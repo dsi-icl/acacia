@@ -3,18 +3,18 @@ import { ApolloClient } from 'apollo-client';
 import { from, split } from 'apollo-link';
 import { onError } from 'apollo-link-error';
 import { WebSocketLink } from 'apollo-link-ws';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { createUploadLink } from 'apollo-upload-client';
 import { getMainDefinition } from 'apollo-utilities';
 
-const wsLink = new WebSocketLink({
-    uri: 'ws://localhost:3003/graphql',
-    options: {
-        reconnect: true
-    }
+const wsClient = new SubscriptionClient(`${window.location.origin?.replace('http', 'ws')}/graphql`, {
+    reconnect: true
 });
 
+const wsLink = new WebSocketLink(wsClient);
+
 const uploadLink = createUploadLink({
-    uri: 'http://localhost:3003/graphql',
+    uri: '/graphql',
     credentials: 'include'
 });
 
@@ -36,13 +36,12 @@ export const client = new ApolloClient({
     link: from([
         onError(({ graphQLErrors, networkError }) => {
             if (graphQLErrors) {
-                graphQLErrors.map(({ message, locations, path }) =>
-                    console.log(
-                        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-                    )
+                graphQLErrors.map((error) =>
+                    // eslint:disable-next-line: no-console
+                    console.error('[GraphQL error]', error)
                 );
             }
-            if (networkError) { console.log(`[Network error]: ${JSON.stringify(networkError)}`); }
+            if (networkError) { console.error('[Network error]:', networkError); }
         }),
         link
     ]),

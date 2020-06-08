@@ -6,9 +6,9 @@ import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 
-export const FileTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => {
+export const FileTabContent: React.FunctionComponent<{ studyId: string; projectId: string }> = ({ projectId }) => {
     return <div className={css.tab_page_wrapper}>
-        <Subsection title="Files">
+        <Subsection title='Files'>
             <Query<any, any> query={GET_PROJECT} variables={{ projectId, admin: false }}>
                 {({ loading, data, error }) => {
                     if (loading) { return <LoadingBalls />; }

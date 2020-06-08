@@ -2,6 +2,7 @@
     "name": "itmat-utils",
     "version": "1.1.8",
     "description": "",
+    "license": "MIT",
     "author": "Chon Sou",
     "main": "dist/index",
     "types": "dist/index",
@@ -9,14 +10,14 @@
         "dist"
     ],
     "scripts": {
-        "build": "npm run clean && npm run compile",
+        "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
+        "build": "yarn run clean && yarn run compile",
+        "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
+        "lint": "eslint --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .js --ext .ts --fix ./",
         "clean": "rimraf -rf ./dist",
         "compile": "tsc -p tsconfig.build.json",
-        "start": "tsc -p tsconfig.build.json -w --preserveWatchOutput",
-        "prepublishOnly": "npm run build",
-        "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
-        "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
-        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./"
+        "prepublishOnly": "yarn run build"
     },
     "dependencies": {
         "minio": "7.0.16",
@@ -33,8 +34,12 @@
         "@types/minio": "7.0.5",
         "@types/mongodb": "3.5.5",
         "@types/node": "13.13.10",
+        "@types/supertest": "2.0.4",
         "rimraf": "3.0.2",
         "typescript": "3.8.3"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
     },
     "jest": {
         "transform": {
