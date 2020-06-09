@@ -24,7 +24,7 @@
         "mongodb": "3.5.5"
     },
     "devDependencies": {
-        "chalk": "4.0.0",
+        "chalk": "4.1.0",
         "jest": "25.2.7",
         "node-fetch": "2.6.0",
         "supertest": "4.0.2",
