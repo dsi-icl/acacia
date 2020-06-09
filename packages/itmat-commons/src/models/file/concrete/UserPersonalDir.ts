@@ -7,12 +7,12 @@ export class UserPersonalDir extends DirectoryNode implements IUserPersonalFileN
     private readonly _userId: string;
 
     constructor({
-            id,
-            fileName,
-            userId,
-            deleted,
-            isRoot,
-            childFileIds
+        id,
+        fileName,
+        userId,
+        deleted,
+        isRoot,
+        childFileIds
     }: {
         id?: string,
         fileName: string,
@@ -26,7 +26,7 @@ export class UserPersonalDir extends DirectoryNode implements IUserPersonalFileN
     }
 
     static makeFromMongoEntry(entry: IFileMongoEntry): UserPersonalDir {
-        const { id, fileName, fileType, uploadedBy, deleted, isRoot, childFileIds, studyId } = entry;
+        const { id, fileName, fileType, uploadedBy, deleted, isRoot, childFileIds } = entry;
         if (fileType !== fileTypes.USER_PERSONAL_DIR) {
             throw new Error('Cannot instantiate FileNode with entry: wrong type.');
         }

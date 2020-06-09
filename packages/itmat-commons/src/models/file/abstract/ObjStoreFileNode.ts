@@ -1,6 +1,6 @@
 import { FileNode } from './FileNode';
 import { fileTypes, fileTypesObjStore } from './fileTypes';
-import { ObjectStore } from 'itmat-utils';
+import { ObjectStore } from '../../../utils';
 
 export abstract class ObjStoreFileNode extends FileNode {
     private readonly _uri: string;

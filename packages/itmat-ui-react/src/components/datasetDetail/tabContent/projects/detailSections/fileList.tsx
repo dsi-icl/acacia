@@ -1,8 +1,7 @@
 import { Tree } from 'antd';
-import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
-import { EDIT_PROJECT_APPROVED_FILES, IFile, GET_STUDY } from 'itmat-commons';
+import { EDIT_PROJECT_APPROVED_FILES, IFileMongoEntry, GET_STUDY } from 'itmat-commons';
 import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 
 export const GrantedFileListSelection: React.FunctionComponent<{ originalCheckedList: string[]; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {

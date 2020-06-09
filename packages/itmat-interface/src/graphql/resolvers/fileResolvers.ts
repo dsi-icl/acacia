@@ -1,19 +1,4 @@
 import { ApolloError } from 'apollo-server-express';
-const { File: {
-        FileNode,
-        UserPersonalDir,
-        UserPersonalFile,
-        StudyRepoDir,
-        StudyRepoScriptFile,
-        ObjStoreFileNode,
-        StudyRepoObjStoreFile,
-        PatientDataBlobFile,
-        fileTypes,
-        fileTypesStudy,
-        fileTypesPersonal
-    }, JobModels: {
-        zipFormats
-    }} = Models;
 import { Logger } from 'itmat-utils';
 import { Models, task_required_permissions, IFile, Logger } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
@@ -22,6 +7,21 @@ import { objStore } from '../../objStore/objStore';
 import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
+const { File: {
+    FileNode,
+    UserPersonalDir,
+    UserPersonalFile,
+    StudyRepoDir,
+    StudyRepoScriptFile,
+    ObjStoreFileNode,
+    StudyRepoObjStoreFile,
+    PatientDataBlobFile,
+    fileTypes,
+    fileTypesStudy,
+    fileTypesPersonal
+}, JobModels: {
+    zipFormats
+}} = Models;
 type IFileMongoEntry = Models.File.IFileMongoEntry;
 type IStudyFileNode = Models.File.IStudyFileNode;
 type FileNode = Models.File.FileNode;
@@ -55,7 +55,7 @@ export const fileResolvers = {
          *
          * - user unzip file -> create job -> may fail (createJobForUnzippingFile)
          */
-        createJobForUnzippingFile: async(parent: object, args: { fileId: string }, context: any, info: any): Promise<IJobEntryForUnzippingFile> => {
+        createJobForUnzippingFile: async(__used__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IJobEntryForUnzippingFile> => {
             const requester: IUser = context.req.user;
             const { fileId } = args;
 
@@ -109,7 +109,7 @@ export const fileResolvers = {
             }
             return job;
         },
-        createFile: async(parent: object, args: any, context: any, info: any): Promise<IFileMongoEntry> => {
+        createFile: async(__used__parent: Record<string, unknown>, args: any, context: any): Promise<IFileMongoEntry> => {
             const requester: IUser = context.req.user;
             const { fileName, studyId, fileType } = args;
 
@@ -163,7 +163,7 @@ export const fileResolvers = {
             return file.serialiseToMongoObj();
         },
         uploadFile: async (
-            parent: object,
+            __used__parent: Record<string, unknown>,
             args: {
                 fileLength?: number,
                 studyId: string,
@@ -172,7 +172,6 @@ export const fileResolvers = {
                 fileType: Models.File.fileTypes,
             },
             context: any,
-            info: any
         ): Promise<IFileMongoEntry> => {
             const requester: IUser = context.req.user;
 
@@ -186,7 +185,7 @@ export const fileResolvers = {
 
             const file = await args.file;
 
-            return new Promise<IFileMongoEntry>(async (resolve, reject) => {
+            return new Promise<IFileMongoEntry>((resolve, reject) => { //eslint:disable-line
                 try {
                     const stream: NodeJS.ReadableStream = (file as any).createReadStream();
                     const fileUri = uuid();
@@ -247,7 +246,7 @@ export const fileResolvers = {
                 }
             });
         },
-        deleteFile: async (parent: object, args: { fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteFile: async (__used__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
 
             const fileentry: IFileMongoEntry | null = await db.collections!.files_collection.findOne({ deleted: null, id: args.fileId });
@@ -263,7 +262,7 @@ export const fileResolvers = {
             }
 
             /* check permission */
-            let hasPermission: boolean = false;
+            let hasPermission = false;
             if (fileTypesStudy.includes(file.fileType)) { // if file is of study type
                 if (PatientDataBlobFile.validateInstance(fileentry)) { // if file is of type patient blob
 

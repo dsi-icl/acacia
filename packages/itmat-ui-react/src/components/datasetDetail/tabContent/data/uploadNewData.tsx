@@ -1,8 +1,7 @@
-import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { CREATE_DATA_CURATION_JOB, GET_STUDY, IFile } from 'itmat-commons';
+import { CREATE_DATA_CURATION_JOB, GET_STUDY, IFileMongoEntry } from 'itmat-commons';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 
 export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
@@ -24,7 +23,7 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelBut
     </div>;
 };
 
-const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFileMongoEntry[], cancelButton: (shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
+const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFileMongoEntry[]; cancelButton: (shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above

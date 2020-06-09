@@ -71,7 +71,7 @@ export class FileNode {
 
     deleteFileOnMongo(fileCollection: Collection): Promise<FindAndModifyWriteOpResultObject<IFileMongoEntry>> {
         return fileCollection.findOneAndUpdate({ id: this._id, deleted: null }, { deleted: new Date().valueOf() });
-    };
+    }
 
     uploadFileToMongo(fileCollection: Collection): Promise<InsertOneWriteOpResult<IFileMongoEntry & { _id: ObjectID } >> {
         this.serialiseToMongoObj();

@@ -1,6 +1,6 @@
 import { IStudyFileNode } from '../abstract/IStudyFileNode';
 import { PatientDataBlobFile } from './PatientDataBlobFile';
-import { ObjectStore } from 'itmat-utils';
+import { ObjectStore } from '../../../utils';
 import { fileTypes } from '../abstract/fileTypes';
 import { ObjStoreFileNode } from '../abstract/ObjStoreFileNode';
 import { IFileMongoEntry } from '../abstract/mongoEntry';

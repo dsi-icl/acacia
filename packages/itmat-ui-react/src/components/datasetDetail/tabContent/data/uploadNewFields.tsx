@@ -1,8 +1,7 @@
-import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { CREATE_FIELD_CURATION_JOB, GET_STUDY, IFile } from 'itmat-commons';
+import { CREATE_FIELD_CURATION_JOB, GET_STUDY, IFileMongoEntry } from 'itmat-commons';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import css from './tabContent.module.css';
 
@@ -69,7 +68,7 @@ const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: st
     </Query>;
 };
 
-const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string, files: IFileMongoEntry[], dataVersionId: string, cancel: (expanded: boolean) => void }> = ({ cancel, dataVersionId, studyId, files }) => {
+const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string; files: IFileMongoEntry[]; dataVersionId: string; cancel: (expanded: boolean) => void }> = ({ cancel, dataVersionId, studyId, files }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above

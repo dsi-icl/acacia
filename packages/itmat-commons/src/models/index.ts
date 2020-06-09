@@ -7,7 +7,7 @@ import * as UserModels from './user';
 import * as Data from './data';
 
 export * from './field';
-export * from './file';
+export * from './file/index';
 export * from './job';
 export * from './query';
 export * from './study';

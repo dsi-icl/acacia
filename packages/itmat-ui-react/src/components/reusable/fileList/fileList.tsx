@@ -1,6 +1,5 @@
-import { IFileMongoEntry } from 'itmat-commons/dist/models/file';
 import React from 'react';
-import { IFile } from 'itmat-commons';
+import { IFileMongoEntry } from 'itmat-commons';
 
 export function formatBytes(size: number, decimal = 2): string {
     if (size === 0) {
