@@ -28,15 +28,15 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
     if (user === null || user === undefined) { return <p>Oops! Cannot find user.</p>; }
     return (
         <>
-            <div className="page_ariane">{data.getUsers[0].username}</div>
-            <div className="page_content">
-                <Subsection title="Account Information">
+            <div className='page_ariane'>{data.getUsers[0].username}</div>
+            <div className='page_content'>
+                <Subsection title='Account Information'>
                     <EditUserForm user={user} />
                 </Subsection>
-                <Subsection title="Projects">
+                <Subsection title='Projects'>
                     <ProjectSection projects={data.getUsers[0].access.projects} />
                 </Subsection>
-                <Subsection title="Datasets">
+                <Subsection title='Datasets'>
                     <ProjectSection study={true} projects={data.getUsers[0].access.studies} />
                 </Subsection>
             </div>
@@ -92,12 +92,12 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <label>Username: <input type='text' value={inputs.username} onChange={e => { setInputs({ ...inputs, username: e.target.value }); }} /> </label><br /><br />
                     <label>Type:
                         <select value={inputs.type} onChange={e => { setInputs({ ...inputs, type: e.target.value } as any); }}>
-                            <option value="STANDARD">System user</option>
-                            <option value="ADMIN">System admin</option>
+                            <option value='STANDARD'>System user</option>
+                            <option value='ADMIN'>System admin</option>
                         </select></label><br /><br />
                     <label>Real name: <input type='text' value={inputs.realName} onChange={e => { setInputs({ ...inputs, realName: e.target.value }); }} /> </label><br /><br />
                     <label>Authenticator Key (readonly): <input type='text' readOnly value={inputs.otpSecret.toLowerCase()} /> </label><br /><br />
-                    <label>Authenticator QR Code: </label> <img src={qrcode_url} alt="QR code for Google Authenticator" width="150" height="150" /> <br /><br />
+                    <label>Authenticator QR Code: </label> <img src={qrcode_url} alt='QR code for Google Authenticator' width='150' height='150' /> <br /><br />
                     {
                         whoamidata.whoAmI.id === user.id
                             ?
@@ -116,7 +116,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     </label><br /><br />
                     <label>
                         Expired at: <input type='date' value={showTimeFunc.showDate(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeDate(inputs, e.target.value));  }} />
-                        <input type='time' step="1" value={showTimeFunc.showTime(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeTime(inputs, e.target.value));   }} />
+                        <input type='time' step='1' value={showTimeFunc.showTime(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeTime(inputs, e.target.value));   }} />
                     </label><br /><br />
                     <div className={css.submit_cancel_button_wrapper}>
                         <NavLink to={'/users'}><button className='button_grey'>Cancel</button></NavLink>
@@ -126,7 +126,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         error ? <div className='error_banner'>{JSON.stringify(error)}</div> : null
                     }
                     {
-                        savedSuccessfully ? <div className="saved_banner">Saved!</div> : null
+                        savedSuccessfully ? <div className='saved_banner'>Saved!</div> : null
                     }
                     <br /><br />
                     {

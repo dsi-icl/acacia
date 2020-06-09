@@ -30,15 +30,27 @@ var defaultRules = {
     'indent': [
         'error',
         4,
-        { 'SwitchCase': 1 }
+        { SwitchCase: 1 }
+    ],
+    'eol-last': [
+        'error',
+        'always'
     ],
     'no-unused-vars': [
-        'warn',
-        { 'argsIgnorePattern': '^__unused__' }
+        'error',
+        { argsIgnorePattern: '^__unused__' }
     ],
     'quotes': [
         'error',
         'single'
+    ],
+    'quote-props': [
+        'error',
+        'consistent-as-needed'
+    ],
+    'jsx-quotes': [
+        'error',
+        'prefer-single'
     ],
     'semi': [
         'error',
@@ -65,9 +77,12 @@ var defaultRules = {
     '@typescript-eslint/explicit-module-boundary-types': [
         'off'
     ],
+    '@typescript-eslint/explicit-function-return-type': [
+        'off'
+    ],
     '@typescript-eslint/no-unused-vars': [
-        'warn',
-        { 'argsIgnorePattern': '^__unused__' }
+        'error',
+        { argsIgnorePattern: '^__unused__' }
     ],
 };
 
@@ -77,6 +92,9 @@ module.exports = {
     parser: '@typescript-eslint/parser',
     parserOptions: {
         ecmaVersion: 2018,
+        ecmaFeatures: {
+            jsx: true
+        },
         sourceType: 'module'
     },
     ignorePatterns: [

@@ -98,6 +98,11 @@ html, body, #root {
     overflow: hidden;
 }
 
+body > div {
+    height: 100%;
+    min-width: 770px;
+}
+
 button {
     display: block;
     padding: 0.5rem 0.7rem;
@@ -328,7 +333,7 @@ h3 {
 
 /* width */
 ::-webkit-scrollbar {
-    width: 12px;
+    width: 10px;
   }
   
   /* Track */

@@ -122,7 +122,7 @@ export const AddRole: React.FunctionComponent<AddRoleProps> = ({
             <br />
             <label>Name: </label>
             <input
-                placeholder="Role name"
+                placeholder='Role name'
                 value={inputNameString}
                 onChange={(e) => setInputNameString(e.target.value)}
             />
@@ -156,7 +156,7 @@ export const AddRole: React.FunctionComponent<AddRoleProps> = ({
 type PermissionsControlPanelProps = {
     roleId: string;
     availablePermissions: string[];
-    originallySelectedPermissions: string[]
+    originallySelectedPermissions: string[];
 }
 
 const PermissionsControlPanel: React.FunctionComponent<PermissionsControlPanelProps> = ({
@@ -178,7 +178,7 @@ const PermissionsControlPanel: React.FunctionComponent<PermissionsControlPanelPr
                     <Mutation<any, any> mutation={EDIT_ROLE} key={index}>
                         {(editRole, { loading }) => (
                             <Button
-                                size="small"
+                                size='small'
                                 type={isSelected ? 'primary' : 'default'}
                                 icon={loading ? <LoadingOutlined /> : <TagOutlined />}
                                 style={{
@@ -211,7 +211,7 @@ type UsersControlPanelProps = {
     studyId: string;
     projectId?: string;
     availableUserList: Models.UserModels.IUser[];
-    originallySelectedUsers: Models.UserModels.IUser[]
+    originallySelectedUsers: Models.UserModels.IUser[];
 }
 
 const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
@@ -276,10 +276,10 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
 
     return (
         <Select
-            mode="multiple"
+            mode='multiple'
             loading={loading}
             style={{ width: '100%' }}
-            placeholder="Add users to this role"
+            placeholder='Add users to this role'
             tokenSeparators={[',', ';']}
             defaultValue={originallySelectedUsers.map(user => user.id)}
             onSelect={handleSelect}

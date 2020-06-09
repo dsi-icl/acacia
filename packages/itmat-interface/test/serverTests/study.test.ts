@@ -384,7 +384,7 @@ describe('STUDY API', () => {
                 studyId: setupStudy.id,
                 createdBy: 'admin',
                 name: projectName,
-                patientMapping: { 'patient001': 'patientA' },
+                patientMapping: { patient001: 'patientA' },
                 approvedFields: [],
                 approvedFiles: [],
                 lastModified: 20000002,
@@ -624,9 +624,9 @@ describe('STUDY API', () => {
     describe('MINI END-TO-END API TEST, NO UI, NO DATA', () => {
         let createdProject;
         let createdStudy;
-        let createdRole_study; // eslint:disable-line
-        let createdRole_study_manageProject; // eslint:disable-line
-        let createdRole_project;// eslint:disable-line
+        let createdRole_study;
+        let createdRole_study_manageProject;
+        let createdRole_project;
         let createdUserAuthorised;  // profile
         let createdUserAuthorisedStudy;  // profile
         let createdUserAuthorisedStudyManageProjects;  // profile
@@ -1481,8 +1481,8 @@ describe('STUDY API', () => {
             expect(res.body.data.getProject).toEqual({
                 id: createdProject.id,
                 patientMapping: {
-                    'mock_patient1': createdProject.patientMapping.mock_patient1,
-                    'mock_patient2': createdProject.patientMapping.mock_patient2
+                    mock_patient1: createdProject.patientMapping.mock_patient1,
+                    mock_patient2: createdProject.patientMapping.mock_patient2
                 }
             });
             const { patientMapping } = res.body.data.getProject;
@@ -1525,8 +1525,8 @@ describe('STUDY API', () => {
             expect(res.body.data.getProject).toEqual({
                 id: createdProject.id,
                 patientMapping: {
-                    'mock_patient1': createdProject.patientMapping.mock_patient1,
-                    'mock_patient2': createdProject.patientMapping.mock_patient2
+                    mock_patient1: createdProject.patientMapping.mock_patient1,
+                    mock_patient2: createdProject.patientMapping.mock_patient2
                 }
             });
             const { patientMapping } = res.body.data.getProject;
@@ -2069,12 +2069,12 @@ describe('STUDY API', () => {
             await db.collections!.users_collection.insertOne(userDataCurator);
 
             /* setup: create a new role with data management */
-            const roleDataCurator: IRole = {
+            const roleDataCurator: any = {
                 id: uuid(),
                 studyId: createdStudy.id,
                 name: 'Data Manager',
                 permissions: [permissions.specific_study.specific_study_data_management],
-                users: [userDataCurator],
+                users: [userDataCurator.id],
                 createdBy: adminId,
                 deleted: null
             };

@@ -5,7 +5,7 @@ import { ProjectDetail } from './detailSections/projectDetail';
 import { ProjectListSection, AddNewProject } from './projectListSection';
 import css from './tabContent.module.css';
 
-export const ProjectsTabContent: React.FunctionComponent<{ studyId: string, projectList: { id: string, name: string }[] }> = ({ studyId, projectList }) => {
+export const ProjectsTabContent: React.FunctionComponent<{ studyId: string; projectList: { id: string; name: string }[] }> = ({ studyId, projectList }) => {
     return <Switch>
         <Route path='/datasets/:studyId/projects/:projectId' render={({ match }) => <ProjectDetail projectId={match.params.projectId} studyId={match.params.studyId} />} />
         <Route path='/datasets/:studyId/projects'>

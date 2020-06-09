@@ -9,18 +9,18 @@ import css from './scaffold.module.css';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 
 type MainMenuBarProps = {
-    projects: IProject[]
+    projects: IProject[];
 }
 export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ projects }) => (
     <div className={css.main_menubar}>
         <div>
-            <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title="Projects" activeClassName={css.clickedButton}>
+            <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title='Projects' activeClassName={css.clickedButton}>
                 <div className={css.button}><ProjectOutlined /> Projects</div>
             </NavLink>
         </div>
 
         <div>
-            <NavLink to="/datasets" title="Datasets" activeClassName={css.clickedButton}>
+            <NavLink to='/datasets' title='Datasets' activeClassName={css.clickedButton}>
                 <div className={css.button}><DatabaseOutlined /> Datasets</div>
             </NavLink>
         </div>
@@ -30,7 +30,7 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
                 if (error) return <p>{error.toString()}</p>;
                 return (
                     <div>
-                        <NavLink to="/users" title="Users" activeClassName={css.clickedButton}>
+                        <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
                             <div className={css.button}><TeamOutlined /> Users</div>
                         </NavLink>
                     </div>
@@ -51,7 +51,7 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
         </div>
         */}
         <div>
-            <NavLink title="Logout" to="/logout" id="logoutButton">
+            <NavLink title='Logout' to='/logout' id='logoutButton'>
                 <Mutation<any, any>
                     mutation={LOGOUT}
                     update={(cache, { data: { logout } }) => {

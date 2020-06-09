@@ -22,9 +22,9 @@ module.exports = {
         extensions: ['.ts', '.mjs', '.js'],
     },
     externals: [{
-        bcrypt: 'commonjs bcrypt',
-        express: 'commonjs express',
-        mongodb: 'commonjs mongodb',
+        'bcrypt': 'commonjs bcrypt',
+        'express': 'commonjs express',
+        'mongodb': 'commonjs mongodb',
         'subscriptions-transport-ws': 'commonjs subscriptions-transport-ws',
         'require_optional': 'commonjs require_optional'
     }],
@@ -48,7 +48,7 @@ module.exports = {
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {
-                'BUILD_TARGET': JSON.stringify('server')
+                BUILD_TARGET: JSON.stringify('server')
             }
         }),
     ]),

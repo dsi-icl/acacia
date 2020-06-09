@@ -18,10 +18,10 @@ export class CSVCurator {
      * - uneven column number
      * - parse / encoding error
      */
-    private _header: (IFieldDescriptionObject | null)[]; // eslint:disable-line
-    private _numOfSubj: number; // eslint:disable-line
-    private _errored: boolean; // eslint:disable-line
-    private _errors: string[]; // eslint:disable-line
+    private _header: (IFieldDescriptionObject | null)[];
+    private _numOfSubj: number;
+    private _errored: boolean;
+    private _errors: string[];
 
     constructor(
         private readonly dataCollection: Collection,
@@ -164,7 +164,7 @@ export function processHeader(header: string[]): { error?: string[], parsedHeade
     return ({ parsedHeader, error: error.length === 0 ? undefined : error });
 }
 
-export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: IDataEntry } { // eslint:disable-line
+export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;

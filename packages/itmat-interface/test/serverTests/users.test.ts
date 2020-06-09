@@ -61,8 +61,8 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
     /* Connecting clients for testing later */
     app = router.getApp();
-    admin = request.agent(app, null);
-    user = request.agent(app, null);
+    admin = request.agent(app);
+    user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
 
@@ -78,7 +78,7 @@ describe('USERS API', () => {
 
 
         beforeAll(async () => {
-            loggedoutUser = request.agent(app, null);
+            loggedoutUser = request.agent(app);
             encryptedEmailForStandardUser =
                 await encryptEmail(SEED_STANDARD_USER_EMAIL, makeAESKeySalt(presetToken), makeAESIv(presetToken));
         });
@@ -435,7 +435,7 @@ describe('USERS API', () => {
             expect(updateResult.ok).toBe(1);
 
             /* test */
-            const newloggedoutuser = request.agent(app, null);
+            const newloggedoutuser = request.agent(app);
             const res = await newloggedoutuser
                 .post('/graphql')
                 .send({
@@ -501,7 +501,7 @@ describe('USERS API', () => {
                 { $set: { resetPasswordRequests: resetPWrequest } }
             );
             expect(updateResult.ok).toBe(1);
-            const newloggedoutuser = request.agent(app, null);
+            const newloggedoutuser = request.agent(app);
             const res = await newloggedoutuser
                 .post('/graphql')
                 .send({
@@ -664,7 +664,7 @@ describe('USERS API', () => {
                 expiredAt: 1501134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
-            const newloggedoutuser = request.agent(app, null);
+            const newloggedoutuser = request.agent(app);
             const otp = mfa.generateTOTP(userSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),
@@ -708,7 +708,7 @@ describe('USERS API', () => {
                 expiredAt: 1501134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
-            const newloggedoutuser = request.agent(app, null);
+            const newloggedoutuser = request.agent(app);
             const otp = mfa.generateTOTP(adminSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),

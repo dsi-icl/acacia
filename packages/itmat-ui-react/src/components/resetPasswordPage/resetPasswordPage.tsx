@@ -5,8 +5,8 @@ import { NavLink, RouteComponentProps } from 'react-router-dom';
 import css from '../login/login.module.css';
 
 type ResetPasswordPageProps = RouteComponentProps<{
-    encryptedEmail: string,
-    token: string
+    encryptedEmail: string;
+    token: string;
 }>
 
 export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> = ({ match: { params: { encryptedEmail, token } } }) => {

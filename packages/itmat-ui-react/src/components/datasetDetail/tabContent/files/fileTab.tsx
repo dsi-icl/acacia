@@ -126,7 +126,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input {...getInputProps()} />
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title="Existing files">
+            <Subsection title='Existing files'>
                 <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
                         if (loading) { return <LoadingBalls />; }
@@ -140,13 +140,13 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             </Subsection>
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title="Upload new file">
+            <Subsection title='Upload new file'>
                 <Upload {...uploaderProps}>
                     <Button>Select File</Button>
                 </Upload>
                 <Button
                     icon={<UploadOutlined />}
-                    type="primary"
+                    type='primary'
                     onClick={uploadHandler}
                     disabled={fileList.length === 0}
                     loading={isUploading}
