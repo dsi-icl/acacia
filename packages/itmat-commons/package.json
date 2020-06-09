@@ -20,7 +20,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "chalk": "4.0.0",
+        "chalk": "4.1.0",
         "graphql": "15.0.0",
         "graphql-tag": "2.10.3",
         "mongodb": "3.5.5"
