@@ -8,7 +8,7 @@ import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { RouteComponentProps } from 'react-router';
 
 type AdminTabContentProps = RouteComponentProps<{
-    studyId: string
+    studyId: string;
 }>;
 
 export const AdminTabContent: React.FunctionComponent<AdminTabContentProps> = ({ match: { params: { studyId } } }) => {
@@ -18,7 +18,7 @@ export const AdminTabContent: React.FunctionComponent<AdminTabContentProps> = ({
     return (
         <div className={`${css.tab_page_wrapper_grid} fade_in`}>
             <div className={`${css.tab_page_wrapper} ${css.cover_page}`}>
-                <Subsection title="Roles">
+                <Subsection title='Roles'>
                     <RoleControlSection studyId={studyId} roles={data.getStudy.roles} />
                 </Subsection>
             </div>

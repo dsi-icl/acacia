@@ -6,7 +6,7 @@ import { CREATE_DATA_CURATION_JOB } from 'itmat-commons/dist/graphql/curation';
 import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 
-export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
+export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
     return <div>
         <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>uploaded the data file to the file repository</span></NavLink>.</p>
         <br /><br />
@@ -25,7 +25,7 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string, cancelBut
     </div>;
 };
 
-const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile[], cancelButton: (shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
+const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile[]; cancelButton: (shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above
@@ -36,9 +36,9 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
         <label>Data file:</label>
         <select value={selectedFile} onChange={(e) => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
         <label>Version number:</label>
-        <input value={versionNumber} onChange={(e) => { setSuccessfullySaved(false); setVersionNumber(e.target.value); setError(''); }} placeholder="x.y.z (y and z optional)" type="text" /> <br /><br />
+        <input value={versionNumber} onChange={(e) => { setSuccessfullySaved(false); setVersionNumber(e.target.value); setError(''); }} placeholder='x.y.z (y and z optional)' type='text' /> <br /><br />
         <label>Tag:</label>
-        <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder="e.g. finalised (optional)" type="text" /><br /><br />
+        <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder='e.g. finalised (optional)' type='text' /><br /><br />
 
         <Mutation<any, any>
             mutation={CREATE_DATA_CURATION_JOB}
@@ -84,10 +84,10 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string, files: IFile
                 }}>Submit</button>;
             }}
         </Mutation>
-        <button style={{ width: '45%', display: 'inline-block' }} className="button_grey" onClick={() => cancelButton(false)}>Cancel</button>
+        <button style={{ width: '45%', display: 'inline-block' }} className='button_grey' onClick={() => cancelButton(false)}>Cancel</button>
 
-        {error ? <div className="error_banner">{error}</div> : null}
-        {successfullySaved ? <div className="saved_banner">Job created and queued.</div> : null}
+        {error ? <div className='error_banner'>{error}</div> : null}
+        {successfullySaved ? <div className='saved_banner'>Job created and queued.</div> : null}
     </>;
 
 };

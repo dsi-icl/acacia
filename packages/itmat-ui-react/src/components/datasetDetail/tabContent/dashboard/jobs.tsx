@@ -30,7 +30,7 @@ const JOBTYPES: { [type: string]: any } = {
     FIELD_INFO_UPLOAD: <span>Field annotation upload</span>
 };
 
-export const JobSection: React.FunctionComponent<{ studyId: string, jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
+export const JobSection: React.FunctionComponent<{ studyId: string; jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
     useSubscription(
         GQLRequests.SUBSCRIBE_TO_JOB_STATUS,
         { variables: { studyId }, onSubscriptionData: ({ client: store, subscriptionData })  => {

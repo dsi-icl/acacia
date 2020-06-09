@@ -43,11 +43,15 @@ export class ExportProcessor {
         let nextDocument: Record<string, string | number> | null;
         while (await this.dataCursor.hasNext()) {
             nextDocument = await this.dataCursor.next();
-            const flattenedData = this.formatDataIntoJSON(nextDocument);
-            if (this.patientIdMap) {
-                this.replacePatientId(flattenedData);
+            if (nextDocument) {
+                const flattenedData = this.formatDataIntoJSON(nextDocument);
+                if (this.patientIdMap) {
+                    this.replacePatientId(flattenedData);
+                }
+                this.writeOneLineToCSV(flattenedData);
+            } else {
+                Logger.error('Cursor returned null unexpectedly');
             }
-            this.writeOneLineToCSV(flattenedData);
         }
         this.writeOneLineToCSV(null);
     }

@@ -328,7 +328,7 @@ export const userResolvers = {
                         }
                     }
                 },
-                { $set: { password: hashedPw, 'resetPasswordRequests.$.used': true } });
+                { $set: { 'password': hashedPw, 'resetPasswordRequests.$.used': true } });
             if (updateResult.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }

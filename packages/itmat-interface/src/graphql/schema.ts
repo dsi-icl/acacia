@@ -44,11 +44,6 @@ type UserAccess {
     studies: [Study]!
 }
 
-type UserPermissions {
-    projects: [StudyOrProjectUserRole]!
-    studies: [StudyOrProjectUserRole]!
-}
-
 type User {
     id: String!
     username: String! # admin only
@@ -244,7 +239,7 @@ type Query {
     getQueryById(queryId: String!): QueryEntry
 
     # PERMISSION
-    getGrantedPermissions(studyId: String, projectId: String): UserPermissions
+    getMyPermissions: [String]
 }
 
 type Mutation {

@@ -3,6 +3,7 @@
     "private": true,
     "license": "MIT",
     "scripts": {
+        "preinstall": "node ./scripts/hintYarn.js",
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-utils --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
         "start:ui": "lerna run --stream --scope itmat-ui-react start",
         "start:interface": "lerna run --stream --scope itmat-interface start",
@@ -42,7 +43,8 @@
         "eslint-plugin-jsx-a11y": "6.2.3",
         "eslint-plugin-react": "7.20.0",
         "eslint-plugin-react-hooks": "4.0.4",
-        "jest-environment-node": "26.0.1",
+        "husky": "4.2.5",
+        "jest-environment-node": "25.3.0",
         "lerna": "3.22.0",
         "typescript": "3.9.5"
     },
@@ -54,5 +56,10 @@
     },
     "eslintConfig": {
         "extends": "./config/eslint.config.js"
+    },
+    "husky": {
+        "hooks": {
+            "pre-push": "npm run lint"
+        }
     }
 }
