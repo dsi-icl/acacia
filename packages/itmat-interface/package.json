@@ -21,7 +21,7 @@
     },
     "dependencies": {
         "apollo-server-express": "2.14.2",
-        "bcrypt": "4.0.1",
+        "bcrypt": "5.0.0",
         "body-parser": "1.19.0",
         "connect-mongo": "3.2.0",
         "deepmerge": "4.2.2",
@@ -58,7 +58,7 @@
         "@types/supertest": "2.0.4",
         "@types/uuid": "8.0.0",
         "@types/webpack-env": "1.15.2",
-        "chalk": "4.0.0",
+        "chalk": "4.1.0",
         "cors": "2.8.5",
         "cross-env": "7.0.2",
         "cross-spawn": "7.0.3",
