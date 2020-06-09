@@ -1,6 +1,6 @@
 import mongo from 'mongodb';
 import { v4 as uuid } from 'uuid';
-import seedUsers from './seed/users';
+import { seedUsers, seedRootDirs } from './seed/users';
 
 const collections = {
     jobs_collection: {
@@ -88,10 +88,14 @@ async function setupDatabase(mongostr: string, databaseName: string): Promise<vo
         await collection.createIndexes(collections[each].indexes);
     }
 
-
     /* replace the id from the seeds */
-    seedUsers[0].id = uuid();
-    seedUsers[1].id = uuid();
+    seedUsers[0].id = uuid(); // admin
+    seedUsers[1].id = uuid(); // user
+    seedRootDirs[0].uploadedBy = seedUsers[0].id; // admin
+    seedRootDirs[1].uploadedBy = seedUsers[1].id; // admin
+
+    /* isnert seed rootDirs */
+    await db.collection(collections.files_collection.name).insertMany(seedRootDirs);
 
     /* insert seed users */
     await db.collection(collections.users_collection.name).insertMany(seedUsers);
