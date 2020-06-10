@@ -27,6 +27,7 @@ const STATUSES: { [status: string]: any } = {
 
 const JOBTYPES: { [type: string]: any } = {
     DATA_UPLOAD: <span>Data upload</span>,
+    DATA_UPLOAD_JSON: <span>Data upload json</span>,
     FIELD_INFO_UPLOAD: <span>Field annotation upload</span>
 };
 

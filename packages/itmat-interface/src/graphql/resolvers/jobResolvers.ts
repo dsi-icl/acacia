@@ -10,6 +10,7 @@ import { studyCore } from '../core/studyCore';
 enum JOB_TYPE {
     FIELD_INFO_UPLOAD = 'FIELD_INFO_UPLOAD',
     DATA_UPLOAD = 'DATA_UPLOAD',
+    DATA_UPLOAD_JSON = 'DATA_UPLOAD_JSON',
     DATA_EXPORT = 'DATA_EXPORT'
 }
 
@@ -42,22 +43,44 @@ export const jobResolvers = {
             }
 
             /* create job */
-            const job: Models.JobModels.IJobEntryForDataCuration = {
-                id: uuid(),
-                jobType: JOB_TYPE.DATA_UPLOAD,
-                studyId: args.studyId,
-                requester: requester.id,
-                requestTime: new Date().valueOf(),
-                receivedFiles: [args.file],
-                error: null,
-                status: 'QUEUED',
-                cancelled: false,
-                data: {
-                    dataVersion: args.version,
-                    versionTag: args.tag
-                }
-            };
-
+            const parts = file.fileName.split('.');
+            const dataFormat = parts[parts.length - 1];
+            let job: Models.JobModels.IJobEntryForDataCuration;
+            if (dataFormat === 'json') {
+                console.log('is json!!!');
+                job = {
+                    id: uuid(),
+                    jobType: JOB_TYPE.DATA_UPLOAD_JSON,
+                    studyId: args.studyId,
+                    requester: requester.id,
+                    requestTime: new Date().valueOf(),
+                    receivedFiles: [args.file],
+                    error: null,
+                    status: 'QUEUED',
+                    cancelled: false,
+                    data: {
+                        dataVersion: args.version,
+                        versionTag: args.tag
+                    }
+                };
+            } else {
+                job = {
+                    id: uuid(),
+                    jobType: JOB_TYPE.DATA_UPLOAD,
+                    studyId: args.studyId,
+                    requester: requester.id,
+                    requestTime: new Date().valueOf(),
+                    receivedFiles: [args.file],
+                    error: null,
+                    status: 'QUEUED',
+                    cancelled: false,
+                    data: {
+                        dataVersion: args.version,
+                        versionTag: args.tag
+                    }
+                };
+            }
+            
             const result = await db.collections!.jobs_collection.insertOne(job);
             if (result.result.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
