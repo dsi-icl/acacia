@@ -47,7 +47,6 @@ export const jobResolvers = {
             const dataFormat = parts[parts.length - 1];
             let job: Models.JobModels.IJobEntryForDataCuration;
             if (dataFormat === 'json') {
-                console.log('is json!!!');
                 job = {
                     id: uuid(),
                     jobType: JOB_TYPE.DATA_UPLOAD_JSON,
