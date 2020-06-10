@@ -6,7 +6,6 @@ import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
 import { JSONCurator } from '../curation/JSONCurator';
-import { UKB_CSV_UPLOAD_Handler } from './UKB_CSV_UPLOAD_handler';
 
 export class UKB_JSON_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_JSON_UPLOAD_Handler;
