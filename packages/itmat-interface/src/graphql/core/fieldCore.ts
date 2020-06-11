@@ -1,4 +1,4 @@
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import { IFieldEntry } from 'itmat-commons';
 import { db } from '../../database/database';
 
 export class FieldCore {

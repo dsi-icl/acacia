@@ -1,6 +1,6 @@
 import { Select } from 'antd';
 import 'antd/lib/select/style/css';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { IUser } from 'itmat-commons';
 import * as React from 'react';
 import css from './genericUserList.module.css';
 

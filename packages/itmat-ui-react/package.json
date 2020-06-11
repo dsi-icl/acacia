@@ -27,14 +27,15 @@
         "apollo-link-ws": "1.0.20",
         "apollo-upload-client": "13.0.0",
         "axe-core": "3.5.4",
-        "itmat-commons": "0.5.0",
+        "itmat-commons": "0.6.0",
+        "mongodb-client-encryption": "1.0.1",
+        "qrcode": "^1.4.4",
         "react": "16.13.1",
         "react-apollo": "3.1.5",
         "react-dom": "16.13.1",
         "react-router-dom": "5.2.0",
         "react-scripts": "3.4.0",
-        "subscriptions-transport-ws": "0.9.16",
-        "qrcode": "^1.4.4"
+        "subscriptions-transport-ws": "0.9.16"
     },
     "devDependencies": {
         "@apollo/react-testing": "3.1.4",
@@ -54,7 +55,7 @@
         "enzyme-adapter-react-16": "1.15.2",
         "jest-enzyme": "7.1.2",
         "rimraf": "3.0.2",
-        "typescript": "3.8.3",
+        "typescript": "3.9.5",
         "uuid": "8.1.0"
     },
     "resolutions": {
