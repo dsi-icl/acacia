@@ -5,10 +5,10 @@ import { CREATE_USER } from 'itmat-commons/dist/graphql/user';
 import css from './userList.module.css';
 
 export const CreateNewUser: React.FunctionComponent = () => {
-    const [completedCreationId, setCompletedCreationId] = React.useState(false);
+    const [completedCreation, setCompletedCreation] = React.useState(false);
     const [inputError, setError] = React.useState('');
     const [createUser, { loading }] = useMutation(CREATE_USER,
-        {onCompleted: () => setCompletedCreationId(true)}
+        {onCompleted: () => setCompletedCreation(true)}
     );
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
         username: '',
@@ -43,7 +43,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
         };
     }
 
-    if (completedCreationId) { 
+    if (completedCreation) { 
         return (
             <div className={css.login_and_error_wrapper}>
                 <div className={`${css.login_box} appear_from_below`}>

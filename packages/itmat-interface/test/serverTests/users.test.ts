@@ -68,9 +68,6 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
     /* Mock Date for testing */
     jest.spyOn(Date, 'now').mockImplementation(() => 1591134065000);
-    
-    /* Set timeout for tests */
-    jest.setTimeout(30000);
 });
 
 describe('USERS API', () => {
@@ -1031,6 +1028,8 @@ describe('USERS API', () => {
                 console.warn(chalk.yellow('[[WARNING]]: Skipping test "log in with incorrect totp (user)" because SKIP_EMAIL_TEST is set to "true".'));
                 return;
             }
+            /* Set timeout for the test */
+            jest.setTimeout(30000);
             await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
@@ -1068,7 +1067,9 @@ describe('USERS API', () => {
             if (SKIP_EMAIL_TEST) {
                 console.warn(chalk.yellow('[[WARNING]]: Skipping test "create user" because SKIP_EMAIL_TEST is set to "true".'));
                 return;
-            }           
+            }
+            /* Set timeout for the test */
+            jest.setTimeout(30000);
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
