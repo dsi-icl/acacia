@@ -7,10 +7,10 @@ import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
-const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
+const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 const { permissions } = itmatCommons;
 
 let app;
@@ -22,7 +22,7 @@ let mongoClient;
 
 afterAll(async () => {
     await db.closeConnection();
-    await mongoConnection.close();
+    await mongoConnection?.close();
     await mongodb.stop();
 });
 
@@ -37,7 +37,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     config.database.mongo_url = connectionString;
     config.database.database = database;
     await db.connect(config.database);
-    const router = new Router();
+    const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString, {
@@ -102,7 +102,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'test_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toBeUndefined();
@@ -136,7 +136,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: undefined,
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toBeUndefined();
@@ -169,7 +169,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);
@@ -191,9 +191,9 @@ describe('JOB API', () => {
             otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
             email: `${username}@user.io`, 
             description: 'I am a new user.',
-            emailNotificationsActivated: true, 
-            organisation:  'DSI',
-            deleted: null, 
+            emailNotificationsActivated: true,
+            organisation: 'DSI',
+            deleted: null,
             id: `new_user_id_${username}`
         };
         await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
@@ -257,7 +257,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);
@@ -276,7 +276,7 @@ describe('JOB API', () => {
                 studyId: 'fake_study_id',
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);
@@ -295,7 +295,7 @@ describe('JOB API', () => {
                 studyId: 'fake_study_id',
                 tag: 'just_a_tag',
                 version: '2.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);
@@ -314,7 +314,7 @@ describe('JOB API', () => {
                 studyId: createdStudy.id,
                 tag: 'just_a_tag',
                 version: '2-3.1'
-            } 
+            }
         });
         expect(res.status).toBe(200);
         expect(res.body.errors).toHaveLength(1);

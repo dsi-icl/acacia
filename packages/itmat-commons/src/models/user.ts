@@ -14,6 +14,8 @@ export interface IUserWithoutToken {
     description: string;
     emailNotificationsActivated: boolean;
     deleted: number | null;
+    createdAt: number;
+    expiredAt: number;
     resetPasswordRequests: IResetPasswordRequest[]
 }
 

@@ -10,12 +10,12 @@ import css from './tabContent.module.css';
 // data curation pipeline
 // upload new sets of data
 
-export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
 
     const { id, version, tag, uploadDate, fileSize, extractedFrom } = versions[selectedVersion];
 
     return <>
-        {selectedVersion === currentVersion ? null : <><span className="warning_banner">Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
+        {selectedVersion === currentVersion ? null : <><span className='warning_banner'>Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
         <div className={css.data_summary_section}>
             <NumberOfPatients studyId={studyId} key={id} />
             <NewestVersionOfData version={version || 'n/a'} />

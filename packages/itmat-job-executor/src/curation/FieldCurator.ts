@@ -13,9 +13,9 @@ type enumValueType = Models.Field.enumValueType;
 const CORRECT_NUMBER_OF_COLUMN = 11;
 
 export class FieldCurator {
-    private _errored: boolean; // tslint:disable-line
-    private _errors: string[]; // tslint:disable-line
-    private _numOfFields: number; // tslint:disable-line
+    private _errored: boolean; 
+    private _errors: string[]; 
+    private _numOfFields: number; 
 
     constructor(
         private readonly fieldCollection: Collection,
@@ -38,7 +38,7 @@ export class FieldCurator {
             console.log(`uploading for job ${this.job.id}`);
             const fieldIdString: string[] = [];
             let lineNum = 0;
-            let isHeader: boolean = true;
+            let isHeader = true;
             let bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
             const csvparseStream = csvparse(this.parseOptions);
             const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
@@ -122,7 +122,7 @@ export class FieldCurator {
     }
 }
 
-export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } { // tslint:disable-line
+export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } { 
     /* pure function */
     const error: string[] = [];
     const dataEntry_nouse: any = {};

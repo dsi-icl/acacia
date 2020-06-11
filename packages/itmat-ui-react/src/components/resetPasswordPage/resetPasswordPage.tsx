@@ -5,8 +5,8 @@ import { NavLink, RouteComponentProps } from 'react-router-dom';
 import css from '../login/login.module.css';
 
 type ResetPasswordPageProps = RouteComponentProps<{
-    encryptedEmail: string,
-    token: string
+    encryptedEmail: string;
+    token: string;
 }>
 
 export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> = ({ match: { params: { encryptedEmail, token } } }) => {
@@ -28,7 +28,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                     <div>
                         <p>Your password has been successfully changed.</p>
                     </div>
-                    <br/>
+                    <br />
                     <NavLink to='/'><button>Go to Login</button></NavLink>
                 </div>
             </div>
@@ -41,7 +41,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
             onCompleted={() => {
                 setPasswordSuccessfullyChanged(true);
             }}
-            onError={() => {}}
+            onError={() => { return; }}
         >
             {(resetPassword, { loading, error }) =>
                 <div className={css.login_and_error_wrapper}>
@@ -49,7 +49,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                         <h1>Reset you password</h1>
                         <br />
                         <div>
-                            <label htmlFor='password_input'>Enter new password:</label><br/>
+                            <label htmlFor='password_input'>Enter new password:</label><br />
                             <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('submit_button')!.click()} /> <br />
                         </div>
                         <br />
@@ -67,7 +67,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                                 >Reset my password</button>
                             )
                         }
-                        <br/>
+                        <br />
                         <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}
                         </div>

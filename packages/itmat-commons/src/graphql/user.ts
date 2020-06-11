@@ -21,7 +21,9 @@ export const user_fragment = gql`
                 id
                 name
             }
-        }
+        },
+        createdAt,
+        expiredAt
     }
 `;
 

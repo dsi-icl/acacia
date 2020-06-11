@@ -11,6 +11,8 @@ export const GET_USERS = gql`
             realName
             email @include (if: $fetchDetailsAdminOnly)
             organisation
+            createdAt @include (if: $fetchDetailsAdminOnly)
+            expiredAt @include (if: $fetchDetailsAdminOnly)
             description @include (if: $fetchDetailsAdminOnly)
             access  @include (if: $fetchAccessPrivileges) {
                 id
@@ -39,6 +41,7 @@ export const EDIT_USER = gql`
         $password: String
         $description: String
         $organisation: String
+        $expiredAt: Float
     ) {
         editUser(user: {
             id: $id
@@ -50,6 +53,7 @@ export const EDIT_USER = gql`
             description: $description
             organisation: $organisation
             type: $type
+            expiredAt: $expiredAt
         }) {
             ...ALL_FOR_USER
         }

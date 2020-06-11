@@ -29,8 +29,8 @@ class App extends React.Component {
                                     if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) { // if logged in return the app
                                         // return <div className={css.app}>
                                         return <div className={css.app + ' dark_theme'}>
-                                                <MainMenuBar projects={data.whoAmI.access.projects} />
-                                                <MainPanel/>
+                                            <MainMenuBar projects={data.whoAmI.access.projects} />
+                                            <MainPanel/>
                                         </div>;
                                     }
                                     return <LoginBox />; // if not logged in return the login boxs

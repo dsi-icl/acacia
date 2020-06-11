@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models, permissions, task_required_permissions } from 'itmat-commons';
+import { Models, task_required_permissions } from 'itmat-commons';
 import { IFile } from 'itmat-commons/dist/models/file';
 import { Logger } from 'itmat-utils';
 import { v4 as uuid } from 'uuid';
@@ -14,7 +14,7 @@ export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async (parent: object, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any, info: any): Promise<IFile> => {
+        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -26,44 +26,45 @@ export const fileResolvers = {
 
             const file = await args.file;
 
-            return new Promise<IFile>(async (resolve, reject) => {
-                const stream: NodeJS.ReadableStream = (file as any).createReadStream();
-                const fileUri = uuid();
-
-                /* if the client cancelled the request mid-stream it will throw an error */
-                stream.on('error', (e) => {
-                    Logger.error(e);
-                    reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
-                });
-
-                stream.on('end', async () => {
-                    const fileEntry: IFile = {
-                        id: uuid(),
-                        fileName: file.filename,
-                        studyId: args.studyId,
-                        fileSize: args.fileLength === undefined ? 0 : args.fileLength,
-                        description: args.description,
-                        uploadedBy: requester.id,
-                        uri: fileUri,
-                        deleted: null
-                    };
-
-                    const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
-                    if (insertResult.result.ok === 1) {
-                        resolve(fileEntry);
-                    } else {
-                        throw new ApolloError(errorCodes.DATABASE_ERROR);
-                    }
-                });
-
+            return new Promise<IFile>((resolve, reject) => {
                 try {
-                    await objStore.uploadFile(stream, args.studyId, fileUri);
+
+                    const stream: NodeJS.ReadableStream = (file as any).createReadStream();
+                    const fileUri = uuid();
+
+                    /* if the client cancelled the request mid-stream it will throw an error */
+                    stream.on('error', (e) => {
+                        Logger.error(e);
+                        reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
+                    });
+
+                    stream.on('end', async () => {
+                        const fileEntry: IFile = {
+                            id: uuid(),
+                            fileName: file.filename,
+                            studyId: args.studyId,
+                            fileSize: args.fileLength === undefined ? 0 : args.fileLength,
+                            description: args.description,
+                            uploadedBy: requester.id,
+                            uri: fileUri,
+                            deleted: null
+                        };
+
+                        const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
+                        if (insertResult.result.ok === 1) {
+                            resolve(fileEntry);
+                        } else {
+                            throw new ApolloError(errorCodes.DATABASE_ERROR);
+                        }
+                    });
+
+                    objStore.uploadFile(stream, args.studyId, fileUri);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }
             });
         },
-        deleteFile: async (parent: object, args: { fileId: string }, context: any, info: any): Promise<IGenericResponse> => {
+        deleteFile: async (__unused__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const file = await db.collections!.files_collection.findOne({ deleted: null, id: args.fileId });

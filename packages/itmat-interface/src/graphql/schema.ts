@@ -55,17 +55,11 @@ type User {
     description: String # admin only
     emailNotificationsActivated: Boolean!
     createdBy: String
-
+    createdAt: Float!
+    expiredAt: Float!
     # external to mongo documents:
     access: UserAccess # admin or self only
 }
-
-# type ShortCut {
-#     id: String!
-#     study: String!
-#     project: String
-# }
-
 
 type StudyOrProjectUserRole {
     id: String!
@@ -217,6 +211,7 @@ input EditUserInput {
     organisation: String
     emailNotificationsActivated: Boolean
     password: String
+    expiredAt: Float
 }
 
 input IntArrayChangesInput {
