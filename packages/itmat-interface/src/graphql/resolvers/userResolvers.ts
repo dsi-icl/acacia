@@ -272,7 +272,7 @@ export const userResolvers = {
 
             const attachments = [{filename:'qrcode.png', path: tmpobj.name, cid:"qrcode_cid"}];
             await mailer.sendMail({
-                from: 'n.truong@ic.ac.uk',
+                from: config.nodemailer.auth.user,
                 to: email,
                 subject: "IDEA-FAST: Registration Successful",
                 html: `<p>Dear ${realName},<p>
@@ -462,7 +462,6 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
         });
     });
 }
-
 
 async function formatEmailForForgottenPassword({ realname, to, resetPasswordToken, username, host }: { host: string, username: string, resetPasswordToken: string, to: string, realname: string }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
