@@ -68,7 +68,7 @@ export const jobResolvers = {
                     versionTag: args.tag
                 }
             };
-            
+
             const result = await db.collections!.jobs_collection.insertOne(job);
             if (result.result.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
