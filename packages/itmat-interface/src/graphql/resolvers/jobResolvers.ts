@@ -45,39 +45,28 @@ export const jobResolvers = {
             /* create job */
             const parts = file.fileName.split('.');
             const dataFormat = parts[parts.length - 1];
-            let job: Models.JobModels.IJobEntryForDataCuration;
-            if (dataFormat === 'json') {
-                job = {
-                    id: uuid(),
-                    jobType: JOB_TYPE.DATA_UPLOAD_JSON,
-                    studyId: args.studyId,
-                    requester: requester.id,
-                    requestTime: new Date().valueOf(),
-                    receivedFiles: [args.file],
-                    error: null,
-                    status: 'QUEUED',
-                    cancelled: false,
-                    data: {
-                        dataVersion: args.version,
-                        versionTag: args.tag
-                    }
-                };
-            } else {
-                job = {
-                    id: uuid(),
-                    jobType: JOB_TYPE.DATA_UPLOAD_CSV,
-                    studyId: args.studyId,
-                    requester: requester.id,
-                    requestTime: new Date().valueOf(),
-                    receivedFiles: [args.file],
-                    error: null,
-                    status: 'QUEUED',
-                    cancelled: false,
-                    data: {
-                        dataVersion: args.version,
-                        versionTag: args.tag
-                    }
-                };
+            const dataFormatToJobType = {
+                json: JOB_TYPE.DATA_UPLOAD_JSON,
+                csv: JOB_TYPE.DATA_UPLOAD_CSV,
+                tsv: JOB_TYPE.DATA_UPLOAD_CSV
+            }
+            if (!dataFormat) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+            const job: Models.JobModels.IJobEntryForDataCuration = {
+                id: uuid(),
+                jobType: dataFormatToJobType[dataFormat],
+                studyId: args.studyId,
+                requester: requester.id,
+                requestTime: new Date().valueOf(),
+                receivedFiles: [args.file],
+                error: null,
+                status: 'QUEUED',
+                cancelled: false,
+                data: {
+                    dataVersion: args.version,
+                    versionTag: args.tag
+                }
             }
             
             const result = await db.collections!.jobs_collection.insertOne(job);
