@@ -12725,7 +12725,7 @@ moment@2.24.0, moment@^2.24.0, moment@^2.25.3:
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
   integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
 
-mongodb-client-encryption@^1.0.1:
+mongodb-client-encryption@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/mongodb-client-encryption/-/mongodb-client-encryption-1.0.1.tgz#0ce4d1fed302d0adba4e86c4ad36f3c0d83492ba"
   integrity sha512-nHbezuBY1NQeksltSYGuqEES/i8U4zpVJ1D+YrQLTyzXfQtqiQX1fRYn5dtlCTuq+gBFKwXIRCH5InduIfIgkw==
@@ -18010,11 +18010,6 @@ typescript-estree@18.0.0:
   dependencies:
     lodash.unescape "4.0.1"
     semver "5.5.0"
-
-typescript@3.8.3:
-  version "3.8.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.8.3.tgz#409eb8544ea0335711205869ec458ab109ee1061"
-  integrity sha512-MYlEfn5VrLNsgudQTVJeNaQFUAI7DkhnOjdpAp4T+ku1TfQClewlbSuTVHiA+8skNBgaf02TL/kLOvig4y3G8w==
 
 typescript@3.9.5:
   version "3.9.5"
