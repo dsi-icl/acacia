@@ -18,7 +18,6 @@ const {
     GET_PROJECT,
     GET_USERS,
     EDIT_ROLE,
-    CREATE_USER,
     ADD_NEW_ROLE,
     WHO_AM_I,
     CREATE_PROJECT,
@@ -930,8 +929,8 @@ describe('STUDY API', () => {
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
                 };
-                 await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
-                 createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+                createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
             }
 
             /* 6. add authorised user to role */
