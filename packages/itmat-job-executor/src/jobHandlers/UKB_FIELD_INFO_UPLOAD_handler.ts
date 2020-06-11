@@ -10,7 +10,7 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_FIELD_INFO_UPLOAD_Handler;
 
     public async getInstance() {
-        if (!this._instance || !(this._instance instanceof UKB_FIELD_INFO_UPLOAD_Handler)) {
+        if (!this._instance) {
             this._instance = new UKB_FIELD_INFO_UPLOAD_Handler();
         }
         return this._instance;

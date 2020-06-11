@@ -12,7 +12,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
     // private ukbCurator: UKBCurator;
 
     public async getInstance() {
-        if (!this._instance || !(this._instance instanceof UKB_CSV_UPLOAD_Handler)) {
+        if (!this._instance) {
             this._instance = new UKB_CSV_UPLOAD_Handler();
         } 
         return this._instance;
@@ -33,7 +33,6 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
             versionId
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
-
 
         if (errors.length !== 0) {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors } });
@@ -58,8 +57,6 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
             $inc: {
                 currentDataVersion: 1
             }
-
         });
     }
-
 }

@@ -9,7 +9,7 @@ import { studyCore } from '../core/studyCore';
 
 enum JOB_TYPE {
     FIELD_INFO_UPLOAD = 'FIELD_INFO_UPLOAD',
-    DATA_UPLOAD = 'DATA_UPLOAD',
+    DATA_UPLOAD_CSV = 'DATA_UPLOAD_CSV',
     DATA_UPLOAD_JSON = 'DATA_UPLOAD_JSON',
     DATA_EXPORT = 'DATA_EXPORT'
 }
@@ -65,7 +65,7 @@ export const jobResolvers = {
             } else {
                 job = {
                     id: uuid(),
-                    jobType: JOB_TYPE.DATA_UPLOAD,
+                    jobType: JOB_TYPE.DATA_UPLOAD_CSV,
                     studyId: args.studyId,
                     requester: requester.id,
                     requestTime: new Date().valueOf(),
