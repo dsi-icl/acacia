@@ -1028,8 +1028,6 @@ describe('USERS API', () => {
                 console.warn(chalk.yellow('[[WARNING]]: Skipping test "log in with incorrect totp (user)" because SKIP_EMAIL_TEST is set to "true".'));
                 return;
             }
-            /* Set timeout for the test */
-            jest.setTimeout(30000);
             await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
@@ -1060,7 +1058,7 @@ describe('USERS API', () => {
             expect(res_login.status).toBe(200);
             expect(res_login.body.errors).toHaveLength(1);
             expect(res_login.body.errors[0].message).toBe('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
-        });
+        }, 30000);
 
         test('create user', async () => {
             /* skip: this test if email env is not set up */
@@ -1068,8 +1066,6 @@ describe('USERS API', () => {
                 console.warn(chalk.yellow('[[WARNING]]: Skipping test "create user" because SKIP_EMAIL_TEST is set to "true".'));
                 return;
             }
-            /* Set timeout for the test */
-            jest.setTimeout(30000);
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
@@ -1091,7 +1087,7 @@ describe('USERS API', () => {
                     successful: true
                 }
             );
-        });
+        }, 30000);
 
         test('create user with wrong email format', async () => {
             const res = await admin.post('/graphql').send({
