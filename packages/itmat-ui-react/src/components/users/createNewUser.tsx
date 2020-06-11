@@ -43,11 +43,11 @@ export const CreateNewUser: React.FunctionComponent = () => {
         };
     }
 
-    if (completedCreation) { 
+    if (completedCreation) {
         return (
             <div className={css.login_and_error_wrapper}>
                 <div className={`${css.login_box} appear_from_below`}>
-                    <h1>Registration Successful!</h1>                    
+                    <h1>Registration Successful!</h1>
                     <h2>Welcome {inputs.realName} to the IDEA-FAST project</h2>
                     <br />
                     <div>

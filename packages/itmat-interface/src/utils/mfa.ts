@@ -7,7 +7,7 @@ export function generateSecret(length = 20): string {
     return base32.encode(randomBuffer).replace(/=/g, '');
 }
 
-// HMAC-based OTPs algorithm specified in RFC4226. 
+// HMAC-based OTPs algorithm specified in RFC4226.
 function generateHOTP(secret, counter) {
     const decodedSecret = base32.decode.asBytes(secret);
     const buffer = Buffer.alloc(8);

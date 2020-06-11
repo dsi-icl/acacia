@@ -98,12 +98,12 @@ describe('ROLE API', () => {
             /* setup: creating a privileged user (not yet added roles) */
             const username = uuid();
             authorisedUserProfile = {
-                username, 
-                type: 'STANDARD', 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                username,
+                type: 'STANDARD',
+                realName: `${username}_realname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                email: `${username}@user.io`, 
+                email: `${username}@user.io`,
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
@@ -465,12 +465,12 @@ describe('ROLE API', () => {
                 /* setup: creating a privileged user (not yet added roles) */
                 const username = uuid();
                 authorisedUserProfile = {
-                    username, 
-                    type: 'STANDARD', 
-                    realName: `${username}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username,
+                    type: 'STANDARD',
+                    realName: `${username}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${username}@user.io`, 
+                    email: `${username}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -709,12 +709,12 @@ describe('ROLE API', () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
                 const newUser = {
-                    username: newUsername, 
-                    type: 'STANDARD', 
-                    realName: `${newUsername}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username: newUsername,
+                    type: 'STANDARD',
+                    realName: `${newUsername}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${newUsername}@user.io`, 
+                    email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -766,12 +766,12 @@ describe('ROLE API', () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
                 const newUser = {
-                    username: newUsername, 
-                    type: 'STANDARD', 
-                    realName: `${newUsername}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username: newUsername,
+                    type: 'STANDARD',
+                    realName: `${newUsername}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${newUsername}@user.io`, 
+                    email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -823,12 +823,12 @@ describe('ROLE API', () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
                 const newUser = {
-                    username: newUsername, 
-                    type: 'STANDARD', 
-                    realName: `${newUsername}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username: newUsername,
+                    type: 'STANDARD',
+                    realName: `${newUsername}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${newUsername}@user.io`, 
+                    email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -870,12 +870,12 @@ describe('ROLE API', () => {
                 /* setup: create a user to be removed from role */
                 const newUsername = uuid();
                 const newUser = {
-                    username: newUsername, 
-                    type: 'STANDARD', 
-                    realName: `${newUsername}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username: newUsername,
+                    type: 'STANDARD',
+                    realName: `${newUsername}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${newUsername}@user.io`, 
+                    email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -1321,12 +1321,12 @@ describe('ROLE API', () => {
                 /* setup: create a user to be removed from role */
                 const newUsername = uuid();
                 const newUser = {
-                    username: newUsername, 
-                    type: 'STANDARD', 
-                    realName: `${newUsername}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username: newUsername,
+                    type: 'STANDARD',
+                    realName: `${newUsername}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${newUsername}@user.io`, 
+                    email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -1443,12 +1443,12 @@ describe('ROLE API', () => {
                 /* setup: creating a privileged user (not yet added roles) */
                 const username = uuid();
                 authorisedUserProfile = {
-                    username, 
-                    type: 'STANDARD', 
-                    realName: `${username}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username,
+                    type: 'STANDARD',
+                    realName: `${username}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${username}@user.io`, 
+                    email: `${username}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -1633,12 +1633,12 @@ describe('ROLE API', () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
                 const newUser = {
-                    username: newUsername, 
-                    type: 'STANDARD', 
-                    realName: `${newUsername}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username: newUsername,
+                    type: 'STANDARD',
+                    realName: `${newUsername}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${newUsername}@user.io`, 
+                    email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -1690,12 +1690,12 @@ describe('ROLE API', () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
                 const newUser = {
-                    username: newUsername, 
-                    type: 'STANDARD', 
-                    realName: `${newUsername}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username: newUsername,
+                    type: 'STANDARD',
+                    realName: `${newUsername}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${newUsername}@user.io`, 
+                    email: `${newUsername}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -1806,12 +1806,12 @@ describe('ROLE API', () => {
                 /* setup: creating a privileged user (not yet added roles) */
                 const username = uuid();
                 authorisedUserProfile = {
-                    username, 
-                    type: 'STANDARD', 
-                    realName: `${username}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username,
+                    type: 'STANDARD',
+                    realName: `${username}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${username}@user.io`, 
+                    email: `${username}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -1948,12 +1948,12 @@ describe('ROLE API', () => {
                 /* setup: creating a privileged user (not yet added roles) */
                 const username = uuid();
                 authorisedUserProfile = {
-                    username, 
-                    type: 'STANDARD', 
-                    realName: `${username}_realname`, 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username,
+                    type: 'STANDARD',
+                    realName: `${username}_realname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${username}@user.io`, 
+                    email: `${username}@user.io`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',

@@ -19,10 +19,10 @@ const modules = [
 ];
 
 // const loggingDecorator = (reducerFunction: Function) => {
-//     return async (parent: any, args: any, context: any, info: any) => {	
-//         console.log(reducerFunction.name, args, context.req.user && context.req.user.id);	
-//         return await reducerFunction(parent, args, context, info);	
-//     };	
+//     return async (parent: any, args: any, context: any, info: any) => {
+//         console.log(reducerFunction.name, args, context.req.user && context.req.user.id);
+//         return await reducerFunction(parent, args, context, info);
+//     };
 // };
 
 const bounceNotLoggedInDecorator = (reducerFunction: any) => {

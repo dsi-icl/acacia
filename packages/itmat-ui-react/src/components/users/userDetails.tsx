@@ -196,14 +196,14 @@ export const changeTimeFunc = {
         if (isNaN(new Date(value + 'T' + recordTime).valueOf()) || (new Date(value + 'T' + recordTime).valueOf() < 0) ) {
             newDate = new Date(inputs.expiredAt);
         } else {
-            newDate = new Date(value + 'T' + recordTime);   
+            newDate = new Date(value + 'T' + recordTime);
         }
         return {...inputs, expiredAt: newDate.valueOf()};
     },
     changeTime: function(inputs: any, value: any) {
         const recordedDate = new Date(inputs.expiredAt).toISOString().substring(0, 10);
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
-        return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};   
+        return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};
     }
 };
-                        
+

@@ -180,7 +180,7 @@ export const userResolvers = {
             if (!result) {
                 throw new UserInputError('User does not exist.');
             }
-            
+
             /* validate if account expired */
             if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
                 throw new UserInputError('Account Expired.');
@@ -263,12 +263,12 @@ export const userResolvers = {
             });
 
             /* send email to the registered user */
-            // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code            
+            // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code
             const oauth_uri = 'otpauth://totp/IDEAFAST:' + username + '?secret=' + createdUser.otpSecret + '&issuer=IDEAFAST';
-            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png'});            
+            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png'});
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
-                if (err) throw new ApolloError(err);                
+                if (err) throw new ApolloError(err);
             });
 
             const attachments = [{filename:'qrcode.png', path: tmpobj.name, cid:'qrcode_cid'}];

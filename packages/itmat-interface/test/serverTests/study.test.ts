@@ -448,12 +448,12 @@ describe('STUDY API', () => {
             /* setup: creating a privileged user */
             const username = uuid();
             const authorisedUserProfile: IUser = {
-                username, 
-                type: userTypes.STANDARD, 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                username,
+                type: userTypes.STANDARD,
+                realName: `${username}_realname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                email: `${username}@user.io`, 
+                email: `${username}@user.io`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
@@ -551,10 +551,10 @@ describe('STUDY API', () => {
             /* setup: creating a privileged user */
             const username = uuid();
             const authorisedUserProfile: IUser = {
-                username, 
-                type: userTypes.STANDARD, 
-                realName: `${username}_realname`, 
-                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                username,
+                type: userTypes.STANDARD,
+                realName: `${username}_realname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: `${username}@user.io`,
                 resetPasswordRequests: [],
@@ -911,12 +911,12 @@ describe('STUDY API', () => {
             {
                 const username = uuid();
                 const newUser: IUser = {
-                    username : username, 
-                    type: userTypes.STANDARD, 
+                    username : username,
+                    type: userTypes.STANDARD,
                     realName: username + '_realname',
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: username + '@user.io', 
+                    email: username + '@user.io',
                     resetPasswordRequests: [],
                     description: 'I am an authorised project user.',
                     emailNotificationsActivated: true,
@@ -993,12 +993,12 @@ describe('STUDY API', () => {
             {
                 const username = uuid();
                 const newUser: IUser = {
-                    username : username, 
-                    type: userTypes.STANDARD, 
-                    realName: username + '_realname', 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username : username,
+                    type: userTypes.STANDARD,
+                    realName: username + '_realname',
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: username + '@user.io', 
+                    email: username + '@user.io',
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user.',
                     emailNotificationsActivated: true,
@@ -1078,12 +1078,12 @@ describe('STUDY API', () => {
             {
                 const username = uuid();
                 const newUser: IUser = {
-                    username : username, 
-                    type: userTypes.STANDARD, 
-                    realName: username + '_realname', 
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    username : username,
+                    type: userTypes.STANDARD,
+                    realName: username + '_realname',
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: username + '@user.io', 
+                    email: username + '@user.io',
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user managing project.',
                     emailNotificationsActivated: true,
@@ -1094,7 +1094,7 @@ describe('STUDY API', () => {
                     expiredAt: 1991134065000
                 };
 
-                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);                
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
                 createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
             }
 
