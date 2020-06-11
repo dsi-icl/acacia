@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { useMutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { CREATE_USER } from 'itmat-commons/dist/graphql/user'
+import { CREATE_USER } from 'itmat-commons/dist/graphql/user';
 import css from './userList.module.css';
 
-export const CreateNewUser: React.FunctionComponent = (props) => {
+export const CreateNewUser: React.FunctionComponent = () => {
     const [completedCreationId, setCompletedCreationId] = React.useState(false);
     const [inputError, setError] = React.useState('');
     const [createUser, { loading }] = useMutation(CREATE_USER,
