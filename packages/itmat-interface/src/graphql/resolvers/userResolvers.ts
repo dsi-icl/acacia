@@ -227,7 +227,7 @@ export const userResolvers = {
                 });
             });
         },
-        createUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IUserWithoutToken> => {
+        createUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IGenericResponse> => {
             const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
                 username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;

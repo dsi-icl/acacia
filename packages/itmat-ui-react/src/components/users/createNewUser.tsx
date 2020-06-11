@@ -29,7 +29,7 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
         }
     });
 
-    function clickedSubmit(mutationFunc: (data: { variables: any }) => Promise<ExecutionResult<any>>) {
+    function clickedSubmit(mutationFunc: (data: { variables: any }) => {}) {
         return function (e: any) {
             e.preventDefault();
             const allFields = Object.keys(inputs);
