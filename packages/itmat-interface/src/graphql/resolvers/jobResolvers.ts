@@ -9,7 +9,8 @@ import { studyCore } from '../core/studyCore';
 
 enum JOB_TYPE {
     FIELD_INFO_UPLOAD = 'FIELD_INFO_UPLOAD',
-    DATA_UPLOAD = 'DATA_UPLOAD',
+    DATA_UPLOAD_CSV = 'DATA_UPLOAD_CSV',
+    DATA_UPLOAD_JSON = 'DATA_UPLOAD_JSON',
     DATA_EXPORT = 'DATA_EXPORT'
 }
 
@@ -42,9 +43,19 @@ export const jobResolvers = {
             }
 
             /* create job */
+            const parts = file.fileName.split('.');
+            const dataFormat = parts[parts.length - 1];
+            const dataFormatToJobType = {
+                json: JOB_TYPE.DATA_UPLOAD_JSON,
+                csv: JOB_TYPE.DATA_UPLOAD_CSV
+                // tsv: JOB_TYPE.DATA_UPLOAD_CSV
+            };
+            if (!dataFormatToJobType[dataFormat]) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const job: Models.JobModels.IJobEntryForDataCuration = {
                 id: uuid(),
-                jobType: JOB_TYPE.DATA_UPLOAD,
+                jobType: dataFormatToJobType[dataFormat],
                 studyId: args.studyId,
                 requester: requester.id,
                 requestTime: new Date().valueOf(),
