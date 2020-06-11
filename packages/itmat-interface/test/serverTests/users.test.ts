@@ -8,15 +8,23 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import chalk from 'chalk';
 import { MongoClient } from 'mongodb';
-import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import setupDatabase from '../../src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
-import { IResetPasswordRequest } from 'itmat-commons/dist/models/user';
 import * as mfa from '../../src/utils/mfa';
-const { WHO_AM_I, GET_USERS, CREATE_USER, EDIT_USER, DELETE_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, RESET_PASSWORD, LOGIN } = itmatCommons.GQLRequests;
-const { Models: { UserModels: { userTypes } } } = itmatCommons;
-type IUser = itmatCommons.Models.UserModels.IUser;
+import {
+    IResetPasswordRequest,
+    WHO_AM_I,
+    GET_USERS,
+    CREATE_USER,
+    EDIT_USER,
+    DELETE_USER,
+    REQUEST_USERNAME_OR_RESET_PASSWORD,
+    RESET_PASSWORD,
+    LOGIN,
+    IUser,
+    userTypes
+} from 'itmat-commons';
 
 let app;
 let mongodb;
@@ -49,7 +57,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database);
+    await db.connect(config.database, MongoClient.connect);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */

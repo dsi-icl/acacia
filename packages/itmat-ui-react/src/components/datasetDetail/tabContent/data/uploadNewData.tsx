@@ -1,9 +1,7 @@
-import { IFile } from 'itmat-commons/dist/models/file';
 import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { CREATE_DATA_CURATION_JOB } from 'itmat-commons/dist/graphql/curation';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { CREATE_DATA_CURATION_JOB, GET_STUDY, IFile } from 'itmat-commons';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 
 export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {

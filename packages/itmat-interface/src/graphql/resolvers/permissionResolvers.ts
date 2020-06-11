@@ -1,6 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { IRole } from 'itmat-commons/dist/models/study';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { IUser, IRole } from 'itmat-commons';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';

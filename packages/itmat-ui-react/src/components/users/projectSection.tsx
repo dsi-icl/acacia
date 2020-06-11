@@ -1,4 +1,4 @@
-import { IProject } from 'itmat-commons/dist/models/study';
+import { IProject } from 'itmat-commons';
 import * as React from 'react';
 import { NavLink } from 'react-router-dom';
 import css from './sections.module.css';
