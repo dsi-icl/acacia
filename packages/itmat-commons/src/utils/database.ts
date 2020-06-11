@@ -62,7 +62,10 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
     }
 
     public isConnected(): boolean {
-        return this.localClient!.isConnected();
+        if  (!this.localClient) {
+            return false;
+        }
+        return this.localClient.isConnected();
     }
 
     public async closeConnection(): Promise<void> {
