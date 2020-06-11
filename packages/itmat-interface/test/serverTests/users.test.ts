@@ -1026,6 +1026,11 @@ describe('USERS API', () => {
     describe('APP USER MUTATION API', () => {
 
         test('log in with incorrect totp (user)', async () => {
+            /* skip: this test if email env is not set up */
+            if (SKIP_EMAIL_TEST) {
+                console.warn(chalk.yellow('[[WARNING]]: Skipping test "log in with incorrect totp (user)" because SKIP_EMAIL_TEST is set to "true".'));
+                return;
+            }
             await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
@@ -1059,6 +1064,11 @@ describe('USERS API', () => {
         });
 
         test('create user', async () => {
+            /* skip: this test if email env is not set up */
+            if (SKIP_EMAIL_TEST) {
+                console.warn(chalk.yellow('[[WARNING]]: Skipping test "create user" because SKIP_EMAIL_TEST is set to "true".'));
+                return;
+            }           
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {

@@ -914,25 +914,24 @@ describe('STUDY API', () => {
             /* 5. create an authorised project user (no role yet) */
             {
                 const username = uuid();
-                const res = await admin.post('/graphql').send({
-                    query: print(CREATE_USER),
-                    variables: {
-                        username,
-                        password: 'admin',
-                        realName: `${username}_realname`,
-                        description: 'setupUser',
-                        organisation: 'DSI',
-                        emailNotificationsActivated: true,
-                        email: `${username}@user.io`,
-                        type: userTypes.STANDARD
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
-                    successful: true
-                });
+                const newUser: IUser = {
+                    username : username, 
+                    type: userTypes.STANDARD, 
+                    realName: username + '_realname',
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    email: username + '@user.io', 
+                    resetPasswordRequests: [],
+                    description: 'I am an authorised project user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
+                    id: 'AuthorisedProjectUser' + username,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
+                };
+                 await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+                 createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
             }
 
             /* 6. add authorised user to role */
@@ -997,25 +996,24 @@ describe('STUDY API', () => {
             /* 5. create an authorised study user (no role yet) */
             {
                 const username = uuid();
-                const res = await admin.post('/graphql').send({
-                    query: print(CREATE_USER),
-                    variables: {
-                        username,
-                        password: 'admin',
-                        realName: `${username}_realname`,
-                        description: 'setupUser2',
-                        organisation: 'DSI',
-                        emailNotificationsActivated: true,
-                        email: `${username}@user.io`,
-                        type: userTypes.STANDARD
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
+                const newUser: IUser = {
+                    username : username, 
+                    type: userTypes.STANDARD, 
+                    realName: username + '_realname', 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    email: username + '@user.io', 
+                    resetPasswordRequests: [],
+                    description: 'I am an authorised study user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
+                    id: 'AuthorisedStudyUser' + username,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
                 createdUserAuthorisedStudy = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
-                    successful: true
-                });
             }
 
             /* 6. add authorised user to role */
@@ -1083,25 +1081,25 @@ describe('STUDY API', () => {
             /* 5. create an authorised study user that can manage projects (no role yet) */
             {
                 const username = uuid();
-                const res = await admin.post('/graphql').send({
-                    query: print(CREATE_USER),
-                    variables: {
-                        username,
-                        password: 'admin',
-                        realName: `${username}_realname`,
-                        description: 'setupUser2',
-                        organisation: 'DSI',
-                        emailNotificationsActivated: true,
-                        email: `${username}@user.io`,
-                        type: userTypes.STANDARD
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
+                const newUser: IUser = {
+                    username : username, 
+                    type: userTypes.STANDARD, 
+                    realName: username + '_realname', 
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    email: username + '@user.io', 
+                    resetPasswordRequests: [],
+                    description: 'I am an authorised study user managing project.',
+                    emailNotificationsActivated: true,
+                    organisation: 'DSI',
+                    deleted: null,
+                    id: 'AuthorisedStudyUserManageProject' + username,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
+                };
+
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);                
                 createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
-                    successful: true
-                });
             }
 
             /* 6. add authorised user to role */
