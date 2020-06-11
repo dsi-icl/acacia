@@ -10,7 +10,7 @@ import { JSONCurator } from '../curation/JSONCurator';
 export class UKB_JSON_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_JSON_UPLOAD_Handler;
     // private ukbCurator: UKBCurator;
-    
+
     public async getInstance() {
         if (!this._instance) {
             this._instance = new UKB_JSON_UPLOAD_Handler();

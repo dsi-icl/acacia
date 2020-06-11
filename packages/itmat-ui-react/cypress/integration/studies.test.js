@@ -114,7 +114,7 @@ describe('Studies page', function () {
             cy.visit(`/datasets/${createdStudyId}/projects`);
 
             /* error bar should not be visible */
-            cy.contains('Add new project', { timeout: 100000 });   // making sure ajax is finished 
+            cy.contains('Add new project', { timeout: 100000 });   // making sure ajax is finished
             cy.contains('Please enter project name.').should('not.exist');
 
             /* clicking the create new user button to go to page */
