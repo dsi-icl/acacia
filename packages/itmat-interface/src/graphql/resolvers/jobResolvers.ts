@@ -47,7 +47,7 @@ export const jobResolvers = {
             const dataFormat = parts[parts.length - 1];
             const dataFormatToJobType = {
                 json: JOB_TYPE.DATA_UPLOAD_JSON,
-                csv: JOB_TYPE.DATA_UPLOAD_CSV,
+                csv: JOB_TYPE.DATA_UPLOAD_CSV
 //                 tsv: JOB_TYPE.DATA_UPLOAD_CSV
             };
             if (!dataFormatToJobType[dataFormat]) {
