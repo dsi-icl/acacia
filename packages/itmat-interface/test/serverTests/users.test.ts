@@ -68,6 +68,9 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
     /* Mock Date for testing */
     jest.spyOn(Date, 'now').mockImplementation(() => 1591134065000);
+    
+    /* Set timeout for tests */
+    jest.setTimeout(30000);
 });
 
 describe('USERS API', () => {
@@ -720,7 +723,6 @@ describe('USERS API', () => {
                 realName: 'expired admin',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'admine@user.io',
-                createdBy: 'admin',
                 organisation: 'DSI',
                 description: 'I am an expired admin.',
                 access: {
@@ -1642,6 +1644,7 @@ describe('USERS API', () => {
             expect(getUserResAfter.body.data.getUsers).toEqual([{
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 realName: 'Chan Mei Yi',
+                type: userTypes.STANDARD,
                 organisation: 'DSI',
                 id: newUser.id
             }]);

@@ -82,6 +82,9 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
     /* Mock Date for testing */
     jest.spyOn(Date, 'now').mockImplementation(() => 1591134065000);
+
+    /* Set timeout for tests */
+    jest.setTimeout(30000);
 });
 
 describe('STUDY API', () => {
