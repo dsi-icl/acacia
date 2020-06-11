@@ -119,7 +119,7 @@ describe('STUDY API', () => {
                 realName: 'admin',
                 createdBy: 'chon',
                 organisation: 'DSI',
-                email: 'admin@user.io',
+                email: 'admin@example.com',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -237,7 +237,7 @@ describe('STUDY API', () => {
                 realName: 'admin',
                 createdBy: 'chon',
                 organisation: 'DSI',
-                email: 'admin@user.io',
+                email: 'admin@example.com',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -277,7 +277,7 @@ describe('STUDY API', () => {
                 realName: 'admin',
                 createdBy: 'chon',
                 organisation: 'DSI',
-                email: 'admin@user.io',
+                email: 'admin@example.com',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -458,7 +458,7 @@ describe('STUDY API', () => {
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin',
-                email: `${username}@user.io`,
+                email: `${username}@example.com`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
@@ -562,7 +562,7 @@ describe('STUDY API', () => {
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 createdBy: 'admin',
-                email: `${username}@user.io`,
+                email: `${username}@example.com`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
@@ -925,7 +925,7 @@ describe('STUDY API', () => {
                         description: 'setupUser',
                         organisation: 'DSI',
                         emailNotificationsActivated: true,
-                        email: `${username}@user.io`,
+                        email: `${username}@example.com`,
                         type: userTypes.STANDARD
                     }
                 });
@@ -940,7 +940,7 @@ describe('STUDY API', () => {
                     realName: `${username}_realname`,
                     description: 'setupUser',
                     organisation: 'DSI',
-                    email: `${username}@user.io`,
+                    email: `${username}@example.com`,
                     createdBy: 'admin',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
@@ -1024,7 +1024,7 @@ describe('STUDY API', () => {
                         description: 'setupUser2',
                         organisation: 'DSI',
                         emailNotificationsActivated: true,
-                        email: `${username}@user.io`,
+                        email: `${username}@example.com`,
                         type: userTypes.STANDARD
                     }
                 });
@@ -1039,7 +1039,7 @@ describe('STUDY API', () => {
                     realName: `${username}_realname`,
                     description: 'setupUser2',
                     organisation: 'DSI',
-                    email: `${username}@user.io`,
+                    email: `${username}@example.com`,
                     createdBy: 'admin',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
@@ -1126,7 +1126,7 @@ describe('STUDY API', () => {
                         description: 'setupUser2',
                         organisation: 'DSI',
                         emailNotificationsActivated: true,
-                        email: `${username}@user.io`,
+                        email: `${username}@example.com`,
                         type: userTypes.STANDARD
                     }
                 });
@@ -1141,7 +1141,7 @@ describe('STUDY API', () => {
                     realName: `${username}_realname`,
                     description: 'setupUser2',
                     organisation: 'DSI',
-                    email: `${username}@user.io`,
+                    email: `${username}@example.com`,
                     createdBy: 'admin',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
@@ -1225,7 +1225,7 @@ describe('STUDY API', () => {
                     realName: 'admin',
                     createdBy: 'chon',
                     organisation: 'DSI',
-                    email: 'admin@user.io',
+                    email: 'admin@example.com',
                     description: 'I am an admin user.',
                     id: adminId,
                     access: {
@@ -1298,7 +1298,7 @@ describe('STUDY API', () => {
                     realName: 'admin',
                     createdBy: 'chon',
                     organisation: 'DSI',
-                    email: 'admin@user.io',
+                    email: 'admin@example.com',
                     description: 'I am an admin user.',
                     id: adminId,
                     access: {
