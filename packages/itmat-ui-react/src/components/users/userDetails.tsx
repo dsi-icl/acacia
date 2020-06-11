@@ -207,4 +207,3 @@ export const changeTimeFunc = {
         return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};
     }
 };
-

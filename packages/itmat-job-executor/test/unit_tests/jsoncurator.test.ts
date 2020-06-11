@@ -205,13 +205,13 @@ describe('JSONCuratorClass', () => {
                 versionTag: 'testData'
             }
         });
-        const csvcurator = new JSONCurator(
+        const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
             jobEntry,
             'mockVersionId'
         );
-        const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
+        const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(2200);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000, 2000, 2200]);

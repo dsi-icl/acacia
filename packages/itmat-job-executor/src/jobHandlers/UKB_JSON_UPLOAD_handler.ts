@@ -1,17 +1,19 @@
-import { IFile, IJobEntry, IStudyDataVersion } from 'itmat-commons';
+import { IFile } from 'itmat-commons/dist/models/file';
+import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import { v4 as uuid } from 'uuid';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
-import { CSVCurator } from '../curation/CSVCurator';
+import { JSONCurator } from '../curation/JSONCurator';
 
-export class UKB_CSV_UPLOAD_Handler extends JobHandler {
-    private _instance?: UKB_CSV_UPLOAD_Handler;
+export class UKB_JSON_UPLOAD_Handler extends JobHandler {
+    private _instance?: UKB_JSON_UPLOAD_Handler;
     // private ukbCurator: UKBCurator;
 
     public async getInstance() {
         if (!this._instance) {
-            this._instance = new UKB_CSV_UPLOAD_Handler();
+            this._instance = new UKB_JSON_UPLOAD_Handler();
         }
         return this._instance;
     }
@@ -23,14 +25,13 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
         }
         const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
         const versionId: string = uuid();
-        const csvcurator = new CSVCurator(
+        const jsoncurator = new JSONCurator(
             db.collections!.data_collection,
             fileStream,
-            undefined,
             job,
             versionId
         );
-        const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
+        const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
 
         if (errors.length !== 0) {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors } });

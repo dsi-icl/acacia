@@ -39,7 +39,7 @@ export class JSONCurator {
             let isHeader = true;
             let objectNum = 0;
             const subjectString: string[] = [];
-            const bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+            let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
             const jsonstream = JSONStream.parse([{}]);
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
@@ -84,6 +84,7 @@ export class JSONCurator {
                                 return;
                             }
                         });
+                        bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
                     }
                     callback();
                 }
