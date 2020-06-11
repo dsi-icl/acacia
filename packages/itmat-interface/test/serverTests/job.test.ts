@@ -8,7 +8,7 @@ import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-commons/src/databaseSetup/collectionsAndIndexes';
+import setupDatabase from '../../src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 const { permissions } = itmatCommons;
@@ -36,7 +36,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database);
+    await db.connect(config.database, MongoClient.connect);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
@@ -83,7 +83,7 @@ describe('JOB API', () => {
         const fileName = uuid();
         createdFile = {
             id: `new_file_id_${fileName}`,
-            fileName,
+            fileName: fileName + '.csv',
             studyId: createdStudy.id,
             fileSize: 1000,
             description: 'just a test file here.',
@@ -113,7 +113,7 @@ describe('JOB API', () => {
             id: job.id,
             studyId: createdStudy.id,
             projectId: null,
-            jobType: 'DATA_UPLOAD',
+            jobType: 'DATA_UPLOAD_CSV',
             requester: adminId,
             requestTime: job.requestTime,
             receivedFiles: [createdFile.id],
@@ -147,7 +147,7 @@ describe('JOB API', () => {
             id: job.id,
             studyId: createdStudy.id,
             projectId: null,
-            jobType: 'DATA_UPLOAD',
+            jobType: 'DATA_UPLOAD_CSV',
             requester: adminId,
             requestTime: job.requestTime,
             receivedFiles: [createdFile.id],
@@ -235,7 +235,7 @@ describe('JOB API', () => {
             id: job.id,
             studyId: createdStudy.id,
             projectId: null,
-            jobType: 'DATA_UPLOAD',
+            jobType: 'DATA_UPLOAD_CSV',
             requester: authorisedUserProfile.id,
             requestTime: job.requestTime,
             receivedFiles: [createdFile.id],

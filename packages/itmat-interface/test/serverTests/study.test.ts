@@ -6,7 +6,7 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-commons/src/databaseSetup/collectionsAndIndexes';
+import setupDatabase from '../../src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 import {
@@ -63,7 +63,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database);
+    await db.connect(config.database, MongoClient.connect);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */

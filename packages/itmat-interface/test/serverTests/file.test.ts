@@ -15,7 +15,7 @@ import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-commons/src/databaseSetup/collectionsAndIndexes';
+import setupDatabase from '../../src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } = itmatCommons.GQLRequests;
 const { permissions } = itmatCommons;
@@ -46,7 +46,7 @@ if (global.hasMinio) {
         config.objectStore.port = global.minioContainerPort;
         config.database.mongo_url = connectionString;
         config.database.database = database;
-        await db.connect(config.database);
+        await db.connect(config.database, MongoClient.connect);
         await objStore.connect(config.objectStore);
         const router = new Router(config);
 

@@ -36,6 +36,7 @@ var defaultRules = {
         'error',
         'always'
     ],
+    'no-trailing-spaces': 'error',
     'no-unused-vars': [
         'error',
         { argsIgnorePattern: '^__unused__' }

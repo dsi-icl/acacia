@@ -6,7 +6,9 @@ import { Router } from './server/router';
 import { Server } from './server/server';
 import { JobPoller } from 'itmat-commons';
 import { JobDispatcher } from './jobDispatch/dispatcher';
+import { MongoClient } from 'mongodb';
 import { UKB_CSV_UPLOAD_Handler } from './jobHandlers/UKB_CSV_UPLOAD_handler';
+import { UKB_JSON_UPLOAD_Handler } from './jobHandlers/UKB_JSON_UPLOAD_handler';
 import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_handler';
 
 class ITMATJobExecutorServer extends Server {
@@ -25,7 +27,7 @@ class ITMATJobExecutorServer extends Server {
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect(this.config.database)
+            db.connect(this.config.database, MongoClient.connect as any)
                 .then(() => objStore.connect(this.config.objectStore))
                 .then(() => {
 
@@ -34,8 +36,9 @@ class ITMATJobExecutorServer extends Server {
                     const jobDispatcher = new JobDispatcher();
 
                     /* TO_DO: can we figure out the files at runtime and import at runtime */
-                    jobDispatcher.registerJobType('DATA_UPLOAD', UKB_CSV_UPLOAD_Handler.prototype.getInstance);
-                    jobDispatcher.registerJobType('FIELD_INFO_UPLOAD', UKB_FIELD_INFO_UPLOAD_Handler.prototype.getInstance);
+                    jobDispatcher.registerJobType('DATA_UPLOAD_CSV', UKB_CSV_UPLOAD_Handler.prototype.getInstance.bind(UKB_CSV_UPLOAD_Handler));
+                    jobDispatcher.registerJobType('DATA_UPLOAD_JSON', UKB_JSON_UPLOAD_Handler.prototype.getInstance.bind(UKB_JSON_UPLOAD_Handler));
+                    jobDispatcher.registerJobType('FIELD_INFO_UPLOAD', UKB_FIELD_INFO_UPLOAD_Handler.prototype.getInstance.bind(UKB_FIELD_INFO_UPLOAD_Handler));
                     // jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKB_IMAGE_UPLOAD_Handler.prototype.getInstance);
 
                     const poller = new JobPoller({
