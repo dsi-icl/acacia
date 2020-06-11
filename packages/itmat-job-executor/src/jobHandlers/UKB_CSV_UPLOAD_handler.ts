@@ -14,7 +14,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
     public async getInstance() {
         if (!this._instance) {
             this._instance = new UKB_CSV_UPLOAD_Handler();
-        } 
+        }
         return this._instance;
     }
 
