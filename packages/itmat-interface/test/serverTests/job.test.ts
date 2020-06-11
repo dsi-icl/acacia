@@ -189,7 +189,6 @@ describe('JOB API', () => {
             realName: `${username}_realname`, 
             password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
             otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-            createdBy: 'admin', 
             email: `${username}@user.io`, 
             description: 'I am a new user.',
             emailNotificationsActivated: true, 

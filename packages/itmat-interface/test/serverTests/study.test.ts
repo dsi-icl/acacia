@@ -114,7 +114,6 @@ describe('STUDY API', () => {
                 otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 type: userTypes.ADMIN,
                 realName: 'admin',
-                createdBy: 'chon',
                 organisation: 'DSI',
                 email: 'admin@user.io',
                 description: 'I am an admin user.',
@@ -230,7 +229,6 @@ describe('STUDY API', () => {
                 otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 type: userTypes.ADMIN,
                 realName: 'admin',
-                createdBy: 'chon',
                 organisation: 'DSI',
                 email: 'admin@user.io',
                 description: 'I am an admin user.',
@@ -268,7 +266,6 @@ describe('STUDY API', () => {
                 otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                 type: userTypes.ADMIN,
                 realName: 'admin',
-                createdBy: 'chon',
                 organisation: 'DSI',
                 email: 'admin@user.io',
                 description: 'I am an admin user.',
@@ -456,7 +453,6 @@ describe('STUDY API', () => {
                 realName: `${username}_realname`, 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
                 otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
                 email: `${username}@user.io`, 
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
@@ -558,7 +554,6 @@ describe('STUDY API', () => {
                 realName: `${username}_realname`, 
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi', 
                 otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
-                createdBy: 'admin', 
                 email: `${username}@user.io`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
@@ -928,20 +923,7 @@ describe('STUDY API', () => {
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
                 expect(res.body.data.createUser).toEqual({
-                    id: createdUserAuthorised.id,
-                    username,
-                    otpSecret: createdUserAuthorised.otpSecret,
-                    type: userTypes.STANDARD,
-                    realName: `${username}_realname`,
-                    description: 'setupUser',
-                    organisation: 'DSI',
-                    email: `${username}@user.io`,
-                    createdBy: 'admin',
-                    access: {
-                        id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
-                        projects: [],
-                        studies: []
-                    }
+                    successful: true
                 });
             }
 
@@ -992,7 +974,6 @@ describe('STUDY API', () => {
                     type: userTypes.STANDARD,
                     realName: `${createdUserAuthorised.username}_realname`,
                     organisation: 'DSI',
-                    createdBy: 'admin',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
                         projects: [{
@@ -1025,20 +1006,7 @@ describe('STUDY API', () => {
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorisedStudy = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
                 expect(res.body.data.createUser).toEqual({
-                    id: createdUserAuthorisedStudy.id,
-                    username,
-                    otpSecret: createdUserAuthorisedStudy.otpSecret,
-                    type: userTypes.STANDARD,
-                    realName: `${username}_realname`,
-                    description: 'setupUser2',
-                    organisation: 'DSI',
-                    email: `${username}@user.io`,
-                    createdBy: 'admin',
-                    access: {
-                        id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
-                        projects: [],
-                        studies: []
-                    }
+                    successful: true
                 });
             }
 
@@ -1089,7 +1057,6 @@ describe('STUDY API', () => {
                     type: userTypes.STANDARD,
                     realName: `${createdUserAuthorisedStudy.username}_realname`,
                     organisation: 'DSI',
-                    createdBy: 'admin',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
                         projects: [{
@@ -1125,20 +1092,7 @@ describe('STUDY API', () => {
                 expect(res.body.errors).toBeUndefined();
                 createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
                 expect(res.body.data.createUser).toEqual({
-                    id: createdUserAuthorisedStudyManageProjects.id,
-                    username,
-                    otpSecret: createdUserAuthorisedStudyManageProjects.otpSecret,
-                    type: userTypes.STANDARD,
-                    realName: `${username}_realname`,
-                    description: 'setupUser2',
-                    organisation: 'DSI',
-                    email: `${username}@user.io`,
-                    createdBy: 'admin',
-                    access: {
-                        id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
-                        projects: [],
-                        studies: []
-                    }
+                    successful: true
                 });
             }
 
@@ -1189,7 +1143,6 @@ describe('STUDY API', () => {
                     type: userTypes.STANDARD,
                     realName: `${createdUserAuthorisedStudyManageProjects.username}_realname`,
                     organisation: 'DSI',
-                    createdBy: 'admin',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
                         projects: [{
@@ -1212,7 +1165,6 @@ describe('STUDY API', () => {
                     otpSecret: "H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA",
                     type: userTypes.ADMIN,
                     realName: 'admin',
-                    createdBy: 'chon',
                     organisation: 'DSI',
                     email: 'admin@user.io',
                     description: 'I am an admin user.',
@@ -1286,7 +1238,6 @@ describe('STUDY API', () => {
                     username: 'admin',
                     type: userTypes.ADMIN,
                     realName: 'admin',
-                    createdBy: 'chon',
                     organisation: 'DSI',
                     email: 'admin@user.io',
                     description: 'I am an admin user.',
@@ -2052,7 +2003,6 @@ describe('STUDY API', () => {
                 resetPasswordRequests: [],
                 emailNotificationsActivated: true,
                 deleted: null,
-                createdBy: adminId
             };
             await db.collections!.users_collection.insertOne(userDataCurator);
 
