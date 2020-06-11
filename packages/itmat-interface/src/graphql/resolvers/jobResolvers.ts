@@ -50,7 +50,7 @@ export const jobResolvers = {
                 csv: JOB_TYPE.DATA_UPLOAD_CSV,
                 tsv: JOB_TYPE.DATA_UPLOAD_CSV
             };
-            if (!dataFormat || dataFormatToJobType[dataFormat] === undefined) {
+            if (!dataFormatToJobType[dataFormat]) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
             const job: Models.JobModels.IJobEntryForDataCuration = {

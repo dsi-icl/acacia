@@ -83,7 +83,7 @@ describe('JOB API', () => {
         const fileName = uuid();
         createdFile = {
             id: `new_file_id_${fileName}`,
-            fileName,
+            fileName: fileName + '.csv',
             studyId: createdStudy.id,
             fileSize: 1000,
             description: 'just a test file here.',
