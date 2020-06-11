@@ -49,7 +49,7 @@ export const jobResolvers = {
                 json: JOB_TYPE.DATA_UPLOAD_JSON,
                 csv: JOB_TYPE.DATA_UPLOAD_CSV,
                 tsv: JOB_TYPE.DATA_UPLOAD_CSV
-            }
+            };
             if (!dataFormat) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
