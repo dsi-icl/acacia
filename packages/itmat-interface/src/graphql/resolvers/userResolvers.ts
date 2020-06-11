@@ -227,7 +227,7 @@ export const userResolvers = {
                 });
             });
         },
-        createUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IGenericResponse> => {
+        createUser: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
             const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
                 username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
@@ -263,20 +263,19 @@ export const userResolvers = {
             });
 
             /* send email to the registered user */
-            // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code
-            let qrcode_url = "";
-            const oauth_uri = "otpauth://totp/IDEAFAST:" + username + "?secret=" + createdUser.otpSecret + "&issuer=IDEAFAST";
+            // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code            
+            const oauth_uri = 'otpauth://totp/IDEAFAST:' + username + '?secret=' + createdUser.otpSecret + '&issuer=IDEAFAST';
             const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png'});            
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
                 if (err) throw new ApolloError(err);                
-            })
+            });
 
-            const attachments = [{filename:'qrcode.png', path: tmpobj.name, cid:"qrcode_cid"}];
+            const attachments = [{filename:'qrcode.png', path: tmpobj.name, cid:'qrcode_cid'}];
             await mailer.sendMail({
                 from: config.nodemailer.auth.user,
                 to: email,
-                subject: "IDEA-FAST: Registration Successful",
+                subject: 'IDEA-FAST: Registration Successful',
                 html: `<p>Dear ${realName},<p>
                     Welcome to the IDEA-FAST project!
                     <br/>
