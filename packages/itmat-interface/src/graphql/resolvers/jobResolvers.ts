@@ -67,7 +67,7 @@ export const jobResolvers = {
                     dataVersion: args.version,
                     versionTag: args.tag
                 }
-            }
+            };
             
             const result = await db.collections!.jobs_collection.insertOne(job);
             if (result.result.ok !== 1) {
