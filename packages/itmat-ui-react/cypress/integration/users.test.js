@@ -135,7 +135,7 @@ describe('User management page', function() {
             /* user should have feedback */
             cy.contains('User testinguser is deleted');
         });
-    }); 
+    });
 
     it('admin can edit user (e2e)', function() {
         /* setup: login via API */
@@ -195,5 +195,5 @@ describe('User management page', function() {
             cy.request('POST', 'http://localhost:3003/graphql', { query: print(DELETE_USER), variables: { userId: createdUserId } })
                 .its('body.data.deleteUser.successful').should('eq', true);
         });
-    }); 
+    });
 });

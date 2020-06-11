@@ -177,7 +177,7 @@ export const userResolvers = {
             if (!result) {
                 throw new UserInputError('User does not exist.');
             }
-            
+
             /* validate if account expired */
             if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
                 throw new UserInputError('Account Expired.');
