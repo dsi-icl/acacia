@@ -46,7 +46,7 @@ if (global.hasMinio) {
         config.objectStore.port = global.minioContainerPort;
         config.database.mongo_url = connectionString;
         config.database.database = database;
-        await db.connect(config.database);
+        await db.connect(config.database, MongoClient.connect);
         await objStore.connect(config.objectStore);
         const router = new Router(config);
 

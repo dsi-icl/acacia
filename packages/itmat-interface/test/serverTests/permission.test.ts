@@ -36,7 +36,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database);
+    await db.connect(config.database, MongoClient.connecto);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */

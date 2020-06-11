@@ -6,6 +6,7 @@ import { Router } from './server/router';
 import { Server } from './server/server';
 import { JobPoller } from 'itmat-commons';
 import { JobDispatcher } from './jobDispatch/dispatcher';
+import { MongoClient } from 'mongodb';
 import { UKB_CSV_UPLOAD_Handler } from './jobHandlers/UKB_CSV_UPLOAD_handler';
 import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_handler';
 
@@ -25,7 +26,7 @@ class ITMATJobExecutorServer extends Server {
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect(this.config.database)
+            db.connect(this.config.database, MongoClient.connect)
                 .then(() => objStore.connect(this.config.objectStore))
                 .then(() => {
 
