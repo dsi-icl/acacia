@@ -10,9 +10,9 @@ import { Models, IJobEntryForFieldCuration, IFieldEntry, enumValueType } from 'i
 const CORRECT_NUMBER_OF_COLUMN = 11;
 
 export class FieldCurator {
-    private _errored: boolean; 
-    private _errors: string[]; 
-    private _numOfFields: number; 
+    private _errored: boolean;
+    private _errors: string[];
+    private _numOfFields: number;
 
     constructor(
         private readonly fieldCollection: Collection,
@@ -119,7 +119,7 @@ export class FieldCurator {
     }
 }
 
-export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } { 
+export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } {
     /* pure function */
     const error: string[] = [];
     const dataEntry_nouse: any = {};
