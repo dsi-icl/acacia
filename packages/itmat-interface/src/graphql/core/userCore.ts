@@ -38,7 +38,7 @@ export class UserCore {
         }
 
         const createdAt = Date.now();
-        const expiredAt = Date.now() + 86400 * 1000 /* millisec per day */;    
+        const expiredAt = Date.now() + 86400 * 1000 /* millisec per day */;
         const entry: IUser = {
             id: userId,
             username,
