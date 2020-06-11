@@ -9,6 +9,7 @@ import { MainPanel } from './components/scaffold/mainPanel';
 import css from './components/scaffold/scaffold.module.css';
 import { ResetPasswordPage } from './components/resetPasswordPage/resetPasswordPage';
 import { RequestResetPassword } from './components/resetPasswordPage/requestResetPasswordPage';
+import { CreateNewUser } from './components/users/createNewUser';
 import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 
 class App extends React.Component {
@@ -19,6 +20,7 @@ class App extends React.Component {
                     <Switch>
                         <Route path='/resetPassword/:encryptedEmail/:token' component={ResetPasswordPage}/>
                         <Route path='/requestResetPassword' component={RequestResetPassword}/>
+                        <Route path='/userRegistration' component={CreateNewUser}/>
                         <Route render={() =>
                             <Query<any, any> query={WHO_AM_I}>
                                 {({ loading, error, data }) => {

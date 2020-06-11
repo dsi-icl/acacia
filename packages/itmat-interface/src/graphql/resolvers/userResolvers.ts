@@ -12,6 +12,8 @@ import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
 import { makeGenericReponse } from '../responses';
 import * as mfa from '../../utils/mfa';
+import QRCode from 'qrcode';
+import tmp from 'tmp';
 
 type IProject = Models.Study.IProject;
 type IRole = Models.Study.IRole;
@@ -20,6 +22,7 @@ type IUser = Models.UserModels.IUser;
 type IUserWithoutToken = Models.UserModels.IUserWithoutToken;
 type IResetPasswordRequest = Models.UserModels.IResetPasswordRequest;
 const userTypes = Models.UserModels.userTypes;
+
 
 export const userResolvers = {
     Query: {
@@ -223,13 +226,6 @@ export const userResolvers = {
             });
         },
         createUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
-            const requester: Models.UserModels.IUser = context.req.user;
-
-            /* only admin can create new users */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
-            }
-
             const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
                 username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
@@ -252,7 +248,7 @@ export const userResolvers = {
             /* randomly generate a secret for Time-based One Time Password*/            
             const otpSecret = mfa.generateSecret();	
 
-            const createdUser = await userCore.createUser(requester.username, {
+            const createdUser = await userCore.createUser({
                 password,
                 otpSecret,
                 username,
@@ -264,7 +260,37 @@ export const userResolvers = {
                 emailNotificationsActivated
             });
 
-            return createdUser;
+            /* send email to the registered user */
+            // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code
+            let qrcode_url = "";
+            const oauth_uri = "otpauth://totp/IDEAFAST:" + username + "?secret=" + createdUser.otpSecret + "&issuer=IDEAFAST";
+            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png'});            
+
+            QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
+                if (err) throw new ApolloError(err);                
+            })
+
+            const attachments = [{filename:'qrcode.png', path: tmpobj.name, cid:"qrcode_cid"}];
+            await mailer.sendMail({
+                from: 'n.truong@ic.ac.uk',
+                to: email,
+                subject: "IDEA-FAST: Registration Successful",
+                html: `<p>Dear ${realName},<p>
+                    Welcome to the IDEA-FAST project!
+                    <br/>
+                    <p>Your username is <b>${username}</b>.</p><br/>
+                    <p>Your 2FA otpSecret is: ${createdUser.otpSecret.toLowerCase()}</p>
+                    <label> 2FA QR Code: </label> <img src="cid:qrcode_cid" alt="QR code for Google Authenticator" width="150" height="150" /> <br /><br />
+                    <p>Please use Google Authenticator for time-based one time password (TOTP) when logging in.</p>
+                    <br/><br/>
+                    
+                    Yours truly,
+                    NAME team.
+                `,
+                attachments: attachments
+            });
+            tmpobj.removeCallback();
+            return makeGenericReponse();
         },
         deleteUser: async (parent: object, args: any, context: any, info: any): Promise<object> => {
             /* only admin can delete users */

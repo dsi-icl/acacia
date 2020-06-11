@@ -1,16 +1,15 @@
 import * as React from 'react';
 import { useMutation } from 'react-apollo';
-import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
+import { NavLink } from 'react-router-dom';
+import { CREATE_USER } from 'itmat-commons/dist/graphql/user'
 import css from './userList.module.css';
 
 export const CreateNewUser: React.FunctionComponent = (props) => {
-    const [completedCreationId, setCompletedCreationId] = React.useState(undefined);
+    const [completedCreationId, setCompletedCreationId] = React.useState(false);
     const [inputError, setError] = React.useState('');
-    const [createUser, { loading }] = useMutation(CREATE_USER, {
-        refetchQueries: [{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }],
-        onCompleted: (data) => setCompletedCreationId(data.createUser.id)
-    });
+    const [createUser, { loading }] = useMutation(CREATE_USER,
+        {onCompleted: () => setCompletedCreationId(true)}
+    );
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
         username: '',
         password: '',
@@ -44,7 +43,22 @@ export const CreateNewUser: React.FunctionComponent = (props) => {
         };
     }
 
-    if (completedCreationId) { return <Redirect to={`/users/${completedCreationId}`} />; }
+    if (completedCreationId) { 
+        return (
+            <div className={css.login_and_error_wrapper}>
+                <div className={`${css.login_box} appear_from_below`}>
+                    <h1>Registration Successful!</h1>                    
+                    <h2>Welcome {inputs.realName} to the IDEA-FAST project</h2>
+                    <br />
+                    <div>
+                        <p>Please check your email to setup the 2FA on Google Authenticator to log in.</p>
+                    </div>
+                    <br/>
+                    <NavLink to='/'><button>Go to Login</button></NavLink>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <form>

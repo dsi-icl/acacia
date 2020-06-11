@@ -8,7 +8,6 @@ export const user_fragment = gql`
         type
         realName
         email
-        createdBy
         organisation
         description
         access {
@@ -82,6 +81,32 @@ export const RESET_PASSWORD = gql`
             token: $token,
             newPassword: $newPassword
         ) {
+            successful
+        }
+    }
+`;
+
+export const CREATE_USER = gql`
+    mutation CreateUser(
+        $username: String!
+        $password: String!
+        $realName: String!
+        $description: String!
+        $organisation: String!
+        $emailNotificationsActivated: Boolean!
+        $email: String!
+        $type: USERTYPE!
+    ){
+        createUser(user: {
+            username: $username
+            password: $password            
+            realName: $realName
+            description: $description
+            organisation: $organisation
+            emailNotificationsActivated: $emailNotificationsActivated
+            email: $email
+            type: $type
+        }) {
             successful
         }
     }

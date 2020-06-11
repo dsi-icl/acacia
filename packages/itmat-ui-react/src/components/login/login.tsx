@@ -75,6 +75,9 @@ export const LoginBox: React.FunctionComponent = () => {
                         <br/>
                         <NavLink to='/requestResetPassword'><p>Forgot username or password</p></NavLink>
                         <br/>
+                        <br/>
+                        <NavLink to='/userRegistration'><strong>Do not have an account? Please register</strong></NavLink>
+                        <br/>
                         <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}
                         </div>

@@ -1,11 +1,13 @@
 import nodemailer from 'nodemailer';
 import appConfig, { INodemailerConfig } from '../utils/configManager';
+import { Attachment } from 'nodemailer/lib/mailer';
 
 export interface IMail {
     from: string,
     to: string,
     subject: string,
-    html: string
+    html: string,
+    attachments?: Attachment[];
 }
 
 class Mailer {
