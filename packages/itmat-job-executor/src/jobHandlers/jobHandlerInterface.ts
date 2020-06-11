@@ -1,4 +1,4 @@
-import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntry } from 'itmat-commons';
 
 export abstract class JobHandler {
     /* subclass can decide either singleton

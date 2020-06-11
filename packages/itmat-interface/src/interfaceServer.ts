@@ -2,6 +2,7 @@
 import { Server as HTTPServer } from 'http';
 import { db } from './database/database';
 import { objStore } from './objStore/objStore';
+import { MongoClient } from 'mongodb';
 import { Router } from './server/router';
 import { Server } from './server/server';
 import { pubsub, subscriptionEvents } from './graphql/pubsub';
@@ -22,7 +23,7 @@ class ITMATInterfaceServer extends Server {
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect(this.config.database)
+            db.connect(this.config.database, MongoClient.connect as any)
                 .then(() => objStore.connect(this.config.objectStore))
                 .then(() => {
 
