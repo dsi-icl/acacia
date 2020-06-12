@@ -913,16 +913,16 @@ describe('STUDY API', () => {
                 const newUser: IUser = {
                     username : username,
                     type: userTypes.STANDARD,
-                    realName: username + '_realname',
+                    realName: `${username}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: username + '@user.io',
+                    email: `${username}@user.io`,
                     resetPasswordRequests: [],
                     description: 'I am an authorised project user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
                     deleted: null,
-                    id: 'AuthorisedProjectUser' + username,
+                    id: `AuthorisedProjectUser_${username}`,
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
                 };
@@ -995,16 +995,16 @@ describe('STUDY API', () => {
                 const newUser: IUser = {
                     username : username,
                     type: userTypes.STANDARD,
-                    realName: username + '_realname',
+                    realName: `${username}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: username + '@user.io',
+                    email: `${username}@user.io`,
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
                     deleted: null,
-                    id: 'AuthorisedStudyUser' + username,
+                    id: `AuthorisedStudyUser_${username}`,
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
                 };
@@ -1080,16 +1080,16 @@ describe('STUDY API', () => {
                 const newUser: IUser = {
                     username : username,
                     type: userTypes.STANDARD,
-                    realName: username + '_realname',
+                    realName: `${username}_realname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: username + '@user.io',
+                    email: `${username}'@user.io'`,
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user managing project.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
                     deleted: null,
-                    id: 'AuthorisedStudyUserManageProject' + username,
+                    id: `AuthorisedStudyUserManageProject_${username}`,
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
                 };
