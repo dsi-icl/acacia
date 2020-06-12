@@ -68,10 +68,6 @@ export const CreateNewUser: React.FunctionComponent = () => {
             <label>Organisation: <input type='text' {...inputControl('organisation')} /> </label><br /><br />
             <label>Description: <input type='text' {...inputControl('description')} /> </label><br /><br />
             <label>Email: <input type='text' {...inputControl('email')} /> </label><br /><br />
-            <label>Type: <select {...inputControl('type')}>
-                <option value='STANDARD'>System user</option>
-                <option value='ADMIN'>System admin</option>
-            </select></label>
             <br /><br /><br /><br />
             <div className={css.submit_cancel_button_wrapper}>
                 <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
