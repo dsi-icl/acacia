@@ -282,7 +282,7 @@ export const userResolvers = {
                     <p>Your username is <b>${username}</b>.</p><br/>
                     <p>Your 2FA otpSecret is: ${createdUser.otpSecret.toLowerCase()}</p>
                     <label> 2FA QR Code: </label> <img src="cid:qrcode_cid" alt="QR code for Google Authenticator" width="150" height="150" /> <br /><br />
-                    <p>Please use Google Authenticator for time-based one time password (TOTP) when logging in.</p>
+                    <p>Please use a MFA authenticator app for time-based one time password (TOTP) when logging in.</p>
                     <br/><br/>
                     
                     Yours truly,
