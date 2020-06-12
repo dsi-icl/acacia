@@ -228,8 +228,8 @@ export const userResolvers = {
             });
         },
         createUser: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
-            const { username, type = Models.UserModels.userTypes.STANDARD, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
+            const { username, realName, email, emailNotificationsActivated, password, description, organisation }: {
+                username: string, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
 
             /* check email is valid form */
@@ -246,6 +246,9 @@ export const userResolvers = {
             if (alreadyExist !== null && alreadyExist !== undefined) {
                 throw new UserInputError('User already exists.');
             }
+
+            /* if not specified, type of user is always STANDARD*/
+            const type = Models.UserModels.userTypes.STANDARD;
 
             /* randomly generate a secret for Time-based One Time Password*/
             const otpSecret = mfa.generateSecret();
