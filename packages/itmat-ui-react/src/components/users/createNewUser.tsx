@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useMutation, ExecutionResult } from 'react-apollo';
-import { NavLink, Redirect } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { CREATE_USER } from 'itmat-commons';
 import css from './userList.module.css';
 
