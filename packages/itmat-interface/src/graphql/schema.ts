@@ -253,9 +253,9 @@ type Mutation {
         username: String
     ): GenericResponse
     resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
+    createUser(user: CreateUserInput!): GenericResponse
 
     # APP USERS
-    createUser(user: CreateUserInput!): User
     editUser(user: EditUserInput!): User
     deleteUser(userId: String!): GenericResponse
 

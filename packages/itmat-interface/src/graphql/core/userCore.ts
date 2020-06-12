@@ -15,7 +15,7 @@ export class UserCore {
         return user;
     }
 
-    public async createUser(requester: string, user: { password: string, otpSecret: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
+    public async createUser(user: { password: string, otpSecret: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
         const { password, otpSecret, organisation, username, type, description, realName, email, emailNotificationsActivated } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
         const createdAt = Date.now();
@@ -29,7 +29,6 @@ export class UserCore {
             organisation,
             realName,
             password: hashedPassword,
-            createdBy: requester,
             email,
             emailNotificationsActivated,
             createdAt,
