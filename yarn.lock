@@ -3502,10 +3502,10 @@
     "@types/cookiejar" "*"
     "@types/node" "*"
 
-"@types/supertest@2.0.4":
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@types/supertest/-/supertest-2.0.4.tgz#28770e13293365e240a842d7d5c5a1b3d2dee593"
-  integrity sha512-0TvOJ+6XVMSImgqc2ClNllfVffCxHQhFbsbwOGzGTjdFydoaG052LPqnP8SnmSlnokOcQiPPcbz+Yi30LxWPyA==
+"@types/supertest@2.0.9":
+  version "2.0.9"
+  resolved "https://registry.yarnpkg.com/@types/supertest/-/supertest-2.0.9.tgz#049bddbcb0ee0d60a9b836ccc977d813a1c32325"
+  integrity sha512-0BTpWWWAO1+uXaP/oA0KW1eOZv4hc0knhrWowV06Gwwz3kqQxNO98fUFM2e15T+PdPRmOouNFrYvaBgdojPJ3g==
   dependencies:
     "@types/superagent" "*"
 
