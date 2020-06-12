@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { useMutation } from 'react-apollo';
-import { NavLink } from 'react-router-dom';
-import { CREATE_USER } from 'itmat-commons/dist/graphql/user';
+import { useMutation, ExecutionResult } from 'react-apollo';
+import { NavLink, Redirect } from 'react-router-dom';
+import { CREATE_USER } from 'itmat-commons';
 import css from './userList.module.css';
 
 export const CreateNewUser: React.FunctionComponent = () => {
@@ -51,7 +51,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
                     <h2>Welcome {inputs.realName} to the IDEA-FAST project</h2>
                     <br />
                     <div>
-                        <p>Please check your email to setup the 2FA on Google Authenticator to log in.</p>
+                        <p>Please check your email to setup the 2FA using an MFA authenticator app to log in.</p>
                     </div>
                     <br/>
                     <NavLink to='/'><button>Go to Login</button></NavLink>

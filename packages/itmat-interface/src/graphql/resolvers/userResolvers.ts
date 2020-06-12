@@ -2,8 +2,17 @@ import { ApolloError, UserInputError } from 'apollo-server-express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { mailer } from '../../emailer/emailer';
-import { Models } from 'itmat-commons';
-import { Logger } from 'itmat-utils';
+import {
+    Models,
+    Logger,
+    IProject,
+    IRole,
+    IStudy,
+    IUser,
+    IUserWithoutToken,
+    IResetPasswordRequest,
+    userTypes
+} from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
@@ -14,15 +23,6 @@ import { makeGenericReponse, IGenericResponse } from '../responses';
 import * as mfa from '../../utils/mfa';
 import QRCode from 'qrcode';
 import tmp from 'tmp';
-
-type IProject = Models.Study.IProject;
-type IRole = Models.Study.IRole;
-type IStudy = Models.Study.IStudy;
-type IUser = Models.UserModels.IUser;
-type IUserWithoutToken = Models.UserModels.IUserWithoutToken;
-type IResetPasswordRequest = Models.UserModels.IResetPasswordRequest;
-const userTypes = Models.UserModels.userTypes;
-
 
 export const userResolvers = {
     Query: {

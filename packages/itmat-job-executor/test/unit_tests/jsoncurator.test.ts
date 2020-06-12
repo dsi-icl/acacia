@@ -1,7 +1,7 @@
 import { processJSONHeader, processEachSubject, JSONCurator } from '../../src/curation/JSONCurator';
 import fs from 'fs';
 import { stub } from './_stubHelper';
-import { IJobEntryForDataCuration } from 'itmat-commons/dist/models/job';
+import { IJobEntryForDataCuration } from 'itmat-commons';
 
 describe('Unit tests for processJSONHeader function', () => {
     it('processJSONHeader function weeds out syntax error', () => {

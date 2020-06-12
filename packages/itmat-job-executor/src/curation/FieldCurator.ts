@@ -2,10 +2,7 @@ import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable } from 'stream';
 import { v4 as uuid } from 'uuid';
-import { Models } from 'itmat-commons';
-type IJobEntryForFieldCuration = Models.JobModels.IJobEntryForFieldCuration;
-type IFieldEntry = Models.Field.IFieldEntry;
-type enumValueType = Models.Field.enumValueType;
+import { Models, IJobEntryForFieldCuration, IFieldEntry, enumValueType } from 'itmat-commons';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */

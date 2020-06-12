@@ -10,7 +10,7 @@ import css from './components/scaffold/scaffold.module.css';
 import { ResetPasswordPage } from './components/resetPasswordPage/resetPasswordPage';
 import { RequestResetPassword } from './components/resetPasswordPage/requestResetPasswordPage';
 import { CreateNewUser } from './components/users/createNewUser';
-import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { WHO_AM_I } from 'itmat-commons';
 
 class App extends React.Component {
     public render() {

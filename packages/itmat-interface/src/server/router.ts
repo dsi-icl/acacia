@@ -6,7 +6,7 @@ import express from 'express';
 import { Express, Request, Response } from 'express';
 import session from 'express-session';
 import http from 'http';
-import { CustomError } from 'itmat-utils';
+import { CustomError } from 'itmat-commons';
 import passport from 'passport';
 import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';

@@ -8,7 +8,7 @@ import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import setupDatabase from '../../src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 const { permissions } = itmatCommons;
@@ -36,7 +36,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database);
+    await db.connect(config.database, MongoClient.connect);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
@@ -189,7 +189,7 @@ describe('JOB API', () => {
             realName: `${username}_realname`,
             password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
             otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-            email: `${username}@user.io`,
+            email: `${username}@example.com`,
             description: 'I am a new user.',
             emailNotificationsActivated: true,
             organisation: 'DSI',

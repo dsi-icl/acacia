@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Mutation } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_PROJECT, GET_STUDY } from 'itmat-commons/dist/graphql/study';
-import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import { CREATE_PROJECT, GET_STUDY, WHO_AM_I } from 'itmat-commons';
 import css from './tabContent.module.css';
 
 export const ProjectListSection: React.FunctionComponent<{ studyId: string; projectList: Array<{ id: string; name: string }> }> = ({ studyId, projectList }) => {

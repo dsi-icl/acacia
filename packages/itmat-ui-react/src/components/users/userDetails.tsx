@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Mutation, useQuery, useMutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { IUserWithoutToken, userTypes } from 'itmat-commons/dist/models/user';
+import { IUserWithoutToken, userTypes } from 'itmat-commons';
 import { Subsection } from '../reusable';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
