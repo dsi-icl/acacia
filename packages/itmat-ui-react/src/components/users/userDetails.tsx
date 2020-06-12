@@ -109,7 +109,6 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <label>Email Notification:  <input type='checkbox' checked={inputs.emailNotificationsActivated} onChange={e => { setInputs({ ...inputs, emailNotificationsActivated: e.target.checked }); }} /></label><br /><br />
                     <label>Description:  <input type='text' value={inputs.description} onChange={e => { setInputs({ ...inputs, description: e.target.value }); }} /></label> <br /><br />
                     <label>Organisation: <input type='text' value={inputs.organisation} onChange={e => setInputs({ ...inputs, organisation: e.target.value })} /> </label><br /><br />
-                    <label>Created by (readonly): <input type='text' readOnly value={inputs.createdBy} /> </label><br /><br />
                     <label>
                         Created at (readOnly): <input type='date' readOnly value={showTimeFunc.showDate(inputs.createdAt)} />
                         <input type='time' readOnly value={showTimeFunc.showTime(inputs.createdAt)} />
@@ -207,3 +206,4 @@ export const changeTimeFunc = {
         return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};
     }
 };
+

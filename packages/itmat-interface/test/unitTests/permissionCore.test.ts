@@ -45,12 +45,11 @@ describe('PERMISSION CORE CLASS', () => {
             /* setup: create new users to be tested on */
             newUsers = [
                 {
-                    username: 'new_user_1',
+                    username : 'new_user_1',
                     type: 'STANDARD',
                     realName: 'real_name_1',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
                     email: 'new1@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
@@ -64,7 +63,6 @@ describe('PERMISSION CORE CLASS', () => {
                     realName: 'real_name_2',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
                     email: 'new2@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
@@ -73,12 +71,11 @@ describe('PERMISSION CORE CLASS', () => {
                     id: 'new_user_id_2'
                 },
                 {
-                    username: 'new_user_3',
+                    username : 'new_user_3',
                     type: 'STANDARD',
                     realName: 'real_name_3',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
                     email: 'new3@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
@@ -87,12 +84,11 @@ describe('PERMISSION CORE CLASS', () => {
                     id: 'new_user_id_3'
                 },
                 {
-                    username: 'new_user_4',
+                    username : 'new_user_4',
                     type: 'STANDARD',
                     realName: 'real_name_4',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
                     email: 'new4@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
@@ -101,12 +97,11 @@ describe('PERMISSION CORE CLASS', () => {
                     id: 'new_user_id_4'
                 },
                 {
-                    username: 'new_user_5',
+                    username : 'new_user_5',
                     type: 'STANDARD',
                     realName: 'real_name_5',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
                     email: 'new5@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,

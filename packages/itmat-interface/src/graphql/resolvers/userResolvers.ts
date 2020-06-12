@@ -21,6 +21,8 @@ import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
 import { makeGenericReponse, IGenericResponse } from '../responses';
 import * as mfa from '../../utils/mfa';
+import QRCode from 'qrcode';
+import tmp from 'tmp';
 
 export const userResolvers = {
     Query: {
@@ -225,16 +227,9 @@ export const userResolvers = {
                 });
             });
         },
-        createUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IUserWithoutToken> => {
-            const requester: Models.UserModels.IUser = context.req.user;
-
-            /* only admin can create new users */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
-            }
-
-            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
+        createUser: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
+            const { username, realName, email, emailNotificationsActivated, password, description, organisation }: {
+                username: string, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
 
             /* check email is valid form */
@@ -252,10 +247,13 @@ export const userResolvers = {
                 throw new UserInputError('User already exists.');
             }
 
+            /* if not specified, type of user is always STANDARD*/
+            const type = Models.UserModels.userTypes.STANDARD;
+
             /* randomly generate a secret for Time-based One Time Password*/
             const otpSecret = mfa.generateSecret();
 
-            const createdUser = await userCore.createUser(requester.username, {
+            const createdUser = await userCore.createUser({
                 password,
                 otpSecret,
                 username,
@@ -267,7 +265,36 @@ export const userResolvers = {
                 emailNotificationsActivated
             });
 
-            return createdUser;
+            /* send email to the registered user */
+            // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code
+            const oauth_uri = `otpauth://totp/IDEAFAST:${username}?secret=${createdUser.otpSecret}&issuer=IDEAFAST`;
+            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png'});
+
+            QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
+                if (err) throw new ApolloError(err);
+            });
+
+            const attachments = [{filename:'qrcode.png', path: tmpobj.name, cid:'qrcode_cid'}];
+            await mailer.sendMail({
+                from: config.nodemailer.auth.user,
+                to: email,
+                subject: 'IDEA-FAST: Registration Successful',
+                html: `<p>Dear ${realName},<p>
+                    Welcome to the IDEA-FAST project!
+                    <br/>
+                    <p>Your username is <b>${username}</b>.</p><br/>
+                    <p>Your 2FA otpSecret is: ${createdUser.otpSecret.toLowerCase()}</p>
+                    <label> 2FA QR Code: </label> <img src="cid:qrcode_cid" alt="QR code for Google Authenticator" width="150" height="150" /> <br /><br />
+                    <p>Please use a MFA authenticator app for time-based one time password (TOTP) when logging in.</p>
+                    <br/><br/>
+                    
+                    Yours truly,
+                    NAME team.
+                `,
+                attachments: attachments
+            });
+            tmpobj.removeCallback();
+            return makeGenericReponse();
         },
         deleteUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IGenericResponse> => {
             /* only admin can delete users */
@@ -439,7 +466,6 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
         });
     });
 }
-
 
 async function formatEmailForForgottenPassword({ realname, to, resetPasswordToken, username, host }: { host: string, username: string, resetPasswordToken: string, to: string, realname: string }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
