@@ -1329,6 +1329,7 @@ describe('USERS API', () => {
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 resetPasswordRequests: [],
                 description: 'I am a new user 4.',
+                email:'new4@example.com',
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
                 deleted: null,
