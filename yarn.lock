@@ -6904,17 +6904,17 @@ cypress-file-upload@4.0.7:
   dependencies:
     mime "^2.4.4"
 
-cypress-react-unit-test@4.5.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/cypress-react-unit-test/-/cypress-react-unit-test-4.5.0.tgz#714ba7be1d630f5d7319fe031d8cacfe5cec7aa8"
-  integrity sha512-+knlN/Du4CS6qnPi0ukHHTW56xcNSMyzKpv+UxyPMmzy5oiHwh9Y1C3L5O4TfHjc3LHbfZmDjxdaTOEYDtmygg==
+cypress-react-unit-test@4.7.0:
+  version "4.7.0"
+  resolved "https://registry.yarnpkg.com/cypress-react-unit-test/-/cypress-react-unit-test-4.7.0.tgz#474435addf23dff1a3d48cc9298e3b61c4c7e403"
+  integrity sha512-T6V7CZvfo2oH2hKCdD+FLhW6DO5hDIxRQqj2jB3X3Xw8KmBE86gQ2voOZMU3lXbfwY9TMJQ5imtbj/QLBEWbUg==
   dependencies:
     "@babel/plugin-transform-modules-commonjs" "7.10.1"
     "@cypress/code-coverage" "3.8.1"
     "@cypress/webpack-preprocessor" "5.4.1"
     babel-plugin-istanbul "6.0.0"
     debug "4.1.1"
-    find-webpack "1.12.0"
+    find-webpack "1.14.0"
     mime-types "2.1.26"
 
 cypress@4.8.0:
@@ -8706,10 +8706,10 @@ find-versions@^3.2.0:
   dependencies:
     semver-regex "^2.0.0"
 
-find-webpack@1.12.0:
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/find-webpack/-/find-webpack-1.12.0.tgz#f7b8bbc2965cc01f772609cc1e507fd84e8e8f14"
-  integrity sha512-MCOVlKEavNaM3H+prwar17E3I2z/3FtJgXNZc7ldihYtEMDU4kb5c5Cj+VsK1lvhHG2dkCgDNqxIfwv0qnCVQA==
+find-webpack@1.14.0:
+  version "1.14.0"
+  resolved "https://registry.yarnpkg.com/find-webpack/-/find-webpack-1.14.0.tgz#8b234fad7148cd56edc3b514917676271493d736"
+  integrity sha512-47qE/GEhyy1MmGm7fWvcbvOBfNf5RHM85Ywe9tQp9t3D1ZKXDecrv68ou6FwDzqGZBc3jXSh3t9tf6o1eTvYpw==
   dependencies:
     debug "4.1.1"
     find-yarn-workspace-root "1.2.1"
