@@ -1,4 +1,4 @@
-import mongo from 'mongodb';
+import * as mongo from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { seedUsers, seedRootDirs } from './seed/users';
 
@@ -71,7 +71,7 @@ const collections = {
     }
 };
 
-async function setupDatabase(mongostr: string, databaseName: string): Promise<void> {
+async function setupDatabase(mongostr: string, databaseName: string, dropCollection = false): Promise<void> {
     const conn = await mongo.MongoClient.connect(mongostr, {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -79,9 +79,17 @@ async function setupDatabase(mongostr: string, databaseName: string): Promise<vo
     const db = conn.db(databaseName);
     const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 
+    if (process.env.ITMAT_DROP_COLLECTION === 'true') {
+        console.log('ITMAT_DROP_COLLECTION flag has been set to "true"');
+        dropCollection = true;
+    }
+
     /* creating collections and indexes */
     for (const each of Object.keys(collections)) {
         if (existingCollections.includes(collections[each].name)) {
+            if (!dropCollection) {
+                throw new Error(`${collections[each].name} already exists. Set dropCollection flag.`);
+            }
             await db.dropCollection(collections[each].name);
         }
         const collection = await db.createCollection(collections[each].name);
