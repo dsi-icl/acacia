@@ -1,7 +1,7 @@
 import gql from 'graphql-tag';
 
 const file_fragment_without_children = gql`
-    fragment FILE_WITHOUT_CHILDREN on FILE {
+    fragment FILE_WITHOUT_CHILDREN on File {
         id
         fileName
         studyId
@@ -35,8 +35,8 @@ export const CREATE_FILE = gql`
 `;
 
 export const UPLOAD_FILE = gql`
-    mutation uploadFile($studyId: String!, $file: Upload!, $description: String, $fileLength: Int, fileType: FileType) {
-        uploadFile(studyId: $studyId, description: $description, file: $file, fileLength: $fileLength) {
+    mutation uploadFile($studyId: String!, $file: Upload!, $description: String, $fileLength: Int, $fileType: FileType) {
+        uploadFile(studyId: $studyId, description: $description, file: $file, fileLength: $fileLength, fileType: $fileType) {
             ...FILE_WITHOUT_CHILDREN 
         }
     }
@@ -53,7 +53,7 @@ export const DELETE_FILE = gql`
 
 export const GET_FILE_WITHOUT_CHILDREN = gql`
     query getFileWithoutChildren($fileId: String!) {
-        getFile(fileId: $dirFileId) {
+        getFile(fileId: $fileId) {
             ...FILE_WITHOUT_CHILDREN 
         }
     }
@@ -63,6 +63,7 @@ export const GET_FILE_WITHOUT_CHILDREN = gql`
 export const FETCH_CHILD_FILES = gql`
     query fetchChildFiles($dirFileId: String!) {
         getFile(fileId: $dirFileId) {
+            id
             childFiles {
                 ...FILE_WITHOUT_CHILDREN 
             }
