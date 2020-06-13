@@ -28,12 +28,12 @@ export const user_fragment = gql`
 `;
 
 export const LOGIN = gql`
-mutation login($username: String!, $password: String!, $totp: String!) {
-  login(username: $username, password: $password, totp: $totp) {
-      ...ALL_FOR_USER
-  }
-}
-${user_fragment}
+    mutation login($username: String!, $password: String!, $totp: String!) {
+        login(username: $username, password: $password, totp: $totp) {
+            ...ALL_FOR_USER
+        }
+    }
+    ${user_fragment}
 `;
 
 export const WHO_AM_I = gql`

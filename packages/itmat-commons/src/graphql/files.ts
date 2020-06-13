@@ -1,5 +1,22 @@
 import gql from 'graphql-tag';
 
+const file_fragment_without_children = gql`
+    fragment FILE_WITHOUT_CHILDREN on FILE {
+        id
+        fileName
+        studyId
+        projectId
+        fileType
+        fileSize
+        content
+        description
+        uploadedBy
+        userId
+        dataVersionId
+        patientId
+    }
+`;
+
 export const CREATE_FILE = gql`
     mutation createFile(
         $fileName: String!,
@@ -11,34 +28,19 @@ export const CREATE_FILE = gql`
             fileType: $fileType,
             studyId: $studyId
         ) {
-            id
-            fileName
-            studyId
-            projectId
-            fileType
-            fileSize
-            description
-            uploadedBy
-            userId
-            patientId
-            # childFiles
+            ...FILE_WITHOUT_CHILDREN 
         }
     }
+    ${file_fragment_without_children}
 `;
 
 export const UPLOAD_FILE = gql`
-    mutation uploadFile($studyId: String!, $file: Upload!, $description: String!, $fileLength: Int) {
+    mutation uploadFile($studyId: String!, $file: Upload!, $description: String, $fileLength: Int, fileType: FileType) {
         uploadFile(studyId: $studyId, description: $description, file: $file, fileLength: $fileLength) {
-            id
-            fileName
-            studyId
-            fileType
-            projectId
-            fileSize
-            description
-            uploadedBy
+            ...FILE_WITHOUT_CHILDREN 
         }
     }
+    ${file_fragment_without_children}
 `;
 
 export const DELETE_FILE = gql`
@@ -46,5 +48,31 @@ export const DELETE_FILE = gql`
         deleteFile(fileId: $fileId) {
             successful
         }
+    }
+`;
+
+export const GET_FILE_WITHOUT_CHILDREN = gql`
+    query getFileWithoutChildren($fileId: String!) {
+        getFile(fileId: $dirFileId) {
+            ...FILE_WITHOUT_CHILDREN 
+        }
+    }
+    ${file_fragment_without_children}
+`;
+
+export const FETCH_CHILD_FILES = gql`
+    query fetchChildFiles($dirFileId: String!) {
+        getFile(fileId: $dirFileId) {
+            childFiles {
+                ...FILE_WITHOUT_CHILDREN 
+            }
+        }
+    }
+    ${file_fragment_without_children}
+`;
+
+export const CREATE_JOB_FOR_UNZIPPING_FILE = gql`
+    mutation createJobForUnzippingFile($fileId: String!) {
+        successful
     }
 `;

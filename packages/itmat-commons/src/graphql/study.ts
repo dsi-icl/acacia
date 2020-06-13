@@ -37,20 +37,8 @@ export const GET_STUDY = gql`
                     username
                 }
             }
-            files {
-                id
-                fileName
-                studyId
-                projectId
-                fileType
-                fileSize
-                description
-                uploadedBy
-                userId
-                patientId
-                childFiles
-            }
             numOfSubjects
+            rootDir
             currentDataVersion
             dataVersions {
                 id

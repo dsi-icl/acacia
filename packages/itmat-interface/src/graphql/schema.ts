@@ -54,7 +54,7 @@ type User {
     email: String # admin only
     description: String # admin only
     emailNotificationsActivated: Boolean!
-    createdBy: String
+    rootDir: String!
     createdAt: Float!
     expiredAt: Float!
     # external to mongo documents:
@@ -77,9 +77,11 @@ type File {
     projectId: String
     fileType: FileType!
     fileSize: Int
+    content: String
     description: String
     uploadedBy: String!
     userId: String
+    dataVersionId: String
     patientId: String
     childFiles: [File]
 }
@@ -111,13 +113,13 @@ type Study {
     lastModified: Int!
     currentDataVersion: Int
     dataVersions: [DataVersion]!
+    rootDir: String!
 
     # external to mongo documents:
     jobs: [Job]!
     projects: [Project]!
     roles: [StudyOrProjectUserRole]!
     # fields: [Field]!
-    files: File!
     numOfSubjects: Int!
 }
 
@@ -141,7 +143,6 @@ type Project {
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
     fields: [ProjectFields]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
-    files: [File]!
 }
 
 type Job {
@@ -246,6 +247,9 @@ type Query {
     getProject(projectId: String!): Project
     getStudyFields(fieldTreeId: String!, studyId: String!): [Field]
 
+    # FILE
+    getFile(fileId: String!): File
+
     # QUERY
     getQueries(studyId: String!, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
     getQueryById(queryId: String!): QueryEntry
@@ -288,7 +292,7 @@ type Mutation {
 
     # FILES
     createFile(fileName: String!, fileType: FileType = USER_PERSONAL_FILE, studyId: String): File
-    uploadFile(studyId: String!, description: String = "", file: Upload!, fileLength: Int, fileType: FileType = STUDY_REPO_OBJ_STORE_FILE): File
+    uploadFile(studyId: String!, file: Upload!, description: String = "", fileLength: Int, fileType: FileType = STUDY_REPO_OBJ_STORE_FILE): File
     createJobForUnzippingFile(fileId: String!): GenericResponse
     deleteFile(fileId: String!): GenericResponse
 

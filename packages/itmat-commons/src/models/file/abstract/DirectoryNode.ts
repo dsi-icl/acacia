@@ -96,7 +96,7 @@ export class DirectoryNode extends FileNode {
 
     protected setChildFileIds(value: string[]) { this._childFileIds = value; }
 
-    getChildFiles(collection: Collection): Promise<FileNode[]> {
+    getChildFiles(collection: Collection): Promise<IFileMongoEntry[]> {
         return collection.find({ deleted: null, id: { $in: this._childFileIds } }).toArray();
     }
 

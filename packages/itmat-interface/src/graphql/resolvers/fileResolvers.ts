@@ -1,5 +1,4 @@
 import { ApolloError } from 'apollo-server-express';
-import { Logger } from 'itmat-utils';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
@@ -25,16 +24,49 @@ import {
     zipFormats,
     IStudyFileNode,
     IUser,
-    IJobEntryForUnzippingFile
+    IJobEntryForUnzippingFile,
+    DirectoryNode
 } from 'itmat-commons';
 
 export const fileResolvers = {
     File: {
-        childFiles: async(file: IFileMongoEntry) => {
-            return await db.collections!.files_collection.find({ id: { $in: file.childFileIds }, deleted: null }).toArray();
+        childFiles: async(fileEntry: IFileMongoEntry): Promise<IFileMongoEntry[]> => {
+            // ASSUMPTION: permissions checked at getFile level
+            let dir: DirectoryNode;
+            try {
+                dir = DirectoryNode.makeFromMongoEntry(fileEntry);
+            } catch (e) {
+                throw new Error(errorCodes.SERVER_ERROR);
+            }
+            return dir.getChildFiles(db.collections!.files_collection);
         }
     },
     Query: {
+        getFile: async(__unused__parent: Record<string, unknown>, { fileId }: { fileId: string }, context: any): Promise<IFileMongoEntry> => {
+            const requester: IUser = context.req.user;
+
+            const fileEntry = await FileNode.getFileFromMongo(db.collections!.files_collection, { id: fileId });
+            if (!fileEntry) { throw new Error(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY); }
+
+            /* check permission */
+            let hasPermission = false;
+            if (fileTypesStudy.includes(fileEntry.fileType)) {
+                if (fileEntry.studyId === null || fileEntry.studyId === undefined) {
+                    throw new Error(errorCodes.SERVER_ERROR);
+                }
+                hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.access_study_data,
+                    requester,
+                    fileEntry.studyId
+                );
+            } else if (fileTypesPersonal.includes(fileEntry.fileType)) {
+                hasPermission = requester.id === fileEntry.uploadedBy;
+            }
+            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+
+            /* get file */
+            return fileEntry;
+        }
     },
     Mutation: {
         /**
@@ -52,12 +84,12 @@ export const fileResolvers = {
          *
          * - user unzip file -> create job -> may fail (createJobForUnzippingFile)
          */
-        createJobForUnzippingFile: async(__used__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IJobEntryForUnzippingFile> => {
+        createJobForUnzippingFile: async(__unused__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IJobEntryForUnzippingFile> => {
             const requester: IUser = context.req.user;
             const { fileId } = args;
 
             /* check if file exists */
-            const fileEntry: IFileMongoEntry | null = await FileNode.findFileOnMongo(db.collections!.files_collection, { id: fileId });
+            const fileEntry: IFileMongoEntry | null = await FileNode.getFileFromMongo(db.collections!.files_collection, { id: fileId });
             if (!fileEntry) {
                 throw new Error(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
@@ -106,7 +138,7 @@ export const fileResolvers = {
             }
             return job;
         },
-        createFile: async(__used__parent: Record<string, unknown>, args: any, context: any): Promise<IFileMongoEntry> => {
+        createFile: async(__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IFileMongoEntry> => {
             const requester: IUser = context.req.user;
             const { fileName, studyId, fileType } = args;
 
@@ -160,7 +192,7 @@ export const fileResolvers = {
             return file.serialiseToMongoObj();
         },
         uploadFile: async (
-            __used__parent: Record<string, unknown>,
+            __unused__parent: Record<string, unknown>,
             args: {
                 fileLength?: number,
                 studyId: string,
@@ -206,7 +238,7 @@ export const fileResolvers = {
 
                         const uploadResult = await fileObj.uploadFileToMongo(db.collections!.files_collection);
                         if (uploadResult.result.ok !== 1) {
-                            throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                            throw new ApolloError(errorCodes.DATABASE_ERROR);
                         }
                         resolve(fileObj.serialiseToMongoObj());
                     });
@@ -217,33 +249,13 @@ export const fileResolvers = {
                         reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
                     });
 
-                    stream.on('end', async () => {
-                        const fileEntry: IFile = {
-                            id: uuid(),
-                            fileName: file.filename,
-                            studyId: args.studyId,
-                            fileSize: args.fileLength === undefined ? 0 : args.fileLength,
-                            description: args.description,
-                            uploadedBy: requester.id,
-                            uri: fileUri,
-                            deleted: null
-                        };
-
-                        const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
-                        if (insertResult.result.ok === 1) {
-                            resolve(fileEntry);
-                        } else {
-                            throw new ApolloError(errorCodes.DATABASE_ERROR);
-                        }
-                    });
-
                     objStore.uploadFile(stream, args.studyId, fileUri);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }
             });
         },
-        deleteFile: async (__used__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
+        deleteFile: async (__unused__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
 
             const fileentry: IFileMongoEntry | null = await db.collections!.files_collection.findOne({ deleted: null, id: args.fileId });

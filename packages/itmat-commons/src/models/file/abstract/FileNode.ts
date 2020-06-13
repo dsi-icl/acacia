@@ -65,7 +65,7 @@ export class FileNode {
         });
     }
 
-    static findFileOnMongo(fileCollection: Collection, query: { id?: string, fileName?: string }): Promise<IFileMongoEntry | null> {
+    static getFileFromMongo(fileCollection: Collection, query: { id?: string, fileName?: string }): Promise<IFileMongoEntry | null> {
         return fileCollection.findOne({ ...query, deleted: null });
     }
 
