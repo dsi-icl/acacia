@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 // import style from 'fileBrowser.module.css';
 import {
     GET_STUDY,
@@ -65,8 +65,7 @@ const UserFileBrowserFetch: React.FunctionComponent<{ userId: string }> = ({ use
 };
 
 const FileBrowserRender: React.FunctionComponent<{ rootDirId: string }> = ({ rootDirId }) => {
-    const [iid, setIID] = useState('fjkdlsa');
-    const [fetchChildFiles, { loading: mutationLoading, error: mutationError, data: mutationData }] = useLazyQuery(FETCH_CHILD_FILES, { onCompleted: () => setIID(iid + 'fdsa') });
+    const [fetchChildFiles] = useLazyQuery(FETCH_CHILD_FILES);
 
     return <Query<any, any> query={GET_FILE_WITHOUT_CHILDREN} variables={{ fileId: rootDirId }}>
         {({ data: rootData, loading: rootLoading, error: rootError }) => {
