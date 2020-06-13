@@ -78,7 +78,7 @@
         "webpack-cli": "3.3.11"
     },
     "resolutions": {
-        "**/**/fs-capacitor": "^5.0.0",
+        "**/**/fs-capacitor": "^6.0.0",
         "**/graphql-upload": "^9.0.0",
         "**/graphql": "14.5.3"
     },
