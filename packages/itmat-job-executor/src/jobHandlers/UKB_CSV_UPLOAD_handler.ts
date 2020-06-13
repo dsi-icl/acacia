@@ -1,4 +1,4 @@
-import { IJobEntry, IStudyDataVersion } from 'itmat-commons';
+import { IJobEntry, IStudyDataVersion, IFileMongoEntry } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';

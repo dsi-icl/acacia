@@ -1,7 +1,7 @@
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
-import { IJobEntryForFieldCuration } from 'itmat-commons';
+import { IJobEntryForFieldCuration, IFileMongoEntry } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { FieldCurator } from '../curation/FieldCurator';
 
