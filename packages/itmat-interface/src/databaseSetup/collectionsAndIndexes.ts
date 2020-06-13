@@ -1,6 +1,7 @@
 import * as mongo from 'mongodb';
 import { v4 as uuid } from 'uuid';
-import { seedUsers, seedRootDirs } from './seed/users';
+import { seedUsers, seedRootDirs } from './seed/minimalSeeds';
+import { demoStudies } from './seed/demoSeeds';
 
 const collections = {
     jobs_collection: {
@@ -71,7 +72,7 @@ const collections = {
     }
 };
 
-async function setupDatabase(mongostr: string, databaseName: string, dropCollection = false): Promise<void> {
+async function setupDatabase(mongostr: string, databaseName: string, dropCollection = false, demoData = false): Promise<void> {
     const conn = await mongo.MongoClient.connect(mongostr, {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -80,9 +81,10 @@ async function setupDatabase(mongostr: string, databaseName: string, dropCollect
     const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 
     if (process.env.ITMAT_DROP_COLLECTION === 'true') {
-        console.log('ITMAT_DROP_COLLECTION flag has been set to "true"');
+        console.log('ITMAT_DROP_COLLECTION flag has been set to "true".');
         dropCollection = true;
     }
+
 
     /* creating collections and indexes */
     for (const each of Object.keys(collections)) {
@@ -107,6 +109,15 @@ async function setupDatabase(mongostr: string, databaseName: string, dropCollect
 
     /* insert seed users */
     await db.collection(collections.users_collection.name).insertMany(seedUsers);
+
+    /* insert demo data */
+    if (process.env.ITMAT_DEMO_DATA === 'true') {
+        console.log('ITMAT_DEMO_DATA flag has been set to "true". Demo data will be uploaded.');
+        demoData = true;
+    }
+    if (demoData) {
+        await db.collection(collections.studies_collection.name).insertMany(demoStudies);
+    }
 
     await conn.close();
 }
