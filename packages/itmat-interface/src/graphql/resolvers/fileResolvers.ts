@@ -1,13 +1,16 @@
 import { ApolloError } from 'apollo-server-express';
 import { Logger } from 'itmat-utils';
-import { Models, task_required_permissions, IFile, Logger } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
 import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
-const { File: {
+import {
+    Models,
+    task_required_permissions,
+    IFileMongoEntry,
+    Logger,
     FileNode,
     UserPersonalDir,
     UserPersonalFile,
@@ -18,18 +21,12 @@ const { File: {
     PatientDataBlobFile,
     fileTypes,
     fileTypesStudy,
-    fileTypesPersonal
-}, JobModels: {
-    zipFormats
-}} = Models;
-type IFileMongoEntry = Models.File.IFileMongoEntry;
-type IStudyFileNode = Models.File.IStudyFileNode;
-type FileNode = Models.File.FileNode;
-type IUser = Models.UserModels.IUser;
-type ObjStoreFileNode = Models.File.ObjStoreFileNode;
-type StudyRepoObjStoreFile = Models.File.StudyRepoObjStoreFile;
-type IJobEntryForUnzippingFile = Models.JobModels.IJobEntryForUnzippingFile;
-
+    fileTypesPersonal,
+    zipFormats,
+    IStudyFileNode,
+    IUser,
+    IJobEntryForUnzippingFile
+} from 'itmat-commons';
 
 export const fileResolvers = {
     File: {
