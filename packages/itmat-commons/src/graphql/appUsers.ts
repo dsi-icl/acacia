@@ -10,7 +10,6 @@ export const GET_USERS = gql`
             type
             realName
             email @include (if: $fetchDetailsAdminOnly)
-            createdBy
             organisation
             createdAt @include (if: $fetchDetailsAdminOnly)
             expiredAt @include (if: $fetchDetailsAdminOnly)
@@ -29,33 +28,6 @@ export const GET_USERS = gql`
             }
         }
     }
-`;
-
-export const CREATE_USER = gql`
-    mutation CreateUser(
-        $username: String!
-        $password: String!
-        $realName: String!
-        $description: String!
-        $organisation: String!
-        $emailNotificationsActivated: Boolean!
-        $email: String!
-        $type: USERTYPE!
-    ){
-        createUser(user: {
-            username: $username
-            password: $password            
-            realName: $realName
-            description: $description
-            organisation: $organisation
-            emailNotificationsActivated: $emailNotificationsActivated
-            email: $email
-            type: $type
-        }) {
-            ...ALL_FOR_USER
-        }
-    }
-    ${user_fragment}
 `;
 
 export const EDIT_USER = gql`

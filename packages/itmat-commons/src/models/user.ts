@@ -15,7 +15,6 @@ export interface IUserWithoutToken {
     emailNotificationsActivated: boolean;
     deleted: number | null;
     rootDir: string; // file id
-    createdBy: string;
     createdAt: number;
     expiredAt: number;
     resetPasswordRequests: IResetPasswordRequest[]
