@@ -23,7 +23,7 @@ export class StudyRepoDir extends DirectoryNode implements IStudyFileNode {
         childFileIds?: string[],
         studyId: string
     }) {
-        super({ id, fileName, fileType: fileTypes.USER_PERSONAL_DIR, uploadedBy, isRoot, childFileIds, deleted });
+        super({ id, fileName, fileType: fileTypes.STUDY_REPO_DIR, uploadedBy, isRoot, childFileIds, deleted });
         this._studyId = studyId;
     }
 
@@ -52,7 +52,7 @@ export class StudyRepoDir extends DirectoryNode implements IStudyFileNode {
         return ({
             id: this.id,
             fileName: this.fileName,
-            studyId: undefined,
+            studyId: this.studyId,
             projectId: undefined,
             fileType: this.fileType,
             fileSize: undefined,

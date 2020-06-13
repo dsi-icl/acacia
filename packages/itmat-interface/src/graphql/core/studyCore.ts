@@ -53,7 +53,7 @@ export class StudyCore {
             studyId,
             isRoot: true
         });
-        const result = await db.collections!.studies_collection.insertOne(rootDirFile);
+        const result = await rootDirFile.uploadFileToMongo(db.collections!.files_collection);
         if (result.result.ok !== 1) {
             throw new ApolloError(errorCodes.DATABASE_ERROR);
         }

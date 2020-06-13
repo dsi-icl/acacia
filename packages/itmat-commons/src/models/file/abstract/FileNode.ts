@@ -70,12 +70,11 @@ export class FileNode {
     }
 
     deleteFileOnMongo(fileCollection: Collection): Promise<FindAndModifyWriteOpResultObject<IFileMongoEntry>> {
-        return fileCollection.findOneAndUpdate({ id: this._id, deleted: null }, { deleted: new Date().valueOf() });
+        return fileCollection.findOneAndUpdate({ id: this._id, deleted: null, isRoot: { $ne: true } }, { deleted: new Date().valueOf() });
     }
 
     uploadFileToMongo(fileCollection: Collection): Promise<InsertOneWriteOpResult<IFileMongoEntry & { _id: ObjectID } >> {
-        this.serialiseToMongoObj();
-        return fileCollection.insertOne({ id: this._id, deleted: null });
+        return fileCollection.insertOne(this.serialiseToMongoObj());
     }
 
     get id() { return this._id; }
