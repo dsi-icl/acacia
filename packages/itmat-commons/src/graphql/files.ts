@@ -60,6 +60,18 @@ export const GET_FILE_WITHOUT_CHILDREN = gql`
     ${file_fragment_without_children}
 `;
 
+export const GET_FILE_WITH_CHILDREN = gql`
+    query getFileWithChildren($fileId: String!) {
+        getFile(fileId: $fileId) {
+            childFiles {
+                ...FILE_WITHOUT_CHILDREN
+            }
+            ...FILE_WITHOUT_CHILDREN 
+        }
+    }
+    ${file_fragment_without_children}
+`;
+
 export const FETCH_CHILD_FILES = gql`
     query fetchChildFiles($dirFileId: String!) {
         getFile(fileId: $dirFileId) {

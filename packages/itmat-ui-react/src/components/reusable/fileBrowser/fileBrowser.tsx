@@ -5,7 +5,7 @@ import {
     GET_USERS,
     IStudy,
     IUser,
-    GET_FILE_WITHOUT_CHILDREN,
+    GET_FILE_WITH_CHILDREN,
     FETCH_CHILD_FILES,
     IFileMongoEntry,
     fileTypesDirs
@@ -14,12 +14,7 @@ import {
 import { Tree } from 'antd';
 import { useQuery, Query, useLazyQuery } from 'react-apollo';
 import { LoadingBalls } from '../icons/loadingBalls';
-// const { TreeNode } = Tree;
 
-// type FileBrowserProp = RouteComponentProps<{
-//     studyId?: string;
-//     userId?: string;
-// }>
 
 interface DataNode {
     title: string;
@@ -66,60 +61,50 @@ const UserFileBrowserFetch: React.FunctionComponent<{ userId: string }> = ({ use
 
 const FileBrowserRender: React.FunctionComponent<{ rootDirId: string }> = ({ rootDirId }) => {
     const [fetchChildFiles] = useLazyQuery(FETCH_CHILD_FILES);
-
-    return <Query<any, any> query={GET_FILE_WITHOUT_CHILDREN} variables={{ fileId: rootDirId }}>
+    return <Query<any, any> query={GET_FILE_WITH_CHILDREN} variables={{ fileId: rootDirId }}>
         {({ data: rootData, loading: rootLoading, error: rootError }) => {
             if (rootLoading) { return <LoadingBalls />; }
             if (rootError) { return <p>Error fetching file</p>; }
-            return <Query<any, any> query={FETCH_CHILD_FILES} variables={{ dirFileId: rootDirId }}>
-                {({ loading, data, error }) => {
-                    if (loading) { return <LoadingBalls />; }
-                    if (error) { return <p>Error fetching file</p>; }
-                    return <div>
-                        <Tree
-                            // onSelect={onSelect}
-                            loadData={({ key, children }) => {
-                                return new Promise((resolve) => {
-                                    if (children) resolve();
-                                    fetchChildFiles({ variables: { dirFileId: key } });
-                                    resolve();
-                                });
-                            }}
-                            treeData={[mapGraphqlFilesToAntdTreeData({ ...data.getFile, ...rootData.getFile })]}
-                            showLine
-                        />
-                    </div>;
-                }}
-            </Query>;
+            return <div>
+                <Tree
+                    // onSelect={onSelect}
+                    loadData={({ key, children }) => {
+                        return new Promise((resolve) => {
+                            if (children) resolve();
+                            fetchChildFiles({ variables: { dirFileId: key } });
+                            resolve();
+                        });
+                    }}
+                    treeData={[mapGraphqlFilesToAntdTreeDataNode(rootData.getFile)]}
+                    showLine
+                />
+            </div>;
         }}
     </Query>;
 };
 
-function mapGraphqlFilesToAntdTreeData(file: IFileMongoEntry): DataNode {
+
+type GQLFile = Omit<IFileMongoEntry, 'childFileIds'> & { childFiles?: GQLFile[] }
+// function mapGraphqlFilesToAntdTreeData(file: GQLFile): any {
+//     const isLeaf = !fileTypesDirs.includes(file.fileType);
+//     const childFilesFetched = file.childFiles !== undefined;
+//     if (isLeaf) {
+//         return <TreeNode isLeaf={true} title={file.fileName} key={file.id}/>;
+//     } else if (!childFilesFetched) {
+//         return <TreeNode isLeaf={false} title={file.fileName} key={file.id}/>;
+//     } else {
+//         return <TreeNode isLeaf={false} title={file.fileName} key={file.id}>
+//             {file.childFiles!.map(mapGraphqlFilesToAntdTreeData)}
+//         </TreeNode>;
+//     }
+// }
+
+function mapGraphqlFilesToAntdTreeDataNode(file: GQLFile): DataNode {
     const isLeaf = !fileTypesDirs.includes(file.fileType);
     return ({
         title: file.fileName,
         key: file.id,
         isLeaf,
-        children: isLeaf || !(file as any).childFiles ? undefined : (file as any).childFiles.map(mapGraphqlFilesToAntdTreeData)
+        children: isLeaf || !file.childFiles ? undefined : file.childFiles.map(mapGraphqlFilesToAntdTreeDataNode)
     });
 }
-
-// function onLoadData({ key, children }) {
-//     return new Promise(resolve => {
-//         if (children) {
-//             resolve();
-//             return;
-//         }
-//         setTimeout(() => {
-//             setTreeData(origin =>
-//                 updateTreeData(origin, key, [
-//                     { title: 'Child Node', key: `${key}-0` },
-//                     { title: 'Child Node', key: `${key}-1` },
-//                 ]),
-//             );
-
-//             resolve();
-//         }, 1000);
-//     });
-// }
