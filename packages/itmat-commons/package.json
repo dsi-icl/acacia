@@ -29,7 +29,7 @@
         "@types/jest": "26.0.0",
         "@types/minio": "7.0.5",
         "@types/mongodb": "3.5.20",
-        "@types/node": "13.13.10",
+        "@types/node": "13.13.12",
         "@types/supertest": "2.0.9",
         "chalk": "4.1.0",
         "jest": "26.0.1",
