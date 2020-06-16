@@ -1,10 +1,14 @@
 #Develop branch
 
 To deploy the app, some programs need to be installed:
-0. Prerequisites
-- mongodb
 
-- minio
+0. Prerequisites
+- Mongodb
+Refer this website to [install Mongodb] (https://docs.mongodb.com/manual/installation/)
+A [replica set] is required to run the app (https://docs.mongodb.com/manual/replication/).
+You need to [deploy a Mongodb replica set] at your local PC (https://docs.mongodb.com/manual/tutorial/deploy-replica-set/)
+
+- MinIO
 
 
 
