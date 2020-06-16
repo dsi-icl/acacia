@@ -17,6 +17,16 @@ Or [convert a standalone to a replica set] (https://docs.mongodb.com/manual/tuto
 
 MinIO is required for high-performance object storage. Refer [this to install MinIO] (https://docs.min.io/docs/minio-quickstart-guide.html)
 
+- Initalise the database for the app:
+
+Go to ```packages/itmat-interface/src/databaseSetup``` to initialise the database using the script ```collectionsAndIndexes.ts```.
+
+This script needs to be editted to run the ```setupDatabase``` function:
+```setupDatabase(mongostr, databaseName).then(() => {});;```
+
+Where ```mongostr``` and ```databaseName``` are mongodb connection string and database name for the app, respectively.
+
+
 To start the app, run the following commands at root folder (you will have to have `yarn` installed):
 
 1. Install dependencies and build
