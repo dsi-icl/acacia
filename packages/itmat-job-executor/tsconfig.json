@@ -9,6 +9,8 @@
         "module": "esnext",
         "moduleResolution": "node",
         "declaration": false,
-        "noImplicitThis": false
+        "noImplicitThis": false,
+        "noImplicitAny": false,
+        "strictNullChecks": false
     }
 }
