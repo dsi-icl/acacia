@@ -3,11 +3,8 @@ import { useMutation, ExecutionResult } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { CREATE_USER } from 'itmat-commons';
 import css from './userList.module.css';
-import { RouteComponentProps } from 'react-router-dom';
 
-type CreateNewUserProps = RouteComponentProps;
-
-export const CreateNewUser: React.FunctionComponent<CreateNewUserProps> = () => {
+export const CreateNewUser: React.FunctionComponent = () => {
     const [completedCreation, setCompletedCreation] = React.useState(false);
     const [inputError, setError] = React.useState('');
     const [createUser, { loading }] = useMutation(CREATE_USER,
