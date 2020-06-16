@@ -52,7 +52,7 @@
     },
     "resolutions": {
         "**/**/fs-capacitor": "^6.0.0",
-        "**/graphql-upload": "^9.0.0",
+        "**/graphql-upload": "^11.0.0",
         "**/graphql": "14.5.3",
         "**/moment": "2.26.0"
     },
