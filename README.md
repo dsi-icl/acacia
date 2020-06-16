@@ -3,7 +3,8 @@
 To deploy the app, some programs need to be installed:
 
 0. Prerequisites
-- Mongodb
+- Mongodb:
+
 Refer [this to install Mongodb] (https://docs.mongodb.com/manual/installation/).
 
 A [replica set] is required to run the app (https://docs.mongodb.com/manual/replication/).
@@ -12,7 +13,8 @@ You need to [deploy a Mongodb replica set] at your local PC (https://docs.mongod
 
 Or [convert a standalone to a replica set] (https://docs.mongodb.com/manual/tutorial/convert-standalone-to-replica-set/).
 
-- MinIO
+- MinIO:
+
 MinIO is required for high-performance object storage. Refer [this to install MinIO] (https://docs.min.io/docs/minio-quickstart-guide.html)
 
 To start the app, run the following commands at root folder (you will have to have `yarn` installed):
