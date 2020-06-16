@@ -1,9 +1,8 @@
 import { SearchOutlined } from '@ant-design/icons';
-import { Models } from 'itmat-commons';
+import { Models, GET_USERS } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './userList.module.css';
 

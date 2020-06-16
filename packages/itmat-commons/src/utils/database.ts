@@ -12,7 +12,10 @@ export interface IDatabaseBaseConfig {
 
 export interface IDatabase {
     collections?: any;
-    connect: (config: any) => Promise<void>;
+    connect: (
+        config: any,
+        mongoClientConnect: (uri: string, options?: mongodb.MongoClientOptions) => Promise<mongodb.MongoClient>
+    ) => Promise<void>;
     db: mongodb.Db;
     client: mongodb.MongoClient;
     isConnected: () => boolean;
@@ -32,16 +35,18 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
     private localClient?: mongodb.MongoClient;
     private config?: configType;
 
-    public async connect(config: configType): Promise<void> {
-        this.localClient = new mongodb.MongoClient(config.mongo_url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+    public async connect(
+        config: configType,
+        mongoClientConnect: (uri: string, options?: mongodb.MongoClientOptions) => Promise<mongodb.MongoClient>
+    ): Promise<void> {
         this.config = config;
         if (!this.isConnected()) {
             Logger.log('Connecting to the database..');
             /* any error throw here will be caught by the server */
-            await this.localClient.connect();
+            this.localClient = await mongoClientConnect(config.mongo_url, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            });
             Logger.log('Connected to database.');
 
             Logger.log('Performing basic checks..');
@@ -57,7 +62,10 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
     }
 
     public isConnected(): boolean {
-        return this.localClient!.isConnected();
+        if  (!this.localClient) {
+            return false;
+        }
+        return this.localClient.isConnected();
     }
 
     public async closeConnection(): Promise<void> {

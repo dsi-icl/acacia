@@ -4,7 +4,7 @@ import { Subsection } from '../../../reusable';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import css from './tabContent.module.css';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { GET_STUDY } from 'itmat-commons';
 import { RouteComponentProps } from 'react-router';
 
 type AdminTabContentProps = RouteComponentProps<{

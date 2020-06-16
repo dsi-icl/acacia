@@ -1,7 +1,7 @@
 import { processDataRow, processHeader, CSVCurator } from '../../src/curation/CSVCurator';
 import fs from 'fs';
 import { stub } from './_stubHelper';
-import { IJobEntryForDataCuration } from 'itmat-commons/dist/models/job';
+import { IJobEntryForDataCuration } from 'itmat-commons';
 
 describe('Unit tests for processHeader function', () => {
     it('processHeader function weeds out syntax error', () => {

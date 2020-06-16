@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Mutation, useQuery, useMutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { IUserWithoutToken, userTypes } from 'itmat-commons/dist/models/user';
+import { IUserWithoutToken, userTypes } from 'itmat-commons';
 import { Subsection } from '../reusable';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
@@ -197,14 +197,13 @@ export const changeTimeFunc = {
         if (isNaN(new Date(value + 'T' + recordTime).valueOf()) || (new Date(value + 'T' + recordTime).valueOf() < 0) ) {
             newDate = new Date(inputs.expiredAt);
         } else {
-            newDate = new Date(value + 'T' + recordTime);   
+            newDate = new Date(value + 'T' + recordTime);
         }
         return {...inputs, expiredAt: newDate.valueOf()};
     },
     changeTime: function(inputs: any, value: any) {
         const recordedDate = new Date(inputs.expiredAt).toISOString().substring(0, 10);
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
-        return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};   
+        return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};
     }
 };
-                        

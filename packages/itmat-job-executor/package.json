@@ -26,8 +26,7 @@
         "deepmerge": "4.2.2",
         "express": "4.17.1",
         "json2csv": "5.0.1",
-        "itmat-commons": "0.5.0",
-        "itmat-utils": "1.1.8",
+        "itmat-commons": "0.6.0",
         "mongodb": "3.5.8",
         "node-fetch": "2.6.0",
         "saslprep": "1.0.3",
@@ -67,7 +66,7 @@
     "jest": {
         "globals": {
             "ts-jest": {
-                "tsConfig": "./config/tsconfig.json"
+                "tsConfig": "./tsconfig.build.json"
             }
         },
         "transform": {

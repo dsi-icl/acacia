@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
-import { userTypes } from 'itmat-commons/dist/models/user';
-import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
-import { CREATE_STUDY } from 'itmat-commons/dist/graphql/study';
+import { userTypes, WHO_AM_I, CREATE_STUDY } from 'itmat-commons';
 
 export const AddNewDataSet: React.FunctionComponent = () => {
     const [showMore, setShowMore] = React.useState(false);

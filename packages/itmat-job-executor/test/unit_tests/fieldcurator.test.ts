@@ -1,6 +1,6 @@
 import { processFieldRow, FieldCurator } from '../../src/curation/FieldCurator';
 import fs from 'fs';
-import { IJobEntryForFieldCuration, IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntryForFieldCuration, IJobEntry } from 'itmat-commons';
 import { stub } from './_stubHelper';
 
 describe('Unit tests for processFieldRow function', () => {

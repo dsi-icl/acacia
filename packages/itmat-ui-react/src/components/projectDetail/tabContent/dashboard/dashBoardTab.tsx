@@ -1,5 +1,5 @@
-import { IJobEntry } from 'itmat-commons/dist/models/job';
 import * as React from 'react';
+import { IJobEntry } from 'itmat-commons';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import { JobSection } from './jobs';
 import css from './tabContent.module.css';

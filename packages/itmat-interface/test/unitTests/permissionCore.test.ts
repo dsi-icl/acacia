@@ -2,7 +2,7 @@ import { db } from '../../src/database/database';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import setupDatabase from '../../src/databaseSetup/collectionsAndIndexes';
 import config from '../../config/config.sample.json';
 import { permissionCore } from '../../src/graphql/core/permissionCore';
 const { permissions, task_required_permissions } = itmatCommons;
@@ -27,7 +27,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database);
+    await db.connect(config.database, MongoClient.connect);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString, {
@@ -51,7 +51,7 @@ describe('PERMISSION CORE CLASS', () => {
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
-                    email: 'new1@user.io',
+                    email: 'new1@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -65,7 +65,7 @@ describe('PERMISSION CORE CLASS', () => {
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
-                    email: 'new2@user.io',
+                    email: 'new2@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -79,7 +79,7 @@ describe('PERMISSION CORE CLASS', () => {
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
-                    email: 'new3@user.io',
+                    email: 'new3@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -93,7 +93,7 @@ describe('PERMISSION CORE CLASS', () => {
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
-                    email: 'new4@user.io',
+                    email: 'new4@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',
@@ -107,7 +107,7 @@ describe('PERMISSION CORE CLASS', () => {
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     createdBy: 'admin',
-                    email: 'new5@user.io',
+                    email: 'new5@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'DSI',

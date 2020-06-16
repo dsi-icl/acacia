@@ -1,6 +1,4 @@
-import { IFile } from 'itmat-commons/dist/models/file';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import { IFile, IJobEntry, IStudyDataVersion } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
@@ -34,7 +32,6 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
 
-
         if (errors.length !== 0) {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors } });
             return;
@@ -58,8 +55,6 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
             $inc: {
                 currentDataVersion: 1
             }
-
         });
     }
-
 }

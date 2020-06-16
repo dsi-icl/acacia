@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useMutation, ExecutionResult } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_USER, GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
+import { CREATE_USER, GET_USERS } from 'itmat-commons';
 import css from './userList.module.css';
 
 export const CreateNewUser: React.FunctionComponent = () => {

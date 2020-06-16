@@ -1,10 +1,15 @@
-import { Models, permissions } from 'itmat-commons';
 import * as React from 'react';
 import { Mutation, useQuery, useMutation } from 'react-apollo';
-import { GET_USERS } from 'itmat-commons/dist/graphql/appUsers';
-import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from 'itmat-commons/src/graphql/permission';
-import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import {
+    Models,
+    permissions,
+    ADD_NEW_ROLE,
+    EDIT_ROLE,
+    REMOVE_ROLE,
+    GET_USERS,
+    GET_PROJECT,
+    GET_STUDY
+} from 'itmat-commons';
 import { LoadingBalls } from '../icons/loadingBalls';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button } from 'antd';
