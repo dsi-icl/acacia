@@ -21,15 +21,34 @@ First things first, there's always something before you can start.
 
 To make our life easier, we use [Yarn](https://yarnpkg.com/) a lot. Make sure you have it installed.
 
-### Start the project
+This software requires both MongoDB and MinIO to be available. Follow the installation guidelines for these software directly from their respective websites:
+- [https://docs.mongodb.com](https://docs.mongodb.com/manual/installation/)
+- [https://docs.min.io](https://docs.min.io/docs/minio-quickstart-guide.html)
 
-Building the library is easy. First run `yarn install && yarn start`, to build the application. The current application is built ontop of a system called ICL-ITMAT-Broker comprised of multiple components including :
+Both software also have easy to start docker images available for convenience.
+
+### Build the project
+
+Building the library is easy. First run `yarn install && yarn build`, to build the application. The current application is built ontop of a system called ICL-ITMAT-Broker comprised of multiple components including :
 
 - itmat-commons
 - itmat-interface
 - itmat-job-executor
 - itmat-ui-react
 - itmat-utils
+
+### Add configuration
+
+You will need to provide database and object store connection details and will have the ability to customised other paramters. We typically recommend that you configure your secrets.
+
+```bash
+cp packages/itmat-interface/config.sample.json packages/itmat-interface/config.json
+cp packages/itmat-job-executor/config.sample.json packages/itmat-job-executor/config.json
+```
+
+### Start developing
+
+Once all that is done, you only need to use `yarn start` to start the software in development mode.
 
 ## Credits
 
