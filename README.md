@@ -5,17 +5,17 @@ To deploy the app, some programs need to be installed:
 ## 0. Prerequisites
 ### - Mongodb:
 
-Refer [this to install Mongodb] (https://docs.mongodb.com/manual/installation/).
+Refer [this to install Mongodb](https://docs.mongodb.com/manual/installation/).
 
-A [replica set] is required to run the app (https://docs.mongodb.com/manual/replication/).
+A [replica set](https://docs.mongodb.com/manual/replication/) is required to run the app.
 
-You need to [deploy a Mongodb replica set] at your local PC (https://docs.mongodb.com/manual/tutorial/deploy-replica-set/)
+You need to [deploy a Mongodb replica set](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/) at your local PC.
 
-Or [convert a standalone to a replica set] (https://docs.mongodb.com/manual/tutorial/convert-standalone-to-replica-set/).
+Or [convert a standalone to a replica set](https://docs.mongodb.com/manual/tutorial/convert-standalone-to-replica-set/).
 
 ### - MinIO:
 
-MinIO is required for high-performance object storage. Refer [this to install MinIO] (https://docs.min.io/docs/minio-quickstart-guide.html)
+MinIO is required for high-performance object storage. Refer [this to install MinIO](https://docs.min.io/docs/minio-quickstart-guide.html)
 
 ### - Initalise the database for the app:
 
