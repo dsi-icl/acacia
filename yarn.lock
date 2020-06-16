@@ -3332,10 +3332,10 @@
   dependencies:
     mongodb-memory-server "*"
 
-"@types/mongodb@3.5.20":
-  version "3.5.20"
-  resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-3.5.20.tgz#4065afc55b6275d0dd8e831fa421018475d54d56"
-  integrity sha512-BN0wJn670DkivxiP7ZW0InX4qBtX01qITaucD+3A+sTgPQo4XUYay0Y+sGM4MJ9OyKDRlb3RQuVAlyeWzl/NoA==
+"@types/mongodb@3.5.21":
+  version "3.5.21"
+  resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-3.5.21.tgz#2bb7147e47b853ec0d82125a470d591a2c13f93a"
+  integrity sha512-uEwhorqg7e1+5tzHsgTKPztoZ6nwXgp74ipxeDCEyfbHPKSvIZpYT5/ZYFIZmODLXNybOt3Clwu7vN7e++i2Xg==
   dependencies:
     "@types/bson" "*"
     "@types/node" "*"
