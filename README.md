@@ -30,7 +30,7 @@ cp packages/itmat-job-executor/config.sample.json packages/itmat-job-executor/co
 ```
 These config files need to be editted accordingly for Mongodb database (```database{ }```) and MinIO (```objectStore{ }```).
 
-```nodemailer{ }``` in ```packages/itmat-interface/config.json``` also required to be configured for email service.
+```nodemailer{ }``` in ```packages/itmat-interface/config.json``` is also required to configure for email service.
 
 3. Start the app (access it on localhost:3000)
 ```bash
