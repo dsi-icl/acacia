@@ -5,8 +5,13 @@ import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import css from './tabContent.module.css';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
 import { GET_STUDY } from 'itmat-commons';
+import { RouteComponentProps } from 'react-router-dom';
 
-export const AdminTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+type AdminTabContentProps = RouteComponentProps<{
+    studyId: string
+}>;
+
+export const AdminTabContent: React.FunctionComponent<AdminTabContentProps> = ({ match: { params: { studyId } }}) => {
     const { data, loading } = useQuery(GET_STUDY, { variables: { studyId }});
     if (loading) { return <LoadingBalls/>; }
 
