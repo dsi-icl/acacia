@@ -8,6 +8,7 @@
     "files": [
         "build"
     ],
+    "proxy": "http://localhost:3003",
     "scripts": {
         "start": "cross-env BROWSER=none SKIP_PREFLIGHT_CHECK=true react-scripts start",
         "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
