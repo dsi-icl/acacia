@@ -1,7 +1,6 @@
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import React from 'react';
 import { Query } from 'react-apollo';
-import { GET_STUDY_FIELDS } from 'itmat-commons/dist/graphql/fields';
+import { GET_STUDY_FIELDS, IStudyDataVersion } from 'itmat-commons';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 // number of patients

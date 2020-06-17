@@ -2,7 +2,7 @@
  * @with Minio
  */
 
-import { ObjectStore } from '../src/objStore';
+import { ObjectStore } from '../../src/utils';
 import path from 'path';
 import fs from 'fs';
 
@@ -38,7 +38,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
 
     test('Upload file where studyId bucket doesnt exist yet', async () => {
         const uploadResult = await client.uploadFile(
-            fs.createReadStream(path.join(__dirname, 'files/fakefile.txt')),
+            fs.createReadStream(path.join(__dirname, '../files/fakefile.txt')),
             'fakeStudy1',
             '1459034jf9jdklsafj2ojffo-qj-s0fjds0fa'
         );
@@ -47,13 +47,13 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
 
     test('Upload file where studyId bucket already exists', async () => {
         await client.uploadFile(
-            fs.createReadStream(path.join(__dirname, 'files/fakefile.txt')),
+            fs.createReadStream(path.join(__dirname, '../files/fakefile.txt')),
             'fakeStudy2',
             '145safj2ojffo-qj-sdfsad0fjds0fafdsj21'
         );
 
         const uploadResult = await client.uploadFile(
-            fs.createReadStream(path.join(__dirname, 'files/fakefile.txt')),
+            fs.createReadStream(path.join(__dirname, '../files/fakefile.txt')),
             'fakeStudy2',
             '145safd0445klfsaj-sdfsad0fjds0fafdsj21'
         );
@@ -62,7 +62,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
 
     test('Upload file whose name is duplicated', async () => {
         await client.uploadFile(
-            fs.createReadStream(path.join(__dirname, 'files/fakefile2.txt')),
+            fs.createReadStream(path.join(__dirname, '../files/fakefile2.txt')),
             'fakeStudy3',
             'jkfljsdkfjij042rjio2-fi0-ds9a'
         );
@@ -71,7 +71,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
         let error;
         try {
             uploadResult = await client.uploadFile(
-                fs.createReadStream(path.join(__dirname, 'files/fakefile.txt')),
+                fs.createReadStream(path.join(__dirname, '../files/fakefile.txt')),
                 'fakeStudy3',
                 'jkfljsdkfjij042rjio2-fi0-ds9a'
             );
@@ -84,7 +84,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
 
     test('Download file', async () => {
         await client.uploadFile(
-            fs.createReadStream(path.join(__dirname, 'files/fakefile2.txt')),
+            fs.createReadStream(path.join(__dirname, '../files/fakefile2.txt')),
             'fakeStudy3',
             'sdfsad0fjds0fafdsj21'
         );

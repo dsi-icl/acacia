@@ -1,4 +1,4 @@
-import { ObjectStore } from 'itmat-utils';
+import { ObjectStore } from 'itmat-commons';
 
 export const objStore = new ObjectStore();
 

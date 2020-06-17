@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { IQueryEntry } from 'itmat-commons/dist/models/query';
+import { IQueryEntry } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';

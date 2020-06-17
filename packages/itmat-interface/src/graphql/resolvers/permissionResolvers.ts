@@ -1,6 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { IRole } from 'itmat-commons/dist/models/study';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { IUser, IRole } from 'itmat-commons';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
@@ -9,6 +8,30 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 import { task_required_permissions, permissions } from 'itmat-commons';
 
 export const permissionResolvers = {
+    Query: {
+        getGrantedPermissions: async (__unused__parent: Record<string, unknown>, { studyId, projectId }: { studyId?: string, projectId?: string }, context: any): Promise<{
+            studies: unknown[];
+            projects: unknown[];
+        }> => {
+            const requester: IUser = context.req.user;
+            const matchClause: Record<string, unknown> = { users: requester.id };
+            if (studyId)
+                matchClause.studyId = studyId;
+            if (projectId)
+                matchClause.projectId = { $in: [projectId, null] };
+            const aggregationPipeline = [
+                { $match: matchClause }
+                // { $group: { _id: requester.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
+                // { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
+            ];
+
+            const grantedPermissions = {
+                studies: await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray(),
+                projects: await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray()
+            };
+            return grantedPermissions;
+        }
+    },
     StudyOrProjectUserRole: {
         users: async (role: IRole): Promise<IUser[]> => {
             const listOfUsers = role.users;

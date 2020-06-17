@@ -44,6 +44,11 @@ type UserAccess {
     studies: [Study]!
 }
 
+type UserPermissions {
+    projects: [StudyOrProjectUserRole]!
+    studies: [StudyOrProjectUserRole]!
+}
+
 type User {
     id: String!
     username: String! # admin only
@@ -239,7 +244,7 @@ type Query {
     getQueryById(queryId: String!): QueryEntry
 
     # PERMISSION
-    getMyPermissions: [String]
+    getGrantedPermissions(studyId: String, projectId: String): UserPermissions
 }
 
 type Mutation {
@@ -253,9 +258,9 @@ type Mutation {
         username: String
     ): GenericResponse
     resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
+    createUser(user: CreateUserInput!): GenericResponse
 
     # APP USERS
-    createUser(user: CreateUserInput!): User
     editUser(user: EditUserInput!): User
     deleteUser(userId: String!): GenericResponse
 

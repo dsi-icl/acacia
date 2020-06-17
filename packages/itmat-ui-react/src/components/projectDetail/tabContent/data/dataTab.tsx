@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
+import { GET_PROJECT } from 'itmat-commons';
 // import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
-// import { IFieldEntry } from 'itmat-commons/dist/models/field';
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string; projectId: string }> = ({ projectId }) => {
     return <div className={css.scaffold_wrapper}>

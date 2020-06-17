@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { Switch, Route } from 'react-router-dom';
-import { WHO_AM_I } from 'itmat-commons/dist/graphql/user';
 import Providers from './Providers';
 import { LoginBox } from './components/login/login';
 import { Spinner } from './components/reusable/icons/spinner';
@@ -10,12 +9,15 @@ import { MainPanel } from './components/scaffold/mainPanel';
 import css from './components/scaffold/scaffold.module.css';
 import { ResetPasswordPage } from './components/resetPasswordPage/resetPasswordPage';
 import { RequestResetPassword } from './components/resetPasswordPage/requestResetPasswordPage';
+import { CreateNewUser } from './components/users/createNewUser';
+import { WHO_AM_I } from 'itmat-commons';
 
 export const App: React.FunctionComponent = () => (
     <Providers>
         <Switch>
-            <Route path='/resetPassword/:encryptedEmail/:token' component={ResetPasswordPage}/>
-            <Route path='/requestResetPassword' component={RequestResetPassword}/>
+            <Route path='/resetPassword/:encryptedEmail/:token' component={ResetPasswordPage} />
+            <Route path='/requestResetPassword' component={RequestResetPassword} />
+            <Route path='/userRegistration' component={CreateNewUser} />
             <Route>
                 <Query<any, any> query={WHO_AM_I}>
                     {({ loading, error, data }) => {

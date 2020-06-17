@@ -21,6 +21,11 @@
         "jsx": "react"
     },
     "include": [
-        "src"
+        "src",
+        "../../global.d.ts"
+    ],
+    "exclude": [
+        "src/setupProxy.js",
+        "src/setupTests.js"
     ]
 }
