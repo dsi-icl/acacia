@@ -15,9 +15,9 @@ import { WHO_AM_I } from 'itmat-commons';
 export const App: React.FunctionComponent = () => (
     <Providers>
         <Switch>
-            <Route path='/resetPassword/:encryptedEmail/:token' component={ResetPasswordPage}/>
-            <Route path='/requestResetPassword' component={RequestResetPassword}/>
-            <Route path='/userRegistration' component={CreateNewUser}/>
+            <Route path='/resetPassword/:encryptedEmail/:token' component={ResetPasswordPage} />
+            <Route path='/requestResetPassword' component={RequestResetPassword} />
+            <Route path='/userRegistration' component={CreateNewUser} />
             <Route>
                 <Query<any, any> query={WHO_AM_I}>
                     {({ loading, error, data }) => {
