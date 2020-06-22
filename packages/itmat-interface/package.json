@@ -32,7 +32,7 @@
         "hi-base32": "0.5.0",
         "itmat-commons": "0.6.0",
         "mongodb": "3.5.9",
-        "nodemailer": "6.4.8",
+        "nodemailer": "6.4.10",
         "passport": "0.4.1",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
