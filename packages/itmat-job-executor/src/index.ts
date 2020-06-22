@@ -31,7 +31,8 @@ function serverStart() {
 
     }).catch((error) => {
         console.error('An error occurred while starting the ITMAT job executor.', error);
-        console.error(error.stack);
+        if (error.stack)
+            console.error(error.stack);
         return false;
     });
 }
