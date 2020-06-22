@@ -54,7 +54,8 @@ type User {
     username: String! # admin only
     otpSecret: String!
     type: USERTYPE!
-    realName: String
+    firstname: String
+    lastname: String
     organisation: String
     email: String # admin only
     description: String # admin only
@@ -198,7 +199,8 @@ input QueryObjInput {
 input CreateUserInput {
     username: String!
     type: USERTYPE!
-    realName: String!
+    firstname: String!
+    lastname: String!
     email: String!
     description: String!
     organisation: String!
@@ -210,7 +212,8 @@ input EditUserInput {
     id: String!
     username: String
     type: USERTYPE
-    realName: String
+    firstname: String
+    lastname: String
     email: String
     description: String
     organisation: String

@@ -161,7 +161,7 @@ export const userResolvers = {
                     to: user.email,
                     resetPasswordToken: passwordResetToken,
                     username: user.username,
-                    realname: user.realName,
+                    firstname: user.firstname,
                     host: context.req.hostname
                 }));
             } else {
@@ -169,7 +169,7 @@ export const userResolvers = {
                 await mailer.sendMail(formatEmailForFogettenUsername({
                     to: user.email,
                     username: user.username,
-                    realname: user.realName
+                    firstname: user.firstname
                 }));
             }
             return makeGenericReponse();
@@ -228,8 +228,8 @@ export const userResolvers = {
             });
         },
         createUser: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
-            const { username, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
+            const { username, firstname, lastname, email, emailNotificationsActivated, password, description, organisation }: {
+                username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
             } = args.user;
 
             /* check email is valid form */
@@ -259,7 +259,8 @@ export const userResolvers = {
                 username,
                 type,
                 description,
-                realName,
+                firstname,
+                lastname,
                 email,
                 organisation,
                 emailNotificationsActivated
@@ -268,18 +269,18 @@ export const userResolvers = {
             /* send email to the registered user */
             // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code
             const oauth_uri = `otpauth://totp/IDEAFAST:${username}?secret=${createdUser.otpSecret}&issuer=IDEAFAST`;
-            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png'});
+            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
                 if (err) throw new ApolloError(err);
             });
 
-            const attachments = [{filename:'qrcode.png', path: tmpobj.name, cid:'qrcode_cid'}];
+            const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
             await mailer.sendMail({
                 from: config.nodemailer.auth.user,
                 to: email,
                 subject: 'IDEA-FAST: Registration Successful',
-                html: `<p>Dear ${realName},<p>
+                html: `<p>Dear ${firstname},<p>
                     Welcome to the IDEA-FAST project!
                     <br/>
                     <p>Your username is <b>${username}</b>.</p><br/>
@@ -368,8 +369,8 @@ export const userResolvers = {
         },
         editUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Record<string, unknown>> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation, expiredAt }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number
+            const { id, username, type, firstname, lastname, email, emailNotificationsActivated, password, description, organisation, expiredAt }: {
+                id: string, username?: string, type?: Models.UserModels.userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number
             } = args.user;
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
@@ -389,7 +390,8 @@ export const userResolvers = {
 
             const fieldsToUpdate = {
                 type,
-                realName,
+                firstname,
+                lastname,
                 username,
                 email,
                 emailNotificationsActivated,
@@ -405,7 +407,7 @@ export const userResolvers = {
             }
 
             if (requester.type !== Models.UserModels.userTypes.ADMIN && (
-                type || realName || username || description || organisation
+                type || firstname || lastname || username || description || organisation
             )) {
                 throw new ApolloError('User not updated: Non-admin users are only authorised to change their password or email.');
             }
@@ -467,7 +469,7 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
     });
 }
 
-async function formatEmailForForgottenPassword({ realname, to, resetPasswordToken, username, host }: { host: string, username: string, resetPasswordToken: string, to: string, realname: string }) {
+async function formatEmailForForgottenPassword({ firstname, to, resetPasswordToken, username, host }: { host: string, username: string, resetPasswordToken: string, to: string, firstname: string }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
     const iv = makeAESIv(resetPasswordToken);
     const encryptedEmail = await encryptEmail(to, keySalt, iv);
@@ -478,7 +480,7 @@ async function formatEmailForForgottenPassword({ realname, to, resetPasswordToke
         from: '"NAME"',
         to,
         subject: 'Reset your NAME password',
-        html: `<p>Dear ${realname},<p>
+        html: `<p>Dear ${firstname},<p>
             <br/>
             <p>Your username is <b>${username}</b>.</p><br/>
             <p>You can reset you password by click the following link (active for 1 hour):</p>
@@ -491,12 +493,12 @@ async function formatEmailForForgottenPassword({ realname, to, resetPasswordToke
     });
 }
 
-function formatEmailForFogettenUsername({ username, to, realname }: { username: string, to: string, realname: string }) {
+function formatEmailForFogettenUsername({ username, to, firstname }: { username: string, to: string, firstname: string }) {
     return ({
         from: '"NAME" <name@name.io>',
         to,
         subject: 'Your NAME username reminder',
-        html: `<p>Dear ${realname},<p>
+        html: `<p>Dear ${firstname},<p>
             <br/>
             <p>Your username is <b>${username}</b>.</p><br/>
 

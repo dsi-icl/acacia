@@ -31,7 +31,8 @@ export const EDIT_ROLE = gql`
             users {
                 id
                 organisation
-                realName
+                firstname
+                lastname
             }
         }
     }
@@ -55,7 +56,8 @@ export const ADD_NEW_ROLE = gql`
             projectId
             users {
                 id
-                realName
+                firstname
+                lastname
                 organisation
             }
         }

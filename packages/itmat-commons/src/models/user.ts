@@ -8,7 +8,8 @@ export interface IUserWithoutToken {
     username: string;
     otpSecret: string;
     email: string;
-    realName: string;
+    firstname: string;
+    lastname: string;
     organisation: string;
     type: userTypes;
     description: string;

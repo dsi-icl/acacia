@@ -467,7 +467,8 @@ describe('USERS API', () => {
                 username: 'standardUser',
                 otpSecret: checkedUser.otpSecret,
                 type: userTypes.STANDARD,
-                realName: 'Chan Tai Man',
+                firstname: 'Tai Man',
+                lastname: 'Chan',
                 organisation: 'DSI',
                 email: 'standard@example.com',
                 description: 'I am a standard user.',
@@ -532,7 +533,8 @@ describe('USERS API', () => {
                 username: 'standardUser',
                 otpSecret: checkedUser.otpSecret,
                 type: userTypes.STANDARD,
-                realName: 'Chan Tai Man',
+                firstname: 'Tai Man',
+                lastname: 'Chan',
                 organisation: 'DSI',
                 email: 'standard@example.com',
                 description: 'I am a standard user.',
@@ -608,7 +610,8 @@ describe('USERS API', () => {
                 username: 'admin',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
-                realName: 'admin',
+                firstname: 'Fadmin',
+                lastname: 'Ladmin',
                 organisation: 'DSI',
                 email: 'admin@example.com',
                 description: 'I am an admin user.',
@@ -633,7 +636,8 @@ describe('USERS API', () => {
                 username: 'standardUser',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.STANDARD,
-                realName: 'Chan Tai Man',
+                firstname: 'Tai Man',
+                lastname: 'Chan',
                 organisation: 'DSI',
                 email: 'standard@example.com',
                 description: 'I am a standard user.',
@@ -653,7 +657,8 @@ describe('USERS API', () => {
             const newUser: IUser = {
                 username: 'expired_user',
                 type: userTypes.STANDARD,
-                realName: 'expired user',
+                firstname: 'Fexpired user',
+                lastname: 'Lexpired user',
                 password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'expire@example.com',
@@ -696,7 +701,8 @@ describe('USERS API', () => {
             const newUser: IUser = {
                 username: 'expired_admin',
                 type: userTypes.ADMIN,
-                realName: 'expired admin',
+                firstname: 'Fexpired admin',
+                lastname: 'Lexpired admin',
                 password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'admine@example.com',
@@ -725,7 +731,8 @@ describe('USERS API', () => {
                 id: 'expiredId1',
                 username: 'expired_admin',
                 type: 'ADMIN',
-                realName: 'expired admin',
+                firstname: 'Fexpired admin',
+                lastname: 'Lexpired admin',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'admine@example.com',
                 organisation: 'DSI',
@@ -769,7 +776,8 @@ describe('USERS API', () => {
                     username: 'admin',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin',
+                    firstname: 'Fadmin',
+                    lastname: 'Ladmin',
                     organisation: 'DSI',
                     email: 'admin@example.com',
                     description: 'I am an admin user.',
@@ -781,7 +789,8 @@ describe('USERS API', () => {
                     username: 'standardUser',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man',
+                    firstname: 'Tai Man',
+                    lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
                     description: 'I am a standard user.',
@@ -800,7 +809,8 @@ describe('USERS API', () => {
                     username: 'admin',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin',
+                    firstname: 'Fadmin',
+                    lastname: 'Ladmin',
                     organisation: 'DSI',
                     email: 'admin@example.com',
                     description: 'I am an admin user.',
@@ -817,7 +827,8 @@ describe('USERS API', () => {
                     username: 'standardUser',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man',
+                    firstname: 'Tai Man',
+                    lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
                     description: 'I am a standard user.',
@@ -844,7 +855,8 @@ describe('USERS API', () => {
                     username: 'standardUser',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man',
+                    firstname: 'Tai Man',
+                    lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
                     description: 'I am a standard user.',
@@ -869,7 +881,8 @@ describe('USERS API', () => {
                     username: 'standardUser',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man',
+                    firstname: 'Tai Man',
+                    lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
                     description: 'I am a standard user.',
@@ -893,14 +906,16 @@ describe('USERS API', () => {
                 {
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin',
+                    firstname: 'Fadmin',
+                    lastname: 'Ladmin',
                     organisation: 'DSI',
                     id: adminId
                 },
                 {
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man',
+                    firstname: 'Tai Man',
+                    lastname: 'Chan',
                     organisation: 'DSI',
                     id: userId
                 }
@@ -915,14 +930,16 @@ describe('USERS API', () => {
                 {
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin',
+                    firstname: 'Fadmin',
+                    lastname: 'Ladmin',
                     organisation: 'DSI',
                     id: adminId
                 },
                 {
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man',
+                    firstname: 'Tai Man',
+                    lastname: 'Chan',
                     organisation: 'DSI',
                     id: userId
                 }
@@ -938,7 +955,8 @@ describe('USERS API', () => {
                     username: 'standardUser',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man',
+                    firstname: 'Tai Man',
+                    lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
                     description: 'I am a standard user.',
@@ -975,7 +993,8 @@ describe('USERS API', () => {
                 {
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin',
+                    firstname: 'Fadmin',
+                    lastname: 'Ladmin',
                     organisation: 'DSI',
                     id: adminId
                 }
@@ -991,7 +1010,8 @@ describe('USERS API', () => {
                     username: 'standardUser',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
-                    realName: 'Chan Tai Man',
+                    firstname: 'Tai Man',
+                    lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
                     description: 'I am a standard user.',
@@ -1016,7 +1036,8 @@ describe('USERS API', () => {
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     organisation: 'DSI',
-                    realName: 'Chan Tai Man',
+                    firstname: 'Tai Man',
+                    lastname: 'Chan',
                     id: userId,
                     access: {
                         id: `user_access_obj_user_id_${userId}`,
@@ -1041,7 +1062,8 @@ describe('USERS API', () => {
                 variables: {
                     username: 'testuser0',
                     password: 'testpassword0',
-                    realName: 'User Testing',
+                    firstname: 'FUser Testing',
+                    lastname: 'LUser Testing',
                     description: 'I am fake!',
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
@@ -1079,7 +1101,8 @@ describe('USERS API', () => {
                 variables: {
                     username: 'testuser1',
                     password: 'testpassword',
-                    realName: 'User Testing',
+                    firstname: 'FUser Testing',
+                    lastname: 'LUser Testing',
                     description: 'I am fake!',
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
@@ -1103,7 +1126,8 @@ describe('USERS API', () => {
                 variables: {
                     username: 'testuser2',
                     password: 'testpassword',
-                    realName: 'User Testing2',
+                    firstname: 'FUser Testing2',
+                    lastname: 'LUser Testing2',
                     description: 'I am fake!',
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
@@ -1123,7 +1147,8 @@ describe('USERS API', () => {
                 variables: {
                     username: 'test user1',
                     password: 'test password',
-                    realName: 'User Testing',
+                    firstname: 'FUser Testing',
+                    lastname: 'LUser Testing',
                     description: 'I am fake!',
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
@@ -1140,9 +1165,10 @@ describe('USERS API', () => {
         test('create user that already exists', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user',
+                username: 'new_user',
                 type: userTypes.STANDARD,
-                realName: 'Chan Siu Man',
+                firstname: 'FChan Siu Man',
+                lastname: 'LChan Siu Man',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new@example.com',
@@ -1163,7 +1189,8 @@ describe('USERS API', () => {
                 variables: {
                     username: 'new_user',
                     password: 'testpassword',
-                    realName: 'User Testing',
+                    firstname: 'FUser Testing',
+                    lastname: 'LUser Testing',
                     description: 'I am fake!',
                     organisation: 'DSI-ICL',
                     emailNotificationsActivated: false,
@@ -1180,9 +1207,10 @@ describe('USERS API', () => {
         test('edit user password (admin) (should fail)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_333333',
+                username: 'new_user_333333',
                 type: userTypes.STANDARD,
-                realName: 'Chan Ming Ming',
+                firstname: 'FChan Ming Ming',
+                lastname: 'LChan Ming Ming',
                 password: 'fakepassword',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new3333@example.com',
@@ -1222,9 +1250,10 @@ describe('USERS API', () => {
         test('edit user without password (admin)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_3',
+                username: 'new_user_3',
                 type: userTypes.STANDARD,
-                realName: 'Chan Ming Man',
+                firstname: 'FChan Ming Man',
+                lastname: 'LChan Ming Man',
                 password: 'fakepassword',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new3@example.com',
@@ -1247,7 +1276,8 @@ describe('USERS API', () => {
                         id: 'fakeid2222',
                         username: 'fakeusername',
                         type: userTypes.ADMIN,
-                        realName: 'Man',
+                        firstname: 'FMan',
+                        lastname: 'LMan',
                         email: 'hey@uk.io',
                         description: 'DSI director',
                         organisation: 'DSI-ICL',
@@ -1264,7 +1294,8 @@ describe('USERS API', () => {
                     username: 'fakeusername',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'Man',
+                    firstname: 'FMan',
+                    lastname: 'LMan',
                     organisation: 'DSI-ICL',
                     email: 'hey@uk.io',
                     description: 'DSI director',
@@ -1285,7 +1316,8 @@ describe('USERS API', () => {
             const newUser: IUser = {
                 username: 'new_user_4444',
                 type: userTypes.STANDARD,
-                realName: 'Ming Man San',
+                firstname: 'FMing Man San',
+                lastname: 'LMing Man San',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new4444@example.com',
@@ -1322,14 +1354,15 @@ describe('USERS API', () => {
         test('edit own password (user)', async () => {
             /* setup: getting the id of the created user from mongo */
             const newUser: IUser = {
-                username : 'new_user_4',
+                username: 'new_user_4',
                 type: userTypes.STANDARD,
-                realName: 'Ming Man',
+                firstname: 'FMing Man',
+                lastname: 'LMing Man',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 resetPasswordRequests: [],
                 description: 'I am a new user 4.',
-                email:'new4@example.com',
+                email: 'new4@example.com',
                 emailNotificationsActivated: true,
                 organisation: 'DSI',
                 deleted: null,
@@ -1358,7 +1391,8 @@ describe('USERS API', () => {
                 username: 'new_user_4',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.STANDARD,
-                realName: 'Ming Man',
+                firstname: 'FMing Man',
+                lastname: 'LMing Man',
                 organisation: 'DSI',
                 email: 'new_email@ic.ac.uk',
                 description: 'I am a new user 4.',
@@ -1381,7 +1415,8 @@ describe('USERS API', () => {
             const newUser: IUser = {
                 username: 'new_user_5',
                 type: userTypes.STANDARD,
-                realName: 'Ming Man Chon',
+                firstname: 'FMing Man Chon',
+                lastname: 'LMing Man Chon',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new5@example.com',
@@ -1406,7 +1441,8 @@ describe('USERS API', () => {
                         id: 'fakeid5',
                         username: 'new_username',
                         type: 'ADMIN',
-                        realName: 'Ming Man Chon',
+                        firstname: 'FMing Man Chon',
+                        lastname: 'LMing Man Chon',
                         description: 'I am a new user 5.'
                     }
                 }
@@ -1422,7 +1458,8 @@ describe('USERS API', () => {
             const newUser: IUser = {
                 username: 'new_user_6',
                 type: userTypes.STANDARD,
-                realName: 'Ming Man',
+                firstname: 'FMing Man',
+                lastname: 'LMing Man',
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new6@example.com',
@@ -1460,7 +1497,8 @@ describe('USERS API', () => {
             const newUser: IUser = {
                 username: 'new_user_7',
                 type: userTypes.STANDARD,
-                realName: 'Ming Man Tai',
+                firstname: 'FMing Man Tai',
+                lastname: 'LMing Man Tai',
                 password: 'fakepassword',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new7@example.com',
@@ -1496,7 +1534,8 @@ describe('USERS API', () => {
             const newUser: IUser = {
                 username: 'new_user_8',
                 type: userTypes.STANDARD,
-                realName: 'Chan Mei',
+                firstname: 'FChan Mei',
+                lastname: 'LChan Mei',
                 password: 'fakepassword',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new8@example.com',
@@ -1519,7 +1558,8 @@ describe('USERS API', () => {
 
             expect(getUserRes.body.data.getUsers).toEqual([{
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                realName: 'Chan Mei',
+                firstname: 'FChan Mei',
+                lastname: 'LChan Mei',
                 type: userTypes.STANDARD,
                 organisation: 'DSI',
                 id: newUser.id
@@ -1552,9 +1592,10 @@ describe('USERS API', () => {
         test('delete user that has been deleted (admin)', async () => {
             /* setup: create a "deleted" new user to be deleted */
             const newUser: IUser = {
-                username : 'new_user_9',
+                username: 'new_user_9',
                 type: userTypes.STANDARD,
-                realName: 'Chan Mei Fong',
+                firstname: 'FChan Mei Fong',
+                lastname: 'LChan Mei Fong',
                 password: 'fakepassword',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new9@example.com',
@@ -1606,9 +1647,10 @@ describe('USERS API', () => {
         test('delete user (user)', async () => {
             /* setup: create a new user to be deleted */
             const newUser: IUser = {
-                username : 'new_user_10',
+                username: 'new_user_10',
                 type: userTypes.STANDARD,
-                realName: 'Chan Mei Yi',
+                firstname: 'FChan Mei Yi',
+                lastname: 'LChan Mei Yi',
                 password: 'fakepassword',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'new10@example.com',
@@ -1631,7 +1673,8 @@ describe('USERS API', () => {
 
             expect(getUserRes.body.data.getUsers).toEqual([{
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                realName: 'Chan Mei Yi',
+                firstname: 'FChan Mei Yi',
+                lastname: 'LChan Mei Yi',
                 type: userTypes.STANDARD,
                 organisation: 'DSI',
                 id: newUser.id,
@@ -1658,7 +1701,8 @@ describe('USERS API', () => {
 
             expect(getUserResAfter.body.data.getUsers).toEqual([{
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                realName: 'Chan Mei Yi',
+                firstname: 'FChan Mei Yi',
+                lastname: 'LChan Mei Yi',
                 type: userTypes.STANDARD,
                 organisation: 'DSI',
                 id: newUser.id

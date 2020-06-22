@@ -186,7 +186,8 @@ describe('JOB API', () => {
         const authorisedUserProfile = {
             username,
             type: 'STANDARD',
-            realName: `${username}_realname`,
+            firstname: `${username}_firstname`,
+            lastname: `${username}_lastname`,
             password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
             otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
             email: `${username}@example.com`,

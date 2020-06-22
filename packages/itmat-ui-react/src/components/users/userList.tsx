@@ -35,7 +35,8 @@ const User: React.FunctionComponent<{ data: Models.UserModels.IUserWithoutToken 
     return (
         <tr>
             <td>{data.username}</td>
-            <td>{data.realName}</td>
+            <td>{data.firstname}</td>
+            <td>{data.lastname}</td>
             <td>{data.type}</td>
             <td>{data.email}</td>
             <td><NavLink to={`/users/${data.id}`} activeClassName={css.button_clicked}><button>More/Edit</button></NavLink></td>
@@ -57,7 +58,8 @@ const UserList: React.FunctionComponent<{ list: Models.UserModels.IUserWithoutTo
                 el.username.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
                 || el.email.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
                 || el.type.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
-                || el.realName.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
+                || el.firstname.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
+                || el.lastname.toLowerCase().indexOf(searchString.toLowerCase()) !== -1
             ) {
                 return <User key={el.id} data={el} />;
             }

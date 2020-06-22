@@ -13,7 +13,8 @@ export const CreateNewUser: React.FunctionComponent = () => {
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
         username: '',
         password: '',
-        realName: '',
+        firstname: 'F',
+        lastname: 'L',
         organisation: '',
         description: '',
         emailNotificationsActivated: false,
@@ -48,7 +49,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
             <div className={css.login_and_error_wrapper}>
                 <div className={`${css.login_box} appear_from_below`}>
                     <h1>Registration Successful!</h1>
-                    <h2>Welcome {inputs.realName} to the IDEA-FAST project</h2>
+                    <h2>Welcome {inputs.firstname} to the IDEA-FAST project</h2>
                     <br />
                     <div>
                         <p>Please check your email to setup the 2FA using an MFA authenticator app to log in.</p>
@@ -64,7 +65,8 @@ export const CreateNewUser: React.FunctionComponent = () => {
         <form>
             <label>Username: <input type='text' {...inputControl('username')} /> </label><br /><br />
             <label>Password: <input type='password' {...inputControl('password')} /> </label><br /><br />
-            <label>Real name: <input type='text' {...inputControl('realName')} /> </label><br /><br />
+            <label>Firstname: <input type='text' {...inputControl('firstname')} /> </label><br /><br />
+            <label>Lastname: <input type='text' {...inputControl('lastname')} /> </label><br /><br />
             <label>Organisation: <input type='text' {...inputControl('organisation')} /> </label><br /><br />
             <label>Description: <input type='text' {...inputControl('description')} /> </label><br /><br />
             <label>Email: <input type='text' {...inputControl('email')} /> </label><br /><br />

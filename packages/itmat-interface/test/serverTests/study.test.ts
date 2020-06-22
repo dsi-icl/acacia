@@ -115,7 +115,8 @@ describe('STUDY API', () => {
                 username: 'admin',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
-                realName: 'admin',
+                firstname: 'Fadmin',
+                lastname: 'Ladmin',
                 organisation: 'DSI',
                 email: 'admin@example.com',
                 description: 'I am an admin user.',
@@ -232,7 +233,8 @@ describe('STUDY API', () => {
                 username: 'admin',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
-                realName: 'admin',
+                firstname: 'Fadmin',
+                lastname: 'Ladmin',
                 organisation: 'DSI',
                 email: 'admin@example.com',
                 description: 'I am an admin user.',
@@ -271,7 +273,8 @@ describe('STUDY API', () => {
                 username: 'admin',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
-                realName: 'admin',
+                firstname: 'Fadmin',
+                lastname: 'Ladmin',
                 organisation: 'DSI',
                 email: 'admin@example.com',
                 description: 'I am an admin user.',
@@ -450,7 +453,8 @@ describe('STUDY API', () => {
             const authorisedUserProfile: IUser = {
                 username,
                 type: userTypes.STANDARD,
-                realName: `${username}_realname`,
+                firstname: `${username}_firstname`,
+                lastname: `${username}_lastname`,
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: `${username}@example.com`,
@@ -553,7 +557,8 @@ describe('STUDY API', () => {
             const authorisedUserProfile: IUser = {
                 username,
                 type: userTypes.STANDARD,
-                realName: `${username}_realname`,
+                firstname: `${username}_firstname`,
+                lastname: `${username}_lastname`,
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: `${username}@example.com`,
@@ -911,9 +916,10 @@ describe('STUDY API', () => {
             {
                 const username = uuid();
                 const newUser: IUser = {
-                    username : username,
+                    username: username,
                     type: userTypes.STANDARD,
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@user.io`,
@@ -957,7 +963,8 @@ describe('STUDY API', () => {
                     users: [{
                         id: createdUserAuthorised.id,
                         organisation: 'DSI',
-                        realName: createdUserAuthorised.realName
+                        firstname: createdUserAuthorised.firstname,
+                        lastname: createdUserAuthorised.lastname
                     }]
                 });
                 const resUser = await admin.post('/graphql').send({
@@ -975,7 +982,8 @@ describe('STUDY API', () => {
                     id: createdUserAuthorised.id,
                     otpSecret: createdUserAuthorised.otpSecret,
                     type: userTypes.STANDARD,
-                    realName: `${createdUserAuthorised.username}_realname`,
+                    firstname: `${createdUserAuthorised.username}_firstname`,
+                    lastname: `${createdUserAuthorised.username}_lastname`,
                     organisation: 'DSI',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
@@ -993,9 +1001,10 @@ describe('STUDY API', () => {
             {
                 const username = uuid();
                 const newUser: IUser = {
-                    username : username,
+                    username: username,
                     type: userTypes.STANDARD,
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@user.io`,
@@ -1039,7 +1048,8 @@ describe('STUDY API', () => {
                     users: [{
                         id: createdUserAuthorisedStudy.id,
                         organisation: 'DSI',
-                        realName: createdUserAuthorisedStudy.realName
+                        firstname: createdUserAuthorisedStudy.firstname,
+                        lastname: createdUserAuthorisedStudy.lastname
                     }]
                 });
                 const resUser = await admin.post('/graphql').send({
@@ -1057,7 +1067,8 @@ describe('STUDY API', () => {
                     id: createdUserAuthorisedStudy.id,
                     otpSecret: createdUserAuthorisedStudy.otpSecret,
                     type: userTypes.STANDARD,
-                    realName: `${createdUserAuthorisedStudy.username}_realname`,
+                    firstname: `${createdUserAuthorisedStudy.username}_firstname`,
+                    lastname: `${createdUserAuthorisedStudy.username}_lastname`,
                     organisation: 'DSI',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
@@ -1078,9 +1089,10 @@ describe('STUDY API', () => {
             {
                 const username = uuid();
                 const newUser: IUser = {
-                    username : username,
+                    username: username,
                     type: userTypes.STANDARD,
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}'@user.io'`,
@@ -1125,7 +1137,8 @@ describe('STUDY API', () => {
                     users: [{
                         id: createdUserAuthorisedStudyManageProjects.id,
                         organisation: 'DSI',
-                        realName: createdUserAuthorisedStudyManageProjects.realName
+                        firstname: createdUserAuthorisedStudyManageProjects.firstname,
+                        lastname: createdUserAuthorisedStudyManageProjects.lastname
                     }]
                 });
                 const resUser = await admin.post('/graphql').send({
@@ -1143,7 +1156,8 @@ describe('STUDY API', () => {
                     id: createdUserAuthorisedStudyManageProjects.id,
                     otpSecret: createdUserAuthorisedStudyManageProjects.otpSecret,
                     type: userTypes.STANDARD,
-                    realName: `${createdUserAuthorisedStudyManageProjects.username}_realname`,
+                    firstname: `${createdUserAuthorisedStudyManageProjects.username}_firstname`,
+                    lastname: `${createdUserAuthorisedStudyManageProjects.username}_lastname`,
                     organisation: 'DSI',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
@@ -1166,7 +1180,8 @@ describe('STUDY API', () => {
                     username: 'admin',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin',
+                    firstname: 'Fadmin',
+                    lastname: 'Ladmin',
                     organisation: 'DSI',
                     email: 'admin@example.com',
                     description: 'I am an admin user.',
@@ -1238,7 +1253,8 @@ describe('STUDY API', () => {
                 expect(res.body.data.whoAmI).toEqual({
                     username: 'admin',
                     type: userTypes.ADMIN,
-                    realName: 'admin',
+                    firstname: 'Fadmin',
+                    lastname: 'Ladmin',
                     organisation: 'DSI',
                     email: 'admin@example.com',
                     description: 'I am an admin user.',
@@ -1324,7 +1340,8 @@ describe('STUDY API', () => {
                             users: [{
                                 id: createdUserAuthorisedStudy.id,
                                 organisation: 'DSI',
-                                realName: createdUserAuthorisedStudy.realName,
+                                firstname: createdUserAuthorisedStudy.firstname,
+                                lastname: createdUserAuthorisedStudy.lastname,
                                 username: createdUserAuthorisedStudy.username
                             }]
                         },
@@ -1337,7 +1354,8 @@ describe('STUDY API', () => {
                             users: [{
                                 id: createdUserAuthorisedStudyManageProjects.id,
                                 organisation: 'DSI',
-                                realName: createdUserAuthorisedStudyManageProjects.realName,
+                                firstname: createdUserAuthorisedStudyManageProjects.firstname,
+                                lastname: createdUserAuthorisedStudyManageProjects.lastname,
                                 username: createdUserAuthorisedStudyManageProjects.username
                             }]
                         }
@@ -1401,7 +1419,8 @@ describe('STUDY API', () => {
                             users: [{
                                 id: createdUserAuthorised.id,
                                 organisation: 'DSI',
-                                realName: createdUserAuthorised.realName,
+                                firstname: createdUserAuthorised.firstname,
+                                lastname: createdUserAuthorised.lastname,
                                 username: createdUserAuthorised.username
                             }]
                         }
@@ -1997,7 +2016,8 @@ describe('STUDY API', () => {
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'user@ic.ac.uk',
-                realName: 'DataCurator',
+                firstname: 'FDataCurator',
+                lastname: 'LDataCurator',
                 organisation: 'DSI',
                 type: userTypes.STANDARD,
                 description: 'just a data curator',

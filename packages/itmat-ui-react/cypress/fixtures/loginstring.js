@@ -9,7 +9,8 @@ const LOGINSTRING = `mutation login($username: String!, $password: String!) {
     id
     username
     type
-    realName
+    firstname
+    lastname
     email
     createdBy
     organisation

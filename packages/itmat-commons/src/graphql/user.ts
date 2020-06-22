@@ -6,7 +6,8 @@ export const user_fragment = gql`
         username
         otpSecret
         type
-        realName
+        firstname
+        lastname
         email
         organisation
         description
@@ -92,7 +93,8 @@ export const CREATE_USER = gql`
     mutation CreateUser(
         $username: String!
         $password: String!
-        $realName: String!
+        $firstname: String!
+        $lastname: String!
         $description: String!
         $organisation: String!
         $emailNotificationsActivated: Boolean!
@@ -102,7 +104,8 @@ export const CREATE_USER = gql`
         createUser(user: {
             username: $username
             password: $password            
-            realName: $realName
+            firstname: $firstname
+            lastname: $lastname
             description: $description
             organisation: $organisation
             emailNotificationsActivated: $emailNotificationsActivated

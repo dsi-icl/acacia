@@ -8,7 +8,8 @@ export const GET_USERS = gql`
             username @include (if: $fetchDetailsAdminOnly)
             otpSecret
             type
-            realName
+            firstname
+            lastname
             email @include (if: $fetchDetailsAdminOnly)
             organisation
             createdAt @include (if: $fetchDetailsAdminOnly)
@@ -35,7 +36,8 @@ export const EDIT_USER = gql`
         $id: String!
         $username: String
         $type: USERTYPE
-        $realName: String
+        $firstname: String
+        $lastname: String
         $email: String
         $emailNotificationsActivated: Boolean
         $password: String
@@ -47,7 +49,8 @@ export const EDIT_USER = gql`
             id: $id
             username: $username
             password: $password
-            realName: $realName
+            firstname: $firstname
+            lastname: $lastname
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
             description: $description

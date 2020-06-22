@@ -100,7 +100,8 @@ describe('ROLE API', () => {
             authorisedUserProfile = {
                 username,
                 type: 'STANDARD',
-                realName: `${username}_realname`,
+                firstname: `${username}_firstname`,
+                lastname: `${username}_lastname`,
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: `${username}@example.com`,
@@ -467,7 +468,8 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@example.com`,
@@ -711,7 +713,8 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
@@ -745,7 +748,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
-                        realName: newUser.realName
+                        firstname: newUser.firstname,
+                        lastname: newUser.lastname
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -768,7 +772,8 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
@@ -802,7 +807,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
-                        realName: newUser.realName
+                        firstname: newUser.firstname,
+                        lastname: newUser.lastname
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -825,7 +831,8 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
@@ -872,7 +879,8 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
@@ -1323,7 +1331,8 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
@@ -1385,7 +1394,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: adminId,
                         organisation: 'DSI',
-                        realName: 'admin',
+                        firstname: 'Fadmin',
+                        lastname: 'Ladmin',
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1445,7 +1455,8 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@example.com`,
@@ -1635,7 +1646,8 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
@@ -1669,7 +1681,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
-                        realName: newUser.realName
+                        firstname: newUser.firstname,
+                        lastname: newUser.lastname
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1692,7 +1705,8 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
@@ -1808,7 +1822,8 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@example.com`,
@@ -1950,7 +1965,8 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@example.com`,

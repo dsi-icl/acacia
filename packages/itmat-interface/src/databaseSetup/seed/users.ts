@@ -1,7 +1,8 @@
 const users = [{
     username: 'admin',
     type: 'ADMIN',
-    realName: 'admin',
+    firstname: 'Fadmin',
+    lastname: 'Ladmin',
     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
     createdBy: 'chon',
@@ -18,7 +19,8 @@ const users = [{
 {
     username: 'standardUser',
     type: 'STANDARD',
-    realName: 'Chan Tai Man',
+    firstname: 'Tai Man',
+    lastname: 'Chan',
     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
     createdBy: 'admin',

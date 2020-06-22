@@ -294,7 +294,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
             {
                 availableUserList.map((user, index) => (
                     <Select.Option key={index} value={user.id}>
-                        {user.realName} ({user.organisation})
+                        {user.firstname} {user.lastname} ({user.organisation})
                     </Select.Option>
                 ))
             }
