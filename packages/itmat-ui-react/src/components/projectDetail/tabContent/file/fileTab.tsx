@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Query } from 'react-apollo';
 import { GET_PROJECT } from 'itmat-commons';
 import { FileList } from '../../../reusable/fileList/fileList';
-import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 
@@ -11,7 +11,7 @@ export const FileTabContent: React.FunctionComponent<{ studyId: string; projectI
         <Subsection title='Files'>
             <Query<any, any> query={GET_PROJECT} variables={{ projectId, admin: false }}>
                 {({ loading, data, error }) => {
-                    if (loading) { return <LoadingBalls />; }
+                    if (loading) { return <LoadSpinner />; }
                     if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
                     if (!data || !data.getProject || !data.getProject.files || data.getProject.files.length === 0) {
                         return <p>Seems like there is no file for this project!</p>;

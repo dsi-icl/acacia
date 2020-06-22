@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useQuery } from 'react-apollo';
 import { Subsection } from '../../../reusable';
-import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
 import { GET_STUDY } from 'itmat-commons';
@@ -13,7 +13,7 @@ type AdminTabContentProps = RouteComponentProps<{
 
 export const AdminTabContent: React.FunctionComponent<AdminTabContentProps> = ({ match: { params: { studyId } } }) => {
     const { data, loading } = useQuery(GET_STUDY, { variables: { studyId } });
-    if (loading) { return <LoadingBalls />; }
+    if (loading) { return <LoadSpinner />; }
 
     return (
         <div className={`${css.tab_page_wrapper_grid} fade_in`}>

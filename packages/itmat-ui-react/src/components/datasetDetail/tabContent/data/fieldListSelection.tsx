@@ -2,7 +2,7 @@ import React from 'react';
 import { Query } from 'react-apollo';
 import { GET_STUDY_FIELDS, IStudyDataVersion } from 'itmat-commons';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
-import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../reusable/loadSpinner';
 // number of patients
 // newest version of data - date / tag
 // download data
@@ -32,7 +32,7 @@ const FieldListSelectionState: React.FunctionComponent<{ studyId: string; fieldT
         <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
         <Query<any, any> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
             {({ data, loading, error }) => {
-                if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>{JSON.stringify(error)}</p>; }
                 if (!data || !data.getStudyFields || data.getStudyFields.length === 0) { return <p>There is no field annotations uploaded for this tag.</p>; }
                 return <FieldListSection checkable={false} fieldList={data.getStudyFields} />;

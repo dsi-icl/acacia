@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink, Redirect, Route, Switch } from 'react-router-dom';
 import { GET_PROJECT } from 'itmat-commons';
-import { LoadingBalls } from '../reusable/icons/loadingBalls';
+import LoadSpinner from '../reusable/loadSpinner';
 import css_dataset from '../datasetDetail/projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
 import { FileTabContent } from './tabContent/file/fileTab';
@@ -14,7 +14,7 @@ export const ProjectDetailPage: React.FunctionComponent<{ projectId: string }> =
             variables={{ projectId, admin: true }}
         >
             {({ loading, error, data }) => {
-                if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
                 if (!data || !data.getProject) { return <div>Oops! Cannot find this project.</div>; }
                 return <div className={css_dataset.page_container}>

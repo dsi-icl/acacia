@@ -2,7 +2,7 @@ import React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { CREATE_FIELD_CURATION_JOB, GET_STUDY, IFile } from 'itmat-commons';
-import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 
 export const UploadNewFields: React.FunctionComponent<{ studyId: string; dataVersionId: string }> = ({ studyId, dataVersionId }) => {
@@ -58,7 +58,7 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string; dataVer
 const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: string; dataVersionId: string; cancel: (expanded: boolean) => void }> = ({ dataVersionId, studyId, cancel }) => {
     return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data, error }) => {
-            if (loading) return <LoadingBalls />;
+            if (loading) return <LoadSpinner />;
             if (error) return <p>{error.toString()}</p>;
             if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
                 return <p>No file has been uploaded to this dataset yet. You can do this in the <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>file repository</span></NavLink></p>;

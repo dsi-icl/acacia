@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink, Route, Switch } from 'react-router-dom';
 import { GET_STUDY } from 'itmat-commons';
-import { LoadingBalls } from '../reusable/icons/loadingBalls';
+import LoadSpinner from '../reusable/loadSpinner';
 import css from './projectPage.module.css';
 import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent } from './tabContent';
 import { FileRepositoryTabContent } from './tabContent/files/fileTab';
@@ -14,7 +14,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
             variables={{ studyId }}
         >
             {({ loading, error, data }) => {
-                if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
                 if (!data || !data.getStudy) { return <div>Oops! Cannot find this dataset.</div>; }
                 return <div className={css.page_container}>

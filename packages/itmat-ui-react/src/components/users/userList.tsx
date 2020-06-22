@@ -3,7 +3,7 @@ import { Models, GET_USERS } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { LoadingBalls } from '../reusable/icons/loadingBalls';
+import LoadSpinner from '../reusable/loadSpinner';
 import css from './userList.module.css';
 
 export const UserListSection: React.FunctionComponent = () => {
@@ -13,7 +13,7 @@ export const UserListSection: React.FunctionComponent = () => {
             variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
         >
             {({ loading, error, data }) => {
-                if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) {
                     return (
                         <p>

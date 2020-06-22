@@ -7,12 +7,12 @@ import {
     IFieldEntry
 } from 'itmat-commons';
 import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
-import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../../reusable/loadSpinner';
 
 
 export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId } });
-    if (loading) { return <LoadingBalls />; }
+    if (loading) { return <LoadSpinner />; }
     if (error) { return <p>{error.toString()}</p>; }
     const { getStudy } = data;
 
@@ -33,7 +33,7 @@ const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { 
         <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
         <Query<any, any> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
             {({ data, loading, error }) => {
-                if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>{JSON.stringify(error)}</p>; }
                 if (!data || !data.getStudyFields || data.getStudyFields.length === 0) { return <p>There is no field annotations uploaded for this tag.</p>; }
                 // return <FieldListSection projectId={projectId} checkable={false} fieldList={data.getStudyFields} />;

@@ -3,8 +3,8 @@ import 'antd/lib/switch/style/css';
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
 import { GET_STUDY, SET_DATAVERSION_AS_CURRENT, IStudy, IStudyDataVersion } from 'itmat-commons';
-import { InfoCircle } from '../../../reusable/icons/infoCircle';
-import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import { DataSummaryVisual } from './dataSummary';
 import { FieldListSelectionSection } from './fieldListSelection';
@@ -18,7 +18,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
     return <div className={`${css.scaffold_wrapper} fade_in`}>
         <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
-                if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
                 if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
                     return <div className={css.data_management_section}><DataManagement data={data.getStudy} showSaveVersionButton /></div>;
@@ -46,7 +46,7 @@ export const DataManagement: React.FunctionComponent<{ data: IStudy; showSaveVer
 
 
             {data.dataVersions.length >= 1 ? <>
-                <div><h5>Data versions</h5>  <h5>Linear history<InfoCircle className={css.infocircle} />:  <Switch onChange={(checked) => setUseLinearHistory(checked)} checked={useLinearHistory} className={css.switchButton} /></h5></div>
+                <div><h5>Data versions</h5>  <h5>Linear history<InfoCircleOutlined className={css.infocircle} />:  <Switch onChange={(checked) => setUseLinearHistory(checked)} checked={useLinearHistory} className={css.switchButton} /></h5></div>
 
                 {
                     useLinearHistory ?

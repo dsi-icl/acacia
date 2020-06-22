@@ -4,7 +4,7 @@ import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I, GET_GRANTED_PERMISSIONS, IProject } from 'itmat-commons';
 import css from './scaffold.module.css';
-import { LoadingBalls } from '../reusable/icons/loadingBalls';
+import LoadSpinner from '../reusable/loadSpinner';
 
 type MainMenuBarProps = {
     projects: IProject[];
@@ -24,7 +24,7 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
         </div>
         <Query<any, any> query={GET_GRANTED_PERMISSIONS}>
             {({ loading, error }) => {
-                if (loading) return <LoadingBalls />;
+                if (loading) return <LoadSpinner />;
                 if (error) return <p>{error.toString()}</p>;
                 return (
                     <div>

@@ -6,7 +6,7 @@ import { Query, useApolloClient, useMutation } from 'react-apollo';
 import { useDropzone } from 'react-dropzone';
 import { GET_STUDY, UPLOAD_FILE } from 'itmat-commons';
 import { FileList } from '../../../reusable/fileList/fileList';
-import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { ApolloError } from 'apollo-client';
@@ -128,7 +128,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             <Subsection title='Existing files'>
                 <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
-                        if (loading) { return <LoadingBalls />; }
+                        if (loading) { return <LoadSpinner />; }
                         if (error) { return <p>{error.toString()}</p>; }
                         if (!data.getStudy || !data.getStudy.files || data.getStudy.files.length === 0) {
                             return <p>There seems to be no files for this study. You can start uploading files.</p>;

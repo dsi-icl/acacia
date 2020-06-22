@@ -10,7 +10,7 @@ import {
     GET_PROJECT,
     GET_STUDY
 } from 'itmat-commons';
-import { LoadingBalls } from '../icons/loadingBalls';
+import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button } from 'antd';
 import { LoadingOutlined, TagOutlined } from '@ant-design/icons';
@@ -58,12 +58,12 @@ export const RoleDescriptor: React.FunctionComponent<RoleDescriptorProps> = ({
     const { data: userData, loading: userFetchLoading } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
     const [removeRole, { loading: removeRoleLoading }] = useMutation(REMOVE_ROLE, { refetchQueries: [{ query: isStudyRole ? GET_STUDY : GET_PROJECT, variables: isStudyRole ? { studyId: role.studyId } : { projectId: role.projectId, admin: true } }] });
 
-    if (userFetchLoading) { return <LoadingBalls />; }
+    if (userFetchLoading) { return <LoadSpinner />; }
     return (
         <div className={css.one_role}>
             <div className={css.role_header}>
                 <label className={css.role_name}>{role.name}</label>
-                {removeRoleLoading ? <span className={css.right_aligned}><LoadingBalls /></span> : <span className={`${css.delete_role_button} ${css.right_aligned}`} onClick={() => removeRole({ variables: { roleId: role.id } })}>X</span>}
+                {removeRoleLoading ? <span className={css.right_aligned}><LoadSpinner /></span> : <span className={`${css.delete_role_button} ${css.right_aligned}`} onClick={() => removeRole({ variables: { roleId: role.id } })}>X</span>}
             </div>
             <label>Permissions: </label>
             <br />

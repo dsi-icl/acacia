@@ -8,7 +8,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
     const [completedCreation, setCompletedCreation] = React.useState(false);
     const [inputError, setError] = React.useState('');
     const [createUser, { loading }] = useMutation(CREATE_USER,
-        {onCompleted: () => setCompletedCreation(true)}
+        { onCompleted: () => setCompletedCreation(true) }
     );
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
         username: '',
@@ -53,7 +53,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
                     <div>
                         <p>Please check your email to setup the 2FA using an MFA authenticator app to log in.</p>
                     </div>
-                    <br/>
+                    <br />
                     <NavLink to='/'><button>Go to Login</button></NavLink>
                 </div>
             </div>

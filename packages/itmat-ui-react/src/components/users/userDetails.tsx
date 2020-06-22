@@ -3,7 +3,7 @@ import { Mutation, useQuery, useMutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { IUserWithoutToken, userTypes } from 'itmat-commons';
 import { Subsection } from '../reusable';
-import { LoadingBalls } from '../reusable/icons/loadingBalls';
+import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
 import QRCode from 'qrcode';
@@ -22,7 +22,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
             fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId
         }
     });
-    if (loading) { return <LoadingBalls />; }
+    if (loading) { return <LoadSpinner />; }
     if (error) { return <p>Error :( {error.message}</p>; }
     const user: IUserWithoutToken = data.getUsers[0];
     if (user === null || user === undefined) { return <p>Oops! Cannot find user.</p>; }
@@ -114,8 +114,8 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         <input type='time' readOnly value={showTimeFunc.showTime(inputs.createdAt)} />
                     </label><br /><br />
                     <label>
-                        Expired at: <input type='date' value={showTimeFunc.showDate(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeDate(inputs, e.target.value));  }} />
-                        <input type='time' step='1' value={showTimeFunc.showTime(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeTime(inputs, e.target.value));   }} />
+                        Expired at: <input type='date' value={showTimeFunc.showDate(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeDate(inputs, e.target.value)); }} />
+                        <input type='time' step='1' value={showTimeFunc.showTime(inputs.expiredAt)} onChange={e => { setInputs(changeTimeFunc.changeTime(inputs, e.target.value)); }} />
                     </label><br /><br />
                     <div className={css.submit_cancel_button_wrapper}>
                         <NavLink to={'/users'}><button className='button_grey'>Cancel</button></NavLink>
@@ -177,33 +177,33 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
 
 /* show date and time separately */
 export const showTimeFunc = {
-    showDate: function(timestamps: number) {
+    showDate: function (timestamps: number) {
         return new Date(timestamps).toISOString().substring(0, 10);
     },
-    showTime: function(timestamps: number) {
+    showTime: function (timestamps: number) {
         return new Date(timestamps).toISOString().substring(11, 19);
     }
 };
 
 /* More time control due to different behaviors in chrome and firefox, also correct errors of summer/winter time offset */
 export const changeTimeFunc = {
-    changeDate: function(inputs: any, value: any) {
+    changeDate: function (inputs: any, value: any) {
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
         const offsetTime = new Date(inputs.expiredAt - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000);
         let newDate;
         const recordTime = offsetTime.toISOString().substring(11, 19);
         /* If the input date is invalid, the shown date will keep the original one */
-        if (isNaN(new Date(value + 'T' + recordTime).valueOf()) || (new Date(value + 'T' + recordTime).valueOf() < 0) ) {
+        if (isNaN(new Date(value + 'T' + recordTime).valueOf()) || (new Date(value + 'T' + recordTime).valueOf() < 0)) {
             newDate = new Date(inputs.expiredAt);
         } else {
             newDate = new Date(value + 'T' + recordTime);
         }
-        return {...inputs, expiredAt: newDate.valueOf()};
+        return { ...inputs, expiredAt: newDate.valueOf() };
     },
-    changeTime: function(inputs: any, value: any) {
+    changeTime: function (inputs: any, value: any) {
         const recordedDate = new Date(inputs.expiredAt).toISOString().substring(0, 10);
         /* When in summer time, there is non-zero timezoneoffset which should be considered */
-        return {...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000};
+        return { ...inputs, expiredAt: new Date(recordedDate + 'T' + value).valueOf() - new Date(inputs.expiredAt).getTimezoneOffset() * 60 * 1000 };
     }
 };
 
