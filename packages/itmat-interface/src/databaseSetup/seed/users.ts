@@ -33,4 +33,4 @@ const users = [{
     expiredAt: 1991134065000
 }];
 
-module.exports = users;
+export default users;
