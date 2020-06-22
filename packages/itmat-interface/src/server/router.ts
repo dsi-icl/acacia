@@ -1,6 +1,6 @@
 import { ApolloServer } from 'apollo-server-express';
 import bodyParser from 'body-parser';
-import connectMongo from 'connect-mongo';
+// import connectMongo from 'connect-mongo';
 import cors from 'cors';
 import express from 'express';
 import { Express, Request, Response } from 'express';
@@ -8,14 +8,14 @@ import session from 'express-session';
 import http from 'http';
 import { CustomError } from 'itmat-commons';
 import passport from 'passport';
-import { db } from '../database/database';
+// import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
 import { schema } from '../graphql/schema';
 import { fileDownloadController } from '../rest/fileDownload';
 import { userLoginUtils } from '../utils/userLoginUtils';
 import { IConfiguration } from '../utils/configManager';
 
-const MongoStore = connectMongo(session);
+// const MongoStore = connectMongo(session);
 
 export class Router {
     private readonly app: Express;
@@ -35,7 +35,7 @@ export class Router {
             secret: config.sessionsSecret,
             resave: true,
             saveUninitialized: true,
-            store: new MongoStore({ client: db.client })
+            // store: new MongoStore({ client: db.client })
         }));
 
 
