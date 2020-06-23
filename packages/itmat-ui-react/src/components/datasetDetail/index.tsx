@@ -22,14 +22,14 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                         <h2>{data.getStudy.name.toUpperCase()}</h2>
                         <div className={css.tabs}>
                             {/*
-                            <NavLink to={`/datasets/${studyId}/dashboard`} activeClassName={css.active}><div>DASHBOARD</div></NavLink>
-                            <NavLink to={`/datasets/${studyId}/data_management`} activeClassName={css.active}><div>DATA MANAGEMENT</div></NavLink>
+                            <NavLink to={`/datasets/${studyId}/dashboard`} activeClassName={css.active}>DASHBOARD</NavLink>
+                            <NavLink to={`/datasets/${studyId}/data_management`} activeClassName={css.active}>DATA MANAGEMENT</NavLink>
                             */}
-                            <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}><div>FILES REPOSITORY</div></NavLink>
+                            <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}>FILES REPOSITORY</NavLink>
                             {/*
-                            <NavLink to={`/datasets/${studyId}/projects`} activeClassName={css.active}><div>PROJECTS</div></NavLink>
+                            <NavLink to={`/datasets/${studyId}/projects`} activeClassName={css.active}>PROJECTS</NavLink>
                             */}
-                            <NavLink to={`/datasets/${studyId}/admin`} activeClassName={css.active}><div>ADMINISTRATION</div></NavLink>
+                            <NavLink to={`/datasets/${studyId}/admin`} activeClassName={css.active}>ADMINISTRATION</NavLink>
                         </div>
                     </div>
                     <div className={css.content}>
