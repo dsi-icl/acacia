@@ -7,7 +7,7 @@
     position: absolute;
     top: calc(25% - 100px);
     left: 50%;
-    width: 30rem;
+    width: 38rem;
     text-align: center;
     transform: translate(-50%);
 }
