@@ -51,7 +51,7 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
         </div>
         */}
         <div>
-            <NavLink title='Logout' to='/logout' id='logoutButton'>
+            <NavLink title='Logout' to='/'>
                 <Mutation<any, any>
                     mutation={LOGOUT}
                     update={(cache, { data: { logout } }) => {
