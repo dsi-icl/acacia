@@ -124,7 +124,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input {...getInputProps()} />
-        <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
+        <div className={`${css.tab_page_wrapper} ${css.left_panel} fade_in`}>
             <Subsection title='Existing files'>
                 <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
