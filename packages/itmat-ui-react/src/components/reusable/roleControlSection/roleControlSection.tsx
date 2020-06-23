@@ -74,7 +74,7 @@ export const RoleDescriptor: React.FunctionComponent<RoleDescriptorProps> = ({
             />
             <br />
             <br />
-            <label>Users of this role: </label>
+            <label>Users with this role: </label>
             <br />
             <UsersControlPanel
                 roleId={role.id}
