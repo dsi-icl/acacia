@@ -13,7 +13,7 @@ import {
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button } from 'antd';
-import { LoadingOutlined, TagOutlined } from '@ant-design/icons';
+import { LoadingOutlined, TagOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 
 type RoleControlSectionProps = {
     studyId: string;
@@ -28,6 +28,8 @@ export const RoleControlSection: React.FunctionComponent<RoleControlSectionProps
 }) => {
     return (
         <>
+            <AddRole studyId={studyId} projectId={projectId} />
+            <br /><br />
             {roles.map((el) =>
                 <RoleDescriptor
                     key={el.id}
@@ -38,7 +40,6 @@ export const RoleControlSection: React.FunctionComponent<RoleControlSectionProps
                             : Object.values(permissions.specific_study)
                     } />
             )}
-            <AddRole studyId={studyId} projectId={projectId} />
         </>
     );
 };
@@ -63,7 +64,7 @@ export const RoleDescriptor: React.FunctionComponent<RoleDescriptorProps> = ({
         <div className={css.one_role}>
             <div className={css.role_header}>
                 <label className={css.role_name}>{role.name}</label>
-                {removeRoleLoading ? <span className={css.right_aligned}><LoadSpinner /></span> : <span className={`${css.delete_role_button} ${css.right_aligned}`} onClick={() => removeRole({ variables: { roleId: role.id } })}>X</span>}
+                {removeRoleLoading ? <span className={css.right_aligned}><LoadSpinner /></span> : <div className={css.right_aligned}><Button icon={<DeleteOutlined />} danger onClick={() => removeRole({ variables: { roleId: role.id } })}></Button></div>}
             </div>
             <label>Permissions: </label>
             <br />
@@ -114,11 +115,9 @@ export const AddRole: React.FunctionComponent<AddRoleProps> = ({
     }];
 
     if (!isExpanded)
-        return <span
-            className={css.add_new_role_button}
-            onClick={() => setIsExpanded(true)}>
-            Add new role
-        </span>;
+        return (
+            <Button icon={<PlusOutlined />} type='dashed' onClick={() => setIsExpanded(true)}>Add new role</Button>
+        );
 
     return (
         <div className={css.add_new_role_section}>
@@ -187,6 +186,7 @@ const PermissionsControlPanel: React.FunctionComponent<PermissionsControlPanelPr
                                 type={isSelected ? 'primary' : 'default'}
                                 icon={loading ? <LoadingOutlined /> : <TagOutlined />}
                                 style={{
+                                    fontSize: '12px',
                                     cursor: 'pointer',
                                     marginRight: 3,
                                     marginBottom: 3,
