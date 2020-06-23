@@ -3,6 +3,7 @@ import { Mutation, useQuery, useMutation } from 'react-apollo';
 import {
     Models,
     permissions,
+    permissionLabels,
     ADD_NEW_ROLE,
     EDIT_ROLE,
     REMOVE_ROLE,
@@ -201,7 +202,7 @@ const PermissionsControlPanel: React.FunctionComponent<PermissionsControlPanelPr
                                     },
                                 })}
                             >
-                                {permission}
+                                {permissionLabels[permission]}
                             </Button>
                         )}
                     </Mutation>
