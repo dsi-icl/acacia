@@ -1,5 +1,9 @@
-import React from 'react';
-import { IFile } from 'itmat-commons';
+import React, { useState } from 'react';
+import { useMutation } from 'react-apollo';
+import { Table, Button, notification } from 'antd';
+import { IFile, DELETE_FILE } from 'itmat-commons';
+import { DeleteOutlined, CloudDownloadOutlined } from '@ant-design/icons';
+import { ApolloError } from 'apollo-client';
 
 export function formatBytes(size: number, decimal = 2): string {
     if (size === 0) {
@@ -12,29 +16,68 @@ export function formatBytes(size: number, decimal = 2): string {
 }
 
 export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files }) => {
-    return <div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Size</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {files.map((el) => <OneFile file={el} key={el.id} />)}
-            </tbody>
-        </table>
-    </div>;
-};
 
-const OneFile: React.FunctionComponent<{ file: IFile }> = ({ file }) => {
-    return <tr>
-        <td>{file.fileName}</td>
-        <td>{file.description}</td>
-        <td>{(file.fileSize && formatBytes(file.fileSize, 1)) || 'Unknown'}</td>
-        <td><a download={file.fileName} href={`http://localhost:3003/file/${file.id}`}
-        ><button>Download</button></a></td>
-    </tr>;
+    const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
+    const [deleteFile] = useMutation(DELETE_FILE, {
+        onError: (error: ApolloError) => {
+            notification.error({
+                message: 'Upload error!',
+                description: error.message ?? 'Unknown Error Occurred!',
+                placement: 'topRight',
+                duration: 0,
+            });
+        }
+    });
+
+    const deletionHandler = (fileId: string) => {
+        setIsDeleting({
+            ...isDeleting,
+            [fileId]: true
+        });
+        deleteFile({
+            variables: {
+                fileId
+            },
+            refetchQueries: ['getStudy']
+        });
+    };
+
+    const columns = [
+        {
+            title: 'Name',
+            dataIndex: 'fileName',
+            key: 'fileName',
+            sorter: (a, b) => a.fileName.localeCompare(b.fileName)
+        },
+        {
+            title: 'Description',
+            dataIndex: 'description',
+            key: 'description'
+        },
+        {
+            title: 'Size',
+            dataIndex: 'fileSize',
+            render: (size) => formatBytes(size),
+            key: 'size'
+        },
+        {
+            render: (rec, file) => (
+                <Button icon={<CloudDownloadOutlined />} download={file.fileName} href={`/file/${file.id}`}>
+                    Download
+                </Button>
+            ),
+            key: 'download'
+        },
+        {
+            render: (rec, file) => (
+                <Button icon={<DeleteOutlined />} loading={isDeleting[file.id]} danger onClick={() => deletionHandler(file.id)}>
+                    Delete
+                </Button>
+            ),
+            key: 'delete'
+        }
+    ];
+
+    return <Table rowKey={(rec) => rec.id} pagination={false} columns={columns} dataSource={files} size='middle' />;
+
 };
