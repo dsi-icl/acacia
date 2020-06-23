@@ -1,4 +1,4 @@
-import { ProjectOutlined, DatabaseOutlined, TeamOutlined, PoweroffOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, TeamOutlined, PoweroffOutlined } from '@ant-design/icons';
 import * as React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
@@ -9,7 +9,7 @@ import LoadSpinner from '../reusable/loadSpinner';
 type MainMenuBarProps = {
     projects: IProject[];
 }
-export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ projects }) => (
+export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ projects: __unused__projects }) => (
     <div className={css.main_menubar}>
         {/*
         <div>
