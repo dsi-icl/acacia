@@ -25,26 +25,31 @@
 }
 
 .button {
+    color: var(--color-main-menu-button-hover);
     display: block;
-    text-align: center;
+    text-align: left;
     width: 100%;
     margin-top: 1rem;
     margin-bottom: 2rem;
 }
 
 .button:hover {
-    color: var(--color-primary-color);
+    color: var(--color-background);
 }
 
 .button svg {
-    fill: rgb(139, 138, 138);
+    fill: var(--color-main-menu-button-hover);
     margin-right: 0.8em;
 }
 
 .button:hover svg {
-    fill: var(--color-main-menu-button-hover);
+    fill: var(--color-background);
 }
 
-.clickedButton svg {
-    fill: rgb(245, 245, 245);
+.clickedButton .button {
+    color: var(--color-background);
+}
+
+.clickedButton .button svg {
+    fill: var(--color-background);
 }

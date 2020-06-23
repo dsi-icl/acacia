@@ -11,11 +11,13 @@ type MainMenuBarProps = {
 }
 export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ projects }) => (
     <div className={css.main_menubar}>
+        {/*
         <div>
             <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title='Projects' activeClassName={css.clickedButton}>
                 <div className={css.button}><ProjectOutlined /> Projects</div>
             </NavLink>
         </div>
+        */}
 
         <div>
             <NavLink to='/datasets' title='Datasets' activeClassName={css.clickedButton}>
