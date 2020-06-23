@@ -5,7 +5,7 @@ type LoadSpinnerProps = {
     cover?: boolean;
 }
 
-const LoadSpinner: React.FC<LoadSpinnerProps> = ({ cover }) => {
+const LoadSpinner: React.FC<LoadSpinnerProps> = ({ cover = true }) => {
     return (
         <div className={cover ? css.cover : undefined}>
             <div className={css.loader}>

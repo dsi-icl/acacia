@@ -23,7 +23,7 @@ export const App: React.FunctionComponent = () => (
                     {({ loading, error, data }) => {
                         if (loading) {
                             return (
-                                <LoadSpinner cover={true} />
+                                <LoadSpinner />
                             );
                         }
                         if (error) {
