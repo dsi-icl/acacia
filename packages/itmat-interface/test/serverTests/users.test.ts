@@ -1087,7 +1087,7 @@ describe('USERS API', () => {
 
             expect(res_login.status).toBe(200);
             expect(res_login.body.errors).toHaveLength(1);
-            expect(res_login.body.errors[0].message).toBe('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
+            expect(res_login.body.errors[0].message).toBe('Incorrect One-Time password.');
         }, 30000);
 
         test('create user', async () => {

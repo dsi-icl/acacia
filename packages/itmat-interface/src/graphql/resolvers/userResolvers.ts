@@ -196,7 +196,7 @@ export const userResolvers = {
             // validate the TOTP
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
             if (!totpValidated) {
-                throw new UserInputError('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
+                throw new UserInputError('Incorrect One-Time password.');
             }
 
             return new Promise((resolve) => {
@@ -267,8 +267,8 @@ export const userResolvers = {
             });
 
             /* send email to the registered user */
-            // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code
-            const oauth_uri = `otpauth://totp/IDEAFAST:${username}?secret=${createdUser.otpSecret}&issuer=IDEAFAST`;
+            // get QR Code for the otpSecret.
+            const oauth_uri = `otpauth://totp/IDEA-FAST:${username}?secret=${createdUser.otpSecret}&issuer=Data%20Science%20Institute`;
             const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
@@ -285,7 +285,7 @@ export const userResolvers = {
                     <br/>
                     <p>Your username is <b>${username}</b>.</p><br/>
                     <p>Your 2FA otpSecret is: ${createdUser.otpSecret.toLowerCase()}</p>
-                    <label> 2FA QR Code: </label> <img src="cid:qrcode_cid" alt="QR code for Google Authenticator" width="150" height="150" /> <br /><br />
+                    <label> 2FA QR Code: </label> <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /> <br /><br />
                     <p>Please use a MFA authenticator app for time-based one time password (TOTP) when logging in.</p>
                     <br/><br/>
                     
