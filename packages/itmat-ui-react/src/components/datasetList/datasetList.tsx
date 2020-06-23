@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { NavLink } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { Models, WHO_AM_I } from 'itmat-commons';
+import { Button } from 'antd';
+import { ContainerOutlined } from '@ant-design/icons';
+import LoadSpinner from '../reusable/loadSpinner';
 
 export const DatasetList: React.FunctionComponent = () => {
     return (
@@ -10,7 +13,7 @@ export const DatasetList: React.FunctionComponent = () => {
             pollInterval={5000}
         >
             {({ loading, error, data }) => {
-                if (loading) { return <p>Loading...</p>; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>Error :( {error}</p>; }
                 if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.studies) {
                     const datasets = data.whoAmI.access.studies;
@@ -18,7 +21,7 @@ export const DatasetList: React.FunctionComponent = () => {
                         return <PickDatasetSection datasets={datasets} />;
                     }
                 }
-                return <p>There is no dataset or you have not been added to any. Please contact admin.</p>;
+                return <p>There is no dataset or you have not been granted access to any. Please contact your data custodian.</p>;
             }
             }
         </Query>
@@ -26,12 +29,21 @@ export const DatasetList: React.FunctionComponent = () => {
 };
 
 const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => {
+
+    const history = useHistory();
+
     return <>
-        Please pick the study you would like to access: <br /><br /><br />
+        Available datasets: <br /> <br />
         {datasets.map((el) =>
-            <NavLink key={el.id} to={`/datasets/${el.id}/dashboard`}>
-                <button>{el.name}</button>
-            </NavLink>
+            <>
+                <Button icon={<ContainerOutlined />} key={el.id} style={{
+                    width: '100%',
+                    marginBottom: '1rem'
+                }} onClick={() => { history.push(`/datasets/${el.id}/dashboard`); }}>
+                    {el.name}
+                </Button>
+            </>
         )}
+        <br /><br />
     </>;
 };

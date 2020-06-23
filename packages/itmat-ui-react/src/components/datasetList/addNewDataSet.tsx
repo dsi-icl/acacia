@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
 import { userTypes, WHO_AM_I, CREATE_STUDY } from 'itmat-commons';
+import { Button } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 
 export const AddNewDataSet: React.FunctionComponent = () => {
     const [showMore, setShowMore] = React.useState(false);
@@ -18,7 +20,7 @@ export const AddNewDataSet: React.FunctionComponent = () => {
                 if (data.whoAmI && data.whoAmI.type && data.whoAmI.type === userTypes.ADMIN) {
                     return (
                         !showMore ?
-                            <button onClick={() => setShowMore(true)}>Add new dataset</button>
+                            <Button icon={<PlusOutlined />} type='dashed' onClick={() => setShowMore(true)}>Add new dataset</Button>
                             :
                             <div>
                                 <label>Enter name: <input value={newName} onChange={e => { setNewName(e.target.value); setInputError(''); }} type='text' /> </label>
