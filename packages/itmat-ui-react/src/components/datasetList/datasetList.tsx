@@ -39,7 +39,7 @@ const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStud
                 <Button icon={<ContainerOutlined />} key={el.id} style={{
                     width: '100%',
                     marginBottom: '1rem'
-                }} onClick={() => { history.push(`/datasets/${el.id}/dashboard`); }}>
+                }} onClick={() => { history.push(`/datasets/${el.id}/files`); }}>
                     {el.name}
                 </Button>
             </>
