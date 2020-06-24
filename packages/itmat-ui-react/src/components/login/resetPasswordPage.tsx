@@ -61,7 +61,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                                     }
                                 })}>
                                     <Form.Item name='newPassword' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                        <Input type='password' placeholder='Password' />
+                                        <Input.Password placeholder='Password' />
                                     </Form.Item>
                                     <Form.Item name='newPasswordConfirm' hasFeedback dependencies={['newPassword']} rules={[
                                         { required: true, message: ' ' },
@@ -74,7 +74,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                                             }
                                         })
                                     ]} >
-                                        <Input type='password' placeholder='Confirm Password' />
+                                        <Input.Password placeholder='Confirm Password' />
                                     </Form.Item>
                                     {error ? (
                                         <>

@@ -1476,10 +1476,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@ideafast/idgen@0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@ideafast/idgen/-/idgen-0.0.6.tgz#614bee1322f4cd5cb28007b8333e224d3159170f"
-  integrity sha512-l/t2V8N3IHYVtU1sA62F+LQR2Io1SLG2pCFLG4ydWuwuQhK4QESN37PBoVIj8ozKXdaI4h2TxKtNjKE8MBzTnQ==
+"@ideafast/idgen@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@ideafast/idgen/-/idgen-0.1.1.tgz#966ad2d74238a77881cfa427a8c3e9225ee0c24f"
+  integrity sha512-1kaaUD9LXRYnUqK2yJnwMXon2F3vqKzViAbEZQTeYAghLB60EEIbC4JXoi+KbKKxYNHNB03MGWUR5y3Ec+yEgA==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"

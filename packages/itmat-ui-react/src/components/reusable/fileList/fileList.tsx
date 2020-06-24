@@ -50,14 +50,10 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             sorter: (a, b) => a.fileName.localeCompare(b.fileName)
         },
         {
-            title: 'Description',
-            dataIndex: 'description',
-            key: 'description'
-        },
-        {
             title: 'Size',
             dataIndex: 'fileSize',
             render: (size) => formatBytes(size),
+            width: '8rem',
             key: 'size'
         },
         {
@@ -66,6 +62,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
                     Download
                 </Button>
             ),
+            width: '10rem',
             key: 'download'
         },
         {
@@ -74,6 +71,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
                     Delete
                 </Button>
             ),
+            width: '8rem',
             key: 'delete'
         }
     ];

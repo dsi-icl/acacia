@@ -32,10 +32,10 @@ export const LoginBox: React.FunctionComponent = () => {
                                         <Input placeholder='Username' />
                                     </Form.Item>
                                     <Form.Item name='password' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                        <Input type='password' placeholder='Password' />
+                                        <Input.Password placeholder='Password' />
                                     </Form.Item>
                                     <Form.Item name='totp' hasFeedback rules={[{ required: true, len: 6, message: ' ' }]}>
-                                        <Input type='password' placeholder='One-Time Passcode' />
+                                        <Input.Password placeholder='One-Time Passcode' />
                                     </Form.Item>
                                     {error ? (
                                         <>
