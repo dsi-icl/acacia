@@ -78,6 +78,6 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         }
     ];
 
-    return <Table rowKey={(rec) => rec.id} pagination={false} columns={columns} dataSource={files} size='middle' />;
+    return <Table rowKey={(rec) => rec.id} pagination={false} columns={columns} dataSource={files} size='small' />;
 
 };
