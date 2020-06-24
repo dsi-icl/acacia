@@ -20,8 +20,7 @@ module.exports = function (app) {
                 host: 'localhost',
                 port: 3003
             },
-            changeOrigin: true,
-            ws: true
+            changeOrigin: true
         })
     );
 };
