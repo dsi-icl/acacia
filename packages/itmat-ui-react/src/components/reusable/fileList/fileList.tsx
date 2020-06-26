@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useMutation } from 'react-apollo';
-import { Table, Button, notification } from 'antd';
+import { Table, Button, notification, Input } from 'antd';
 import { IFile, DELETE_FILE } from 'itmat-commons';
-import { DeleteOutlined, CloudDownloadOutlined } from '@ant-design/icons';
+import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined } from '@ant-design/icons';
 import { ApolloError } from 'apollo-client';
+import moment from 'moment';
+import { sites, deviceTypes } from '../../datasetDetail/tabContent/files/fileTab';
+import Highlighter from 'react-highlight-words';
 
 export function formatBytes(size: number, decimal = 2): string {
     if (size === 0) {
@@ -17,6 +20,7 @@ export function formatBytes(size: number, decimal = 2): string {
 
 export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files }) => {
 
+    const [searchTerm, setSearchTerm] = useState<string | undefined>();
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
     const [deleteFile] = useMutation(DELETE_FILE, {
         onError: (error: ApolloError) => {
@@ -44,10 +48,55 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
 
     const columns = [
         {
-            title: 'Name',
-            dataIndex: 'fileName',
-            key: 'fileName',
-            sorter: (a, b) => a.fileName.localeCompare(b.fileName)
+            title: 'Participant ID',
+            dataIndex: 'participantId',
+            key: 'participantId',
+            render: (__unused__value, record) => {
+                const participantId = JSON.parse(record.description).participantId;
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={participantId} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return participantId;
+            }
+        },
+        {
+            title: 'Site',
+            key: 'site',
+            render: (__unused__value, record) => sites[JSON.parse(record.description).participantId[0]],
+            sorter: (a, b) => a.localCompare(b)
+        },
+        {
+            title: 'Device ID',
+            dataIndex: 'deviceId',
+            key: 'deviceId',
+            render: (__unused__value, record) => {
+                const deviceId = JSON.parse(record.description).deviceId;
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={deviceId} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return deviceId;
+            }
+        },
+        {
+            title: 'Device Type',
+            key: 'deviceType',
+            render: (__unused__value, record) => deviceTypes[JSON.parse(record.description).deviceId.substr(0, 3)],
+            sorter: (a, b) => a.localCompare(b)
+        },
+        {
+            title: 'Period',
+            dataIndex: 'period',
+            key: 'period',
+            render: (__unused__value, record) => {
+                const { startDate, endDate } = JSON.parse(record.description);
+                return <>{moment(startDate).format('YYYY-MM-DD')}&nbsp;&nbsp;<SwapRightOutlined />&nbsp;&nbsp;{moment(endDate).format('YYYY-MM-DD')}</>
+            }
         },
         {
             title: 'Size',
@@ -57,11 +106,15 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             key: 'size'
         },
         {
-            render: (rec, file) => (
-                <Button icon={<CloudDownloadOutlined />} download={file.fileName} href={`/file/${file.id}`}>
+            render: (value, record) => {
+                const ext = record.fileName.substr(record.fileName.lastIndexOf('.')).toLowerCase();
+                const file = JSON.parse(record.description);
+                const startDate = moment(file.startDate).format('YYYYMMDD');
+                const endDate = moment(file.endDate).format('YYYYMMDD');
+                return <Button icon={<CloudDownloadOutlined />} download={`${file.participantId}-${file.deviceId}-${startDate}-${endDate}.${ext}`} href={`/file/${record.id}`}>
                     Download
-                </Button>
-            ),
+                </Button>;
+            },
             width: '10rem',
             key: 'download'
         },
@@ -76,6 +129,11 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         }
     ];
 
-    return <Table rowKey={(rec) => rec.id} pagination={false} columns={columns} dataSource={files} size='small' />;
+    return <>
+        <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value)} />
+        <br />
+        <br />
+        <Table rowKey={(rec) => rec.id} pagination={false} columns={columns} dataSource={files.filter(file => !searchTerm || file.description.search(searchTerm) > -1)} size='small' />
+    </>;
 
 };

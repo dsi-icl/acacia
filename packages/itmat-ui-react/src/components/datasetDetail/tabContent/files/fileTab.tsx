@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Button, Upload, notification, Tag, Table, Form, Input, DatePicker } from 'antd';
 import { RcFile } from 'antd/lib/upload';
-import { UploadOutlined, SwapRightOutlined, DeleteOutlined } from '@ant-design/icons';
+import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Query, useApolloClient, useMutation } from 'react-apollo';
 import { useDropzone } from 'react-dropzone';
 import { GET_STUDY, UPLOAD_FILE } from 'itmat-commons';
@@ -22,14 +22,14 @@ type StudyFile = RcFile & {
     endDate?: Moment;
 }
 
-const sites = {
+export const sites = {
     N: 'Newcastle',
     K: 'Kiel',
     G: 'GHI Muenster',
     E: 'EMC Rotterdam'
 };
 
-const deviceTypes = {
+export const deviceTypes = {
     AX6: 'Axivity',
     BVN: 'Biovotion',
     BTF: 'Byteflies',
@@ -48,12 +48,10 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const [isDropOverlayShowing, setisDropOverlayShowing] = useState(false);
     const [fileList, setFileList] = useState<StudyFile[]>([]);
     const [isUploading, setIsUploading] = useState(false);
-    const [description, setDescription] = React.useState('');
     const store = useApolloClient();
 
     const [uploadFile] = useMutation(UPLOAD_FILE, {
         onCompleted: ({ uploadFile }) => {
-            setDescription('');
             const cachedata = store.readQuery({
                 query: GET_STUDY,
                 variables: { studyId }
@@ -133,16 +131,22 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         setFileList([...fileList]);
     };
 
+    const validFile = fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate);
     const uploadHandler = () => {
 
         const uploads: Promise<any>[] = [];
         setIsUploading(true);
-        fileList.forEach(file => {
+        validFile.forEach(file => {
             uploads.push(uploadFile({
                 variables: {
                     file,
                     studyId,
-                    description,
+                    description: JSON.stringify({
+                        participantId: file.participantId,
+                        deviceId: file.deviceId,
+                        startDate: file.startDate?.toISOString(),
+                        endDate: file.endDate?.toISOString(),
+                    }),
                     fileLength: file.size
                 }
             }).then(result => {
@@ -287,7 +291,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                         loading={isUploading}
                         style={{ marginTop: 16 }}
                     >
-                        {isUploading ? 'Uploading' : 'Upload'}
+                        {isUploading ? `Uploading (${validFile.length} ready of ${fileList.length})` : `Upload (${validFile.length} ready of ${fileList.length})`}
                     </Button>
                     &nbsp;&nbsp;&nbsp;
                     <Button onClick={() => setFileList([])}>Cancel</Button>
@@ -370,23 +374,12 @@ const EditableCell: React.FC<EditableCellProps> = ({
         }
     }, [editable, editing, form, record]);
 
-    // const toggleEdit = () => {
-    //     setEditing(!editing);
-    //     if (dataIndex === 'period') {
-    //         form.setFieldsValue({ startDate: record.startDate });
-    //         form.setFieldsValue({ endDate: record.endDate });
-    //     }
-    //     else
-    //         form.setFieldsValue({ [dataIndex]: record[dataIndex] });
-    // };
-
     const save = async () => {
         try {
             const values = await form.validateFields();
-            // toggleEdit();
             handleSave({ ...record, ...values });
         } catch (errInfo) {
-            console.log('Save failed:', errInfo);
+            // console.error(errInfo);
         }
     };
 
