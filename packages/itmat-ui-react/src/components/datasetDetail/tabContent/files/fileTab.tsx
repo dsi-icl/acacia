@@ -232,11 +232,11 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             dataIndex: 'period',
             key: 'period',
             editable: true,
-            width: '20rem'
+            width: '24rem'
         },
         {
             key: 'delete',
-            render: (__unused__value, record) => <Button disabled={isUploading} danger icon={<DeleteOutlined />} onClick={() => {
+            render: (__unused__value, record) => <Button disabled={isUploading} type='primary' danger icon={<DeleteOutlined />} onClick={() => {
                 removeFile(record);
             }}></Button>
         }]
@@ -364,26 +364,26 @@ const EditableCell: React.FC<EditableCellProps> = ({
     const form = useContext(EditableContext);
 
     useEffect(() => {
-        if (editing) {
-            inputRef?.current?.focus();
-            rangeRef?.current?.focus();
+        if (editable && !editing) {
+            form.setFieldsValue(record);
+            setEditing(true);
         }
-    }, [editing]);
+    }, [editable, editing, form, record]);
 
-    const toggleEdit = () => {
-        setEditing(!editing);
-        if (dataIndex === 'period') {
-            form.setFieldsValue({ startDate: record.startDate });
-            form.setFieldsValue({ endDate: record.endDate });
-        }
-        else
-            form.setFieldsValue({ [dataIndex]: record[dataIndex] });
-    };
+    // const toggleEdit = () => {
+    //     setEditing(!editing);
+    //     if (dataIndex === 'period') {
+    //         form.setFieldsValue({ startDate: record.startDate });
+    //         form.setFieldsValue({ endDate: record.endDate });
+    //     }
+    //     else
+    //         form.setFieldsValue({ [dataIndex]: record[dataIndex] });
+    // };
 
     const save = async () => {
         try {
             const values = await form.validateFields();
-            toggleEdit();
+            // toggleEdit();
             handleSave({ ...record, ...values });
         } catch (errInfo) {
             console.log('Save failed:', errInfo);
@@ -392,67 +392,78 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
     let childNode = children;
 
-    if (editable) {
-        childNode = editing
-            ? (
-                dataIndex === 'period'
-                    ?
-                    <>
-                        <Form.Item
-                            style={{ display: 'none' }}
-                            name='startDate'
-                            rules={[{ required: true, message: <></> }]}
-                        >
-                            <Input />
-                        </Form.Item>
-                        <Form.Item
-                            style={{ display: 'none' }}
-                            name='endDate'
-                            rules={[{ required: true, message: <></> }]}
-                        >
-                            <Input />
-                        </Form.Item>
-                        <Form.Item
-                            style={{ margin: 0 }}
-                            name='period'
-                            dependencies={['startDate', 'endDate']}
-                            rules={[
-                                { required: true, message: <></> },
-                                ({ getFieldValue }) => ({
-                                    validator() {
-                                        if (getFieldValue('startDate') && getFieldValue('endDate'))
-                                            return Promise.resolve();
-                                        return Promise.reject();
-                                    },
-                                })
-                            ]}
-                        >
-                            <RangePicker allowClear={false} ref={rangeRef} defaultValue={[record.startDate ?? null, record.endDate ?? null]} onChange={(dates) => {
-                                if (dates === null)
-                                    return;
-                                form.setFieldsValue({ startDate: dates[0] });
-                                form.setFieldsValue({ endDate: dates[1] });
-                            }} onBlur={save} />
-                        </Form.Item>
-                    </>
-                    :
-                    <Form.Item
-                        style={{ margin: 0 }}
-                        name={dataIndex}
-                        rules={[{ required: true, message: <></> }]}
-                    >
-                        <Input ref={inputRef} allowClear={false} onPressEnter={save} onBlur={save} style={{ width: '100%' }} />
-                    </Form.Item>
-
-            )
-            : (
-                <div className={css.editable_cell_wrap} style={{ paddingRight: 24, cursor: 'pointer' }} onClick={toggleEdit}>
-                    {dataIndex === 'period'
-                        ? (record.startDate && record.endDate ? <>{record.startDate.format('YYYY-MM-DD')}&nbsp;&nbsp;<SwapRightOutlined />&nbsp;&nbsp;{record.endDate.format('YYYY-MM-DD')}</> : null)
-                        : <>{children}</>
+    if (editing) {
+        if (dataIndex === 'period') {
+            childNode = <>
+                <Form.Item
+                    style={{ display: 'none' }}
+                    name='startDate'
+                    rules={[{ required: true, message: <></> }]}
+                >
+                    <Input id={`startDate_${record.uuid}`} />
+                </Form.Item>
+                <Form.Item
+                    style={{ display: 'none' }}
+                    name='endDate'
+                    rules={[{ required: true, message: <></> }]}
+                >
+                    <Input id={`endDate_${record.uuid}`} />
+                </Form.Item>
+                <Form.Item
+                    style={{ margin: 0 }}
+                    name='period'
+                    hasFeedback
+                    dependencies={['startDate', 'endDate']}
+                    rules={[
+                        { required: true, message: <></> },
+                        ({ getFieldValue }) => ({
+                            validator() {
+                                if (getFieldValue('startDate') && getFieldValue('endDate'))
+                                    return Promise.resolve();
+                                return Promise.reject('Missing dates');
+                            },
+                        })
+                    ]}
+                >
+                    <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ?? null, record.endDate ?? null]} onCalendarChange={(dates) => {
+                        if (dates === null)
+                            return;
+                        form.setFieldsValue({ startDate: dates[0] });
+                        form.setFieldsValue({ endDate: dates[1] });
+                    }} onBlur={save} />
+                </Form.Item>
+            </>;
+        } else {
+            childNode = <Form.Item
+                style={{ margin: 0 }}
+                name={dataIndex}
+                hasFeedback
+                rules={[{
+                    required: true, message: <></>, validator: (__unused__rule, value) => {
+                        if (dataIndex === 'participantId') {
+                            if (!Object.keys(sites).includes(value?.[0]))
+                                throw new Error('Invalid site marker');
+                            if (value.length === 7) {
+                                if (!validate(value?.substr(1).toUpperCase()))
+                                    throw new Error('Invalid participant ID');
+                                return Promise.resolve();
+                            }
+                        }
+                        if (dataIndex === 'deviceId') {
+                            if (!Object.keys(deviceTypes).includes(value?.substr(0, 3)))
+                                throw new Error('Invalid device marker');
+                            if (value.length === 9) {
+                                if (!validate(value?.substr(3).toUpperCase()))
+                                    throw new Error('Invalid device ID');
+                                return Promise.resolve();
+                            }
+                        }
                     }
-                </div>
-            );
+                }]}
+            >
+                <Input id={`${dataIndex}_${record.uuid}`} ref={inputRef} allowClear={false} onPressEnter={save} onBlur={save} style={{ width: '100%' }} />
+            </Form.Item>;
+        }
     }
 
     return <td {...restProps}>{childNode}</td>;

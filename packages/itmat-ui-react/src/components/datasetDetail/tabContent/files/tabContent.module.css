@@ -70,18 +70,6 @@
     left: 0.5rem;
 }
 
-.editable_cell_wrap {
-    height: 32px;
-    padding: 5px 12px;
-    cursor: pointer;
-}
-
-.editable_row:hover .editable_cell_wrap {
-    border: 1px solid #d9d9d9;
-    border-radius: 4px;
-    padding: 4px 11px;
-}
-
 .editable_row [class*=ant-form-item-explain] {
     display: none;
 }
