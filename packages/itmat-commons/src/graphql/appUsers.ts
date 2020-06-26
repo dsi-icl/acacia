@@ -11,6 +11,7 @@ export const GET_USERS = gql`
             firstname
             lastname
             email @include (if: $fetchDetailsAdminOnly)
+            emailNotificationsActivated @include (if: $fetchDetailsAdminOnly)
             organisation
             createdAt @include (if: $fetchDetailsAdminOnly)
             expiredAt @include (if: $fetchDetailsAdminOnly)

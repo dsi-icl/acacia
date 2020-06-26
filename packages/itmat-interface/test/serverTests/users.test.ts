@@ -780,6 +780,7 @@ describe('USERS API', () => {
                     lastname: 'Ladmin',
                     organisation: 'DSI',
                     email: 'admin@example.com',
+                    emailNotificationsActivated: false,
                     description: 'I am an admin user.',
                     id: adminId,
                     createdAt: 1591134065000,
@@ -793,6 +794,7 @@ describe('USERS API', () => {
                     lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
+                    emailNotificationsActivated: true,
                     description: 'I am a standard user.',
                     id: userId,
                     createdAt: 1591134065000,
@@ -813,6 +815,7 @@ describe('USERS API', () => {
                     lastname: 'Ladmin',
                     organisation: 'DSI',
                     email: 'admin@example.com',
+                    emailNotificationsActivated: false,
                     description: 'I am an admin user.',
                     id: adminId,
                     access: {
@@ -831,6 +834,7 @@ describe('USERS API', () => {
                     lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
+                    emailNotificationsActivated: true,
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -859,6 +863,7 @@ describe('USERS API', () => {
                     lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
+                    emailNotificationsActivated: true,
                     description: 'I am a standard user.',
                     id: userId,
                     createdAt: 1591134065000,
@@ -885,6 +890,7 @@ describe('USERS API', () => {
                     lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
+                    emailNotificationsActivated: true,
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -959,6 +965,7 @@ describe('USERS API', () => {
                     lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
+                    emailNotificationsActivated: true,
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -1014,6 +1021,7 @@ describe('USERS API', () => {
                     lastname: 'Chan',
                     organisation: 'DSI',
                     email: 'standard@example.com',
+                    emailNotificationsActivated: true,
                     description: 'I am a standard user.',
                     id: userId,
                     access: {

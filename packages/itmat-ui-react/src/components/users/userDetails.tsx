@@ -32,7 +32,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
             <div className='page_ariane'>{data.getUsers[0].username}</div>
             <div className='page_content'>
                 <Subsection title='Account Information'>
-                    <EditUserForm user={user} />
+                    <EditUserForm user={user} key={user.id} />
                     <br />
                 </Subsection>
                 <Subsection title='Projects'>
@@ -61,6 +61,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
             ...user,
             ...variables
         };
+        delete final.access;
         return final;
     }
 
@@ -68,6 +69,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (whoamiloading) { return <p>Loading..</p>; }
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
+    console.log(user);
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
@@ -99,7 +101,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                                 <Select.Option value='ADMIN'>System admin</Select.Option>
                             </Select>
                         </Form.Item>
-                        <Form.Item name='emailNotificationsActivated' label='Email notifications'>
+                        <Form.Item name='emailNotificationsActivated' label='Email notifications' valuePropName='checked'>
                             <Checkbox />
                         </Form.Item>
                         <Form.Item label='Created At'>
