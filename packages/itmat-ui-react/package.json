@@ -8,7 +8,6 @@
     "files": [
         "build"
     ],
-    "proxy": "http://localhost:3003",
     "scripts": {
         "start": "cross-env BROWSER=none SKIP_PREFLIGHT_CHECK=true react-scripts start",
         "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
@@ -25,7 +24,6 @@
         "apollo-client": "2.6.10",
         "apollo-link": "1.2.14",
         "apollo-link-error": "1.1.13",
-        "apollo-link-ws": "1.0.20",
         "apollo-upload-client": "13.0.0",
         "axe-core": "3.5.4",
         "itmat-commons": "0.6.0",
@@ -34,8 +32,7 @@
         "react-apollo": "3.1.5",
         "react-dom": "16.13.1",
         "react-router-dom": "5.2.0",
-        "react-scripts": "3.4.0",
-        "subscriptions-transport-ws": "0.9.16"
+        "react-scripts": "3.4.0"
     },
     "devDependencies": {
         "@apollo/react-testing": "3.1.4",
