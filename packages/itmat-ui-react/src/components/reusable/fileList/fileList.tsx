@@ -95,7 +95,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             key: 'period',
             render: (__unused__value, record) => {
                 const { startDate, endDate } = JSON.parse(record.description);
-                return <>{moment(startDate).format('YYYY-MM-DD')}&nbsp;&nbsp;<SwapRightOutlined />&nbsp;&nbsp;{moment(endDate).format('YYYY-MM-DD')}</>
+                return <>{moment(startDate).format('YYYY-MM-DD')}&nbsp;&nbsp;<SwapRightOutlined />&nbsp;&nbsp;{moment(endDate).format('YYYY-MM-DD')}</>;
             }
         },
         {
