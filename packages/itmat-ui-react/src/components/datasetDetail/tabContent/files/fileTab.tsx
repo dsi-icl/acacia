@@ -23,6 +23,7 @@ type StudyFile = RcFile & {
 }
 
 export const sites = {
+    I: 'Imperial College London',
     N: 'Newcastle',
     K: 'Kiel',
     G: 'GHI Muenster',
