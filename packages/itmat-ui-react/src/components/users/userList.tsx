@@ -85,7 +85,7 @@ const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutT
         },
         {
             render: (__unused__value, record) => (
-                <Button icon={<EditOutlined />} danger onClick={() => { history.push(`/users/${record.id}`); }}>
+                <Button icon={<EditOutlined />} onClick={() => { history.push(`/users/${record.id}`); }}>
                     Edit
                 </Button>
             ),
