@@ -33,12 +33,12 @@
         "itmat-commons": "0.6.0",
         "mongodb": "3.5.9",
         "multer": "2.0.0-rc.2",
-        "nodemailer": "6.4.8",
+        "nodemailer": "6.4.10",
         "os2": "0.0.13",
         "passport": "0.4.1",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
-        "uuid": "8.1.0"
+        "uuid": "8.2.0"
     },
     "devDependencies": {
         "@types/bcrypt": "3.0.0",
