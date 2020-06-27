@@ -66,7 +66,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             title: 'Site',
             key: 'site',
             render: (__unused__value, record) => sites[JSON.parse(record.description).participantId[0]],
-            sorter: (a, b) => a.localCompare(b)
+            sorter: (a, b) => JSON.parse(a.description).participantId.localeCompare(JSON.parse(b.description).participantId)
         },
         {
             title: 'Device ID',
@@ -87,7 +87,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             title: 'Device Type',
             key: 'deviceType',
             render: (__unused__value, record) => deviceTypes[JSON.parse(record.description).deviceId.substr(0, 3)],
-            sorter: (a, b) => a.localCompare(b)
+            sorter: (a, b) => JSON.parse(a.description).deviceId.localeCompare(JSON.parse(b.description).deviceId)
         },
         {
             title: 'Period',
@@ -106,7 +106,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             key: 'size'
         },
         {
-            render: (value, record) => {
+            render: (__unused__value, record) => {
                 const ext = record.fileName.substr(record.fileName.lastIndexOf('.')).toLowerCase();
                 const file = JSON.parse(record.description);
                 const startDate = moment(file.startDate).format('YYYYMMDD');
@@ -119,8 +119,8 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             key: 'download'
         },
         {
-            render: (rec, file) => (
-                <Button icon={<DeleteOutlined />} loading={isDeleting[file.id]} danger onClick={() => deletionHandler(file.id)}>
+            render: (__unused__value, record) => (
+                <Button icon={<DeleteOutlined />} loading={isDeleting[record.id]} danger onClick={() => deletionHandler(record.id)}>
                     Delete
                 </Button>
             ),
@@ -130,7 +130,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
     ];
 
     return <>
-        <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value)} />
+        <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
         <br />
         <br />
         <Table rowKey={(rec) => rec.id} pagination={false} columns={columns} dataSource={files.filter(file => !searchTerm || file.description.search(searchTerm) > -1)} size='small' />
