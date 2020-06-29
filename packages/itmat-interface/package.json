@@ -58,7 +58,7 @@
         "cross-env": "7.0.2",
         "cross-spawn": "7.0.3",
         "get-port": "5.1.1",
-        "jest": "26.0.1",
+        "jest": "26.1.0",
         "mongodb-memory-server": "6.6.1",
         "node-fetch": "2.6.0",
         "rimraf": "3.0.2",
