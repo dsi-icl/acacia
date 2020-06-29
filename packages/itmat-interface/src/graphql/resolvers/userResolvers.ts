@@ -160,16 +160,14 @@ export const userResolvers = {
                 await mailer.sendMail(await formatEmailForForgottenPassword({
                     to: user.email,
                     resetPasswordToken: passwordResetToken,
-                    username: user.username,
                     firstname: user.firstname,
-                    host: context.req.hostname
+                    origin: context.req.headers.origin
                 }));
             } else {
                 /* send email to client */
                 await mailer.sendMail(formatEmailForFogettenUsername({
                     to: user.email,
-                    username: user.username,
-                    firstname: user.firstname
+                    username: user.username
                 }));
             }
             return makeGenericReponse();
@@ -268,7 +266,7 @@ export const userResolvers = {
 
             /* send email to the registered user */
             // get QR Code for the otpSecret.
-            const oauth_uri = `otpauth://totp/IDEA-FAST:${username}?secret=${createdUser.otpSecret}&issuer=Data%20Science%20Institute`;
+            const oauth_uri = `otpauth://totp/${config.appName}:${username}?secret=${createdUser.otpSecret}&issuer=Data%20Science%20Institute`;
             const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
@@ -277,20 +275,27 @@ export const userResolvers = {
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
             await mailer.sendMail({
-                from: config.nodemailer.auth.user,
+                from: `${config.appName} <${config.nodemailer.auth.user}>`,
                 to: email,
-                subject: 'IDEA-FAST: Registration Successful',
-                html: `<p>Dear ${firstname},<p>
-                    Welcome to the IDEA-FAST project!
+                subject: `[${config.appName}] Registration Successful`,
+                html: `
+                    <p>
+                        Dear ${firstname},
+                    <p>
+                    <p>
+                        Welcome to the ${config.appName} project!<br/>
+                        Your username is <b>${username}</b>.<br/>
+                    </p>
+                    <p>
+                        To login you will need to use a MFA authenticator app for time-based one time password (TOTP).<br/>
+                        Scan the QRCode below in your MFA application of choice to configure it:<br/>
+                        <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /><br/>
+                        If you need to type the token in use ${createdUser.otpSecret.toLowerCase()}
+                    </p>
                     <br/>
-                    <p>Your username is <b>${username}</b>.</p><br/>
-                    <p>Your 2FA otpSecret is: ${createdUser.otpSecret.toLowerCase()}</p>
-                    <label> 2FA QR Code: </label> <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /> <br /><br />
-                    <p>Please use a MFA authenticator app for time-based one time password (TOTP) when logging in.</p>
-                    <br/><br/>
-                    
-                    Yours truly,
-                    NAME team.
+                    <p>
+                        The ${config.appName} Team.
+                    </p>
                 `,
                 attachments: attachments
             });
@@ -469,41 +474,48 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
     });
 }
 
-async function formatEmailForForgottenPassword({ firstname, to, resetPasswordToken, username, host }: { host: string, username: string, resetPasswordToken: string, to: string, firstname: string }) {
+async function formatEmailForForgottenPassword({ firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, firstname: string, origin: any }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
     const iv = makeAESIv(resetPasswordToken);
     const encryptedEmail = await encryptEmail(to, keySalt, iv);
 
-
-    const link = `${config.useSSL ? 'https' : 'http'}://${host}${process.env.NODE_ENV === 'development' ? `:${config.server.port}` : ''}/resetPassword/${encryptedEmail}/${resetPasswordToken}`;
+    const link = `${origin}/resetPassword/${encryptedEmail}/${resetPasswordToken}`;
     return ({
-        from: '"NAME"',
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
-        subject: 'Reset your NAME password',
-        html: `<p>Dear ${firstname},<p>
+        subject: `[${config.appName}] password reset`,
+        html: `
+            <p>
+                Dear ${firstname},
+            <p>
+            <p>
+                You can reset you password by click the following link (active for 1 hour):<br/>
+                <a href=${link}>${link}</a>
+            </p>
             <br/>
-            <p>Your username is <b>${username}</b>.</p><br/>
-            <p>You can reset you password by click the following link (active for 1 hour):</p>
-            <p><a href=${link}>${link}</a></p>
-            <br/><br/>
-
-            Yours truly,
-            NAME team.
+            <p>
+                The ${config.appName} Team.
+            </p>
         `
     });
 }
 
-function formatEmailForFogettenUsername({ username, to, firstname }: { username: string, to: string, firstname: string }) {
+function formatEmailForFogettenUsername({ username, to }: { username: string, to: string }) {
     return ({
-        from: '"NAME" <name@name.io>',
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
-        subject: 'Your NAME username reminder',
-        html: `<p>Dear ${firstname},<p>
+        subject: `[${config.appName}] password reset`,
+        html: `
+            <p>
+                Dear user,
+            <p>
+            <p>
+                Your username is <b>${username}</b>.
+            </p>
             <br/>
-            <p>Your username is <b>${username}</b>.</p><br/>
-
-            Yours truly,
-            NAME team.
+            <p>
+                The ${config.appName} Team.
+            </p>
         `
     });
 }

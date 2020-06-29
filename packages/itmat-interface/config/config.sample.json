@@ -1,4 +1,5 @@
 {
+    "appName": "NAME",
     "database": {
         "mongo_url": "mongodb://localhost:27017",
         "database": "itmat",
@@ -32,11 +33,5 @@
     "sessionsSecret": "Change_Me",
     "aesSecret": "change_this",
     "useSSL": false,
-    "nodemailer": {
-        "service": "Outlook365",
-        "auth": {
-            "user": "user",
-            "pass": "password" 
-        }
-    }
+    "nodemailer": {}
 }
