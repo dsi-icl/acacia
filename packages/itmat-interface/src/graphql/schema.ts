@@ -147,6 +147,37 @@ type Job {
     data: JSON
 }
 
+enum LOG_TYPE {
+    USER,
+    PROJECT,
+    STUDY,
+    FILE
+}
+
+enum LOG_ACTION {
+    # USER
+    CREATE_USER
+    DELETE_USER
+    # PROJECT
+
+    # STUDY
+
+    # FILE
+    UPLOAD_FILE,
+    DOWNLOAD_FILE,
+    DELETE_FILE
+}
+
+type Log {
+    id: String!,
+    requesterId: String!,
+    requesterName: String!,
+    requesterType: USERTYPE!
+    action: LOG_ACTION!,
+    actionData: JSON,
+    time: Float!
+}
+
 type QueryEntry {
     id: String!,
     queryString: String!,
@@ -240,6 +271,9 @@ type Query {
 
     # PERMISSION
     getMyPermissions: [String]
+
+    # LOG
+    getLogs(requesterId: String, requesterName: String, requesterType: USERTYPE, action: LOG_ACTION): [Log]
 }
 
 type Mutation {
@@ -285,6 +319,9 @@ type Mutation {
     createDataCurationJob(file: String!, studyId: String!, tag: String, version: String!): Job
     createFieldCurationJob(file: String!, studyId: String!, dataVersionId: String!, tag: String!): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
+
+    # LOG
+    writeLog(requesterId: String!, requesterName: String!, requesterType: USERTYPE!, action: LOG_ACTION, actionData: JSON): Log
 }
 
 type Subscription {

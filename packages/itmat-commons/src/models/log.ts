@@ -1,21 +1,32 @@
+import { userTypes } from './user';
+
 export interface ILogEntry {
-    type: LOG_TYPE;
-    subtype?: LOG_SUBTYPE;
-    user?: string;
-    ref: string;
-    content: string;
-    request: string;
-    outcome: string;
+    id: string,
+    requesterId: string,
+    requesterName: string,
+    requesterType: userTypes,
+    action: LOG_ACTION,
+    actionData: any,
+    time: number
 }
 
-enum LOG_TYPE {
-    ERROR = 'ERROR',
-    USER_ACTION = 'USER_ACTION',
-    LOGIN_ATTEMPT = 'LOGIN_ATTEMPT',
-    SYSTEM_LOG = 'SYSTEM_LOG'
+export enum LOG_TYPE {
+    USER = 'USER',
+    PROJECT = 'PROJECT',
+    STUDY = 'STUDY',
+    FILE = 'FILE'
 }
 
-enum LOG_SUBTYPE {
-    DATADASE_WRITE = 'DATABASE_WRITE',
-    DATADASE_READ = 'DATABASE_READ'
+export enum LOG_ACTION {
+    // USER
+    CREATE_USER = 'CREATE_USER',
+    DELETE_USER = 'DELETE_USER',
+    // PROJECT
+
+    // STUDY
+
+    // FILE
+    UPLOAD_FILE = 'UPLOAD_FILE',
+    DOWNLOAD_FILE = 'DOWNLOAD_FILE',
+    DELETE_FILE = 'DELETE_FILE'
 }

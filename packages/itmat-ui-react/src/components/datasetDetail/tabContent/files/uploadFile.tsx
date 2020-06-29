@@ -1,6 +1,6 @@
 import React from 'react';
-import { useApolloClient, useMutation } from 'react-apollo';
-import { UPLOAD_FILE, GET_STUDY} from 'itmat-commons';
+import { useApolloClient, useMutation, useQuery } from 'react-apollo';
+import { UPLOAD_FILE, GET_STUDY, WHO_AM_I, LOG_ACTION, WRITE_LOG} from 'itmat-commons';
 
 export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [description, setDescription] = React.useState('');
@@ -19,6 +19,12 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
             store.writeQuery({ query: GET_STUDY, variables: { studyId }, data: { getStudy: newcachedata } });
         }
     });
+
+    // prepare for logging
+    const [writeLog, { loading: writeLogLoading }] = useMutation(WRITE_LOG);
+    const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
+    if (whoamiloading) { return <p>Loading..</p>; }
+    if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
     return <div>
         <label>Select file: <input type='file' ref={fileRef as any} /></label><br /><br />
@@ -41,6 +47,18 @@ export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = (
 
                     const file = (fileRef.current! as any).files[0];
                     uploadFile({ variables: { file, studyId, description, fileLength: file.size } });
+
+                    // logging
+                    // const fileName: ILogData = {field: 'fileName', value: file.name};
+                    // const logData: ILogData[] = [fileName];
+                    const logData = JSON.stringify({fileName: file.name});
+                    writeLog({variables: {
+                        requesterId: whoamidata.whoAmI.id,
+                        requesterName: whoamidata.whoAmI.username,
+                        requesterType: whoamidata.whoAmI.type,
+                        action: LOG_ACTION.UPLOAD_FILE,
+                        actionData: logData} }
+                    );
                 }}>Upload</button>
         }
         {error ? <div className='error_banner'>{error}</div> : null}

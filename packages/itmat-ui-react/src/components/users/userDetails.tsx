@@ -7,7 +7,7 @@ import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
 import QRCode from 'qrcode';
-import { GQLRequests } from 'itmat-commons';
+import { GQLRequests, WRITE_LOG, LOG_ACTION } from 'itmat-commons';
 const {
     WHO_AM_I,
     DELETE_USER,
@@ -52,7 +52,8 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
     const [requestResetPassword] = useMutation(REQUEST_USERNAME_OR_RESET_PASSWORD, { onCompleted: () => { setRequestResetPasswordSent(true); } });
     const [requestResetPasswordSent, setRequestResetPasswordSent] = React.useState(false);
-
+    const [writeLog, { loading: writeLogLoading }] = useMutation(WRITE_LOG);
+    
     if (inputs.id !== user.id) {
         setUserIsDeleted(false);
         setDeleteButtonShown(false);
@@ -81,6 +82,21 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     QRCode.toDataURL(oauth_uri, function (err, data_url) {
         qrcode_url = data_url;
     });
+
+    // logging
+    function logFun(userid: string, username: string) {
+        // const userName: ILogData = {field: 'userName', value: username};
+        // const userId: ILogData = {field: 'userId', value: userid};
+        // const logData: ILogData[] = [userId,userName];
+        const logData = JSON.stringify({userName: username, userId: userid});
+        writeLog({variables: {
+            requesterId: whoamidata.whoAmI.id,
+            requesterName: whoamidata.whoAmI.username,
+            requesterType: whoamidata.whoAmI.type,
+            action: LOG_ACTION.DELETE_USER,
+            actionData: logData} }
+        );
+    }
 
     return (
         <Mutation<any, any>
@@ -163,7 +179,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                             return (
                                 <>
                                     <label>Delete this user:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
-                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }); }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
+                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }); logFun(user.id, user.username ); }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
                                 </>
                             );
                         }}

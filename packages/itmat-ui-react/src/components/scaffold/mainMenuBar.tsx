@@ -26,6 +26,12 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
                 </NavLink>
             </div>
 
+            <div>
+                <NavLink to='/logs' title='Logs' activeClassName={css.clickedButton}>
+                    <div className={css.button}><Icons type='users' /></div>
+                </NavLink>
+            </div>
+
             {/*
             <div>
                 <NavLink to="/notifications" title="Notifications" activeClassName={css.clickedButton}>

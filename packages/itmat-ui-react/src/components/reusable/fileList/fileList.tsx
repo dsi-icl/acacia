@@ -1,5 +1,7 @@
 import React from 'react';
 import { IFile } from 'itmat-commons';
+import { useMutation, useQuery } from 'react-apollo';
+import { WHO_AM_I, LOG_ACTION, WRITE_LOG} from 'itmat-commons';
 
 export function formatBytes(size: number, decimal = 2): string {
     if (size === 0) {
@@ -30,11 +32,33 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
 };
 
 const OneFile: React.FunctionComponent<{ file: IFile }> = ({ file }) => {
+    // prepare for logging
+    const [writeLog, { loading: writeLogLoading }] = useMutation(WRITE_LOG);
+    const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
+    if (whoamiloading) { return <p>Loading..</p>; }
+    if (whoamierror) { return <p>ERROR: please try again.</p>; }
+
+
+
+    // logging
+    function logFun(filename: string) {
+        // const fileName: ILogData = {field: 'fileName', value: filename};
+        // const logData: ILogData[] = [fileName];
+        const logData = JSON.stringify({fileName: filename});
+        writeLog({variables: {
+            requesterId: whoamidata.whoAmI.id,
+            requesterName: whoamidata.whoAmI.username,
+            requesterType: whoamidata.whoAmI.type,
+            action: LOG_ACTION.DOWNLOAD_FILE,
+            actionData: logData} }
+        );
+    }
+
     return <tr>
         <td>{file.fileName}</td>
         <td>{file.description}</td>
         <td>{(file.fileSize && formatBytes(file.fileSize, 1)) || 'Unknown'}</td>
         <td><a download={file.fileName} href={`http://localhost:3003/file/${file.id}`}
-        ><button>Download</button></a></td>
+        ><button onClick={() => logFun(file.fileName)}>Download</button></a></td>
     </tr>;
 };
