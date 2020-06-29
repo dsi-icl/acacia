@@ -113,7 +113,6 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 firstname: 'Fadmin',
                 lastname: 'Ladmin',
@@ -231,7 +230,6 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 firstname: 'Fadmin',
                 lastname: 'Ladmin',
@@ -271,7 +269,6 @@ describe('STUDY API', () => {
             expect(resWhoAmIAfter.body.data.errors).toBeUndefined();
             expect(resWhoAmIAfter.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 firstname: 'Fadmin',
                 lastname: 'Ladmin',
@@ -980,7 +977,6 @@ describe('STUDY API', () => {
                 expect(resUser.body.data.getUsers).toHaveLength(1);
                 expect(resUser.body.data.getUsers[0]).toEqual({
                     id: createdUserAuthorised.id,
-                    otpSecret: createdUserAuthorised.otpSecret,
                     type: userTypes.STANDARD,
                     firstname: `${createdUserAuthorised.username}_firstname`,
                     lastname: `${createdUserAuthorised.username}_lastname`,
@@ -1065,7 +1061,6 @@ describe('STUDY API', () => {
                 expect(resUser.body.data.getUsers).toHaveLength(1);
                 expect(resUser.body.data.getUsers[0]).toEqual({
                     id: createdUserAuthorisedStudy.id,
-                    otpSecret: createdUserAuthorisedStudy.otpSecret,
                     type: userTypes.STANDARD,
                     firstname: `${createdUserAuthorisedStudy.username}_firstname`,
                     lastname: `${createdUserAuthorisedStudy.username}_lastname`,
@@ -1154,7 +1149,6 @@ describe('STUDY API', () => {
                 expect(resUser.body.data.getUsers).toHaveLength(1);
                 expect(resUser.body.data.getUsers[0]).toEqual({
                     id: createdUserAuthorisedStudyManageProjects.id,
-                    otpSecret: createdUserAuthorisedStudyManageProjects.otpSecret,
                     type: userTypes.STANDARD,
                     firstname: `${createdUserAuthorisedStudyManageProjects.username}_firstname`,
                     lastname: `${createdUserAuthorisedStudyManageProjects.username}_lastname`,
@@ -1178,7 +1172,6 @@ describe('STUDY API', () => {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
                 expect(res.body.data.whoAmI).toStrictEqual({
                     username: 'admin',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',

@@ -465,7 +465,6 @@ describe('USERS API', () => {
             expect(whoami.body.data.whoAmI.id).toBeDefined();
             expect(whoami.body.data.whoAmI).toEqual({
                 username: 'standardUser',
-                otpSecret: checkedUser.otpSecret,
                 type: userTypes.STANDARD,
                 firstname: 'Tai Man',
                 lastname: 'Chan',
@@ -531,7 +530,6 @@ describe('USERS API', () => {
             expect(whoami.body.data.whoAmI.id).toBeDefined();
             expect(whoami.body.data.whoAmI).toEqual({
                 username: 'standardUser',
-                otpSecret: checkedUser.otpSecret,
                 type: userTypes.STANDARD,
                 firstname: 'Tai Man',
                 lastname: 'Chan',
@@ -608,7 +606,6 @@ describe('USERS API', () => {
             adminId = res.body.data.whoAmI.id;
             expect(res.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
                 firstname: 'Fadmin',
                 lastname: 'Ladmin',
@@ -634,7 +631,6 @@ describe('USERS API', () => {
             userId = res.body.data.whoAmI.id;
             expect(res.body.data.whoAmI).toEqual({
                 username: 'standardUser',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.STANDARD,
                 firstname: 'Tai Man',
                 lastname: 'Chan',
@@ -733,7 +729,6 @@ describe('USERS API', () => {
                 type: 'ADMIN',
                 firstname: 'Fexpired admin',
                 lastname: 'Lexpired admin',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'admine@example.com',
                 organisation: 'DSI',
                 description: 'I am an expired admin.',
@@ -774,7 +769,6 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'admin',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
@@ -788,7 +782,6 @@ describe('USERS API', () => {
                 },
                 {
                     username: 'standardUser',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     firstname: 'Tai Man',
                     lastname: 'Chan',
@@ -809,7 +802,6 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'admin',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
@@ -828,7 +820,6 @@ describe('USERS API', () => {
                 },
                 {
                     username: 'standardUser',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     firstname: 'Tai Man',
                     lastname: 'Chan',
@@ -857,7 +848,6 @@ describe('USERS API', () => {
                 null,
                 {
                     username: 'standardUser',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     firstname: 'Tai Man',
                     lastname: 'Chan',
@@ -884,7 +874,6 @@ describe('USERS API', () => {
                 null,
                 {
                     username: 'standardUser',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     firstname: 'Tai Man',
                     lastname: 'Chan',
@@ -910,7 +899,6 @@ describe('USERS API', () => {
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
@@ -918,7 +906,6 @@ describe('USERS API', () => {
                     id: adminId
                 },
                 {
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     firstname: 'Tai Man',
                     lastname: 'Chan',
@@ -934,7 +921,6 @@ describe('USERS API', () => {
             expect(res.body.error).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
@@ -942,7 +928,6 @@ describe('USERS API', () => {
                     id: adminId
                 },
                 {
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     firstname: 'Tai Man',
                     lastname: 'Chan',
@@ -959,7 +944,6 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'standardUser',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     firstname: 'Tai Man',
                     lastname: 'Chan',
@@ -998,7 +982,6 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
@@ -1015,7 +998,6 @@ describe('USERS API', () => {
             expect(res.body.data.getUsers).toEqual([
                 {
                     username: 'standardUser',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     firstname: 'Tai Man',
                     lastname: 'Chan',
@@ -1041,7 +1023,6 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getUsers).toEqual([
                 {
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.STANDARD,
                     organisation: 'DSI',
                     firstname: 'Tai Man',
@@ -1300,7 +1281,6 @@ describe('USERS API', () => {
             expect(res.body.data.editUser).toEqual(
                 {
                     username: 'fakeusername',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
                     firstname: 'FMan',
                     lastname: 'LMan',
@@ -1397,7 +1377,6 @@ describe('USERS API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.editUser).toEqual({
                 username: 'new_user_4',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.STANDARD,
                 firstname: 'FMing Man',
                 lastname: 'LMing Man',
@@ -1565,7 +1544,6 @@ describe('USERS API', () => {
             });
 
             expect(getUserRes.body.data.getUsers).toEqual([{
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 firstname: 'FChan Mei',
                 lastname: 'LChan Mei',
                 type: userTypes.STANDARD,
@@ -1680,7 +1658,6 @@ describe('USERS API', () => {
             });
 
             expect(getUserRes.body.data.getUsers).toEqual([{
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 firstname: 'FChan Mei Yi',
                 lastname: 'LChan Mei Yi',
                 type: userTypes.STANDARD,
@@ -1708,7 +1685,6 @@ describe('USERS API', () => {
             });
 
             expect(getUserResAfter.body.data.getUsers).toEqual([{
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 firstname: 'FChan Mei Yi',
                 lastname: 'LChan Mei Yi',
                 type: userTypes.STANDARD,
