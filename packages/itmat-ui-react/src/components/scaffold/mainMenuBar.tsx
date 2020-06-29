@@ -2,7 +2,7 @@ import { DatabaseOutlined, TeamOutlined, PoweroffOutlined } from '@ant-design/ic
 import * as React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { LOGOUT, WHO_AM_I, GET_GRANTED_PERMISSIONS, IProject } from 'itmat-commons';
+import { LOGOUT, WHO_AM_I, IProject, userTypes } from 'itmat-commons';
 import css from './scaffold.module.css';
 import LoadSpinner from '../reusable/loadSpinner';
 
@@ -24,17 +24,19 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
                 <div className={css.button}><DatabaseOutlined /> Datasets</div>
             </NavLink>
         </div>
-        <Query<any, any> query={GET_GRANTED_PERMISSIONS}>
-            {({ loading, error }) => {
+        <Query<any, any> query={WHO_AM_I}>
+            {({ loading, error, data }) => {
                 if (loading) return <LoadSpinner />;
                 if (error) return <p>{error.toString()}</p>;
-                return (
-                    <div>
-                        <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
-                            <div className={css.button}><TeamOutlined /> Users</div>
-                        </NavLink>
-                    </div>
-                );
+                if (data.whoAmI.type === userTypes.ADMIN)
+                    return (
+                        <div>
+                            <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
+                                <div className={css.button}><TeamOutlined /> Users</div>
+                            </NavLink>
+                        </div>
+                    );
+                return null;
             }}
         </Query>
         {/*
