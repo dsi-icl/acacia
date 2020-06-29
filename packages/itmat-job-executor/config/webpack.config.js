@@ -54,8 +54,8 @@ module.exports = {
     ]),
     output: {
         path: path.join(__dirname, '../build'),
-        filename: 'index.js',
-        library: NODE_ENV === 'development' ? undefined : 'itmat-interface',
+        filename: 'executor.js',
+        library: NODE_ENV === 'development' ? undefined : 'itmat-job-executor',
         libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
         umdNamedDefine: NODE_ENV === 'development' ? undefined : true
     }
