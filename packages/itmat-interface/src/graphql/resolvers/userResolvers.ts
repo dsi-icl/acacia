@@ -245,9 +245,6 @@ export const userResolvers = {
                 throw new UserInputError('User already exists.');
             }
 
-            /* if not specified, type of user is always STANDARD*/
-            const type = Models.UserModels.userTypes.STANDARD;
-
             /* randomly generate a secret for Time-based One Time Password*/
             const otpSecret = mfa.generateSecret();
 
@@ -255,7 +252,7 @@ export const userResolvers = {
                 password,
                 otpSecret,
                 username,
-                type: type ?? userTypes.STANDARD,
+                type: userTypes.STANDARD,
                 description: description ?? '',
                 firstname,
                 lastname,
