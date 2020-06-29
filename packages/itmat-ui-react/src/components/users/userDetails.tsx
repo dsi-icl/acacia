@@ -69,7 +69,6 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (whoamiloading) { return <p>Loading..</p>; }
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
-    console.log(user);
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
