@@ -45,7 +45,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                     <div className={css.login_wrapper}>
                         <div className={css.login_box}>
                             <img alt='IDEA-FAST Logo' src='https://avatars3.githubusercontent.com/u/60649739?s=150' />
-                            <h1>Forgot your password?</h1>
+                            <h1>Forgot your {forgotUsername ? 'username' : 'password'}?</h1>
                             <br />
                             <div>
                                 <Form onFinish={(variables) => requestPasswordReset({
@@ -55,7 +55,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                                         forgotPassword: true
                                     }
                                 })}>
-                                    {!forgotUsername ?
+                                    {forgotUsername ?
                                         <Form.Item name='username' hasFeedback rules={[{ required: true, message: ' ' }]}>
                                             <Input placeholder='Username' />
                                         </Form.Item>

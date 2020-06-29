@@ -8,7 +8,7 @@ import { MainPanel } from './components/scaffold/mainPanel';
 import css from './components/scaffold/scaffold.module.css';
 import { ResetPasswordPage } from './components/login/resetPasswordPage';
 import { RequestResetPassword } from './components/login/requestResetPasswordPage';
-import { CreateNewUser } from './components/users/createNewUser';
+import { RegisterNewUser } from './components/login/register';
 import { WHO_AM_I } from 'itmat-commons';
 import LoadSpinner from './components/reusable/loadSpinner';
 
@@ -17,7 +17,7 @@ export const App: React.FunctionComponent = () => (
         <Switch>
             <Route path='/reset/:encryptedEmail/:token' component={ResetPasswordPage} />
             <Route path='/reset' component={RequestResetPassword} />
-            <Route path='/register' component={CreateNewUser} />
+            <Route path='/register' component={RegisterNewUser} />
             <Route>
                 <Query<any, any> query={WHO_AM_I}>
                     {({ loading, error, data }) => {

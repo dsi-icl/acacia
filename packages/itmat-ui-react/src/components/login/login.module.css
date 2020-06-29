@@ -1,6 +1,7 @@
 .login_wrapper {
     height: 100%;
     position: relative;
+    overflow: auto;
 }
 
 .login_box {
@@ -10,6 +11,7 @@
     width: 38rem;
     text-align: center;
     transform: translate(-50%);
+    padding-bottom: 4rem;
 }
 
 .login_box img {

@@ -198,13 +198,13 @@ input QueryObjInput {
 
 input CreateUserInput {
     username: String!
-    type: USERTYPE!
+    type: USERTYPE
     firstname: String!
     lastname: String!
     email: String!
-    description: String!
+    description: String
     organisation: String!
-    emailNotificationsActivated: Boolean!
+    emailNotificationsActivated: Boolean
     password: String!
 }
 

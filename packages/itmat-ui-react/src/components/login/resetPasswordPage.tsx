@@ -50,7 +50,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                     <div className={css.login_wrapper}>
                         <div className={css.login_box}>
                             <img alt='IDEA-FAST Logo' src='https://avatars3.githubusercontent.com/u/60649739?s=150' />
-                            <h1>Forgot your password?</h1>
+                            <h1>Reset your password</h1>
                             <br />
                             <div>
                                 <Form onFinish={(variables) => resetPassword({

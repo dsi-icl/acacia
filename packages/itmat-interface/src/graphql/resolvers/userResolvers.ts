@@ -227,7 +227,7 @@ export const userResolvers = {
         },
         createUser: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
             const { username, firstname, lastname, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
+                username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated?: boolean, password: string, description?: string, organisation: string
             } = args.user;
 
             /* check email is valid form */
@@ -251,22 +251,22 @@ export const userResolvers = {
             /* randomly generate a secret for Time-based One Time Password*/
             const otpSecret = mfa.generateSecret();
 
-            const createdUser = await userCore.createUser({
+            await userCore.createUser({
                 password,
                 otpSecret,
                 username,
-                type,
-                description,
+                type: type ?? userTypes.STANDARD,
+                description: description ?? '',
                 firstname,
                 lastname,
                 email,
                 organisation,
-                emailNotificationsActivated
+                emailNotificationsActivated: !!emailNotificationsActivated
             });
 
             /* send email to the registered user */
             // get QR Code for the otpSecret.
-            const oauth_uri = `otpauth://totp/${config.appName}:${username}?secret=${createdUser.otpSecret}&issuer=Data%20Science%20Institute`;
+            const oauth_uri = `otpauth://totp/${config.appName}:${username}?secret=${otpSecret}&issuer=Data%20Science%20Institute`;
             const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
@@ -283,14 +283,14 @@ export const userResolvers = {
                         Dear ${firstname},
                     <p>
                     <p>
-                        Welcome to the ${config.appName} project!<br/>
+                        Welcome to the ${config.appName} data portal!<br/>
                         Your username is <b>${username}</b>.<br/>
                     </p>
                     <p>
                         To login you will need to use a MFA authenticator app for time-based one time password (TOTP).<br/>
                         Scan the QRCode below in your MFA application of choice to configure it:<br/>
                         <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /><br/>
-                        If you need to type the token in use ${createdUser.otpSecret.toLowerCase()}
+                        If you need to type the token in use <b>${otpSecret.toLowerCase()}</b>
                     </p>
                     <br/>
                     <p>
