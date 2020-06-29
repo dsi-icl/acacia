@@ -6,7 +6,6 @@ export enum userTypes {
 export interface IUserWithoutToken {
     id: string;
     username: string;
-    otpSecret: string;
     email: string;
     firstname: string;
     lastname: string;
@@ -28,4 +27,5 @@ export interface IResetPasswordRequest {
 
 export interface IUser extends IUserWithoutToken {
     password: string;
+    otpSecret: string;
 }

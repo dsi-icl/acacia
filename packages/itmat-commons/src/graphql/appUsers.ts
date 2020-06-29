@@ -6,7 +6,6 @@ export const GET_USERS = gql`
         getUsers (userId: $userId) {
             id
             username @include (if: $fetchDetailsAdminOnly)
-            otpSecret
             type
             firstname
             lastname

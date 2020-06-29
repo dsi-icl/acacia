@@ -41,6 +41,7 @@ export class UserCore {
         const result = await db.collections!.users_collection.insertOne(entry);
         if (result.result.ok === 1) {
             delete entry.password;
+            delete entry.otpSecret;
             return entry;
         } else {
             throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);

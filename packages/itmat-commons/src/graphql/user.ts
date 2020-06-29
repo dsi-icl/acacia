@@ -4,7 +4,6 @@ export const user_fragment = gql`
     fragment ALL_FOR_USER on User {
         id
         username
-        otpSecret
         type
         firstname
         lastname
@@ -95,11 +94,11 @@ export const CREATE_USER = gql`
         $password: String!
         $firstname: String!
         $lastname: String!
-        $description: String!
+        $description: String
         $organisation: String!
-        $emailNotificationsActivated: Boolean!
+        $emailNotificationsActivated: Boolean
         $email: String!
-        $type: USERTYPE!
+        $type: USERTYPE
     ){
         createUser(user: {
             username: $username

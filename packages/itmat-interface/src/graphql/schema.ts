@@ -52,7 +52,6 @@ type UserPermissions {
 type User {
     id: String!
     username: String! # admin only
-    otpSecret: String!
     type: USERTYPE!
     firstname: String
     lastname: String
