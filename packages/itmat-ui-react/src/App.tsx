@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { Switch, Route } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import Providers from './Providers';
 import { LoginBox } from './components/login/login';
 import { MainMenuBar } from './components/scaffold/mainMenuBar';
@@ -14,6 +15,9 @@ import LoadSpinner from './components/reusable/loadSpinner';
 
 export const App: React.FunctionComponent = () => (
     <Providers>
+        <Helmet>
+            <title>{process.env.REACT_APP_NAME ?? 'Data Portal'}</title>
+        </Helmet>
         <Switch>
             <Route path='/reset/:encryptedEmail/:token' component={ResetPasswordPage} />
             <Route path='/reset' component={RequestResetPassword} />
