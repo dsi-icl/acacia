@@ -106,8 +106,8 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         <Form.Item label='Created At'>
                             <DatePicker disabled value={moment(user.createdAt)} />
                         </Form.Item>
-                        <Form.Item label='Created At'>
-                            <DatePicker disabled value={moment(user.expiredAt)} />
+                        <Form.Item label='Expire On'>
+                            <DatePicker value={moment(user.expiredAt)} />
                         </Form.Item>
                         {error ? (
                             <>
