@@ -98,6 +98,13 @@ const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutT
         <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value.toUpperCase())} />
         <br />
         <br />
-        <Table rowKey={(rec) => rec.id} pagination={false} columns={columns} dataSource={users.filter(user => !searchTerm || user.firstname.toUpperCase().search(searchTerm) > -1 || user.lastname.toUpperCase().search(searchTerm) > -1 || user.email.toUpperCase().search(searchTerm) > -1)} size='small' />
+        <Table rowKey={(rec) => rec.id} onRow={(record: Models.UserModels.IUserWithoutToken) => ({
+            onClick: () => {
+                history.push(`/users/${record.id}`);
+            },
+            style: {
+                cursor: 'pointer'
+            }
+        })} pagination={false} columns={columns} dataSource={users.filter(user => !searchTerm || user.firstname.toUpperCase().search(searchTerm) > -1 || user.lastname.toUpperCase().search(searchTerm) > -1 || user.email.toUpperCase().search(searchTerm) > -1)} size='small' />
     </>;
 };
