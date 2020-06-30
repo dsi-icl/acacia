@@ -37,6 +37,15 @@ export const GET_STUDY = gql`
                     username
                 }
             }
+            files {  # TO_DO: remove in future PR
+                id	
+                fileName	
+                studyId	
+                projectId	
+                fileSize	
+                description	
+                uploadedBy	
+            }
             numOfSubjects
             rootDir
             currentDataVersion

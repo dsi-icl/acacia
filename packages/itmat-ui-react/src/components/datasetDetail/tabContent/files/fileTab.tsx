@@ -6,7 +6,7 @@ import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { UploadFileSection } from './uploadFile';
-import { FileBrowser } from '../../../reusable/fileBrowser/fileBrowser';
+import { FileList } from '../../../reusable/fileList/fileList';
 
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper + ' fade_in'}>
@@ -16,11 +16,10 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     {({ loading, data, error }) => {
                         if (loading) { return <LoadingBalls />; }
                         if (error) { return <p>{error.toString()}</p>; }
-                        // if (!data.getStudy || !data.getStudy.files || data.getStudy.files.length === 0) {
-                        //     return <p>There seems to be no files for this study. You can start uploading files.</p>;
-                        // }
-                        // return <FileList files={data.getStudy.files} />;
-                        return <FileBrowser studyId={data.getStudy.id} />;
+                        if (!data.getStudy || !data.getStudy.files || data.getStudy.files.length === 0) {
+                            return <p>There seems to be no files for this study. You can start uploading files.</p>;
+                        }
+                        return <FileList files={data.getStudy.files} />;
                     }}
                 </Query>
             </Subsection>

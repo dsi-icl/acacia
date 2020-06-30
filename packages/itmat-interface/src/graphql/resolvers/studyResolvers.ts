@@ -96,7 +96,10 @@ export const studyResolvers = {
         },
         currentDataVersion: async (study: IStudy): Promise<null | number> => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
-        }
+        },
+        files: async (study: IStudy): Promise<Array<unknown>> => {
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
+        },
     },
     Project: {
         fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Record<string, any>> => {
@@ -116,9 +119,9 @@ export const studyResolvers = {
         jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
-        // files: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
-        //     return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
-        // },
+        files: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
+            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
+        },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
             /* check privileges */

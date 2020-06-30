@@ -83,7 +83,7 @@ type File {
     userId: String
     dataVersionId: String
     patientId: String
-    childFiles: [File]
+    # childFiles: [File]  TO_DO: future PR
 }
 
 enum FileType {
@@ -114,6 +114,7 @@ type Study {
     currentDataVersion: Int
     dataVersions: [DataVersion]!
     rootDir: String!
+    files: [File]!  # TO_DO: remove in future PR 
 
     # external to mongo documents:
     jobs: [Job]!
@@ -137,6 +138,7 @@ type Project {
     patientMapping: JSON!
     approvedFields: JSON!
     approvedFiles: [String]!
+    files: [File]!
 
     #external to mongo documents:
     jobs: [Job]!
@@ -248,7 +250,7 @@ type Query {
     getStudyFields(fieldTreeId: String!, studyId: String!): [Field]
 
     # FILE
-    getFile(fileId: String!): File
+    # getFile(fileId: String!): File  // TO_DO: future PR
 
     # QUERY
     getQueries(studyId: String!, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
@@ -291,9 +293,9 @@ type Mutation {
     removeRole(roleId: String!): GenericResponse
 
     # FILES
-    createFile(fileName: String!, fileType: FileType = USER_PERSONAL_FILE, studyId: String): File
+    # createFile(fileName: String!, fileType: FileType = USER_PERSONAL_FILE, studyId: String): File
     uploadFile(studyId: String!, file: Upload!, description: String = "", fileLength: Int, fileType: FileType = STUDY_REPO_OBJ_STORE_FILE): File
-    createJobForUnzippingFile(fileId: String!): GenericResponse
+    # createJobForUnzippingFile(fileId: String!): GenericResponse
     deleteFile(fileId: String!): GenericResponse
 
     # QUERY
