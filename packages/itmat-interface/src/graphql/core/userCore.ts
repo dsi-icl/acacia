@@ -60,7 +60,7 @@ export class UserCore {
                     users: userId
                 },
                 {
-                    $pop: { users: userId }
+                    $pull: { users: userId }
                 }
             );
 
