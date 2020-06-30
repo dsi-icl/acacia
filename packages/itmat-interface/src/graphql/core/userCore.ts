@@ -47,14 +47,32 @@ export class UserCore {
     }
 
     public async deleteUser(userId: string): Promise<void> {
-        const result = await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnOriginal: false, projection: { deleted: 1 } });
-        if (result.value === null) {
-            return;
+        const session = db.client.startSession();
+        session.startTransaction();
+        try {
+            /* delete the user */
+            await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnOriginal: false, projection: { deleted: 1 } });
+
+            /* delete all user records in roles related to the study */
+            await db.collections!.roles_collection.updateMany(
+                {
+                    deleted: null,
+                    users: userId
+                },
+                {
+                    $pop: { users: userId }
+                }
+            );
+
+            await session.commitTransaction();
+            session.endSession();
+        } catch (error) {
+            // If an error occurred, abort the whole transaction and
+            // undo any changes that might have happened
+            await session.abortTransaction();
+            session.endSession();
+            throw new ApolloError(`Database error: ${JSON.stringify(error)}`);
         }
-        if (result.ok !== 1) {
-            throw new ApolloError(`Database error: ${JSON.stringify(result.lastErrorObject)}`, errorCodes.DATABASE_ERROR);
-        }
-        return;
     }
 }
 
