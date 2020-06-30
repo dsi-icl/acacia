@@ -1,5 +1,5 @@
 // External node module imports
-import { Server as HTTPServer } from 'http';
+import { Express } from 'express';
 import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
@@ -22,7 +22,7 @@ class ITMATJobExecutorServer extends Server {
      * @return {Promise} Resolve to a native Express.js router ready to use on success.
      * In case of error, an ErrorStack is rejected.
      */
-    public start(): Promise<HTTPServer> {
+    public start(): Promise<Express> {
         const _this = this;
         return new Promise((resolve, reject) => {
 

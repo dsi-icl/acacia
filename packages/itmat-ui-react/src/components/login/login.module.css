@@ -14,6 +14,10 @@
     padding-bottom: 4rem;
 }
 
+.login_box [class*=ant-select] {
+    text-align: left;
+}
+
 .login_box img {
     transform: translateX(10%);
 }

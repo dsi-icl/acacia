@@ -17,7 +17,7 @@
         }
     },
     "server": {
-        "port": 3003
+        "port": 3080
     },
     "bcrypt": {
         "saltround": 2

@@ -3,10 +3,9 @@ import bodyParser from 'body-parser';
 // import connectMongo from 'connect-mongo';
 import cors from 'cors';
 import express from 'express';
-import { Express, Request, Response } from 'express';
+import { Express } from 'express';
 import session from 'express-session';
 import http from 'http';
-import { CustomError } from 'itmat-commons';
 import passport from 'passport';
 // import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
@@ -24,7 +23,8 @@ export class Router {
     constructor(config: IConfiguration) {
         this.app = express();
 
-        this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
+        if (process.env.NODE_ENV === 'development')
+            this.app.use(cors({ credentials: true }));
 
         this.app.use(bodyParser.json({ limit: '50mb' }));
         this.app.use(bodyParser.urlencoded({ extended: true }));
@@ -60,12 +60,12 @@ export class Router {
             formatError: (error) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
                 // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
-                // Logger.error(error);
+                // Logger().error(error);
                 return error;
             }
         });
-        gqlServer.applyMiddleware({ app: this.app, cors: { origin: 'http://localhost:3000', credentials: true } });
 
+        gqlServer.applyMiddleware({ app: this.app, cors: { credentials: true } });
 
         /* register the graphql subscription functionalities */
         this.server = http.createServer(this.app);
@@ -83,12 +83,13 @@ export class Router {
 
         this.app.get('/file/:fileId', fileDownloadController);
 
-        this.app.all('/', (err: Error, req: Request, res: Response) => {
-            res.status(500).json(new CustomError('Server error.'));
-        });
     }
 
-    public getApp(): http.Server {
+    public getApp(): Express {
+        return this.app;
+    }
+
+    public getServer(): http.Server {
         return this.server;
     }
 }

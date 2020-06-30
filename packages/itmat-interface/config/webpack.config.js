@@ -39,7 +39,7 @@ module.exports = {
         ]
     },
     plugins: (NODE_ENV === 'development' ? [
-        new StartServerPlugin('index.js'),
+        new StartServerPlugin('interface.js'),
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
@@ -54,7 +54,7 @@ module.exports = {
     ]),
     output: {
         path: path.join(__dirname, '../build'),
-        filename: 'index.js',
+        filename: 'interface.js',
         library: NODE_ENV === 'development' ? undefined : 'itmat-interface',
         libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
         umdNamedDefine: NODE_ENV === 'development' ? undefined : true

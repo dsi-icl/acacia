@@ -1,13 +1,16 @@
 import * as React from 'react';
 import { ApolloProvider, } from 'react-apollo';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { client } from './components/apolloClient';
 
 const Providers: React.FunctionComponent = ({ children }) => (
     <ApolloProvider client={client}>
-        <Router>
-            {children}
-        </Router>
+        <HelmetProvider>
+            <Router>
+                {children}
+            </Router>
+        </HelmetProvider>
     </ApolloProvider>
 );
 

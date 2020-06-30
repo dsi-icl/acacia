@@ -1,6 +1,6 @@
 
 // eslint:disable: no-console
-import { Server } from 'http';
+import { Express } from 'express';
 import { Socket } from 'net';
 import os from 'os';
 import ITMATJobExecutorServer from './jobExecutorServer';
@@ -13,7 +13,7 @@ let interfaceRouter;
 
 function serverStart() {
     console.info(`Starting server ${interfaceIteration++} ...`);
-    interfaceServer.start().then((itmatRouter: Server) => {
+    interfaceServer.start().then((itmatRouter: Express) => {
 
         interfaceRouter = itmatRouter;
         itmatRouter.listen(config.server.port, () => {

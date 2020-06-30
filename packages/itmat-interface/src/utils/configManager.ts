@@ -10,7 +10,6 @@ export interface IConfiguration extends IServerConfig {
     database: IDatabaseBaseConfig;
     objectStore: IObjectStoreConfig;
     nodemailer: any;
-    useSSL: boolean;
     aesSecret: string;
     sessionsSecret: string;
 }

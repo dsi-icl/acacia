@@ -245,9 +245,6 @@ export const userResolvers = {
                 throw new UserInputError('User already exists.');
             }
 
-            /* if not specified, type of user is always STANDARD*/
-            const type = Models.UserModels.userTypes.STANDARD;
-
             /* randomly generate a secret for Time-based One Time Password*/
             const otpSecret = mfa.generateSecret();
 
@@ -255,7 +252,7 @@ export const userResolvers = {
                 password,
                 otpSecret,
                 username,
-                type: type ?? userTypes.STANDARD,
+                type: userTypes.STANDARD,
                 description: description ?? '',
                 firstname,
                 lastname,
@@ -287,7 +284,7 @@ export const userResolvers = {
                         Your username is <b>${username}</b>.<br/>
                     </p>
                     <p>
-                        To login you will need to use a MFA authenticator app for time-based one time password (TOTP).<br/>
+                        To login you will need to use a MFA authenticator app for one time passcode (TOTP).<br/>
                         Scan the QRCode below in your MFA application of choice to configure it:<br/>
                         <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /><br/>
                         If you need to type the token in use <b>${otpSecret.toLowerCase()}</b>

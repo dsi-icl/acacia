@@ -13,8 +13,9 @@ import {
 } from 'itmat-commons';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
-import { Tag, Select, Button } from 'antd';
+import { Tag, Select, Button, Form, Input, Alert, Popconfirm } from 'antd';
 import { LoadingOutlined, TagOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { sites } from '../../datasetDetail/tabContent/files/fileTab';
 
 type RoleControlSectionProps = {
     studyId: string;
@@ -30,7 +31,7 @@ export const RoleControlSection: React.FunctionComponent<RoleControlSectionProps
     return (
         <>
             <AddRole studyId={studyId} projectId={projectId} />
-            <br /><br />
+            <br />
             {roles.map((el) =>
                 <RoleDescriptor
                     key={el.id}
@@ -65,7 +66,16 @@ export const RoleDescriptor: React.FunctionComponent<RoleDescriptorProps> = ({
         <div className={css.one_role}>
             <div className={css.role_header}>
                 <label className={css.role_name}>{role.name}</label>
-                {removeRoleLoading ? <span className={css.right_aligned}><LoadSpinner /></span> : <div className={css.right_aligned}><Button icon={<DeleteOutlined />} danger onClick={() => removeRole({ variables: { roleId: role.id } })}></Button></div>}
+                {removeRoleLoading
+                    ? <span className={css.right_aligned}>
+                        <LoadSpinner />
+                    </span>
+                    : <div className={css.right_aligned}>
+                        <Popconfirm title={<>Are you sure about deleting role <i>{role.name}</i>?</>} onConfirm={() => removeRole({ variables: { roleId: role.id } })} okText='Yes' cancelText='No'>
+                            <Button icon={<DeleteOutlined />} danger ></Button>
+                        </Popconfirm>
+                    </div>
+                }
             </div>
             <label>Permissions: </label>
             <br />
@@ -100,60 +110,70 @@ export const AddRole: React.FunctionComponent<AddRoleProps> = ({
 }) => {
 
     const [isExpanded, setIsExpanded] = React.useState(false);
-    const [inputNameString, setInputNameString] = React.useState('');
-    const refetchQueries = projectId ? [{
-        query: GET_PROJECT,
-        variables: {
-            projectId,
-            admin: true
-        }
-    }] : [{
-        query: GET_STUDY,
-        variables: {
-            studyId,
-            admin: true
-        }
-    }];
+    const [addNewRole, {
+        data: createRoleData,
+        loading: createRoleLoading,
+        error: createRoleError
+    }] = useMutation(ADD_NEW_ROLE, {
+        onCompleted: () => { setIsExpanded(false); },
+        refetchQueries: projectId ? [{
+            query: GET_PROJECT,
+            variables: {
+                projectId,
+                admin: true
+            }
+        }] : [{
+            query: GET_STUDY,
+            variables: {
+                studyId,
+                admin: true
+            }
+        }],
+        onError: () => { return; }
+    });
 
     if (!isExpanded)
         return (
-            <Button icon={<PlusOutlined />} type='dashed' onClick={() => setIsExpanded(true)}>Add new role</Button>
+            <>
+                <Button icon={<PlusOutlined />} type='dashed' onClick={() => setIsExpanded(true)}>Add new role</Button>
+                <br />
+            </>
         );
 
     return (
         <div className={css.add_new_role_section}>
-            <span>Create new role</span>
-            <br />
-            <br />
-            <label>Name: </label>
-            <input
-                placeholder='Role name'
-                value={inputNameString}
-                onChange={(e) => setInputNameString(e.target.value)}
-            />
-            <br />
-            <div className={css.add_new_role_buttons_wrapper}>
-                <Button onClick={() => setIsExpanded(false)}>
-                    Cancel
-                </Button>
-                <Mutation<any, any>
-                    mutation={ADD_NEW_ROLE}
-                    refetchQueries={refetchQueries}
-                >
-                    {(addNewRole) => <button onClick={() => {
-                        setInputNameString('');
-                        setIsExpanded(false);
-                        addNewRole({
-                            variables: {
-                                studyId,
-                                projectId,
-                                roleName:
-                                    inputNameString
-                            }
-                        });
-                    }}>Submit</button>}
-                </Mutation>
-            </div>
+            <Form onFinish={(variables) => addNewRole({
+                variables: {
+                    ...variables,
+                    studyId,
+                    projectId
+                }
+            })}>
+                <Form.Item name='roleName' >
+                    <Input placeholder='Role name' />
+                </Form.Item>
+                {createRoleError ? (
+                    <>
+                        <Alert type='error' message={createRoleError?.graphQLErrors.map(error => error.message).join()} />
+                        <br />
+                    </>
+                ) : null}
+                {createRoleData?.successful ? (
+                    <>
+                        <Alert type='success' message={'All Saved!'} />
+                        <br />
+                    </>
+                ) : null}
+                <Form.Item>
+                    <Button onClick={() => setIsExpanded(false)}>
+                        Cancel
+                    </Button>
+                    &nbsp;&nbsp;&nbsp;
+                    <Button type='primary' disabled={createRoleLoading} loading={createRoleLoading} htmlType='submit'>
+                        Create
+                    </Button>
+                </Form.Item>
+            </Form>
         </div>
     );
 };
@@ -225,6 +245,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
     availableUserList,
     originallySelectedUsers
 }) => {
+
     const [editUsers, { loading }] = useMutation(EDIT_ROLE);
 
     const handleSelect = (value: string) => {
@@ -249,6 +270,16 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
                 }
             }
         });
+    };
+
+    const handleFilter = (value: string, option: any) => {
+        const searchTerm = value?.trim()?.toLocaleLowerCase();
+        const user = availableUserList.filter(user => user.id === option.value)?.[0];
+        if (!user || !searchTerm || searchTerm === '')
+            return false;
+        console.log(searchTerm, user);
+        return user.firstname.toLocaleLowerCase().includes(value)
+            || user.lastname.toLocaleLowerCase().includes(value);
     };
 
     const tagRender = (props) => {
@@ -287,7 +318,8 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
             style={{ width: '100%' }}
             placeholder='Add users to this role'
             tokenSeparators={[',', ';']}
-            defaultValue={originallySelectedUsers.map(user => user.id)}
+            value={originallySelectedUsers.map(user => user.id)}
+            filterOption={handleFilter}
             onSelect={handleSelect}
             onDeselect={handleDeselect}
             tagRender={tagRender}
@@ -295,7 +327,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
             {
                 availableUserList.map((user, index) => (
                     <Select.Option key={index} value={user.id}>
-                        {user.firstname} {user.lastname} ({user.organisation})
+                        {user.firstname} {user.lastname} {sites[user.organisation] ? `(${sites[user.organisation]})` : ''}
                     </Select.Option>
                 ))
             }

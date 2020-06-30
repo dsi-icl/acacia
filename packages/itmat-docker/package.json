@@ -1,0 +1,32 @@
+{
+    "name": "itmat-docker",
+    "version": "0.0.1",
+    "description": "ITMAT Broker",
+    "keywords": [
+        "itmat",
+        "broker"
+    ],
+    "bugs": {
+        "url": "https://github.com/dsi-icl/itmat-broker/issues"
+    },
+    "repository": "https://github.com/dsi-icl/itmat-broker",
+    "license": "MIT",
+    "contributors": [
+        "Florian Guitton <f.guitton@imperial.ac.uk>"
+    ],
+    "scripts": {
+        "prebuild": "cd ../itmat-ui-react && cross-env PUBLIC_URL=/ yarn build",
+        "build": "docker build -t datascienceinstitute/itmat-broker:latest -f Dockerfile ..",
+        "build:noui": "docker build -t datascienceinstitute/itmat-broker:latest -f Dockerfile ..",
+        "start": "echo \"Nothing to start\"",
+        "test": "echo \"No tests\""
+    },
+    "dependencies": {
+        "bcrypt": "5.0.0",
+        "compression": "1.7.4",
+        "express": "4.17.1",
+        "express-rate-limit": "5.1.3",
+        "isobject": "4.0.0",
+        "mongodb": "3.5.9"
+    }
+}
