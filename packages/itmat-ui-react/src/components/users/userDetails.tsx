@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mutation, useQuery, useMutation } from 'react-apollo';
-import { IUserWithoutToken, userTypes } from 'itmat-commons';
+import { IUserWithoutToken, userTypes, GET_STUDY } from 'itmat-commons';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
@@ -48,7 +48,7 @@ export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = (
     );
 };
 
-export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: Record<string, unknown> }) }> = ({ user }) => {
+export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: { id: string, projects: { id: string, name: string, studyId: string }[], studies: { id: string, name: string }[] } }) }> = ({ user }) => {
 
     const [userIsDeleted, setUserIsDeleted] = React.useState(false);
     const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
@@ -151,7 +151,11 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                             &nbsp;&nbsp;&nbsp;
                             <Mutation<any, any>
                                 mutation={DELETE_USER}
-                                refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
+                                refetchQueries={[
+                                    { query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } },
+                                    /* quick fix: TO_DO, change to cache modification later */
+                                    ...(user.access!.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
+                                ]}
                             >
 
                                 {(deleteUser, { loading, error, data: UserDeletedData }) => {
