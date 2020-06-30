@@ -52,7 +52,7 @@
 }
 
 .add_new_role_section {
-    background-color: var(--color-ariane-background);
+    background-color: var(--color-additional-panel-background);
     border-radius: 0.2rem;
     padding: 1rem;
     width: 100%;
