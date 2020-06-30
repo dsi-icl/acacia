@@ -245,6 +245,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
     availableUserList,
     originallySelectedUsers
 }) => {
+
     const [editUsers, { loading }] = useMutation(EDIT_ROLE);
 
     const handleSelect = (value: string) => {
@@ -269,6 +270,16 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
                 }
             }
         });
+    };
+
+    const handleFilter = (value: string, option: any) => {
+        const searchTerm = value?.trim()?.toLocaleLowerCase();
+        const user = availableUserList.filter(user => user.id === option.value)?.[0];
+        if (!user || !searchTerm || searchTerm === '')
+            return false;
+        console.log(searchTerm, user);
+        return user.firstname.toLocaleLowerCase().includes(value)
+            || user.lastname.toLocaleLowerCase().includes(value);
     };
 
     const tagRender = (props) => {
@@ -307,7 +318,8 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
             style={{ width: '100%' }}
             placeholder='Add users to this role'
             tokenSeparators={[',', ';']}
-            defaultValue={originallySelectedUsers.map(user => user.id)}
+            value={originallySelectedUsers.map(user => user.id)}
+            filterOption={handleFilter}
             onSelect={handleSelect}
             onDeselect={handleDeselect}
             tagRender={tagRender}
