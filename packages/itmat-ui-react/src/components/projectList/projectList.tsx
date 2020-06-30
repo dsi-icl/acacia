@@ -5,10 +5,7 @@ import { WHO_AM_I, Models } from 'itmat-commons';
 
 export const ProjectList: React.FunctionComponent = () => {
     return (
-        <Query<any, any>
-            query={WHO_AM_I}
-            pollInterval={5000}
-        >
+        <Query<any, any> query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <p>Loading...</p>; }
                 if (error) { return <p>Error :( {error}</p>; }

@@ -9,9 +9,7 @@ import LoadSpinner from '../reusable/loadSpinner';
 export const DatasetList: React.FunctionComponent = () => {
     return (
         <Query<any, any>
-            query={WHO_AM_I}
-            pollInterval={5000}
-        >
+            query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>Error :( {error}</p>; }
@@ -35,14 +33,12 @@ const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStud
     return <>
         Available datasets: <br /> <br />
         {datasets.map((el) =>
-            <>
-                <Button icon={<ContainerOutlined />} key={el.id} style={{
-                    width: '100%',
-                    marginBottom: '1rem'
-                }} onClick={() => { history.push(`/datasets/${el.id}/files`); }}>
-                    {el.name}
-                </Button>
-            </>
+            <Button icon={<ContainerOutlined />} key={el.id} style={{
+                width: '100%',
+                marginBottom: '1rem'
+            }} onClick={() => { history.push(`/datasets/${el.id}/files`); }}>
+                {el.name}
+            </Button>
         )}
         <br /><br />
     </>;
