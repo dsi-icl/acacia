@@ -39,7 +39,7 @@ module.exports = {
         ]
     },
     plugins: (NODE_ENV === 'development' ? [
-        new StartServerPlugin('index.js'),
+        new StartServerPlugin('executor.js'),
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
