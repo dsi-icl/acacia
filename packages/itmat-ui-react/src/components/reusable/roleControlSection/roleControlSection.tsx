@@ -15,6 +15,7 @@ import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button, Form, Input, Alert, Popconfirm } from 'antd';
 import { LoadingOutlined, TagOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { sites } from '../../datasetDetail/tabContent/files/fileTab';
 
 type RoleControlSectionProps = {
     studyId: string;
@@ -314,7 +315,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
             {
                 availableUserList.map((user, index) => (
                     <Select.Option key={index} value={user.id}>
-                        {user.firstname} {user.lastname} ({user.organisation})
+                        {user.firstname} {user.lastname} {sites[user.organisation] ? `(${sites[user.organisation]})` : ''}
                     </Select.Option>
                 ))
             }
