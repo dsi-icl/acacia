@@ -1,14 +1,23 @@
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
 import { userTypes, WHO_AM_I, CREATE_STUDY } from 'itmat-commons';
-import { Button } from 'antd';
+import { Button, Form, Input, Alert } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { Subsection } from '../reusable';
 
 export const AddNewDataSet: React.FunctionComponent = () => {
+
     const [showMore, setShowMore] = React.useState(false);
-    const [createStudy, { loading: createStudyLoading, error: createStudyError }] = useMutation(CREATE_STUDY, { onCompleted: () => { setNewName(''); setShowMore(false); }, refetchQueries: [{ query: WHO_AM_I }], onError: () => { return; } });
-    const [newName, setNewName] = React.useState('');
-    const [inputError, setInputError] = React.useState('');
+    const [createStudy, {
+        data: createStudyData,
+        loading: createStudyLoading,
+        error: createStudyError
+    }] = useMutation(CREATE_STUDY, {
+        onCompleted: () => { setShowMore(false); },
+        refetchQueries: [{ query: WHO_AM_I }],
+        onError: () => { return; }
+    });
+
     return (
         <Query<any, any>
             query={WHO_AM_I}
@@ -23,32 +32,34 @@ export const AddNewDataSet: React.FunctionComponent = () => {
                             <Button icon={<PlusOutlined />} type='dashed' onClick={() => setShowMore(true)}>Add new dataset</Button>
                             :
                             <div>
-                                <label>Enter name: <input value={newName} onChange={e => { setNewName(e.target.value); setInputError(''); }} type='text' /> </label>
-                                <button className='button_grey' onClick={() => { setShowMore(false); setNewName(''); }}>Cancel</button>
-                                {
-                                    createStudyLoading ?
-                                        <button>Loading...</button>
-                                        :
-                                        <button onClick={() => {
-                                            if (newName === '') {
-                                                setInputError('Please provide a study name.');
-                                                return;
-                                            }
-                                            createStudy({ variables: { name: newName } });
-                                        }}>Submit</button>
-                                }
-                                {
-                                    createStudyError ?
-                                        <div className='error_banner'>Error creating study. Please contact admin.</div>
-                                        :
-                                        null
-                                }
-                                {
-                                    inputError !== '' ?
-                                        <div className='error_banner'>{inputError}</div>
-                                        :
-                                        null
-                                }
+                                <Subsection title='Add new dataset'>
+                                    <Form onFinish={(variables) => createStudy({ variables })}>
+                                        <Form.Item name='name' >
+                                            <Input placeholder='Dataset name' />
+                                        </Form.Item>
+                                        {createStudyError ? (
+                                            <>
+                                                <Alert type='error' message={createStudyError?.graphQLErrors.map(error => error.message).join()} />
+                                                <br />
+                                            </>
+                                        ) : null}
+                                        {createStudyData?.successful ? (
+                                            <>
+                                                <Alert type='success' message={'All Saved!'} />
+                                                <br />
+                                            </>
+                                        ) : null}
+                                        <Form.Item>
+                                            <Button onClick={() => setShowMore(false)}>
+                                                Cancel
+                                            </Button>
+                                            &nbsp;&nbsp;&nbsp;
+                                            <Button type='primary' disabled={createStudyLoading} loading={createStudyLoading} htmlType='submit'>
+                                                Create
+                                            </Button>
+                                        </Form.Item>
+                                    </Form>
+                                </Subsection>
                             </div>
                     );
                 } else {
