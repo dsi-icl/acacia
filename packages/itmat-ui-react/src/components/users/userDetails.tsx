@@ -8,6 +8,7 @@ import { GQLRequests } from 'itmat-commons';
 import { Form, Input, Select, DatePicker, Checkbox, Button, Alert, Popconfirm } from 'antd';
 import { sites } from '../datasetDetail/tabContent/files/fileTab';
 import moment from 'moment';
+import { RouteComponentProps } from 'react-router-dom';
 
 const {
     WHO_AM_I,
@@ -17,16 +18,51 @@ const {
     REQUEST_USERNAME_OR_RESET_PASSWORD
 } = GQLRequests;
 
-export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
+type UserDetailsSectionProps = RouteComponentProps<{
+    userId?: string;
+}>
+
+export const UserDetailsSection: React.FC<UserDetailsSectionProps> = ({ match: { params: { userId } } }) => {
+
     const { loading, error, data } = useQuery(GET_USERS, {
         variables: {
             fetchDetailsAdminOnly: true, fetchAccessPrivileges: true, userId
         }
     });
-    if (loading) { return <LoadSpinner />; }
-    if (error) { return <p>Error :( {error.message}</p>; }
-    const user: IUserWithoutToken = data.getUsers[0];
-    if (user === null || user === undefined) { return <p>Oops! Cannot find user.</p>; }
+
+    if (!userId) {
+        return <>
+            <div className='page_ariane'></div>
+            <div className='page_content'>Select a user on the left hand side to open the details panel.</div>
+        </>;
+    }
+
+    if (loading) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <LoadSpinner />
+            </div>
+        </>;
+    }
+
+    if (error) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <Alert type='error' message={error.message} />
+            </div>
+        </>;
+    }
+
+    const user: IUserWithoutToken = data?.getUsers?.[0];
+    if (!user) {
+        return <>
+            <div className='page_ariane'>{data.getUsers[0]?.username ?? userId}</div>
+            <div className='page_content'>Sorry we could not find this user.</div>
+        </>;
+    }
+
     return (
         <>
             <div className='page_ariane'>{data.getUsers[0].username}</div>
