@@ -129,30 +129,27 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                             <Input disabled />
                         </Form.Item>
                         <Form.Item name='firstname' label='Firstname'>
-                            <Input />
+                            <Input disabled />
                         </Form.Item>
                         <Form.Item name='lastname' label='Lastname'>
-                            <Input />
+                            <Input disabled />
                         </Form.Item>
                         <Form.Item name='organisation' label='Organisation'>
-                            <Select>
+                            <Select disabled>
                                 {Object.entries(sites).map((site) => <Select.Option key={site[0]} value={site[0]}>{site[1]}</Select.Option>)}
                             </Select>
+                        </Form.Item>
+                        <Form.Item name='createdAt' label='Created On'>
+                            <DatePicker disabled style={{ width: '100%' }} />
+                        </Form.Item>
+                        <Form.Item name='expiredAt' label='Expire On'>
+                            <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
                         </Form.Item>
                         <Form.Item name='type' label='User type'>
                             <Select>
                                 <Select.Option value='STANDARD'>System user</Select.Option>
                                 <Select.Option value='ADMIN'>System admin</Select.Option>
                             </Select>
-                        </Form.Item>
-                        <Form.Item name='emailNotificationsActivated' label='Email notifications' valuePropName='checked'>
-                            <Checkbox />
-                        </Form.Item>
-                        <Form.Item name='createdAt' label='Created At'>
-                            <DatePicker disabled style={{ width: '100%' }} />
-                        </Form.Item>
-                        <Form.Item name='expiredAt' label='Expire On'>
-                            <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
                         </Form.Item>
                         {error ? (
                             <>
