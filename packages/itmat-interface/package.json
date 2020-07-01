@@ -31,6 +31,7 @@
         "graphql-type-json": "0.3.2",
         "hi-base32": "^0.5.0",
         "itmat-commons": "0.6.0",
+        "itmat-setup": "0.0.1",
         "mongodb": "3.5.9",
         "multer": "2.0.0-rc.2",
         "nodemailer": "6.4.10",
