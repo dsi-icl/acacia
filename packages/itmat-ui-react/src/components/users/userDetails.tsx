@@ -95,7 +95,8 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     function formatSubmitObj(variables) {
         const final = {
             ...user,
-            ...variables
+            ...variables,
+            expiredAt: variables.expiredAt.valueOf()
         };
         delete final.access;
         return final;
@@ -105,6 +106,10 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (whoamiloading) { return <p>Loading..</p>; }
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
+    const disabledDate = (current) => {
+        return current && (current < moment().endOf('day') || current > moment().add(3, 'months'));
+    };
+
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
@@ -112,7 +117,11 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
         >
             {(submit, { loading, error }) =>
                 <>
-                    <Form initialValues={user} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
+                    <Form initialValues={{
+                        ...user,
+                        createdAt: moment(user.createdAt),
+                        expiredAt: moment(user.expiredAt),
+                    }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
                         <Form.Item name='username' label='Username'>
                             <Input disabled />
                         </Form.Item>
@@ -139,11 +148,11 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         <Form.Item name='emailNotificationsActivated' label='Email notifications' valuePropName='checked'>
                             <Checkbox />
                         </Form.Item>
-                        <Form.Item label='Created At'>
-                            <DatePicker disabled value={moment(user.createdAt)} />
+                        <Form.Item name='createdAt' label='Created At'>
+                            <DatePicker disabled style={{ width: '100%' }} />
                         </Form.Item>
-                        <Form.Item label='Expire On'>
-                            <DatePicker value={moment(user.expiredAt)} />
+                        <Form.Item name='expiredAt' label='Expire On'>
+                            <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
                         </Form.Item>
                         {error ? (
                             <>
