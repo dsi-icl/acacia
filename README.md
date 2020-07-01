@@ -36,15 +36,22 @@ yarn install && yarn build
 
 ## 2. Add your config (and edit them in your editor of choice)
 ```bash
-cp packages/itmat-interface/config.sample.json packages/itmat-interface/config.json
+cp packages/itmat-interface/config/config.sample.json packages/itmat-interface/config/config.json
 
-cp packages/itmat-job-executor/config.sample.json packages/itmat-job-executor/config.json
+cp packages/itmat-job-executor/config/config.sample.json packages/itmat-job-executor/config/config.json
+
+cp packages/itmat-setup/config/config.sample.json packages/itmat-setup/config/config.json
 ```
 These config files need to be editted accordingly for Mongodb database (`database{ }`) and MinIO (`objectStore{ }`).
 
 `nodemailer{ }` in `packages/itmat-interface/config.json` is also required to configure for email service.
 
-## 3. Start the app (access it on localhost:3000)
+## 3. Initialise mongodb with seed data
+```bash
+yarn setupDatabase
+```
+
+## 4. Start the app (access it on localhost:3000)
 ```bash
 yarn start
 ```
