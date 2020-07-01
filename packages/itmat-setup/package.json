@@ -4,14 +4,14 @@
     "description": "",
     "license": "MIT",
     "author": "Chon Sou",
-    "main": "dist/src/index",
-    "types": "dist/src/index",
+    "main": "dist/index",
+    "types": "dist/index",
     "files": [
         "dist"
     ],
     "scripts": {
         "build": "yarn run clean && yarn run compile",
-        "setup": "node ./dist/src/runSetup.js",
+        "setup": "node ./dist/runSetup.js",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
         "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./",
         "clean": "rimraf -rf ./dist",
