@@ -8,7 +8,7 @@ import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from '../../src/databaseSetup/collectionsAndIndexes';
+import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
 const { CREATE_DATA_CURATION_JOB } = itmatCommons.GQLRequests;
 const { permissions } = itmatCommons;

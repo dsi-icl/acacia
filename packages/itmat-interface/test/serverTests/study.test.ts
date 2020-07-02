@@ -6,7 +6,7 @@ import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from '../../src/databaseSetup/collectionsAndIndexes';
+import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 import {

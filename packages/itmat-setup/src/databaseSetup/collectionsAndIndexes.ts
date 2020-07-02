@@ -1,6 +1,6 @@
 import mongo from 'mongodb';
 import { v4 as uuid } from 'uuid';
-import seedUsers from './seed/users';
+import { seedUsers } from './seed/users';
 
 const collections = {
     jobs_collection: {
@@ -70,7 +70,7 @@ const collections = {
     }
 };
 
-async function setupDatabase(mongostr: string, databaseName: string): Promise<void> {
+export async function setupDatabase(mongostr: string, databaseName: string): Promise<void> {
     const conn = await mongo.MongoClient.connect(mongostr, {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -97,5 +97,3 @@ async function setupDatabase(mongostr: string, databaseName: string): Promise<vo
 
     await conn.close();
 }
-
-export default setupDatabase;
