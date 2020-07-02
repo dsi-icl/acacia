@@ -1147,7 +1147,7 @@ describe('USERS API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('Username or password cannot have space.');
+            expect(res.body.errors[0].message).toBe('Username or password cannot have spaces.');
             expect(res.body.data.createUser).toBe(null);
         });
 

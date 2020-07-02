@@ -235,9 +235,14 @@ export const userResolvers = {
                 throw new UserInputError('Email is not the right format.');
             }
 
+            /* check password validity */
+            if (password && !passwordIsGoodEnough(password)) {
+                throw new UserInputError('Password has to be at least 8 character long.');
+            }
+
             /* check that username and password dont have space */
             if (username.indexOf(' ') !== -1 || password.indexOf(' ') !== -1) {
-                throw new UserInputError('Username or password cannot have space.');
+                throw new UserInputError('Username or password cannot have spaces.');
             }
 
             const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: null }); // since bycrypt is CPU expensive let's check the username is not taken first
@@ -314,6 +319,11 @@ export const userResolvers = {
                 throw new ApolloError('Password has to be at least 8 character long.');
             }
 
+            /* check that username and password dont have space */
+            if (newPassword.indexOf(' ') !== -1) {
+                throw new ApolloError('Password cannot have spaces.');
+            }
+
             /* decrypt email */
             if (token.length < 16) {
                 throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
@@ -346,6 +356,9 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
+            /* randomly generate a secret for Time-based One Time Password*/
+            const otpSecret = mfa.generateSecret();
+
             /* all ok; change the user's password */
             const hashedPw = await bcrypt.hash(newPassword, config.bcrypt.saltround);
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
@@ -359,7 +372,7 @@ export const userResolvers = {
                         }
                     }
                 },
-                { $set: { 'password': hashedPw, 'resetPasswordRequests.$.used': true } });
+                { $set: { 'password': hashedPw, 'otpSecret': otpSecret, 'resetPasswordRequests.$.used': true } });
             if (updateResult.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
@@ -367,6 +380,41 @@ export const userResolvers = {
             /* need to log user out of all sessions */
             // TO_DO
 
+            /* send email to the registered user */
+            // get QR Code for the otpSecret.
+            const oauth_uri = `otpauth://totp/${config.appName}:${user.username}?secret=${otpSecret}&issuer=Data%20Science%20Institute`;
+            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
+
+            QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
+                if (err) throw new ApolloError(err);
+            });
+
+            const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
+            await mailer.sendMail({
+                from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                to: email,
+                subject: `[${config.appName}] Registration Successful`,
+                html: `
+                    <p>
+                        Dear ${user.firstname},
+                    <p>
+                    <p>
+                        Your password on ${config.appName} is now reset!<br/>
+                        You will need to update your MFA application for one-time passcode.<br/>
+                    </p>
+                    <p>
+                        To update your MFA authenticator app you can scan the QRCode below to configure it:<br/>
+                        <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /><br/>
+                        If you need to type the token in use <b>${otpSecret.toLowerCase()}</b>
+                    </p>
+                    <br/>
+                    <p>
+                        The ${config.appName} Team.
+                    </p>
+                `,
+                attachments: attachments
+            });
+            tmpobj.removeCallback();
             return makeGenericReponse();
         },
         editUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Record<string, unknown>> => {
@@ -476,7 +524,7 @@ async function formatEmailForForgottenPassword({ firstname, to, resetPasswordTok
     const iv = makeAESIv(resetPasswordToken);
     const encryptedEmail = await encryptEmail(to, keySalt, iv);
 
-    const link = `${origin}/resetPassword/${encryptedEmail}/${resetPasswordToken}`;
+    const link = `${origin}/reset/${encryptedEmail}/${resetPasswordToken}`;
     return ({
         from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
