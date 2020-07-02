@@ -32,10 +32,11 @@ Both software also have easy to start docker images available for convenience.
 Building the library is easy. First run `yarn install && yarn build`, to build the application. The current application is built ontop of a system called ICL-ITMAT-Broker comprised of multiple components including :
 
 - itmat-commons
+- itmat-docker
 - itmat-interface
 - itmat-job-executor
+- itmat-setup
 - itmat-ui-react
-- itmat-utils
 
 ### Add configuration
 
