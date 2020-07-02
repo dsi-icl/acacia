@@ -42,8 +42,17 @@ Building the library is easy. First run `yarn install && yarn build`, to build t
 You will need to provide database and object store connection details and will have the ability to customised other paramters. We typically recommend that you configure your secrets.
 
 ```bash
-cp packages/itmat-interface/config.sample.json packages/itmat-interface/config.json
-cp packages/itmat-job-executor/config.sample.json packages/itmat-job-executor/config.json
+cp packages/itmat-interface/config/config.sample.json packages/itmat-interface/config/config.json
+cp packages/itmat-job-executor/config/config.sample.json packages/itmat-job-executor/config/config.json
+```
+These config files need to be editted accordingly for Mongodb database (`database{ }`) and MinIO (`objectStore{ }`).
+
+`nodemailer{ }` in `packages/itmat-interface/config/config.json` is also required to configure for email service.
+
+### Initialise mongodb with seed data
+
+```bash
+yarn setupDatabase
 ```
 
 ### Start developing
