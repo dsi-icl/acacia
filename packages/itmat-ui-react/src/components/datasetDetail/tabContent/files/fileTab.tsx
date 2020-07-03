@@ -301,7 +301,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             : <div className={`${css.tab_page_wrapper} ${css.both_panel} fade_in`}>
                 <Subsection title='Upload files'>
                     To upload file to IDEA-FAST you can click on the button below or drag and drop files directly from your hard drive.<br />
-                    If the file name is of the form <Tag style={{ fontFamily: 'monospace' }}>XAAAAAA-DDDBBBBBB-00000000-00000000.EXT</Tag>we will extra metadata automatically. If not, you will be prompted to enter the relevant information.<br /><br />
+                    If the file name is of the form <Tag style={{ fontFamily: 'monospace' }}>XAAAAAA-DDDBBBBBB-00000000-00000000.EXT</Tag>we will extract metadata automatically. If not, you will be prompted to enter the relevant information.<br /><br />
                     <Upload {...uploaderProps}>
                         <Button>Select files</Button>
                     </Upload>
