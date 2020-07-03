@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useMutation } from 'react-apollo';
+import { useMutation, useQuery } from 'react-apollo';
 import { Table, Button, notification, Input } from 'antd';
-import { IFile, DELETE_FILE } from 'itmat-commons';
+import { IFile, DELETE_FILE, WHO_AM_I, userTypes } from 'itmat-commons';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined } from '@ant-design/icons';
 import { ApolloError } from 'apollo-client';
 import moment from 'moment';
@@ -22,6 +22,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
 
     const [searchTerm, setSearchTerm] = useState<string | undefined>();
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
+    const { data: dataWhoAmI, loading: loadingWhoAmI } = useQuery(WHO_AM_I);
     const [deleteFile] = useMutation(DELETE_FILE, {
         errorPolicy: 'ignore',
         onError: (error: ApolloError) => {
@@ -118,17 +119,18 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             },
             width: '10rem',
             key: 'download'
-        },
-        {
-            render: (__unused__value, record) => (
-                <Button icon={<DeleteOutlined />} loading={isDeleting[record.id]} danger onClick={() => deletionHandler(record.id)}>
-                    Delete
-                </Button>
-            ),
-            width: '8rem',
-            key: 'delete'
-        }
-    ];
+        }]
+        .concat(!loadingWhoAmI && dataWhoAmI?.whoAmI?.type === userTypes.ADMIN ? [
+            {
+                render: (__unused__value, record) => (
+                    <Button icon={<DeleteOutlined />} loading={isDeleting[record.id]} danger onClick={() => deletionHandler(record.id)}>
+                        Delete
+                    </Button>
+                ),
+                width: '8rem',
+                key: 'delete'
+            }
+        ] : []);
 
     return <>
         <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
