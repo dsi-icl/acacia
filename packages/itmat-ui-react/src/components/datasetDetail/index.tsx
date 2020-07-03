@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { NavLink, Route, Switch } from 'react-router-dom';
-import { GET_STUDY } from 'itmat-commons';
+import { GET_STUDY, WHO_AM_I, userTypes } from 'itmat-commons';
 import LoadSpinner from '../reusable/loadSpinner';
 import css from './projectPage.module.css';
 import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent } from './tabContent';
@@ -30,7 +30,18 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                             {/*
                             <NavLink to={`/datasets/${studyId}/projects`} activeClassName={css.active}>PROJECTS</NavLink>
                             */}
-                            <NavLink to={`/datasets/${studyId}/admin`} activeClassName={css.active}>ADMINISTRATION</NavLink>
+
+                            <Query<any, any> query={WHO_AM_I}>
+                                {({ loading, error, data }) => {
+                                    if (loading) return <LoadSpinner />;
+                                    if (error) return <p>{error.toString()}</p>;
+                                    if (data.whoAmI.type === userTypes.ADMIN)
+                                        return (
+                                            <NavLink to={`/datasets/${studyId}/admin`} activeClassName={css.active}>ADMINISTRATION</NavLink>
+                                        );
+                                    return null;
+                                }}
+                            </Query>
                         </div>
                     </div>
                     <div className={css.content}>
