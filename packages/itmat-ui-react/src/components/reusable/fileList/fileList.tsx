@@ -23,9 +23,10 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
     const [searchTerm, setSearchTerm] = useState<string | undefined>();
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
     const [deleteFile] = useMutation(DELETE_FILE, {
+        errorPolicy: 'ignore',
         onError: (error: ApolloError) => {
             notification.error({
-                message: 'Upload error!',
+                message: 'Deletion error!',
                 description: error.message ?? 'Unknown Error Occurred!',
                 placement: 'topRight',
                 duration: 0,
