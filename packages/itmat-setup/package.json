@@ -20,6 +20,7 @@
     },
     "dependencies": {
         "chalk": "4.1.0",
+        "itmat-commons": "0.6.0",
         "mongodb": "^3.5.9"
     },
     "devDependencies": {

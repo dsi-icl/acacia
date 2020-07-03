@@ -276,11 +276,11 @@ export const fileResolvers = {
                 //if (PatientDataBlobFile.validateInstance(fileentry)) { // if file is of type patient blob
                 //
                 //} else {
-                    hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                        task_required_permissions.manage_study_data,
-                        requester,
-                        (file as FileNode & IStudyFileNode).studyId
-                    );
+                hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                    task_required_permissions.manage_study_data,
+                    requester,
+                    (file as FileNode & IStudyFileNode).studyId
+                );
                 //}
             //} else if (fileTypesPersonal.includes(file.fileType)) { // if file is a personal file then only user themself can delete
             //    hasPermission = requester.id === file.uploadedBy;

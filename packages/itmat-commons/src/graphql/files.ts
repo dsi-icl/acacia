@@ -28,7 +28,7 @@ const file_fragment_without_children = gql`
 //             fileType: $fileType,
 //             studyId: $studyId
 //         ) {
-//             ...FILE_WITHOUT_CHILDREN 
+//             ...FILE_WITHOUT_CHILDREN
 //         }
 //     }
 //     ${file_fragment_without_children}
@@ -54,7 +54,7 @@ export const DELETE_FILE = gql`
 // export const GET_FILE_WITHOUT_CHILDREN = gql`
 //     query getFileWithoutChildren($fileId: String!) {
 //         getFile(fileId: $fileId) {
-//             ...FILE_WITHOUT_CHILDREN 
+//             ...FILE_WITHOUT_CHILDREN
 //         }
 //     }
 //     ${file_fragment_without_children}
@@ -66,7 +66,7 @@ export const DELETE_FILE = gql`
 //             childFiles {
 //                 ...FILE_WITHOUT_CHILDREN
 //             }
-//             ...FILE_WITHOUT_CHILDREN 
+//             ...FILE_WITHOUT_CHILDREN
 //         }
 //     }
 //     ${file_fragment_without_children}
@@ -77,7 +77,7 @@ export const DELETE_FILE = gql`
 //         getFile(fileId: $dirFileId) {
 //             id
 //             childFiles {
-//                 ...FILE_WITHOUT_CHILDREN 
+//                 ...FILE_WITHOUT_CHILDREN
 //             }
 //         }
 //     }

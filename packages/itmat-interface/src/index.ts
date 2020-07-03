@@ -19,15 +19,15 @@ function serverStart() {
         itmatRouter.listen(config.server.port, () => {
             console.info(`Listening at http://${os.hostname()}:${config.server.port}/`);
         })
-        .on('connection', (socket) => {
-            interfaceSockets.push(socket);
-        })
-        .on('error', (error) => {
-            if (error) {
-                console.error('An error occurred while starting the HTTP server.', error);
-                return;
-            }
-        });
+            .on('connection', (socket) => {
+                interfaceSockets.push(socket);
+            })
+            .on('error', (error) => {
+                if (error) {
+                    console.error('An error occurred while starting the HTTP server.', error);
+                    return;
+                }
+            });
 
     }).catch((error) => {
         console.error('An error occurred while starting the ITMAT core.', error);
