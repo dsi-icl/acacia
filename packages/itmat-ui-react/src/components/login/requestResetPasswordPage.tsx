@@ -56,12 +56,12 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                                     }
                                 })}>
                                     {forgotUsername ?
-                                        <Form.Item name='username' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                            <Input placeholder='Username' />
-                                        </Form.Item>
-                                        :
                                         <Form.Item name='email' hasFeedback rules={[{ required: true, message: ' ' }]}>
                                             <Input placeholder='Email' />
+                                        </Form.Item>
+                                        :
+                                        <Form.Item name='username' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                            <Input placeholder='Username' />
                                         </Form.Item>
                                     }
                                     {error ? (
@@ -76,10 +76,19 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                                         }}>
                                             Cancel
                                         </Button>
-                                        &nbsp;&nbsp;&nbsp;
-                                        <Button onClick={() => setForgotUsername(true)}>
-                                            I forgot my username
-                                        </Button>
+                                        {forgotUsername
+                                            ? <>
+                                                &nbsp;&nbsp;&nbsp;
+                                                <Button onClick={() => setForgotUsername(false)}>
+                                                    I forgot my email
+                                                </Button>
+                                            </>
+                                            : <>
+                                                &nbsp;&nbsp;&nbsp;
+                                                <Button onClick={() => setForgotUsername(true)}>
+                                                    I forgot my username
+                                                </Button>
+                                            </>}
                                         &nbsp;&nbsp;&nbsp;
                                         <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
                                             Send me a reset link
