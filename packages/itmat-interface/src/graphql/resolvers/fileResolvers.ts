@@ -11,34 +11,20 @@ import {
     IFileMongoEntry,
     Logger,
     FileNode,
-<<<<<<< Updated upstream
-    UserPersonalDir,
-    UserPersonalFile,
-    StudyRepoDir,
-    StudyRepoScriptFile,
-=======
     // UserPersonalDir,
     // UserPersonalFile,
     // StudyRepoDir,
     // StudyRepoScriptFile,
->>>>>>> Stashed changes
     ObjStoreFileNode,
     StudyRepoObjStoreFile,
-    PatientDataBlobFile,
+    //PatientDataBlobFile,
     fileTypes,
     fileTypesStudy,
-    fileTypesPersonal,
-<<<<<<< Updated upstream
-    zipFormats,
+    //fileTypesPersonal,
     IStudyFileNode,
-    IUser,
-    IJobEntryForUnzippingFile,
-=======
     // zipFormats,
-    IStudyFileNode,
     IUser,
     // IJobEntryForUnzippingFile,
->>>>>>> Stashed changes
     DirectoryNode
 } from 'itmat-commons';
 
@@ -287,17 +273,17 @@ export const fileResolvers = {
             /* check permission */
             let hasPermission = false;
             if (fileTypesStudy.includes(file.fileType)) { // if file is of study type
-                if (PatientDataBlobFile.validateInstance(fileentry)) { // if file is of type patient blob
-
-                } else {
+                //if (PatientDataBlobFile.validateInstance(fileentry)) { // if file is of type patient blob
+                //
+                //} else {
                     hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                         task_required_permissions.manage_study_data,
                         requester,
                         (file as FileNode & IStudyFileNode).studyId
                     );
-                }
-            } else if (fileTypesPersonal.includes(file.fileType)) { // if file is a personal file then only user themself can delete
-                hasPermission = requester.id === file.uploadedBy;
+                //}
+            //} else if (fileTypesPersonal.includes(file.fileType)) { // if file is a personal file then only user themself can delete
+            //    hasPermission = requester.id === file.uploadedBy;
             } else {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
@@ -313,3 +299,4 @@ export const fileResolvers = {
     },
     Subscription: {}
 };
+

@@ -194,10 +194,10 @@ export const userResolvers = {
             delete result.deleted;
 
             // validate the TOTP
-            const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
-            if (!totpValidated) {
-                throw new UserInputError('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
-            }
+            // const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
+            // if (!totpValidated) {
+            //     throw new UserInputError('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
+            // }
 
             return new Promise((resolve) => {
                 req.login(result, (err: any) => {
