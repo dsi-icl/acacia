@@ -51,6 +51,11 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const [isUploading, setIsUploading] = useState(false);
     const store = useApolloClient();
 
+    // let { loading, progress, error } = useUpload(files, {
+    //     mutation: UPLOAD_FILE,
+    //     variables: { input: { files, name: 'test' } },
+    // });
+
     const [uploadFile] = useMutation(UPLOAD_FILE, {
         onCompleted: ({ uploadFile }) => {
             const cachedata = store.readQuery({
@@ -182,6 +187,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             return true;
         },
         fileList,
+        multiple: true,
         showUploadList: false
     };
 
@@ -302,7 +308,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 <Subsection title='Upload files'>
                     To upload file to IDEA-FAST you can click on the button below or drag and drop files directly from your hard drive.<br />
                     If the file name is of the form <Tag style={{ fontFamily: 'monospace' }}>XAAAAAA-DDDBBBBBB-00000000-00000000.EXT</Tag>we will extract metadata automatically. If not, you will be prompted to enter the relevant information.<br /><br />
-                    <Upload {...uploaderProps}>
+                    <Upload  {...uploaderProps}>
                         <Button>Select files</Button>
                     </Upload>
                     <br />
