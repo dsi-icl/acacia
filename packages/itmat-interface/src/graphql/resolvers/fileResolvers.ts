@@ -11,20 +11,34 @@ import {
     IFileMongoEntry,
     Logger,
     FileNode,
+<<<<<<< Updated upstream
     UserPersonalDir,
     UserPersonalFile,
     StudyRepoDir,
     StudyRepoScriptFile,
+=======
+    // UserPersonalDir,
+    // UserPersonalFile,
+    // StudyRepoDir,
+    // StudyRepoScriptFile,
+>>>>>>> Stashed changes
     ObjStoreFileNode,
     StudyRepoObjStoreFile,
     PatientDataBlobFile,
     fileTypes,
     fileTypesStudy,
     fileTypesPersonal,
+<<<<<<< Updated upstream
     zipFormats,
     IStudyFileNode,
     IUser,
     IJobEntryForUnzippingFile,
+=======
+    // zipFormats,
+    IStudyFileNode,
+    IUser,
+    // IJobEntryForUnzippingFile,
+>>>>>>> Stashed changes
     DirectoryNode
 } from 'itmat-commons';
 

@@ -17,6 +17,7 @@ const file_fragment_without_children = gql`
     }
 `;
 
+<<<<<<< Updated upstream
 export const CREATE_FILE = gql`
     mutation createFile(
         $fileName: String!,
@@ -33,6 +34,24 @@ export const CREATE_FILE = gql`
     }
     ${file_fragment_without_children}
 `;
+=======
+// export const CREATE_FILE = gql`
+//     mutation createFile(
+//         $fileName: String!,
+//         $fileType: FileType,
+//         $studyId: String
+//     ) {
+//         createFile(
+//             fileName: $fileName,
+//             fileType: $fileType,
+//             studyId: $studyId
+//         ) {
+//             ...FILE_WITHOUT_CHILDREN 
+//         }
+//     }
+//     ${file_fragment_without_children}
+// `;
+>>>>>>> Stashed changes
 
 export const UPLOAD_FILE = gql`
     mutation uploadFile($studyId: String!, $file: Upload!, $description: String, $fileLength: Int, $fileType: FileType) {
@@ -51,6 +70,7 @@ export const DELETE_FILE = gql`
     }
 `;
 
+<<<<<<< Updated upstream
 export const GET_FILE_WITHOUT_CHILDREN = gql`
     query getFileWithoutChildren($fileId: String!) {
         getFile(fileId: $fileId) {
@@ -89,3 +109,43 @@ export const CREATE_JOB_FOR_UNZIPPING_FILE = gql`
         successful
     }
 `;
+=======
+// export const GET_FILE_WITHOUT_CHILDREN = gql`
+//     query getFileWithoutChildren($fileId: String!) {
+//         getFile(fileId: $fileId) {
+//             ...FILE_WITHOUT_CHILDREN 
+//         }
+//     }
+//     ${file_fragment_without_children}
+// `;
+
+// export const GET_FILE_WITH_CHILDREN = gql`
+//     query getFileWithChildren($fileId: String!) {
+//         getFile(fileId: $fileId) {
+//             childFiles {
+//                 ...FILE_WITHOUT_CHILDREN
+//             }
+//             ...FILE_WITHOUT_CHILDREN 
+//         }
+//     }
+//     ${file_fragment_without_children}
+// `;
+
+// export const FETCH_CHILD_FILES = gql`
+//     query fetchChildFiles($dirFileId: String!) {
+//         getFile(fileId: $dirFileId) {
+//             id
+//             childFiles {
+//                 ...FILE_WITHOUT_CHILDREN 
+//             }
+//         }
+//     }
+//     ${file_fragment_without_children}
+// `;
+
+// export const CREATE_JOB_FOR_UNZIPPING_FILE = gql`
+//     mutation createJobForUnzippingFile($fileId: String!) {
+//         successful
+//     }
+// `;
+>>>>>>> Stashed changes

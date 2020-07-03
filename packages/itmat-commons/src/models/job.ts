@@ -20,9 +20,18 @@ export interface IJobEntry<dataobj> {
 
 export type IJobEntryForDataCuration = IJobEntry<{ dataVersion: string, versionTag?: string }>;
 export type IJobEntryForFieldCuration = IJobEntry<{ dataVersionId: string, tag: string }>;
+<<<<<<< Updated upstream
 export type IJobEntryForBlobCuration = IJobEntry<{ mappingFile: string }>;
 export type IJobEntryForUnzippingFile = IJobEntry<{ fileId: string, zipFormat: zipFormats }>;
 
 export enum zipFormats {
     ZIP = 'ZIP'
 }
+=======
+// export type IJobEntryForBlobCuration = IJobEntry<{ mappingFile: string }>;
+// export type IJobEntryForUnzippingFile = IJobEntry<{ fileId: string, zipFormat: zipFormats }>;
+
+// export enum zipFormats {
+//     ZIP = 'ZIP'
+// }
+>>>>>>> Stashed changes
