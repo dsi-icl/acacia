@@ -9,6 +9,7 @@ import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm } from 'antd
 import { sites } from '../datasetDetail/tabContent/files/fileTab';
 import moment from 'moment';
 import { RouteComponentProps } from 'react-router-dom';
+import { WarningOutlined } from '@ant-design/icons';
 
 const {
     WHO_AM_I,
@@ -67,6 +68,13 @@ export const UserDetailsSection: React.FC<UserDetailsSectionProps> = ({ match: {
         <>
             <div className='page_ariane'>{data.getUsers[0].username}</div>
             <div className='page_content'>
+                {moment().add(4, 'weeks').valueOf() - moment(data.getUsers[0].expiredAt).valueOf() > 0 ? <><WarningOutlined style={{
+                    color: '#ffaa33',
+                    fontSize: '1.5rem'
+                }} /> This account is close to expiring or has expired !</> : null}
+                <br />
+                <br />
+                <br />
                 <Subsection title='Account Information'>
                     <EditUserForm user={user} key={user.id} />
                     <br />

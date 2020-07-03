@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { Query } from 'react-apollo';
 import { useHistory } from 'react-router-dom';
 import LoadSpinner from '../reusable/loadSpinner';
-import { Table, Input, Button } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
+import { Table, Input, Button, Tooltip } from 'antd';
+import { EditOutlined, WarningOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
+import moment from 'moment';
 
 export const UserListSection: React.FunctionComponent = () => {
     return (
@@ -82,6 +83,16 @@ const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutT
                     return record.email;
             },
             sorter: (a, b) => a.email.localeCompare(b.email)
+        },
+        {
+            render: (__unused__value, record) => (
+                moment().add(4, 'weeks').valueOf() - moment(record.expiredAt).valueOf() > 0 ? <Tooltip title='Account close to expiry or expired'><WarningOutlined style={{
+                    color: '#ffaa33',
+                    fontSize: '1.5rem'
+                }} /></Tooltip> : null
+            ),
+            width: '5rem',
+            key: 'edit'
         },
         {
             render: (__unused__value, record) => (
