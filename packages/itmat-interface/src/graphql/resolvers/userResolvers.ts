@@ -393,7 +393,7 @@ export const userResolvers = {
             await mailer.sendMail({
                 from: `${config.appName} <${config.nodemailer.auth.user}>`,
                 to: email,
-                subject: `[${config.appName}] Registration Successful`,
+                subject: `[${config.appName}] Password reset`,
                 html: `
                     <p>
                         Dear ${user.firstname},
