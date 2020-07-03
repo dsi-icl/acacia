@@ -9,6 +9,7 @@
         "start:interface": "lerna run --stream --scope itmat-interface start",
         "start:executor": "lerna run --stream --scope itmat-job-executor start",
         "build": "lerna run --stream build",
+        "setupDatabase": "lerna run --scope itmat-setup setup",
         "test": "lerna run --no-bail --concurrency 1 --stream --scope itmat-interface --scope itmat-job-executor --scope itmat-commons test",
         "lint": "lerna run --no-bail --stream lint",
         "lint:fix": "lerna run --no-bail --stream lint:fix",
@@ -44,12 +45,12 @@
         "eslint-plugin-import": "2.22.0",
         "eslint-plugin-jsx-a11y": "6.2.3",
         "eslint-plugin-react": "7.20.0",
-        "eslint-plugin-react-hooks": "4.0.4",
+        "eslint-plugin-react-hooks": "4.0.5",
         "husky": "4.2.5",
         "start-server-and-test": "1.11.0",
         "jest-environment-node": "26.1.0",
         "lerna": "3.22.1",
-        "typescript": "3.9.5"
+        "typescript": "3.9.6"
     },
     "resolutions": {
         "**/**/fs-capacitor": "^6.0.0",

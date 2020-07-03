@@ -1,0 +1,33 @@
+{
+    "name": "itmat-setup",
+    "version": "0.0.1",
+    "description": "",
+    "license": "MIT",
+    "author": "Chon Sou",
+    "main": "dist/index",
+    "types": "dist/index",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "yarn run clean && yarn run compile",
+        "setup": "node ./dist/runSetup.js",
+        "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
+        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./",
+        "clean": "rimraf -rf ./dist",
+        "compile": "tsc -p tsconfig.build.json",
+        "prepublishOnly": "yarn run build"
+    },
+    "dependencies": {
+        "chalk": "4.1.0",
+        "mongodb": "^3.5.9"
+    },
+    "devDependencies": {
+        "@types/mongodb": "3.5.25",
+        "eslint": "7.3.1",
+        "typescript": "3.9.6"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
+    }
+}

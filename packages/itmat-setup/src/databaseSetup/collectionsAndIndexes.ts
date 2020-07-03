@@ -72,7 +72,7 @@ const collections = {
     }
 };
 
-async function setupDatabase(mongostr: string, databaseName: string, dropCollection = false, demoData = false): Promise<void> {
+export async function setupDatabase(mongostr: string, databaseName: string, dropCollection = false, demoData = false): Promise<void> {
     const conn = await mongo.MongoClient.connect(mongostr, {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -121,5 +121,3 @@ async function setupDatabase(mongostr: string, databaseName: string, dropCollect
 
     await conn.close();
 }
-
-export default setupDatabase;
