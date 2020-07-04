@@ -30,7 +30,7 @@
         "@types/minio": "7.0.5",
         "@types/mongodb": "3.5.25",
         "@types/node": "13.13.12",
-        "@types/supertest": "2.0.9",
+        "@types/supertest": "2.0.10",
         "chalk": "4.1.0",
         "jest": "26.1.0",
         "rimraf": "3.0.2",
