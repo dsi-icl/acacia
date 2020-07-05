@@ -7,7 +7,8 @@ import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
 import QRCode from 'qrcode';
-import { GQLRequests, WRITE_LOG, LOG_ACTION } from 'itmat-commons';
+import { GQLRequests, WRITE_LOG, LOG_ACTION, LOG_STATUS } from 'itmat-commons';
+import { logFun } from '../../utils/logUtils';
 const {
     WHO_AM_I,
     DELETE_USER,
@@ -15,6 +16,7 @@ const {
     GET_USERS,
     REQUEST_USERNAME_OR_RESET_PASSWORD
 } = GQLRequests;
+
 
 export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
     const { loading, error, data } = useQuery(GET_USERS, {
@@ -53,7 +55,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     const [requestResetPassword] = useMutation(REQUEST_USERNAME_OR_RESET_PASSWORD, { onCompleted: () => { setRequestResetPasswordSent(true); } });
     const [requestResetPasswordSent, setRequestResetPasswordSent] = React.useState(false);
     const [writeLog, { loading: writeLogLoading }] = useMutation(WRITE_LOG);
-    
+
     if (inputs.id !== user.id) {
         setUserIsDeleted(false);
         setDeleteButtonShown(false);
@@ -83,25 +85,17 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
         qrcode_url = data_url;
     });
 
-    // logging
-    function logFun(userid: string, username: string) {
-        // const userName: ILogData = {field: 'userName', value: username};
-        // const userId: ILogData = {field: 'userId', value: userid};
-        // const logData: ILogData[] = [userId,userName];
-        const logData = JSON.stringify({userName: username, userId: userid});
-        writeLog({variables: {
-            requesterId: whoamidata.whoAmI.id,
-            requesterName: whoamidata.whoAmI.username,
-            requesterType: whoamidata.whoAmI.type,
-            action: LOG_ACTION.DELETE_USER,
-            actionData: logData} }
-        );
-    }
-
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
-            onCompleted={() => setSavedSuccessfully(true)}
+            onCompleted={() => {
+                setSavedSuccessfully(true);
+                logFun(writeLog, whoamidata, LOG_ACTION.DELETE_USER, formatSubmitObj(), LOG_STATUS.SUCCESS );
+            }}
+            onError={(error) => {
+                logFun(writeLog, whoamidata, LOG_ACTION.DELETE_USER, {ERROR: error, userId: user.id, userName: user.username}, LOG_STATUS.SUCCESS );
+            }}
+
         >
             {(submit, { loading, error }) =>
                 <>
@@ -171,15 +165,25 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <Mutation<any, any>
                         mutation={DELETE_USER}
                         refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
+                        onCompleted={() => {
+                            logFun(writeLog, whoamidata, LOG_ACTION.DELETE_USER, {userId: user.id, userName: user.username}, LOG_STATUS.SUCCESS );
+                        }}
+                        onError={(error) => {
+                            logFun(writeLog, whoamidata, LOG_ACTION.DELETE_USER, {ERROR: error.message}, LOG_STATUS.FAIL );
+                        }}
                     >
 
                         {(deleteUser, { loading, error, data: UserDeletedData }) => {
-                            if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
-                            if (error) return <p>{error.message}</p>;
+                            if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) {
+                                setUserIsDeleted(true);
+                            }
+                            if (error) {
+                                return <p>{error.message}</p>;
+                            }
                             return (
                                 <>
-                                    <label>Delete this user:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
-                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }); logFun(user.id, user.username ); }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
+                                    <label>Delete this user:</label> {loading && writeLogLoading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
+                                    {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }); }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
                                 </>
                             );
                         }}

@@ -3,18 +3,29 @@ import { ApolloClient } from 'apollo-client';
 import { from, split } from 'apollo-link';
 import { onError } from 'apollo-link-error';
 import { WebSocketLink } from 'apollo-link-ws';
-import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { createUploadLink } from 'apollo-upload-client';
 import { getMainDefinition } from 'apollo-utilities';
 
-const wsClient = new SubscriptionClient(`${window.location.origin?.replace('http', 'ws')}/graphql`, {
-    reconnect: true
+// const wsClient = new SubscriptionClient(`${window.location.origin?.replace('http', 'ws')}/graphql`, {
+//     reconnect: true
+// });
+
+// const wsLink = new WebSocketLink(wsClient);
+
+// const uploadLink = createUploadLink({
+//     uri: '/graphql',
+//     credentials: 'include'
+// });
+
+const wsLink = new WebSocketLink({
+    uri: 'ws://localhost:3003/graphql',
+    options: {
+        reconnect: true
+    }
 });
 
-const wsLink = new WebSocketLink(wsClient);
-
 const uploadLink = createUploadLink({
-    uri: '/graphql',
+    uri: 'http://localhost:3003/graphql',
     credentials: 'include'
 });
 

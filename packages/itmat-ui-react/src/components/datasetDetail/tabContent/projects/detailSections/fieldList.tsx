@@ -1,13 +1,18 @@
 import React from 'react';
-import { Mutation, Query, useQuery } from 'react-apollo';
+import { Mutation, Query, useQuery, useMutation } from 'react-apollo';
 import {
     EDIT_PROJECT_APPROVED_FIELDS,
     GET_STUDY,
     GET_STUDY_FIELDS,
-    IFieldEntry
+    IFieldEntry,
+    LOG_ACTION,
+    WRITE_LOG,
+    WHO_AM_I,
+    LOG_STATUS
 } from 'itmat-commons';
 import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
+import { logFun } from '../../../../../utils/logUtils';
 
 
 export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
@@ -49,6 +54,12 @@ const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ select
     const [currentProjectId, setCurrentProjectId] = React.useState(projectId);
     const [currentSelectedTree, setCurrentSelectedTree] = React.useState(selectedTree);
 
+    const [writeLog] = useMutation(WRITE_LOG);
+    const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
+    if (whoamiloading) { return <p>Loading..</p>; }
+    if (whoamierror) { return <p>ERROR: please try again.</p>; }
+
+
     if (currentProjectId !== projectId || selectedTree !== currentSelectedTree) {
         setCheckedList(originalCheckedList[selectedTree] || []);
         setSavedSuccessfully(false);
@@ -64,12 +75,19 @@ const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ select
         <FieldListSection onCheck={onCheck} checkedList={checkedList} checkable={true} fieldList={fieldList} />
         <Mutation<any, any>
             mutation={EDIT_PROJECT_APPROVED_FIELDS}
-            onCompleted={() => setSavedSuccessfully(true)}
+            onCompleted={() => {
+                const logData = { projectId, fieldTreeId: selectedTree, approvedFields: checkedList.filter((el) => el.indexOf('CAT') === -1) };
+                logFun(writeLog, whoamidata, LOG_ACTION.EDIT_PROJECT_APPROVED_FIELDS, logData, LOG_STATUS.SUCCESS);
+                setSavedSuccessfully(true);
+            }}
+            onError={(err) => {
+                logFun(writeLog, whoamidata, LOG_ACTION.EDIT_PROJECT_APPROVED_FIELDS, {ERROR: err}, LOG_STATUS.FAIL);
+            }}
         >
             {(editApprovedFields, { loading, error }) =>
                 <>
                     {
-                        loading ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
+                        (loading && whoamiloading) ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
                             <button style={{ margin: '1rem 0 0 0' }} onClick={() => {
                                 editApprovedFields({ variables: { projectId, fieldTreeId: selectedTree, approvedFields: checkedList.filter((el) => el.indexOf('CAT') === -1) } });
                                 setSavedSuccessfully(false);

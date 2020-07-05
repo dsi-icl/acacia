@@ -1,15 +1,24 @@
 import * as React from 'react';
 import { useMutation, useQuery, ExecutionResult } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { CREATE_USER, WHO_AM_I, LOG_ACTION, WRITE_LOG, userTypes } from 'itmat-commons';
+import { CREATE_USER, WHO_AM_I, LOG_ACTION, WRITE_LOG, LOG_STATUS } from 'itmat-commons';
 import css from './userList.module.css';
-import { json } from 'body-parser';
+import { logFun } from '../../utils/logUtils';
 
 export const CreateNewUser: React.FunctionComponent = () => {
     const [completedCreation, setCompletedCreation] = React.useState(false);
     const [inputError, setError] = React.useState('');
-    const [createUser, { loading }] = useMutation(CREATE_USER,
-        {onCompleted: () => setCompletedCreation(true)}
+    const [createUser, { loading }] = useMutation(CREATE_USER,{
+        onCompleted: () => {
+            const logData = {userName: inputs.username};
+            logFun(writeLog, whoamidata, LOG_ACTION.CREATE_USER, logData, LOG_STATUS.SUCCESS);
+            setCompletedCreation(true);
+        },
+        onError: (err) => {
+            logFun(writeLog, whoamidata, LOG_ACTION.CREATE_USER, {ERROR: err}, LOG_STATUS.FAIL);
+        }
+    }
+
     );
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
         username: '',
@@ -31,13 +40,13 @@ export const CreateNewUser: React.FunctionComponent = () => {
     });
 
     // prepare for logging
-    const [writeLog, { loading: writeLogLoading }] = useMutation(WRITE_LOG);
+    const [writeLog] = useMutation(WRITE_LOG);
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
     if (whoamiloading) { return <p>Loading..</p>; }
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
 
-    function clickedSubmit(mutationFunc: (data: { variables: any }) => Promise<ExecutionResult<any>>, whoamidata: any) {
+    function clickedSubmit(mutationFunc: (data: { variables: any }) => Promise<ExecutionResult<any>>) {
         return function (e: any) {
             e.preventDefault();
             const allFields = Object.keys(inputs);
@@ -48,18 +57,6 @@ export const CreateNewUser: React.FunctionComponent = () => {
                 }
             }
             mutationFunc({ variables: inputs });
-            // logging
-            // const newUserName: ILogData = {field: 'name', value: inputs.username};
-            // const logData: ILogData[] = [newUserName];
-            const logData = JSON.stringify({userName: inputs.username});
-            writeLog({variables: {
-                requesterId: whoamidata.whoAmI.id,
-                requesterName: whoamidata.whoAmI.username,
-                requesterType: whoamidata.whoAmI.type,
-                action: LOG_ACTION.CREATE_USER,
-                actionData: logData} }
-            );
-
         };
     }
 
@@ -80,7 +77,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
         );
     }
 
-    
+
     return (
         <>
             <form>
@@ -93,7 +90,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
                 <br /><br /><br /><br />
                 <div className={css.submit_cancel_button_wrapper}>
                     <NavLink to='/users'><button className='button_grey'>Cancel</button></NavLink>
-                    {loading ? <button>Loading...</button> : <button onClick={clickedSubmit(createUser, whoamidata)}>Submit</button>}
+                    {loading ? <button>Loading...</button> : <button onClick={clickedSubmit(createUser)}>Submit</button>}
                 </div>
                 {inputError !== '' ? <div className='error_banner'>{inputError}</div> : null}
             </form>
