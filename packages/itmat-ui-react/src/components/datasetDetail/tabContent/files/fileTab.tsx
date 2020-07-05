@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { GET_STUDY } from 'itmat-commons';
-// import { FileList } from '../../../reusable/fileList/fileList';
+import { FileList } from '../../../reusable/fileList/fileList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { UploadFileSection } from './uploadFile';
-import { FileList } from '../../../reusable/fileList/fileList';
 
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     return <div className={css.scaffold_wrapper + ' fade_in'}>

@@ -63,6 +63,7 @@ export class StudyRepoObjStoreFile extends ObjStoreFileNode implements IStudyFil
             content: undefined,
             description: this.description,
             uploadedBy: this.uploadedBy,
+            uri: this.uri,
             isRoot: undefined,
             patientId: undefined,
             dataVersionId: undefined,

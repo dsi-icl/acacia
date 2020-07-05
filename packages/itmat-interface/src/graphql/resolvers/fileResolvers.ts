@@ -25,21 +25,21 @@ import {
     // zipFormats,
     IUser,
     // IJobEntryForUnzippingFile,
-    DirectoryNode
+    //DirectoryNode
 } from 'itmat-commons';
 
 export const fileResolvers = {
     File: {
-        childFiles: async(fileEntry: IFileMongoEntry): Promise<IFileMongoEntry[]> => {
-            // ASSUMPTION: permissions checked at getFile level
-            let dir: DirectoryNode;
-            try {
-                dir = DirectoryNode.makeFromMongoEntry(fileEntry);
-            } catch (e) {
-                throw new Error(errorCodes.SERVER_ERROR);
-            }
-            return dir.getChildFiles(db.collections!.files_collection);
-        }
+        //childFiles: async(fileEntry: IFileMongoEntry): Promise<IFileMongoEntry[]> => {
+        //    // ASSUMPTION: permissions checked at getFile level
+        //    let dir: DirectoryNode;
+        //    try {
+        //        dir = DirectoryNode.makeFromMongoEntry(fileEntry);
+        //    } catch (e) {
+        //        throw new Error(errorCodes.SERVER_ERROR);
+        //    }
+        //    return dir.getChildFiles(db.collections!.files_collection);
+        //}
     },
     Query: {
         // getFile: async(__unused__parent: Record<string, unknown>, { fileId }: { fileId: string }, context: any): Promise<IFileMongoEntry> => {
@@ -214,13 +214,14 @@ export const fileResolvers = {
 
             const file = await args.file;
 
-            return new Promise<IFileMongoEntry>((resolve, reject) => { //eslint:disable-line
+            return new Promise<IFileMongoEntry>(async (resolve, reject) => { //eslint:disable-line
                 try {
                     const stream: NodeJS.ReadableStream = (file as any).createReadStream();
                     const fileUri = uuid();
 
                     stream.on('end', async () => {
                         let fileObj: ObjStoreFileNode;
+                        console.log("ARGS", args);
                         switch (args.fileType) {
                             case fileTypes.STUDY_REPO_OBJ_STORE_FILE:
                                 fileObj = new StudyRepoObjStoreFile({
@@ -249,7 +250,8 @@ export const fileResolvers = {
                         reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
                     });
 
-                    objStore.uploadFile(stream, args.studyId, fileUri);
+                    console.log("I am here", stream, fileUri);
+                    await objStore.uploadFile(stream, args.studyId, fileUri);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }

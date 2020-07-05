@@ -91,15 +91,15 @@ export const studyResolvers = {
         roles: async (study: IStudy): Promise<Array<unknown>> => {
             return await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray();
         },
+        files: async (study: IStudy): Promise<Array<unknown>> => { //TO_DO: remove in future PR
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, /* TO_DO: remove in future PR */ isRoot: null }).toArray();
+        },
         numOfSubjects: async (study: IStudy): Promise<number> => {
             return await db.collections!.data_collection.countDocuments({ m_study: study.id });
         },
         currentDataVersion: async (study: IStudy): Promise<null | number> => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
-        },
-        files: async (study: IStudy): Promise<Array<unknown>> => {
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
-        },
+        }
     },
     Project: {
         fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Record<string, any>> => {
@@ -120,7 +120,12 @@ export const studyResolvers = {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
         files: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
-            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
+            return await db.collections!.files_collection.find({
+                studyId: project.studyId,
+                id: { $in: project.approvedFiles },
+                deleted: null,
+                isRoot: null /* TO_DO: remove in future PR */
+            }).toArray();
         },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {
             const requester: IUser = context.req.user;

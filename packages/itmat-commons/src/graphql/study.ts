@@ -38,13 +38,13 @@ export const GET_STUDY = gql`
                 }
             }
             files {  # TO_DO: remove in future PR
-                id	
-                fileName	
-                studyId	
-                projectId	
-                fileSize	
-                description	
-                uploadedBy	
+                id
+                fileName
+                studyId
+                projectId
+                fileSize
+                description
+                uploadedBy
             }
             numOfSubjects
             rootDir

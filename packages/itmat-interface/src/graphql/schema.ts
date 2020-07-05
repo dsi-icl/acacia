@@ -114,13 +114,13 @@ type Study {
     currentDataVersion: Int
     dataVersions: [DataVersion]!
     rootDir: String!
-    files: [File]!  # TO_DO: remove in future PR 
 
     # external to mongo documents:
     jobs: [Job]!
     projects: [Project]!
     roles: [StudyOrProjectUserRole]!
     # fields: [Field]!
+    files: [File]!  # TO_DO: remove in future PR 
     numOfSubjects: Int!
 }
 
@@ -138,13 +138,13 @@ type Project {
     patientMapping: JSON!
     approvedFields: JSON!
     approvedFiles: [String]!
-    files: [File]!
 
     #external to mongo documents:
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
     fields: [ProjectFields]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
+    files: [File]!
 }
 
 type Job {
