@@ -24,12 +24,13 @@ export const fileDownloadController = async (req: Request, res: Response): Promi
             res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
             return;
         }
+        console.log(file);
 
         /* check permission */
         const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
             task_required_permissions.access_project_data,
             requester,
-            file.studyId || ''
+            file.studyId || '' /* TO_DO: in future PR; file will not be limited to study files */
         );
         if (!hasPermission) {
             res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
