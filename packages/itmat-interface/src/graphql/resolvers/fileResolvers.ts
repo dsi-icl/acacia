@@ -214,14 +214,13 @@ export const fileResolvers = {
 
             const file = await args.file;
 
-            return new Promise<IFileMongoEntry>(async (resolve, reject) => { //eslint:disable-line
+            return new Promise<IFileMongoEntry>((resolve, reject) => { //eslint:disable-line
                 try {
                     const stream: NodeJS.ReadableStream = (file as any).createReadStream();
                     const fileUri = uuid();
 
                     stream.on('end', async () => {
                         let fileObj: ObjStoreFileNode;
-                        console.log("ARGS", args);
                         switch (args.fileType) {
                             case fileTypes.STUDY_REPO_OBJ_STORE_FILE:
                                 fileObj = new StudyRepoObjStoreFile({
@@ -250,8 +249,7 @@ export const fileResolvers = {
                         reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
                     });
 
-                    console.log("I am here", stream, fileUri);
-                    await objStore.uploadFile(stream, args.studyId, fileUri);
+                    objStore.uploadFile(stream, args.studyId, fileUri);
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }
