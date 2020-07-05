@@ -5,7 +5,7 @@ import { DatasetListPage } from '../datasetList';
 import { ProjectDetailPage } from '../projectDetail';
 import { ProjectListPage } from '../projectList';
 import { UserPage } from '../users';
-import { LogPage } from '../logs';
+import { LogPage } from '../log';
 import css from './scaffold.module.css';
 
 export const MainPanel: React.FunctionComponent = () => {
