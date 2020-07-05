@@ -1,3 +1,9 @@
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/dsi-icl/itmat-broker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/dsi-icl/itmat-broker/alerts/)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/dsi-icl/itmat-broker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/dsi-icl/itmat-broker/context:javascript)
+![Build status](https://github.com/dsi-icl/itmat-broker/workflows/Test%20and%20Build%20CI/badge.svg)
+[![Dependency Status](https://img.shields.io/david/dsi-icl/itmat-broker.svg)](https://david-dm.org/dsi-icl/itmat-broker)
+[![devDependency Status](https://img.shields.io/david/dev/dsi-icl/itmat-broker.svg)](https://david-dm.org/dsi-icl/itmat-broker?type=dev)
+
 #Develop branch
 
 To deploy the app, some programs need to be installed:
