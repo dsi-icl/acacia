@@ -4,7 +4,7 @@ import { IFileMongoEntry } from './mongoEntry';
 import { Collection, FindAndModifyWriteOpResultObject, InsertOneWriteOpResult, ObjectID } from 'mongodb';
 
 export class FileNode {
-    private readonly _id: string = uuid();
+    private readonly _id;
     private _fileName: string;
     private readonly _fileType: fileTypes;
     private readonly _uploadedBy: string;
