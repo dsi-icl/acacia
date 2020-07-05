@@ -51,7 +51,7 @@ export class ObjectStore {
         }
 
         /* check if object already exists because if it does, minio supplant the old file without warning*/
-        let fileExists;
+        let fileExists: boolean;
         try {
             await this.client!.statObject(lowercasestudyid, uri);
             fileExists = true;
