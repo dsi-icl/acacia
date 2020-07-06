@@ -12,6 +12,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
         <Query<any, any>
             query={GET_STUDY}
             variables={{ studyId }}
+            errorPolicy='ignore' // quick fix ; TO_DO change to split graphql requests coupled with UI
         >
             {({ loading, error, data }) => {
                 if (loading) { return <LoadingBalls />; }

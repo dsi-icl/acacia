@@ -1,4 +1,4 @@
-const users = [{
+export const seedUsers = [{
     username: 'admin',
     type: 'ADMIN',
     realName: 'admin',
@@ -32,5 +32,3 @@ const users = [{
     createdAt: 1591134065000,
     expiredAt: 1991134065000
 }];
-
-module.exports = users;
