@@ -27,7 +27,7 @@ This software requires both MongoDB and MinIO to be available. Follow the instal
 
 Both software also have easy to start docker images available for convenience.
 
-### Build the project
+### Install dependencies and build the project
 
 Building the library is easy. First run `yarn install && yarn build`, to build the application. The current application is built ontop of a system called ICL-ITMAT-Broker comprised of multiple components including :
 
