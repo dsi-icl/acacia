@@ -148,8 +148,8 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     file,
                     studyId,
                     description: JSON.stringify({
-                        participantId: file.participantId,
-                        deviceId: file.deviceId,
+                        participantId: file.participantId?.trim().toUpperCase(),
+                        deviceId: file.deviceId?.trim().toUpperCase(),
                         startDate: file.startDate?.toISOString(),
                         endDate: file.endDate?.toISOString(),
                     }),
