@@ -4,7 +4,7 @@ import { Query } from 'react-apollo';
 import { useHistory } from 'react-router-dom';
 import LoadSpinner from '../reusable/loadSpinner';
 import { Table, Input, Button, Tooltip } from 'antd';
-import { EditOutlined, WarningOutlined } from '@ant-design/icons';
+import { EditOutlined, WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import moment from 'moment';
 
@@ -86,10 +86,17 @@ const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutT
         },
         {
             render: (__unused__value, record) => (
-                moment().add(4, 'weeks').valueOf() - moment(record.expiredAt).valueOf() > 0 ? <Tooltip title='Account close to expiry or expired'><WarningOutlined style={{
-                    color: '#ffaa33',
-                    fontSize: '1.5rem'
-                }} /></Tooltip> : null
+                moment().add(4, 'weeks').valueOf() - moment(record.expiredAt).valueOf() > 0
+                    ? moment().valueOf() - moment(record.expiredAt).valueOf() > 0
+                        ? <Tooltip title='Account has expired.'><PauseCircleOutlined style={{
+                            color: '#cccccc',
+                            fontSize: '1.5rem'
+                        }} /></Tooltip>
+                        : <Tooltip title='Account is close to expiry !'><WarningOutlined style={{
+                            color: '#ffaa33',
+                            fontSize: '1.5rem'
+                        }} /></Tooltip>
+                    : null
             ),
             width: '5rem',
             key: 'edit'
