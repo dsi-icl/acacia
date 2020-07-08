@@ -76,7 +76,7 @@
         "typescript": "3.9.6",
         "typescript-eslint-parser": "22.0.0",
         "webpack": "4.43.0",
-        "webpack-cli": "3.3.11"
+        "webpack-cli": "3.3.12"
     },
     "resolutions": {
         "**/**/fs-capacitor": "^6.0.0",
