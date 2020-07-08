@@ -5,7 +5,7 @@ import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
 import { GQLRequests } from 'itmat-commons';
-import { Form, Input, Select, DatePicker, Checkbox, Button, Alert, Popconfirm } from 'antd';
+import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm } from 'antd';
 import { sites } from '../datasetDetail/tabContent/files/fileTab';
 import moment from 'moment';
 import { RouteComponentProps } from 'react-router-dom';
