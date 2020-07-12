@@ -1,27 +1,12 @@
 import * as React from 'react';
 import { Query, useMutation } from 'react-apollo';
-import { userTypes, WHO_AM_I, CREATE_STUDY, WRITE_LOG, LOG_ACTION, LOG_STATUS } from 'itmat-commons';
-import { logFun } from '../../utils/logUtils';
+import { userTypes, WHO_AM_I, CREATE_STUDY } from 'itmat-commons';
 
 export const AddNewDataSet: React.FunctionComponent = () => {
     const [showMore, setShowMore] = React.useState(false);
-    const [createStudy, { loading: createStudyLoading, error: createStudyError }] = useMutation(CREATE_STUDY,
-        { onCompleted: () => {
-            setNewName('');
-            setShowMore(false);
-            logFun(writeLog, whoAmI, LOG_ACTION.CREATE_STUDY, {studyName: stduyName}, LOG_STATUS.SUCCESS);
-        },
-        refetchQueries: [{ query: WHO_AM_I }],
-        onError: (err) => {
-            logFun(writeLog, whoAmI, LOG_ACTION.CREATE_STUDY, {ERROR: err, studyName: stduyName}, LOG_STATUS.FAIL);
-            return;
-        } });
+    const [createStudy, { loading: createStudyLoading, error: createStudyError }] = useMutation(CREATE_STUDY, { onCompleted: () => { setNewName(''); setShowMore(false); }, refetchQueries: [{ query: WHO_AM_I }], onError: () => { return; } });
     const [newName, setNewName] = React.useState('');
     const [inputError, setInputError] = React.useState('');
-    const [writeLog, { loading: writeLogLoading }] = useMutation(WRITE_LOG);
-    const [whoAmI, setWhoAmI] = React.useState({});
-    const [stduyName, setStudyName] = React.useState('');
-
     return (
         <Query<any, any>
             query={WHO_AM_I}
@@ -39,7 +24,7 @@ export const AddNewDataSet: React.FunctionComponent = () => {
                                 <label>Enter name: <input value={newName} onChange={e => { setNewName(e.target.value); setInputError(''); }} type='text' /> </label>
                                 <button className='button_grey' onClick={() => { setShowMore(false); setNewName(''); }}>Cancel</button>
                                 {
-                                    (createStudyLoading && writeLogLoading) ?
+                                    createStudyLoading ?
                                         <button>Loading...</button>
                                         :
                                         <button onClick={() => {
@@ -48,8 +33,6 @@ export const AddNewDataSet: React.FunctionComponent = () => {
                                                 return;
                                             }
                                             createStudy({ variables: { name: newName } });
-                                            setStudyName(newName);
-                                            setWhoAmI(data);
                                         }}>Submit</button>
                                 }
                                 {

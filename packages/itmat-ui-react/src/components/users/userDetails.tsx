@@ -1,14 +1,13 @@
 import * as React from 'react';
 import { Mutation, useQuery, useMutation } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { IUserWithoutToken, userTypes } from 'itmat-commons';
+import { IUserWithoutToken, userTypes, GET_STUDY } from 'itmat-commons';
 import { Subsection } from '../reusable';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
 import css from './userList.module.css';
 import QRCode from 'qrcode';
-import { GQLRequests, WRITE_LOG, LOG_ACTION, LOG_STATUS } from 'itmat-commons';
-import { logFun } from '../../utils/logUtils';
+import { GQLRequests } from 'itmat-commons';
 const {
     WHO_AM_I,
     DELETE_USER,
@@ -16,7 +15,6 @@ const {
     GET_USERS,
     REQUEST_USERNAME_OR_RESET_PASSWORD
 } = GQLRequests;
-
 
 export const UserDetailsSection: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
     const { loading, error, data } = useQuery(GET_USERS, {
@@ -54,7 +52,6 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
     const [requestResetPassword] = useMutation(REQUEST_USERNAME_OR_RESET_PASSWORD, { onCompleted: () => { setRequestResetPasswordSent(true); } });
     const [requestResetPasswordSent, setRequestResetPasswordSent] = React.useState(false);
-    const [writeLog, { loading: writeLogLoading }] = useMutation(WRITE_LOG);
 
     if (inputs.id !== user.id) {
         setUserIsDeleted(false);
@@ -88,14 +85,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
-            onCompleted={() => {
-                setSavedSuccessfully(true);
-                logFun(writeLog, whoamidata, LOG_ACTION.DELETE_USER, formatSubmitObj(), LOG_STATUS.SUCCESS );
-            }}
-            onError={(error) => {
-                logFun(writeLog, whoamidata, LOG_ACTION.DELETE_USER, {ERROR: error, userId: user.id, userName: user.username}, LOG_STATUS.SUCCESS );
-            }}
-
+            onCompleted={() => setSavedSuccessfully(true)}
         >
             {(submit, { loading, error }) =>
                 <>
@@ -164,25 +154,19 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                     <br />
                     <Mutation<any, any>
                         mutation={DELETE_USER}
-                        refetchQueries={[{ query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }]}
-                        onCompleted={() => {
-                            logFun(writeLog, whoamidata, LOG_ACTION.DELETE_USER, {userId: user.id, userName: user.username}, LOG_STATUS.SUCCESS );
-                        }}
-                        onError={(error) => {
-                            logFun(writeLog, whoamidata, LOG_ACTION.DELETE_USER, {ERROR: error.message}, LOG_STATUS.FAIL );
-                        }}
+                        refetchQueries={[
+                            { query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } },
+                            /* quick fix: TO_DO, change to cache modification later */
+                            ...(user.access!.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
+                        ]}
                     >
 
                         {(deleteUser, { loading, error, data: UserDeletedData }) => {
-                            if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) {
-                                setUserIsDeleted(true);
-                            }
-                            if (error) {
-                                return <p>{error.message}</p>;
-                            }
+                            if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) { setUserIsDeleted(true); }
+                            if (error) return <p>{error.message}</p>;
                             return (
                                 <>
-                                    <label>Delete this user:</label> {loading && writeLogLoading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
+                                    <label>Delete this user:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> click here </p>}<br />
                                     {deleteButtonShown ? <><label>Are you sure about deleting user <i>{user.username}</i>?</label><br /> <span onClick={() => { deleteUser({ variables: { userId: user.id } }); }} className={css.really_delete_button}>Delete user {user.username}</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
                                 </>
                             );

@@ -1,13 +1,11 @@
 import * as React from 'react';
-import { Mutation, useMutation, useQuery } from 'react-apollo';
+import { Mutation, useQuery } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
-import { LOGOUT, WHO_AM_I, IProject, LOG_ACTION, WRITE_LOG, LOG_STATUS } from 'itmat-commons';
+import { LOGOUT, WHO_AM_I, IProject } from 'itmat-commons';
 import { Icons } from '../icons';
 import css from './scaffold.module.css';
-import { logFun } from '../../utils/logUtils';
 
 export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({ projects }) => {
-    const [writeLog] = useMutation(WRITE_LOG);
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
     if (whoamiloading) { return <p>Loading..</p>; }
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
@@ -58,7 +56,6 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
                         mutation={LOGOUT}
                         update={(cache, { data: { logout } }) => {
                             if (logout.successful === true) {
-                                logFun(writeLog, whoamidata, LOG_ACTION.LOGOUT_USER, {}, LOG_STATUS.SUCCESS);
                                 cache.writeQuery({
                                     query: WHO_AM_I,
                                     data: { whoAmI: null }

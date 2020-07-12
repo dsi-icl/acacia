@@ -8,12 +8,16 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
 import { errorCodes } from '../../src/graphql/errors';
+import * as mfa from '../../src/utils/mfa';
 import {
-    WRITE_LOG,
     LOG_ACTION,
     userTypes,
     LOG_STATUS,
-    GET_LOGS
+    GET_LOGS,
+    LOG_TYPE,
+    LOGIN,
+    IUser,
+    DELETE_USER
 } from 'itmat-commons';
 
 let app;
@@ -72,21 +76,57 @@ beforeAll(async () => { // eslint-disable-line no-undef
 describe('LOG API', () => {
     describe ('Write logs', () => {
         test('Write log (Login)', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(WRITE_LOG),
+            const userSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';
+            const newUser: IUser = {
+                username: 'expired_user',
+                type: userTypes.ADMIN,
+                realName: 'expired user',
+                password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                email: 'expire@example.com',
+                resetPasswordRequests: [],
+                description: 'I am an expired user.',
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
+                id: 'expiredId0',
+                createdAt: 1591134065000,
+                expiredAt: 2501134065000
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            const newloggedoutuser = request.agent(app);
+            const otp = mfa.generateTOTP(userSecret).toString();
+            const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
+                query: print(LOGIN),
                 variables: {
-                    id: 'NA',
-                    requesterId: 'NA',
-                    requesterName: 'NA',
-                    requesterType: userTypes.ADMIN,
-                    action: LOG_ACTION.LOGIN_USER,
-                    actionData: {userName: 'admin'},
-                    status: LOG_STATUS.SUCCESS
+                    username: 'expired_user',
+                    password: 'admin',
+                    totp: otp
                 }
             });
             expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-            db.collections!.log_collection.deleteOne({requesterId: 'NA'});
+            const findLogInMongo = await db.collections!.log_collection.find({}).toArray();
+            const lastLog = findLogInMongo.pop();
+            expect(lastLog.requesterName).toEqual('expired_user');
+            expect(lastLog.requesterType).toEqual(userTypes.ADMIN);
+            expect(lastLog.logType).toEqual(LOG_TYPE.REQUEST_LOG);
+            expect(lastLog.actionType).toEqual(LOG_ACTION.login);
+            expect(JSON.parse(lastLog.actionData)).toEqual({
+                username: 'expired_user',
+                password: 'admin',
+                totp: '39334'
+            });
+            expect(lastLog.status).toEqual(LOG_STATUS.SUCCESS);
+            expect(lastLog.error).toEqual('');
+
+            await admin.post('/graphql').send(
+                {
+                    query: print(DELETE_USER),
+                    variables: {
+                        userId: newUser.id
+                    }
+                }
+            );
         }, 30000);
     });
 
@@ -94,16 +134,15 @@ describe('LOG API', () => {
         beforeAll(async() => {
             // write initial data for testing
             const logSample = [{
-                id: 'id001',
-                requesterId: 'test_id1',
-                requesterName: 'test_user1',
-                requesterType: userTypes.STANDARD,
-                action: LOG_ACTION.UPLOAD_FILE,
-                actionData: {
-                    fileName: 'new_file.txt',
-                },
-                time: 100000001,
-                status: LOG_STATUS.SUCCESS
+                id: '001',
+                requesterName: userTypes.SYSTEM,
+                requesterType: userTypes.SYSTEM,
+                logType: LOG_TYPE.SYSTEM_LOG,
+                actionType: LOG_ACTION.startSERVER,
+                actionData: JSON.stringify({}),
+                time: 100000000,
+                status: LOG_STATUS.SUCCESS,
+                error: ''
             }];
             await db.collections!.log_collection.insertMany(logSample);
         });
@@ -116,23 +155,11 @@ describe('LOG API', () => {
             const res = await admin.post('/graphql').send({
                 query: print(GET_LOGS),
                 variables: {
-                    requesterId: 'test_id1'
                 }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.getLogs).toEqual([{
-                id: 'id001',
-                requesterId: 'test_id1',
-                requesterName: 'test_user1',
-                requesterType: userTypes.STANDARD,
-                action: LOG_ACTION.UPLOAD_FILE,
-                actionData: {
-                    fileName: 'new_file.txt',
-                },
-                time: 100000001,
-                status: LOG_STATUS.SUCCESS
-            }]);
+            expect(res.body.data.getLogs.length).toBeGreaterThanOrEqual(1);
         }, 30000);
 
         test('GET log (user) should fail', async () => {
@@ -142,13 +169,9 @@ describe('LOG API', () => {
                     requesterId: 'test_id1'
                 }
             });
-            console.log(res.body);
-            console.log(res.body.data.getLogs);
             expect(res.status).toBe(200);
-            console.log(res.body.errors);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
         }, 30000);
     });
-
 });

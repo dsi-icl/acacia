@@ -1,17 +1,15 @@
 import * as React from 'react';
-import { Mutation, useMutation } from 'react-apollo';
-import { LOGIN, WHO_AM_I, WRITE_LOG, LOG_ACTION, LOG_STATUS } from 'itmat-commons';
+import { Mutation } from 'react-apollo';
+import { LOGIN, WHO_AM_I } from 'itmat-commons';
 import { NavLink } from 'react-router-dom';
 import css from './login.module.css';
 import './login.global.css';
-import { logFun } from '../../utils/logUtils';
 
 export const LoginBox: React.FunctionComponent = () => {
     const [usernameInput, setUsernameInput] = React.useState('');
     const [passwordInput, setPasswordInput] = React.useState('');
     const [totpInput, setTotpInput] = React.useState('');
     const [stateError, setStateError] = React.useState('');
-    const [writeLog, { loading: writeLogLoading }] = useMutation(WRITE_LOG);
 
     function handleUsernameChange(e: any) {
         setUsernameInput(e.target.value);
@@ -36,13 +34,7 @@ export const LoginBox: React.FunctionComponent = () => {
                     data: { whoAmI: login }
                 });
             }}
-            onError={(error) => {
-                logFun(writeLog, null, LOG_ACTION.LOGIN_USER, {ERROR: JSON.stringify(error)}, LOG_STATUS.FAIL);
-                return;
-            }}
-            onCompleted={() => {
-                logFun(writeLog, null, LOG_ACTION.LOGIN_USER, {userName: usernameInput}, LOG_STATUS.SUCCESS);
-            }}
+            onError={() => { return; }}
         >
             {(login, { loading, error }) =>
                 <div className={css.login_and_error_wrapper}>
@@ -62,7 +54,7 @@ export const LoginBox: React.FunctionComponent = () => {
                             <input id='totp_input' placeholder='totp' type='password' value={totpInput} onChange={handleTotpChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
                         </div>
                         <br />
-                        {(loading && writeLogLoading) ? <button>logging in..</button> :
+                        {loading ? <button>logging in..</button> :
                             (
                                 <button
                                     id='loginButton'

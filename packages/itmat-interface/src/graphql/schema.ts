@@ -6,6 +6,7 @@ scalar JSON
 enum USERTYPE {
     ADMIN
     STANDARD
+    SYSTEM
 }
 
 enum FIELD_ITEM_TYPE {
@@ -148,72 +149,75 @@ type Job {
 }
 
 enum LOG_TYPE {
-    USER,
-    PROJECT,
-    STUDY,
-    FILE
+   SYSTEM_LOG
+   REQUEST_LOG
 }
 
 enum LOG_STATUS {
-    SUCCESS,
+    SUCCESS
     FAIL
 }
 
 enum LOG_ACTION {
+    # SYSTEM
+    START_SERVER
+    STOP_SERVER
+
     # USER
-    GET_USERS,
-    EDIT_USER,
-    DELETE_USER,
-    CREATE_USER,
-    LOGIN_USER,
-    WHO_AM_I,
-    LOGOUT_USER,
-    REQUEST_USERNAME_OR_RESET_PASSWORD,
-    RESET_PASSWORD,
-    
+    GET_USERS
+    EDIT_USER
+    DELETE_USER
+    CREATE_USER
+    LOGIN_USER
+    WHO_AM_I
+    LOGOUT
+    REQUEST_USERNAME_OR_RESET_PASSWORD
+    RESET_PASSWORD
+
     # PROJECT
-    GET_PROJECT,
-    GET_PROJECT_PATIENT_MAPPING,
-    EDIT_PROJECT_APPROVED_FIELDS,
-    EDIT_PROJECT_APPROVED_FILES,
-    CREATE_PROJECT,
-    DELETE_PROJECT,
-    SET_DATAVERSION_AS_CURRENT,
-    SUBSCRIBE_TO_JOB_STATUS,
+    GET_PROJECT
+    # GET_PROJECT_PATIENT_MAPPING
+    EDIT_PROJECT_APPROVED_FIELDS
+    EDIT_PROJECT_APPROVED_FILES
+    CREATE_PROJECT
+    DELETE_PROJECT
+    SET_DATAVERSION_AS_CURRENT
+    SUBSCRIBE_TO_JOB_STATUS
 
     # STUDY | DATASET
-    DELETE_STUDY,
-    GET_STUDY,
-    GET_STUDY_FIELDS,
-    CREATE_STUDY,
-    CREATE_DATA_CURATION_JOB,
-    CREATE_FIELD_CURATION_JOB,
+    DELETE_STUDY
+    GET_STUDY
+    GET_STUDY_FIELDS
+    CREATE_STUDY
+    CREATE_DATA_CREATION_JOB
+    #CREATE_FIELD_CURATION_JOB
 
     # STUDY & PROJECT
-    EDIT_ROLE,
-    ADD_NEW_ROLE,
-    REMOVE_ROLE,
+    EDIT_ROLE
+    ADD_NEW_ROLE
+    REMOVE_ROLE
 
     # FILE
-    UPLOAD_FILE,
-    DOWNLOAD_FILE,
-    DELETE_FILE,
+    UPLOAD_FILE
+    DOWNLOAD_FILE
+    DELETE_FILE
 
-    # QUERY
-    GET_QUERY,
-    CREATE_QUERY,
-    GET_QUERY_RESULT,
+    #QUERY
+    GET_QUERY
+    CREATE_QUERY
+    #GET_QUERY_RESULT
 }
 
 type Log {
     id: String!,
-    requesterId: String!,
-    requesterName: String!,
-    requesterType: USERTYPE!
-    action: LOG_ACTION!,
+    requesterName: String,
+    requesterType: USERTYPE,
+    logType: LOG_TYPE,
+    actionType: LOG_ACTION,
     actionData: JSON,
     time: Float!,
-    status: LOG_STATUS
+    status: LOG_STATUS,
+    error: String
 }
 
 type QueryEntry {
@@ -311,7 +315,7 @@ type Query {
     getMyPermissions: [String]
 
     # LOG
-    getLogs(requesterId: String, requesterName: String, requesterType: USERTYPE, action: LOG_ACTION, status: LOG_STATUS): [Log]
+    getLogs(requesterName: String, requesterType: USERTYPE, logType: LOG_TYPE, actionType: LOG_ACTION, status: LOG_STATUS): [Log]
 }
 
 type Mutation {
@@ -358,8 +362,6 @@ type Mutation {
     createFieldCurationJob(file: String!, studyId: String!, dataVersionId: String!, tag: String!): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
 
-    # LOG
-    writeLog(requesterId: String, requesterName: String, requesterType: USERTYPE, action: LOG_ACTION!, actionData: JSON, status: LOG_STATUS): Log
 }
 
 type Subscription {

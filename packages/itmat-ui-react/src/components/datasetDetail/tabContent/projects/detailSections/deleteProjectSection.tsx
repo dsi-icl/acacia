@@ -1,19 +1,13 @@
 import React from 'react';
-import { Mutation, useMutation, useQuery } from 'react-apollo';
+import { Mutation } from 'react-apollo';
 import { Redirect } from 'react-router';
-import { WHO_AM_I, DELETE_PROJECT, GET_STUDY, IProject, WRITE_LOG, LOG_ACTION, LOG_STATUS } from 'itmat-commons';
-import { logFun } from '../../../../../utils/logUtils';
+import { WHO_AM_I, DELETE_PROJECT, GET_STUDY, IProject } from 'itmat-commons';
 
 export const DeleteProjectSection: React.FunctionComponent<{ studyId: string; projectId: string; projectName: string }> = ({ studyId, projectId, projectName }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputText, setInput] = React.useState('');
     const [error, setError] = React.useState('');
     const [deleted, setDeleted] = React.useState(false);
-    // prepare for logging
-    const [writeLog] = useMutation(WRITE_LOG);
-    const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
-    if (whoamiloading) { return <p>Loading..</p>; }
-    if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
     if (!isExpanded) {
         return <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => { setIsExpanded(true); setInput(''); }}>Click to delete</span>;
@@ -45,14 +39,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string; pr
                 // Write our data back to the cache.
                 store.writeQuery({ query: WHO_AM_I, data: whoAmI });
             }}
-            onCompleted={() => {
-                const logData = {projectId: projectId, projectName: projectName};
-                logFun(writeLog, whoamidata, LOG_ACTION.DELETE_PROJECT, logData, LOG_STATUS.SUCCESS);
-                setDeleted(true);
-            }}
-            onError={(err) => {
-                logFun(writeLog, whoamidata, LOG_ACTION.DELETE_FILE, {ERROR: err, projectId: projectId, projectName: projectName}, LOG_STATUS.FAIL);
-            }}
+            onCompleted={() => setDeleted(true)}
         >
             {(deleteProject, { data: __unused__data, loading }) =>
                 loading ?

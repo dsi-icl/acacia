@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { Mutation, useMutation, useQuery } from 'react-apollo';
+import { Mutation } from 'react-apollo';
 import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_PROJECT, GET_STUDY, WHO_AM_I, LOG_ACTION, LOG_STATUS, WRITE_LOG } from 'itmat-commons';
+import { CREATE_PROJECT, GET_STUDY, WHO_AM_I } from 'itmat-commons';
 import css from './tabContent.module.css';
-import { logFun } from '../../../../utils/logUtils';
 
 export const ProjectListSection: React.FunctionComponent<{ studyId: string; projectList: Array<{ id: string; name: string }> }> = ({ studyId, projectList }) => {
     return <div>
@@ -19,10 +18,6 @@ const OneProject: React.FunctionComponent<{ studyId: string; id: string; name: s
 export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [input, setInput] = React.useState('');
     const [error, setError] = React.useState('');
-    const [writeLog] = useMutation(WRITE_LOG);
-    const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
-    if (whoamiloading) { return <p>Loading..</p>; }
-    if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
     return <div>
         <input value={input} onChange={(e) => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name' />
@@ -44,13 +39,6 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
                 whoAmI.whoAmI.access.projects = newProjects;
                 // Write our data back to the cache.
                 store.writeQuery({ query: WHO_AM_I, data: whoAmI });
-            }}
-            onCompleted={() => {
-                const logData = { studyId: studyId, projectName: input};
-                logFun(writeLog, whoamidata, LOG_ACTION.CREATE_PROJECT, logData, LOG_STATUS.SUCCESS);
-            }}
-            onError={(err) => {
-                logFun(writeLog, whoamidata, LOG_ACTION.CREATE_PROJECT, {ERROR: err}, LOG_STATUS.FAIL);
             }}
         >
             {(addNewProject, { loading, data }) =>

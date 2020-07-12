@@ -2,66 +2,69 @@ import { userTypes } from './user';
 
 export interface ILogEntry {
     id: string,
-    requesterId: string,
     requesterName: string,
     requesterType: userTypes,
-    action: LOG_ACTION,
+    logType: LOG_TYPE,
+    actionType: LOG_ACTION,
     actionData: any,
     time: number,
-    status: LOG_STATUS
+    status: LOG_STATUS,
+    errors: string | null
 }
 
 export enum LOG_TYPE {
-    USER = 'USER',
-    PROJECT = 'PROJECT',
-    STUDY = 'STUDY',
-    FILE = 'FILE'
+    SYSTEM_LOG = 'SYSTEM_LOG',
+    REQUEST_LOG = 'REQUEST_LOG'
 }
 
 export enum LOG_ACTION {
+    // SYSTEM
+    startSERVER = 'START_SERVER',
+    stopSERVER = 'STOP_SERVER',
+
     // USER
-    GET_USERS = 'GET_USERS',
-    EDIT_USER = 'EDIT_USER',    //OK
-    DELETE_USER = 'DELETE_USER',    //OK
-    CREATE_USER = 'CREATE_USER',    //OK
-    LOGIN_USER = 'LOGIN_USER',    //OK
-    WHO_AM_I = 'WHO_AM_I',
-    LOGOUT_USER = 'LOGOUT',  //OK
-    REQUEST_USERNAME_OR_RESET_PASSWORD = 'REQUEST_USERNAME_OR_RESET_PASSWORD',
-    RESET_PASSWORD = 'RESET_PASSWORD',
+    getUsers = 'GET_USERS',
+    EditUser = 'EDIT_USER',
+    DeleteUser = 'DELETE_USER',
+    CreateUser = 'CREATE_USER',
+    login = 'LOGIN_USER',
+    whoAmI = 'WHO_AM_I',
+    logout = 'LOGOUT',
+    requestUsernameOrResetPassword = 'REQUEST_USERNAME_OR_RESET_PASSWORD',
+    resetPassword = 'RESET_PASSWORD',
 
     // PROJECT
-    GET_PROJECT = 'GET_PROJECT',
-    GET_PROJECT_PATIENT_MAPPING = 'GET_PROJECT_PATIENT_MAPPING',
-    EDIT_PROJECT_APPROVED_FIELDS = 'EDIT_PROJECT_APPROVED_FIELDS', //OK
-    EDIT_PROJECT_APPROVED_FILES = 'EDIT_PROJECT_APPROVED_FILES',
-    CREATE_PROJECT = 'CREATE_PROJECT',  //OK
-    DELETE_PROJECT = 'DELETE_PROJECT',  //OK
-    SET_DATAVERSION_AS_CURRENT = 'SET_DATAVERSION_AS_CURRENT',
-    SUBSCRIBE_TO_JOB_STATUS = 'SUBSCRIBE_TO_JOB_STATUS',
+    getProject = 'GET_PROJECT',
+    // GET_PROJECT_PATIENT_MAPPING = 'GET_PROJECT_PATIENT_MAPPING',
+    editProjectApprovedFields = 'EDIT_PROJECT_APPROVED_FIELDS',
+    editProjectApprovedFiles = 'EDIT_PROJECT_APPROVED_FILES',
+    createProject = 'CREATE_PROJECT',
+    deleteProject = 'DELETE_PROJECT',
+    setDataversionAsCurrent = 'SET_DATAVERSION_AS_CURRENT',
+    subscribeToJobStatusChange = 'SUBSCRIBE_TO_JOB_STATUS',
 
     // STUDY | DATASET
-    DELETE_STUDY = 'DELETE_STUDY',
-    GET_STUDY = 'GET_STUDY',
-    GET_STUDY_FIELDS = 'GET_STUDY_FIELDS',
-    CREATE_STUDY = 'CREATE_STUDY',  //OK
-    CREATE_DATA_CURATION_JOB = 'CREATE_DATA_CREATION_JOB',
-    CREATE_FIELD_CURATION_JOB = 'CREATE_FIELD_CURATION_JOB',
+    deleteStudy = 'DELETE_STUDY',
+    getStudy = 'GET_STUDY',
+    getStudyFields = 'GET_STUDY_FIELDS',
+    createStudy = 'CREATE_STUDY',
+    createDataCurationJob = 'CREATE_DATA_CREATION_JOB',
+    //createDataCurationJob = 'CREATE_FIELD_CURATION_JOB',
 
     // STUDY & PROJECT
-    EDIT_ROLE = 'EDIT_ROLE',
-    ADD_NEW_ROLE = 'ADD_NEW_ROLE',
-    REMOVE_ROLE = 'REMOVE_ROLE',
+    editRole = 'EDIT_ROLE',
+    addRoleToStudyOrProject = 'ADD_NEW_ROLE',
+    removeRole = 'REMOVE_ROLE',
 
     // FILE
-    UPLOAD_FILE = 'UPLOAD_FILE',    //OK
-    DOWNLOAD_FILE = 'DOWNLOAD_FILE',    //OK
-    DELETE_FILE = 'DELETE_FILE',    //OK
+    uploadFile = 'UPLOAD_FILE',
+    DOWNLOAD_FILE = 'DOWNLOAD_FILE',
+    deleteFile = 'DELETE_FILE',
 
     //QUERY
-    GET_QUERY = 'GET_QUERY',
-    CREATE_QUERY = 'CREATE_QUERY',
-    GET_QUERY_RESULT = 'GET_QUERY_RESULT',
+    getQueries = 'GET_QUERY',
+    createQuery = 'CREATE_QUERY',
+    //GET_QUERY_RESULT = 'GET_QUERY_RESULT'
 
 }
 

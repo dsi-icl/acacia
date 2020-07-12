@@ -1,9 +1,8 @@
-import { Models, GET_LOGS, userTypes } from 'itmat-commons';
+import { Models, GET_LOGS, userTypes, LOG_ACTION } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './logList.module.css';
-
 export const LogListSection: React.FunctionComponent = () => {
 
     return (
@@ -41,11 +40,10 @@ const Log: React.FunctionComponent<{ data: Models.Log.ILogEntry, verbose: boolea
 
     return (
         <tr>
-            <td>{data.requesterId}</td>
             <td>{data.requesterName}</td>
             <td>{data.requesterType}</td>
-            <td>{data.action.split('_')[1]}</td>
-            <td>{data.action}</td>
+            <td>{data.logType}</td>
+            <td>{data.actionType === null ? 'NA' : data.actionType}</td>
             { verbose ? <td>{formatActionData()[0]}</td> : null }
             { verbose ? <td>{formatActionData()[1]}</td> : null }
             <td>{new Date(data.time).toUTCString()}</td>
@@ -56,11 +54,10 @@ const Log: React.FunctionComponent<{ data: Models.Log.ILogEntry, verbose: boolea
 
 const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) => {
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
-        requesterId: '',
         requesterName: '',
         requesterType: '',
+        logType: '',
         actionType: '',
-        action: '',
         time: '',
         status: ''
     });
@@ -86,19 +83,18 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
     function highermappingfunction() {
         if (checkInputsAllEmpty() === true) {
             return (el: Models.Log.ILogEntry) => {
-                return <Log key={el.id} data={el} verbose={verbose} />;
+                return <Log key={el.id} data={el} verbose={!verbose} />;
             };
         }
         return (el: Models.Log.ILogEntry) => {
             if (
-                (inputs.requesterId === '' || el.requesterId.toLowerCase().indexOf(inputs.requesterId.toLowerCase()) !== -1)
-                && (inputs.requesterName === '' || el.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
+                (inputs.requesterName === '' || el.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
                 && (inputs.requesterType === '' || el.requesterType === inputs.requesterType)
-                && (inputs.actionType === '' || inputs.actionType === el.action.split('_')[1])
-                && (inputs.action === '' || el.action === inputs.action)
+                && (inputs.logType === '' || el.logType === inputs.logType)
+                && (inputs.actionType === '' || inputs.actionType === LOG_ACTION[el.actionType])
                 && (inputs.status === '' || el.status === inputs.status)
             ) {
-                return <Log key={el.id} data={el} verbose={verbose}/>;
+                return <Log key={el.id} data={el} verbose={!verbose}/>;
             }
             return null;
         };
@@ -109,10 +105,6 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
             <table>
                 <thead>
                     <tr>
-                        <th>
-                            <label>Requester ID</label>
-                            <input name='searchRequesterId' {...inputControl('requesterId')} />
-                        </th>
                         <th>
                             <label>Requester Name</label>
                             <input name='searchRequesterName' {...inputControl('requesterName')} />
@@ -125,17 +117,17 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                             </select>
                         </th>
                         <th>
-                            <label>Action Type</label>
-                            <select {...inputControl('actionType')} >
+                            <label>Log Type</label>
+                            <select {...inputControl('logType')} >
                                 <option value=''>All</option>
                                 {Object.keys(Models.Log.LOG_TYPE).map((el) => <option value={el}>{el}</option>)}
                             </select>
                         </th>
                         <th>
-                            <label>Action</label>
-                            <select {...inputControl('action')} >
+                            <label>Action Type</label>
+                            <select {...inputControl('actionType')} >
                                 <option value=''>All</option>
-                                {Object.keys(Models.Log.LOG_ACTION).map((el) => <option value={el}>{el}</option>)}
+                                {Object.keys(Models.Log.LOG_ACTION).map((el) => <option value={el}>{LOG_ACTION[el]}</option>)}
                             </select>
                         </th>
                         <th>
@@ -162,12 +154,11 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
             <table>
                 <thead>
                     <tr>
-                        <th>Requester ID</th>
                         <th>Requester Name</th>
                         <th>Requester Type</th>
+                        <th>Log Type</th>
                         <th>Action Type</th>
-                        <th>Action</th>
-                        {verbose ? <th colSpan={2}>Action Data</th> : null}
+                        {!verbose ? <th colSpan={2}>Action Data</th> : null}
                         <th>Time</th>
                         <th>Status</th>
                         <th></th>
@@ -176,7 +167,6 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                 <tbody>
                     {verbose ?
                         <tr>
-                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>

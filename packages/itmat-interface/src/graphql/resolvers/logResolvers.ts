@@ -1,24 +1,9 @@
 import { db } from '../../database/database';
-import { logCore } from '../core/logCore';
-import { LOG_ACTION, ILogEntry, userTypes, LOG_STATUS, Models } from 'itmat-commons';
+import { ILogEntry, userTypes, Models } from 'itmat-commons';
 import { ApolloError } from 'apollo-server-errors';
 import { errorCodes } from '../errors';
 
 export const logResolvers = {
-    Mutation: {
-        writeLog: async (__unused_parent: Record<string, unknown>, {requesterId, requesterName, requesterType, action, actionData, status}: {requesterId: string, requesterName: string, requesterType: userTypes, action: LOG_ACTION, actionData: JSON, status: LOG_STATUS}): Promise<ILogEntry> => {
-            const writtenLog = await logCore.writeLog(
-                requesterId,
-                requesterName,
-                requesterType,
-                action,
-                actionData,
-                status
-            );
-            return writtenLog;
-        }
-    },
-
     Query: {
         getLogs: async (__unused_parent: Record<string, unknown>, args: any, context: any): Promise<ILogEntry[]> => {
             const requester: Models.UserModels.IUser = context.req.user;
