@@ -133,6 +133,8 @@ export const userResolvers = {
                     timeOfRequest: new Date().valueOf(),
                     used: false
                 };
+                const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
+                const expiredTime = ONE_HOUR_IN_MILLISEC + Date.now();
                 const invalidateAllTokens = await db.collections!.users_collection.findOneAndUpdate(
                     queryObj,
                     {
@@ -161,7 +163,8 @@ export const userResolvers = {
                     to: user.email,
                     resetPasswordToken: passwordResetToken,
                     firstname: user.firstname,
-                    origin: context.req.headers.origin
+                    origin: context.req.headers.origin,
+                    expiredTime: expiredTime
                 }));
             } else {
                 /* send email to client */
@@ -519,12 +522,13 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
     });
 }
 
-async function formatEmailForForgottenPassword({ firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, firstname: string, origin: any }) {
+async function formatEmailForForgottenPassword({ firstname, to, resetPasswordToken, origin, expiredTime }: { resetPasswordToken: string, to: string, firstname: string, origin: any, expiredTime: number }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
     const iv = makeAESIv(resetPasswordToken);
     const encryptedEmail = await encryptEmail(to, keySalt, iv);
+    const expiredTimeBase64 = Buffer.from(expiredTime.toString()).toString('base64');
 
-    const link = `${origin}/reset/${encryptedEmail}/${resetPasswordToken}`;
+    const link = `${origin}/reset/${encryptedEmail}/${resetPasswordToken}/${expiredTimeBase64}`;
     return ({
         from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,

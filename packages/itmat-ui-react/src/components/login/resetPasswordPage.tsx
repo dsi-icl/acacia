@@ -8,10 +8,11 @@ import { Input, Form, Button, Alert } from 'antd';
 type ResetPasswordPageProps = RouteComponentProps<{
     encryptedEmail: string;
     token: string;
+    expiredTime: string
 }>
 
-export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> = ({ match: { params: { encryptedEmail, token } } }) => {
-
+export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> = ({ match: { params: { encryptedEmail, token, expiredTime } } }) => {
+    const expiredTimeNumber = parseFloat(Buffer.from(expiredTime, 'base64').toString());
     const history = useHistory();
     const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);
 
@@ -34,6 +35,10 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                 </div>
             </div>
         );
+    }
+
+    if (Date.now() > expiredTimeNumber) {
+        return <h1>Oops, this link has expired.</h1>;
     }
 
     return (
