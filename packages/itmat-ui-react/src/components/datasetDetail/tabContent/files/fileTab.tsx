@@ -336,26 +336,26 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                         }}
                     </Query>
                     <br />
-                    <br />                    
+                    <br />
                 </Subsection>
 
                 <Subsection title='Dataset Deletion'>
-                <p>Be careful to check all related projects and files before deleting this dataset!</p>
-                <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+                    <p>Be careful to check all related projects and files before deleting this dataset!</p>
+                    <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                         {({ loading, data, error }) => {
                             if (loading) { return <LoadSpinner />; }
                             if (error) { return <p>{error.toString()}</p>; }
-                            
+
                             return <>
                                 <Mutation<any, any>
                                     mutation={DELETE_STUDY}
                                     refetchQueries={[
-                                        { query: WHO_AM_I, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }                                        
+                                        { query: WHO_AM_I, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }
                                     ]}
                                 >
 
                                     {(deleteStudy, { loading, error, data: StudyDeletedData }) => {
-                                        if (StudyDeletedData && StudyDeletedData.deleteStudy && StudyDeletedData.deleteStudy.successful) {                                            
+                                        if (StudyDeletedData && StudyDeletedData.deleteStudy && StudyDeletedData.deleteStudy.successful) {
                                             return <Redirect to={'/datasets'}/>;
                                         }
                                         if (error) return <p>{error.message}</p>;
@@ -366,13 +366,13 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                                             </>
                                         );
                                     }}
-                                    
+
                                 </Mutation>
                             </>;
                         }}
-                </Query>
-                
-            </Subsection>
+                    </Query>
+
+                </Subsection>
 
             </div>}
     </div>;
