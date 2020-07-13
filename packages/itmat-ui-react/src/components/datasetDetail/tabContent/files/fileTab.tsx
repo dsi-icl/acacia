@@ -130,10 +130,12 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     file.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
                 const startDate = moment(particules[5], 'YYYYMMDD');
                 const endDate = moment(particules[6], 'YYYYMMDD');
-                if (startDate.isValid())
-                    file.startDate = startDate;
-                if (endDate.isValid())
-                    file.endDate = endDate;
+                if (startDate.isBefore(endDate)) {
+                    if (startDate.isValid())
+                        file.startDate = startDate;
+                    if (endDate.isValid())
+                        file.endDate = endDate;
+                }
             }
             file.uuid = uuid();
             fileList.push(file);
