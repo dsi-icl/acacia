@@ -430,6 +430,12 @@ describe('USERS API', () => {
         });
 
         test('Reset password with valid token', async () => {
+            /* skip: this test if email env is not set up */
+            if (SKIP_EMAIL_TEST) {
+                console.warn(chalk.yellow('[[WARNING]]: Skipping test "create user" because SKIP_EMAIL_TEST is set to "true".'));
+                return;
+            }
+
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest = {
                 id: presetToken,
@@ -490,6 +496,13 @@ describe('USERS API', () => {
         });
 
         test('Reset password with used token (should fail)', async () => {
+
+            /* skip: this test if email env is not set up */
+            if (SKIP_EMAIL_TEST) {
+                console.warn(chalk.yellow('[[WARNING]]: Skipping test "create user" because SKIP_EMAIL_TEST is set to "true".'));
+                return;
+            }
+
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest[] = [
                 {

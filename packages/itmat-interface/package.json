@@ -40,15 +40,15 @@
     },
     "devDependencies": {
         "@types/bcrypt": "3.0.0",
-        "@types/express": "4.17.6",
+        "@types/express": "4.17.7",
         "@types/express-session": "1.17.0",
-        "@types/jest": "26.0.3",
+        "@types/jest": "26.0.4",
         "@types/mongodb": "3.5.25",
         "@types/mongodb-memory-server": "2.3.0",
         "@types/node": "14.0.14",
         "@types/node-fetch": "2.5.7",
         "@types/nodemailer": "6.4.0",
-        "@types/passport": "1.0.3",
+        "@types/passport": "1.0.4",
         "@types/passport-local": "1.0.33",
         "@types/supertest": "2.0.10",
         "@types/uuid": "8.0.0",
@@ -74,7 +74,7 @@
     "resolutions": {
         "**/**/fs-capacitor": "^6.0.0",
         "**/graphql-upload": "^11.0.0",
-        "**/graphql": "14.5.3"
+        "**/graphql": "14.7.0"
     },
     "babel": {
         "extends": "./config/babel.config.js"
