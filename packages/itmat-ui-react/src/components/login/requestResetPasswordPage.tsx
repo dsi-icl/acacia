@@ -1,9 +1,12 @@
 import * as React from 'react';
+import GitInfo from 'react-git-info/macro';
 import { Mutation } from 'react-apollo';
 import { RouteComponentProps, NavLink, useHistory } from 'react-router-dom';
 import { GQLRequests } from 'itmat-commons';
 import css from './login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
+
+const gitInfo = GitInfo();
 
 type ResetPasswordPageProps = RouteComponentProps
 
@@ -99,7 +102,8 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                             <br />
                             <br />
                             <br />
-                            Do not have an account? <NavLink to='/register'>Please register</NavLink>
+                            Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
+                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {gitInfo.commit.shortHash} ({gitInfo.branch})</i>
                         </div>
                     </div>
                 );
