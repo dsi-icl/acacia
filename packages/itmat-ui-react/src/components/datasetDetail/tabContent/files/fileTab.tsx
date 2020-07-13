@@ -128,8 +128,12 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 if (Object.keys(deviceTypes).includes(particules[3].toUpperCase())
                     && validate(particules[4].toUpperCase()))
                     file.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
-                file.startDate = moment(particules[5], 'YYYYMMDD');
-                file.endDate = moment(particules[6], 'YYYYMMDD');
+                const startDate = moment(particules[5], 'YYYYMMDD');
+                const endDate = moment(particules[6], 'YYYYMMDD');
+                if (startDate.isValid())
+                    file.startDate = startDate;
+                if (endDate.isValid())
+                    file.endDate = endDate;
             }
             file.uuid = uuid();
             fileList.push(file);
