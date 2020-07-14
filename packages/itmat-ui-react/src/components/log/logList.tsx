@@ -1,4 +1,4 @@
-import { Models, GET_LOGS, userTypes, LOG_ACTION } from 'itmat-commons';
+import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
@@ -34,10 +34,9 @@ const Log: React.FunctionComponent<{ data: Models.Log.ILogEntry, verbose: boolea
         const obj = JSON.parse(data.actionData);
         const keys = Object.keys(obj);
         const keysMap = keys.map((el) => <><span>{el}</span><br/></> );
-        const valuesMap = keys.map((el) => <><span>{obj[el]}</span><br/></> );
+        const valuesMap = keys.map((el) => <><span>{obj[el].toString()}</span><br/></> );
         return [keysMap, valuesMap];
     }
-
     return (
         <tr>
             <td>{data.requesterName}</td>
@@ -55,13 +54,20 @@ const Log: React.FunctionComponent<{ data: Models.Log.ILogEntry, verbose: boolea
 const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) => {
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
         requesterName: '',
-        requesterType: '',
-        logType: '',
-        actionType: '',
+        requesterType: {...Object.keys(userTypes).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
+        logType: {...Object.keys(LOG_TYPE).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
+        actionType: {...Object.keys(LOG_ACTION).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
         time: '',
-        status: ''
+        status: {...Object.keys(LOG_STATUS).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
+        startDate: '',
+        endDate: ''
     });
-    const [verbose, setVerbose] = React.useState(true);
+    const [verbose, setVerbose] = React.useState(false);
+
+    // style
+    const input_checkbox_color: React.CSSProperties = {
+        color: 'blue'
+    };
 
     const inputControl = (property: string) => ({
         value: inputs[property],
@@ -70,6 +76,12 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
         }
     });
 
+    const checkboxControl = (property: string, subProperty: string) => ({
+        checked: inputs[property][subProperty],
+        onChange: (e: any) => {
+            setInputs({ ...inputs, [property]: {...inputs[property], [subProperty]: e.target.checked } });
+        }
+    });
     function checkInputsAllEmpty() {
         let key: any;
         for (key in inputs) {
@@ -83,103 +95,135 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
     function highermappingfunction() {
         if (checkInputsAllEmpty() === true) {
             return (el: Models.Log.ILogEntry) => {
-                return <Log key={el.id} data={el} verbose={!verbose} />;
+                return <Log key={el.id} data={el} verbose={verbose} />;
             };
         }
         return (el: Models.Log.ILogEntry) => {
+            const findKey = Object.keys(LOG_ACTION).find(key => LOG_ACTION[key] === el.actionType);
+            const usedKey = findKey === undefined ? 'all' : findKey;
             if (
                 (inputs.requesterName === '' || el.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
-                && (inputs.requesterType === '' || el.requesterType === inputs.requesterType)
-                && (inputs.logType === '' || el.logType === inputs.logType)
-                && (inputs.actionType === '' || inputs.actionType === LOG_ACTION[el.actionType])
-                && (inputs.status === '' || el.status === inputs.status)
+                && (inputs.requesterType.all === true || inputs.requesterType[el.requesterType] === true)
+                && (inputs.logType.all === true || inputs.logType[el.logType] === true)
+                && (inputs.actionType.all === true || inputs.actionType[usedKey] === true )
+                && (inputs.status.all === true || inputs.status[el.status] === true)
+                && (inputs.startDate === '' || new Date(inputs.startDate).valueOf() < el.time)
+                && (inputs.endDate === '' || (new Date(inputs.endDate).valueOf() + 24 * 60 * 60 * 1000 /* ONE DAY IN MILLSEC */) > el.time)
             ) {
-                return <Log key={el.id} data={el} verbose={!verbose}/>;
+                return <Log key={el.id} data={el} verbose={verbose}/>;
             }
             return null;
         };
     }
 
     return (
-        <div className={css.user_list}>
-            <table>
-                <thead>
-                    <tr>
-                        <th>
-                            <label>Requester Name</label>
-                            <input name='searchRequesterName' {...inputControl('requesterName')} />
-                        </th>
-                        <th>
-                            <label>Requester Type</label>
-                            <select {...inputControl('requesterType')} >
-                                <option value=''>All</option>
-                                {Object.keys(userTypes).map((el) => <option value={el}>{el}</option>)}
-                            </select>
-                        </th>
-                        <th>
-                            <label>Log Type</label>
-                            <select {...inputControl('logType')} >
-                                <option value=''>All</option>
-                                {Object.keys(Models.Log.LOG_TYPE).map((el) => <option value={el}>{el}</option>)}
-                            </select>
-                        </th>
-                        <th>
-                            <label>Action Type</label>
-                            <select {...inputControl('actionType')} >
-                                <option value=''>All</option>
-                                {Object.keys(Models.Log.LOG_ACTION).map((el) => <option value={el}>{LOG_ACTION[el]}</option>)}
-                            </select>
-                        </th>
-                        <th>
-                            <label>Status</label>
-                            <select {...inputControl('status')} >
-                                <option value=''>All</option>
-                                {Object.keys(Models.Log.LOG_STATUS).map((el) => <option value={el}>{el}</option>)}
-                            </select>
-                        </th>
-                        <th>
-                            <label>Verbose</label>
-                            <label className={css.switch}>
-                                <input type='checkbox' onClick={() => setVerbose(!verbose)}/>
-                                <span className={css.slider} ></span>
-                            </label>
-                        </th>
-                        <th />
-                        <th />
-                        {/* <th><NavLink to='/users/createNewUser' activeClassName={css.button_clicked}><button>Create new user</button></NavLink></th> */}
-                    </tr>
-                </thead>
-            </table>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Requester Name</th>
-                        <th>Requester Type</th>
-                        <th>Log Type</th>
-                        <th>Action Type</th>
-                        {!verbose ? <th colSpan={2}>Action Data</th> : null}
-                        <th>Time</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {verbose ?
+        <div>
+            <div>
+                <table>
+                    <thead>
                         <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td>Field</td>
-                            <td>Value</td>
-                            <td></td>
-                            <td></td>
-                        </tr> : null
-                    }
-                    {list.map(highermappingfunction())}
-                </tbody>
-            </table>
+                            <th>
+                                <label>Requester Name</label>
+                            </th>
+                            <th>
+                                <input style={input_checkbox_color} name='searchRequesterName' {...inputControl('requesterName')} />
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <label>Requester Type</label>
+                            </th>
+                            <th>
+                                <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('requesterType', 'all')} />All</label>
+                                {Object.keys(userTypes).map((el) => <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('requesterType', el)} />{el}</label>)}
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <label>Log Type</label>
+                            </th>
+                            <th>
+                                <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('logType', 'all')} />All</label>
+                                {Object.keys(LOG_TYPE).map((el) => <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('logType', el)} />{el}</label>)}
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <label>Action Type</label>
+                            </th>
+                            <th>
+                                <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('actionType', 'all')} />All</label>
+                                {Object.keys(LOG_ACTION).map((el) => <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('actionType', el)} />{el}</label>)}
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <label>Status</label>
+                            </th>
+                            <th>
+                                <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('status', 'all')} />All</label>
+                                {Object.keys(LOG_STATUS).map((el) => <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('status', el)} />{el}</label>)}
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <label>Start Date</label>
+                            </th>
+                            <th>
+                                <input style={input_checkbox_color} name='startDate' type='date' {...inputControl('startDate')} />
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <label>End Date</label>
+                            </th>
+                            <th>
+                                <input style={input_checkbox_color} name='endDate' type='date' {...inputControl('endDate')} />
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <label>Verbose</label>
+                                <label className={css.switch}>
+                                    <input type='checkbox' onClick={() => setVerbose(!verbose)}/>
+                                    <span className={css.slider} ></span>
+                                </label>
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+            <div className={css.log_list}>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Requester Name</th>
+                            <th>Requester Type</th>
+                            <th>Log Type</th>
+                            <th>Action Type</th>
+                            {verbose ? <th colSpan={2}>Action Data</th> : null}
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {verbose ?
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>Field</td>
+                                <td>Value</td>
+                                <td></td>
+                                <td></td>
+                            </tr> : null
+                        }
+                        {list.map(highermappingfunction())}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     );

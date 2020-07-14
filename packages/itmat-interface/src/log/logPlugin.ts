@@ -31,8 +31,8 @@ export class LogPlugin {
         }
         await db.collections!.log_collection.insertOne({
             id: uuid(),
-            requesterName: requestContext.context.req.user ? requestContext.context.req.user.username : '',
-            requesterType: requestContext.context.req.user ? requestContext.context.req.user.type : '',
+            requesterName: requestContext.context.req.user ? requestContext.context.req.user.username : 'NA',
+            requesterType: requestContext.context.req.user ? requestContext.context.req.user.type : userTypes.SYSTEM,
             logType: LOG_TYPE.REQUEST_LOG,
             actionType: LOG_ACTION[requestContext.operationName],
             actionData: JSON.stringify(requestContext.request.variables),
