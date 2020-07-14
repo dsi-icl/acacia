@@ -12,6 +12,7 @@ import { RequestResetPassword } from './components/login/requestResetPasswordPag
 import { RegisterNewUser } from './components/login/register';
 import { WHO_AM_I } from 'itmat-commons';
 import LoadSpinner from './components/reusable/loadSpinner';
+import { StatusBar } from './components/scaffold/statusBar';
 
 export const App: React.FunctionComponent = () => (
     <Providers>
@@ -43,6 +44,7 @@ export const App: React.FunctionComponent = () => (
                             return <div className={css.app + ' dark_theme'}>
                                 <MainMenuBar projects={data.whoAmI.access.projects} />
                                 <MainPanel />
+                                <StatusBar />
                             </div>;
                         }
                         return <LoginBox />;
