@@ -1,9 +1,12 @@
 import React from 'react';
+import GitInfo from 'react-git-info/macro';
 import { Mutation } from 'react-apollo';
 import { LOGIN, WHO_AM_I } from 'itmat-commons';
 import { NavLink } from 'react-router-dom';
 import css from './login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
+
+const gitInfo = GitInfo();
 
 export const LoginBox: React.FunctionComponent = () => {
 
@@ -54,7 +57,8 @@ export const LoginBox: React.FunctionComponent = () => {
                             <br />
                             <br />
                             <NavLink to='/reset'>Forgot username or password</NavLink><br />
-                            Do not have an account? <NavLink to='/register'>Please register</NavLink>
+                            Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
+                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {gitInfo.commit.shortHash} ({gitInfo.branch})</i>
                         </div>
                     </div>
                 );
