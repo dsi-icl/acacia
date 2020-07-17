@@ -59,7 +59,7 @@
         "http-proxy-middleware": "1.0.5",
         "react-scripts": "3.4.0",
         "rimraf": "3.0.2",
-        "typescript": "3.9.6",
+        "typescript": "3.9.7",
         "uuid": "8.2.0"
     },
     "resolutions": {
