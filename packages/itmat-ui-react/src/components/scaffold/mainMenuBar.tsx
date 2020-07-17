@@ -1,11 +1,15 @@
 import * as React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation, useQuery } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I, IProject } from 'itmat-commons';
 import { Icons } from '../icons';
 import css from './scaffold.module.css';
 
 export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({ projects }) => {
+    const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
+    if (whoamiloading) { return <p>Loading..</p>; }
+    if (whoamierror) { return <p>ERROR: please try again.</p>; }
+
     return (
         <div className={css.main_menubar}>
             <div>
@@ -25,6 +29,12 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
                     <div className={css.button}><Icons type='users' /></div>
                 </NavLink>
             </div>
+
+            { whoamidata.whoAmI.type ? <div>
+                <NavLink to='/logs' title='Logs' activeClassName={css.clickedButton}>
+                    <div className={css.button}><Icons type='users' /></div>
+                </NavLink>
+            </div> : null }
 
             {/*
             <div>

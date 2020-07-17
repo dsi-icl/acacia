@@ -14,7 +14,7 @@ import { schema } from '../graphql/schema';
 import { fileDownloadController } from '../rest/fileDownload';
 import { userLoginUtils } from '../utils/userLoginUtils';
 import { IConfiguration } from '../utils/configManager';
-
+import { logPlugin } from '../log/logPlugin';
 // const MongoStore = connectMongo(session);
 
 export class Router {
@@ -50,6 +50,22 @@ export class Router {
         const gqlServer = new ApolloServer({
             typeDefs: schema,
             resolvers,
+            plugins: [
+                {
+                    serverWillStart() {
+                        logPlugin.serverWillStartLogPlugin();
+                    }
+                },
+                {
+                    requestDidStart() {
+                        return {
+                            willSendResponse(requestContext) {
+                                logPlugin.requestDidStartLogPlugin(requestContext);
+                            }
+                        };
+                    },
+                }
+            ],
             context: ({ req, res }) => {
                 /* Bounce all unauthenticated graphql requests */
                 // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
