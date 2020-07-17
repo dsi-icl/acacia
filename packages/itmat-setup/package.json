@@ -25,7 +25,7 @@
     "devDependencies": {
         "@types/mongodb": "3.5.25",
         "eslint": "7.4.0",
-        "typescript": "3.9.6"
+        "typescript": "3.9.7"
     },
     "eslintConfig": {
         "extends": "./config/eslint.config.js"

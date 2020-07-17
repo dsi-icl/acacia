@@ -55,7 +55,7 @@
         "enzyme-adapter-react-16": "1.15.2",
         "jest-enzyme": "7.1.2",
         "rimraf": "3.0.2",
-        "typescript": "3.9.6",
+        "typescript": "3.9.7",
         "uuid": "8.2.0"
     },
     "resolutions": {
