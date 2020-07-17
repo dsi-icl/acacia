@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Button, Upload, notification, Tag, Table, Form, Input, DatePicker } from 'antd';
 import { RcFile } from 'antd/lib/upload';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Query, useApolloClient, useMutation } from 'react-apollo';
+import { Query, useApolloClient, useMutation, Mutation } from 'react-apollo';
 import { useDropzone } from 'react-dropzone';
-import { GET_STUDY, UPLOAD_FILE } from 'itmat-commons';
+import { GET_STUDY, DELETE_STUDY, UPLOAD_FILE, WHO_AM_I } from 'itmat-commons';
 import { FileList } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
@@ -13,6 +13,7 @@ import { ApolloError } from 'apollo-client';
 import { validate } from '@ideafast/idgen';
 import moment, { Moment } from 'moment';
 import { v4 as uuid } from 'uuid';
+import { Redirect } from 'react-router';
 
 type StudyFile = RcFile & {
     uuid: string;
@@ -50,6 +51,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const [fileList, setFileList] = useState<StudyFile[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const store = useApolloClient();
+    const [deleteButtonShown, setDeleteButtonShown] = React.useState(false);
 
     // let { loading, progress, error } = useUpload(files, {
     //     mutation: UPLOAD_FILE,
@@ -339,7 +341,45 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                             return <FileList files={data.getStudy.files} />;
                         }}
                     </Query>
+                    <br />
+                    <br />
                 </Subsection>
+
+                <Subsection title='Dataset Deletion'>
+                    <p>Be careful to check all related projects and files before deleting this dataset!</p>
+                    <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+                        {({ loading, data, error }) => {
+                            if (loading) { return <LoadSpinner />; }
+                            if (error) { return <p>{error.toString()}</p>; }
+
+                            return <>
+                                <Mutation<any, any>
+                                    mutation={DELETE_STUDY}
+                                    refetchQueries={[
+                                        { query: WHO_AM_I, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }
+                                    ]}
+                                >
+
+                                    {(deleteStudy, { loading, error, data: StudyDeletedData }) => {
+                                        if (StudyDeletedData && StudyDeletedData.deleteStudy && StudyDeletedData.deleteStudy.successful) {
+                                            return <Redirect to={'/datasets'}/>;
+                                        }
+                                        if (error) return <p>{error.message}</p>;
+                                        return (
+                                            <>
+                                                <label>Delete the <i>{data.getStudy.name}</i> dataset:</label> {loading ? <p style={{ cursor: 'pointer', textDecoration: 'underline' }}> confirm deletion... </p> : <p onClick={() => { setDeleteButtonShown(true); }} style={{ cursor: 'pointer', textDecoration: 'underline' }}> confirm deletion... </p>}<br />
+                                                {deleteButtonShown ? <><label>Are you sure to delete the <i>{data.getStudy.name}</i> dataset?</label><br /> <span style={{ cursor: 'pointer', background: 'red', textDecoration: 'underline' }} onClick={() => { deleteStudy({ variables: { studyId: data.getStudy.id } }); }}>Delete <i>{data.getStudy.name}</i> study!</span> <span onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </span></> : null}
+                                            </>
+                                        );
+                                    }}
+
+                                </Mutation>
+                            </>;
+                        }}
+                    </Query>
+
+                </Subsection>
+
             </div>}
     </div>;
 };

@@ -307,9 +307,16 @@ export const userResolvers = {
         deleteUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IGenericResponse> => {
             /* only admin can delete users */
             const requester: Models.UserModels.IUser = context.req.user;
+
+            // user (admin type) cannot delete itself
+            if (requester.id === args.userId) {
+                throw new ApolloError('User cannot delete itself');
+            }
+
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
+
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
         },

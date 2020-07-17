@@ -106,8 +106,8 @@ export class StudyCore {
             /* delete all roles related to the study */
             await this.localPermissionCore.removeRoleFromStudyOrProject({ studyId });
 
-            /* delete all data */
-            // TO_DO
+            /* delete all files belong to the study*/
+            await db.collections!.files_collection.updateMany({ studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
 
             await session.commitTransaction();
             session.endSession();
