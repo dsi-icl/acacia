@@ -7,7 +7,7 @@ export const LogPage: React.FunctionComponent = () => {
         <div className={css.page_container}>
             <div className={css.user_list_section + ' page_section'}>
                 <div className='page_ariane'>
-                    LOG HISTORY
+                    Log History
                 </div>
                 <div className='page_content'>
                     <LogListSection />
