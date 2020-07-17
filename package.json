@@ -16,7 +16,8 @@
         "lint": "lerna run --no-bail --stream lint",
         "lint:fix": "lerna run --no-bail --stream lint:fix",
         "clean": "lerna run clean",
-        "publish": "lerna run tsc && lerna publish"
+        "publish": "lerna run tsc && lerna publish",
+        "test:unit": "lerna run --no-bail --concurrency 1 --stream --scope itmat-interface test"
     },
     "workspaces": {
         "packages": [
