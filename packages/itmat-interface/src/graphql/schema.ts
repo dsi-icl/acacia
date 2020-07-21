@@ -235,6 +235,7 @@ type Query {
     # USER
     whoAmI: User
     getUsers(userId: String): [User]
+    validateResetPassword(encryptedEmail: String!, token: String!): GenericResponse
 
     # STUDY
     getStudy(studyId: String!): Study

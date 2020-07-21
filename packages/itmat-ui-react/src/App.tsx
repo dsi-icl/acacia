@@ -20,7 +20,7 @@ export const App: React.FunctionComponent = () => (
             <title>{process.env.REACT_APP_NAME ?? 'Data Portal'}</title>
         </Helmet>
         <Switch>
-            <Route path='/reset/:encryptedEmail/:token/:expiredTime' component={ResetPasswordPage} />
+            <Route path='/reset/:encryptedEmail/:token' component={ResetPasswordPage} />
             <Route path='/reset' component={RequestResetPassword} />
             <Route path='/register' component={RegisterNewUser} />
             <Route>

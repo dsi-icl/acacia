@@ -88,6 +88,19 @@ export const RESET_PASSWORD = gql`
     }
 `;
 
+export const VALIDATE_RESET_PASSWORD = gql`
+    query validateResetPassword(
+        $encryptedEmail: String!,
+        $token: String!
+    ) {
+        validateResetPassword(
+            encryptedEmail: $encryptedEmail,
+            token: $token
+        ) {
+            successful
+        }
+    }
+`;
 export const CREATE_USER = gql`
     mutation CreateUser(
         $username: String!

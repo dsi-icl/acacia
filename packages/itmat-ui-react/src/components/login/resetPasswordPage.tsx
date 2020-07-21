@@ -1,23 +1,29 @@
 import * as React from 'react';
-import GitInfo from 'react-git-info/macro';
-import { Mutation } from 'react-apollo';
+import { Mutation, useQuery } from 'react-apollo';
 import { GQLRequests } from 'itmat-commons';
 import { NavLink, RouteComponentProps, useHistory } from 'react-router-dom';
 import css from '../login/login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
-
-const gitInfo = GitInfo();
-
+import LoadSpinner from '../reusable/loadSpinner';
 type ResetPasswordPageProps = RouteComponentProps<{
     encryptedEmail: string;
     token: string;
-    expiredTime: string
 }>
 
-export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> = ({ match: { params: { encryptedEmail, token, expiredTime } } }) => {
-    const expiredTimeNumber = parseFloat(Buffer.from(expiredTime, 'base64').toString());
+export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> = ({ match: { params: { encryptedEmail, token } } }) => {
+
     const history = useHistory();
     const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);
+    const { loading, error } = useQuery(GQLRequests.VALIDATE_RESET_PASSWORD, { variables: {
+        encryptedEmail: encryptedEmail,
+        token: token
+    }});
+    if (loading) { return <LoadSpinner />; }
+    if (error) {
+        return <div className={css.center}>
+            <h1>The link is invalid. Please make a new request.</h1>
+        </div>;
+    }
 
     if (passwordSuccessfullyChanged) {
         return (
@@ -40,10 +46,6 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
         );
     }
 
-    if (Date.now() > expiredTimeNumber) {
-        return <h1>Oops, this link has expired.</h1>;
-    }
-
     return (
         <Mutation<any, any>
             mutation={GQLRequests.RESET_PASSWORD}
@@ -58,18 +60,19 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                     <div className={css.login_wrapper}>
                         <div className={css.login_box}>
                             <img alt='IDEA-FAST Logo' src='https://avatars3.githubusercontent.com/u/60649739?s=150' />
-                            <h1>Reset your password</h1>
+                            <h1>Forgot your password?</h1>
                             <br />
                             <div>
                                 <Form onFinish={(variables) => resetPassword({
                                     variables: {
                                         ...variables,
-                                        encryptedEmail,
-                                        token
+                                        encryptedEmail: encryptedEmail,
+                                        token: token,
+                                        queryValidation: false
                                     }
                                 })}>
                                     <Form.Item name='newPassword' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                        <Input.Password placeholder='Password' />
+                                        <Input type='password' placeholder='Password' />
                                     </Form.Item>
                                     <Form.Item name='newPasswordConfirm' hasFeedback dependencies={['newPassword']} rules={[
                                         { required: true, message: ' ' },
@@ -82,7 +85,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                                             }
                                         })
                                     ]} >
-                                        <Input.Password placeholder='Confirm Password' />
+                                        <Input type='password' placeholder='Confirm Password' />
                                     </Form.Item>
                                     {error ? (
                                         <>
@@ -106,8 +109,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                             <br />
                             <br />
                             <br />
-                            Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
-                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {gitInfo.commit.shortHash} ({gitInfo.branch})</i>
+                            Do not have an account? <NavLink to='/register'>Please register</NavLink>
                         </div>
                     </div>
                 );

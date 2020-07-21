@@ -26,3 +26,13 @@
     width: 100%;
     min-height: 20%;
 }
+
+.center{
+    text-align: center;
+    position: absolute;
+    height: 50%;
+    width: 800px; 
+    left:50%;
+    top:50%;
+    margin-left: -400px;
+}
