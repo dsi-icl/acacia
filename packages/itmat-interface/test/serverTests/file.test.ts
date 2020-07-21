@@ -12,21 +12,20 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import chalk from 'chalk';
 import { errorCodes } from '../../src/graphql/errors';
-import { MongoClient } from 'mongodb';
-import * as itmatCommons from 'itmat-commons';
+import { MongoClient, Db } from 'mongodb';
+import { GQLRequests, IUser, permissions, IStudy, userTypes, IRole, IFileMongoEntry }from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
-const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } = itmatCommons.GQLRequests;
-const { permissions } = itmatCommons;
+const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } = GQLRequests;
 
 if (global.hasMinio) {
-    let app;
-    let mongodb;
-    let admin;
-    let user;
-    let mongoConnection;
-    let mongoClient;
+    let app: any; // itmat-interface server
+    let mongodb: MongoMemoryServer;
+    let admin: any; // supertest agent
+    let user: any; // supertest agent
+    let mongoConnection: MongoClient;
+    let mongoClient: Db;
 
     afterAll(async () => {
         await db.closeConnection();
@@ -66,20 +65,20 @@ if (global.hasMinio) {
     }, 10000);
 
     describe('FILE API', () => {
-        let adminId;
+        let adminId: string;
 
         beforeAll(async () => {
             /* setup: first retrieve the generated user id */
             const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
-            adminId = result.filter(e => e.username === 'admin')[0].id;
+            adminId = result.filter((e: IUser) => e.username === 'admin')[0].id;
         });
 
         describe('UPLOAD AND DOWNLOAD FILE', () => {
             describe('UPLOAD FILE', () => {
                 /* note: a new study is created and a special authorised user for study permissions */
-                let createdStudy;
-                let authorisedUser;
-                let authorisedUserProfile;
+                let createdStudy: IStudy;
+                let authorisedUser: any; // supertest agent
+                let authorisedUserProfile: IUser;
                 beforeEach(async () => {
                     /* setup: create a study to upload file to */
                     const studyname = uuid();
@@ -101,21 +100,25 @@ if (global.hasMinio) {
                     const username = uuid();
                     authorisedUserProfile = {
                         username,
-                        type: 'STANDARD',
+                        type: userTypes.STANDARD,
                         realName: `${username}_realname`,
                         password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                         otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                         email: `${username}@example.com`,
                         description: 'I am a new user.',
                         emailNotificationsActivated: true,
+                        rootDir: `fakerootdir_${username}`,
+                        createdAt: 5000000,
+                        expiredAt: 99999999999,
                         organisation: 'DSI',
+                        resetPasswordRequests: [],
                         deleted: null,
                         id: `new_user_id_${username}`
                     };
                     await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
                     const roleId = uuid();
-                    const newRole = {
+                    const newRole: IRole = {
                         id: roleId,
                         projectId: null,
                         studyId: createdStudy.id,
@@ -123,6 +126,7 @@ if (global.hasMinio) {
                         permissions: [
                             permissions.specific_study.specific_study_data_management
                         ],
+                        createdBy: 'admin',
                         users: [authorisedUserProfile.id],
                         deleted: null
                     };
@@ -148,7 +152,7 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                    const createdFile: IFileMongoEntry = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.uploadFile).toEqual({
@@ -199,7 +203,7 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                    const createdFile: IFileMongoEntry = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.uploadFile).toEqual({
@@ -229,7 +233,7 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_empty_file.txt'));
 
                     /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_empty_file.txt', studyId: createdStudy.id });
+                    const createdFile: IFileMongoEntry = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_empty_file.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.uploadFile).toEqual({
@@ -247,9 +251,9 @@ if (global.hasMinio) {
             describe('DOWNLOAD FILES', () => {
                 /* note: a new study is created and a non-empty text file is uploaded before each test */
                 let createdStudy;
-                let createdFile;
-                let authorisedUser;
-                let authorisedUserProfile;
+                let createdFile: IFileMongoEntry;
+                let authorisedUser: any; // supertest agent
+                let authorisedUserProfile: IUser;
 
                 beforeEach(async () => {
                     /* setup: create a study to upload file to */
@@ -289,13 +293,17 @@ if (global.hasMinio) {
                     const username = uuid();
                     authorisedUserProfile = {
                         username,
-                        type: 'STANDARD',
+                        type: userTypes.STANDARD,
                         realName: `${username}_realname`,
                         password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                         otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                         email: `${username}@example.com`,
                         description: 'I am a new user.',
                         emailNotificationsActivated: true,
+                        rootDir: `fakerootdir_${username}`,
+                        createdAt: 5000000,
+                        expiredAt: 99999999999,
+                        resetPasswordRequests: [],
                         organisation: 'DSI',
                         deleted: null,
                         id: `new_user_id_${username}`
@@ -376,10 +384,10 @@ if (global.hasMinio) {
             });
 
             describe('DELETE FILES', () => {
-                let createdStudy;
-                let createdFile;
-                let authorisedUser;
-                let authorisedUserProfile;
+                let createdStudy: IStudy;
+                let createdFile: IFileMongoEntry;
+                let authorisedUser: any; // supertest agent
+                let authorisedUserProfile: IUser;
                 beforeEach(async () => {
                     /* setup: create a study to upload file to */
                     const studyname = uuid();
@@ -428,13 +436,17 @@ if (global.hasMinio) {
                     const username = uuid();
                     authorisedUserProfile = {
                         username,
-                        type: 'STANDARD',
+                        type: userTypes.STANDARD,
                         realName: `${username}_realname`,
                         password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                         otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                         email: `${username}@example.com`,
                         description: 'I am a new user.',
                         emailNotificationsActivated: true,
+                        rootDir: `fakerootdir_${username}`,
+                        createdAt: 5000000,
+                        expiredAt: 99999999999,
+                        resetPasswordRequests: [],
                         organisation: 'DSI',
                         deleted: null,
                         id: `new_user_id_${username}`

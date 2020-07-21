@@ -4,7 +4,7 @@ import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
-import { MongoClient } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
@@ -29,19 +29,22 @@ import {
     permissions,
     IDataEntry,
     IUser,
-    IFile,
+    IFileMongoEntry,
     IFieldEntry,
     IStudyDataVersion,
     enumValueType,
-    enumItemType
+    enumItemType,
+    IStudy,
+    IProject,
+    IRole
 } from 'itmat-commons';
 
-let app;
-let mongodb;
-let admin;
-let user;
-let mongoConnection;
-let mongoClient;
+let app: any; // itmat-interface server
+let mongodb: MongoMemoryServer;
+let admin: any; // supertest agent
+let user: any; // supertest agent
+let mongoConnection: MongoClient;
+let mongoClient: Db;
 
 afterAll(async () => {
     await db.closeConnection();
@@ -84,11 +87,11 @@ beforeAll(async () => { // eslint-disable-line no-undef
 });
 
 describe('STUDY API', () => {
-    let adminId;
+    let adminId: string;
 
     beforeAll(async () => {
         /* setup: first retrieve the generated user id */
-        const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
+        const result: IUser[] = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
         adminId = result.filter(e => e.username === 'admin')[0].id;
     });
 
@@ -168,7 +171,7 @@ describe('STUDY API', () => {
 
         test('Create study that violate unique name constraint (case insensitive) (admin)', async () => {
             const studyName = uuid();
-            const newStudy = {
+            const newStudy: IStudy = {
                 id: `id_${studyName}`,
                 name: studyName,
                 createdBy: 'admin',
@@ -189,7 +192,7 @@ describe('STUDY API', () => {
             expect(res.body.data.createStudy).toBe(null);
 
             /* should be only one study in database */
-            const study = await mongoClient.collection(config.database.collections.studies_collection).find({ name: { $in: [studyName, studyName.toUpperCase()] } }).toArray();
+            const study: IStudy[] = await mongoClient.collection(config.database.collections.studies_collection).find({ name: { $in: [studyName, studyName.toUpperCase()] } }).toArray();
             expect(study).toEqual([newStudy]);
 
             /* cleanup: delete study */
@@ -214,7 +217,7 @@ describe('STUDY API', () => {
         test('Delete study (no projects) (admin)', async () => {
             /* setup: create a study to be deleted */
             const studyName = uuid();
-            const newStudy = {
+            const newStudy: IStudy = {
                 id: `id_${studyName}`,
                 name: studyName,
                 createdBy: 'admin',
@@ -261,7 +264,7 @@ describe('STUDY API', () => {
                 successful: true
             });
 
-            const study = await mongoClient.collection(config.database.collections.studies_collection).findOne({ id: newStudy.id });
+            const study: IStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ id: newStudy.id });
             expect(typeof study.deleted).toBe('number');
 
             const resWhoAmIAfter = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
@@ -289,7 +292,7 @@ describe('STUDY API', () => {
         test('Delete study that has been deleted (no projects) (admin)', async () => {
             /* setup: create a study to be deleted */
             const studyName = uuid();
-            const newStudy = {
+            const newStudy: IStudy = {
                 id: `id_${studyName}`,
                 name: studyName,
                 createdBy: 'admin',
@@ -325,7 +328,7 @@ describe('STUDY API', () => {
         test('Delete study (user) (should fail)', async () => {
             /* setup: create a study to be deleted */
             const studyName = uuid();
-            const newStudy = {
+            const newStudy: IStudy = {
                 id: `id_${studyName}`,
                 name: studyName,
                 createdBy: 'admin',
@@ -356,8 +359,8 @@ describe('STUDY API', () => {
 
     describe('MANIPULATING PROJECTS EXISTENCE', () => {
         let testCounter = 0;
-        let setupStudy;
-        let setupProject;
+        let setupStudy: IStudy;
+        let setupProject: IProject;
         beforeEach(async () => {
             testCounter++;
             /* setup: creating a study */
@@ -616,20 +619,20 @@ describe('STUDY API', () => {
     });
 
     describe('MINI END-TO-END API TEST, NO UI, NO DATA', () => {
-        let createdProject;
-        let createdStudy;
-        let createdRole_study;
-        let createdRole_study_manageProject;
-        let createdRole_project;
-        let createdUserAuthorised;  // profile
-        let createdUserAuthorisedStudy;  // profile
-        let createdUserAuthorisedStudyManageProjects;  // profile
-        let authorisedUser; // client
-        let authorisedUserStudy; // client
-        let authorisedUserStudyManageProject; // client
+        let createdProject: IProject;
+        let createdStudy: IStudy;
+        let createdRole_study: IRole;
+        let createdRole_study_manageProject: IRole;
+        let createdRole_project: IRole;
+        let createdUserAuthorised: IUser;
+        let createdUserAuthorisedStudy: IUser;  // profile
+        let createdUserAuthorisedStudyManageProjects: IUser;  // profile
+        let authorisedUser: any; // supertest agent 
+        let authorisedUserStudy: any; // supertest agent
+        let authorisedUserStudyManageProject: any; // supertest agent
         const fieldTreeId = uuid();
         let mockFields: IFieldEntry[];
-        let mockFiles: IFile[];
+        let mockFiles: IFileMongoEntry[];
         let mockDataVersion: IStudyDataVersion;
         const newMockDataVersion: IStudyDataVersion = { // this is not added right away; but multiple tests uses this
             id: 'mockDataVersionId2',
