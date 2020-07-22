@@ -26,7 +26,7 @@
         "apollo-link": "1.2.14",
         "apollo-link-error": "1.1.13",
         "apollo-link-ws": "1.0.20",
-        "apollo-upload-client": "14.0.1",
+        "apollo-upload-client": "14.1.0",
         "axe-core": "3.5.5",
         "itmat-commons": "0.6.0",
         "qrcode": "^1.4.4",
