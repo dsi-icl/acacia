@@ -6987,10 +6987,10 @@ cypress-file-upload@4.0.7:
   dependencies:
     mime "^2.4.4"
 
-cypress-react-unit-test@4.11.0:
-  version "4.11.0"
-  resolved "https://registry.yarnpkg.com/cypress-react-unit-test/-/cypress-react-unit-test-4.11.0.tgz#8638e04dbd5c604b58eddb0bf2ff66689d06b4f3"
-  integrity sha512-P1URxzUjpmztj/Wuj+pgYiot1C0IP51PifNcP+vthLmN194vk3Fe8dKX/ngVm/78EclKK7gvs+x1D4HLi2lyYQ==
+cypress-react-unit-test@4.11.1:
+  version "4.11.1"
+  resolved "https://registry.yarnpkg.com/cypress-react-unit-test/-/cypress-react-unit-test-4.11.1.tgz#441e340cbc6283375815090a3c7635f56a5bb110"
+  integrity sha512-bDkEbCYdSS5BHU6BzTE0eiTa2GJgWPs+0glh1PvvmWEPe0773a/mTX1ciLBaeHkuc2pTTSDLJYpVWsGb2rZVOw==
   dependencies:
     "@babel/plugin-transform-modules-commonjs" "7.10.1"
     "@cypress/code-coverage" "3.8.1"
