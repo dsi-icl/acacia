@@ -26,7 +26,11 @@ module.exports = {
         express: 'commonjs express',
         mongodb: 'commonjs mongodb',
         // "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
+<<<<<<< HEAD
         isobject: 'commonjs isobject',
+=======
+        isobject: 'commonjs isobject',
+>>>>>>> develop
         require_optional: 'commonjs require_optional'
     }],
     module: {

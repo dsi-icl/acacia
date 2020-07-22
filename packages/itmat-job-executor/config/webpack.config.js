@@ -22,11 +22,12 @@ module.exports = {
         extensions: ['.ts', '.mjs', '.js'],
     },
     externals: [{
-        'bcrypt': 'commonjs bcrypt',
-        'express': 'commonjs express',
-        'mongodb': 'commonjs mongodb',
-        'subscriptions-transport-ws': 'commonjs subscriptions-transport-ws',
-        'require_optional': 'commonjs require_optional'
+        bcrypt: 'commonjs bcrypt',
+        express: 'commonjs express',
+        mongodb: 'commonjs mongodb',
+        // subscriptions-transport-ws: 'commonjs subscriptions-transport-ws',
+        isobject: 'commonjs isobject',
+        require_optional: 'commonjs require_optional'
     }],
     module: {
         rules: [
