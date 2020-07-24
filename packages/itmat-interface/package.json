@@ -46,7 +46,7 @@
         "@types/express": "4.17.7",
         "@types/express-session": "1.17.0",
         "@types/graphql": "14.5.0",
-        "@types/jest": "26.0.5",
+        "@types/jest": "26.0.7",
         "@types/mongodb": "3.5.25",
         "@types/mongodb-memory-server": "2.3.0",
         "@types/multer": "1.4.3",
