@@ -1,7 +1,7 @@
 import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from 'react-apollo';
-import { LoadingBalls } from '../reusable/icons/loadingBalls';
+import LoadSpinner from '../reusable/loadSpinner';
 import css from './logList.module.css';
 export const LogListSection: React.FunctionComponent = () => {
 
@@ -11,7 +11,7 @@ export const LogListSection: React.FunctionComponent = () => {
             variables={{}}
         >
             {({ loading, error, data }) => {
-                if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) {
                     return (
                         <p>
