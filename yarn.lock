@@ -12927,12 +12927,53 @@ mongodb-memory-server-core@6.6.1:
   optionalDependencies:
     mongodb "^3.5.4"
 
-mongodb-memory-server@*, mongodb-memory-server@6.6.1:
+mongodb-memory-server-core@6.6.2:
+  version "6.6.2"
+  resolved "https://registry.yarnpkg.com/mongodb-memory-server-core/-/mongodb-memory-server-core-6.6.2.tgz#3723a6ab48c4db0e688dddf4228b73a3422e50ae"
+  integrity sha512-OW/RWXLUDeCGZupIAwYZVuNmk0hpkvFcb9Z0F8HlrLwb2m4z4hDmsoVCe7+b3BxQKG/qXANYgL2KCiOQVa6fLg==
+  dependencies:
+    "@types/cross-spawn" "^6.0.1"
+    "@types/debug" "^4.1.5"
+    "@types/dedent" "^0.7.0"
+    "@types/find-cache-dir" "^3.2.0"
+    "@types/find-package-json" "^1.1.1"
+    "@types/get-port" "^4.0.1"
+    "@types/lockfile" "^1.0.1"
+    "@types/md5-file" "^4.0.1"
+    "@types/mkdirp" "^1.0.0"
+    "@types/tmp" "0.1.0"
+    "@types/uuid" "7.0.0"
+    camelcase "^5.3.1"
+    cross-spawn "^7.0.1"
+    debug "^4.1.1"
+    dedent "^0.7.0"
+    find-cache-dir "3.3.1"
+    find-package-json "^1.2.0"
+    get-port "5.1.1"
+    https-proxy-agent "5.0.0"
+    lockfile "^1.0.4"
+    md5-file "^4.0.0"
+    mkdirp "^1.0.3"
+    tar-stream "^2.1.1"
+    tmp "^0.1.0"
+    uuid "^7.0.2"
+    yauzl "^2.10.0"
+  optionalDependencies:
+    mongodb "^3.5.4"
+
+mongodb-memory-server@*:
   version "6.6.1"
   resolved "https://registry.yarnpkg.com/mongodb-memory-server/-/mongodb-memory-server-6.6.1.tgz#e7bc7fb0910d2398572c22dac1d96ecb3636f189"
   integrity sha512-qnGpGE50snhS3IgKwiPlxnL5wFWPxWutqcCqlsbb68FKohaEIsvi/gMBqJbBLF2l2sQu4a4aJofuKFudSI38vQ==
   dependencies:
     mongodb-memory-server-core "6.6.1"
+
+mongodb-memory-server@6.6.2:
+  version "6.6.2"
+  resolved "https://registry.yarnpkg.com/mongodb-memory-server/-/mongodb-memory-server-6.6.2.tgz#5d2f9be2fba8ad7584d88e02b866ee0a88e294f0"
+  integrity sha512-TfZ4a/OTlC48RwVjtIYkYvrSPVO94uBLe71W14rqJYQnn4cqS335J2NzNbqzswFMrn19xJY1HajF83vgXIE/bA==
+  dependencies:
+    mongodb-memory-server-core "6.6.2"
 
 mongodb@3.5.9, mongodb@^3.1.0, mongodb@^3.5.4, mongodb@^3.5.9:
   version "3.5.9"
