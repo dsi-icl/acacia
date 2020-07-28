@@ -5,6 +5,7 @@ import { DatasetListPage } from '../datasetList';
 import { ProjectDetailPage } from '../projectDetail';
 import { ProjectListPage } from '../projectList';
 import { UserPage } from '../users';
+import { LogPage } from '../log';
 import css from './scaffold.module.css';
 
 export const MainPanel: React.FunctionComponent = () => {
@@ -16,6 +17,7 @@ export const MainPanel: React.FunctionComponent = () => {
                 <Route path='/datasets/:studyId' render={({ match }) => <DatasetDetailPage studyId={match.params.studyId} />} />
                 <Route path='/datasets' render={() => <DatasetListPage />} />
                 <Route path='/users' render={() => <UserPage />} />
+                <Route path='/logs' render={() => <LogPage />} />
                 <Route render={() => <Redirect to='/datasets' />} />
             </Switch>
         </div>

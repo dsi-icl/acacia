@@ -1,4 +1,4 @@
-import { DatabaseOutlined, TeamOutlined, PoweroffOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined } from '@ant-design/icons';
 import * as React from 'react';
 import { Mutation, Query } from 'react-apollo';
 import { NavLink } from 'react-router-dom';
@@ -30,11 +30,19 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
                 if (error) return <p>{error.toString()}</p>;
                 if (data.whoAmI.type === userTypes.ADMIN)
                     return (
-                        <div>
-                            <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
-                                <div className={css.button}><TeamOutlined /> Users</div>
-                            </NavLink>
-                        </div>
+                        <>
+                            <div>
+                                <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
+                                    <div className={css.button}><TeamOutlined /> Users</div>
+                                </NavLink>
+                            </div>
+
+                            <div>
+                                <NavLink to='/logs' title='Logs' activeClassName={css.clickedButton}>
+                                    <div className={css.button}><HistoryOutlined /> Logs</div>
+                                </NavLink>
+                            </div>
+                        </>
                     );
                 return null;
             }}

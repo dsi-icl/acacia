@@ -213,29 +213,34 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                                 : null
                             }
                             &nbsp;&nbsp;&nbsp;
-                            <Mutation<any, any>
-                                mutation={DELETE_USER}
-                                refetchQueries={[
-                                    { query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } },
-                                    /* quick fix: TO_DO, change to cache modification later */
-                                    ...(user.access!.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
-                                ]}
-                            >
+                            {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
+                                ? <>
+                                    <Mutation<any, any>
+                                        mutation={DELETE_USER}
+                                        refetchQueries={[
+                                            { query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } },
+                                            /* quick fix: TO_DO, change to cache modification later */
+                                            ...(user.access!.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
+                                        ]}
+                                    >
 
-                                {(deleteUser, { loading, error, data: UserDeletedData }) => {
-                                    if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) {
-                                        setUserIsDeleted(true);
-                                    }
-                                    if (error) return <p>{error.message}</p>;
-                                    return (
-                                        <Popconfirm title={<>Are you sure about deleting user <i>{user.username}</i>?</>} onConfirm={() => { deleteUser({ variables: { userId: user.id } }); }} okText='Yes' cancelText='No'>
-                                            <Button type='primary' danger disabled={loading}>
-                                                Delete this user
-                                            </Button>
-                                        </Popconfirm>
-                                    );
-                                }}
-                            </Mutation>
+                                        {(deleteUser, { loading, error, data: UserDeletedData }) => {
+                                            if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) {
+                                                setUserIsDeleted(true);
+                                            }
+                                            if (error) return <p>{error.message}</p>;
+                                            return (
+                                                <Popconfirm title={<>Are you sure about deleting user <i>{user.username}</i>?</>} onConfirm={() => { deleteUser({ variables: { userId: user.id } }); }} okText='Yes' cancelText='No'>
+                                                    <Button type='primary' danger disabled={loading}>
+                                                        Delete this user
+                                                    </Button>
+                                                </Popconfirm>
+                                            );
+                                        }}
+                                    </Mutation>
+                                </>
+                                : null
+                            }
                         </Form.Item>
                     </Form>
                 </>

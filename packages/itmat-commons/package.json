@@ -26,16 +26,16 @@
     },
     "devDependencies": {
         "@types/express": "4.17.7",
-        "@types/jest": "26.0.4",
+        "@types/jest": "26.0.7",
         "@types/minio": "7.0.5",
         "@types/mongodb": "3.5.25",
-        "@types/node": "14.0.14",
+        "@types/node": "14.0.26",
         "@types/supertest": "2.0.10",
         "chalk": "4.1.0",
         "jest": "26.1.0",
         "rimraf": "3.0.2",
-        "ts-jest": "26.1.1",
-        "typescript": "3.9.6"
+        "ts-jest": "26.1.3",
+        "typescript": "3.9.7"
     },
     "babel": {
         "extends": "./config/babel.config.js"
