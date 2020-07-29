@@ -37,9 +37,6 @@ export const userResolvers = {
         },
         validateResetPassword: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
             /* decrypt email */
-            if (args.token.length < 16) {
-                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
-            }
             const salt = makeAESKeySalt(args.token);
             const iv = makeAESIv(args.token);
             let email;
@@ -354,7 +351,7 @@ export const userResolvers = {
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
         },
-        resetPassword: async (__unused__parent: Record<string, unknown>, { encryptedEmail, token, newPassword }: { encryptedEmail: string, token: string, newPassword: string, queryValidation: boolean }): Promise<IGenericResponse> => {
+        resetPassword: async (__unused__parent: Record<string, unknown>, { encryptedEmail, token, newPassword }: { encryptedEmail: string, token: string, newPassword: string }): Promise<IGenericResponse> => {
             /* check password validity */
             if (!passwordIsGoodEnough(newPassword)) {
                 throw new ApolloError('Password has to be at least 8 character long.');
@@ -381,8 +378,7 @@ export const userResolvers = {
             /* check whether username and token is valid */
             /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
             const TIME_NOW = new Date().valueOf();
-            // const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
-            const ONE_HOUR_IN_MILLISEC = 60 * 5 * 1000;
+            const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
             const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
                 email,
                 resetPasswordRequests: {
@@ -435,7 +431,7 @@ export const userResolvers = {
             await mailer.sendMail({
                 from: `${config.appName} <${config.nodemailer.auth.user}>`,
                 to: email,
-                subject: `[${config.appName}] Registration Successful`,
+                subject: `[${config.appName}] Password reset`,
                 html: `
                     <p>
                         Dear ${user.firstname},

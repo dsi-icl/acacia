@@ -1,10 +1,14 @@
 import * as React from 'react';
+import GitInfo from 'react-git-info/macro';
 import { Mutation, useQuery } from 'react-apollo';
 import { GQLRequests } from 'itmat-commons';
 import { NavLink, RouteComponentProps, useHistory } from 'react-router-dom';
 import css from '../login/login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
 import LoadSpinner from '../reusable/loadSpinner';
+
+const gitInfo = GitInfo();
+
 type ResetPasswordPageProps = RouteComponentProps<{
     encryptedEmail: string;
     token: string;
@@ -20,8 +24,10 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
     }});
     if (loading) { return <LoadSpinner />; }
     if (error) {
-        return <div className={css.center}>
-            <h1>The link is invalid. Please make a new request.</h1>
+        return <div className={css.login_wrapper}>
+            <div className={css.login_box}>
+                <h1>The link is invalid. Please make a new request.</h1>
+            </div>
         </div>;
     }
 
@@ -60,19 +66,18 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                     <div className={css.login_wrapper}>
                         <div className={css.login_box}>
                             <img alt='IDEA-FAST Logo' src='https://avatars3.githubusercontent.com/u/60649739?s=150' />
-                            <h1>Forgot your password?</h1>
+                            <h1>Reset your password</h1>
                             <br />
                             <div>
                                 <Form onFinish={(variables) => resetPassword({
                                     variables: {
                                         ...variables,
-                                        encryptedEmail: encryptedEmail,
-                                        token: token,
-                                        queryValidation: false
+                                        encryptedEmail,
+                                        token
                                     }
                                 })}>
                                     <Form.Item name='newPassword' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                        <Input type='password' placeholder='Password' />
+                                        <Input.Password placeholder='Password' />
                                     </Form.Item>
                                     <Form.Item name='newPasswordConfirm' hasFeedback dependencies={['newPassword']} rules={[
                                         { required: true, message: ' ' },
@@ -85,7 +90,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                                             }
                                         })
                                     ]} >
-                                        <Input type='password' placeholder='Confirm Password' />
+                                        <Input.Password placeholder='Confirm Password' />
                                     </Form.Item>
                                     {error ? (
                                         <>
@@ -109,7 +114,8 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                             <br />
                             <br />
                             <br />
-                            Do not have an account? <NavLink to='/register'>Please register</NavLink>
+                            Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
+                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {gitInfo.commit.shortHash} ({gitInfo.branch})</i>
                         </div>
                     </div>
                 );
