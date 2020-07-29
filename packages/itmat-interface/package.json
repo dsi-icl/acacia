@@ -50,7 +50,7 @@
         "@types/mongodb": "3.5.25",
         "@types/mongodb-memory-server": "2.3.0",
         "@types/multer": "1.4.3",
-        "@types/node": "14.0.26",
+        "@types/node": "14.0.27",
         "@types/node-fetch": "2.5.7",
         "@types/nodemailer": "6.4.0",
         "@types/passport": "1.0.4",
