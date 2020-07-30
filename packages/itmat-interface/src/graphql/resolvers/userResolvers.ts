@@ -49,7 +49,7 @@ export const userResolvers = {
             /* check whether username and token is valid */
             /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
             const TIME_NOW = new Date().valueOf();
-            const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
+            const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
             const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
                 email,
                 resetPasswordRequests: {
@@ -378,7 +378,7 @@ export const userResolvers = {
             /* check whether username and token is valid */
             /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
             const TIME_NOW = new Date().valueOf();
-            const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
+            const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
             const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
                 email,
                 resetPasswordRequests: {

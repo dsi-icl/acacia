@@ -27,6 +27,16 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
         return <div className={css.login_wrapper}>
             <div className={css.login_box}>
                 <h1>The link is invalid. Please make a new request.</h1>
+                <Button onClick={() => {
+                    history.push('/');
+                }}>
+                    Go back to login
+                </Button>
+                <Button onClick={() => {
+                    history.push('/reset');
+                }}>
+                    Make a new request
+                </Button>
             </div>
         </div>;
     }
