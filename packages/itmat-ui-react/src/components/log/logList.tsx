@@ -34,7 +34,7 @@ export const LogListSection: React.FunctionComponent = () => {
 };
 
 const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) => {
-    const [searchTerm, setSearchTerm] = React.useState<string | undefined>();
+    const [searchTerm, setSearchTerm] = React.useState('');
     const initInputs = {
         requesterName: '',
         requesterType: [],
@@ -76,7 +76,10 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
 
     function dataSourceFilter(logList: Models.ILogEntry[]) {
         return logList.filter(log =>
-            (inputs.requesterName === '' || log.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
+            (searchTerm === '' || (log.requesterName.toUpperCase().search(searchTerm) > -1 || log.requesterType.toUpperCase().search(searchTerm) > -1
+            || log.logType.toUpperCase().search(searchTerm) > -1 || log.actionType.toUpperCase().search(searchTerm) > -1
+            ||  new Date(log.time).toUTCString().toUpperCase().search(searchTerm) > -1 || log.status.toUpperCase().search(searchTerm) > -1))
+            && (inputs.requesterName === '' || log.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
             && (inputs.requesterType.length === 0 || inputs.requesterType.includes(log.requesterType))
             && (inputs.logType.length === 0 || inputs.logType.includes(log.logType))
             && (inputs.actionType.length === 0 || inputs.actionType.includes(log.actionType))
@@ -193,7 +196,10 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
     ];
 
     return <>
-        <Input.Search allowClear style={{width: '90%'}} defaultValue={inputs.requesterName} placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value.toUpperCase())} />
+        <Input.Search allowClear style={{width: '80%'}} defaultValue={searchTerm} value={searchTerm} placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value.toUpperCase())} />
+        <Button type='primary' style={{width: '10%', background: 'grey'}} onClick={() => {setSearchTerm(''); setInputs(initInputs);}}>
+            {advancedSearch ? null : 'Reset'}
+        </Button>
         <Button type='primary' style={{width: '10%'}} onClick={() => setAdvancedSearch(!advancedSearch)}>
             {advancedSearch ? null : 'Advanced Search'}
         </Button>
@@ -201,7 +207,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
             title = 'Advanced Search'
             visible={advancedSearch}
             onOk={() => {setAdvancedSearch(false);}}
-            onCancel={() => {setAdvancedSearch(false);setInputs(initInputs);}}
+            onCancel={() => {setAdvancedSearch(false);}}
             okText='OK'
             cancelText='Reset'
         >
