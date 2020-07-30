@@ -231,7 +231,15 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                     cursor: 'pointer'
                 }
             })}
-            pagination={false}
+            pagination={
+                {
+                    defaultPageSize: 10,
+                    showSizeChanger: true,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                    defaultCurrent: 1,
+                    showQuickJumper: true
+                }
+            }
             columns={columns}
             dataSource={dataSourceFilter(list)}
             size='small'
