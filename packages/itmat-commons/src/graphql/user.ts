@@ -101,6 +101,7 @@ export const VALIDATE_RESET_PASSWORD = gql`
         }
     }
 `;
+
 export const CREATE_USER = gql`
     mutation CreateUser(
         $username: String!
