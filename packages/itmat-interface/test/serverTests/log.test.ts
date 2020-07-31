@@ -78,19 +78,18 @@ describe('LOG API', () => {
         test('Write log (Login)', async () => {
             const userSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';
             const newUser: IUser = {
-                id: 'testuser0',
-                username: 'test_user',
-                email: 'test@test.com',
-                firstname: 'test',
-                lastname: 'user',
-                organisation: 'DSI',
+                username: 'expired_user',
                 type: userTypes.ADMIN,
-                description: 'I am an test user.',
-                emailNotificationsActivated: true,
-                deleted: null,
+                realName: 'expired user',
                 password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                email: 'expire@example.com',
                 resetPasswordRequests: [],
+                description: 'I am an expired user.',
+                emailNotificationsActivated: true,
+                organisation: 'DSI',
+                deleted: null,
+                id: 'expiredId0',
                 createdAt: 1591134065000,
                 expiredAt: 2501134065000
             };
@@ -100,7 +99,7 @@ describe('LOG API', () => {
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),
                 variables: {
-                    username: 'test_user',
+                    username: 'expired_user',
                     password: 'admin',
                     totp: otp
                 }
@@ -108,12 +107,12 @@ describe('LOG API', () => {
             expect(res.status).toBe(200);
             const findLogInMongo = await db.collections!.log_collection.find({}).toArray();
             const lastLog = findLogInMongo.pop();
-            expect(lastLog.requesterName).toEqual('test_user');
+            expect(lastLog.requesterName).toEqual('expired_user');
             expect(lastLog.requesterType).toEqual(userTypes.ADMIN);
             expect(lastLog.logType).toEqual(LOG_TYPE.REQUEST_LOG);
             expect(lastLog.actionType).toEqual(LOG_ACTION.login);
             expect(JSON.parse(lastLog.actionData)).toEqual({
-                username: 'test_user',
+                username: 'expired_user',
                 password: 'admin',
                 totp: '39334'
             });

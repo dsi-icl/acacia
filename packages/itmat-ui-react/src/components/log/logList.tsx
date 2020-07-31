@@ -62,7 +62,6 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
     const inputControl = (property: string) => ({
         value: inputs[property],
         onChange: (e: any) => {
-            console.log(e);
             setInputs({ ...inputs, [property]: property === 'requesterName' ? e.target.value : e});
         }
     });
