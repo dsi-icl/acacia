@@ -210,16 +210,17 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
             okText='OK'
             cancelText='Reset'
         >
-            <Descriptions title='Requester Name'></Descriptions>
-            <Input {...inputControl('requesterName')} />
+            <Descriptions title='Requester Name'    ></Descriptions>
+            <Input {...inputControl('requesterName')} style={{marginBottom: '20px'}}/>
             <Descriptions title='Requester Type'></Descriptions>
-            <Checkbox.Group options={Object.keys(userTypes)} {...checkboxControl('requesterType') } />
+            <Checkbox.Group options={Object.keys(userTypes)} {...checkboxControl('requesterType') } style={{marginBottom: '20px'}}/>
             <Descriptions title='Log Type'></Descriptions>
-            <Checkbox.Group options={Object.keys(LOG_TYPE)} {...checkboxControl('logType')}/>
+            <Checkbox.Group options={Object.keys(LOG_TYPE)} {...checkboxControl('logType')} style={{marginBottom: '20px'}}/>
             <Descriptions title='Request Type'></Descriptions>
-            <Checkbox.Group options={Object.values(LOG_ACTION)} {...checkboxControl('actionType')} />
+            <Checkbox.Group options={Object.values(LOG_ACTION)} {...checkboxControl('actionType')} style={{marginBottom: '20px'}}/>
             <Descriptions title='Status'></Descriptions>
-            <Checkbox.Group options={Object.keys(LOG_STATUS)} {...checkboxControl('status')} />
+            <Checkbox.Group options={Object.keys(LOG_STATUS)} {...checkboxControl('status')} style={{marginBottom: '20px'}}/>
+            <Descriptions title='Date Range'></Descriptions>
             <DatePicker.RangePicker
                 defaultValue={[moment('2015-06-06', dateFormat), moment('2015-06-06', dateFormat)]}
                 {...inputControl('dateRange')}
