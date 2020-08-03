@@ -4,6 +4,7 @@ import { JobHandler } from './jobHandlerInterface';
 import { IFile, IJobEntryForFieldCuration } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { FieldCurator } from '../curation/FieldCurator';
+import { Readable } from 'stream';
 
 export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_FIELD_INFO_UPLOAD_Handler;
@@ -20,7 +21,7 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
         if (!file) {
             // throw error
         }
-        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
+        const fileStream: Readable = await objStore.downloadFile(job.studyId, file.uri);
         const fieldTreeId: string = uuid();
         const fieldcurator = new FieldCurator(
             db.collections!.field_dictionary_collection,
