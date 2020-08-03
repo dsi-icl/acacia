@@ -23,7 +23,7 @@
         "@ideafast/idgen": "0.1.1",
         "antd": "4.5.1",
         "apollo-upload-client": "14.1.1",
-        "graphql": "15.0.0",
+        "graphql": "15.3.0",
         "itmat-commons": "0.6.0",
         "qrcode": "1.4.4",
         "react": "16.13.1",
