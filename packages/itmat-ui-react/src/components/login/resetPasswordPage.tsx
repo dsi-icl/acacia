@@ -1,10 +1,11 @@
 import * as React from 'react';
 import GitInfo from 'react-git-info/macro';
-import { Mutation } from 'react-apollo';
+import { Mutation, useQuery } from 'react-apollo';
 import { GQLRequests } from 'itmat-commons';
 import { NavLink, RouteComponentProps, useHistory } from 'react-router-dom';
 import css from '../login/login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
+import LoadSpinner from '../reusable/loadSpinner';
 
 const gitInfo = GitInfo();
 
@@ -17,6 +18,28 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
 
     const history = useHistory();
     const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);
+    const { loading, error } = useQuery(GQLRequests.VALIDATE_RESET_PASSWORD, { variables: {
+        encryptedEmail: encryptedEmail,
+        token: token
+    }});
+    if (loading) { return <LoadSpinner />; }
+    if (error) {
+        return <div className={css.login_wrapper}>
+            <div className={css.login_box}>
+                <h1>The link is invalid. Please make a new request.</h1>
+                <Button onClick={() => {
+                    history.push('/');
+                }}>
+                    Go back to login
+                </Button>
+                <Button onClick={() => {
+                    history.push('/reset');
+                }}>
+                    Make a new request
+                </Button>
+            </div>
+        </div>;
+    }
 
     if (passwordSuccessfullyChanged) {
         return (
