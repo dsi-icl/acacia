@@ -1,6 +1,6 @@
 import { Models, GET_USERS } from 'itmat-commons';
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './userList.module.css';

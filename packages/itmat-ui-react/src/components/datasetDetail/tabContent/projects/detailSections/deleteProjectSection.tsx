@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client/react/components';
 import { Redirect } from 'react-router';
 import { WHO_AM_I, DELETE_PROJECT, GET_STUDY, IProject } from 'itmat-commons';
 

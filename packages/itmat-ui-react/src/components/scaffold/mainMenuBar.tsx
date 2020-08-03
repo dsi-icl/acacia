@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Mutation, useQuery } from 'react-apollo';
+import { Mutation } from '@apollo/client/react/components';
+import { useQuery } from '@apollo/client/react/hooks';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I, IProject } from 'itmat-commons';
 import { Icons } from '../icons';
@@ -30,11 +31,11 @@ export const MainMenuBar: React.FunctionComponent<{ projects: IProject[] }> = ({
                 </NavLink>
             </div>
 
-            { whoamidata.whoAmI.type ? <div>
+            {whoamidata.whoAmI.type ? <div>
                 <NavLink to='/logs' title='Logs' activeClassName={css.clickedButton}>
                     <div className={css.button}><Icons type='users' /></div>
                 </NavLink>
-            </div> : null }
+            </div> : null}
 
             {/*
             <div>

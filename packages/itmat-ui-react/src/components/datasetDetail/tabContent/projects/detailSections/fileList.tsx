@@ -1,6 +1,6 @@
 import { Tree } from 'antd';
 import React from 'react';
-import { Mutation, Query } from 'react-apollo';
+import { Mutation, Query } from '@apollo/client/react/components';
 import { EDIT_PROJECT_APPROVED_FILES, IFile, GET_STUDY } from 'itmat-commons';
 import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
 

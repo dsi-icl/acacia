@@ -1,6 +1,6 @@
 import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS } from 'itmat-commons';
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import css from './logList.module.css';
 export const LogListSection: React.FunctionComponent = () => {
@@ -33,8 +33,8 @@ const Log: React.FunctionComponent<{ data: Models.Log.ILogEntry, verbose: boolea
     function formatActionData() {
         const obj = JSON.parse(data.actionData);
         const keys = Object.keys(obj);
-        const keysMap = keys.map((el) => <><span>{el}</span><br/></> );
-        const valuesMap = keys.map((el) => <><span>{obj[el].toString()}</span><br/></> );
+        const keysMap = keys.map((el) => <><span>{el}</span><br /></>);
+        const valuesMap = keys.map((el) => <><span>{obj[el].toString()}</span><br /></>);
         return [keysMap, valuesMap];
     }
     return (
@@ -43,8 +43,8 @@ const Log: React.FunctionComponent<{ data: Models.Log.ILogEntry, verbose: boolea
             <td>{data.requesterType}</td>
             <td>{data.logType}</td>
             <td>{data.actionType === null ? 'NA' : data.actionType}</td>
-            { verbose ? <td>{formatActionData()[0]}</td> : null }
-            { verbose ? <td>{formatActionData()[1]}</td> : null }
+            {verbose ? <td>{formatActionData()[0]}</td> : null}
+            {verbose ? <td>{formatActionData()[1]}</td> : null}
             <td>{new Date(data.time).toUTCString()}</td>
             <td>{data.status}</td>
         </tr>
@@ -54,11 +54,11 @@ const Log: React.FunctionComponent<{ data: Models.Log.ILogEntry, verbose: boolea
 const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) => {
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
         requesterName: '',
-        requesterType: {...Object.keys(userTypes).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
-        logType: {...Object.keys(LOG_TYPE).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
-        actionType: {...Object.keys(LOG_ACTION).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
+        requesterType: { ...Object.keys(userTypes).reduce((a, b) => ({ ...a, [b]: false }), {}), all: true },
+        logType: { ...Object.keys(LOG_TYPE).reduce((a, b) => ({ ...a, [b]: false }), {}), all: true },
+        actionType: { ...Object.keys(LOG_ACTION).reduce((a, b) => ({ ...a, [b]: false }), {}), all: true },
         time: '',
-        status: {...Object.keys(LOG_STATUS).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
+        status: { ...Object.keys(LOG_STATUS).reduce((a, b) => ({ ...a, [b]: false }), {}), all: true },
         startDate: '',
         endDate: ''
     });
@@ -79,7 +79,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
     const checkboxControl = (property: string, subProperty: string) => ({
         checked: inputs[property][subProperty],
         onChange: (e: any) => {
-            setInputs({ ...inputs, [property]: {...inputs[property], [subProperty]: e.target.checked } });
+            setInputs({ ...inputs, [property]: { ...inputs[property], [subProperty]: e.target.checked } });
         }
     });
     function checkInputsAllEmpty() {
@@ -105,12 +105,12 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                 (inputs.requesterName === '' || el.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
                 && (inputs.requesterType.all === true || inputs.requesterType[el.requesterType] === true)
                 && (inputs.logType.all === true || inputs.logType[el.logType] === true)
-                && (inputs.actionType.all === true || inputs.actionType[usedKey] === true )
+                && (inputs.actionType.all === true || inputs.actionType[usedKey] === true)
                 && (inputs.status.all === true || inputs.status[el.status] === true)
                 && (inputs.startDate === '' || new Date(inputs.startDate).valueOf() < el.time)
                 && (inputs.endDate === '' || (new Date(inputs.endDate).valueOf() + 24 * 60 * 60 * 1000 /* ONE DAY IN MILLSEC */) > el.time)
             ) {
-                return <Log key={el.id} data={el} verbose={verbose}/>;
+                return <Log key={el.id} data={el} verbose={verbose} />;
             }
             return null;
         };
@@ -185,7 +185,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                             <th>
                                 <label>Verbose</label>
                                 <label className={css.switch}>
-                                    <input type='checkbox' onClick={() => setVerbose(!verbose)}/>
+                                    <input type='checkbox' onClick={() => setVerbose(!verbose)} />
                                     <span className={css.slider} ></span>
                                 </label>
                             </th>

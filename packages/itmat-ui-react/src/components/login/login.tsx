@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client/react/components';
 import { LOGIN, WHO_AM_I } from 'itmat-commons';
 import { NavLink } from 'react-router-dom';
 import css from './login.module.css';
@@ -74,10 +74,10 @@ export const LoginBox: React.FunctionComponent = () => {
                         }
                         <br />
                         <NavLink to='/requestResetPassword'><p>Forgot username or password</p></NavLink>
-                        <br/>
-                        <br/>
+                        <br />
+                        <br />
                         <NavLink to='/userRegistration'><strong>Do not have an account? Please register</strong></NavLink>
-                        <br/>
+                        <br />
                         <br />
                         <div id='error_dialog' className={css.error_message}>
                             {error ? error.message : (stateError ? stateError : null)}

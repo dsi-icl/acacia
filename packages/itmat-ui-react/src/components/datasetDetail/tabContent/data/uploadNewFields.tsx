@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mutation, Query } from 'react-apollo';
+import { Mutation, Query } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
 import { CREATE_FIELD_CURATION_JOB, GET_STUDY, IFile } from 'itmat-commons';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';

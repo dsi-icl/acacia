@@ -1,6 +1,6 @@
 import React from 'react';
-import { useApolloClient, useMutation } from 'react-apollo';
-import { UPLOAD_FILE, GET_STUDY} from 'itmat-commons';
+import { useApolloClient, useMutation } from '@apollo/client/react/hooks';
+import { UPLOAD_FILE, GET_STUDY } from 'itmat-commons';
 
 export const UploadFileSection: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [description, setDescription] = React.useState('');

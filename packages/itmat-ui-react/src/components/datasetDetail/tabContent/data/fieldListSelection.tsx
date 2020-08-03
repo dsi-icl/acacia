@@ -1,5 +1,5 @@
 import React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { GET_STUDY_FIELDS, IStudyDataVersion } from 'itmat-commons';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import { LoadingBalls } from '../../../reusable/icons/loadingBalls';

@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { ApolloProvider, Query } from 'react-apollo';
+import { ApolloProvider } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { client } from './components/apolloClient';
 import { LoginBox } from './components/login/login';
@@ -18,9 +19,9 @@ class App extends React.Component {
             <ApolloProvider client={client}>
                 <Router>
                     <Switch>
-                        <Route path='/resetPassword/:encryptedEmail/:token' component={ResetPasswordPage}/>
-                        <Route path='/requestResetPassword' component={RequestResetPassword}/>
-                        <Route path='/userRegistration' component={CreateNewUser}/>
+                        <Route path='/resetPassword/:encryptedEmail/:token' component={ResetPasswordPage} />
+                        <Route path='/requestResetPassword' component={RequestResetPassword} />
+                        <Route path='/userRegistration' component={CreateNewUser} />
                         <Route render={() =>
                             <Query<any, any> query={WHO_AM_I}>
                                 {({ loading, error, data }) => {
@@ -30,13 +31,13 @@ class App extends React.Component {
                                         // return <div className={css.app}>
                                         return <div className={css.app + ' dark_theme'}>
                                             <MainMenuBar projects={data.whoAmI.access.projects} />
-                                            <MainPanel/>
+                                            <MainPanel />
                                         </div>;
                                     }
                                     return <LoginBox />; // if not logged in return the login boxs
                                 }}
                             </Query>
-                        }/>
+                        } />
                     </Switch>
                 </Router>
             </ApolloProvider>

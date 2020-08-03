@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { NavLink, Redirect, Route, Switch } from 'react-router-dom';
 import { GET_PROJECT } from 'itmat-commons';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';

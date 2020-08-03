@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
 import { Models, WHO_AM_I } from 'itmat-commons';
 

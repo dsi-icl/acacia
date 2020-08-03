@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client/react/components';
 import { GQLRequests } from 'itmat-commons';
 import { NavLink, RouteComponentProps } from 'react-router-dom';
 import css from '../login/login.module.css';

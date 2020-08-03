@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { useMutation, ExecutionResult } from 'react-apollo';
+import { FetchResult } from '@apollo/client';
+import { useMutation } from '@apollo/client/react/hooks';
 import { NavLink } from 'react-router-dom';
 import { CREATE_USER } from 'itmat-commons';
 import css from './userList.module.css';
@@ -8,7 +9,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
     const [completedCreation, setCompletedCreation] = React.useState(false);
     const [inputError, setError] = React.useState('');
     const [createUser, { loading }] = useMutation(CREATE_USER,
-        {onCompleted: () => setCompletedCreation(true)}
+        { onCompleted: () => setCompletedCreation(true) }
     );
     const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
         username: '',
@@ -29,7 +30,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
         }
     });
 
-    function clickedSubmit(mutationFunc: (data: { variables: any }) => Promise<ExecutionResult<any>>) {
+    function clickedSubmit(mutationFunc: (data: { variables: any }) => Promise<FetchResult<any>>) {
         return function (e: any) {
             e.preventDefault();
             const allFields = Object.keys(inputs);
@@ -53,7 +54,7 @@ export const CreateNewUser: React.FunctionComponent = () => {
                     <div>
                         <p>Please check your email to setup the 2FA using an MFA authenticator app to log in.</p>
                     </div>
-                    <br/>
+                    <br />
                     <NavLink to='/'><button>Go to Login</button></NavLink>
                 </div>
             </div>
