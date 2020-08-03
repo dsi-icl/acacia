@@ -1,6 +1,6 @@
 import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS } from 'itmat-commons';
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../reusable/loadSpinner';
 import { Table, Input, Button, Checkbox, Descriptions, DatePicker } from 'antd';
 import Modal from 'antd/lib/modal/Modal';

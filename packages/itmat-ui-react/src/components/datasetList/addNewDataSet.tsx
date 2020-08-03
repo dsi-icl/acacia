@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Query, useMutation } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
+import { useMutation } from '@apollo/client/react/hooks';
 import { userTypes, WHO_AM_I, CREATE_STUDY } from 'itmat-commons';
 import { Button, Form, Input, Alert } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ApolloProvider, } from 'react-apollo';
+import { ApolloProvider, } from '@apollo/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { client } from './components/apolloClient';

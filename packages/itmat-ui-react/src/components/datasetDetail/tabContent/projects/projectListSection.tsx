@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client/react/components';
 import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_PROJECT, GET_STUDY, WHO_AM_I } from 'itmat-commons';
 import css from './tabContent.module.css';

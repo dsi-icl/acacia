@@ -1,6 +1,6 @@
 import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
-import { Writable } from 'stream';
+import { Writable, Readable } from 'stream';
 import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
 import { fieldValidator, fieldParser } from '../utils/jobUtils';
 
@@ -22,7 +22,7 @@ export class CSVCurator {
 
     constructor(
         private readonly dataCollection: Collection,
-        private readonly incomingWebStream: NodeJS.ReadableStream,
+        private readonly incomingWebStream: Readable,
         private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
         private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
         private readonly versionId: string

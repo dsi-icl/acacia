@@ -1,5 +1,6 @@
 import React from 'react';
-import { Mutation, Query, useQuery } from 'react-apollo';
+import { Mutation, Query } from '@apollo/client/react/components';
+import { useQuery } from '@apollo/client/react/hooks';
 import {
     EDIT_PROJECT_APPROVED_FIELDS,
     GET_STUDY,

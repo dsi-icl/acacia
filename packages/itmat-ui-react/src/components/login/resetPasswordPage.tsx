@@ -1,6 +1,7 @@
 import * as React from 'react';
 import GitInfo from 'react-git-info/macro';
-import { Mutation, useQuery } from 'react-apollo';
+import { Mutation } from '@apollo/client/react/components';
+import { useQuery } from '@apollo/client/react/hooks';
 import { GQLRequests } from 'itmat-commons';
 import { NavLink, RouteComponentProps, useHistory } from 'react-router-dom';
 import css from '../login/login.module.css';
@@ -18,10 +19,12 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
 
     const history = useHistory();
     const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);
-    const { loading, error } = useQuery(GQLRequests.VALIDATE_RESET_PASSWORD, { variables: {
-        encryptedEmail: encryptedEmail,
-        token: token
-    }});
+    const { loading, error } = useQuery(GQLRequests.VALIDATE_RESET_PASSWORD, {
+        variables: {
+            encryptedEmail: encryptedEmail,
+            token: token
+        }
+    });
     if (loading) { return <LoadSpinner />; }
     if (error) {
         return <div className={css.login_wrapper}>

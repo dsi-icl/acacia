@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useMutation, useQuery } from 'react-apollo';
+import { useMutation, useQuery } from '@apollo/client/react/hooks';
 import { Table, Button, notification, Input } from 'antd';
 import { IFile, DELETE_FILE, WHO_AM_I, userTypes } from 'itmat-commons';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined } from '@ant-design/icons';
-import { ApolloError } from 'apollo-client';
+import { ApolloError } from '@apollo/client/errors';
 import moment from 'moment';
 import { sites, deviceTypes } from '../../datasetDetail/tabContent/files/fileTab';
 import Highlighter from 'react-highlight-words';

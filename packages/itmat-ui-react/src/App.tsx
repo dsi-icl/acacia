@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { Switch, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Providers from './Providers';

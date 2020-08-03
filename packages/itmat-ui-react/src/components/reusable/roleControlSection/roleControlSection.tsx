@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Mutation, useQuery, useMutation } from 'react-apollo';
+import { Mutation } from '@apollo/client/react/components';
+import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import {
     Models,
     permissions,

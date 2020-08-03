@@ -22,11 +22,13 @@ module.exports = {
         extensions: ['.ts', '.mjs', '.js'],
     },
     externals: [{
-        bcrypt: 'commonjs bcrypt',
-        express: 'commonjs express',
-        mongodb: 'commonjs mongodb',
-        isobject: 'commonjs isobject',
-        require_optional: 'commonjs require_optional'
+        'bcrypt': 'commonjs bcrypt',
+        'express': 'commonjs express',
+        'mongodb': 'commonjs mongodb',
+        'isobject': 'commonjs isobject',
+        'bufferutil': 'commonjs bufferutil',
+        'utf-8-validate': 'commonjs utf-8-validate',
+        'require_optional': 'commonjs require_optional'
     }],
     module: {
         rules: [
