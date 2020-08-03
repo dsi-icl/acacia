@@ -29,12 +29,11 @@
         "apollo-upload-client": "14.1.1",
         "axe-core": "3.5.5",
         "itmat-commons": "0.6.0",
-        "qrcode": "^1.4.4",
+        "qrcode": "1.4.4",
         "react": "16.13.1",
         "react-apollo": "3.1.5",
         "react-dom": "16.13.1",
         "react-router-dom": "5.2.0",
-        "react-scripts": "3.4.",
         "subscriptions-transport-ws": "0.9.17"
     },
     "devDependencies": {
@@ -54,6 +53,7 @@
         "enzyme": "3.11.0",
         "enzyme-adapter-react-16": "1.15.2",
         "jest-enzyme": "7.1.2",
+        "react-scripts": "3.4.0",
         "rimraf": "3.0.2",
         "typescript": "3.9.7",
         "uuid": "8.3.0"
