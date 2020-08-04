@@ -13,7 +13,7 @@ import { v4 as uuid } from 'uuid';
 import chalk from 'chalk';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient, Db } from 'mongodb';
-import { GQLRequests, IUser, permissions, IStudy, userTypes, IRole, IFileMongoEntry }from 'itmat-commons';
+import { GQLRequests, IUser, permissions, IStudy, userTypes, IRole, IFileMongoEntry, fileTypes }from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
@@ -90,7 +90,7 @@ if (global.hasMinio) {
                     expect(createStudyRes.body.errors).toBeUndefined();
 
                     /* setup: getting the created study Id */
-                    createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
+                    createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname })!;
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
                         name: studyname
@@ -120,7 +120,7 @@ if (global.hasMinio) {
                     const roleId = uuid();
                     const newRole: IRole = {
                         id: roleId,
-                        projectId: null,
+                        projectId: undefined,
                         studyId: createdStudy.id,
                         name: `${roleId}_rolename`,
                         permissions: [
@@ -152,18 +152,20 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
-                    const createdFile: IFileMongoEntry = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                    const createdFile: IFileMongoEntry = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id })!;
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.uploadFile).toEqual({
+                    const graphqlResult: IFileMongoEntry = {
                         id: createdFile.id,
                         fileName: 'just_a_test_file.txt',
                         studyId: createdStudy.id,
+                        fileType: fileTypes.STUDY_REPO_OBJ_STORE_FILE,
                         projectId: null,
                         fileSize: 10000,
                         description: 'just a file 1.',
                         uploadedBy: adminId
-                    });
+                    };
+                    expect(res.body.data.uploadFile).toEqual(graphqlResult);
                 });
 
                 test('Upload file to study (user with no privilege) (should fail)', async () => {
@@ -203,7 +205,7 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
-                    const createdFile: IFileMongoEntry = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                    const createdFile: IFileMongoEntry = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id })!;
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.uploadFile).toEqual({
@@ -233,7 +235,7 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_empty_file.txt'));
 
                     /* setup: geting the created file Id */
-                    const createdFile: IFileMongoEntry = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_empty_file.txt', studyId: createdStudy.id });
+                    const createdFile: IFileMongoEntry = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_empty_file.txt', studyId: createdStudy.id })!;
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.uploadFile).toEqual({
@@ -287,7 +289,7 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
-                    createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                    createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id })!;
 
                     /* setup: creating a privileged user */
                     const username = uuid();
@@ -399,7 +401,7 @@ if (global.hasMinio) {
                     expect(createStudyRes.body.errors).toBeUndefined();
 
                     /* setup: getting the created study Id */
-                    createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
+                    createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname })!;
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
                         name: studyname
@@ -420,7 +422,7 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
 
                     /* setup: geting the created file Id */
-                    createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id, deleted: null });
+                    createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id, deleted: null })!;
 
                     /* before test: can download file */
                     const res = await admin.get(`/file/${createdFile.id}`);
