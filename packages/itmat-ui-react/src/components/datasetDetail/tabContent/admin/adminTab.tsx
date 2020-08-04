@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useQuery } from 'react-apollo';
+import { useQuery } from '@apollo/client/react/hooks';
 import { Subsection } from '../../../reusable';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';

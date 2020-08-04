@@ -1,9 +1,9 @@
-import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined } from '@ant-design/icons';
 import * as React from 'react';
-import { Mutation, Query } from 'react-apollo';
+import { Query, Mutation } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I, IProject, userTypes } from 'itmat-commons';
 import css from './scaffold.module.css';
+import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';
 
 type MainMenuBarProps = {

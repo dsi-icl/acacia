@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useMutation } from 'react-apollo';
+import { useMutation } from '@apollo/client/react/hooks';
 import { NavLink, useHistory } from 'react-router-dom';
 import { CREATE_USER } from 'itmat-commons';
 import { Input, Form, Button, Alert, Checkbox, Select } from 'antd';

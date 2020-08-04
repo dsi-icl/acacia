@@ -1,5 +1,5 @@
 import React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { GET_PROJECT } from 'itmat-commons';
 import { Subsection } from '../../../../reusable';
 import LoadSpinner from '../../../../reusable/loadSpinner';

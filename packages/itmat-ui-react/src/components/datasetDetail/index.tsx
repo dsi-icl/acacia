@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { NavLink, Route, Switch } from 'react-router-dom';
 import { GET_STUDY, WHO_AM_I, userTypes } from 'itmat-commons';
 import LoadSpinner from '../reusable/loadSpinner';

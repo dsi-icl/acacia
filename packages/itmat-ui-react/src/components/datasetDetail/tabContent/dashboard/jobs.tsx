@@ -2,7 +2,7 @@ import { GQLRequests } from 'itmat-commons';
 import * as React from 'react';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import css from './tabContent.module.css';
-import { useSubscription } from 'react-apollo';
+import { useSubscription } from '@apollo/client/react/hooks';
 import { GET_STUDY, IJobEntry } from 'itmat-commons';
 
 const STATUSES: { [status: string]: any } = {

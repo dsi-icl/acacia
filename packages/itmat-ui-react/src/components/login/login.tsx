@@ -1,6 +1,6 @@
 import React from 'react';
 import GitInfo from 'react-git-info/macro';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client/react/components';
 import { LOGIN, WHO_AM_I } from 'itmat-commons';
 import { NavLink } from 'react-router-dom';
 import css from './login.module.css';

@@ -2,14 +2,15 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Button, Upload, notification, Tag, Table, Form, Input, DatePicker } from 'antd';
 import { RcFile } from 'antd/lib/upload';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Query, useApolloClient, useMutation, Mutation } from 'react-apollo';
+import { Query, Mutation } from '@apollo/client/react/components';
+import { useApolloClient, useMutation } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
 import { GET_STUDY, DELETE_STUDY, UPLOAD_FILE, WHO_AM_I } from 'itmat-commons';
 import { FileList } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
-import { ApolloError } from 'apollo-client';
+import { ApolloError } from '@apollo/client/errors';
 import { validate } from '@ideafast/idgen';
 import moment, { Moment } from 'moment';
 import { v4 as uuid } from 'uuid';
@@ -362,7 +363,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
                                     {(deleteStudy, { loading, error, data: StudyDeletedData }) => {
                                         if (StudyDeletedData && StudyDeletedData.deleteStudy && StudyDeletedData.deleteStudy.successful) {
-                                            return <Redirect to={'/datasets'}/>;
+                                            return <Redirect to={'/datasets'} />;
                                         }
                                         if (error) return <p>{error.message}</p>;
                                         return (

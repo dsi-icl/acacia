@@ -1,5 +1,6 @@
 import * as Minio from 'minio';
 import { Logger } from './logger';
+import { Readable } from 'stream';
 
 export interface IObjectStoreConfig {
     host: string;
@@ -42,7 +43,7 @@ export class ObjectStore {
         return await minioClient.listBuckets();
     }
 
-    public async uploadFile(fileStream: NodeJS.ReadableStream, studyId: string, uri: string): Promise<string> {
+    public async uploadFile(fileStream: Readable, studyId: string, uri: string): Promise<string> {
         const lowercasestudyid = studyId.toLowerCase();
         const bucketExists = await this.client!.bucketExists(lowercasestudyid);
 
@@ -67,10 +68,10 @@ export class ObjectStore {
         return result;
     }
 
-    public async downloadFile(studyId: string, uri: string): Promise<NodeJS.ReadableStream> {
+    public async downloadFile(studyId: string, uri: string): Promise<Readable> {
         // PRECONDITION: studyId and file exists (checked by interface resolver)
         const lowercasestudyid = studyId.toLowerCase();
         const stream = this.client!.getObject(lowercasestudyid, uri);
-        return stream as Promise<NodeJS.ReadableStream>;
+        return stream as Promise<Readable>;
     }
 }
