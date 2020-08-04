@@ -4,6 +4,7 @@ import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
 import { JSONCurator } from '../curation/JSONCurator';
+import { Readable } from 'stream';
 
 export class UKB_JSON_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_JSON_UPLOAD_Handler;
@@ -21,7 +22,7 @@ export class UKB_JSON_UPLOAD_Handler extends JobHandler {
         if (!file) {
             // throw error
         }
-        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
+        const fileStream: Readable = await objStore.downloadFile(job.studyId, file.uri);
         const versionId: string = uuid();
         const jsoncurator = new JSONCurator(
             db.collections!.data_collection,

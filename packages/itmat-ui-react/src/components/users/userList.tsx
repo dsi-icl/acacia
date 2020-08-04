@@ -1,6 +1,6 @@
 import { Models, GET_USERS } from 'itmat-commons';
 import React, { useState } from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { useHistory } from 'react-router-dom';
 import LoadSpinner from '../reusable/loadSpinner';
 import { Table, Input, Button, Tooltip } from 'antd';

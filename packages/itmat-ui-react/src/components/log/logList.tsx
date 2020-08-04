@@ -1,8 +1,12 @@
 import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS } from 'itmat-commons';
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../reusable/loadSpinner';
-import css from './logList.module.css';
+import { Table, Input, Button, Checkbox, Descriptions, DatePicker } from 'antd';
+import Modal from 'antd/lib/modal/Modal';
+import Highlighter from 'react-highlight-words';
+import moment from 'moment';
+
 export const LogListSection: React.FunctionComponent = () => {
 
     return (
@@ -29,202 +33,237 @@ export const LogListSection: React.FunctionComponent = () => {
     );
 };
 
-const Log: React.FunctionComponent<{ data: Models.Log.ILogEntry, verbose: boolean }> = ({ data, verbose }) => {
-    function formatActionData() {
+const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) => {
+    const [searchTerm, setSearchTerm] = React.useState('');
+    const initInputs = {
+        requesterName: '',
+        requesterType: [],
+        logType: [],
+        actionType: [],
+        time: '',
+        status: [],
+        dateRange: ['', '']
+    };
+    const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState(initInputs);
+    const [verbose, setVerbose] = React.useState(false);
+    const [verboseInfo, setVerboseInfo] = React.useState(({ actionData: JSON.stringify({}) }));
+    const [advancedSearch, setAdvancedSearch] = React.useState(false);
+    const dateFormat = 'YYYY-MM-DD';
+    function formatActionData(data: any) {
         const obj = JSON.parse(data.actionData);
         const keys = Object.keys(obj);
-        const keysMap = keys.map((el) => <><span>{el}</span><br/></> );
-        const valuesMap = keys.map((el) => <><span>{obj[el].toString()}</span><br/></> );
-        return [keysMap, valuesMap];
+        const keysMap = keys.map((el) => <><span>{el}</span><br /></>);
+        const valuesMap = keys.map((el) => <><span>{obj[el].toString()}</span><br /></>);
+        return { keyList: keysMap, valueList: valuesMap };
     }
-    return (
-        <tr>
-            <td>{data.requesterName}</td>
-            <td>{data.requesterType}</td>
-            <td>{data.logType}</td>
-            <td>{data.actionType === null ? 'NA' : data.actionType}</td>
-            { verbose ? <td>{formatActionData()[0]}</td> : null }
-            { verbose ? <td>{formatActionData()[1]}</td> : null }
-            <td>{new Date(data.time).toUTCString()}</td>
-            <td>{data.status}</td>
-        </tr>
-    );
-};
-
-const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) => {
-    const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState({
-        requesterName: '',
-        requesterType: {...Object.keys(userTypes).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
-        logType: {...Object.keys(LOG_TYPE).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
-        actionType: {...Object.keys(LOG_ACTION).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
-        time: '',
-        status: {...Object.keys(LOG_STATUS).reduce((a, b) => ({ ...a, [b]:false}), {}), all: true},
-        startDate: '',
-        endDate: ''
-    });
-    const [verbose, setVerbose] = React.useState(false);
-
-    // style
-    const input_checkbox_color: React.CSSProperties = {
-        color: 'blue'
-    };
+    /* time offset, when filter by time, adjust all date to utc time */
+    const timeOffset = moment().zone() /* minutes */ * 60 /* seconds */ * 1000 /* to UNIX millisec */;
 
     const inputControl = (property: string) => ({
         value: inputs[property],
         onChange: (e: any) => {
-            setInputs({ ...inputs, [property]: e.target.value });
+            setInputs({ ...inputs, [property]: property === 'requesterName' ? e.target.value : e });
         }
     });
 
-    const checkboxControl = (property: string, subProperty: string) => ({
-        checked: inputs[property][subProperty],
+    const checkboxControl = (property: string) => ({
+        value: inputs[property],
         onChange: (e: any) => {
-            setInputs({ ...inputs, [property]: {...inputs[property], [subProperty]: e.target.checked } });
+            setInputs({ ...inputs, [property]: e });
         }
     });
-    function checkInputsAllEmpty() {
-        let key: any;
-        for (key in inputs) {
-            if (inputs[key] !== '') {
-                return false;
-            }
-        }
-        return true;
+
+    function dataSourceFilter(logList: Models.ILogEntry[]) {
+        return logList.filter(log =>
+            (searchTerm === '' || (log.requesterName.toUpperCase().search(searchTerm) > -1 || log.requesterType.toUpperCase().search(searchTerm) > -1
+                || log.logType.toUpperCase().search(searchTerm) > -1 || log.actionType.toUpperCase().search(searchTerm) > -1
+                || new Date(log.time).toUTCString().toUpperCase().search(searchTerm) > -1 || log.status.toUpperCase().search(searchTerm) > -1))
+            && (inputs.requesterName === '' || log.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
+            && (inputs.requesterType.length === 0 || inputs.requesterType.includes(log.requesterType))
+            && (inputs.logType.length === 0 || inputs.logType.includes(log.logType))
+            && (inputs.actionType.length === 0 || inputs.actionType.includes(log.actionType))
+            && (inputs.status.length === 0 || inputs.status.includes(log.status))
+            && (inputs.dateRange[0] === '' || (moment(inputs.dateRange[0].startOf('day')).valueOf() - timeOffset) < log.time)
+            && (inputs.dateRange[1] === '' || (moment(inputs.dateRange[1].startOf('day')).valueOf() + 24 * 60 * 60 * 1000 /* ONE DAY IN MILLSEC */ - timeOffset) > log.time)
+        );
     }
 
-    function highermappingfunction() {
-        if (checkInputsAllEmpty() === true) {
-            return (el: Models.Log.ILogEntry) => {
-                return <Log key={el.id} data={el} verbose={verbose} />;
-            };
-        }
-        return (el: Models.Log.ILogEntry) => {
-            const findKey = Object.keys(LOG_ACTION).find(key => LOG_ACTION[key] === el.actionType);
-            const usedKey = findKey === undefined ? 'all' : findKey;
-            if (
-                (inputs.requesterName === '' || el.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
-                && (inputs.requesterType.all === true || inputs.requesterType[el.requesterType] === true)
-                && (inputs.logType.all === true || inputs.logType[el.logType] === true)
-                && (inputs.actionType.all === true || inputs.actionType[usedKey] === true )
-                && (inputs.status.all === true || inputs.status[el.status] === true)
-                && (inputs.startDate === '' || new Date(inputs.startDate).valueOf() < el.time)
-                && (inputs.endDate === '' || (new Date(inputs.endDate).valueOf() + 24 * 60 * 60 * 1000 /* ONE DAY IN MILLSEC */) > el.time)
-            ) {
-                return <Log key={el.id} data={el} verbose={verbose}/>;
+    const columns = [
+        {
+            title: 'Requester Name',
+            dataIndex: 'requesterName',
+            key: 'requesterName',
+            render: (__unused__value, record) => {
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.requesterName} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return record.requesterName;
             }
-            return null;
-        };
-    }
+        },
+        {
+            title: 'Requester Type',
+            dataIndex: 'requesterType',
+            key: 'requesterType',
+            render: (__unused__value, record) => {
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.requesterType} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return record.requesterType;
+            }
+        },
+        {
+            title: 'Request Type',
+            dataIndex: 'logType',
+            key: 'logType',
+            render: (__unused__value, record) => {
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.logType} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return record.logType;
+            }
+        },
+        {
+            title: 'Operation Type',
+            dataIndex: 'actionType',
+            key: 'actionType',
+            render: (__unused__value, record) => {
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.actionType} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return record.actionType;
+            }
+        },
+        {
+            title: 'Time',
+            dataIndex: 'time',
+            key: 'time',
+            render: (__unused__value, record) => {
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={new Date(record.time).toUTCString()} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return new Date(record.time).toUTCString();
+            }
+        },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            render: (__unused__value, record) => {
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.status} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return record.status;
+            }
+        }
+    ];
 
-    return (
-        <div>
-            <div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>
-                                <label>Requester Name</label>
-                            </th>
-                            <th>
-                                <input style={input_checkbox_color} name='searchRequesterName' {...inputControl('requesterName')} />
-                            </th>
-                        </tr>
-                        <tr>
-                            <th>
-                                <label>Requester Type</label>
-                            </th>
-                            <th>
-                                <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('requesterType', 'all')} />All</label>
-                                {Object.keys(userTypes).map((el) => <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('requesterType', el)} />{el}</label>)}
-                            </th>
-                        </tr>
-                        <tr>
-                            <th>
-                                <label>Log Type</label>
-                            </th>
-                            <th>
-                                <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('logType', 'all')} />All</label>
-                                {Object.keys(LOG_TYPE).map((el) => <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('logType', el)} />{el}</label>)}
-                            </th>
-                        </tr>
-                        <tr>
-                            <th>
-                                <label>Action Type</label>
-                            </th>
-                            <th>
-                                <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('actionType', 'all')} />All</label>
-                                {Object.keys(LOG_ACTION).map((el) => <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('actionType', el)} />{el}</label>)}
-                            </th>
-                        </tr>
-                        <tr>
-                            <th>
-                                <label>Status</label>
-                            </th>
-                            <th>
-                                <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('status', 'all')} />All</label>
-                                {Object.keys(LOG_STATUS).map((el) => <label style={input_checkbox_color}><input type='checkbox' {...checkboxControl('status', el)} />{el}</label>)}
-                            </th>
-                        </tr>
-                        <tr>
-                            <th>
-                                <label>Start Date</label>
-                            </th>
-                            <th>
-                                <input style={input_checkbox_color} name='startDate' type='date' {...inputControl('startDate')} />
-                            </th>
-                        </tr>
-                        <tr>
-                            <th>
-                                <label>End Date</label>
-                            </th>
-                            <th>
-                                <input style={input_checkbox_color} name='endDate' type='date' {...inputControl('endDate')} />
-                            </th>
-                        </tr>
-                        <tr>
-                            <th>
-                                <label>Verbose</label>
-                                <label className={css.switch}>
-                                    <input type='checkbox' onClick={() => setVerbose(!verbose)}/>
-                                    <span className={css.slider} ></span>
-                                </label>
-                            </th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
+    const detailColumns = [
+        {
+            title: 'Field',
+            dataIndex: 'keyList',
+            key: 'keyList',
+            render: (__unused__value, record) => {
+                return record.keyList;
+            }
+        },
+        {
+            title: 'Value',
+            dataIndex: 'valueList',
+            key: 'valueList',
+            render: (__unused__value, record) => {
+                return record.valueList;
+            }
+        }
+    ];
 
-            <div className={css.log_list}>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Requester Name</th>
-                            <th>Requester Type</th>
-                            <th>Log Type</th>
-                            <th>Action Type</th>
-                            {verbose ? <th colSpan={2}>Action Data</th> : null}
-                            <th>Time</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {verbose ?
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>Field</td>
-                                <td>Value</td>
-                                <td></td>
-                                <td></td>
-                            </tr> : null
-                        }
-                        {list.map(highermappingfunction())}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    );
+    return <>
+        <Input.Search allowClear style={{ width: '80%' }} defaultValue={searchTerm} value={searchTerm} placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value.toUpperCase())} />
+        <Button type='primary' style={{ width: '10%', background: 'grey' }} onClick={() => { setSearchTerm(''); setInputs(initInputs); }}>
+            {advancedSearch ? null : 'Reset'}
+        </Button>
+        <Button type='primary' style={{ width: '10%' }} onClick={() => setAdvancedSearch(!advancedSearch)}>
+            {advancedSearch ? null : 'Advanced Search'}
+        </Button>
+        <Modal
+            title='Advanced Search'
+            visible={advancedSearch}
+            onOk={() => { setAdvancedSearch(false); }}
+            onCancel={() => { setAdvancedSearch(false); }}
+            okText='OK'
+            cancelText='Reset'
+        >
+            <Descriptions title='Requester Name'    ></Descriptions>
+            <Input {...inputControl('requesterName')} style={{ marginBottom: '20px' }} />
+            <Descriptions title='Requester Type'></Descriptions>
+            <Checkbox.Group options={Object.keys(userTypes)} {...checkboxControl('requesterType')} style={{ marginBottom: '20px' }} />
+            <Descriptions title='Log Type'></Descriptions>
+            <Checkbox.Group options={Object.keys(LOG_TYPE)} {...checkboxControl('logType')} style={{ marginBottom: '20px' }} />
+            <Descriptions title='Request Type'></Descriptions>
+            <Checkbox.Group options={Object.values(LOG_ACTION)} {...checkboxControl('actionType')} style={{ marginBottom: '20px' }} />
+            <Descriptions title='Status'></Descriptions>
+            <Checkbox.Group options={Object.keys(LOG_STATUS)} {...checkboxControl('status')} style={{ marginBottom: '20px' }} />
+            <Descriptions title='Date Range'></Descriptions>
+            <DatePicker.RangePicker
+                defaultValue={[moment('2015-06-06', dateFormat), moment('2015-06-06', dateFormat)]}
+                {...inputControl('dateRange')}
+            />
+        </Modal>
+        <Table
+            rowKey={(rec) => rec.id}
+            onRow={(record: Models.ILogEntry) => ({
+                onClick: () => {
+                    setVerbose(true);
+                    setVerboseInfo(record);
+                },
+                style: {
+                    cursor: 'pointer'
+                }
+            })}
+            pagination={
+                {
+                    defaultPageSize: 10,
+                    showSizeChanger: true,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                    defaultCurrent: 1,
+                    showQuickJumper: true
+                }
+            }
+            columns={columns}
+            dataSource={dataSourceFilter(list)}
+            size='small'
+        >
+        </Table>
+        <Modal
+            title='Details'
+            visible={verbose}
+            onOk={() => { setVerbose(false); }}
+            onCancel={() => { setVerbose(false); }}
+        >
+            <Table
+                pagination={false}
+                columns={detailColumns}
+                dataSource={[formatActionData(verboseInfo)]}
+                size='small'
+            >
+            </Table>
+        </Modal>
+    </>;
 };

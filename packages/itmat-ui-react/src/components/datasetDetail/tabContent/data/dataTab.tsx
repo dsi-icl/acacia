@@ -1,7 +1,8 @@
 import { Switch } from 'antd';
 import 'antd/lib/switch/style/css';
 import * as React from 'react';
-import { Query, useMutation } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
+import { useMutation } from '@apollo/client/react/hooks';
 import { GET_STUDY, SET_DATAVERSION_AS_CURRENT, IStudy, IStudyDataVersion } from 'itmat-commons';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import LoadSpinner from '../../../reusable/loadSpinner';

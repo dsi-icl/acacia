@@ -1,6 +1,6 @@
 import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
-import { Writable } from 'stream';
+import { Writable, Readable } from 'stream';
 import { v4 as uuid } from 'uuid';
 import { Models, IJobEntryForFieldCuration, IFieldEntry, enumValueType } from 'itmat-commons';
 
@@ -16,7 +16,7 @@ export class FieldCurator {
 
     constructor(
         private readonly fieldCollection: Collection,
-        private readonly incomingWebStream: NodeJS.ReadableStream,
+        private readonly incomingWebStream: Readable,
         private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
         private readonly job: IJobEntryForFieldCuration,
         private readonly fieldTreeId: string

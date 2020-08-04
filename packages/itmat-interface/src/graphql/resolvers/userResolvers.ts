@@ -34,6 +34,37 @@ export const userResolvers = {
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
             const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
+        },
+        validateResetPassword: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
+            /* decrypt email */
+            const salt = makeAESKeySalt(args.token);
+            const iv = makeAESIv(args.token);
+            let email;
+            try {
+                email = await decryptEmail(args.encryptedEmail, salt, iv);
+            } catch (e) {
+                throw new ApolloError('Token is not valid.');
+            }
+
+            /* check whether username and token is valid */
+            /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
+            const TIME_NOW = new Date().valueOf();
+            const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
+            const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
+                email,
+                resetPasswordRequests: {
+                    $elemMatch: {
+                        id: args.token,
+                        timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
+                        used: false
+                    }
+                },
+                deleted: null
+            });
+            if (!user) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+            return makeGenericReponse();
         }
     },
     User: {
@@ -347,7 +378,7 @@ export const userResolvers = {
             /* check whether username and token is valid */
             /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
             const TIME_NOW = new Date().valueOf();
-            const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
+            const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
             const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
                 email,
                 resetPasswordRequests: {

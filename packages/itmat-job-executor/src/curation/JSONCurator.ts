@@ -1,7 +1,7 @@
 import { Collection } from 'mongodb';
-import { Writable } from 'stream';
+import { Writable, Readable } from 'stream';
 import JSONStream from 'JSONStream';
-import { IFieldDescriptionObject, IDataEntry, IJobEntry  } from 'itmat-commons';
+import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
 import { fieldValidator, fieldParser } from '../utils/jobUtils';
 
 /* update should be audit trailed */
@@ -22,7 +22,7 @@ export class JSONCurator {
 
     constructor(
         private readonly dataCollection: Collection,
-        private readonly incomingWebStream: NodeJS.ReadableStream,
+        private readonly incomingWebStream: Readable,
         private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
         private readonly versionId: string
     ) {

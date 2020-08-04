@@ -1,13 +1,12 @@
-import { InMemoryCache } from 'apollo-cache-inmemory';
-import { ApolloClient } from 'apollo-client';
-import { from } from 'apollo-link';
-import { onError } from 'apollo-link-error';
+import { InMemoryCache } from '@apollo/client/cache';
+import { ApolloClient, from, ApolloLink } from '@apollo/client';
+import { onError } from '@apollo/client/link/error';
 import { createUploadLink } from 'apollo-upload-client';
 
 const uploadLink = createUploadLink({
     uri: `${window.location.origin}/graphql`,
     credentials: 'include'
-});
+}) as any as ApolloLink;
 
 const cache = new InMemoryCache({
     dataIdFromObject: (object) => `${object.__typename || 'undefined_typeName'}___${object.id || 'undefined_id'}`

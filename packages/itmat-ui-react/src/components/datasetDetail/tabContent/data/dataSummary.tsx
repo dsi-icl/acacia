@@ -1,5 +1,5 @@
 import React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { GET_STUDY, IStudyDataVersion } from 'itmat-commons';
 import { formatBytes } from '../../../reusable/fileList/fileList';
 import css from './tabContent.module.css';
