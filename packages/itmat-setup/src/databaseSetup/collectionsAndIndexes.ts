@@ -1,7 +1,7 @@
 import mongo from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { seedUsers } from './seed/users';
-import { seedOrganisations } from './seed/organisations'
+import { seedOrganisations } from './seed/organisations';
 const collections = {
     jobs_collection: {
         name: 'JOB_COLLECTION',

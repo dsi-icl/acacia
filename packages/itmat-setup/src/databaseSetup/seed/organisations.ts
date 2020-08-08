@@ -8,7 +8,7 @@ export const seedOrganisations = [{
 },
 {
     id: 'organisation_103_replaced_at_runtime',
-    name: 'Asociaci—n Parkinson Madrid' 
+    name: 'Asociaci—n Parkinson Madrid'
 },
 {
     id: 'organisation_104_replaced_at_runtime',
@@ -32,7 +32,7 @@ export const seedOrganisations = [{
 },
 {
     id: 'organisation_109_replaced_at_runtime',
-    name: 'DREEM'    
+    name: 'DREEM'
 },
 {
     id: 'organisation_110_replaced_at_runtime',
@@ -68,7 +68,7 @@ export const seedOrganisations = [{
 },
 {
     id: 'organisation_118_replaced_at_runtime',
-    name: 'Helse Stavanger Hf'    
+    name: 'Helse Stavanger Hf'
 },
 {
     id: 'organisation_119_replaced_at_runtime',
