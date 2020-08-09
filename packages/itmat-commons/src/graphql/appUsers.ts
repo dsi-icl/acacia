@@ -72,3 +72,14 @@ export const DELETE_USER = gql`
         }
     }
 `;
+
+export const GET_ORGANISATIONS = gql`
+    query getOrganisations($organisationId: String) {
+        getOrganisations(organisationId: $organisationId) {
+            id
+            name
+            containOrg
+            deleted
+        }
+    }
+`;

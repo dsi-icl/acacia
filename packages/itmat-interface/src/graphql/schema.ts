@@ -67,6 +67,13 @@ type User {
     access: UserAccess # admin or self only
 }
 
+type Organisation {
+    id: String!
+    name: String!    
+    containOrg: String
+    deleted: String
+}
+
 type StudyOrProjectUserRole {
     id: String!
     name: String!
@@ -309,6 +316,9 @@ type Query {
     whoAmI: User
     getUsers(userId: String): [User]
     validateResetPassword(encryptedEmail: String!, token: String!): GenericResponse
+
+    # ORGANISATION
+    getOrganisations(organisationId: String): [Organisation]
 
     # STUDY
     getStudy(studyId: String!): Study

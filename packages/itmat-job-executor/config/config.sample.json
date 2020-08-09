@@ -5,6 +5,7 @@
         "collections": {
             "jobs_collection": "1JOB_COLLECTION",
             "users_collection": "1USER_COLLECTION",
+            "organisations_collection": "1ORGANISATION_COLLECTION",
             "studies_collection": "1STUDY_COLLECTION",
             "projects_collection": "1PROJECT_COLLECTION",
             "queries_collection": "1QUERY_COLLECTION",

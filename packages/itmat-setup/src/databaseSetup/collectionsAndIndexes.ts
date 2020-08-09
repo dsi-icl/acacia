@@ -69,7 +69,7 @@ const collections = {
         ]
     },
     organisations_collection: {
-        name: 'ORGANISATIONS_COLLECTION',
+        name: 'ORGANISATION_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { name: 1 }, unique: true },
@@ -104,7 +104,7 @@ export async function setupDatabase(mongostr: string, databaseName: string): Pro
 
     /* replace the organisation id from the seeds */
     for (const each of Object.keys(seedOrganisations)) {
-        seedOrganisations[each].id = uuid();
+        if (seedOrganisations[each].id != 'data-sciene-institute-icl') seedOrganisations[each].id = uuid();
     }
     /* insert seed organisations */
     await db.collection(collections.organisations_collection.name).insertMany(seedOrganisations);

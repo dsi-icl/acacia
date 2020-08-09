@@ -11,7 +11,8 @@ import {
     IUser,
     IUserWithoutToken,
     IResetPasswordRequest,
-    userTypes
+    userTypes,
+    IOrganisation
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
@@ -33,6 +34,12 @@ export const userResolvers = {
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
             const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
+            return cursor.toArray();
+        },
+        getOrganisations: async (__unused__parent: Record<string, unknown>, args: any): Promise<IOrganisation[]> => {
+            // everyone is allowed to see all organisations in the app.
+            const queryObj = args.organisationId === undefined ? { deleted: null } : { deleted: null, id: args.organisationId };
+            const cursor = db.collections!.organisations_collection.find(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
         },
         validateResetPassword: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
