@@ -87,7 +87,7 @@ export const RegisterNewUser: React.FunctionComponent = () => {
                             <Input placeholder='Lastname' />
                         </Form.Item>
                         <Form.Item name='organisation' hasFeedback rules={[{ required: true, message: 'Please select your organisation' }]}>
-                            <Select placeholder='Organisation'>                                
+                            <Select placeholder='Organisation'>
                                 {Object.entries(orgsMap).map((orgsMap) => <Select.Option key={orgsMap[0]} value={orgsMap[0]}>{orgsMap[1]}</Select.Option>)}
                             </Select>
                         </Form.Item>

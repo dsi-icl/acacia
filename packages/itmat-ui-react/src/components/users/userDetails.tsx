@@ -127,7 +127,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
 
     if (userIsDeleted) { return <p> User {user.username} is deleted. </p>; }
     if (whoamiloading) { return <p>Loading..</p>; }
-    if (whoamierror) { return <p>ERROR: please try again.</p>; }      
+    if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
     const disabledDate = (current) => {
         return current && (current < moment().endOf('day') || current > moment().add(3, 'months'));
@@ -136,11 +136,11 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
     const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
-    let orgsMap : Record<string, string> = {};
+    const orgsMap : Record<string, string> = {};
     for (const each of orgList) {
         orgsMap[each.id] = each.name;
     }
-    
+
     console.log(orgsMap);
 
     return (
