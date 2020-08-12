@@ -16,15 +16,33 @@ export function spaceFixing(operation, actionData) {
     if (spaceWhiteListForOperation.includes(operation)) {
         return actionData;
     }
-    const modifiedData = {};
-    if (actionData !== undefined) {
-        for (const key in actionData) {
-            if (typeof(actionData[key]) === 'string' && spaceWhiteListForField.includes(key)) {
-                modifiedData[key] = actionData[key].replace(/\s+/g,' ').trim();
-            } else {
-                modifiedData[key] = actionData[key];
+    recursiveFix(actionData);
+    return actionData;
+}
+
+export function recursiveFix(obj: object | null | undefined) {
+    if (obj !== null && obj !== undefined) {
+        // keep if object is function
+        if (obj instanceof Promise) {
+            return;
+        } else { 
+            for (const key in obj) {
+                switch(typeof(obj[key])) {
+                    case 'object': {
+                        return recursiveFix(obj[key]);
+                    }
+                    case 'string': {
+                        if (!spaceWhiteListForField.includes(key)) {
+                            obj[key] = obj[key].replace(/\s+/g, ' ').trim();
+                        }
+                        break;
+                    }
+                    default: {
+                        return;
+                    }
+                }
             }
         }
     }
-    return modifiedData;
+    return;
 }
