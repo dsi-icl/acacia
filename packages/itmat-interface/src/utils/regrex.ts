@@ -20,12 +20,12 @@ export function spaceFixing(operation, actionData) {
     return actionData;
 }
 
-export function recursiveFix(obj: object | null | undefined) {
+export function recursiveFix(obj: any) {
     if (obj !== null && obj !== undefined) {
-        // keep if object is function
+        // keep it original if it is a promise
         if (obj instanceof Promise) {
             return;
-        } else { 
+        } else {
             for (const key in obj) {
                 switch(typeof(obj[key])) {
                     case 'object': {
