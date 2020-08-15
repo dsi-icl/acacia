@@ -120,7 +120,7 @@ export const userResolvers = {
             const queryObj = email ? { deleted: null, email } : { deleted: null, username };
             const user: IUser | null = await db.collections!.users_collection.findOne(queryObj);
             if (!user) {
-                /* even user is null. send successful response: they should know that a user dosen't exist */
+                /* even user is null. send successful response: they should not know that a user dosen't exist */
                 await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
                 return makeGenericReponse();
             }
