@@ -35,5 +35,5 @@ export interface IOrganisation {
     id: string;
     name: string;
     containOrg: string;
-    deleted: string;
+    deleted: number | null;
 }

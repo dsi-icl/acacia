@@ -136,12 +136,6 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
     const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
-    const orgsMap : Record<string, string> = {};
-    for (const each of orgList) {
-        orgsMap[each.id] = each.name;
-    }
-
-    console.log(orgsMap);
 
     return (
         <Mutation<any, any>
@@ -154,7 +148,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         ...user,
                         createdAt: moment(user.createdAt),
                         expiredAt: moment(user.expiredAt),
-                        organisation: orgsMap[user.organisation]
+                        organisation: orgList.find(org => org.id === user.organisation)?.name
                     }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
                         <Form.Item name='username' label='Username'>
                             <Input disabled />
@@ -170,7 +164,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         </Form.Item>
                         <Form.Item name='organisation' label='Organisation'>
                             <Select>
-                                {Object.entries(orgsMap).map((orgsMap) => <Select.Option key={orgsMap[0]} value={orgsMap[0]}>{orgsMap[1]}</Select.Option>)}
+                                {orgList.map((org) => <Select.Option key={org.id} value={org.name}>{org.name}</Select.Option>)}
                             </Select>
                         </Form.Item>
                         <Form.Item name='createdAt' label='Created On'>

@@ -519,6 +519,26 @@ export const userResolvers = {
             } else {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }
+        },
+        createOrganisation: async (__unused__parent: Record<string, unknown>, { name, containOrg }: { name: string, containOrg: string }, context: any): Promise<IOrganisation> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            const alreadyExist = await db.collections!.organisations_collection.findOne({ name, deleted: null });
+            if (alreadyExist !== null && alreadyExist !== undefined) {
+                throw new UserInputError('This organisation already exists.');
+            }
+
+            const createdOrganisation = await userCore.createOrganisation({
+                name,
+                containOrg: containOrg ?? ''
+            });
+
+            return createdOrganisation;
         }
     },
     Subscription: {}

@@ -83,3 +83,13 @@ export const GET_ORGANISATIONS = gql`
         }
     }
 `;
+
+export const CREATE_ORGANISATION = gql`
+    mutation createOrganisation($name: String!, $containOrg: String) {
+        createOrganisation(name: $name, containOrg: $containOrg) {
+            id            
+            name
+            containOrg
+        }
+    }
+`;

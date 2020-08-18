@@ -20,10 +20,6 @@ export const RegisterNewUser: React.FunctionComponent = () => {
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
     const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
-    const orgsMap : Record<string, string> = {};
-    for (const each of orgList) {
-        orgsMap[each.id] = each.name;
-    }
 
     if (completedCreation) {
         return (
@@ -88,7 +84,7 @@ export const RegisterNewUser: React.FunctionComponent = () => {
                         </Form.Item>
                         <Form.Item name='organisation' hasFeedback rules={[{ required: true, message: 'Please select your organisation' }]}>
                             <Select placeholder='Organisation'>
-                                {Object.entries(orgsMap).map((orgsMap) => <Select.Option key={orgsMap[0]} value={orgsMap[0]}>{orgsMap[1]}</Select.Option>)}
+                                {orgList.map((org) => <Select.Option key={org.id} value={org.name}>{org.name}</Select.Option>)}
                             </Select>
                         </Form.Item>
                         <Form.Item name='emailNotificationsActivated' valuePropName='checked'>
