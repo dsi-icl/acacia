@@ -62,7 +62,7 @@
         "graphql": "15.3.0",
         "itmat-setup": "0.0.1",
         "jest": "26.3.0",
-        "mongodb-memory-server": "6.6.4",
+        "mongodb-memory-server": "6.6.3",
         "node-fetch": "2.6.0",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
