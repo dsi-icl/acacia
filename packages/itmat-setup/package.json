@@ -24,7 +24,7 @@
     "devDependencies": {
         "@types/mongodb": "3.5.25",
         "chalk": "4.1.0",
-        "eslint": "7.6.0",
+        "eslint": "7.7.0",
         "typescript": "3.9.7"
     },
     "eslintConfig": {
