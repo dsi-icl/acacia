@@ -1,44 +1,46 @@
-// operation that rely on spaces will not be checked
-const spaceWhiteListForOperation = [
-    'login'
-];
-
-// fields in white list would not be checked and corrected
-const spaceWhiteListForField = [
-    'password', // from CreateUserInput, EditUserInput
-    'newPassword', // from resetPassword
-];
+// whether passwords can contain spaces remains to be determined by the resolver functions
+// the format doesnt allow extra spaces for any kinds of names, but whether spaces are not allowed is 
+// determined by the resolver functions
+const omitOperationsAndFields = {
+    "login": [],
+    "CreateUser": ["password"],
+    "EditUser": ["password"],
+    "resetPassword": ["newPassword"]
+};
 
 // By default, only one space is allowed between adjacent letters
 // this function only format the parameters, other requirement, such as duplicate check
 // relies on the resolver functions
 export function spaceFixing(operation, actionData) {
-    if (spaceWhiteListForOperation.includes(operation)) {
-        return actionData;
+    if (Object.keys(omitOperationsAndFields).includes(operation)) {
+        if (!omitOperationsAndFields[operation].length) {
+            return actionData;
+        }
     }
-    recursiveFix(actionData);
+    recursiveFix(operation, actionData);
     return actionData;
 }
 
-export function recursiveFix(obj: any) {
+export function recursiveFix(operation: any, obj: any) {
     if (obj !== null && obj !== undefined) {
         // keep it original if it is a promise
         if (obj instanceof Promise) {
             return;
         } else {
+            const fields = Object.keys(omitOperationsAndFields).includes(operation) ? omitOperationsAndFields[operation] : [];
             for (const key in obj) {
                 switch(typeof(obj[key])) {
                     case 'object': {
-                        return recursiveFix(obj[key]);
+                        return recursiveFix(operation, obj[key]);
                     }
                     case 'string': {
-                        if (!spaceWhiteListForField.includes(key)) {
+                        if (!fields.includes(key)) {
                             obj[key] = obj[key].replace(/\s+/g, ' ').trim();
                         }
                         break;
                     }
                     default: {
-                        return;
+                        break;
                     }
                 }
             }
