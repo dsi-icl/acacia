@@ -14,7 +14,7 @@ export class ExportProcessor {
 
     public async fetchFieldInfo(): Promise<void> {
         const queryobj = this.wantedFields === undefined ? { studyId: this.studyId } : { studyId: this.studyId, fieldId: { $in: this.wantedFields } };
-        const cursor = db.collections!.field_dictionary_collection.find(queryobj, { projection: { _id: 0 } });
+        const cursor = db.collections!.field_dictionary_collection.find<IFieldEntry>(queryobj, { projection: { _id: 0 } });
         this.fieldInfo = await cursor.toArray();
         const tmp: string[] = [];
         this.fieldInfo!.forEach((el: IFieldEntry) => {

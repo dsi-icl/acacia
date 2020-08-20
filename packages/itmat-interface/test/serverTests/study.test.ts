@@ -32,6 +32,7 @@ import {
     IFile,
     IFieldEntry,
     IStudyDataVersion,
+    IStudy,
     enumValueType,
     enumItemType
 } from 'itmat-commons';
@@ -1879,7 +1880,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
+            const study = await db.collections!.studies_collection.findOne<IStudy>({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
             expect(study).toBeDefined();
             expect(res.body.data.setDataversionAsCurrent).toEqual({
                 id: createdStudy.id,
@@ -1887,14 +1888,14 @@ describe('STUDY API', () => {
                 dataVersions: [
                     { ...mockDataVersion, tag: null },
                     { ...newMockDataVersion },
-                    { ...mockDataVersion, tag: null, id: study.dataVersions[2].id }
+                    { ...mockDataVersion, tag: null, id: study?.dataVersions?.[2]?.id }
                 ]
             });
             // content id should be the same be id is different
             expect(res.body.data.setDataversionAsCurrent.dataVersions[2].id).not.toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].id);
-            expect(study.dataVersions[2].id).not.toBe(study.dataVersions[0].id);
+            expect(study?.dataVersions?.[2]?.id).not.toBe(study?.dataVersions?.[0]?.id);
             expect(res.body.data.setDataversionAsCurrent.dataVersions[2].contentId).toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].contentId);
-            expect(study.dataVersions[2].contentId).toBe(study.dataVersions[0].contentId);
+            expect(study?.dataVersions?.[2]?.contentId).toBe(study?.dataVersions?.[0]?.contentId);
 
             /* cleanup: reverse setting dataversion */
             await mongoClient.collection(config.database.collections.studies_collection)
@@ -2051,7 +2052,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
+            const study = await db.collections!.studies_collection.findOne<IStudy>({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
             expect(study).toBeDefined();
             expect(res.body.data.setDataversionAsCurrent).toEqual({
                 id: createdStudy.id,
@@ -2059,14 +2060,14 @@ describe('STUDY API', () => {
                 dataVersions: [
                     { ...mockDataVersion, tag: null },
                     { ...newMockDataVersion },
-                    { ...mockDataVersion, tag: null, id: study.dataVersions[2].id }
+                    { ...mockDataVersion, tag: null, id: study?.dataVersions?.[2]?.id }
                 ]
             });
             // content id should be the same be id is different
             expect(res.body.data.setDataversionAsCurrent.dataVersions[2].id).not.toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].id);
-            expect(study.dataVersions[2].id).not.toBe(study.dataVersions[0].id);
+            expect(study?.dataVersions?.[2]?.id).not.toBe(study?.dataVersions?.[0]?.id);
             expect(res.body.data.setDataversionAsCurrent.dataVersions[2].contentId).toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].contentId);
-            expect(study.dataVersions[2].contentId).toBe(study.dataVersions[0].contentId);
+            expect(study?.dataVersions?.[2]?.contentId).toBe(study?.dataVersions?.[0]?.contentId);
 
             /* cleanup: reverse setting dataversion */
             await mongoClient.collection(config.database.collections.studies_collection)
