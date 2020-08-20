@@ -32,7 +32,7 @@ export const userResolvers = {
         getUsers: async (__unused__parent: Record<string, unknown>, args: any): Promise<IUser[]> => {
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
-            const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
+            const cursor = db.collections!.users_collection.find<IUser>(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
         }
     },
@@ -268,13 +268,13 @@ export const userResolvers = {
             /* send email to the registered user */
             // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code
             const oauth_uri = `otpauth://totp/IDEAFAST:${username}?secret=${createdUser.otpSecret}&issuer=IDEAFAST`;
-            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png'});
+            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
                 if (err) throw new ApolloError(err);
             });
 
-            const attachments = [{filename:'qrcode.png', path: tmpobj.name, cid:'qrcode_cid'}];
+            const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
             await mailer.sendMail({
                 from: config.nodemailer.auth.user,
                 to: email,

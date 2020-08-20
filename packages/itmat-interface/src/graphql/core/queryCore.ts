@@ -6,7 +6,7 @@ import { errorCodes } from '../errors';
 
 export class QueryCore {
     public async getOneQuery_throwErrorIfNotExists(queryId: string, onlyResult: boolean): Promise<IQueryEntry> {
-        const queryEntry: IQueryEntry = await db.collections!.queries_collection.findOne({ id: queryId }, { projection: onlyResult ? { queryResult: 1 } : { _id: 0, claimedBy: 0 } })!;
+        const queryEntry = await db.collections!.queries_collection.findOne<IQueryEntry>({ id: queryId }, { projection: onlyResult ? { queryResult: 1 } : { _id: 0, claimedBy: 0 } })!;
 
         if (queryEntry === null || queryEntry === undefined) {
             throw new ApolloError('Query does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -33,7 +33,7 @@ export class QueryCore {
     }
 
     public async getUsersQuery_NoResult(userId: string): Promise<IQueryEntry[]> {
-        return db.collections!.queries_collection.find({ requester: userId }, { projection: { _id: 0, claimedBy: 0, queryResult: 0 } }).toArray();
+        return db.collections!.queries_collection.find<IQueryEntry>({ requester: userId }, { projection: { _id: 0, claimedBy: 0, queryResult: 0 } }).toArray();
 
     }
 
