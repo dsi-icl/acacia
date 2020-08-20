@@ -1,11 +1,11 @@
 // whether passwords can contain spaces remains to be determined by the resolver functions
-// the format doesnt allow extra spaces for any kinds of names, but whether spaces are not allowed is 
+// the format doesnt allow extra spaces for any kinds of names, but whether spaces are not allowed is
 // determined by the resolver functions
 const omitOperationsAndFields = {
-    "login": [],
-    "CreateUser": ["password"],
-    "EditUser": ["password"],
-    "resetPassword": ["newPassword"]
+    login: [],
+    CreateUser: ['password'],
+    EditUser: ['password'],
+    resetPassword: ['newPassword']
 };
 
 // By default, only one space is allowed between adjacent letters
