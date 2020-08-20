@@ -39,8 +39,9 @@ export class UserCore {
 
         const result = await db.collections!.users_collection.insertOne(entry);
         if (result.result.ok === 1) {
-            delete entry.password;
-            return entry;
+            const cleared: IUserWithoutToken = { ...entry };
+            delete cleared['password'];
+            return cleared;
         } else {
             throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
         }
