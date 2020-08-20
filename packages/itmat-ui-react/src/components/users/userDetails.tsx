@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { NavLink } from 'react-router-dom';
-import { IUserWithoutToken, userTypes, GET_STUDY } from 'itmat-commons';
+import { IUserWithoutToken, userTypes, GET_STUDY, IUser } from 'itmat-commons';
 import { Subsection } from '../reusable';
 import { LoadingBalls } from '../reusable/icons/loadingBalls';
 import { ProjectSection } from './projectSection';
@@ -62,12 +62,12 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     }
 
     function formatSubmitObj() {
-        const editUserObj = { ...inputs };
+        const editUserObj: IUser | IUserWithoutToken = { ...inputs };
         if (inputs.password === '') {
-            delete editUserObj.password;
+            delete editUserObj['password'];
         }
         if (inputs.access !== undefined) {
-            delete editUserObj.access;
+            delete editUserObj['access'];
         }
         return editUserObj;
     }
