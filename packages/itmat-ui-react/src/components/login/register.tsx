@@ -83,8 +83,10 @@ export const RegisterNewUser: React.FunctionComponent = () => {
                             <Input placeholder='Lastname' />
                         </Form.Item>
                         <Form.Item name='organisation' hasFeedback rules={[{ required: true, message: 'Please select your organisation' }]}>
-                            <Select placeholder='Organisation'>
-                                {orgList.map((org) => <Select.Option key={org.id} value={org.name}>{org.name}</Select.Option>)}
+                            <Select placeholder='Organisation' showSearch filterOption={(input, option) =>
+                                option?.children?.toLocaleString()?.toLocaleLowerCase()?.includes(input.toLocaleLowerCase()) ?? false
+                            }>
+                                {orgList.map((org) => <Select.Option key={org.id} value={org.id}>{org.name}</Select.Option>)}
                             </Select>
                         </Form.Item>
                         <Form.Item name='emailNotificationsActivated' valuePropName='checked'>
