@@ -34,6 +34,6 @@ export interface IUser extends IUserWithoutToken {
 export interface IOrganisation {
     id: string;
     name: string;
-    containOrg: string;
+    containOrg: string | null;
     deleted: number | null;
 }
