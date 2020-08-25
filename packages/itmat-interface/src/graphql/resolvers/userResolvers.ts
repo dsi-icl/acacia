@@ -33,7 +33,7 @@ export const userResolvers = {
         getUsers: async (__unused__parent: Record<string, unknown>, args: any): Promise<IUser[]> => {
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
-            const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
+            const cursor = db.collections!.users_collection.find<IUser>(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
         },
         getOrganisations: async (__unused__parent: Record<string, unknown>, args: any): Promise<IOrganisation[]> => {

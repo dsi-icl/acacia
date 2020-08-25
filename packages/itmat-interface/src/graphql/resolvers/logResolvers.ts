@@ -19,7 +19,7 @@ export const logResolvers = {
                     queryObj[prop] = args.prop;
                 }
             }
-            const cursor = db.collections!.log_collection.find(queryObj, { projection: {_id: 0}}).sort('time', -1);
+            const cursor = db.collections!.log_collection.find<ILogEntry>(queryObj, { projection: { _id: 0 } }).sort('time', -1);
             return cursor.toArray();
         }
     }
