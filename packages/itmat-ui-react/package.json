@@ -32,8 +32,8 @@
         "subscriptions-transport-ws": "0.9.18"
     },
     "devDependencies": {
-        "@babel/core": "7.11.4",
-        "@babel/preset-env": "7.11.0",
+        "@babel/core": "7.11.5",
+        "@babel/preset-env": "7.11.5",
         "@cypress/webpack-preprocessor": "5.4.5",
         "@types/apollo-upload-client": "14.1.0",
         "@types/jest": "26.0.10",
