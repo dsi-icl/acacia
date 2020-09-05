@@ -55,7 +55,7 @@ describe('User management page', function () {
             firstname: 'FJust Testing Here',
             lastname: 'LJust Testing Here',
             description: 'No descript',
-            organisation: 'DSI',
+            organisation: 'organisation_system',
             email: 'no@n2o.com',
             emailNotificationsActivated: true,
             type: 'STANDARD'
@@ -111,7 +111,7 @@ describe('User management page', function () {
                     firstname: 'FJust Testing Here',
                     lastname: 'LJust Testing Here',
                     description: 'No descript',
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     email: 'no@no.com',
                     emailNotificationsActivated: true,
                     type: 'STANDARD'
@@ -153,7 +153,7 @@ describe('User management page', function () {
                     firstname: 'FJust Testing Here',
                     lastname: 'LJust Testing Here',
                     description: 'No descript',
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     email: 'no@no3.com',
                     emailNotificationsActivated: true,
                     type: 'STANDARD'

@@ -107,7 +107,7 @@ describe('ROLE API', () => {
                 email: `${username}@example.com`,
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 deleted: null,
                 id: `new_user_id_${username}`
             };
@@ -475,7 +475,7 @@ describe('ROLE API', () => {
                     email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };
@@ -720,7 +720,7 @@ describe('ROLE API', () => {
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -779,7 +779,7 @@ describe('ROLE API', () => {
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -838,7 +838,7 @@ describe('ROLE API', () => {
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -886,7 +886,7 @@ describe('ROLE API', () => {
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1338,7 +1338,7 @@ describe('ROLE API', () => {
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1393,7 +1393,7 @@ describe('ROLE API', () => {
                     ],
                     users: [{
                         id: adminId,
-                        organisation: 'DSI',
+                        organisation: 'organisation_system',
                         firstname: 'Fadmin',
                         lastname: 'Ladmin',
                     }]
@@ -1462,7 +1462,7 @@ describe('ROLE API', () => {
                     email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };
@@ -1653,7 +1653,7 @@ describe('ROLE API', () => {
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1712,7 +1712,7 @@ describe('ROLE API', () => {
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1829,7 +1829,7 @@ describe('ROLE API', () => {
                     email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };
@@ -1972,7 +1972,7 @@ describe('ROLE API', () => {
                     email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };

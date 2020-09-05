@@ -193,7 +193,7 @@ describe('JOB API', () => {
             email: `${username}@example.com`,
             description: 'I am a new user.',
             emailNotificationsActivated: true,
-            organisation: 'DSI',
+            organisation: 'organisation_system',
             deleted: null,
             id: `new_user_id_${username}`
         };

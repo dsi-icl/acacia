@@ -74,7 +74,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
 });
 
 describe('LOG API', () => {
-    describe ('Write logs', () => {
+    describe('Write logs', () => {
         test('Write log (Login)', async () => {
             const userSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';
             const newUser: IUser = {
@@ -83,7 +83,7 @@ describe('LOG API', () => {
                 email: 'test@test.com',
                 firstname: 'test',
                 lastname: 'user',
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 type: userTypes.ADMIN,
                 description: 'I am an test user.',
                 emailNotificationsActivated: true,
@@ -132,7 +132,7 @@ describe('LOG API', () => {
     });
 
     describe('Get logs', () => {
-        beforeAll(async() => {
+        beforeAll(async () => {
             // write initial data for testing
             const logSample = [{
                 id: '001',
@@ -148,7 +148,7 @@ describe('LOG API', () => {
             await db.collections!.log_collection.insertMany(logSample);
         });
 
-        afterAll(async() => {
+        afterAll(async () => {
             await mongoClient.collection(config.database.collections.log_collection).remove({});
         });
 

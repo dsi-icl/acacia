@@ -102,10 +102,6 @@ export async function setupDatabase(mongostr: string, databaseName: string): Pro
     /* insert seed users */
     await db.collection(collections.users_collection.name).insertMany(seedUsers);
 
-    /* replace the organisation id from the seeds */
-    for (const each of Object.keys(seedOrganisations)) {
-        if (seedOrganisations[each].id !== 'data-sciene-institute-icl') seedOrganisations[each].id = uuid();
-    }
     /* insert seed organisations */
     await db.collection(collections.organisations_collection.name).insertMany(seedOrganisations);
 
