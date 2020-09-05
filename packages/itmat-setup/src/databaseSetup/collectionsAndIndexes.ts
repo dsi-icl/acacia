@@ -1,7 +1,7 @@
 import mongo from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { seedUsers } from './seed/users';
-
+import { seedOrganisations } from './seed/organisations';
 const collections = {
     jobs_collection: {
         name: 'JOB_COLLECTION',
@@ -67,6 +67,13 @@ const collections = {
         indexes: [
             { key: { id: 1 }, unique: true },
         ]
+    },
+    organisations_collection: {
+        name: 'ORGANISATION_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true },
+            { key: { name: 1 }, unique: true },
+        ]
     }
 };
 
@@ -88,12 +95,15 @@ export async function setupDatabase(mongostr: string, databaseName: string): Pro
     }
 
 
-    /* replace the id from the seeds */
+    /* replace the user id from the seeds */
     seedUsers[0].id = uuid();
     seedUsers[1].id = uuid();
 
     /* insert seed users */
     await db.collection(collections.users_collection.name).insertMany(seedUsers);
+
+    /* insert seed organisations */
+    await db.collection(collections.organisations_collection.name).insertMany(seedOrganisations);
 
     await conn.close();
 }

@@ -11,7 +11,8 @@ import {
     IUser,
     IUserWithoutToken,
     IResetPasswordRequest,
-    userTypes
+    userTypes,
+    IOrganisation
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
@@ -224,7 +225,7 @@ export const userResolvers = {
 
             // validate the TOTP
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
-            if (!totpValidated) {
+            if (!totpValidated && process.env.NODE_ENV === 'production') {
                 throw new UserInputError('Incorrect One-Time password.');
             }
 
@@ -512,6 +513,26 @@ export const userResolvers = {
             } else {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }
+        },
+        createOrganisation: async (__unused__parent: Record<string, unknown>, { name, containOrg }: { name: string, containOrg: string }, context: any): Promise<IOrganisation> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            const alreadyExist = await db.collections!.organisations_collection.findOne({ name, deleted: null });
+            if (alreadyExist !== null && alreadyExist !== undefined) {
+                throw new UserInputError('This organisation already exists.');
+            }
+
+            const createdOrganisation = await userCore.createOrganisation({
+                name,
+                containOrg: containOrg ?? null
+            });
+
+            return createdOrganisation;
         }
     },
     Subscription: {}

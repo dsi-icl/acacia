@@ -117,7 +117,7 @@ describe('STUDY API', () => {
                 type: userTypes.ADMIN,
                 firstname: 'Fadmin',
                 lastname: 'Ladmin',
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 email: 'admin@example.com',
                 description: 'I am an admin user.',
                 id: adminId,
@@ -234,7 +234,7 @@ describe('STUDY API', () => {
                 type: userTypes.ADMIN,
                 firstname: 'Fadmin',
                 lastname: 'Ladmin',
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 email: 'admin@example.com',
                 description: 'I am an admin user.',
                 id: adminId,
@@ -273,7 +273,7 @@ describe('STUDY API', () => {
                 type: userTypes.ADMIN,
                 firstname: 'Fadmin',
                 lastname: 'Ladmin',
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 email: 'admin@example.com',
                 description: 'I am an admin user.',
                 id: adminId,
@@ -459,7 +459,7 @@ describe('STUDY API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 deleted: null,
                 id: `new_user_id_${username}`,
                 createdAt: 1591134065000,
@@ -563,7 +563,7 @@ describe('STUDY API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 deleted: null,
                 id: `new_user_id_${username}`,
                 createdAt: 1591134065000,
@@ -924,7 +924,7 @@ describe('STUDY API', () => {
                     resetPasswordRequests: [],
                     description: 'I am an authorised project user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `AuthorisedProjectUser_${username}`,
                     createdAt: 1591134065000,
@@ -960,7 +960,7 @@ describe('STUDY API', () => {
                     permissions: [permissions.specific_project.specific_project_readonly_access],
                     users: [{
                         id: createdUserAuthorised.id,
-                        organisation: 'DSI',
+                        organisation: 'organisation_system',
                         firstname: createdUserAuthorised.firstname,
                         lastname: createdUserAuthorised.lastname
                     }]
@@ -981,7 +981,7 @@ describe('STUDY API', () => {
                     type: userTypes.STANDARD,
                     firstname: `${createdUserAuthorised.username}_firstname`,
                     lastname: `${createdUserAuthorised.username}_lastname`,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
                         projects: [{
@@ -1008,7 +1008,7 @@ describe('STUDY API', () => {
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `AuthorisedStudyUser_${username}`,
                     createdAt: 1591134065000,
@@ -1044,7 +1044,7 @@ describe('STUDY API', () => {
                     permissions: [permissions.specific_study.specific_study_readonly_access],
                     users: [{
                         id: createdUserAuthorisedStudy.id,
-                        organisation: 'DSI',
+                        organisation: 'organisation_system',
                         firstname: createdUserAuthorisedStudy.firstname,
                         lastname: createdUserAuthorisedStudy.lastname
                     }]
@@ -1065,7 +1065,7 @@ describe('STUDY API', () => {
                     type: userTypes.STANDARD,
                     firstname: `${createdUserAuthorisedStudy.username}_firstname`,
                     lastname: `${createdUserAuthorisedStudy.username}_lastname`,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
                         projects: [{
@@ -1095,7 +1095,7 @@ describe('STUDY API', () => {
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user managing project.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `AuthorisedStudyUserManageProject_${username}`,
                     createdAt: 1591134065000,
@@ -1132,7 +1132,7 @@ describe('STUDY API', () => {
                     permissions: [permissions.specific_study.specific_study_projects_management],
                     users: [{
                         id: createdUserAuthorisedStudyManageProjects.id,
-                        organisation: 'DSI',
+                        organisation: 'organisation_system',
                         firstname: createdUserAuthorisedStudyManageProjects.firstname,
                         lastname: createdUserAuthorisedStudyManageProjects.lastname
                     }]
@@ -1153,7 +1153,7 @@ describe('STUDY API', () => {
                     type: userTypes.STANDARD,
                     firstname: `${createdUserAuthorisedStudyManageProjects.username}_firstname`,
                     lastname: `${createdUserAuthorisedStudyManageProjects.username}_lastname`,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
                         projects: [{
@@ -1176,7 +1176,7 @@ describe('STUDY API', () => {
                     type: userTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     email: 'admin@example.com',
                     description: 'I am an admin user.',
                     id: adminId,
@@ -1249,7 +1249,7 @@ describe('STUDY API', () => {
                     type: userTypes.ADMIN,
                     firstname: 'Fadmin',
                     lastname: 'Ladmin',
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     email: 'admin@example.com',
                     description: 'I am an admin user.',
                     id: adminId,
@@ -1333,7 +1333,7 @@ describe('STUDY API', () => {
                             studyId: createdStudy.id,
                             users: [{
                                 id: createdUserAuthorisedStudy.id,
-                                organisation: 'DSI',
+                                organisation: 'organisation_system',
                                 firstname: createdUserAuthorisedStudy.firstname,
                                 lastname: createdUserAuthorisedStudy.lastname,
                                 username: createdUserAuthorisedStudy.username
@@ -1347,7 +1347,7 @@ describe('STUDY API', () => {
                             studyId: createdStudy.id,
                             users: [{
                                 id: createdUserAuthorisedStudyManageProjects.id,
-                                organisation: 'DSI',
+                                organisation: 'organisation_system',
                                 firstname: createdUserAuthorisedStudyManageProjects.firstname,
                                 lastname: createdUserAuthorisedStudyManageProjects.lastname,
                                 username: createdUserAuthorisedStudyManageProjects.username
@@ -1412,7 +1412,7 @@ describe('STUDY API', () => {
                             studyId: createdStudy.id,
                             users: [{
                                 id: createdUserAuthorised.id,
-                                organisation: 'DSI',
+                                organisation: 'organisation_system',
                                 firstname: createdUserAuthorised.firstname,
                                 lastname: createdUserAuthorised.lastname,
                                 username: createdUserAuthorised.username
@@ -2012,7 +2012,7 @@ describe('STUDY API', () => {
                 email: 'user@ic.ac.uk',
                 firstname: 'FDataCurator',
                 lastname: 'LDataCurator',
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 type: userTypes.STANDARD,
                 description: 'just a data curator',
                 resetPasswordRequests: [],

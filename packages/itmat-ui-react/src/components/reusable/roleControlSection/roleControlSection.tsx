@@ -10,13 +10,13 @@ import {
     REMOVE_ROLE,
     GET_USERS,
     GET_PROJECT,
-    GET_STUDY
+    GET_STUDY,
+    GET_ORGANISATIONS
 } from 'itmat-commons';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button, Form, Input, Alert, Popconfirm } from 'antd';
 import { LoadingOutlined, TagOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import { sites } from '../../datasetDetail/tabContent/files/fileTab';
 
 type RoleControlSectionProps = {
     studyId: string;
@@ -248,6 +248,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
 }) => {
 
     const [editUsers, { loading }] = useMutation(EDIT_ROLE);
+    const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
 
     const handleSelect = (value: string) => {
         return editUsers({
@@ -311,6 +312,19 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
             </Tag>
         );
     };
+
+    if (getOrgsLoading)
+        return <LoadSpinner />;
+
+    if (getOrgsError)
+        return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
+            A error occured, please contact your administrator: {getOrgsError.message}
+        </div>;
+
+    const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
+        ...prev,
+        [current.metadata.siteIDMarker]: current.name
+    }), {});
 
     return (
         <Select

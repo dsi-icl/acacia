@@ -1,13 +1,11 @@
 import React from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IUserWithoutToken, userTypes, GET_STUDY } from 'itmat-commons';
+import { IUserWithoutToken, userTypes, Models, GQLRequests, GET_STUDY } from 'itmat-commons';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
-import { GQLRequests } from 'itmat-commons';
 import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm } from 'antd';
-import { sites } from '../datasetDetail/tabContent/files/fileTab';
 import moment from 'moment';
 import { RouteComponentProps } from 'react-router-dom';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
@@ -17,7 +15,8 @@ const {
     DELETE_USER,
     EDIT_USER,
     GET_USERS,
-    REQUEST_USERNAME_OR_RESET_PASSWORD
+    REQUEST_USERNAME_OR_RESET_PASSWORD,
+    GET_ORGANISATIONS
 } = GQLRequests;
 
 type UserDetailsSectionProps = RouteComponentProps<{
@@ -114,6 +113,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
     const [requestResetPassword] = useMutation(REQUEST_USERNAME_OR_RESET_PASSWORD, { onCompleted: () => { setRequestResetPasswordSent(true); } });
     const [requestResetPasswordSent, setRequestResetPasswordSent] = React.useState(false);
+    const { loading: getorgsloading, error: getorgserror, data: getorgsdata } = useQuery(GET_ORGANISATIONS);
 
     function formatSubmitObj(variables) {
         const final = {
@@ -133,6 +133,10 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
         return current && (current < moment().endOf('day') || current > moment().add(3, 'months'));
     };
 
+    if (getorgsloading) { return <p>Loading..</p>; }
+    if (getorgserror) { return <p>ERROR: please try again.</p>; }
+    const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
+
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
@@ -144,6 +148,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         ...user,
                         createdAt: moment(user.createdAt),
                         expiredAt: moment(user.expiredAt),
+                        organisation: orgList.find(org => org.id === user.organisation)?.name
                     }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
                         <Form.Item name='username' label='Username'>
                             <Input disabled />
@@ -158,8 +163,10 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                             <Input disabled />
                         </Form.Item>
                         <Form.Item name='organisation' label='Organisation'>
-                            <Select disabled>
-                                {Object.entries(sites).map((site) => <Select.Option key={site[0]} value={site[0]}>{site[1]}</Select.Option>)}
+                            <Select placeholder='Organisation' showSearch filterOption={(input, option) =>
+                                option?.children?.toLocaleString()?.toLocaleLowerCase()?.includes(input.toLocaleLowerCase()) ?? false
+                            }>
+                                {orgList.map((org) => <Select.Option key={org.id} value={org.id}>{org.name}</Select.Option>)}
                             </Select>
                         </Form.Item>
                         <Form.Item name='createdAt' label='Created On'>

@@ -54,7 +54,7 @@ describe('PERMISSION CORE CLASS', () => {
                     email: 'new1@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_1'
                 },
@@ -68,7 +68,7 @@ describe('PERMISSION CORE CLASS', () => {
                     email: 'new2@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_2'
                 },
@@ -82,7 +82,7 @@ describe('PERMISSION CORE CLASS', () => {
                     email: 'new3@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_3'
                 },
@@ -96,7 +96,7 @@ describe('PERMISSION CORE CLASS', () => {
                     email: 'new4@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_4'
                 },
@@ -110,7 +110,7 @@ describe('PERMISSION CORE CLASS', () => {
                     email: 'new5@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_5'
                 }

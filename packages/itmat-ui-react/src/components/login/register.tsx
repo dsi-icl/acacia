@@ -1,18 +1,25 @@
 import * as React from 'react';
-import { useMutation } from '@apollo/client/react/hooks';
+import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { NavLink, useHistory } from 'react-router-dom';
-import { CREATE_USER } from 'itmat-commons';
+import { GQLRequests, Models, CREATE_USER } from 'itmat-commons';
 import { Input, Form, Button, Alert, Checkbox, Select } from 'antd';
 import css from './login.module.css';
-import { sites } from '../datasetDetail/tabContent/files/fileTab';
+const {
+    GET_ORGANISATIONS
+} = GQLRequests;
 
 export const RegisterNewUser: React.FunctionComponent = () => {
-
     const history = useHistory();
     const [completedCreation, setCompletedCreation] = React.useState(false);
     const [createUser, { loading, error }] = useMutation(CREATE_USER,
         { onCompleted: () => setCompletedCreation(true) }
     );
+
+    // Get list of organisations from server
+    const { loading: getorgsloading, error: getorgserror, data: getorgsdata } = useQuery(GET_ORGANISATIONS);
+    if (getorgsloading) { return <p>Loading..</p>; }
+    if (getorgserror) { return <p>ERROR: please try again.</p>; }
+    const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
 
     if (completedCreation) {
         return (
@@ -76,8 +83,10 @@ export const RegisterNewUser: React.FunctionComponent = () => {
                             <Input placeholder='Lastname' />
                         </Form.Item>
                         <Form.Item name='organisation' hasFeedback rules={[{ required: true, message: 'Please select your organisation' }]}>
-                            <Select placeholder='Organisation'>
-                                {Object.entries(sites).map((site) => <Select.Option key={site[0]} value={site[0]}>{site[1]}</Select.Option>)}
+                            <Select placeholder='Organisation' showSearch filterOption={(input, option) =>
+                                option?.children?.toLocaleString()?.toLocaleLowerCase()?.includes(input.toLocaleLowerCase()) ?? false
+                            }>
+                                {orgList.map((org) => <Select.Option key={org.id} value={org.id}>{org.name}</Select.Option>)}
                             </Select>
                         </Form.Item>
                         <Form.Item name='emailNotificationsActivated' valuePropName='checked'>

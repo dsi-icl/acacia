@@ -67,6 +67,19 @@ type User {
     access: UserAccess # admin or self only
 }
 
+type OrganisationMetadata {
+    siteIDMarker: String
+}
+
+type Organisation {
+    id: String!
+    name: String!
+    shortname: String
+    containOrg: String
+    deleted: String
+    metadata: OrganisationMetadata
+}
+
 type StudyOrProjectUserRole {
     id: String!
     name: String!
@@ -310,6 +323,9 @@ type Query {
     getUsers(userId: String): [User]
     validateResetPassword(encryptedEmail: String!, token: String!): GenericResponse
 
+    # ORGANISATION
+    getOrganisations(organisationId: String): [Organisation]
+
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
@@ -338,6 +354,9 @@ type Mutation {
     ): GenericResponse
     resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
     createUser(user: CreateUserInput!): GenericResponse
+
+    # ORGANISATION
+    createOrganisation(name: String!, containOrg: String): Organisation
 
     # APP USERS
     editUser(user: EditUserInput!): User

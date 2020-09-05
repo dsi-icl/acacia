@@ -9,7 +9,15 @@ const uploadLink = createUploadLink({
 }) as any as ApolloLink;
 
 const cache = new InMemoryCache({
-    dataIdFromObject: (object) => `${object.__typename || 'undefined_typeName'}___${object.id || 'undefined_id'}`
+    dataIdFromObject: (object) => {
+        switch (object.__typename) {
+            case 'OrganisationMetadata':
+                return `${object.siteIDMarker}`;
+            default:
+                return `${object.__typename || 'undefined_typeName'}___${object.id || 'undefined_id'}`;
+
+        }
+    }
 });
 
 export const client = new ApolloClient({

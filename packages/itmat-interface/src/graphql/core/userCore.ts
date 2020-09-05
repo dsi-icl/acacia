@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { ApolloError } from 'apollo-server-core';
-import { IUser, IUserWithoutToken, userTypes, Models } from 'itmat-commons';
+import { IUser, IUserWithoutToken, userTypes, Models, IOrganisation } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
 
@@ -75,6 +75,25 @@ export class UserCore {
             await session.abortTransaction();
             session.endSession();
             throw new ApolloError(`Database error: ${JSON.stringify(error)}`);
+        }
+    }
+
+    public async createOrganisation(org: { name: string, shortname?: string, containOrg: string | null }): Promise<IOrganisation> {
+        const { name, shortname, containOrg } = org;
+        const entry: IOrganisation = {
+            id: uuid(),
+            name,
+            shortname,
+            containOrg,
+            deleted: null,
+            metadata: {}
+        };
+
+        const result = await db.collections!.organisations_collection.insertOne(entry);
+        if (result.result.ok === 1) {
+            return entry;
+        } else {
+            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
         }
     }
 }
