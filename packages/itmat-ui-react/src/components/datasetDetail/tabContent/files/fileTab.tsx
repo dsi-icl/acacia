@@ -3,9 +3,9 @@ import { Button, Upload, notification, Tag, Table, Form, Input, DatePicker } fro
 import { RcFile } from 'antd/lib/upload';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Query, Mutation } from '@apollo/client/react/components';
-import { useApolloClient, useMutation } from '@apollo/client/react/hooks';
+import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
-import { GET_STUDY, DELETE_STUDY, UPLOAD_FILE, WHO_AM_I } from 'itmat-commons';
+import { GET_STUDY, DELETE_STUDY, UPLOAD_FILE, WHO_AM_I, GET_ORGANISATIONS } from 'itmat-commons';
 import { FileList } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
@@ -23,14 +23,6 @@ type StudyFile = RcFile & {
     startDate?: Moment;
     endDate?: Moment;
 }
-
-export const sites = {
-    I: 'Imperial College London',
-    N: 'Newcastle',
-    K: 'Kiel',
-    G: 'GHI Muenster',
-    E: 'EMC Rotterdam'
-};
 
 export const deviceTypes = {
     AX6: 'Axivity',
@@ -53,6 +45,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const [isUploading, setIsUploading] = useState(false);
     const store = useApolloClient();
     const [deleteButtonShown, setDeleteButtonShown] = React.useState(false);
+    const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
 
     // let { loading, progress, error } = useUpload(files, {
     //     mutation: UPLOAD_FILE,
@@ -279,6 +272,19 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             };
         });
 
+    if (getOrgsLoading)
+        return <LoadSpinner />;
+
+    if (getOrgsError)
+        return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
+            A error occured, please contact your administrator: {getOrgsError.message}
+        </div>;
+
+    const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
+        ...prev,
+        [current.metadata.siteIDMarker]: current.name
+    }), {});
+
     return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input {...getInputProps()} />
 
@@ -427,6 +433,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
     const inputRef = useRef<Input>(null);
     const rangeRef = useRef<any>(null);
     const form = useContext(EditableContext);
+    const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
 
     useEffect(() => {
         if (editable && !editing) {
@@ -443,6 +450,19 @@ const EditableCell: React.FC<EditableCellProps> = ({
             // console.error(errInfo);
         }
     };
+
+    if (getOrgsLoading)
+        return <LoadSpinner />;
+
+    if (getOrgsError)
+        return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
+            A error occured, please contact your administrator: {getOrgsError.message}
+        </div>;
+
+    const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
+        ...prev,
+        [current.metadata.siteIDMarker]: current.name
+    }), {});
 
     let childNode = children;
 

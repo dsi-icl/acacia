@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react/hooks';
 import { Table, Button, notification, Input } from 'antd';
-import { IFile, DELETE_FILE, WHO_AM_I, userTypes } from 'itmat-commons';
+import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS } from 'itmat-commons';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
 import moment from 'moment';
-import { sites, deviceTypes } from '../../datasetDetail/tabContent/files/fileTab';
+import { deviceTypes } from '../../datasetDetail/tabContent/files/fileTab';
 import Highlighter from 'react-highlight-words';
+import LoadSpinner from '../loadSpinner';
 
 export function formatBytes(size: number, decimal = 2): string {
     if (size === 0) {
@@ -34,6 +35,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             });
         }
     });
+    const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
 
     const deletionHandler = (fileId: string) => {
         setIsDeleting({
@@ -47,6 +49,17 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             refetchQueries: ['getStudy']
         });
     };
+
+    if (getOrgsLoading)
+        return <LoadSpinner />;
+
+    if (getOrgsError)
+        return <>A error occured, please contact your administrator: {getOrgsError.message}</>;
+
+    const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
+        ...prev,
+        [current.metadata.siteIDMarker]: current.shortname ?? current.name
+    }), {});
 
     const columns = [
         {
