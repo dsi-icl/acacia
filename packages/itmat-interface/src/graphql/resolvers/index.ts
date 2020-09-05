@@ -5,6 +5,7 @@ import { permissionResolvers } from './permissionResolvers';
 import { queryResolvers } from './queryResolvers';
 import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
+import { organisationResolvers } from './organisationResolvers';
 import { ApolloError } from 'apollo-server-core';
 import { errorCodes } from '../errors';
 import { IUser } from 'itmat-commons';
@@ -17,6 +18,7 @@ const modules = [
     permissionResolvers,
     jobResolvers,
     fileResolvers,
+    organisationResolvers,
     logResolvers
 ];
 

@@ -30,10 +30,3 @@ export interface IUser extends IUserWithoutToken {
     password: string;
     otpSecret: string;
 }
-
-export interface IOrganisation {
-    id: string;
-    name: string;
-    containOrg: string | null;
-    deleted: number | null;
-}

@@ -72,24 +72,3 @@ export const DELETE_USER = gql`
         }
     }
 `;
-
-export const GET_ORGANISATIONS = gql`
-    query getOrganisations($organisationId: String) {
-        getOrganisations(organisationId: $organisationId) {
-            id
-            name
-            containOrg
-            deleted
-        }
-    }
-`;
-
-export const CREATE_ORGANISATION = gql`
-    mutation createOrganisation($name: String!, $containOrg: String) {
-        createOrganisation(name: $name, containOrg: $containOrg) {
-            id            
-            name
-            containOrg
-        }
-    }
-`;

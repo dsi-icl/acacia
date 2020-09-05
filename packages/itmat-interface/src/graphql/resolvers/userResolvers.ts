@@ -36,12 +36,6 @@ export const userResolvers = {
             const cursor = db.collections!.users_collection.find<IUser>(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
         },
-        getOrganisations: async (__unused__parent: Record<string, unknown>, args: any): Promise<IOrganisation[]> => {
-            // everyone is allowed to see all organisations in the app.
-            const queryObj = args.organisationId === undefined ? { deleted: null } : { deleted: null, id: args.organisationId };
-            const cursor = db.collections!.organisations_collection.find<IOrganisation>(queryObj, { projection: { _id: 0 } });
-            return cursor.toArray();
-        },
         validateResetPassword: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
             /* decrypt email */
             const salt = makeAESKeySalt(args.token);
@@ -231,7 +225,7 @@ export const userResolvers = {
 
             // validate the TOTP
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
-            if (!totpValidated) {
+            if (!totpValidated && process.env.NODE_ENV === 'production') {
                 throw new UserInputError('Incorrect One-Time password.');
             }
 
@@ -535,7 +529,7 @@ export const userResolvers = {
 
             const createdOrganisation = await userCore.createOrganisation({
                 name,
-                containOrg: containOrg ?? ''
+                containOrg: containOrg ?? null
             });
 
             return createdOrganisation;
