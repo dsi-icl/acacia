@@ -63,7 +63,7 @@
         "itmat-setup": "0.0.1",
         "jest": "26.4.2",
         "mongodb-memory-server": "6.6.3",
-        "node-fetch": "2.6.0",
+        "node-fetch": "2.6.1",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
