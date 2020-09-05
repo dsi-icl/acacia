@@ -45,6 +45,7 @@ export const GET_STUDY = gql`
                 projectId
                 fileSize
                 description
+                uploadTime
                 uploadedBy
             }
             numOfSubjects

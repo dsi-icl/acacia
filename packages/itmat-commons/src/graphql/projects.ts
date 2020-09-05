@@ -42,6 +42,7 @@ export const GET_PROJECT = gql`
                 projectId
                 fileSize
                 description
+                uploadTime
                 uploadedBy
             }
         }
