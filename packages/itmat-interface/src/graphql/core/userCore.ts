@@ -78,13 +78,15 @@ export class UserCore {
         }
     }
 
-    public async createOrganisation(org: { name: string, containOrg: string }): Promise<IOrganisation> {
-        const { name, containOrg } = org;
-        const entry: Models.UserModels.IOrganisation = {
+    public async createOrganisation(org: { name: string, shortname?: string, containOrg: string | null }): Promise<IOrganisation> {
+        const { name, shortname, containOrg } = org;
+        const entry: IOrganisation = {
             id: uuid(),
             name,
+            shortname,
             containOrg,
-            deleted: null
+            deleted: null,
+            metadata: {}
         };
 
         const result = await db.collections!.organisations_collection.insertOne(entry);

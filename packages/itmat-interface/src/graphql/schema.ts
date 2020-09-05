@@ -67,11 +67,17 @@ type User {
     access: UserAccess # admin or self only
 }
 
+type OrganisationMetadata {
+    siteIDMarker: String
+}
+
 type Organisation {
     id: String!
-    name: String!    
+    name: String!
+    shortname: String
     containOrg: String
     deleted: String
+    metadata: OrganisationMetadata
 }
 
 type StudyOrProjectUserRole {
