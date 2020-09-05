@@ -42,10 +42,6 @@ export const RegisterNewUser: React.FunctionComponent = () => {
         );
     }
 
-    console.error('PLOP>', error);
-    console.error('PLOP GRA>', error?.graphQLErrors);
-    console.error('PLOP NET>', error?.networkError);
-
     return (
         <div className={css.login_wrapper}>
             <div className={css.login_box}>
