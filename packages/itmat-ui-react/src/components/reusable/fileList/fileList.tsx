@@ -114,6 +114,13 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             }
         },
         {
+            title: 'Uploaded',
+            dataIndex: 'uploadTime',
+            key: 'uploadTime',
+            render: (value) => moment(parseInt(value)).format('YYYY-MM-DD'),
+            sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
+        },
+        {
             title: 'Size',
             dataIndex: 'fileSize',
             render: (size) => formatBytes(size),
@@ -149,7 +156,12 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
         <br />
         <br />
-        <Table rowKey={(rec) => rec.id} pagination={false} columns={columns} dataSource={files.filter(file => !searchTerm || file.description.search(searchTerm) > -1)} size='small' />
+        <Table
+            rowKey={(rec) => rec.id}
+            pagination={false}
+            columns={columns}
+            dataSource={files.filter(file => !searchTerm || file.description.search(searchTerm) > -1).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime))}
+            size='small' />
     </>;
 
 };

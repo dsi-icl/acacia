@@ -5,6 +5,7 @@ export interface IFile {
     projectId?: string;
     fileSize?: number;
     description: string;
+    uploadTime: string;
     uploadedBy: string;  // userId
     uri: string;
     deleted: number | null;

@@ -280,7 +280,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
         ...prev,
-        [current.metadata.siteIDMarker]: current.name
+        [current.metadata.siteIDMarker]: current.shortname ?? current.name
     }), {});
 
     return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>

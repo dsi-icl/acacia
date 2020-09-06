@@ -48,9 +48,9 @@ function serverSpinning() {
         });
         interfaceSockets = [];
         console.info(`Shuting down server ${interfaceIteration} ...`);
-        interfaceRouter.close(() => {
+        interfaceRouter?.close(() => {
             serverStart();
-        });
+        }) || serverStart();
     } else {
         serverStart();
     }
@@ -61,4 +61,6 @@ serverSpinning();
 if (module.hot) {
     module.hot.accept('./index', serverSpinning);
     module.hot.accept('./interfaceServer', serverSpinning);
+    module.hot.accept('./index.ts', serverSpinning);
+    module.hot.accept('./interfaceServer.ts', serverSpinning);
 }

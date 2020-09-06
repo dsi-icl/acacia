@@ -96,6 +96,7 @@ type File {
     projectId: String
     fileSize: Int
     description: String!
+    uploadTime: String!
     uploadedBy: String!
 }
 

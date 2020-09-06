@@ -762,6 +762,7 @@ describe('STUDY API', () => {
                         studyId: createdStudy.id,
                         fileSize: 1000,
                         description: 'Just a test file1',
+                        uploadTime: '1599345644000',
                         uploadedBy: adminId,
                         uri: 'fakeuri',
                         deleted: null
@@ -772,6 +773,7 @@ describe('STUDY API', () => {
                         studyId: createdStudy.id,
                         fileSize: 1000,
                         description: 'Just a test file2',
+                        uploadTime: '1599345644000',
                         uploadedBy: adminId,
                         uri: 'fakeuri2',
                         deleted: null
@@ -1362,6 +1364,7 @@ describe('STUDY API', () => {
                             projectId: null,
                             fileSize: 1000,
                             description: 'Just a test file1',
+                            uploadTime: '1599345644000',
                             uploadedBy: adminId
                         },
                         {
@@ -1371,6 +1374,7 @@ describe('STUDY API', () => {
                             projectId: null,
                             fileSize: 1000,
                             description: 'Just a test file2',
+                            uploadTime: '1599345644000',
                             uploadedBy: adminId
                         }
                     ],
