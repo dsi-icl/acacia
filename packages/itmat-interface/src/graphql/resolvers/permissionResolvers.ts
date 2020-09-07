@@ -1,6 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { IRole } from 'itmat-commons/dist/models/study';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { IUser, IRole } from 'itmat-commons';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
@@ -36,7 +35,7 @@ export const permissionResolvers = {
     StudyOrProjectUserRole: {
         users: async (role: IRole): Promise<IUser[]> => {
             const listOfUsers = role.users;
-            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
+            return await (db.collections!.users_collection.find<IUser>({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
         }
     },
     Mutation: {

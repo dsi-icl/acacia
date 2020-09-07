@@ -1,4 +1,4 @@
-import { Database, IDatabaseBaseConfig } from 'itmat-utils';
+import { Database, IDatabaseBaseConfig } from 'itmat-commons';
 
 export interface IDatabaseConfig extends IDatabaseBaseConfig {
     collections: {
@@ -10,6 +10,7 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
         field_dictionary_collection: string,
         roles_collection: string,
         files_collection: string,
+        organisations_collection: string,
         log_collection: string
     };
 }

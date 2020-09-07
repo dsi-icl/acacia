@@ -2,7 +2,7 @@ import { db } from '../../src/database/database';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
 import { permissionCore } from '../../src/graphql/core/permissionCore';
 const { permissions, task_required_permissions } = itmatCommons;
@@ -27,7 +27,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database);
+    await db.connect(config.database, MongoClient.connect);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString, {
@@ -47,70 +47,70 @@ describe('PERMISSION CORE CLASS', () => {
                 {
                     username: 'new_user_1',
                     type: 'STANDARD',
-                    realName: 'real_name_1',
+                    firstname: 'Freal_name_1',
+                    lastname: 'Lreal_name_1',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: 'new1@user.io',
+                    email: 'new1@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_1'
                 },
                 {
                     username: 'new_user_2',
                     type: 'STANDARD',
-                    realName: 'real_name_2',
+                    firstname: 'Freal_name_2',
+                    lastname: 'Lreal_name_2',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: 'new2@user.io',
+                    email: 'new2@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_2'
                 },
                 {
                     username: 'new_user_3',
                     type: 'STANDARD',
-                    realName: 'real_name_3',
+                    firstname: 'Freal_name_3',
+                    lastname: 'Lreal_name_3',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: 'new3@user.io',
+                    email: 'new3@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_3'
                 },
                 {
                     username: 'new_user_4',
                     type: 'STANDARD',
-                    realName: 'real_name_4',
+                    firstname: 'Freal_name_4',
+                    lastname: 'Lreal_name_4',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: 'new4@user.io',
+                    email: 'new4@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_4'
                 },
                 {
                     username: 'new_user_5',
                     type: 'STANDARD',
-                    realName: 'real_name_5',
+                    firstname: 'Freal_name_5',
+                    lastname: 'Lreal_name_5',
                     password: 'fake_password',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: 'new5@user.io',
+                    email: 'new5@example.com',
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: 'new_user_id_5'
                 }

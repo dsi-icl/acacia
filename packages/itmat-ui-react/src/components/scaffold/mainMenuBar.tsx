@@ -1,40 +1,50 @@
-import { ProjectOutlined, DatabaseOutlined, TeamOutlined, PoweroffOutlined } from '@ant-design/icons';
-import { IProject } from 'itmat-commons/dist/models/study';
 import * as React from 'react';
-import { Mutation, Query } from 'react-apollo';
+import { Query, Mutation } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
-import { LOGOUT, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
-import { GET_GRANTED_PERMISSIONS } from 'itmat-commons/dist/graphql/permission';
+import { LOGOUT, WHO_AM_I, IProject, userTypes } from 'itmat-commons';
 import css from './scaffold.module.css';
-import { LoadingBalls } from '../reusable/icons/loadingBalls';
+import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined } from '@ant-design/icons';
+import LoadSpinner from '../reusable/loadSpinner';
 
 type MainMenuBarProps = {
-    projects: IProject[]
+    projects: IProject[];
 }
-export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ projects }) => (
+export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ projects: __unused__projects }) => (
     <div className={css.main_menubar}>
+        {/*
         <div>
-            <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title="Projects" activeClassName={css.clickedButton}>
+            <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title='Projects' activeClassName={css.clickedButton}>
                 <div className={css.button}><ProjectOutlined /> Projects</div>
             </NavLink>
         </div>
+        */}
 
         <div>
-            <NavLink to="/datasets" title="Datasets" activeClassName={css.clickedButton}>
+            <NavLink to='/datasets' title='Datasets' activeClassName={css.clickedButton}>
                 <div className={css.button}><DatabaseOutlined /> Datasets</div>
             </NavLink>
         </div>
-        <Query<any, any> query={GET_GRANTED_PERMISSIONS}>
-            {({ loading, error }) => {
-                if (loading) return <LoadingBalls />;
+        <Query<any, any> query={WHO_AM_I}>
+            {({ loading, error, data }) => {
+                if (loading) return <LoadSpinner />;
                 if (error) return <p>{error.toString()}</p>;
-                return (
-                    <div>
-                        <NavLink to="/users" title="Users" activeClassName={css.clickedButton}>
-                            <div className={css.button}><TeamOutlined /> Users</div>
-                        </NavLink>
-                    </div>
-                );
+                if (data.whoAmI.type === userTypes.ADMIN)
+                    return (
+                        <>
+                            <div>
+                                <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
+                                    <div className={css.button}><TeamOutlined /> Users</div>
+                                </NavLink>
+                            </div>
+
+                            <div>
+                                <NavLink to='/logs' title='Logs' activeClassName={css.clickedButton}>
+                                    <div className={css.button}><HistoryOutlined /> Logs</div>
+                                </NavLink>
+                            </div>
+                        </>
+                    );
+                return null;
             }}
         </Query>
         {/*
@@ -51,7 +61,7 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
         </div>
         */}
         <div>
-            <NavLink title="Logout" to="/logout" id="logoutButton">
+            <NavLink title='Logout' to='/'>
                 <Mutation<any, any>
                     mutation={LOGOUT}
                     update={(cache, { data: { logout } }) => {

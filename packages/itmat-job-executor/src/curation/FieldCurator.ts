@@ -1,11 +1,8 @@
 import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
-import { Writable } from 'stream';
+import { Writable, Readable } from 'stream';
 import { v4 as uuid } from 'uuid';
-import { Models } from 'itmat-commons';
-type IJobEntryForFieldCuration = Models.JobModels.IJobEntryForFieldCuration;
-type IFieldEntry = Models.Field.IFieldEntry;
-type enumValueType = Models.Field.enumValueType;
+import { Models, IJobEntryForFieldCuration, IFieldEntry, enumValueType } from 'itmat-commons';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -13,13 +10,13 @@ type enumValueType = Models.Field.enumValueType;
 const CORRECT_NUMBER_OF_COLUMN = 11;
 
 export class FieldCurator {
-    private _errored: boolean; // eslint:disable-line
-    private _errors: string[]; // eslint:disable-line
-    private _numOfFields: number; // eslint:disable-line
+    private _errored: boolean;
+    private _errors: string[];
+    private _numOfFields: number;
 
     constructor(
         private readonly fieldCollection: Collection,
-        private readonly incomingWebStream: NodeJS.ReadableStream,
+        private readonly incomingWebStream: Readable,
         private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
         private readonly job: IJobEntryForFieldCuration,
         private readonly fieldTreeId: string
@@ -122,7 +119,7 @@ export class FieldCurator {
     }
 }
 
-export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } { // eslint:disable-line
+export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } {
     /* pure function */
     const error: string[] = [];
     const dataEntry_nouse: any = {};

@@ -1,11 +1,10 @@
-import { IFile } from 'itmat-commons/dist/models/file';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
+import { IFile, IJobEntry, IStudyDataVersion } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
 import { CSVCurator } from '../curation/CSVCurator';
+import { Readable } from 'stream';
 
 export class UKB_CSV_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_CSV_UPLOAD_Handler;
@@ -23,7 +22,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
         if (!file) {
             // throw error
         }
-        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
+        const fileStream: Readable = await objStore.downloadFile(job.studyId, file.uri);
         const versionId: string = uuid();
         const csvcurator = new CSVCurator(
             db.collections!.data_collection,
@@ -33,7 +32,6 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
             versionId
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
-
 
         if (errors.length !== 0) {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors } });
@@ -58,8 +56,6 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
             $inc: {
                 currentDataVersion: 1
             }
-
         });
     }
-
 }

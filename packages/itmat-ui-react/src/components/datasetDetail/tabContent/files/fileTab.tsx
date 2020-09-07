@@ -1,28 +1,57 @@
-import React, { useState } from 'react';
-import { Button, Upload, notification } from 'antd';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { Button, Upload, notification, Tag, Table, Form, Input, DatePicker } from 'antd';
 import { RcFile } from 'antd/lib/upload';
-import { UploadOutlined } from '@ant-design/icons';
-import { Query, useApolloClient, useMutation } from 'react-apollo';
+import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Query } from '@apollo/client/react/components';
+import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
-import { UPLOAD_FILE } from 'itmat-commons/dist/graphql/files';
+import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS } from 'itmat-commons';
 import { FileList } from '../../../reusable/fileList/fileList';
-import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
-import { ApolloError } from 'apollo-client';
+import { ApolloError } from '@apollo/client/errors';
+import { validate } from '@ideafast/idgen';
+import moment, { Moment } from 'moment';
+import { v4 as uuid } from 'uuid';
+
+type StudyFile = RcFile & {
+    uuid: string;
+    participantId?: string;
+    deviceId?: string;
+    startDate?: Moment;
+    endDate?: Moment;
+}
+
+export const deviceTypes = {
+    AX6: 'Axivity',
+    BVN: 'Biovotion',
+    BTF: 'Byteflies',
+    MMM: 'McRoberts',
+    DRM: 'Dreem',
+    VTP: 'VitalPatch',
+    BED: 'VTT Bed Sensor',
+    YSM: 'ZKOne',
+    MBT: 'Mbient',
+};
+
+const { RangePicker } = DatePicker;
 
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
 
     const [isDropOverlayShowing, setisDropOverlayShowing] = useState(false);
-    const [fileList, setFileList] = useState<RcFile[]>([]);
+    const [fileList, setFileList] = useState<StudyFile[]>([]);
     const [isUploading, setIsUploading] = useState(false);
-    const [description, setDescription] = React.useState('');
     const store = useApolloClient();
+    const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
+
+    // let { loading, progress, error } = useUpload(files, {
+    //     mutation: UPLOAD_FILE,
+    //     variables: { input: { files, name: 'test' } },
+    // });
 
     const [uploadFile] = useMutation(UPLOAD_FILE, {
         onCompleted: ({ uploadFile }) => {
-            setDescription('');
             const cachedata = store.readQuery({
                 query: GET_STUDY,
                 variables: { studyId }
@@ -51,8 +80,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     const onDropLocal = (acceptedFiles: Blob[]) => {
         fileFilter(acceptedFiles.map(file => {
-            (file as RcFile).uid = `${Math.random()}`;
-            return file as RcFile;
+            return file as StudyFile;
         }));
     };
 
@@ -74,23 +102,61 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         onDropRejected
     });
 
-    const fileFilter = (files: RcFile[]) => {
-        setFileList([...fileList, ...files]);
+    const removeFile = (record: StudyFile): void => {
+        setFileList(fileList => {
+            const index = fileList.findIndex(file => file.uuid === record.uuid);
+            const newFileList = [...fileList];
+            newFileList.splice(index, 1);
+            return newFileList;
+        });
     };
 
+    const fileFilter = (files: StudyFile[]) => {
+        files.forEach((file) => {
+            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
+            const particules = file.name.match(matcher);
+            if (particules?.length === 8) {
+                if (Object.keys(sites).includes(particules[1].toUpperCase())
+                    && validate(particules[2].toUpperCase()))
+                    file.participantId = `${particules[1].toUpperCase()}${particules[2].toUpperCase()}`;
+                if (Object.keys(deviceTypes).includes(particules[3].toUpperCase())
+                    && validate(particules[4].toUpperCase()))
+                    file.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
+                const startDate = moment(particules[5], 'YYYYMMDD');
+                const endDate = moment(particules[6], 'YYYYMMDD');
+                if (startDate.isBefore(endDate)) {
+                    if (startDate.isValid())
+                        file.startDate = startDate;
+                    if (endDate.isValid())
+                        file.endDate = endDate;
+                }
+            }
+            file.uuid = uuid();
+            fileList.push(file);
+        });
+        setFileList([...fileList]);
+    };
+
+    const validFile = fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate);
     const uploadHandler = () => {
 
         const uploads: Promise<any>[] = [];
         setIsUploading(true);
-        fileList.forEach(file => {
+        validFile.forEach(file => {
             uploads.push(uploadFile({
                 variables: {
                     file,
                     studyId,
-                    description,
+                    description: JSON.stringify({
+                        participantId: file.participantId?.trim().toUpperCase(),
+                        deviceId: file.deviceId?.trim().toUpperCase(),
+                        startDate: file.startDate?.valueOf(),
+                        endDate: file.endDate?.valueOf(),
+                    }),
                     fileLength: file.size
                 }
             }).then(result => {
+                removeFile(file);
                 notification.success({
                     message: 'Upload succeeded!',
                     description: `File ${result.data.uploadFile.fileName} was successfully uploaded!`,
@@ -121,40 +187,321 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             return true;
         },
         fileList,
+        multiple: true,
+        showUploadList: false
     };
+
+    const handleSave = record => {
+        setFileList(fileList => {
+            const index = fileList.findIndex(file => file.uuid === record.uuid);
+            const newFileList = [...fileList];
+            const newFile = fileList[index];
+            newFile.participantId = record.participantId;
+            newFile.deviceId = record.deviceId;
+            newFile.startDate = record.startDate;
+            newFile.endDate = record.endDate;
+            newFileList.splice(index, 1, newFile);
+            return newFileList;
+        });
+    };
+
+    const columns = [
+        {
+            title: 'File name',
+            dataIndex: 'name',
+            key: 'fileName',
+            sorter: (a, b) => a.fileName.localeCompare(b.fileName)
+        },
+        {
+            title: 'Participant ID',
+            dataIndex: 'participantId',
+            key: 'pid',
+            editable: true,
+            width: '10rem'
+        },
+        {
+            title: 'Site',
+            dataIndex: 'siteId',
+            key: 'site',
+            render: (__unused__value, record) => record.participantId ? sites[record.participantId.substr(0, 1)] : null
+        },
+        {
+            title: 'Device ID',
+            dataIndex: 'deviceId',
+            key: 'did',
+            editable: true,
+            width: '12rem'
+        },
+        {
+            title: 'Device type',
+            dataIndex: 'deviceType',
+            key: 'stype',
+            render: (__unused__value, record) => record.deviceId ? deviceTypes[record.deviceId.substr(0, 3)] : null
+        },
+        {
+            title: 'Period',
+            dataIndex: 'period',
+            key: 'period',
+            editable: true,
+            width: '24rem'
+        },
+        {
+            key: 'delete',
+            render: (__unused__value, record) => <Button disabled={isUploading} type='primary' danger icon={<DeleteOutlined />} onClick={() => {
+                removeFile(record);
+            }}></Button>
+        }]
+        .map(col => {
+            if (!col.editable) {
+                return col;
+            }
+            return {
+                ...col,
+                onCell: record => ({
+                    record: {
+                        ...record,
+                        period: [record.startDate, record.endDate]
+                    },
+                    editable: col.editable,
+                    dataIndex: col.dataIndex,
+                    title: col.title,
+                    handleSave
+                }),
+            };
+        });
+
+    if (getOrgsLoading)
+        return <LoadSpinner />;
+
+    if (getOrgsError)
+        return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
+            A error occured, please contact your administrator: {getOrgsError.message}
+        </div>;
+
+    const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
+        ...prev,
+        [current.metadata.siteIDMarker]: current.shortname ?? current.name
+    }), {});
 
     return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input {...getInputProps()} />
-        <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title="Existing files">
-                <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
-                    {({ loading, data, error }) => {
-                        if (loading) { return <LoadingBalls />; }
-                        if (error) { return <p>{error.toString()}</p>; }
-                        if (!data.getStudy || !data.getStudy.files || data.getStudy.files.length === 0) {
-                            return <p>There seems to be no files for this study. You can start uploading files.</p>;
-                        }
-                        return <FileList files={data.getStudy.files} />;
-                    }}
-                </Query>
-            </Subsection>
-        </div>
-        <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title="Upload new file">
-                <Upload {...uploaderProps}>
-                    <Button>Select File</Button>
-                </Upload>
-                <Button
-                    icon={<UploadOutlined />}
-                    type="primary"
-                    onClick={uploadHandler}
-                    disabled={fileList.length === 0}
-                    loading={isUploading}
-                    style={{ marginTop: 16 }}
-                >
-                    {isUploading ? 'Uploading' : 'Upload'}
-                </Button>
-            </Subsection>
-        </div>
+
+        {fileList.length > 0
+            ?
+            <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
+                <Subsection title='Upload files'>
+                    <Upload {...uploaderProps}>
+                        <Button>Select more files</Button>
+                    </Upload>
+                    <br />
+                    <br />
+                    <Table
+                        rowKey={(rec) => rec.uuid}
+                        rowClassName={() => css.editable_row}
+                        pagination={false}
+                        columns={columns}
+                        dataSource={fileList}
+                        size='small'
+                        components={{ body: { row: EditableRow, cell: EditableCell } }} />
+                    <Button
+                        icon={<UploadOutlined />}
+                        type='primary'
+                        onClick={uploadHandler}
+                        disabled={fileList.length === 0}
+                        loading={isUploading}
+                        style={{ marginTop: 16 }}
+                    >
+                        {isUploading ? `Uploading (${validFile.length} ready of ${fileList.length})` : `Upload (${validFile.length} ready of ${fileList.length})`}
+                    </Button>
+                    &nbsp;&nbsp;&nbsp;
+                    <Button onClick={() => setFileList([])}>Cancel</Button>
+                </Subsection>
+            </div>
+            : <div className={`${css.tab_page_wrapper} ${css.both_panel} fade_in`}>
+                <Subsection title='Upload files'>
+                    <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+                        {({ loading, data, error }) => {
+                            if (loading || error)
+                                return <>To upload files you can click on the button below or drag and drop files directly from your hard drive.</>;
+                            return <>To upload files to <i>{data.getStudy.name}</i> you can click on the button below or drag and drop files directly from your hard drive.</>;
+                        }}
+                    </Query>
+                    <br />
+                    If the file name is of the form <Tag style={{ fontFamily: 'monospace' }}>XAAAAAA-DDDBBBBBB-00000000-00000000.EXT</Tag>we will extract metadata automatically. If not, you will be prompted to enter the relevant information.<br /><br />
+                    <Upload  {...uploaderProps}>
+                        <Button>Select files</Button>
+                    </Upload>
+                    <br />
+                    <br />
+                    <br />
+                </Subsection>
+                <Subsection title='Existing files'>
+                    <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+                        {({ loading, data, error }) => {
+                            if (loading) { return <LoadSpinner />; }
+                            if (error) { return <p>{error.toString()}</p>; }
+                            if (!data.getStudy || !data.getStudy.files || data.getStudy.files.length === 0) {
+                                return <p>There seems to be no files for this study. You can start uploading files.</p>;
+                            }
+                            return <FileList files={data.getStudy.files} />;
+                        }}
+                    </Query>
+                    <br />
+                    <br />
+                </Subsection>
+
+            </div>}
     </div>;
+};
+
+const EditableContext = React.createContext<any>({});
+
+type EditableRowProps = {
+    index: number;
+}
+
+const EditableRow: React.FC<EditableRowProps> = ({ index: __unused__index, ...props }) => {
+    const [form] = Form.useForm();
+
+    useEffect(() => {
+        form.validateFields();
+    });
+
+    return (
+        <Form form={form} component={false}>
+            <EditableContext.Provider value={form}>
+                <tr {...props} />
+            </EditableContext.Provider>
+        </Form>
+    );
+};
+
+interface EditableCellProps {
+    editable: boolean;
+    children: React.ReactNode;
+    dataIndex: string;
+    record: StudyFile;
+    handleSave: (record: StudyFile) => void;
+}
+
+const EditableCell: React.FC<EditableCellProps> = ({
+    editable,
+    children,
+    dataIndex,
+    record,
+    handleSave,
+    ...restProps
+}) => {
+    const [editing, setEditing] = useState(false);
+    const inputRef = useRef<Input>(null);
+    const rangeRef = useRef<any>(null);
+    const form = useContext(EditableContext);
+    const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
+
+    useEffect(() => {
+        if (editable && !editing) {
+            form.setFieldsValue(record);
+            setEditing(true);
+        }
+    }, [editable, editing, form, record]);
+
+    const save = async () => {
+        try {
+            const values = await form.validateFields();
+            handleSave({ ...record, ...values });
+        } catch (errInfo) {
+            // console.error(errInfo);
+        }
+    };
+
+    if (getOrgsLoading)
+        return <LoadSpinner />;
+
+    if (getOrgsError)
+        return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
+            A error occured, please contact your administrator: {getOrgsError.message}
+        </div>;
+
+    const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
+        ...prev,
+        [current.metadata.siteIDMarker]: current.name
+    }), {});
+
+    let childNode = children;
+
+    if (editing) {
+        if (dataIndex === 'period') {
+            childNode = <>
+                <Form.Item
+                    style={{ display: 'none' }}
+                    name='startDate'
+                    rules={[{ required: true, message: <></> }]}
+                >
+                    <Input id={`startDate_${record.uuid}`} />
+                </Form.Item>
+                <Form.Item
+                    style={{ display: 'none' }}
+                    name='endDate'
+                    rules={[{ required: true, message: <></> }]}
+                >
+                    <Input id={`endDate_${record.uuid}`} />
+                </Form.Item>
+                <Form.Item
+                    style={{ margin: 0 }}
+                    name='period'
+                    hasFeedback
+                    dependencies={['startDate', 'endDate']}
+                    rules={[
+                        { required: true, message: <></> },
+                        ({ getFieldValue }) => ({
+                            validator() {
+                                if (getFieldValue('startDate') && getFieldValue('endDate'))
+                                    return Promise.resolve();
+                                return Promise.reject('Missing dates');
+                            },
+                        })
+                    ]}
+                >
+                    <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ?? null, record.endDate ?? null]} onCalendarChange={(dates) => {
+                        if (dates === null)
+                            return;
+                        form.setFieldsValue({ startDate: dates[0] });
+                        form.setFieldsValue({ endDate: dates[1] });
+                    }} onBlur={save} />
+                </Form.Item>
+            </>;
+        } else {
+            childNode = <Form.Item
+                style={{ margin: 0 }}
+                name={dataIndex}
+                hasFeedback
+                rules={[{
+                    required: true, message: <></>, validator: (__unused__rule, value) => {
+                        if (dataIndex === 'participantId') {
+                            if (!Object.keys(sites).includes(value?.[0]))
+                                throw new Error('Invalid site marker');
+                            if (value.length === 7) {
+                                if (!validate(value?.substr(1).toUpperCase()))
+                                    throw new Error('Invalid participant ID');
+                                return Promise.resolve();
+                            }
+                        }
+                        if (dataIndex === 'deviceId') {
+                            if (!Object.keys(deviceTypes).includes(value?.substr(0, 3)))
+                                throw new Error('Invalid device marker');
+                            if (value.length === 9) {
+                                if (!validate(value?.substr(3).toUpperCase()))
+                                    throw new Error('Invalid device ID');
+                                return Promise.resolve();
+                            }
+                        }
+                    }
+                }]}
+            >
+                <Input id={`${dataIndex}_${record.uuid}`} ref={inputRef} allowClear={false} onPressEnter={save} onBlur={save} style={{ width: '100%' }} />
+            </Form.Item>;
+        }
+    }
+
+    return <td {...restProps}>{childNode}</td>;
 };

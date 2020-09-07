@@ -1,11 +1,8 @@
 import { Collection } from 'mongodb';
-import { Writable } from 'stream';
+import { Writable, Readable } from 'stream';
 import JSONStream from 'JSONStream';
-import { Models } from 'itmat-commons';
+import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
 import { fieldValidator, fieldParser } from '../utils/jobUtils';
-type IFieldDescriptionObject = Models.Data.IFieldDescriptionObject;
-type IDataEntry = Models.Data.IDataEntry;
-type IJobEntry<T> = Models.JobModels.IJobEntry<T>;
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -18,14 +15,14 @@ export class JSONCurator {
      * - uneven column number
      * - parse / encoding error
      */
-    private _header: (IFieldDescriptionObject | null)[]; // eslint:disable-line
-    private _numOfSubj: number; // eslint:disable-line
-    private _errored: boolean; // eslint:disable-line
-    private _errors: string[]; // eslint:disable-line
+    private _header: (IFieldDescriptionObject | null)[];
+    private _numOfSubj: number;
+    private _errored: boolean;
+    private _errors: string[];
 
     constructor(
         private readonly dataCollection: Collection,
-        private readonly incomingWebStream: NodeJS.ReadableStream,
+        private readonly incomingWebStream: Readable,
         private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
         private readonly versionId: string
     ) {
@@ -42,7 +39,7 @@ export class JSONCurator {
             let isHeader = true;
             let objectNum = 0;
             const subjectString: string[] = [];
-            const bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+            let bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
             const jsonstream = JSONStream.parse([{}]);
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
@@ -87,6 +84,7 @@ export class JSONCurator {
                                 return;
                             }
                         });
+                        bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
                     }
                     callback();
                 }
@@ -145,10 +143,10 @@ export function processJSONHeader(header: string[]): { error?: string[], parsedH
 
 }
 
-export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } { // eslint:disable-line
+export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
     const error: string[] = [];
     let colIndex = 0;
-    const dataEntry: Partial<IDataEntry> = {
+    const dataEntry: any = {
         m_jobId: job.id,
         m_study: job.studyId,
         m_versionId: versionId
@@ -239,6 +237,5 @@ export function processEachSubject({ subject, parsedHeader, job, versionId, obje
     }
 
     return ({ error: error.length === 0 ? undefined : error, dataEntry });
-
 }
 

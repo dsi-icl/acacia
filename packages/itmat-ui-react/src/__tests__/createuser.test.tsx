@@ -1,7 +1,7 @@
 import React from 'react';
-import { CreateNewUser } from '../components/users/createNewUser';
+import { RegisterNewUser } from '../components/login/register';
 import { mount } from 'enzyme';
-import { MockedProvider } from '@apollo/react-testing';
+import { MockedProvider } from '@apollo/client/testing';
 import { MemoryRouter } from 'react-router';
 
 describe('Create new users', () => {
@@ -9,7 +9,7 @@ describe('Create new users', () => {
         const wrapper = mount(
             <MemoryRouter initialEntries={['/']}>
                 <MockedProvider mocks={[]}>
-                    <CreateNewUser />
+                    <RegisterNewUser />
                 </MockedProvider>
             </MemoryRouter>
         );

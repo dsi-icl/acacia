@@ -4,6 +4,8 @@ const getPort = require('get-port');
 const { v4: uuid } = require('uuid');
 const chalk = require('chalk');
 
+const MINIO_DOCKER_VERSION = '@sha256:f364f51fb61f957242cdfa4af9d977623069e144ce4ebfd23fcb486ac29896e3';
+
 module.exports = {
     minioContainerSetup: (container, port) => {
         return new Promise((resolve, reject) => {
@@ -12,7 +14,7 @@ module.exports = {
                     if (container === undefined)
                         container = uuid();
                     crossSpawn.sync('docker', ['--version'], { stdio: 'inherit' });
-                    const result = crossSpawn.sync('docker', ['pull', 'minio/minio:latest'], { stdio: 'inherit' });
+                    const result = crossSpawn.sync('docker', ['pull', `minio/minio${MINIO_DOCKER_VERSION}`], { stdio: 'inherit' });
                     if (result.error) {
                         console.warn(chalk.bgYellowBright(chalk.black(' WARNING ')), chalk.yellow('We coult not execute docker. Some tests will not be run.'));
                         return reject();

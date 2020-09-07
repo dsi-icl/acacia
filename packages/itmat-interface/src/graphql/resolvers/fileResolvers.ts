@@ -1,20 +1,18 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models, task_required_permissions } from 'itmat-commons';
-import { IFile } from 'itmat-commons/dist/models/file';
-import { Logger } from 'itmat-utils';
+import { Models, task_required_permissions, IFile, Logger } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
 import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
-
+import { Readable } from 'stream';
 
 export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: NodeJS.ReadableStream, filename: string }>, description: string }, context: any): Promise<IFile> => {
+        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: Readable, filename: string }>, description: string }, context: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -29,7 +27,7 @@ export const fileResolvers = {
             return new Promise<IFile>((resolve, reject) => {
                 try {
 
-                    const stream: NodeJS.ReadableStream = (file as any).createReadStream();
+                    const stream: Readable = (file as any).createReadStream();
                     const fileUri = uuid();
 
                     /* if the client cancelled the request mid-stream it will throw an error */
@@ -45,6 +43,7 @@ export const fileResolvers = {
                             studyId: args.studyId,
                             fileSize: args.fileLength === undefined ? 0 : args.fileLength,
                             description: args.description,
+                            uploadTime: `${Date.now()}`,
                             uploadedBy: requester.id,
                             uri: fileUri,
                             deleted: null

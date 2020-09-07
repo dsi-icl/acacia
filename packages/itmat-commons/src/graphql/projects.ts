@@ -22,7 +22,8 @@ export const GET_PROJECT = gql`
                 studyId
                 users {
                     id
-                    realName
+                    firstname
+                    lastname
                     organisation
                     username
                 }
@@ -41,6 +42,7 @@ export const GET_PROJECT = gql`
                 projectId
                 fileSize
                 description
+                uploadTime
                 uploadedBy
             }
         }

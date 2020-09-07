@@ -1,64 +1,28 @@
-.login_and_error_wrapper {
+.login_wrapper {
     height: 100%;
     position: relative;
-}
-
-.top {
-    position: absolute;
-    background: var(--color-ariane-background);
-    height: 200px;
-    width: 200vw;
-}
-
-.bottom {
-    position: absolute;
-    background: #657280;
-    height: 110px;
-    width: 200vw;
+    overflow: auto;
 }
 
 .login_box {
     position: absolute;
-    top: 25%;
+    top: calc(25% - 100px);
     left: 50%;
+    width: 38rem;
     text-align: center;
     transform: translate(-50%);
+    padding-bottom: 4rem;
 }
 
-.login_box input {
-    text-align:center;
-    width: 70%;
-    margin: 0 0 1rem 0;
-    font-size: 1.2rem;
-    height: 1.2rem;
-    line-height: 1.2rem;
-    padding-bottom: 0.2rem;
+.login_box [class*=ant-select] {
+    text-align: left;
 }
 
-.login_box button {
-    width: 70%;
-    margin: 0 auto;
-    background: var(--color-button-hover);
-}
-
-.login_box button:hover {
-    background: var(--color-button);
-}
-
-.login_box h1 {
-    font-size: 5rem;
-    color: var(--color-primary-color);
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
-
-.login_box p {
-    font-family: 'Cairo';
-    font-size: 1.1rem;
+.login_box img {
+    transform: translateX(10%);
 }
 
 .error_message {
     width: 100%;
     min-height: 20%;
-    /* transform: translate(-50%); */
 }

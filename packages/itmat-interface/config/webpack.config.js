@@ -22,10 +22,12 @@ module.exports = {
         extensions: ['.ts', '.mjs', '.js'],
     },
     externals: [{
-        bcrypt: 'commonjs bcrypt',
-        express: 'commonjs express',
-        mongodb: 'commonjs mongodb',
-        // "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
+        'bcrypt': 'commonjs bcrypt',
+        'express': 'commonjs express',
+        'mongodb': 'commonjs mongodb',
+        'isobject': 'commonjs isobject',
+        'bufferutil': 'commonjs bufferutil',
+        'utf-8-validate': 'commonjs utf-8-validate',
         'require_optional': 'commonjs require_optional'
     }],
     module: {
@@ -39,7 +41,7 @@ module.exports = {
         ]
     },
     plugins: (NODE_ENV === 'development' ? [
-        new StartServerPlugin('index.js'),
+        new StartServerPlugin('interface.js'),
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
@@ -48,13 +50,13 @@ module.exports = {
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {
-                'BUILD_TARGET': JSON.stringify('server')
+                BUILD_TARGET: JSON.stringify('server')
             }
         }),
     ]),
     output: {
         path: path.join(__dirname, '../build'),
-        filename: 'index.js',
+        filename: 'interface.js',
         library: NODE_ENV === 'development' ? undefined : 'itmat-interface',
         libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
         umdNamedDefine: NODE_ENV === 'development' ? undefined : true

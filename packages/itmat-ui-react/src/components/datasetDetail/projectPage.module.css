@@ -33,11 +33,7 @@
     display: inline-block;
 }
 
-.tabs > .active > div {
-    background: var(--color-ariane-tab-active-background);
-}
-
-.tabs div {
+.tabs a {
     background: transparent;
     display: inline-block;
     text-align: center;
@@ -45,13 +41,18 @@
     box-shadow: none;
     font-size: 1rem;
     padding: 0rem;
-    transition: 0.3s background;
+    color: var(--color-font-color);
 }
 
-.tabs div:hover {
+.tabs a:hover {
     -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-primary-color);
     -moz-box-shadow:inset 0px -3px 0px 0px var(--color-primary-color);
     box-shadow:inset 0px -3px 0px 0px var(--color-primary-color);
+    color: var(--color-button-active);
+}
+
+.tabs a.active {
+    background: var(--color-ariane-tab-active-background);
 }
 
 .content {

@@ -1,5 +1,4 @@
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
-import { Logger } from 'itmat-utils';
+import { IFieldEntry, Logger } from 'itmat-commons';
 import { Transform } from 'json2csv';
 import mongodb from 'mongodb';
 import { Readable } from 'stream';
@@ -15,7 +14,7 @@ export class ExportProcessor {
 
     public async fetchFieldInfo(): Promise<void> {
         const queryobj = this.wantedFields === undefined ? { studyId: this.studyId } : { studyId: this.studyId, fieldId: { $in: this.wantedFields } };
-        const cursor = db.collections!.field_dictionary_collection.find(queryobj, { projection: { _id: 0 } });
+        const cursor = db.collections!.field_dictionary_collection.find<IFieldEntry>(queryobj, { projection: { _id: 0 } });
         this.fieldInfo = await cursor.toArray();
         const tmp: string[] = [];
         this.fieldInfo!.forEach((el: IFieldEntry) => {
@@ -43,11 +42,15 @@ export class ExportProcessor {
         let nextDocument: Record<string, string | number> | null;
         while (await this.dataCursor.hasNext()) {
             nextDocument = await this.dataCursor.next();
-            const flattenedData = this.formatDataIntoJSON(nextDocument);
-            if (this.patientIdMap) {
-                this.replacePatientId(flattenedData);
+            if (nextDocument) {
+                const flattenedData = this.formatDataIntoJSON(nextDocument);
+                if (this.patientIdMap) {
+                    this.replacePatientId(flattenedData);
+                }
+                this.writeOneLineToCSV(flattenedData);
+            } else {
+                Logger.error('Cursor returned null unexpectedly');
             }
-            this.writeOneLineToCSV(flattenedData);
         }
         this.writeOneLineToCSV(null);
     }

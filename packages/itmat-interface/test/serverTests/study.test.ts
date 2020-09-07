@@ -5,12 +5,11 @@ import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
-import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
-const {
+import {
     GET_STUDY_FIELDS,
     EDIT_PROJECT_APPROVED_FIELDS,
     GET_PROJECT_PATIENT_MAPPING,
@@ -18,7 +17,6 @@ const {
     GET_PROJECT,
     GET_USERS,
     EDIT_ROLE,
-    CREATE_USER,
     ADD_NEW_ROLE,
     WHO_AM_I,
     CREATE_PROJECT,
@@ -26,16 +24,18 @@ const {
     DELETE_STUDY,
     DELETE_PROJECT,
     EDIT_PROJECT_APPROVED_FILES,
-    SET_DATAVERSION_AS_CURRENT
-} = itmatCommons.GQLRequests;
-const { permissions } = itmatCommons;
-const { Models: { UserModels: { userTypes } } } = itmatCommons;
-type IDataEntry = itmatCommons.Models.Data.IDataEntry;
-type IUser = itmatCommons.Models.UserModels.IUser;
-type IFile = itmatCommons.Models.File.IFile;
-type IFieldEntry = itmatCommons.Models.Field.IFieldEntry;
-type IRole = itmatCommons.Models.Study.IRole;
-type IStudyDataVersion = itmatCommons.Models.Study.IStudyDataVersion;
+    SET_DATAVERSION_AS_CURRENT,
+    userTypes,
+    permissions,
+    IDataEntry,
+    IUser,
+    IFile,
+    IFieldEntry,
+    IStudyDataVersion,
+    IStudy,
+    enumValueType,
+    enumItemType
+} from 'itmat-commons';
 
 let app;
 let mongodb;
@@ -48,6 +48,9 @@ afterAll(async () => {
     await db.closeConnection();
     await mongoConnection?.close();
     await mongodb.stop();
+
+    /* claer all mocks */
+    jest.clearAllMocks();
 });
 
 beforeAll(async () => { // eslint-disable-line no-undef
@@ -60,7 +63,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database);
+    await db.connect(config.database, MongoClient.connect);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
@@ -76,6 +79,9 @@ beforeAll(async () => { // eslint-disable-line no-undef
     user = request.agent(app);
     await connectAdmin(admin);
     await connectUser(user);
+
+    /* Mock Date for testing */
+    jest.spyOn(Date, 'now').mockImplementation(() => 1591134065000);
 });
 
 describe('STUDY API', () => {
@@ -108,12 +114,11 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
-                realName: 'admin',
-                createdBy: 'chon',
-                organisation: 'DSI',
-                email: 'admin@user.io',
+                firstname: 'Fadmin',
+                lastname: 'Ladmin',
+                organisation: 'organisation_system',
+                email: 'admin@example.com',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -123,7 +128,9 @@ describe('STUDY API', () => {
                         id: createdStudy.id,
                         name: studyName
                     }]
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* cleanup: delete study */
@@ -224,12 +231,11 @@ describe('STUDY API', () => {
             expect(resWhoAmI.body.data.errors).toBeUndefined();
             expect(resWhoAmI.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
-                realName: 'admin',
-                createdBy: 'chon',
-                organisation: 'DSI',
-                email: 'admin@user.io',
+                firstname: 'Fadmin',
+                lastname: 'Ladmin',
+                organisation: 'organisation_system',
+                email: 'admin@example.com',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
@@ -239,7 +245,9 @@ describe('STUDY API', () => {
                         id: newStudy.id,
                         name: studyName
                     }]
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
 
             /* test */
@@ -262,19 +270,20 @@ describe('STUDY API', () => {
             expect(resWhoAmIAfter.body.data.errors).toBeUndefined();
             expect(resWhoAmIAfter.body.data.whoAmI).toEqual({
                 username: 'admin',
-                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 type: userTypes.ADMIN,
-                realName: 'admin',
-                createdBy: 'chon',
-                organisation: 'DSI',
-                email: 'admin@user.io',
+                firstname: 'Fadmin',
+                lastname: 'Ladmin',
+                organisation: 'organisation_system',
+                email: 'admin@example.com',
                 description: 'I am an admin user.',
                 id: adminId,
                 access: {
                     id: `user_access_obj_user_id_${adminId}`,
                     projects: [],
                     studies: []
-                }
+                },
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             });
         });
 
@@ -372,7 +381,7 @@ describe('STUDY API', () => {
                 studyId: setupStudy.id,
                 createdBy: 'admin',
                 name: projectName,
-                patientMapping: { 'patient001': 'patientA' },
+                patientMapping: { patient001: 'patientA' },
                 approvedFields: [],
                 approvedFiles: [],
                 lastModified: 20000002,
@@ -442,17 +451,19 @@ describe('STUDY API', () => {
             const authorisedUserProfile: IUser = {
                 username,
                 type: userTypes.STANDARD,
-                realName: `${username}_realname`,
+                firstname: `${username}_firstname`,
+                lastname: `${username}_lastname`,
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                createdBy: 'admin',
-                email: `${username}@user.io`,
+                email: `${username}@example.com`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 deleted: null,
-                id: `new_user_id_${username}`
+                id: `new_user_id_${username}`,
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -544,17 +555,19 @@ describe('STUDY API', () => {
             const authorisedUserProfile: IUser = {
                 username,
                 type: userTypes.STANDARD,
-                realName: `${username}_realname`,
+                firstname: `${username}_firstname`,
+                lastname: `${username}_lastname`,
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                createdBy: 'admin',
-                email: `${username}@user.io`,
+                email: `${username}@example.com`,
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 deleted: null,
-                id: `new_user_id_${username}`
+                id: `new_user_id_${username}`,
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -608,9 +621,9 @@ describe('STUDY API', () => {
     describe('MINI END-TO-END API TEST, NO UI, NO DATA', () => {
         let createdProject;
         let createdStudy;
-        let createdRole_study; // tslint:disable-line
-        let createdRole_study_manageProject; // tslint:disable-line
-        let createdRole_project;// tslint:disable-line
+        let createdRole_study;
+        let createdRole_study_manageProject;
+        let createdRole_project;
         let createdUserAuthorised;  // profile
         let createdUserAuthorisedStudy;  // profile
         let createdUserAuthorisedStudyManageProjects;  // profile
@@ -710,9 +723,9 @@ describe('STUDY API', () => {
                         path: 'Demographic',
                         fieldId: 32,
                         fieldName: 'Sex',
-                        valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                        valueType: enumValueType.CATEGORICAL,
                         possibleValues: ['male', 'female'],
-                        itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                        itemType: enumItemType.CLINICAL,
                         numOfTimePoints: 1,
                         numOfMeasurements: 1,
                         startingTimePoint: 1,
@@ -728,9 +741,9 @@ describe('STUDY API', () => {
                         path: 'Demographic',
                         fieldId: 32,
                         fieldName: 'Sex',
-                        valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                        valueType: enumValueType.CATEGORICAL,
                         possibleValues: ['male', 'female'],
-                        itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                        itemType: enumItemType.CLINICAL,
                         numOfTimePoints: 1,
                         numOfMeasurements: 1,
                         startingTimePoint: 1,
@@ -749,6 +762,7 @@ describe('STUDY API', () => {
                         studyId: createdStudy.id,
                         fileSize: 1000,
                         description: 'Just a test file1',
+                        uploadTime: '1599345644000',
                         uploadedBy: adminId,
                         uri: 'fakeuri',
                         deleted: null
@@ -759,6 +773,7 @@ describe('STUDY API', () => {
                         studyId: createdStudy.id,
                         fileSize: 1000,
                         description: 'Just a test file2',
+                        uploadTime: '1599345644000',
                         uploadedBy: adminId,
                         uri: 'fakeuri2',
                         deleted: null
@@ -900,38 +915,25 @@ describe('STUDY API', () => {
             /* 5. create an authorised project user (no role yet) */
             {
                 const username = uuid();
-                const res = await admin.post('/graphql').send({
-                    query: print(CREATE_USER),
-                    variables: {
-                        username,
-                        password: 'admin',
-                        realName: `${username}_realname`,
-                        description: 'setupUser',
-                        organisation: 'DSI',
-                        emailNotificationsActivated: true,
-                        email: `${username}@user.io`,
-                        type: userTypes.STANDARD
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
-                    id: createdUserAuthorised.id,
-                    username,
-                    otpSecret: createdUserAuthorised.otpSecret,
+                const newUser: IUser = {
+                    username: username,
                     type: userTypes.STANDARD,
-                    realName: `${username}_realname`,
-                    description: 'setupUser',
-                    organisation: 'DSI',
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@user.io`,
-                    createdBy: 'admin',
-                    access: {
-                        id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
-                        projects: [],
-                        studies: []
-                    }
-                });
+                    resetPasswordRequests: [],
+                    description: 'I am an authorised project user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'organisation_system',
+                    deleted: null,
+                    id: `AuthorisedProjectUser_${username}`,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+                createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
             }
 
             /* 6. add authorised user to role */
@@ -960,8 +962,9 @@ describe('STUDY API', () => {
                     permissions: [permissions.specific_project.specific_project_readonly_access],
                     users: [{
                         id: createdUserAuthorised.id,
-                        organisation: 'DSI',
-                        realName: createdUserAuthorised.realName
+                        organisation: 'organisation_system',
+                        firstname: createdUserAuthorised.firstname,
+                        lastname: createdUserAuthorised.lastname
                     }]
                 });
                 const resUser = await admin.post('/graphql').send({
@@ -977,11 +980,10 @@ describe('STUDY API', () => {
                 expect(resUser.body.data.getUsers).toHaveLength(1);
                 expect(resUser.body.data.getUsers[0]).toEqual({
                     id: createdUserAuthorised.id,
-                    otpSecret: createdUserAuthorised.otpSecret,
                     type: userTypes.STANDARD,
-                    realName: `${createdUserAuthorised.username}_realname`,
-                    organisation: 'DSI',
-                    createdBy: 'admin',
+                    firstname: `${createdUserAuthorised.username}_firstname`,
+                    lastname: `${createdUserAuthorised.username}_lastname`,
+                    organisation: 'organisation_system',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorised.id}`,
                         projects: [{
@@ -997,38 +999,25 @@ describe('STUDY API', () => {
             /* 5. create an authorised study user (no role yet) */
             {
                 const username = uuid();
-                const res = await admin.post('/graphql').send({
-                    query: print(CREATE_USER),
-                    variables: {
-                        username,
-                        password: 'admin',
-                        realName: `${username}_realname`,
-                        description: 'setupUser2',
-                        organisation: 'DSI',
-                        emailNotificationsActivated: true,
-                        email: `${username}@user.io`,
-                        type: userTypes.STANDARD
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                createdUserAuthorisedStudy = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
-                    id: createdUserAuthorisedStudy.id,
-                    username,
-                    otpSecret: createdUserAuthorisedStudy.otpSecret,
+                const newUser: IUser = {
+                    username: username,
                     type: userTypes.STANDARD,
-                    realName: `${username}_realname`,
-                    description: 'setupUser2',
-                    organisation: 'DSI',
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@user.io`,
-                    createdBy: 'admin',
-                    access: {
-                        id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
-                        projects: [],
-                        studies: []
-                    }
-                });
+                    resetPasswordRequests: [],
+                    description: 'I am an authorised study user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'organisation_system',
+                    deleted: null,
+                    id: `AuthorisedStudyUser_${username}`,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+                createdUserAuthorisedStudy = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
             }
 
             /* 6. add authorised user to role */
@@ -1057,8 +1046,9 @@ describe('STUDY API', () => {
                     permissions: [permissions.specific_study.specific_study_readonly_access],
                     users: [{
                         id: createdUserAuthorisedStudy.id,
-                        organisation: 'DSI',
-                        realName: createdUserAuthorisedStudy.realName
+                        organisation: 'organisation_system',
+                        firstname: createdUserAuthorisedStudy.firstname,
+                        lastname: createdUserAuthorisedStudy.lastname
                     }]
                 });
                 const resUser = await admin.post('/graphql').send({
@@ -1074,11 +1064,10 @@ describe('STUDY API', () => {
                 expect(resUser.body.data.getUsers).toHaveLength(1);
                 expect(resUser.body.data.getUsers[0]).toEqual({
                     id: createdUserAuthorisedStudy.id,
-                    otpSecret: createdUserAuthorisedStudy.otpSecret,
                     type: userTypes.STANDARD,
-                    realName: `${createdUserAuthorisedStudy.username}_realname`,
-                    organisation: 'DSI',
-                    createdBy: 'admin',
+                    firstname: `${createdUserAuthorisedStudy.username}_firstname`,
+                    lastname: `${createdUserAuthorisedStudy.username}_lastname`,
+                    organisation: 'organisation_system',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudy.id}`,
                         projects: [{
@@ -1097,38 +1086,26 @@ describe('STUDY API', () => {
             /* 5. create an authorised study user that can manage projects (no role yet) */
             {
                 const username = uuid();
-                const res = await admin.post('/graphql').send({
-                    query: print(CREATE_USER),
-                    variables: {
-                        username,
-                        password: 'admin',
-                        realName: `${username}_realname`,
-                        description: 'setupUser2',
-                        organisation: 'DSI',
-                        emailNotificationsActivated: true,
-                        email: `${username}@user.io`,
-                        type: userTypes.STANDARD
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-                expect(res.body.data.createUser).toEqual({
-                    id: createdUserAuthorisedStudyManageProjects.id,
-                    username,
-                    otpSecret: createdUserAuthorisedStudyManageProjects.otpSecret,
+                const newUser: IUser = {
+                    username: username,
                     type: userTypes.STANDARD,
-                    realName: `${username}_realname`,
-                    description: 'setupUser2',
-                    organisation: 'DSI',
-                    email: `${username}@user.io`,
-                    createdBy: 'admin',
-                    access: {
-                        id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
-                        projects: [],
-                        studies: []
-                    }
-                });
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    email: `${username}'@user.io'`,
+                    resetPasswordRequests: [],
+                    description: 'I am an authorised study user managing project.',
+                    emailNotificationsActivated: true,
+                    organisation: 'organisation_system',
+                    deleted: null,
+                    id: `AuthorisedStudyUserManageProject_${username}`,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
+                };
+
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+                createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
             }
 
             /* 6. add authorised user to role */
@@ -1157,8 +1134,9 @@ describe('STUDY API', () => {
                     permissions: [permissions.specific_study.specific_study_projects_management],
                     users: [{
                         id: createdUserAuthorisedStudyManageProjects.id,
-                        organisation: 'DSI',
-                        realName: createdUserAuthorisedStudyManageProjects.realName
+                        organisation: 'organisation_system',
+                        firstname: createdUserAuthorisedStudyManageProjects.firstname,
+                        lastname: createdUserAuthorisedStudyManageProjects.lastname
                     }]
                 });
                 const resUser = await admin.post('/graphql').send({
@@ -1174,11 +1152,10 @@ describe('STUDY API', () => {
                 expect(resUser.body.data.getUsers).toHaveLength(1);
                 expect(resUser.body.data.getUsers[0]).toEqual({
                     id: createdUserAuthorisedStudyManageProjects.id,
-                    otpSecret: createdUserAuthorisedStudyManageProjects.otpSecret,
                     type: userTypes.STANDARD,
-                    realName: `${createdUserAuthorisedStudyManageProjects.username}_realname`,
-                    organisation: 'DSI',
-                    createdBy: 'admin',
+                    firstname: `${createdUserAuthorisedStudyManageProjects.username}_firstname`,
+                    lastname: `${createdUserAuthorisedStudyManageProjects.username}_lastname`,
+                    organisation: 'organisation_system',
                     access: {
                         id: `user_access_obj_user_id_${createdUserAuthorisedStudyManageProjects.id}`,
                         projects: [{
@@ -1196,14 +1173,13 @@ describe('STUDY API', () => {
             /* fsdafs: admin who am i */
             {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
-                expect(res.body.data.whoAmI).toEqual({
+                expect(res.body.data.whoAmI).toStrictEqual({
                     username: 'admin',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     type: userTypes.ADMIN,
-                    realName: 'admin',
-                    createdBy: 'chon',
-                    organisation: 'DSI',
-                    email: 'admin@user.io',
+                    firstname: 'Fadmin',
+                    lastname: 'Ladmin',
+                    organisation: 'organisation_system',
+                    email: 'admin@example.com',
                     description: 'I am an admin user.',
                     id: adminId,
                     access: {
@@ -1217,7 +1193,9 @@ describe('STUDY API', () => {
                             id: createdStudy.id,
                             name: createdStudy.name
                         }]
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 });
             }
             /* connecting users */
@@ -1271,10 +1249,10 @@ describe('STUDY API', () => {
                 expect(res.body.data.whoAmI).toEqual({
                     username: 'admin',
                     type: userTypes.ADMIN,
-                    realName: 'admin',
-                    createdBy: 'chon',
-                    organisation: 'DSI',
-                    email: 'admin@user.io',
+                    firstname: 'Fadmin',
+                    lastname: 'Ladmin',
+                    organisation: 'organisation_system',
+                    email: 'admin@example.com',
                     description: 'I am an admin user.',
                     id: adminId,
                     access: {
@@ -1357,8 +1335,9 @@ describe('STUDY API', () => {
                             studyId: createdStudy.id,
                             users: [{
                                 id: createdUserAuthorisedStudy.id,
-                                organisation: 'DSI',
-                                realName: createdUserAuthorisedStudy.realName,
+                                organisation: 'organisation_system',
+                                firstname: createdUserAuthorisedStudy.firstname,
+                                lastname: createdUserAuthorisedStudy.lastname,
                                 username: createdUserAuthorisedStudy.username
                             }]
                         },
@@ -1370,8 +1349,9 @@ describe('STUDY API', () => {
                             studyId: createdStudy.id,
                             users: [{
                                 id: createdUserAuthorisedStudyManageProjects.id,
-                                organisation: 'DSI',
-                                realName: createdUserAuthorisedStudyManageProjects.realName,
+                                organisation: 'organisation_system',
+                                firstname: createdUserAuthorisedStudyManageProjects.firstname,
+                                lastname: createdUserAuthorisedStudyManageProjects.lastname,
                                 username: createdUserAuthorisedStudyManageProjects.username
                             }]
                         }
@@ -1384,6 +1364,7 @@ describe('STUDY API', () => {
                             projectId: null,
                             fileSize: 1000,
                             description: 'Just a test file1',
+                            uploadTime: '1599345644000',
                             uploadedBy: adminId
                         },
                         {
@@ -1393,6 +1374,7 @@ describe('STUDY API', () => {
                             projectId: null,
                             fileSize: 1000,
                             description: 'Just a test file2',
+                            uploadTime: '1599345644000',
                             uploadedBy: adminId
                         }
                     ],
@@ -1434,8 +1416,9 @@ describe('STUDY API', () => {
                             studyId: createdStudy.id,
                             users: [{
                                 id: createdUserAuthorised.id,
-                                organisation: 'DSI',
-                                realName: createdUserAuthorised.realName,
+                                organisation: 'organisation_system',
+                                firstname: createdUserAuthorised.firstname,
+                                lastname: createdUserAuthorised.lastname,
                                 username: createdUserAuthorised.username
                             }]
                         }
@@ -1457,8 +1440,8 @@ describe('STUDY API', () => {
             expect(res.body.data.getProject).toEqual({
                 id: createdProject.id,
                 patientMapping: {
-                    'mock_patient1': createdProject.patientMapping.mock_patient1,
-                    'mock_patient2': createdProject.patientMapping.mock_patient2
+                    mock_patient1: createdProject.patientMapping.mock_patient1,
+                    mock_patient2: createdProject.patientMapping.mock_patient2
                 }
             });
             const { patientMapping } = res.body.data.getProject;
@@ -1501,8 +1484,8 @@ describe('STUDY API', () => {
             expect(res.body.data.getProject).toEqual({
                 id: createdProject.id,
                 patientMapping: {
-                    'mock_patient1': createdProject.patientMapping.mock_patient1,
-                    'mock_patient2': createdProject.patientMapping.mock_patient2
+                    mock_patient1: createdProject.patientMapping.mock_patient1,
+                    mock_patient2: createdProject.patientMapping.mock_patient2
                 }
             });
             const { patientMapping } = res.body.data.getProject;
@@ -1570,10 +1553,10 @@ describe('STUDY API', () => {
                     path: 'Demographic',
                     fieldId: 32,
                     fieldName: 'Sex',
-                    valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                    valueType: enumValueType.CATEGORICAL,
                     possibleValues: ['male', 'female'],
                     unit: null,
-                    itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                    itemType: enumItemType.CLINICAL,
                     numOfTimePoints: 1,
                     numOfMeasurements: 1,
                     notes: null,
@@ -1639,10 +1622,10 @@ describe('STUDY API', () => {
                                 path: 'Demographic',
                                 fieldId: 32,
                                 fieldName: 'Sex',
-                                valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                                valueType: enumValueType.CATEGORICAL,
                                 possibleValues: ['male', 'female'],
                                 unit: null,
-                                itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                                itemType: enumItemType.CLINICAL,
                                 numOfTimePoints: 1,
                                 numOfMeasurements: 1,
                                 notes: null,
@@ -1715,10 +1698,10 @@ describe('STUDY API', () => {
                                 path: 'Demographic',
                                 fieldId: 32,
                                 fieldName: 'Sex',
-                                valueType: itmatCommons.Models.Field.enumValueType.CATEGORICAL,
+                                valueType: enumValueType.CATEGORICAL,
                                 possibleValues: ['male', 'female'],
                                 unit: null,
-                                itemType: itmatCommons.Models.Field.enumItemType.CLINICAL,
+                                itemType: enumItemType.CLINICAL,
                                 numOfTimePoints: 1,
                                 numOfMeasurements: 1,
                                 notes: null,
@@ -1901,7 +1884,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
+            const study = await db.collections!.studies_collection.findOne<IStudy>({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
             expect(study).toBeDefined();
             expect(res.body.data.setDataversionAsCurrent).toEqual({
                 id: createdStudy.id,
@@ -1909,14 +1892,14 @@ describe('STUDY API', () => {
                 dataVersions: [
                     { ...mockDataVersion, tag: null },
                     { ...newMockDataVersion },
-                    { ...mockDataVersion, tag: null, id: study.dataVersions[2].id }
+                    { ...mockDataVersion, tag: null, id: study?.dataVersions?.[2]?.id }
                 ]
             });
             // content id should be the same be id is different
             expect(res.body.data.setDataversionAsCurrent.dataVersions[2].id).not.toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].id);
-            expect(study.dataVersions[2].id).not.toBe(study.dataVersions[0].id);
+            expect(study?.dataVersions?.[2]?.id).not.toBe(study?.dataVersions?.[0]?.id);
             expect(res.body.data.setDataversionAsCurrent.dataVersions[2].contentId).toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].contentId);
-            expect(study.dataVersions[2].contentId).toBe(study.dataVersions[0].contentId);
+            expect(study?.dataVersions?.[2]?.contentId).toBe(study?.dataVersions?.[0]?.contentId);
 
             /* cleanup: reverse setting dataversion */
             await mongoClient.collection(config.database.collections.studies_collection)
@@ -2031,24 +2014,26 @@ describe('STUDY API', () => {
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: 'user@ic.ac.uk',
-                realName: 'DataCurator',
-                organisation: 'DSI',
+                firstname: 'FDataCurator',
+                lastname: 'LDataCurator',
+                organisation: 'organisation_system',
                 type: userTypes.STANDARD,
                 description: 'just a data curator',
                 resetPasswordRequests: [],
                 emailNotificationsActivated: true,
                 deleted: null,
-                createdBy: adminId
+                createdAt: 1591134065000,
+                expiredAt: 1991134065000
             };
             await db.collections!.users_collection.insertOne(userDataCurator);
 
             /* setup: create a new role with data management */
-            const roleDataCurator: IRole = {
+            const roleDataCurator: any = {
                 id: uuid(),
                 studyId: createdStudy.id,
                 name: 'Data Manager',
                 permissions: [permissions.specific_study.specific_study_data_management],
-                users: [userDataCurator],
+                users: [userDataCurator.id],
                 createdBy: adminId,
                 deleted: null
             };
@@ -2070,7 +2055,28 @@ describe('STUDY API', () => {
                 }
             });
             expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors).toBeUndefined();
+            const study = await db.collections!.studies_collection.findOne<IStudy>({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
+            expect(study).toBeDefined();
+            expect(res.body.data.setDataversionAsCurrent).toEqual({
+                id: createdStudy.id,
+                currentDataVersion: 2,
+                dataVersions: [
+                    { ...mockDataVersion, tag: null },
+                    { ...newMockDataVersion },
+                    { ...mockDataVersion, tag: null, id: study?.dataVersions?.[2]?.id }
+                ]
+            });
+            // content id should be the same be id is different
+            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].id).not.toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].id);
+            expect(study?.dataVersions?.[2]?.id).not.toBe(study?.dataVersions?.[0]?.id);
+            expect(res.body.data.setDataversionAsCurrent.dataVersions[2].contentId).toBe(res.body.data.setDataversionAsCurrent.dataVersions[0].contentId);
+            expect(study?.dataVersions?.[2]?.contentId).toBe(study?.dataVersions?.[0]?.contentId);
+
+            /* cleanup: reverse setting dataversion */
+            await mongoClient.collection(config.database.collections.studies_collection)
+                .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
+
             /* cleanup: delete user and role */
             await db.collections!.users_collection.deleteOne({ id: userDataCurator.id });
             await db.collections!.roles_collection.deleteOne({ id: roleDataCurator.id });

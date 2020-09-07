@@ -4,14 +4,22 @@ module.exports = function (app) {
     app.use(
         '/file',
         createProxyMiddleware({
-            target: process.env.REACT_APP_FILE_SERVICE,
+            target: {
+                protocol: 'http',
+                host: 'localhost',
+                port: 3003
+            },
             changeOrigin: true
         })
     );
     app.use(
         '/graphql',
         createProxyMiddleware({
-            target: process.env.REACT_APP_GRAPHQL_SERVICE,
+            target: {
+                protocol: 'http',
+                host: 'localhost',
+                port: 3003
+            },
             changeOrigin: true
         })
     );

@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
-import { IFile } from 'itmat-commons/dist/models/file';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
-import { Models, task_required_permissions } from 'itmat-commons';
+import { Models, task_required_permissions, IFile } from 'itmat-commons';
 
 export const fileDownloadController = async (req: Request, res: Response): Promise<void> => {
     const requester = req.user as Models.UserModels.IUser;

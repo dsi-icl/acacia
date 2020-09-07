@@ -1,6 +1,6 @@
 {
     "name": "itmat-interface",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "",
     "license": "MIT",
     "author": "Chon Sou",
@@ -20,7 +20,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "apollo-server-express": "2.14.2",
+        "apollo-server-express": "2.17.0",
         "bcrypt": "5.0.0",
         "body-parser": "1.19.0",
         "connect-mongo": "3.2.0",
@@ -28,54 +28,55 @@
         "express": "4.17.1",
         "express-session": "1.17.1",
         "fs-extra": "9.0.1",
-        "graphql": "14.5.3",
-        "graphql-type-json": "0.3.1",
-        "hi-base32": "^0.5.0",
-        "itmat-commons": "0.5.0",
-        "itmat-utils": "1.1.8",
-        "mongodb": "3.5.8",
-        "nodemailer": "6.4.8",
+        "graphql-type-json": "0.3.2",
+        "hi-base32": "0.5.0",
+        "itmat-commons": "0.6.0",
+        "mongodb": "3.6.1",
+        "nodemailer": "6.4.11",
         "passport": "0.4.1",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
-        "uuid": "8.1.0"
+        "uuid": "8.3.0"
     },
     "devDependencies": {
         "@types/bcrypt": "3.0.0",
-        "@types/express": "4.17.6",
+        "@types/express": "4.17.8",
         "@types/express-session": "1.17.0",
-        "@types/jest": "25.2.3",
-        "@types/mongodb": "3.5.20",
-        "@types/mongodb-memory-server": "2.3.0",
-        "@types/node": "14.0.11",
+        "@types/jest": "26.0.13",
+        "@types/mongodb": "3.5.27",
+        "@types/node": "14.6.4",
         "@types/node-fetch": "2.5.7",
         "@types/nodemailer": "6.4.0",
-        "@types/passport": "1.0.3",
+        "@types/passport": "1.0.4",
         "@types/passport-local": "1.0.33",
-        "@types/uuid": "8.0.0",
-        "@types/supertest": "2.0.9",
+        "@types/supertest": "2.0.10",
+        "@types/uuid": "8.3.0",
         "@types/webpack-env": "1.15.2",
-        "chalk": "4.0.0",
+        "@typescript-eslint/parser": "4.0.1",
+        "@typescript-eslint/eslint-plugin": "4.0.1",
+        "chalk": "4.1.0",
         "cors": "2.8.5",
         "cross-env": "7.0.2",
         "cross-spawn": "7.0.3",
         "get-port": "5.1.1",
-        "jest": "26.0.1",
-        "mongodb-memory-server": "6.6.1",
-        "node-fetch": "2.6.0",
+        "graphql": "15.3.0",
+        "itmat-setup": "0.0.1",
+        "jest": "26.4.2",
+        "mongodb-memory-server": "6.6.3",
+        "node-fetch": "2.6.1",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
-        "ts-jest": "26.1.0",
-        "ts-loader": "7.0.5",
-        "typescript": "3.9.5",
-        "webpack": "4.43.0",
-        "webpack-cli": "3.3.11"
+        "ts-jest": "26.3.0",
+        "ts-loader": "8.0.3",
+        "typescript": "4.0.2",
+        "webpack": "4.44.1",
+        "webpack-cli": "3.3.12"
     },
     "resolutions": {
-        "**/**/fs-capacitor": "^5.0.0",
-        "**/graphql-upload": "^9.0.0",
-        "**/graphql": "14.5.3"
+        "**/**/fs-capacitor": "^6.0.0",
+        "**/graphql-upload": "^11.0.0",
+        "**/graphql": "15.3.0"
     },
     "babel": {
         "extends": "./config/babel.config.js"
@@ -87,7 +88,7 @@
         "globals": {
             "ts-jest": {
                 "ts-jest": {
-                    "tsConfig": "./config/tsconfig.json"
+                    "tsConfig": "./tsconfig.json"
                 }
             }
         },

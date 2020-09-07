@@ -7,7 +7,7 @@ import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient } from 'mongodb';
 import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import setupDatabase from 'itmat-utils/src/databaseSetup/collectionsAndIndexes';
+import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 const { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } = itmatCommons.GQLRequests;
@@ -36,7 +36,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database);
+    await db.connect(config.database, MongoClient.connect);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
@@ -100,14 +100,14 @@ describe('ROLE API', () => {
             authorisedUserProfile = {
                 username,
                 type: 'STANDARD',
-                realName: `${username}_realname`,
+                firstname: `${username}_firstname`,
+                lastname: `${username}_lastname`,
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                createdBy: 'admin',
-                email: `${username}@user.io`,
+                email: `${username}@example.com`,
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 deleted: null,
                 id: `new_user_id_${username}`
             };
@@ -468,14 +468,14 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${username}@user.io`,
+                    email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };
@@ -713,14 +713,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${newUsername}@user.io`,
+                    email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -748,7 +748,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
-                        realName: newUser.realName
+                        firstname: newUser.firstname,
+                        lastname: newUser.lastname
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -771,14 +772,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${newUsername}@user.io`,
+                    email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -806,7 +807,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
-                        realName: newUser.realName
+                        firstname: newUser.firstname,
+                        lastname: newUser.lastname
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -829,14 +831,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${newUsername}@user.io`,
+                    email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -877,14 +879,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${newUsername}@user.io`,
+                    email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1329,14 +1331,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${newUsername}@user.io`,
+                    email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1391,8 +1393,9 @@ describe('ROLE API', () => {
                     ],
                     users: [{
                         id: adminId,
-                        organisation: 'DSI',
-                        realName: 'admin',
+                        organisation: 'organisation_system',
+                        firstname: 'Fadmin',
+                        lastname: 'Ladmin',
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1452,14 +1455,14 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${username}@user.io`,
+                    email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };
@@ -1643,14 +1646,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${newUsername}@user.io`,
+                    email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1678,7 +1681,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
-                        realName: newUser.realName
+                        firstname: newUser.firstname,
+                        lastname: newUser.lastname
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1701,14 +1705,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${newUsername}@user.io`,
+                    email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1818,14 +1822,14 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${username}@user.io`,
+                    email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };
@@ -1961,14 +1965,14 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    createdBy: 'admin',
-                    email: `${username}@user.io`,
+                    email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };

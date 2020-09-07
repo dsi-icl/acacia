@@ -6,6 +6,7 @@ scalar JSON
 enum USERTYPE {
     ADMIN
     STANDARD
+    SYSTEM
 }
 
 enum FIELD_ITEM_TYPE {
@@ -52,17 +53,31 @@ type UserPermissions {
 type User {
     id: String!
     username: String! # admin only
-    otpSecret: String!
     type: USERTYPE!
-    realName: String
+    firstname: String
+    lastname: String
     organisation: String
     email: String # admin only
     description: String # admin only
     emailNotificationsActivated: Boolean!
     createdBy: String
-
+    createdAt: Float!
+    expiredAt: Float!
     # external to mongo documents:
     access: UserAccess # admin or self only
+}
+
+type OrganisationMetadata {
+    siteIDMarker: String
+}
+
+type Organisation {
+    id: String!
+    name: String!
+    shortname: String
+    containOrg: String
+    deleted: String
+    metadata: OrganisationMetadata
 }
 
 type StudyOrProjectUserRole {
@@ -81,6 +96,7 @@ type File {
     projectId: String
     fileSize: Int
     description: String!
+    uploadTime: String!
     uploadedBy: String!
 }
 
@@ -151,6 +167,78 @@ type Job {
     data: JSON
 }
 
+enum LOG_TYPE {
+   SYSTEM_LOG
+   REQUEST_LOG
+}
+
+enum LOG_STATUS {
+    SUCCESS
+    FAIL
+}
+
+enum LOG_ACTION {
+    # SYSTEM
+    START_SERVER
+    STOP_SERVER
+
+    # USER
+    GET_USERS
+    EDIT_USER
+    DELETE_USER
+    CREATE_USER
+    LOGIN_USER
+    WHO_AM_I
+    LOGOUT
+    REQUEST_USERNAME_OR_RESET_PASSWORD
+    RESET_PASSWORD
+
+    # PROJECT
+    GET_PROJECT
+    # GET_PROJECT_PATIENT_MAPPING
+    EDIT_PROJECT_APPROVED_FIELDS
+    EDIT_PROJECT_APPROVED_FILES
+    CREATE_PROJECT
+    DELETE_PROJECT
+    SET_DATAVERSION_AS_CURRENT
+    SUBSCRIBE_TO_JOB_STATUS
+
+    # STUDY | DATASET
+    DELETE_STUDY
+    GET_STUDY
+    GET_STUDY_FIELDS
+    CREATE_STUDY
+    CREATE_DATA_CREATION_JOB
+    #CREATE_FIELD_CURATION_JOB
+
+    # STUDY & PROJECT
+    EDIT_ROLE
+    ADD_NEW_ROLE
+    REMOVE_ROLE
+
+    # FILE
+    UPLOAD_FILE
+    DOWNLOAD_FILE
+    DELETE_FILE
+
+    #QUERY
+    GET_QUERY
+    CREATE_QUERY
+    #GET_QUERY_RESULT
+}
+
+type Log {
+    id: String!,
+    requesterName: String,
+    requesterType: USERTYPE,
+    logType: LOG_TYPE,
+    actionType: LOG_ACTION,
+    actionData: JSON,
+    time: Float!,
+    status: LOG_STATUS,
+    error: String
+}
+
 type QueryEntry {
     id: String!,
     queryString: String!,
@@ -196,12 +284,13 @@ input QueryObjInput {
 
 input CreateUserInput {
     username: String!
-    type: USERTYPE!
-    realName: String!
+    type: USERTYPE
+    firstname: String!
+    lastname: String!
     email: String!
-    description: String!
+    description: String
     organisation: String!
-    emailNotificationsActivated: Boolean!
+    emailNotificationsActivated: Boolean
     password: String!
 }
 
@@ -209,12 +298,14 @@ input EditUserInput {
     id: String!
     username: String
     type: USERTYPE
-    realName: String
+    firstname: String
+    lastname: String
     email: String
     description: String
     organisation: String
     emailNotificationsActivated: Boolean
     password: String
+    expiredAt: Float
 }
 
 input IntArrayChangesInput {
@@ -231,6 +322,10 @@ type Query {
     # USER
     whoAmI: User
     getUsers(userId: String): [User]
+    validateResetPassword(encryptedEmail: String!, token: String!): GenericResponse
+
+    # ORGANISATION
+    getOrganisations(organisationId: String): [Organisation]
 
     # STUDY
     getStudy(studyId: String!): Study
@@ -243,6 +338,9 @@ type Query {
 
     # PERMISSION
     getGrantedPermissions(studyId: String, projectId: String): UserPermissions
+
+    # LOG
+    getLogs(requesterName: String, requesterType: USERTYPE, logType: LOG_TYPE, actionType: LOG_ACTION, status: LOG_STATUS): [Log]
 }
 
 type Mutation {
@@ -256,9 +354,12 @@ type Mutation {
         username: String
     ): GenericResponse
     resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
+    createUser(user: CreateUserInput!): GenericResponse
+
+    # ORGANISATION
+    createOrganisation(name: String!, containOrg: String): Organisation
 
     # APP USERS
-    createUser(user: CreateUserInput!): User
     editUser(user: EditUserInput!): User
     deleteUser(userId: String!): GenericResponse
 
@@ -288,6 +389,7 @@ type Mutation {
     createDataCurationJob(file: String!, studyId: String!, tag: String, version: String!): Job
     createFieldCurationJob(file: String!, studyId: String!, dataVersionId: String!, tag: String!): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
+
 }
 
 type Subscription {

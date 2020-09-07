@@ -25,8 +25,8 @@ module.exports = {
         bcrypt: 'commonjs bcrypt',
         express: 'commonjs express',
         mongodb: 'commonjs mongodb',
-        'subscriptions-transport-ws': 'commonjs subscriptions-transport-ws',
-        'require_optional': 'commonjs require_optional'
+        isobject: 'commonjs isobject',
+        require_optional: 'commonjs require_optional'
     }],
     module: {
         rules: [
@@ -39,7 +39,7 @@ module.exports = {
         ]
     },
     plugins: (NODE_ENV === 'development' ? [
-        new StartServerPlugin('index.js'),
+        new StartServerPlugin('executor.js'),
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
@@ -48,14 +48,14 @@ module.exports = {
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {
-                'BUILD_TARGET': JSON.stringify('server')
+                BUILD_TARGET: JSON.stringify('server')
             }
         }),
     ]),
     output: {
         path: path.join(__dirname, '../build'),
-        filename: 'index.js',
-        library: NODE_ENV === 'development' ? undefined : 'itmat-interface',
+        filename: 'executor.js',
+        library: NODE_ENV === 'development' ? undefined : 'itmat-job-executor',
         libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
         umdNamedDefine: NODE_ENV === 'development' ? undefined : true
     }

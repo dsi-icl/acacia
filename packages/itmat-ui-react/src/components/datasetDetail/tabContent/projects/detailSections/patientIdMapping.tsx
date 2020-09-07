@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Query } from 'react-apollo';
-import { GET_PROJECT_PATIENT_MAPPING } from 'itmat-commons/dist/graphql/projects';
-import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
+import { Query } from '@apollo/client/react/components';
+import { GET_PROJECT_PATIENT_MAPPING } from 'itmat-commons';
+import LoadSpinner from '../../../../reusable/loadSpinner';
 
 export const PatientIdMappingSection: React.FunctionComponent<{ projectId: string }> = ({ projectId }) => {
     const [clickedFetch, setClickedFetch] = useState(false);
@@ -15,7 +15,7 @@ export const PatientIdMappingSection: React.FunctionComponent<{ projectId: strin
     if (!clickedFetch) { return <button onClick={() => setClickedFetch(true)}>Fetch mapping</button>; }
     return <Query<any, any> query={GET_PROJECT_PATIENT_MAPPING} variables={{ projectId }}>
         {({ data, loading, error }) => {
-            if (loading) { return <LoadingBalls />; }
+            if (loading) { return <LoadSpinner />; }
             if (error) { return <p>{error.toString()}</p>; }
             if (!data || !data.getProject || !data.getProject.patientMapping) { return <p>'Cannot fetch data'</p>; }
             return <textarea>{JSON.stringify(data.getProject.patientMapping)}</textarea>;

@@ -21,15 +21,44 @@ First things first, there's always something before you can start.
 
 To make our life easier, we use [Yarn](https://yarnpkg.com/) a lot. Make sure you have it installed.
 
-### Start the project
+This software requires both MongoDB and MinIO to be available. Follow the installation guidelines for these software directly from their respective websites:
+- [https://docs.mongodb.com](https://docs.mongodb.com/manual/installation/)
+- [https://docs.min.io](https://docs.min.io/docs/minio-quickstart-guide.html)
 
-Building the library is easy. First run `yarn install && yarn start`, to build the application. The current application is built ontop of a system called ICL-ITMAT-Broker comprised of multiple components including :
+Both software also have easy to start docker images available for convenience.
+
+### Install dependencies and build the project
+
+Building the library is easy. First run `yarn install && yarn build`, to build the application. The current application is built ontop of a system called ICL-ITMAT-Broker comprised of multiple components including :
 
 - itmat-commons
+- itmat-docker
 - itmat-interface
 - itmat-job-executor
+- itmat-setup
 - itmat-ui-react
-- itmat-utils
+
+### Add configuration
+
+You will need to provide database and object store connection details and will have the ability to customised other paramters. We typically recommend that you configure your secrets.
+
+```bash
+cp packages/itmat-interface/config/config.sample.json packages/itmat-interface/config/config.json
+cp packages/itmat-job-executor/config/config.sample.json packages/itmat-job-executor/config/config.json
+```
+These config files need to be editted accordingly for Mongodb database (`database{ }`) and MinIO (`objectStore{ }`).
+
+`nodemailer{ }` in `packages/itmat-interface/config/config.json` is also required to configure for email service.
+
+### Initialise mongodb with seed data
+
+```bash
+yarn setupDatabase
+```
+
+### Start developing
+
+Once all that is done, you only need to use `yarn start` to start the software in development mode.
 
 ## Credits
 

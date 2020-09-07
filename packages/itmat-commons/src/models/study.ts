@@ -1,4 +1,4 @@
-import { Models } from '..';
+import { IUser } from './user';
 
 export interface IStudy {
     id: string;
@@ -29,7 +29,7 @@ export interface IRole {
     studyId: string;
     name: string;
     permissions: string[];
-    users: Models.UserModels.IUser[];
+    users: IUser[];
     createdBy: string;
     deleted: number | null;
 }

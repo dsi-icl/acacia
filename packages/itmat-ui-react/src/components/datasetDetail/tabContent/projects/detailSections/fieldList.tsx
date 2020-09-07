@@ -1,16 +1,19 @@
 import React from 'react';
-import { Mutation, Query, useQuery } from 'react-apollo';
-import { EDIT_PROJECT_APPROVED_FIELDS } from 'itmat-commons/dist/graphql/projects';
-import { GET_STUDY } from 'itmat-commons/dist/graphql/study';
+import { Mutation, Query } from '@apollo/client/react/components';
+import { useQuery } from '@apollo/client/react/hooks';
+import {
+    EDIT_PROJECT_APPROVED_FIELDS,
+    GET_STUDY,
+    GET_STUDY_FIELDS,
+    IFieldEntry
+} from 'itmat-commons';
 import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
-import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
-import { GET_STUDY_FIELDS } from 'itmat-commons/dist/graphql/fields';
-import { IFieldEntry } from 'itmat-commons/dist/models/field';
+import LoadSpinner from '../../../../reusable/loadSpinner';
 
 
-export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }, studyId: string, projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
+export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId } });
-    if (loading) { return <LoadingBalls />; }
+    if (loading) { return <LoadSpinner />; }
     if (error) { return <p>{error.toString()}</p>; }
     const { getStudy } = data;
 
@@ -24,14 +27,14 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
     return <FieldListSelectionState originalCheckedList={originalCheckedList} projectId={projectId} studyId={studyId} fieldTreeIds={getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees} />;
 };
 
-const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }, projectId: string, studyId: string, fieldTreeIds: string[] }> = ({ originalCheckedList, projectId, studyId, fieldTreeIds }) => {
+const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; projectId: string; studyId: string; fieldTreeIds: string[] }> = ({ originalCheckedList, projectId, studyId, fieldTreeIds }) => {
     const [selectedTree, setSelectedTree] = React.useState(fieldTreeIds[0]);
 
     return <>
         <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
         <Query<any, any> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
             {({ data, loading, error }) => {
-                if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>{JSON.stringify(error)}</p>; }
                 if (!data || !data.getStudyFields || data.getStudyFields.length === 0) { return <p>There is no field annotations uploaded for this tag.</p>; }
                 // return <FieldListSection projectId={projectId} checkable={false} fieldList={data.getStudyFields} />;
@@ -41,7 +44,7 @@ const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { 
     </>;
 };
 
-const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ selectedTree: string, originalCheckedList: { [fieldTreeId: string]: string[] }, fieldList: IFieldEntry[], studyId: string, projectId: string }> = ({ selectedTree, fieldList, originalCheckedList, projectId }) => {
+const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ selectedTree: string; originalCheckedList: { [fieldTreeId: string]: string[] }; fieldList: IFieldEntry[]; studyId: string; projectId: string }> = ({ selectedTree, fieldList, originalCheckedList, projectId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList[selectedTree] || []);
     const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
     const [currentProjectId, setCurrentProjectId] = React.useState(projectId);

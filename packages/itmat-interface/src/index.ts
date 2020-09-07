@@ -1,6 +1,6 @@
 
 // eslint:disable: no-console
-import { Server } from 'http';
+import { Express } from 'express';
 import { Socket } from 'net';
 import os from 'os';
 import ITMATInterfaceServer from './interfaceServer';
@@ -13,7 +13,7 @@ let interfaceRouter;
 
 function serverStart() {
     console.info(`Starting server ${interfaceIteration++} ...`);
-    interfaceServer.start().then((itmatRouter: Server) => {
+    interfaceServer.start().then((itmatRouter: Express) => {
 
         interfaceRouter = itmatRouter;
         itmatRouter.listen(config.server.port, () => {
@@ -31,7 +31,8 @@ function serverStart() {
 
     }).catch((error) => {
         console.error('An error occurred while starting the ITMAT core.', error);
-        console.error(error.stack);
+        if (error.stack)
+            console.error(error.stack);
         return false;
     });
 }
@@ -47,9 +48,9 @@ function serverSpinning() {
         });
         interfaceSockets = [];
         console.info(`Shuting down server ${interfaceIteration} ...`);
-        interfaceRouter.close(() => {
+        interfaceRouter?.close(() => {
             serverStart();
-        });
+        }) || serverStart();
     } else {
         serverStart();
     }
@@ -60,4 +61,6 @@ serverSpinning();
 if (module.hot) {
     module.hot.accept('./index', serverSpinning);
     module.hot.accept('./interfaceServer', serverSpinning);
+    module.hot.accept('./index.ts', serverSpinning);
+    module.hot.accept('./interfaceServer.ts', serverSpinning);
 }

@@ -2,8 +2,18 @@ import { ApolloError, UserInputError } from 'apollo-server-express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { mailer } from '../../emailer/emailer';
-import { Models } from 'itmat-commons';
-import { Logger } from 'itmat-utils';
+import {
+    Models,
+    Logger,
+    IProject,
+    IRole,
+    IStudy,
+    IUser,
+    IUserWithoutToken,
+    IResetPasswordRequest,
+    userTypes,
+    IOrganisation
+} from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
@@ -12,14 +22,8 @@ import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
 import { makeGenericReponse, IGenericResponse } from '../responses';
 import * as mfa from '../../utils/mfa';
-
-type IProject = Models.Study.IProject;
-type IRole = Models.Study.IRole;
-type IStudy = Models.Study.IStudy;
-type IUser = Models.UserModels.IUser;
-type IUserWithoutToken = Models.UserModels.IUserWithoutToken;
-type IResetPasswordRequest = Models.UserModels.IResetPasswordRequest;
-const userTypes = Models.UserModels.userTypes;
+import QRCode from 'qrcode';
+import tmp from 'tmp';
 
 export const userResolvers = {
     Query: {
@@ -29,8 +33,39 @@ export const userResolvers = {
         getUsers: async (__unused__parent: Record<string, unknown>, args: any): Promise<IUser[]> => {
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
-            const cursor = db.collections!.users_collection.find(queryObj, { projection: { _id: 0 } });
+            const cursor = db.collections!.users_collection.find<IUser>(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
+        },
+        validateResetPassword: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
+            /* decrypt email */
+            const salt = makeAESKeySalt(args.token);
+            const iv = makeAESIv(args.token);
+            let email;
+            try {
+                email = await decryptEmail(args.encryptedEmail, salt, iv);
+            } catch (e) {
+                throw new ApolloError('Token is not valid.');
+            }
+
+            /* check whether username and token is valid */
+            /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
+            const TIME_NOW = new Date().valueOf();
+            const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
+            const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
+                email,
+                resetPasswordRequests: {
+                    $elemMatch: {
+                        id: args.token,
+                        timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
+                        used: false
+                    }
+                },
+                deleted: null
+            });
+            if (!user) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+            return makeGenericReponse();
         }
     },
     User: {
@@ -157,16 +192,14 @@ export const userResolvers = {
                 await mailer.sendMail(await formatEmailForForgottenPassword({
                     to: user.email,
                     resetPasswordToken: passwordResetToken,
-                    username: user.username,
-                    realname: user.realName,
-                    host: context.req.hostname
+                    firstname: user.firstname,
+                    origin: context.req.headers.origin
                 }));
             } else {
                 /* send email to client */
                 await mailer.sendMail(formatEmailForFogettenUsername({
                     to: user.email,
-                    username: user.username,
-                    realname: user.realName
+                    username: user.username
                 }));
             }
             return makeGenericReponse();
@@ -177,6 +210,12 @@ export const userResolvers = {
             if (!result) {
                 throw new UserInputError('User does not exist.');
             }
+
+            /* validate if account expired */
+            if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
+                throw new UserInputError('Account Expired.');
+            }
+
             const passwordMatched = await bcrypt.compare(args.password, result.password);
             if (!passwordMatched) {
                 throw new UserInputError('Incorrect password.');
@@ -186,8 +225,8 @@ export const userResolvers = {
 
             // validate the TOTP
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
-            if (!totpValidated) {
-                throw new UserInputError('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
+            if (!totpValidated && process.env.NODE_ENV === 'production') {
+                throw new UserInputError('Incorrect One-Time password.');
             }
 
             return new Promise((resolve) => {
@@ -218,16 +257,9 @@ export const userResolvers = {
                 });
             });
         },
-        createUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IUserWithoutToken> => {
-            const requester: Models.UserModels.IUser = context.req.user;
-
-            /* only admin can create new users */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
-            }
-
-            const { username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, type: Models.UserModels.userTypes, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
+        createUser: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
+            const { username, firstname, lastname, email, emailNotificationsActivated, password, description, organisation }: {
+                username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated?: boolean, password: string, description?: string, organisation: string
             } = args.user;
 
             /* check email is valid form */
@@ -235,9 +267,14 @@ export const userResolvers = {
                 throw new UserInputError('Email is not the right format.');
             }
 
+            /* check password validity */
+            if (password && !passwordIsGoodEnough(password)) {
+                throw new UserInputError('Password has to be at least 8 character long.');
+            }
+
             /* check that username and password dont have space */
             if (username.indexOf(' ') !== -1 || password.indexOf(' ') !== -1) {
-                throw new UserInputError('Username or password cannot have space.');
+                throw new UserInputError('Username or password cannot have spaces.');
             }
 
             const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: null }); // since bycrypt is CPU expensive let's check the username is not taken first
@@ -248,26 +285,70 @@ export const userResolvers = {
             /* randomly generate a secret for Time-based One Time Password*/
             const otpSecret = mfa.generateSecret();
 
-            const createdUser = await userCore.createUser(requester.username, {
+            await userCore.createUser({
                 password,
                 otpSecret,
                 username,
-                type,
-                description,
-                realName,
+                type: userTypes.STANDARD,
+                description: description ?? '',
+                firstname,
+                lastname,
                 email,
                 organisation,
-                emailNotificationsActivated
+                emailNotificationsActivated: !!emailNotificationsActivated
             });
 
-            return createdUser;
+            /* send email to the registered user */
+            // get QR Code for the otpSecret.
+            const oauth_uri = `otpauth://totp/${config.appName}:${username}?secret=${otpSecret}&issuer=Data%20Science%20Institute`;
+            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
+
+            QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
+                if (err) throw new ApolloError(err);
+            });
+
+            const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
+            await mailer.sendMail({
+                from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                to: email,
+                subject: `[${config.appName}] Registration Successful`,
+                html: `
+                    <p>
+                        Dear ${firstname},
+                    <p>
+                    <p>
+                        Welcome to the ${config.appName} data portal!<br/>
+                        Your username is <b>${username}</b>.<br/>
+                    </p>
+                    <p>
+                        To login you will need to use a MFA authenticator app for one time passcode (TOTP).<br/>
+                        Scan the QRCode below in your MFA application of choice to configure it:<br/>
+                        <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /><br/>
+                        If you need to type the token in use <b>${otpSecret.toLowerCase()}</b>
+                    </p>
+                    <br/>
+                    <p>
+                        The ${config.appName} Team.
+                    </p>
+                `,
+                attachments: attachments
+            });
+            tmpobj.removeCallback();
+            return makeGenericReponse();
         },
         deleteUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IGenericResponse> => {
             /* only admin can delete users */
             const requester: Models.UserModels.IUser = context.req.user;
+
+            // user (admin type) cannot delete itself
+            if (requester.id === args.userId) {
+                throw new ApolloError('User cannot delete itself');
+            }
+
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
+
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
         },
@@ -275,6 +356,11 @@ export const userResolvers = {
             /* check password validity */
             if (!passwordIsGoodEnough(newPassword)) {
                 throw new ApolloError('Password has to be at least 8 character long.');
+            }
+
+            /* check that username and password dont have space */
+            if (newPassword.indexOf(' ') !== -1) {
+                throw new ApolloError('Password cannot have spaces.');
             }
 
             /* decrypt email */
@@ -293,7 +379,7 @@ export const userResolvers = {
             /* check whether username and token is valid */
             /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
             const TIME_NOW = new Date().valueOf();
-            const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
+            const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
             const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
                 email,
                 resetPasswordRequests: {
@@ -309,6 +395,9 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
+            /* randomly generate a secret for Time-based One Time Password*/
+            const otpSecret = mfa.generateSecret();
+
             /* all ok; change the user's password */
             const hashedPw = await bcrypt.hash(newPassword, config.bcrypt.saltround);
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
@@ -322,7 +411,7 @@ export const userResolvers = {
                         }
                     }
                 },
-                { $set: { password: hashedPw, 'resetPasswordRequests.$.used': true } });
+                { $set: { 'password': hashedPw, 'otpSecret': otpSecret, 'resetPasswordRequests.$.used': true } });
             if (updateResult.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
@@ -330,12 +419,47 @@ export const userResolvers = {
             /* need to log user out of all sessions */
             // TO_DO
 
+            /* send email to the registered user */
+            // get QR Code for the otpSecret.
+            const oauth_uri = `otpauth://totp/${config.appName}:${user.username}?secret=${otpSecret}&issuer=Data%20Science%20Institute`;
+            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
+
+            QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
+                if (err) throw new ApolloError(err);
+            });
+
+            const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
+            await mailer.sendMail({
+                from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                to: email,
+                subject: `[${config.appName}] Password reset`,
+                html: `
+                    <p>
+                        Dear ${user.firstname},
+                    <p>
+                    <p>
+                        Your password on ${config.appName} is now reset!<br/>
+                        You will need to update your MFA application for one-time passcode.<br/>
+                    </p>
+                    <p>
+                        To update your MFA authenticator app you can scan the QRCode below to configure it:<br/>
+                        <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /><br/>
+                        If you need to type the token in use <b>${otpSecret.toLowerCase()}</b>
+                    </p>
+                    <br/>
+                    <p>
+                        The ${config.appName} Team.
+                    </p>
+                `,
+                attachments: attachments
+            });
+            tmpobj.removeCallback();
             return makeGenericReponse();
         },
         editUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Record<string, unknown>> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string
+            const { id, username, type, firstname, lastname, email, emailNotificationsActivated, password, description, organisation, expiredAt }: {
+                id: string, username?: string, type?: Models.UserModels.userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number
             } = args.user;
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
@@ -355,13 +479,15 @@ export const userResolvers = {
 
             const fieldsToUpdate = {
                 type,
-                realName,
+                firstname,
+                lastname,
                 username,
                 email,
                 emailNotificationsActivated,
                 password,
                 description,
-                organisation
+                organisation,
+                expiredAt
             };
 
             /* check email is valid form */
@@ -370,7 +496,7 @@ export const userResolvers = {
             }
 
             if (requester.type !== Models.UserModels.userTypes.ADMIN && (
-                type || realName || username || description || organisation
+                type || firstname || lastname || username || description || organisation
             )) {
                 throw new ApolloError('User not updated: Non-admin users are only authorised to change their password or email.');
             }
@@ -387,6 +513,26 @@ export const userResolvers = {
             } else {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }
+        },
+        createOrganisation: async (__unused__parent: Record<string, unknown>, { name, containOrg }: { name: string, containOrg: string }, context: any): Promise<IOrganisation> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            const alreadyExist = await db.collections!.organisations_collection.findOne({ name, deleted: null });
+            if (alreadyExist !== null && alreadyExist !== undefined) {
+                throw new UserInputError('This organisation already exists.');
+            }
+
+            const createdOrganisation = await userCore.createOrganisation({
+                name,
+                containOrg: containOrg ?? null
+            });
+
+            return createdOrganisation;
         }
     },
     Subscription: {}
@@ -432,42 +578,48 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
     });
 }
 
-
-async function formatEmailForForgottenPassword({ realname, to, resetPasswordToken, username, host }: { host: string, username: string, resetPasswordToken: string, to: string, realname: string }) {
+async function formatEmailForForgottenPassword({ firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, firstname: string, origin: any }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
     const iv = makeAESIv(resetPasswordToken);
     const encryptedEmail = await encryptEmail(to, keySalt, iv);
 
-
-    const link = `${config.useSSL ? 'https' : 'http'}://${host}${process.env.NODE_ENV === 'development' ? `:${config.server.port}` : ''}/resetPassword/${encryptedEmail}/${resetPasswordToken}`;
+    const link = `${origin}/reset/${encryptedEmail}/${resetPasswordToken}`;
     return ({
-        from: '"NAME"',
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
-        subject: 'Reset your NAME password',
-        html: `<p>Dear ${realname},<p>
+        subject: `[${config.appName}] password reset`,
+        html: `
+            <p>
+                Dear ${firstname},
+            <p>
+            <p>
+                You can reset you password by click the following link (active for 1 hour):<br/>
+                <a href=${link}>${link}</a>
+            </p>
             <br/>
-            <p>Your username is <b>${username}</b>.</p><br/>
-            <p>You can reset you password by click the following link (active for 1 hour):</p>
-            <p><a href=${link}>${link}</a></p>
-            <br/><br/>
-
-            Yours truly,
-            NAME team.
+            <p>
+                The ${config.appName} Team.
+            </p>
         `
     });
 }
 
-function formatEmailForFogettenUsername({ username, to, realname }: { username: string, to: string, realname: string }) {
+function formatEmailForFogettenUsername({ username, to }: { username: string, to: string }) {
     return ({
-        from: '"NAME" <name@name.io>',
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
-        subject: 'Your NAME username reminder',
-        html: `<p>Dear ${realname},<p>
+        subject: `[${config.appName}] password reset`,
+        html: `
+            <p>
+                Dear user,
+            <p>
+            <p>
+                Your username is <b>${username}</b>.
+            </p>
             <br/>
-            <p>Your username is <b>${username}</b>.</p><br/>
-
-            Yours truly,
-            NAME team.
+            <p>
+                The ${config.appName} Team.
+            </p>
         `
     });
 }

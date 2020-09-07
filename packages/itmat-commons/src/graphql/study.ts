@@ -32,7 +32,8 @@ export const GET_STUDY = gql`
                 studyId
                 users {
                     id
-                    realName
+                    firstname
+                    lastname
                     organisation
                     username
                 }
@@ -44,6 +45,7 @@ export const GET_STUDY = gql`
                 projectId
                 fileSize
                 description
+                uploadTime
                 uploadedBy
             }
             numOfSubjects

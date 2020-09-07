@@ -1,19 +1,18 @@
 import * as React from 'react';
-import { Query } from 'react-apollo';
-import { GET_PROJECT } from 'itmat-commons/dist/graphql/projects';
+import { Query } from '@apollo/client/react/components';
+import { GET_PROJECT } from 'itmat-commons';
 // import { FieldListSection } from '../../../reusable/fieldList/fieldList';
-import { LoadingBalls } from '../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
-// import { IFieldEntry } from 'itmat-commons/dist/models/field';
 
-export const DataTabContent: React.FunctionComponent<{ studyId: string, projectId: string }> = ({ projectId }) => {
+export const DataTabContent: React.FunctionComponent<{ studyId: string; projectId: string }> = ({ projectId }) => {
     return <div className={css.scaffold_wrapper}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title="Variables">
+            <Subsection title='Variables'>
                 <Query<any, any> query={GET_PROJECT} variables={{ projectId, admin: false }}>
                     {({ loading, data, error }) => {
-                        if (loading) { return <LoadingBalls />; }
+                        if (loading) { return <LoadSpinner />; }
                         if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
 
                         if (Object.keys(data.getProject.fields).length === 0) { return <p>No fields uploaded or available to you. If this should not be the case, check your permission with admin.</p>; }

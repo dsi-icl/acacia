@@ -4,11 +4,10 @@ export const user_fragment = gql`
     fragment ALL_FOR_USER on User {
         id
         username
-        otpSecret
         type
-        realName
+        firstname
+        lastname
         email
-        createdBy
         organisation
         description
         access {
@@ -22,7 +21,9 @@ export const user_fragment = gql`
                 id
                 name
             }
-        }
+        },
+        createdAt,
+        expiredAt
     }
 `;
 
@@ -82,6 +83,48 @@ export const RESET_PASSWORD = gql`
             token: $token,
             newPassword: $newPassword
         ) {
+            successful
+        }
+    }
+`;
+
+export const VALIDATE_RESET_PASSWORD = gql`
+    query validateResetPassword(
+        $encryptedEmail: String!,
+        $token: String!
+    ) {
+        validateResetPassword(
+            encryptedEmail: $encryptedEmail,
+            token: $token
+        ) {
+            successful
+        }
+    }
+`;
+
+export const CREATE_USER = gql`
+    mutation CreateUser(
+        $username: String!
+        $password: String!
+        $firstname: String!
+        $lastname: String!
+        $description: String
+        $organisation: String!
+        $emailNotificationsActivated: Boolean
+        $email: String!
+        $type: USERTYPE
+    ){
+        createUser(user: {
+            username: $username
+            password: $password            
+            firstname: $firstname
+            lastname: $lastname
+            description: $description
+            organisation: $organisation
+            emailNotificationsActivated: $emailNotificationsActivated
+            email: $email
+            type: $type
+        }) {
             successful
         }
     }

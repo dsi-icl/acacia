@@ -1,7 +1,8 @@
 // External node module imports
-import { Server as HTTPServer } from 'http';
+import { Express } from 'express';
 import { db } from './database/database';
 import { objStore } from './objStore/objStore';
+import { MongoClient } from 'mongodb';
 import { Router } from './server/router';
 import { Server } from './server/server';
 import { pubsub, subscriptionEvents } from './graphql/pubsub';
@@ -17,12 +18,12 @@ class ITMATInterfaceServer extends Server {
      * @return {Promise} Resolve to a native Express.js router ready to use on success.
      * In case of error, an ErrorStack is rejected.
      */
-    public start(): Promise<HTTPServer> {
+    public start(): Promise<Express> {
         const _this = this;
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect(this.config.database)
+            db.connect(this.config.database, MongoClient.connect as any)
                 .then(() => objStore.connect(this.config.objectStore))
                 .then(() => {
 

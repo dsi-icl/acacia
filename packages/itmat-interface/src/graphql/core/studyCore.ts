@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy } from 'itmat-commons/dist/models/study';
+import { IProject, IStudy } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -106,8 +106,8 @@ export class StudyCore {
             /* delete all roles related to the study */
             await this.localPermissionCore.removeRoleFromStudyOrProject({ studyId });
 
-            /* delete all data */
-            // TO_DO
+            /* delete all files belong to the study*/
+            await db.collections!.files_collection.updateMany({ studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
 
             await session.commitTransaction();
             session.endSession();

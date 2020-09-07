@@ -22,6 +22,17 @@
     background: var(--color-additional-panel-background);
 }
 
+.both_panel {
+    grid-area: auto / leftPanel / auto / rightPanel;
+}
+
+.upload_overlay {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: var(--color-background);
+}
+
 .add_new_fields_section {
     background: repeating-linear-gradient(
         -40deg,
@@ -57,4 +68,8 @@
     height: calc(100% - 1rem);
     top: 0.5rem;
     left: 0.5rem;
+}
+
+.editable_row [class*=ant-form-item-explain] {
+    display: none;
 }
