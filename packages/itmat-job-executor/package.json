@@ -1,6 +1,6 @@
 {
     "name": "itmat-job-executor",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "Curator service for UKB image data",
     "license": "MIT",
     "author": "Chon Sou",
