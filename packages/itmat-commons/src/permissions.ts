@@ -1,3 +1,58 @@
+export const permissions_new = {
+    dataset_specific: {
+        files: {
+            upload_files: 'upload_files',
+            download_files: 'download_files',
+            delete_files: 'delete_files',
+            edit_files: 'edit_files'
+        },
+        roles: {
+            create_dataset_roles: 'create_dataset_roles',
+            add_users_to_dataset_roles: 'add_users_to_dataset_roles',
+            edit_dataset_role_permissions: 'edit_dataset_role_permissions',
+            delete_dataset_roles: 'delete_dataset_roles'
+        },
+        organisations: {
+            add_associated_organisation_to_dataset: 'add_associated_organisation_to_dataset',
+            remove_associated_organisation_to_dataset: 'remove_associated_organisation_to_dataset',
+        },
+        data: {
+            upload_new_clinical_data: 'upload_new_clinical_data',
+            select_current_dataversion: 'select_current_dataversion',
+            edit_staging_dataversion: 'edit_staging_dataversion',
+            commit_staging_dataversion_to_production: 'commit_staging_dataversion_to_production'
+        },
+        projects: {
+            create_new_projects: 'create_new_projects',
+            delete_projects: 'delete_projects'
+        }
+    },
+    project_specific: {
+        files: {
+            download_files: 'download_files'
+        },
+        data: {
+            view_data: 'view_data'
+        },
+        roles: {
+            create_project_roles: 'create_project_roles',
+            add_users_to_project_roles: 'add_users_to_project_roles',
+            edit_project_role_permissions: 'edit_project_role_permissions',
+            delete_project_roles: 'delete_project_roles'
+        }
+    },
+    app_wide: {
+        users: {
+            delete_users: 'delete_users',
+            edit_users: 'edit_users'
+        },
+        datasets: {
+            create_new_datasets: 'create_new_datasets',
+            delete_datasets: 'delete_datasets'
+        }
+    }
+};
+
 export const permissions = {
     all_user: {
         systemwide_user_management: 'systemwide_user_management' // create, delete, edit all users
