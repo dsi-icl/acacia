@@ -14,6 +14,7 @@ import { fileDownloadController } from '../rest/fileDownload';
 import { userLoginUtils } from '../utils/userLoginUtils';
 import { IConfiguration } from '../utils/configManager';
 import { logPlugin } from '../log/logPlugin';
+import { spaceFixing } from '../utils/regrex';
 // const MongoStore = connectMongo(session);
 
 export class Router {
@@ -59,6 +60,15 @@ export class Router {
                 {
                     requestDidStart() {
                         return {
+                            executionDidStart(requestContext) {
+                                console.log('--------');
+                                console.log(requestContext.operationName);
+                                console.log(requestContext.request.variables);
+                                const operation = requestContext.operationName;
+                                const actionData = requestContext.request.variables;
+                                (requestContext as any).request.variables = spaceFixing(operation, actionData);
+                                console.log(requestContext.request.variables);
+                            },
                             willSendResponse(requestContext) {
                                 logPlugin.requestDidStartLogPlugin(requestContext);
                             }
