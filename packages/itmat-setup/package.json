@@ -19,7 +19,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "mongodb": "3.6.1"
+        "mongodb": "3.6.2"
     },
     "devDependencies": {
         "@types/mongodb": "3.5.27",
