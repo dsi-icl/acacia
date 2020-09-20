@@ -4,6 +4,7 @@ export const permissions_new = {
             upload_files: 'upload_files',
             download_files: 'download_files',
             delete_files: 'delete_files',
+            delete_own_files: 'delete_own_files',
             edit_files: 'edit_files'
         },
         roles: {
@@ -49,9 +50,47 @@ export const permissions_new = {
         datasets: {
             create_new_datasets: 'create_new_datasets',
             delete_datasets: 'delete_datasets'
+        },
+        organisations: {
+            create_new_organisations: 'create_new_organisations',
+            delete_organisations: 'delete_organisations',
+            add_users_to_organisations: 'add_users_to_organisations'
         }
     }
 };
+
+class UserPermissions {
+    constructor() {
+
+    }
+
+    static public newFromSerialisedString(str: string): UserPermissions {
+    }
+    
+    public serialisePermissionsForMongo(): string {
+
+    }
+
+    add(permissions: string | string[]): UserPermissions {
+        if (permissions instanceof Array) {
+
+        } else {
+
+        }
+    }
+
+    remove(): UserPermissions {
+        if (permissions instanceof Array) {
+
+        } else {
+
+        }
+    }
+
+    userHasTheNeccessaryPermissionFor(neededPermission: string): boolean {
+
+    }
+}
 
 export const permissions = {
     all_user: {
