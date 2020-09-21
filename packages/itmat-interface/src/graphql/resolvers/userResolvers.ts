@@ -192,6 +192,7 @@ export const userResolvers = {
                 await mailer.sendMail(await formatEmailForForgottenPassword({
                     to: user.email,
                     resetPasswordToken: passwordResetToken,
+                    username: user.username,
                     firstname: user.firstname,
                     origin: context.req.headers.origin
                 }));
@@ -280,6 +281,12 @@ export const userResolvers = {
             const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: null }); // since bycrypt is CPU expensive let's check the username is not taken first
             if (alreadyExist !== null && alreadyExist !== undefined) {
                 throw new UserInputError('User already exists.');
+            }
+
+            /* check if email has been used to register */
+            const emailExist = await db.collections!.users_collection.findOne({ email, deleted: null });
+            if (emailExist !== null && emailExist !== undefined) {
+                throw new UserInputError('This email has been registered. Please sign-in or register with another email!');
             }
 
             /* randomly generate a secret for Time-based One Time Password*/
@@ -578,7 +585,7 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
     });
 }
 
-async function formatEmailForForgottenPassword({ firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, firstname: string, origin: any }) {
+async function formatEmailForForgottenPassword({ username, firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, username:string, firstname: string, origin: any }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
     const iv = makeAESIv(resetPasswordToken);
     const encryptedEmail = await encryptEmail(to, keySalt, iv);
@@ -592,6 +599,9 @@ async function formatEmailForForgottenPassword({ firstname, to, resetPasswordTok
             <p>
                 Dear ${firstname},
             <p>
+            <p>
+                Your username is <b>${username}</b>.
+            </p>
             <p>
                 You can reset you password by click the following link (active for 1 hour):<br/>
                 <a href=${link}>${link}</a>
