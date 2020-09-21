@@ -9,7 +9,8 @@ import {
     REMOVE_ROLE,
     GET_USERS,
     GET_PROJECT,
-    GET_STUDY
+    GET_STUDY,
+    flattenObjectToArray
 } from 'itmat-commons';
 import { LoadingBalls } from '../icons/loadingBalls';
 import css from './roleControlSection.module.css';
@@ -18,7 +19,7 @@ import { UserListPicker } from '../userSelectionList/userListPicker';
 export const RoleControlSection: React.FunctionComponent<{ studyId: string; projectId?: string; roles: Models.Study.IRole[] }> = ({ roles, studyId, projectId }) => {
     return <div>
         {
-            roles.map((el) => <OneRole key={el.id} role={el} availablePermissions={projectId ? Object.values(permissions.specific_project) : Object.values(permissions.specific_study)} />)
+            roles.map((el) => <OneRole key={el.id} role={el} availablePermissions={projectId ? flattenObjectToArray(permissions.project_specific) : flattenObjectToArray(permissions.dataset_specific)} />)
         }
         <AddRole studyId={studyId} projectId={projectId} />
     </div>;

@@ -1,5 +1,5 @@
 import { ApolloError, withFilter } from 'apollo-server-express';
-import { Models, task_required_permissions } from 'itmat-commons';
+import { Models, permissions } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -22,7 +22,7 @@ export const jobResolvers = {
 
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
+                permissions.dataset_specific.data.upload_new_clinical_data,
                 requester,
                 args.studyId
             );
@@ -80,7 +80,7 @@ export const jobResolvers = {
 
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
+                permissions.dataset_specific.fields.upload_new_fields,
                 requester,
                 args.studyId
             );
