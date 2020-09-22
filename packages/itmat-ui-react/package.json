@@ -19,10 +19,10 @@
     },
     "dependencies": {
         "@ant-design/icons": "4.2.2",
-        "@apollo/client": "3.1.4",
+        "@apollo/client": "3.2.0",
         "@ideafast/idgen": "0.1.1",
         "antd": "4.6.3",
-        "apollo-upload-client": "14.1.1",
+        "apollo-upload-client": "14.1.2",
         "graphql": "15.3.0",
         "itmat-commons": "0.6.0",
         "qrcode": "1.4.4",
@@ -38,8 +38,8 @@
         "@babel/core": "7.11.6",
         "@babel/preset-env": "7.11.5",
         "@types/apollo-upload-client": "14.1.0",
-        "@types/jest": "26.0.10",
-        "@types/node": "14.6.0",
+        "@types/jest": "26.0.14",
+        "@types/node": "14.11.2",
         "@types/react": "16.9.49",
         "@types/react-dom": "16.9.8",
         "@types/react-highlight-words": "0.16.1",
@@ -47,9 +47,9 @@
         "@types/webpack-env": "1.15.2",
         "babel-loader": "8.1.0",
         "cross-env": "7.0.2",
-        "cypress": "5.1.0",
+        "cypress": "5.2.0",
         "cypress-file-upload": "4.1.1",
-        "cypress-react-unit-test": "4.11.2",
+        "cypress-react-unit-test": "4.14.1",
         "enzyme": "3.11.0",
         "enzyme-adapter-react-16": "1.15.4",
         "react-git-info": "2.0.0",
@@ -58,12 +58,12 @@
         "jest-enzyme": "7.1.2",
         "react-scripts": "3.4.0",
         "rimraf": "3.0.2",
-        "typescript": "4.0.2",
+        "typescript": "4.0.3",
         "uuid": "8.3.0",
-        "webpack": "4.44.1"
+        "webpack": "4.44.2"
     },
     "resolutions": {
-        "**/moment": "2.27.0"
+        "**/moment": "2.29.0"
     },
     "babel": {
         "extends": "./config/babel.config.js"
