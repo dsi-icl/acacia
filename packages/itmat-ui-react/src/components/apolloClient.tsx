@@ -22,8 +22,11 @@ const cache = new InMemoryCache({
 
 export const client = new ApolloClient({
     link: from([
-        onError(({ graphQLErrors, networkError }) => {
+        onError(({ response, graphQLErrors, networkError }) => {
             if (graphQLErrors) {
+                if ((response as any).errors[0].message === 'NOT_LOGGED_IN') {
+                    window.location.reload();
+                }
                 graphQLErrors.map((error) =>
                     console.error('[GraphQL error]', error.message ? error.message : error)
                 );

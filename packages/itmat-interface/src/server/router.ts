@@ -36,6 +36,7 @@ export class Router {
             secret: config.sessionsSecret,
             resave: true,
             saveUninitialized: true,
+            cookie: { maxAge: 2 * 60 * 60 * 1000 /** 2 hour **/ }
             // store: new MongoStore({ client: db.client })
         }));
 
@@ -61,13 +62,9 @@ export class Router {
                     requestDidStart() {
                         return {
                             executionDidStart(requestContext) {
-                                console.log('--------');
-                                console.log(requestContext.operationName);
-                                console.log(requestContext.request.variables);
                                 const operation = requestContext.operationName;
                                 const actionData = requestContext.request.variables;
                                 (requestContext as any).request.variables = spaceFixing(operation, actionData);
-                                console.log(requestContext.request.variables);
                             },
                             willSendResponse(requestContext) {
                                 logPlugin.requestDidStartLogPlugin(requestContext);
