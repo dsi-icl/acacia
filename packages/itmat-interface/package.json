@@ -67,7 +67,7 @@
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
         "supertest": "4.0.2",
-        "ts-jest": "26.4.0",
+        "ts-jest": "26.4.1",
         "ts-loader": "8.0.4",
         "typescript": "4.0.3",
         "webpack": "4.44.2",
