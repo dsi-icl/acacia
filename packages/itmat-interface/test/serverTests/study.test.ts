@@ -424,7 +424,6 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 name: projectName,
-                approvedFields: {}
             });
 
             /* cleanup: delete project */
@@ -473,7 +472,7 @@ describe('STUDY API', () => {
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
                 permissions: [
-                    permissions.specific_study.specific_study_projects_management
+                    permissions.dataset_specific.projects.create_new_projects,
                 ],
                 users: [authorisedUserProfile.id],
                 deleted: null
@@ -511,7 +510,6 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 name: projectName,
-                approvedFields: {}
             });
 
             /* cleanup: delete project */
@@ -576,7 +574,7 @@ describe('STUDY API', () => {
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
                 permissions: [
-                    permissions.specific_study.specific_study_projects_management
+                    permissions.dataset_specific.projects.delete_projects
                 ],
                 users: [authorisedUserProfile.id],
                 deleted: null
@@ -798,7 +796,6 @@ describe('STUDY API', () => {
                     id: createdProject.id,
                     studyId: createdStudy.id,
                     name: projectName,
-                    approvedFields: {}
                 });
             }
 
@@ -942,7 +939,7 @@ describe('STUDY API', () => {
                             remove: []
                         },
                         permissionChanges: {
-                            add: [permissions.specific_project.specific_project_readonly_access],
+                            add: [permissions.project_specific.view_project],
                             remove: []
                         }
                     }
@@ -954,7 +951,7 @@ describe('STUDY API', () => {
                     name: createdRole_project.name,
                     studyId: createdStudy.id,
                     projectId: createdProject.id,
-                    permissions: [permissions.specific_project.specific_project_readonly_access],
+                    permissions: [permissions.project_specific.view_project],
                     users: [{
                         id: createdUserAuthorised.id,
                         organisation: 'DSI',
@@ -1024,7 +1021,7 @@ describe('STUDY API', () => {
                             remove: []
                         },
                         permissionChanges: {
-                            add: [permissions.specific_study.specific_study_readonly_access],
+                            add: [permissions.dataset_specific.view_dataset],
                             remove: []
                         }
                     }
@@ -1036,7 +1033,7 @@ describe('STUDY API', () => {
                     name: createdRole_study.name,
                     studyId: createdStudy.id,
                     projectId: null,
-                    permissions: [permissions.specific_study.specific_study_readonly_access],
+                    permissions: [permissions.dataset_specific.view_dataset],
                     users: [{
                         id: createdUserAuthorisedStudy.id,
                         organisation: 'DSI',
@@ -1110,7 +1107,12 @@ describe('STUDY API', () => {
                             remove: []
                         },
                         permissionChanges: {
-                            add: [permissions.specific_study.specific_study_projects_management],
+                            add: [
+                                permissions.dataset_specific.projects.create_new_projects,
+                                permissions.dataset_specific.projects.delete_projects,
+                                permissions.dataset_specific.projects.manage_project_approved_files,
+                                permissions.dataset_specific.projects.manage_project_approved_fields
+                            ],
                             remove: []
                         }
                     }
@@ -1122,7 +1124,12 @@ describe('STUDY API', () => {
                     name: createdRole_study_manageProject.name,
                     studyId: createdStudy.id,
                     projectId: null,
-                    permissions: [permissions.specific_study.specific_study_projects_management],
+                    permissions: [
+                        permissions.dataset_specific.projects.create_new_projects,
+                        permissions.dataset_specific.projects.delete_projects,
+                        permissions.dataset_specific.projects.manage_project_approved_files,
+                        permissions.dataset_specific.projects.manage_project_approved_fields
+                    ],
                     users: [{
                         id: createdUserAuthorisedStudyManageProjects.id,
                         organisation: 'DSI',
@@ -1319,7 +1326,9 @@ describe('STUDY API', () => {
                         {
                             id: createdRole_study.id,
                             name: createdRole_study.name,
-                            permissions: [permissions.specific_study.specific_study_readonly_access],
+                            permissions: [
+                                permissions.dataset_specific.view_dataset
+                            ],
                             projectId: null,
                             studyId: createdStudy.id,
                             users: [{
@@ -1332,7 +1341,12 @@ describe('STUDY API', () => {
                         {
                             id: createdRole_study_manageProject.id,
                             name: createdRole_study_manageProject.name,
-                            permissions: [permissions.specific_study.specific_study_projects_management],
+                            permissions: [
+                                permissions.dataset_specific.projects.create_new_projects,
+                                permissions.dataset_specific.projects.delete_projects,
+                                permissions.dataset_specific.projects.manage_project_approved_files,
+                                permissions.dataset_specific.projects.manage_project_approved_fields
+                            ],
                             projectId: null,
                             studyId: createdStudy.id,
                             users: [{
@@ -1396,7 +1410,7 @@ describe('STUDY API', () => {
                         {
                             id: createdRole_project.id,
                             name: createdRole_project.name,
-                            permissions: [permissions.specific_project.specific_project_readonly_access],
+                            permissions: [permissions.project_specific.view_project],
                             projectId: createdProject.id,
                             studyId: createdStudy.id,
                             users: [{
@@ -1990,7 +2004,7 @@ describe('STUDY API', () => {
                 .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
         });
 
-        test('Set a previous study dataversion as current (user with study "manage data" privilege) (should fail)', async () => {
+        test('Set a previous study dataversion as current (user with study "manage data" privilege)', async () => {
             /* setup: create a new user */
             const userDataCurator: IUser = {
                 id: uuid(),
@@ -2015,7 +2029,7 @@ describe('STUDY API', () => {
                 id: uuid(),
                 studyId: createdStudy.id,
                 name: 'Data Manager',
-                permissions: [permissions.specific_study.specific_study_data_management],
+                permissions: [permissions.dataset_specific.data.select_current_dataversion],
                 users: [userDataCurator.id],
                 createdBy: adminId,
                 deleted: null
