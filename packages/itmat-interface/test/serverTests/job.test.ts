@@ -205,7 +205,7 @@ describe('JOB API', () => {
             studyId: createdStudy.id,
             name: `${roleId}_rolename`,
             permissions: [
-                permissions.specific_study.specific_study_data_management
+                permissions.dataset_specific.data.upload_new_clinical_data
             ],
             users: [authorisedUserProfile.id],
             deleted: null
