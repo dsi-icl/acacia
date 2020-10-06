@@ -74,7 +74,7 @@ export const permissions = {
 //        userPermissions.add(allPermissions);
 //        return userPermissions;
 //    }
-//    
+//
 //    public serialisePermissionsForMongo(): string {
 //        return this._permissions.join('|');
 //    }
