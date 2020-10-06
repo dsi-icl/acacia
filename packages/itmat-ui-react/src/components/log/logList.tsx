@@ -195,11 +195,18 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
     ];
 
     return <>
-        <Input.Search allowClear style={{ width: '80%' }} defaultValue={searchTerm} value={searchTerm} placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value.toUpperCase())} />
-        <Button type='primary' style={{ width: '10%', background: 'grey' }} onClick={() => { setSearchTerm(''); setInputs(initInputs); }}>
+        <Input.Search allowClear style={{
+            maxWidth: '65%'
+        }} defaultValue={searchTerm} value={searchTerm} placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value.toUpperCase())} />&nbsp;&nbsp;&nbsp;
+        <Button type='primary' style={{
+            verticalAlign: 'top',
+            backgroundColor: 'grey'
+        }} onClick={() => { setSearchTerm(''); setInputs(initInputs); }}>
             {advancedSearch ? null : 'Reset'}
-        </Button>
-        <Button type='primary' style={{ width: '10%' }} onClick={() => setAdvancedSearch(!advancedSearch)}>
+        </Button>&nbsp;&nbsp;&nbsp;
+        <Button type='primary' style={{
+            verticalAlign: 'top'
+        }} onClick={() => setAdvancedSearch(!advancedSearch)}>
             {advancedSearch ? null : 'Advanced Search'}
         </Button>
         <Modal
