@@ -1,4 +1,4 @@
-import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS } from 'itmat-commons';
+import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -38,6 +38,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
     const initInputs = {
         requesterName: '',
         requesterType: [],
+        userAgent: [],
         logType: [],
         actionType: [],
         time: '',
@@ -80,6 +81,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                 || new Date(log.time).toUTCString().toUpperCase().search(searchTerm) > -1 || log.status.toUpperCase().search(searchTerm) > -1))
             && (inputs.requesterName === '' || log.requesterName.toLowerCase().indexOf(inputs.requesterName.toLowerCase()) !== -1)
             && (inputs.requesterType.length === 0 || inputs.requesterType.includes(log.requesterType))
+            && (inputs.userAgent.length === 0 || inputs.userAgent.includes(log.userAgent))
             && (inputs.logType.length === 0 || inputs.logType.includes(log.logType))
             && (inputs.actionType.length === 0 || inputs.actionType.includes(log.actionType))
             && (inputs.status.length === 0 || inputs.status.includes(log.status))
@@ -129,6 +131,20 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                     }} />;
                 else
                     return record.logType;
+            }
+        },
+        {
+            title: 'Request From',
+            dataIndex: 'userAgent',
+            key: 'userAgent',
+            render: (__unused__value, record) => {
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={record.userAgent} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return record.userAgent;
             }
         },
         {
@@ -214,6 +230,8 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
             <Input {...inputControl('requesterName')} style={{ marginBottom: '20px' }} />
             <Descriptions title='Requester Type'></Descriptions>
             <Checkbox.Group options={Object.keys(userTypes)} {...checkboxControl('requesterType')} style={{ marginBottom: '20px' }} />
+            <Descriptions title='Request From'></Descriptions>
+            <Checkbox.Group options={Object.keys(USER_AGENT)} {...checkboxControl('userAgent')} style={{ marginBottom: '20px' }} />
             <Descriptions title='Log Type'></Descriptions>
             <Checkbox.Group options={Object.keys(LOG_TYPE)} {...checkboxControl('logType')} style={{ marginBottom: '20px' }} />
             <Descriptions title='Request Type'></Descriptions>
