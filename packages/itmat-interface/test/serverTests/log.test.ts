@@ -17,7 +17,8 @@ import {
     LOG_TYPE,
     LOGIN,
     IUser,
-    DELETE_USER
+    DELETE_USER,
+    USER_AGENT
 } from 'itmat-commons';
 
 let app;
@@ -139,6 +140,7 @@ describe('LOG API', () => {
                 requesterName: userTypes.SYSTEM,
                 requesterType: userTypes.SYSTEM,
                 logType: LOG_TYPE.SYSTEM_LOG,
+                userAgent: USER_AGENT.MOZILLA,
                 actionType: LOG_ACTION.startSERVER,
                 actionData: JSON.stringify({}),
                 time: 100000000,

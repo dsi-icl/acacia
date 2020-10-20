@@ -4,12 +4,18 @@ export interface ILogEntry {
     id: string,
     requesterName: string,
     requesterType: userTypes,
+    userAgent: USER_AGENT,
     logType: LOG_TYPE,
     actionType: LOG_ACTION,
     actionData: any,
     time: number,
     status: LOG_STATUS,
     errors: string | null
+}
+
+export enum USER_AGENT {
+    MOZILLA = 'MOZILLA',
+    OTHER = 'OTHER'
 }
 
 export enum LOG_TYPE {

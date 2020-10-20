@@ -172,6 +172,11 @@ enum LOG_TYPE {
    REQUEST_LOG
 }
 
+enum USER_AGENT {
+    MOZILLA,
+    OTHER
+}
+
 enum LOG_STATUS {
     SUCCESS
     FAIL
@@ -231,6 +236,7 @@ type Log {
     id: String!,
     requesterName: String,
     requesterType: USERTYPE,
+    userAgent: USER_AGENT,
     logType: LOG_TYPE,
     actionType: LOG_ACTION,
     actionData: JSON,
