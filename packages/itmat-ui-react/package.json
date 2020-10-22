@@ -20,7 +20,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "@apollo/client": "3.2.2",
+        "@apollo/client": "3.2.5",
         "antd": "4.6.6",
         "apollo-upload-client": "14.1.2",
         "graphql": "15.3.0",
