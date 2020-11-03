@@ -9,4 +9,5 @@ export interface IFile {
     uploadedBy: string;  // userId
     uri: string;
     deleted: number | null;
+    hash: string;
 }

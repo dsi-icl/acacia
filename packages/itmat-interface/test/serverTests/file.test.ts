@@ -142,7 +142,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: 'just a file 1.',
-                                fileLength: 10000
+                                fileLength: 10000,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -159,7 +160,8 @@ if (global.hasMinio) {
                         projectId: null,
                         fileSize: 10000,
                         description: 'just a file 1.',
-                        uploadedBy: adminId
+                        uploadedBy: adminId,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                     });
                 });
 
@@ -172,7 +174,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: 'just a file 1.',
-                                fileLength: 10000
+                                fileLength: 10000,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -193,7 +196,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: 'just a file 2.',
-                                fileLength: 10000
+                                fileLength: 10000,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -210,7 +214,8 @@ if (global.hasMinio) {
                         projectId: null,
                         fileSize: 10000,
                         description: 'just a file 2.',
-                        uploadedBy: authorisedUserProfile.id
+                        uploadedBy: authorisedUserProfile.id,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                     });
                 });
 
@@ -223,7 +228,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: 'just a file 3.',
-                                fileLength: 0
+                                fileLength: 0,
+                                hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -240,8 +246,32 @@ if (global.hasMinio) {
                         projectId: null,
                         fileSize: 0,
                         description: 'just a file 3.',
-                        uploadedBy: adminId
+                        uploadedBy: adminId,
+                        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                     });
+                });
+
+                test('Upload a file with incorrect hash', async () => {
+                    /* test: upload file */
+                    const res = await admin.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: 'just a file 3.',
+                                fileLength: 0,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
+
+                    /* setup: geting the created file Id */
+                    expect(res.status).toBe(200);
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0].message).toBe(errorCodes.AUTHENTICATION_ERROR);
+                    expect(res.body.data.uploadFile).toEqual(null);
                 });
             });
 
@@ -277,7 +307,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: 'just a file 1.',
-                                fileLength: 10000
+                                fileLength: 10000,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -285,7 +316,6 @@ if (global.hasMinio) {
 
                     /* setup: geting the created file Id */
                     createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
-
                     /* setup: creating a privileged user */
                     const username = uuid();
                     authorisedUserProfile = {
@@ -407,7 +437,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: 'just a file 1.',
-                                fileLength: 10000
+                                fileLength: 10000,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))

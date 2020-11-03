@@ -7,12 +7,13 @@ import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 import { Readable } from 'stream';
+import crypto from 'crypto';
 
 export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: Readable, filename: string }>, description: string }, context: any): Promise<IFile> => {
+        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: Readable, filename: string }>, description: string, hash: string }, context: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -24,6 +25,70 @@ export const fileResolvers = {
 
             const file = await args.file;
 
+            const hashPromise = new Promise<string>((resolve, reject) => {
+                try {
+                    const stream: Readable = (file as any).createReadStream();
+                    const hashStream = crypto.createHash('sha256');
+                    hashStream.setEncoding('hex');
+                    stream.pipe(hashStream);
+                    stream.on('end', async () => {
+                        // hash
+                        hashStream.end();
+                        const hashString = hashStream.read();
+                        if (args.hash === hashString) {
+                            resolve(hashString);
+                        } else {
+                            console.log(hashString);
+                            console.log(args.hash);
+                            return reject(new ApolloError(errorCodes.AUTHENTICATION_ERROR));
+                        }
+                    });
+                } catch (e) {
+                    Logger.error(errorCodes.FILE_STREAM_ERROR);
+                }
+            });
+
+            return hashPromise.then(function(hashString) {
+                return new Promise<IFile>((resolve, reject) => {
+                    try {
+
+                        const stream: Readable = (file as any).createReadStream();
+                        const fileUri = uuid();
+
+                        /* if the client cancelled the request mid-stream it will throw an error */
+                        stream.on('error', (e) => {
+                            Logger.error(e);
+                            reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
+                        });
+
+                        stream.on('end', async () => {
+                            const fileEntry: IFile = {
+                                id: uuid(),
+                                fileName: file.filename,
+                                studyId: args.studyId,
+                                fileSize: args.fileLength === undefined ? 0 : args.fileLength,
+                                description: args.description,
+                                uploadTime: `${Date.now()}`,
+                                uploadedBy: requester.id,
+                                uri: fileUri,
+                                deleted: null,
+                                hash: hashString
+                            };
+
+                            const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
+                            if (insertResult.result.ok === 1) {
+                                resolve(fileEntry);
+                            } else {
+                                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                            }
+                        });
+
+                        objStore.uploadFile(stream, args.studyId, fileUri);
+                    } catch (e) {
+                        Logger.error(errorCodes.FILE_STREAM_ERROR);
+                    }
+                });
+            });
             return new Promise<IFile>((resolve, reject) => {
                 try {
 
@@ -46,7 +111,8 @@ export const fileResolvers = {
                             uploadTime: `${Date.now()}`,
                             uploadedBy: requester.id,
                             uri: fileUri,
-                            deleted: null
+                            deleted: null,
+                            hash: ''
                         };
 
                         const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
@@ -62,6 +128,7 @@ export const fileResolvers = {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }
             });
+
         },
         deleteFile: async (__unused__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
             const requester: Models.UserModels.IUser = context.req.user;
