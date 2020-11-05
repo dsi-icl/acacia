@@ -23,7 +23,7 @@
         "@apollo/client": "3.2.5",
         "antd": "4.8.0",
         "apollo-upload-client": "14.1.2",
-        "graphql": "15.3.0",
+        "graphql": "15.4.0",
         "itmat-commons": "0.6.0",
         "qrcode": "1.4.4",
         "react": "16.13.1",
