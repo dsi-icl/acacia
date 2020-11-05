@@ -61,7 +61,7 @@
         "get-port": "5.1.1",
         "graphql": "15.3.0",
         "itmat-setup": "0.0.1",
-        "jest": "26.6.1",
+        "jest": "26.6.3",
         "mongodb-memory-server": "6.9.2",
         "node-fetch": "2.6.1",
         "rimraf": "3.0.2",
