@@ -55,7 +55,7 @@
     "resolutions": {
         "**/**/fs-capacitor": "^6.0.0",
         "**/graphql-upload": "^11.0.0",
-        "**/graphql": "15.3.0",
+        "**/graphql": "15.4.0",
         "**/moment": "2.29.1"
     },
     "eslintConfig": {
