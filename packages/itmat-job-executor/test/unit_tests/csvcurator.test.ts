@@ -307,8 +307,8 @@ describe('CSVCuratorClass', () => {
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            'Line 18: Uneven field Number; expected 5 fields but got 4',
-            'Line 28: Uneven field Number; expected 5 fields but got 4'
+            'Error: Invalid Record Length: expect 5, got 4 on line 18',
+            'Error: Invalid Record Length: expect 5, got 4 on line 28'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(16);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
@@ -343,10 +343,10 @@ describe('CSVCuratorClass', () => {
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            'Line 1530: Uneven field Number; expected 5 fields but got 3',
-            'Line 1836: Uneven field Number; expected 5 fields but got 4'
+            'Error: Invalid Record Length: expect 5, got 3 on line 1530',
+            'Error: Invalid Record Length: expect 5, got 4 on line 1836'
         ]);
-        expect(mongoStub._bulkinsert._insertArray).toHaveLength(1528);
+        expect(mongoStub._bulkinsert._insertArray).toHaveLength(1000);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000]);
         expect(mongoStub._bulkinsert._insertArray[0]).toEqual({
             1: { 1: { 1: '1', 2: 2 }, 2: { 1: 2, } }, 2: { 1: { 1: 'male' } },
@@ -381,10 +381,10 @@ describe('CSVCuratorClass', () => {
         expect(errors).toEqual([
             'Line 1: \'1@2.1:8\' is not a valid header field descriptor.',
             'Line 7 column 3: Cannot parse \'as.d\' as decimal.',
-            'Line 31: Uneven field Number; expected 5 fields but got 4',
-            'Line 32: Uneven field Number; expected 5 fields but got 4',
-            'Line 1531: Uneven field Number; expected 5 fields but got 3',
-            'Line 1837: Uneven field Number; expected 5 fields but got 4',
+            'Error: Invalid Record Length: expect 5, got 4 on line 31',
+            'Error: Invalid Record Length: expect 5, got 4 on line 32',
+            'Error: Invalid Record Length: expect 5, got 3 on line 1531',
+            'Error: Invalid Record Length: expect 5, got 4 on line 1837',
             'Data Error: There is duplicate subject id.'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);

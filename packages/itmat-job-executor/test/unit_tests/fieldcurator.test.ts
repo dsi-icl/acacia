@@ -339,7 +339,7 @@ describe('FieldCuratorClass', () => {
             'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
-        expect(errors).toEqual(['Line 24: Uneven field Number; expected 11 fields but got 9.']);
+        expect(errors).toEqual(['Error: Invalid Record Length: expect 11, got 9 on line 24']);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(22);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray[0].id).toBeDefined();
@@ -383,7 +383,7 @@ describe('FieldCuratorClass', () => {
             'mockFieldTreeId'
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
-        expect(errors).toEqual(['Line 1121: Uneven field Number; expected 11 fields but got 10.']);
+        expect(errors).toEqual(['Error: Invalid Record Length: expect 11, got 10 on line 1121']);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(1119);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000]);
         expect(mongoStub._bulkinsert._insertArray[0].id).toBeDefined();
@@ -430,7 +430,7 @@ describe('FieldCuratorClass', () => {
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
             'Line 9 column 2: Field Name cannot be empty.',
-            'Line 69: Uneven field Number; expected 11 fields but got 10.',
+            'Error: Invalid Record Length: expect 11, got 10 on line 69',
             'Line 331 column 3: Invalid value type "w": use "c" for categorical, "i" for integer, "d" for decimal, "b" for boolean and "t" for free text.',
             'Line 835 column 7: Cannot parse number of time points as number.',
             'Line 919 column 1: Cannot parse field ID as number.',
