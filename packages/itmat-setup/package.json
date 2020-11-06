@@ -22,7 +22,7 @@
         "mongodb": "3.6.2"
     },
     "devDependencies": {
-        "@types/mongodb": "3.5.32",
+        "@types/mongodb": "3.5.33",
         "chalk": "4.1.0",
         "eslint": "7.12.1",
         "typescript": "4.0.5"
