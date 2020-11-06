@@ -1,5 +1,5 @@
 import { db } from '../database/database';
-import { v4 as uuid} from 'uuid';
+import { v4 as uuid } from 'uuid';
 import { LOG_TYPE, LOG_ACTION, LOG_STATUS, USER_AGENT, userTypes } from 'itmat-commons';
 
 // only requests in white list will be recorded
@@ -33,7 +33,7 @@ export class LogPlugin {
             id: uuid(),
             requesterName: requestContext.context.req.user ? requestContext.context.req.user.username : 'NA',
             requesterType: requestContext.context.req.user ? requestContext.context.req.user.type : userTypes.SYSTEM,
-            userAgent: (requestContext.context.req.headers['user-agent'] as string).startsWith('Mozilla') ? USER_AGENT.MOZILLA: USER_AGENT.OTHER,
+            userAgent: (requestContext.context.req.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
             logType: LOG_TYPE.REQUEST_LOG,
             actionType: LOG_ACTION[requestContext.operationName],
             actionData: JSON.stringify(requestContext.request.variables),
