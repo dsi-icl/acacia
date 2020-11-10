@@ -2158,6 +2158,15 @@
     debug "^4.1.1"
     lodash "^4.17.20"
 
+"@cypress/webpack-preprocessor@5.4.11":
+  version "5.4.11"
+  resolved "https://registry.yarnpkg.com/@cypress/webpack-preprocessor/-/webpack-preprocessor-5.4.11.tgz#77f86e399f04969d5d8692ada96c794c52d38f87"
+  integrity sha512-6kj0HsaWf1s0UT4qkABuwl676sW8S8lSTai3NUcF3BWj9BqhN4JPd2DdGcHNkNmYRkjpklPeGUHqAOyqMDj5+A==
+  dependencies:
+    bluebird "^3.7.1"
+    debug "^4.1.1"
+    lodash "^4.17.20"
+
 "@cypress/xvfb@^1.2.4":
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/@cypress/xvfb/-/xvfb-1.2.4.tgz#2daf42e8275b39f4aa53c14214e557bd14e7748a"
