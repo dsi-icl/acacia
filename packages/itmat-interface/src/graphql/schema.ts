@@ -374,7 +374,7 @@ type Mutation {
     createUser(user: CreateUserInput!): GenericResponse
     
     # PUBLIC KEY AUTHENTICATION
-    registerPubkey(pubkey: String!, signature: $String!, associatedUserId: String): Pubkey
+    registerPubkey(pubkey: String!, signature: String!, associatedUserId: String): Pubkey
 
     # ORGANISATION
     createOrganisation(name: String!, containOrg: String): Organisation
