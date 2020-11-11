@@ -74,6 +74,13 @@ const collections = {
             { key: { id: 1 }, unique: true },
             { key: { name: 1 }, unique: true },
         ]
+    },
+    pubkeys_collection: {
+        name: 'PUBKEY_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true },
+            { key: { pubkey: 1 }, unique: true },
+        ]
     }
 };
 
