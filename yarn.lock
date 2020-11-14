@@ -2158,6 +2158,15 @@
     debug "^4.1.1"
     lodash "^4.17.20"
 
+"@cypress/webpack-preprocessor@5.4.11":
+  version "5.4.11"
+  resolved "https://registry.yarnpkg.com/@cypress/webpack-preprocessor/-/webpack-preprocessor-5.4.11.tgz#77f86e399f04969d5d8692ada96c794c52d38f87"
+  integrity sha512-6kj0HsaWf1s0UT4qkABuwl676sW8S8lSTai3NUcF3BWj9BqhN4JPd2DdGcHNkNmYRkjpklPeGUHqAOyqMDj5+A==
+  dependencies:
+    bluebird "^3.7.1"
+    debug "^4.1.1"
+    lodash "^4.17.20"
+
 "@cypress/xvfb@^1.2.4":
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/@cypress/xvfb/-/xvfb-1.2.4.tgz#2daf42e8275b39f4aa53c14214e557bd14e7748a"
@@ -7667,14 +7676,14 @@ cypress-file-upload@4.1.1:
   dependencies:
     mime "^2.4.4"
 
-cypress-react-unit-test@4.16.9:
-  version "4.16.9"
-  resolved "https://registry.yarnpkg.com/cypress-react-unit-test/-/cypress-react-unit-test-4.16.9.tgz#eaf4dde3830914672cc716bf84f29bc2d24b6e4f"
-  integrity sha512-oK/N1jTBRgSnPzTAfU4RY1SnXDgwREuCeUq4blld+aY2/H0l4W82bmd/12XcIzJDraz3YbntPEDGAuCvy8KxJg==
+cypress-react-unit-test@4.17.0:
+  version "4.17.0"
+  resolved "https://registry.yarnpkg.com/cypress-react-unit-test/-/cypress-react-unit-test-4.17.0.tgz#c675613f4ae7ab973fe7d9f30bc70e20362bf592"
+  integrity sha512-2DytgGygVbp4mx2fJgkiPon8q3AYVFcJxlR6keVAJnkGPrUj7sgRtEHCbypeNVyV9IDiuPhzpwyo4ZYbCUl95w==
   dependencies:
     "@babel/plugin-transform-modules-commonjs" "7.12.1"
     "@cypress/code-coverage" "3.8.3"
-    "@cypress/webpack-preprocessor" "5.4.10"
+    "@cypress/webpack-preprocessor" "5.4.11"
     babel-plugin-istanbul "6.0.0"
     chalk "4.1.0"
     cli-highlight "2.1.4"
