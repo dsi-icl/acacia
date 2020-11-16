@@ -18,7 +18,7 @@ const modules = [
     queryResolvers,
     permissionResolvers,
     jobResolvers,
-    fileResolvers,    
+    fileResolvers,
     organisationResolvers,
     pubkeyResolvers,
     logResolvers
