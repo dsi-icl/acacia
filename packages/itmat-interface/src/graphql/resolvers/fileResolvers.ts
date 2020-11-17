@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models, task_required_permissions, IFile, Logger, IOrganisation } from 'itmat-commons';
+import { Models, task_required_permissions, IFile, Logger } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
@@ -30,22 +30,22 @@ export const fileResolvers = {
                 try {
                     let readBytes = 0;
                     const countStream: Readable = (file as any).createReadStream();
-                    
+
                     countStream.on('data', chunk => {
                         readBytes += chunk.length;
-                    })
+                    });
 
-                    countStream.on('end', async => {
+                    countStream.on('end', () => {
                         // check if readbytes equal to filelength in parameters
                         if (args.fileLength !== undefined) {
                             if (args.fileLength !== readBytes) {
                                 reject(new ApolloError('File size mismatch', errorCodes.CLIENT_MALFORMED_INPUT));
                                 return;
                             }
-                        }    
+                        }
                         const stream: Readable = (file as any).createReadStream();
                         const fileUri = uuid();
-                        
+
                         /* if the client cancelled the request mid-stream it will throw an error */
                         stream.on('error', (e) => {
                             Logger.error(e);
@@ -103,7 +103,7 @@ export const fileResolvers = {
                         });
 
                         objStore.uploadFile(stream, args.studyId, fileUri);
-                    })
+                    });
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }

@@ -11,5 +11,5 @@ export const deviceTypes = {
 };
 
 export const sitesIDMarker = {
-    'I': 'ICL'
-}
+    I: 'ICL'
+};

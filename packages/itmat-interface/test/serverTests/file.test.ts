@@ -247,17 +247,17 @@ if (global.hasMinio) {
                 test('File size mismatch with actual read bytes', async () => {
                     /* test: upload file */
                     const res = await admin.post('/graphql')
-                    .field('operations', JSON.stringify({
-                        query: print(UPLOAD_FILE),
-                        variables: {
-                            studyId: createdStudy.id,
-                            file: null,
-                            description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
-                            fileLength: 10
-                        }
-                    }))
-                    .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                    .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                fileLength: 10
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
 
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
