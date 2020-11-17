@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { ApolloError } from 'apollo-server-core';
-import { IUser, IUserWithoutToken, userTypes, Models, IOrganisation } from 'itmat-commons';
+import { IUser, IUserWithoutToken, userTypes, Models, IOrganisation, IPubkey} from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
 
@@ -90,6 +90,25 @@ export class UserCore {
         };
 
         const result = await db.collections!.organisations_collection.insertOne(entry);
+        if (result.result.ok === 1) {
+            return entry;
+        } else {
+            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
+        }
+    }
+
+    public async registerPubkey(pubkeyobj: { pubkey: string, associatedUserId: string | null, jwtSecret: string}): Promise<IPubkey> {
+        const { pubkey, associatedUserId, jwtSecret} = pubkeyobj;
+        const entry: IPubkey = {
+            id: uuid(),
+            pubkey,
+            associatedUserId,
+            jwtSecret,
+            refreshCounter: 0,
+            deleted: null
+        };
+
+        const result = await db.collections!.pubkeys_collection.insertOne(entry);
         if (result.result.ok === 1) {
             return entry;
         } else {

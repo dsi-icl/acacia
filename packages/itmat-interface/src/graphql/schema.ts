@@ -67,6 +67,14 @@ type User {
     access: UserAccess # admin or self only
 }
 
+type Pubkey {
+    id: String!
+    pubkey: String!
+    associatedUserId: String
+    jwtSecret: String!
+    refreshCounter: Int
+}
+
 type OrganisationMetadata {
     siteIDMarker: String
 }
@@ -333,6 +341,9 @@ type Query {
     # ORGANISATION
     getOrganisations(organisationId: String): [Organisation]
 
+    # PUBLIC KEY AUTHENTICATION
+    getPubkeys(pubkeyId: String): [Pubkey]
+
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
@@ -361,6 +372,9 @@ type Mutation {
     ): GenericResponse
     resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
     createUser(user: CreateUserInput!): GenericResponse
+    
+    # PUBLIC KEY AUTHENTICATION
+    registerPubkey(pubkey: String!, signature: String!, associatedUserId: String): Pubkey
 
     # ORGANISATION
     createOrganisation(name: String!, containOrg: String): Organisation
