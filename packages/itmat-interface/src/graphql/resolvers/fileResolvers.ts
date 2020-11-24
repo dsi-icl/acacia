@@ -35,7 +35,7 @@ export const fileResolvers = {
 
                     countStream.on('end', () => {
                         const hashString = hash.digest('hex');
-                        // undefined from API, '' from frontend
+                        // hash is optional, but should be correct if provided
                         if (args.hash !== undefined) {
                             if (args.hash !== hashString) {
                                 reject(new ApolloError('File hash not match', errorCodes.CLIENT_MALFORMED_INPUT));
@@ -79,8 +79,6 @@ export const fileResolvers = {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }
             });
-
-
         },
         deleteFile: async (__unused__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
             const requester: Models.UserModels.IUser = context.req.user;
