@@ -80,6 +80,7 @@ const collections = {
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { pubkey: 1 }, unique: true },
+            { key: { associatedUserId: 1 }, unique: true },
         ]
     }
 };
