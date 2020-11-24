@@ -278,7 +278,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                         </Form.Item>
 
                         <Form.Item name='currentPubkey' label='Current registered public key'>
-                            <Input disabled placeholder="{data.pubkey}"/>
+                            <Input disabled placeholder='{data.pubkey}'/>
                         </Form.Item>
 
                         <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>

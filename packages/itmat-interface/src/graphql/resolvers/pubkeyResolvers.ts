@@ -27,13 +27,13 @@ export const pubkeyResolvers = {
                 if (args.associatedUserId === undefined) {
                     queryObj = { deleted: null };
                 } else {
-                    queryObj = { deleted: null, associatedUserId: args.associatedUserId }
+                    queryObj = { deleted: null, associatedUserId: args.associatedUserId };
                 }
             } else {
                 queryObj = { deleted: null, id: args.pubkeyId };
             }
 
-            const cursor = db.collections!.pubkeys_collection.find<IPubkey>(queryObj, { projection: { _id: 0 } });            
+            const cursor = db.collections!.pubkeys_collection.find<IPubkey>(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
         }
     },
