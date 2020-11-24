@@ -21,7 +21,6 @@ type StudyFile = RcFile & {
     deviceId?: string;
     startDate?: Moment;
     endDate?: Moment;
-    hash: string;
 }
 
 export const deviceTypes = {
@@ -133,7 +132,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 }
             }
             file.uuid = uuid();
-            file.hash = '';
             fileList.push(file);
         });
         setFileList([...fileList]);
@@ -155,8 +153,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                         startDate: file.startDate?.valueOf(),
                         endDate: file.endDate?.valueOf(),
                     }),
-                    fileLength: file.size,
-                    hash: file.hash,
+                    fileLength: file.size
                 }
             }).then(result => {
                 removeFile(file);
@@ -203,7 +200,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             newFile.deviceId = record.deviceId;
             newFile.startDate = record.startDate;
             newFile.endDate = record.endDate;
-            newFile.hash = record.hash;
             newFileList.splice(index, 1, newFile);
             return newFileList;
         });
@@ -246,13 +242,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             title: 'Period',
             dataIndex: 'period',
             key: 'period',
-            editable: true,
-            width: '24rem'
-        },
-        {
-            title: 'Hash',
-            dataIndex: 'hash',
-            key: 'hash',
             editable: true,
             width: '24rem'
         },
@@ -505,11 +494,6 @@ const EditableCell: React.FC<EditableCellProps> = ({
                                     throw new Error('Invalid device ID');
                                 return Promise.resolve();
                             }
-                        }
-                        if (dataIndex === 'hash') {
-                            if (value.length !== 64)
-                                throw new Error('Hash string must be 64 characters long!');
-                            return Promise.resolve();
                         }
                     }
                 }]}

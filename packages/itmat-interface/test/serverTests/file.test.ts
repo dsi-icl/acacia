@@ -260,8 +260,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: 'just a file 3.',
-                                fileLength: 0,
-                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a4'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -270,7 +270,7 @@ if (global.hasMinio) {
                     /* setup: geting the created file Id */
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.AUTHENTICATION_ERROR);
+                    expect(res.body.errors[0].message).toBe('File hash not match');
                     expect(res.body.data.uploadFile).toEqual(null);
                 });
             });

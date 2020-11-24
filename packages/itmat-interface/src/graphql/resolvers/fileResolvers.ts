@@ -13,7 +13,7 @@ export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: Readable, filename: string }>, description: string, hash: string }, context: any): Promise<IFile> => {
+        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: Readable, filename: string }>, description: string, hash?: string }, context: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -24,32 +24,24 @@ export const fileResolvers = {
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             const file = await args.file;
-
-            const hashPromise = new Promise<string>((resolve, reject) => {
+            return new Promise<IFile>((resolve, reject) => {
                 try {
-                    const stream: Readable = (file as any).createReadStream();
-                    const hashStream = crypto.createHash('sha256');
-                    hashStream.setEncoding('hex');
-                    stream.pipe(hashStream);
-                    stream.on('end', async () => {
-                        // hash
-                        hashStream.end();
-                        const hashString = hashStream.read();
-                        if (args.hash === hashString) {
-                            resolve(hashString);
-                        } else {
-                            return reject(new ApolloError(errorCodes.AUTHENTICATION_ERROR));
-                        }
+                    const hash = crypto.createHash('sha256');
+                    const countStream: Readable = (file as any).createReadStream();
+
+                    countStream.on('data', chunk => {
+                        hash.update(chunk);
                     });
-                } catch (e) {
-                    Logger.error(errorCodes.FILE_STREAM_ERROR);
-                }
-            });
 
-            return hashPromise.then(function(hashString) {
-                return new Promise<IFile>((resolve, reject) => {
-                    try {
-
+                    countStream.on('end', () => {
+                        const hashString = hash.digest('hex');
+                        // undefined from API, '' from frontend
+                        if (args.hash !== undefined) {
+                            if (args.hash !== hashString) {
+                                reject(new ApolloError('File hash not match', errorCodes.CLIENT_MALFORMED_INPUT));
+                                return;
+                            }
+                        }
                         const stream: Readable = (file as any).createReadStream();
                         const fileUri = uuid();
 
@@ -80,12 +72,15 @@ export const fileResolvers = {
                                 throw new ApolloError(errorCodes.DATABASE_ERROR);
                             }
                         });
+
                         objStore.uploadFile(stream, args.studyId, fileUri);
-                    } catch (e) {
-                        Logger.error(errorCodes.FILE_STREAM_ERROR);
-                    }
-                });
+                    });
+                } catch (e) {
+                    Logger.error(errorCodes.FILE_STREAM_ERROR);
+                }
             });
+
+
         },
         deleteFile: async (__unused__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
             const requester: Models.UserModels.IUser = context.req.user;
