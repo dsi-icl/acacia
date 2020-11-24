@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IUserWithoutToken, Models, userTypes, GQLRequests } from 'itmat-commons';
+import { IUserWithoutToken, Models, userTypes, GQLRequests, IPubkey } from 'itmat-commons';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from '../users/projectSection';
@@ -242,7 +242,11 @@ export const changeTimeFunc = {
 
 export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( {userId} ) => {
     const [completedRegister, setCompletedRegister] = React.useState(false);
-    const { loading: getPubkeysloading, error: getPubkeyserror, data: getPubkeysdata } = useQuery(GET_PUBKEYS);
+    const { loading: getPubkeysloading, error: getPubkeyserror, data: getPubkeysdata } = useQuery(GET_PUBKEYS, {
+        variables: {
+            associatedUserId: userId
+        }
+    });
     if (getPubkeysloading) {
         return <>
             <div className='page_ariane'>Loading...</div>
@@ -259,8 +263,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
             </div>
         </>;
     }
-
-    console.log(JSON.stringify(getPubkeysdata));
+    const ipubkey: IPubkey = getPubkeysdata?.getPubkeys?.[0];
 
     return (
         <Mutation<any, any>
@@ -278,7 +281,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                         </Form.Item>
 
                         <Form.Item name='currentPubkey' label='Current registered public key'>
-                            <Input disabled placeholder='{data.pubkey}'/>
+                            <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')}/>
                         </Form.Item>
 
                         <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>

@@ -73,6 +73,7 @@ type Pubkey {
     associatedUserId: String
     jwtSecret: String!
     refreshCounter: Int
+    deleted: String
 }
 
 type OrganisationMetadata {
