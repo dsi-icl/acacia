@@ -14,11 +14,13 @@ const {
     EDIT_USER,
     REQUEST_USERNAME_OR_RESET_PASSWORD,
     REGISTER_PUBKEY,
+    GET_PUBKEYS,
     GET_ORGANISATIONS
 } = GQLRequests;
 
 export const ProfileManagementSection: React.FunctionComponent = () => {
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
+
     if (whoamiloading) {
         return <>
             <div className='page_ariane'>Loading...</div>
@@ -79,6 +81,13 @@ export const ProfileManagementSection: React.FunctionComponent = () => {
                     <br />
                     <br />
                 </Subsection>
+
+                <Subsection title='Access Token management'>
+                    <RegisterPublicKey userId={user.id} />
+                    <br />
+                    <br />
+                </Subsection>
+
             </div>
         </>
     );
@@ -233,6 +242,25 @@ export const changeTimeFunc = {
 
 export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( {userId} ) => {
     const [completedRegister, setCompletedRegister] = React.useState(false);
+    const { loading: getPubkeysloading, error: getPubkeyserror, data: getPubkeysdata } = useQuery(GET_PUBKEYS);
+    if (getPubkeysloading) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <LoadSpinner />
+            </div>
+        </>;
+    }
+    if (getPubkeyserror) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <Alert type='error' message={getPubkeyserror.message} />
+            </div>
+        </>;
+    }
+
+    console.log(JSON.stringify(getPubkeysdata));
 
     return (
         <Mutation<any, any>
@@ -241,10 +269,16 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
         >
             {(submit, { loading, error }) =>
                 <>
-                    <Form layout='vertical' onFinish={(variables) => submit({ variables })}>
+                    <Form initialValues={{
+                        associatedUserId: userId,
+                    }} layout='vertical' onFinish={(variables) => submit({ variables })}>
 
                         <Form.Item name='associatedUserId' label='User ID'>
-                            <Input disabled placeholder={userId} />
+                            <Input disabled />
+                        </Form.Item>
+
+                        <Form.Item name='currentPubkey' label='Current registered public key'>
+                            <Input disabled placeholder="{data.pubkey}"/>
                         </Form.Item>
 
                         <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
@@ -263,7 +297,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                         ) : null}
                         {completedRegister ? (
                             <>
-                                <Alert type='success' message={'Sucessfully Registered!'} />
+                                <Alert type='success' message={'Public-key is Sucessfully Registered!'} />
                                 <br />
                             </>
                         ) : null}

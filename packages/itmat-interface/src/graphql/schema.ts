@@ -342,7 +342,7 @@ type Query {
     getOrganisations(organisationId: String): [Organisation]
 
     # PUBLIC KEY AUTHENTICATION
-    getPubkeys(pubkeyId: String): [Pubkey]
+    getPubkeys(pubkeyId: String, associatedUserId: String): [Pubkey]
 
     # STUDY
     getStudy(studyId: String!): Study

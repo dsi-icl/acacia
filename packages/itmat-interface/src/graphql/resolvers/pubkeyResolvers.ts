@@ -1,6 +1,4 @@
 import { ApolloError, UserInputError } from 'apollo-server-express';
-//import bcrypt from 'bcrypt';
-//import crypto from 'crypto';
 import { mailer } from '../../emailer/emailer';
 import {
     //Models,
@@ -10,7 +8,7 @@ import {
     IPubkey
 } from 'itmat-commons';
 //import { v4 as uuid } from 'uuid';
-//import mongodb from 'mongodb';
+import mongodb from 'mongodb';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { userCore } from '../core/userCore';
@@ -23,9 +21,19 @@ import * as pubkeycrypto from '../../utils/pubkeycrypto';
 export const pubkeyResolvers = {
     Query: {
         getPubkeys: async (__unused__parent: Record<string, unknown>, args: any): Promise<IPubkey[]> => {
-            // everyone is allowed to see all organisations in the app.
-            const queryObj = args.pubkeyId === undefined ? { deleted: null } : { deleted: null, id: args.pubkeyId };
-            const cursor = db.collections!.pubkeys_collection.find<IPubkey>(queryObj, { projection: { _id: 0 } });
+            // a user is allowed to obtain his/her registered public key.
+            let queryObj;
+            if (args.pubkeyId === undefined) {
+                if (args.associatedUserId === undefined) {
+                    queryObj = { deleted: null };
+                } else {
+                    queryObj = { deleted: null, associatedUserId: args.associatedUserId }
+                }
+            } else {
+                queryObj = { deleted: null, id: args.pubkeyId };
+            }
+
+            const cursor = db.collections!.pubkeys_collection.find<IPubkey>(queryObj, { projection: { _id: 0 } });            
             return cursor.toArray();
         }
     },
@@ -38,12 +46,12 @@ export const pubkeyResolvers = {
             }
 
             const requester: IUser = context.req.user;
-            /* check whether requester is the same as the associated user*/
+            /* Check whether requester is the same as the associated user*/
             if (associatedUserId && (requester.id !== associatedUserId)) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            // /* Validate the signature with the public key */
+            /* Validate the signature with the public key */
             if (!pubkeycrypto.rsaverifier(pubkey.replace(/\\n/g, '\n'), signature)) {
                 throw new UserInputError('Signature vs Public key mismatched.');
             }
@@ -51,6 +59,47 @@ export const pubkeyResolvers = {
             /* Generate a secret (base32 with default length = 20) for generating JWT access token later */
             const jwtSecret = mfa.generateSecret();
 
+            /* Update the new public key if the user is already associated with another public key*/
+            if (associatedUserId) {
+                const alreadyRegistered = await db.collections!.pubkeys_collection.findOne({ associatedUserId, deleted: null });
+                if (alreadyRegistered !== null && alreadyRegistered !== undefined) {
+                    //updating the new public key.
+                    const fieldsToUpdate = {
+                        pubkey,
+                        jwtSecret
+                    };
+                    const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
+                    if (updateResult.ok === 1) {
+                        await mailer.sendMail({
+                            from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                            to: requester.email,
+                            subject: `[${config.appName}] New public-key has sucessfully registered!`,
+                            html: `
+                                <p>
+                                    Dear ${requester.firstname},
+                                <p>
+                                <p>
+                                    Your new public-key "${pubkey}" on ${config.appName} has successfully registered !<br/>
+                                    The old one is already wiped out!
+                                    You will need to keep your new private key secretly. <br/>
+                                    You will also need to sign a message (using this new public-key) to authenticate the owner of the public key. <br/>
+                                </p>
+                                
+                                <br/>
+                                <p>
+                                    The ${config.appName} Team.
+                                </p>
+                            `
+                        });
+
+                        return updateResult.value;
+                    } else {
+                        throw new ApolloError('Server error; no entry or more than one entry has been updated.');
+                    }
+                }
+            }
+
+            /* Register new public key (either associated with an user or not) */
             const registeredPubkey = await userCore.registerPubkey({
                 pubkey,
                 jwtSecret,

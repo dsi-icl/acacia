@@ -1,5 +1,17 @@
 import gql from 'graphql-tag';
 
+export const GET_PUBKEYS = gql`
+    query getPubkeys($pubkeyId: String, $associatedUserId: String) {
+        getPubkeys(pubkeyId: $pubkeyId, associatedUserId: $associatedUserId) {
+            id
+            pubkey
+            associatedUserId
+            refreshCounter
+            deleted
+        }
+    }
+`;
+
 export const REGISTER_PUBKEY = gql`
     mutation registerPubkey($pubkey: String!, $signature: String!, $associatedUserId: String) {
         registerPubkey(pubkey: $pubkey, signature: $signature, associatedUserId: $associatedUserId) {
@@ -7,18 +19,6 @@ export const REGISTER_PUBKEY = gql`
             pubkey
             jwtSecret
             associatedUserId
-        }
-    }
-`;
-
-export const GET_PUBKEYS = gql`
-    query getPubkeys($pubkeyId: String) {
-        getPubkeys(pubkeyId: $pubkeyId) {
-            id
-            pubkey
-            associatedUserId
-            refreshCounter
-            deleted
         }
     }
 `;
