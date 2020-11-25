@@ -11,5 +11,9 @@ export const deviceTypes = {
 };
 
 export const sitesIDMarker = {
-    I: 'ICL'
+    I: 'ICL', // imperial is not a site, but defined here for future test
+    N: 'Newcastle',
+    K: 'Kiel',
+    G: 'GHI Muenster',
+    E: 'EMC Rotterdam'
 };
