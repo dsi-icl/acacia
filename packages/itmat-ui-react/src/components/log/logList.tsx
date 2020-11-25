@@ -1,4 +1,4 @@
-import {Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT, GET_STUDY} from 'itmat-commons';
+import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT } from 'itmat-commons';
 import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -50,17 +50,11 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
     const [verboseInfo, setVerboseInfo] = React.useState(({ actionData: JSON.stringify({}) }));
     const [advancedSearch, setAdvancedSearch] = React.useState(false);
     const dateFormat = 'YYYY-MM-DD';
-
     function formatActionData(data: any) {
         const obj = JSON.parse(data.actionData);
         const keys = Object.keys(obj);
         const keysMap = keys.map((el) => <><span>{el}</span><br /></>);
         const valuesMap = keys.map((el) => <><span>{obj[el].toString()}</span><br /></>);
-
-        if (keys[0] === 'studyId'){
-            keysMap.push(<><span>name</span><br /></>);
-            valuesMap.push(<DatasetName studyId={obj['studyId']} />);
-        }
         return { keyList: keysMap, valueList: valuesMap };
     }
     /* time offset, when filter by time, adjust all date to utc time */
@@ -290,29 +284,4 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
             </Table>
         </Modal>
     </>;
-};
-
-
-const DatasetName: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return (
-        <Query<any, any>
-            query={GET_STUDY}
-            variables={{ studyId }}
-        >
-            {({ loading, error, data }) => {
-                if (loading) { return <LoadSpinner />; }
-                if (error) {
-                    return (
-                        <p>
-                            Error :(
-                            {error.message}
-                        </p>
-                    );
-                }
-                return (
-                    <><span>{data.getStudy.name}</span><br /></>
-                );
-            }}
-        </Query>
-    );
 };
