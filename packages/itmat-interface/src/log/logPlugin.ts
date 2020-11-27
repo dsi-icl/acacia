@@ -51,7 +51,8 @@ export class LogPlugin {
 function ignoreFieldsHelper(dataObj: any, operationName: string) {
     if (Object.keys(ignoredFields).includes(operationName)) {
         for (let i = 0; i < ignoredFields[operationName].length; i++) {
-            dataObj[ignoredFields[operationName][i]] = 'Invisible';
+            // Not using hard copy as the request is useless in this step (response are to send)
+            delete dataObj[ignoredFields[operationName][i]];
         }
     }
     return dataObj;
