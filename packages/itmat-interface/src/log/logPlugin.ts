@@ -11,7 +11,7 @@ export const logActionShowWhiteList = Object.keys(LOG_ACTION);
 // fields that carry sensitive information will be ignored
 export const ignoredFields = {
     login: ['password', 'totp']
-}
+};
 export class LogPlugin {
     public async serverWillStartLogPlugin(): Promise<null> {
         await db.collections!.log_collection.insertOne({
@@ -50,8 +50,8 @@ export class LogPlugin {
 
 function ignoreFieldsHelper(dataObj: any, operationName: string) {
     if (Object.keys(ignoredFields).includes(operationName)) {
-        for (var i = 0; i < ignoredFields[operationName].length; i++) {
-            dataObj[ignoredFields[operationName][i]] = "Invisible"
+        for (let i = 0; i < ignoredFields[operationName].length; i++) {
+            dataObj[ignoredFields[operationName][i]] = 'Invisible';
         }
     }
     return dataObj;
