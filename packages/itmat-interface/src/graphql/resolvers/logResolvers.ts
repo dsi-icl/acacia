@@ -22,6 +22,7 @@ export const logResolvers = {
             // const cursor = db.collections!.log_collection.find<ILogEntry>(queryObj, { projection: { _id: 0 } }).sort('time', -1);
             const logData = await db.collections!.log_collection.find<ILogEntry>(queryObj, {projection: {_id: 0}}).sort('time', -1).toArray();
             for (const i in logData) {
+                // add dataset name
                 if (logData[i].actionType === LOG_ACTION.getStudy) {
                     const obj = JSON.parse(logData[i].actionData);
                     const studyId = obj['studyId'];
@@ -32,6 +33,13 @@ export const logResolvers = {
                     else {
                         obj['name'] = study.name;
                     }
+                    logData[i].actionData = JSON.stringify(obj);
+                }
+                // remove password and totp
+                else if(logData[i].actionType === LOG_ACTION.login){
+                    const obj = JSON.parse(logData[i].actionData);
+                    delete obj['password'];
+                    delete obj['totp'];
                     logData[i].actionData = JSON.stringify(obj);
                 }
             }
