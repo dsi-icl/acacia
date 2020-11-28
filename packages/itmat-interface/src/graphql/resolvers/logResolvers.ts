@@ -19,32 +19,37 @@ export const logResolvers = {
                     queryObj[prop] = args.prop;
                 }
             }
-            // const cursor = db.collections!.log_collection.find<ILogEntry>(queryObj, { projection: { _id: 0 } }).sort('time', -1);
             const logData = await db.collections!.log_collection.find<ILogEntry>(queryObj, {projection: {_id: 0}}).sort('time', -1).toArray();
+            // log information decoration
             for (const i in logData) {
-                // add dataset name
-                if (logData[i].actionType === LOG_ACTION.getStudy) {
-                    const obj = JSON.parse(logData[i].actionData);
-                    const studyId = obj['studyId'];
-                    const study = await db.collections!.studies_collection.findOne({id: studyId, deleted: null})!;
-                    if (study === null || study === undefined) {
-                        obj['name'] = '';
-                    }
-                    else {
-                        obj['name'] = study.name;
-                    }
-                    logData[i].actionData = JSON.stringify(obj);
-                }
-                // remove password and totp
-                else if(logData[i].actionType === LOG_ACTION.login){
-                    const obj = JSON.parse(logData[i].actionData);
-                    delete obj['password'];
-                    delete obj['totp'];
-                    logData[i].actionData = JSON.stringify(obj);
-                }
+                logData[i].actionData = JSON.stringify(await logDecorationHelper(logData[i].actionData, logData[i].actionType));
             }
             return logData;
-            // return cursor.toArray();
         }
     }
 };
+
+// fields that carry sensitive information will be hidden
+export const hiddenFields = {
+    LOGIN_USER: ['password', 'totp']
+};
+
+async function logDecorationHelper(actionData:any, actionType:string){
+    const obj = JSON.parse(actionData);
+    if (Object.keys(hiddenFields).includes(actionType)) {
+        for (let i = 0; i < hiddenFields[actionType].length; i++) {
+            delete obj[hiddenFields[actionType][i]];
+        }
+    }
+    if (actionType === LOG_ACTION.getStudy){
+        const studyId = obj['studyId'];
+        const study = await db.collections!.studies_collection.findOne({id: studyId, deleted: null})!;
+        if (study === null || study === undefined) {
+            obj['name'] = '';
+        }
+        else {
+            obj['name'] = study.name;
+        }
+    }
+    return obj;
+}
