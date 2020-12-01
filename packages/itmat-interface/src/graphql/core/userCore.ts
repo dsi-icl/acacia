@@ -97,13 +97,14 @@ export class UserCore {
         }
     }
 
-    public async registerPubkey(pubkeyobj: { pubkey: string, associatedUserId: string | null, jwtSecret: string}): Promise<IPubkey> {
-        const { pubkey, associatedUserId, jwtSecret} = pubkeyobj;
+    public async registerPubkey(pubkeyobj: { pubkey: string, associatedUserId: string | null, jwtPubkey: string, jwtSeckey: string}): Promise<IPubkey> {
+        const { pubkey, associatedUserId, jwtPubkey, jwtSeckey} = pubkeyobj;
         const entry: IPubkey = {
             id: uuid(),
             pubkey,
             associatedUserId,
-            jwtSecret,
+            jwtPubkey,
+            jwtSeckey,
             refreshCounter: 0,
             deleted: null
         };

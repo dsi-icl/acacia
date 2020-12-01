@@ -5,7 +5,8 @@ import {
     //Logger,
     IUser,
     //IUserWithoutToken,
-    IPubkey
+    IPubkey,
+    AccessToken
 } from 'itmat-commons';
 //import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
@@ -14,9 +15,7 @@ import config from '../../utils/configManager';
 import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
 //import { makeGenericReponse, IGenericResponse } from '../responses';
-import * as mfa from '../../utils/mfa';
 import * as pubkeycrypto from '../../utils/pubkeycrypto';
-
 
 export const pubkeyResolvers = {
     Query: {
@@ -39,6 +38,43 @@ export const pubkeyResolvers = {
     },
 
     Mutation: {
+        issueAccessToken: async (__unused__parent: Record<string, unknown>, { pubkey, signature }: { pubkey: string, signature: string }): Promise<AccessToken> => {
+            // refine the public-key parameter from browser
+            pubkey = pubkey.replace(/\\n/g, '\n');
+
+            /* Validate the signature with the public key */
+            if (!pubkeycrypto.rsaverifier(pubkey, signature)) {
+                throw new UserInputError('Signature vs Public key mismatched.');
+            }
+
+            const pubkeyrec = await db.collections!.pubkeys_collection.findOne({ pubkey, deleted: null });
+            if (pubkeyrec === null || pubkeyrec === undefined) {
+                throw new UserInputError('This public-key has not been registered yet!');
+            }
+
+            // payload of the JWT for storing user information
+            const payload = {
+                publicKey: pubkey,
+                associatedUserId: pubkeyrec.associatedUserId,
+                refreshCounter: pubkeyrec.refreshCounter,
+                Issuer: 'IDEA-FAST DMP'
+            };
+
+            // update the counter
+            const fieldsToUpdate = {
+                refreshCounter: (pubkeyrec.refreshCounter + 1)
+            };
+            const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ pubkey, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            if (updateResult.ok !== 1) {
+                throw new ApolloError('Server error; cannot fulfil the JWT request.');
+            }
+            // return the acccess token
+            const accessToken = {
+                accessToken: pubkeycrypto.tokengen(payload, pubkeyrec.jwtSeckey)
+            }
+            return accessToken;
+        },
+
         registerPubkey: async (__unused__parent: Record<string, unknown>, { pubkey, signature, associatedUserId }: { pubkey: string, signature: string, associatedUserId: string }, context: any): Promise<IPubkey> => {
             // refine the public-key parameter from browser
             pubkey = pubkey.replace(/\\n/g, '\n');
@@ -59,8 +95,8 @@ export const pubkeyResolvers = {
                 throw new UserInputError('Signature vs Public key mismatched.');
             }
 
-            /* Generate a secret (base32 with default length = 20) for generating JWT access token later */
-            const jwtSecret = mfa.generateSecret();
+            /* Generate a public key-pair for generating and authenticating JWT access token later */
+            const keypair = pubkeycrypto.rsakeygen();
 
             /* Update the new public key if the user is already associated with another public key*/
             if (associatedUserId) {
@@ -69,7 +105,8 @@ export const pubkeyResolvers = {
                     //updating the new public key.
                     const fieldsToUpdate = {
                         pubkey,
-                        jwtSecret
+                        jwtPubkey: keypair.publicKey,
+                        jwtSeckey: keypair.privateKey
                     };
                     const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
                     if (updateResult.ok === 1) {
@@ -105,7 +142,8 @@ export const pubkeyResolvers = {
             /* Register new public key (either associated with an user or not) */
             const registeredPubkey = await userCore.registerPubkey({
                 pubkey,
-                jwtSecret,
+                jwtPubkey: keypair.publicKey,
+                jwtSeckey: keypair.privateKey,
                 associatedUserId: associatedUserId ?? null
             });
 

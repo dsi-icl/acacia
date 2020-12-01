@@ -71,9 +71,14 @@ type Pubkey {
     id: String!
     pubkey: String!
     associatedUserId: String
-    jwtSecret: String!
-    refreshCounter: Int
+    jwtPubkey: String!
+    jwtSeckey: String!
+    refreshCounter: Int!
     deleted: String
+}
+
+type AccessToken {
+    accessToken: String
 }
 
 type OrganisationMetadata {
@@ -375,7 +380,8 @@ type Mutation {
     createUser(user: CreateUserInput!): GenericResponse
     
     # PUBLIC KEY AUTHENTICATION
-    registerPubkey(pubkey: String!, signature: String!, associatedUserId: String): Pubkey
+    registerPubkey(pubkey: String!, signature: String!, associatedUserId: String): Pubkey    
+    issueAccessToken(pubkey: String!, signature: String!): AccessToken
 
     # ORGANISATION
     createOrganisation(name: String!, containOrg: String): Organisation

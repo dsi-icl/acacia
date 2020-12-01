@@ -6,6 +6,7 @@ export const GET_PUBKEYS = gql`
             id
             pubkey
             associatedUserId
+            jwtPubkey
             refreshCounter
             deleted
         }
@@ -17,7 +18,8 @@ export const REGISTER_PUBKEY = gql`
         registerPubkey(pubkey: $pubkey, signature: $signature, associatedUserId: $associatedUserId) {
             id
             pubkey
-            jwtSecret
+            jwtPubkey
+            jwtSeckey
             associatedUserId
         }
     }
@@ -42,14 +44,8 @@ export const LINK_USER_PUBKEY = gql`
 `;
 
 export const ISSUE_ACCESS_TOKEN = gql`
-    mutation issueAccessToken(
-        $pubkey: String!
-        $signature: String!
-    ) {
-        issueAccessToken(
-            pubkey: $pubkey
-            signature: $signature
-            ) {
+    mutation issueAccessToken($pubkey: String!, $signature: String!) {
+        issueAccessToken(pubkey: $pubkey, signature: $signature) {
             accessToken
         }
     }
