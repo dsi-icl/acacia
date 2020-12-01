@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IUserWithoutToken, Models, userTypes, GQLRequests } from 'itmat-commons';
+import { IUserWithoutToken, Models, userTypes, GQLRequests, IPubkey } from 'itmat-commons';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from '../users/projectSection';
@@ -14,11 +14,14 @@ const {
     EDIT_USER,
     REQUEST_USERNAME_OR_RESET_PASSWORD,
     REGISTER_PUBKEY,
+    GET_PUBKEYS,
+    ISSUE_ACCESS_TOKEN,
     GET_ORGANISATIONS
 } = GQLRequests;
 
 export const ProfileManagementSection: React.FunctionComponent = () => {
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
+
     if (whoamiloading) {
         return <>
             <div className='page_ariane'>Loading...</div>
@@ -79,6 +82,13 @@ export const ProfileManagementSection: React.FunctionComponent = () => {
                     <br />
                     <br />
                 </Subsection>
+
+                <Subsection title='Access Token management'>
+                    <TokenManagement userId={user.id} />
+                    <br />
+                    <br />
+                </Subsection>
+
             </div>
         </>
     );
@@ -233,6 +243,28 @@ export const changeTimeFunc = {
 
 export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( {userId} ) => {
     const [completedRegister, setCompletedRegister] = React.useState(false);
+    const { loading: getPubkeysloading, error: getPubkeyserror, data: getPubkeysdata } = useQuery(GET_PUBKEYS, {
+        variables: {
+            associatedUserId: userId
+        }
+    });
+    if (getPubkeysloading) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <LoadSpinner />
+            </div>
+        </>;
+    }
+    if (getPubkeyserror) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <Alert type='error' message={getPubkeyserror.message} />
+            </div>
+        </>;
+    }
+    const ipubkey: IPubkey = getPubkeysdata?.getPubkeys?.[0];
 
     return (
         <Mutation<any, any>
@@ -241,17 +273,33 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
         >
             {(submit, { loading, error }) =>
                 <>
-                    <Form layout='vertical' onFinish={(variables) => submit({ variables })}>
+                    <Form initialValues={{
+                        associatedUserId: userId,
+                    }} layout='vertical' onFinish={(variables) => submit({ variables })}>
 
                         <Form.Item name='associatedUserId' label='User ID'>
-                            <Input disabled placeholder={userId} />
+                            <Input disabled />
                         </Form.Item>
+
+                        {((ipubkey === null) || (ipubkey === undefined))
+                            ? <>
+                                <p>Register your public-key for use.</p>
+                            </>
+                            :
+                            <>
+                                <Form.Item name='currentPubkey' label='Current registered public key'>
+                                    <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')}/>
+                                </Form.Item>
+                                <br />
+                                <p>Register a new public-key. The current one will then be no longer valid.</p>
+                            </>
+                        }
 
                         <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
                             <Input />
                         </Form.Item>
 
-                        <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the associated signature' }]}>
+                        <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
                             <Input />
                         </Form.Item>
 
@@ -263,7 +311,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                         ) : null}
                         {completedRegister ? (
                             <>
-                                <Alert type='success' message={'Sucessfully Registered!'} />
+                                <Alert type='success' message={'Public-key is Sucessfully Registered!'} />
                                 <br />
                             </>
                         ) : null}
@@ -282,3 +330,89 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
 
 };
 
+export const TokenManagement: React.FunctionComponent<{ userId: string }> = ( {userId} ) => {
+    const [completedTokenGen, setcompletedTokenGen] = React.useState(false);
+    //const [accessTokenGen, setaccessTokenGen] = React.useState('');
+    const [tokenGen, { data: tokendata, loading, error }] = useMutation(ISSUE_ACCESS_TOKEN, {
+        onCompleted: () => {
+            setcompletedTokenGen(true);
+        }
+    });
+
+    const { loading: getPubkeysloading, error: getPubkeyserror, data: getPubkeysdata } = useQuery(GET_PUBKEYS, {
+        variables: {
+            associatedUserId: userId
+        }
+    });
+
+    if (getPubkeysloading) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <LoadSpinner />
+            </div>
+        </>;
+    }
+    if (getPubkeyserror) {
+        return <>
+            <div className='page_ariane'>Loading...</div>
+            <div className='page_content'>
+                <Alert type='error' message={getPubkeyserror.message} />
+            </div>
+        </>;
+    }
+
+    const ipubkey: IPubkey = getPubkeysdata?.getPubkeys?.[0];
+    if ((ipubkey === null) || (ipubkey === undefined)) {
+        return <>
+            <p>You need to register a public-key for generating access token.</p>
+        </>;
+    }
+
+    if (completedTokenGen) {
+        return (
+            <div>
+                <div>
+                    <h2>The access token is successfully generated!</h2>
+                    <br />
+                    <div>
+                        <p>Securely keep this token as an authentication key when interacting with APIs</p>
+                        <textarea disabled value={tokendata.issueAccessToken.accessToken}>
+                        </textarea>
+                    </div>
+                    <br />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <Form initialValues={{
+            pubkey: ipubkey?.pubkey.replace(/\n/g, '\\n'),
+        }} layout='vertical' onFinish={(variables) => tokenGen({ variables })}>
+            <p>To generate an access token, you need to enter the signature signed by your private-key</p>
+            <p>Current refresh counter: <strong>{ipubkey?.refreshCounter}</strong></p>
+            <Form.Item name='pubkey' label='Your registered public key'>
+                <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')}/>
+            </Form.Item>
+
+            <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
+                <Input />
+            </Form.Item>
+
+            {error ? (
+                <>
+                    <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
+                    <br />
+                </>
+            ) : null}
+
+            <Form.Item>
+                <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                    Generate Token
+                </Button>
+            </Form.Item>
+        </Form>
+    );
+
+};

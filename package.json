@@ -68,5 +68,9 @@
         "hooks": {
             "pre-push": "npm run lint"
         }
+    },
+    "dependencies": {
+        "json-web-token": "^3.2.0",
+        "jsonwebtoken": "^8.5.1"
     }
 }

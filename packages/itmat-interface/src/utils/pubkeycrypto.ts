@@ -1,4 +1,6 @@
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+
 
 export function rsasigner(privateKey: string, message: string, scheme = 'RSA-SHA256', passphrase = 'idea-fast'): string {
     const signer = crypto.createSign(scheme);
@@ -30,7 +32,7 @@ export function rsaverifier(pubkey: string, signature: string, method = 'RSA-SHA
 }
 
 export function rsakeygen(passphrase = 'idea-fast', modulusLength = 4096) {
-    const keyPair = crypto.generateKeyPairSync('rsa', {
+    const { publicKey, privateKey }  = crypto.generateKeyPairSync('rsa', {
         modulusLength: modulusLength,
         publicKeyEncoding: {
             type: 'spki',
@@ -43,7 +45,7 @@ export function rsakeygen(passphrase = 'idea-fast', modulusLength = 4096) {
             passphrase: passphrase
         }
     });
-    return keyPair;
+    return { publicKey, privateKey };
 }
 
 export function eckeygen(curve = 'secp256k1') {
@@ -59,4 +61,30 @@ export function eckeygen(curve = 'secp256k1') {
         }
     });
     return keyPair;
+}
+
+export function tokengen(payload, secret, passphrase = 'idea-fast', algorithm = 'RS256', life = 1200) {
+    // algorithm is set default = RS256 implying that asymmetric JWT is used by default.
+    let token;
+    try {
+        token = jwt.sign(payload,
+            { key: secret, passphrase: passphrase },
+            { algorithm: algorithm, expiresIn: life }
+        );
+    }
+    catch(err){
+        return err;
+    }
+    return token;
+}
+
+export function tokenverifier(token, secret) {
+    let decoded = '';
+    try {
+        decoded = jwt.verify(token, secret);
+    }
+    catch(err){
+        return err;
+    }
+    return decoded;
 }
