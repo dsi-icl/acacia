@@ -282,17 +282,17 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                         </Form.Item>
 
                         {((ipubkey === null) || (ipubkey === undefined))
-                                ? <>
-                                    <p>Register your public-key for use.</p>
-                                </>
-                                :
-                                <>
-                                    <Form.Item name='currentPubkey' label='Current registered public key'>
-                                        <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')}/>
-                                    </Form.Item>
-                                    <br />
-                                    <p>Register a new public-key. The current one will then be no longer valid.</p>
-                                </>
+                            ? <>
+                                <p>Register your public-key for use.</p>
+                            </>
+                            :
+                            <>
+                                <Form.Item name='currentPubkey' label='Current registered public key'>
+                                    <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')}/>
+                                </Form.Item>
+                                <br />
+                                <p>Register a new public-key. The current one will then be no longer valid.</p>
+                            </>
                         }
 
                         <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
@@ -343,7 +343,7 @@ export const TokenManagement: React.FunctionComponent<{ userId: string }> = ( {u
         variables: {
             associatedUserId: userId
         }
-    });    
+    });
 
     if (getPubkeysloading) {
         return <>
@@ -366,18 +366,18 @@ export const TokenManagement: React.FunctionComponent<{ userId: string }> = ( {u
     if ((ipubkey === null) || (ipubkey === undefined)) {
         return <>
             <p>You need to register a public-key for generating access token.</p>
-        </>
+        </>;
     }
 
     if (completedTokenGen) {
         return (
             <div>
-                <div>                    
+                <div>
                     <h2>The access token is successfully generated!</h2>
                     <br />
                     <div>
                         <p>Securely keep this token as an authentication key when interacting with APIs</p>
-                        <textarea disabled value={tokendata.issueAccessToken.accessToken}>                            
+                        <textarea disabled value={tokendata.issueAccessToken.accessToken}>
                         </textarea>
                     </div>
                     <br />
@@ -405,7 +405,7 @@ export const TokenManagement: React.FunctionComponent<{ userId: string }> = ( {u
                     <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
                     <br />
                 </>
-            ) : null}                       
+            ) : null}
 
             <Form.Item>
                 <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>

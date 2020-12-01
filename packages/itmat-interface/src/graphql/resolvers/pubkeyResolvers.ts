@@ -71,7 +71,7 @@ export const pubkeyResolvers = {
             // return the acccess token
             const accessToken = {
                 accessToken: pubkeycrypto.tokengen(payload, pubkeyrec.jwtSeckey)
-            }
+            };
             return accessToken;
         },
 
