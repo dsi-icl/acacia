@@ -7,6 +7,8 @@ import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 import { Readable } from 'stream';
+import { validate } from '@ideafast/idgen';
+import { deviceTypes, sitesIDMarker } from '../../utils/definition';
 
 export const fileResolvers = {
     Query: {
@@ -26,38 +28,82 @@ export const fileResolvers = {
 
             return new Promise<IFile>((resolve, reject) => {
                 try {
+                    let readBytes = 0;
+                    const countStream: Readable = (file as any).createReadStream();
 
-                    const stream: Readable = (file as any).createReadStream();
-                    const fileUri = uuid();
-
-                    /* if the client cancelled the request mid-stream it will throw an error */
-                    stream.on('error', (e) => {
-                        Logger.error(e);
-                        reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
+                    countStream.on('data', chunk => {
+                        readBytes += chunk.length;
                     });
 
-                    stream.on('end', async () => {
-                        const fileEntry: IFile = {
-                            id: uuid(),
-                            fileName: file.filename,
-                            studyId: args.studyId,
-                            fileSize: args.fileLength === undefined ? 0 : args.fileLength,
-                            description: args.description,
-                            uploadTime: `${Date.now()}`,
-                            uploadedBy: requester.id,
-                            uri: fileUri,
-                            deleted: null
-                        };
-
-                        const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
-                        if (insertResult.result.ok === 1) {
-                            resolve(fileEntry);
-                        } else {
-                            throw new ApolloError(errorCodes.DATABASE_ERROR);
+                    countStream.on('end', () => {
+                        // check if readbytes equal to filelength in parameters
+                        if (args.fileLength !== undefined) {
+                            if (args.fileLength !== readBytes) {
+                                reject(new ApolloError('File size mismatch', errorCodes.CLIENT_MALFORMED_INPUT));
+                                return;
+                            }
                         }
-                    });
+                        const stream: Readable = (file as any).createReadStream();
+                        const fileUri = uuid();
 
-                    objStore.uploadFile(stream, args.studyId, fileUri);
+                        /* if the client cancelled the request mid-stream it will throw an error */
+                        stream.on('error', (e) => {
+                            Logger.error(e);
+                            reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
+                        });
+
+                        stream.on('end', async () => {
+                            // check filename and description is valid and matches each other
+                            const parsedDescription = JSON.parse(args.description);
+                            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
+                            const particules = file.filename.match(matcher);
+                            if (particules !== null) {
+                                if ((particules as any).length === 8) {
+                                    const parsedFileNameStartDate = new Date((particules as any)[5].substr(0,4).concat('-')
+                                        .concat((particules as any)[5].substr(4,2).concat('-').concat((particules as any)[5].substr(6,2)))).valueOf();
+                                    const parsedFileNameEndDate = new Date((particules as any)[6].substr(0,4).concat('-')
+                                        .concat((particules as any)[6].substr(4,2).concat('-').concat((particules as any)[6].substr(6,2)))).valueOf();
+                                    if (!(Object.keys(sitesIDMarker).includes((particules as any)[1].toUpperCase())
+                                        && validate((particules as any)[2].toUpperCase())
+                                        && (particules as any)[1].concat((particules as any)[2]) === parsedDescription['participantId']
+                                        && Object.keys(deviceTypes).includes((particules as any)[3].toUpperCase())
+                                        && validate((particules as any)[4].toUpperCase())
+                                        && (particules as any)[3].concat((particules as any)[4]) === parsedDescription['deviceId']
+                                        && parsedFileNameStartDate < parsedFileNameEndDate
+                                        && (parsedFileNameStartDate - parseInt(parsedDescription['startDate'])) === (parsedFileNameEndDate - parseInt(parsedDescription['endDate'])))) {
+                                        return reject(new ApolloError('Filename and description must be matched and valid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                    }
+                                } else {
+                                    reject(new ApolloError('Filename and description must be matched and valid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                    return;
+                                }
+                            } else {
+                                reject(new ApolloError('Filename and description must be matched and valid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                return;
+                            }
+
+                            const fileEntry: IFile = {
+                                id: uuid(),
+                                fileName: file.filename,
+                                studyId: args.studyId,
+                                fileSize: readBytes,
+                                description: args.description,
+                                uploadTime: `${Date.now()}`,
+                                uploadedBy: requester.id,
+                                uri: fileUri,
+                                deleted: null
+                            };
+
+                            const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
+                            if (insertResult.result.ok === 1) {
+                                resolve(fileEntry);
+                            } else {
+                                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                            }
+                        });
+
+                        objStore.uploadFile(stream, args.studyId, fileUri);
+                    });
                 } catch (e) {
                     Logger.error(errorCodes.FILE_STREAM_ERROR);
                 }
