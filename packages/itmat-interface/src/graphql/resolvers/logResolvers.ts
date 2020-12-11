@@ -1,7 +1,7 @@
-import { db } from '../../database/database';
-import { ILogEntry, userTypes, Models } from 'itmat-commons';
-import { ApolloError } from 'apollo-server-errors';
-import { errorCodes } from '../errors';
+import {db} from '../../database/database';
+import {ILogEntry, LOG_ACTION, Models, userTypes} from 'itmat-commons';
+import {ApolloError} from 'apollo-server-errors';
+import {errorCodes} from '../errors';
 
 export const logResolvers = {
     Query: {
@@ -19,8 +19,37 @@ export const logResolvers = {
                     queryObj[prop] = args.prop;
                 }
             }
-            const cursor = db.collections!.log_collection.find<ILogEntry>(queryObj, { projection: { _id: 0 } }).sort('time', -1);
-            return cursor.toArray();
+            const logData = await db.collections!.log_collection.find<ILogEntry>(queryObj, {projection: {_id: 0}}).sort('time', -1).toArray();
+            // log information decoration
+            for (const i in logData) {
+                logData[i].actionData = JSON.stringify(await logDecorationHelper(logData[i].actionData, logData[i].actionType));
+            }
+            return logData;
         }
     }
 };
+
+// fields that carry sensitive information will be hidden
+export const hiddenFields = {
+    LOGIN_USER: ['password', 'totp']
+};
+
+async function logDecorationHelper(actionData:any, actionType:string){
+    const obj = JSON.parse(actionData);
+    if (Object.keys(hiddenFields).includes(actionType)) {
+        for (let i = 0; i < hiddenFields[actionType].length; i++) {
+            delete obj[hiddenFields[actionType][i]];
+        }
+    }
+    if (actionType === LOG_ACTION.getStudy){
+        const studyId = obj['studyId'];
+        const study = await db.collections!.studies_collection.findOne({id: studyId, deleted: null})!;
+        if (study === null || study === undefined) {
+            obj['name'] = '';
+        }
+        else {
+            obj['name'] = study.name;
+        }
+    }
+    return obj;
+}

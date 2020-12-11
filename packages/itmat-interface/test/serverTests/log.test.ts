@@ -115,8 +115,6 @@ describe('LOG API', () => {
             expect(lastLog.actionType).toEqual(LOG_ACTION.login);
             expect(JSON.parse(lastLog.actionData)).toEqual({
                 username: 'test_user',
-                password: 'admin',
-                totp: '39334'
             });
             expect(lastLog.status).toEqual(LOG_STATUS.SUCCESS);
             expect(lastLog.error).toEqual('');

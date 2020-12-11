@@ -20,7 +20,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "apollo-server-express": "2.18.2",
+        "apollo-server-express": "2.19.0",
         "bcrypt": "5.0.0",
         "body-parser": "1.19.0",
         "connect-mongo": "3.2.0",
@@ -31,8 +31,8 @@
         "graphql-type-json": "0.3.2",
         "hi-base32": "0.5.0",
         "itmat-commons": "0.6.0",
-        "mongodb": "3.6.2",
-        "nodemailer": "6.4.14",
+        "mongodb": "3.6.3",
+        "nodemailer": "6.4.15",
         "passport": "0.4.1",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
@@ -43,7 +43,7 @@
         "@types/express": "4.17.8",
         "@types/express-session": "1.17.0",
         "@types/jest": "26.0.15",
-        "@types/mongodb": "3.5.32",
+        "@types/mongodb": "3.5.33",
         "@types/node": "14.14.6",
         "@types/node-fetch": "2.5.7",
         "@types/nodemailer": "6.4.0",
@@ -59,17 +59,17 @@
         "cross-env": "7.0.2",
         "cross-spawn": "7.0.3",
         "get-port": "5.1.1",
-        "graphql": "15.3.0",
+        "graphql": "15.4.0",
         "itmat-setup": "0.0.1",
-        "jest": "26.6.1",
+        "jest": "26.6.3",
         "mongodb-memory-server": "6.9.2",
         "node-fetch": "2.6.1",
         "rimraf": "3.0.2",
         "start-server-webpack-plugin": "2.2.5",
-        "supertest": "4.0.2",
-        "ts-jest": "26.4.1",
-        "ts-loader": "8.0.6",
-        "typescript": "4.0.3",
+        "supertest": "6.0.1",
+        "ts-jest": "26.4.3",
+        "ts-loader": "8.0.9",
+        "typescript": "4.0.5",
         "webpack": "4.44.2",
         "webpack-cli": "4.1.0"
     },
@@ -77,7 +77,7 @@
         "**/@types/node": "14.14.6",
         "**/**/fs-capacitor": "^6.0.0",
         "**/graphql-upload": "^11.0.0",
-        "**/graphql": "15.3.0"
+        "**/graphql": "15.4.0"
     },
     "babel": {
         "extends": "./config/babel.config.js"

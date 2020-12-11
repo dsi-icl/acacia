@@ -8,6 +8,8 @@ import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 import { Readable } from 'stream';
 import crypto from 'crypto';
+import { validate } from '@ideafast/idgen';
+import { deviceTypes, sitesIDMarker } from '../../utils/definition';
 
 export const fileResolvers = {
     Query: {
@@ -28,17 +30,26 @@ export const fileResolvers = {
                 try {
                     const hash = crypto.createHash('sha256');
                     const countStream: Readable = (file as any).createReadStream();
+                    let readBytes = 0;
 
                     countStream.on('data', chunk => {
+                        readBytes += chunk.length;
                         hash.update(chunk);
                     });
 
                     countStream.on('end', () => {
-                        const hashString = hash.digest('hex');
                         // hash is optional, but should be correct if provided
+                        const hashString = hash.digest('hex');
                         if (args.hash !== undefined) {
                             if (args.hash !== hashString) {
                                 reject(new ApolloError('File hash not match', errorCodes.CLIENT_MALFORMED_INPUT));
+                                return;
+                            }
+                        }
+                        // check if readbytes equal to filelength in parameters
+                        if (args.fileLength !== undefined) {
+                            if (args.fileLength !== readBytes) {
+                                reject(new ApolloError('File size mismatch', errorCodes.CLIENT_MALFORMED_INPUT));
                                 return;
                             }
                         }
@@ -52,11 +63,40 @@ export const fileResolvers = {
                         });
 
                         stream.on('end', async () => {
+                            // check filename and description is valid and matches each other
+                            const parsedDescription = JSON.parse(args.description);
+                            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
+                            const particules = file.filename.match(matcher);
+                            if (particules !== null) {
+                                if ((particules as any).length === 8) {
+                                    const parsedFileNameStartDate = new Date((particules as any)[5].substr(0,4).concat('-')
+                                        .concat((particules as any)[5].substr(4,2).concat('-').concat((particules as any)[5].substr(6,2)))).valueOf();
+                                    const parsedFileNameEndDate = new Date((particules as any)[6].substr(0,4).concat('-')
+                                        .concat((particules as any)[6].substr(4,2).concat('-').concat((particules as any)[6].substr(6,2)))).valueOf();
+                                    if (!(Object.keys(sitesIDMarker).includes((particules as any)[1].toUpperCase())
+                                        && validate((particules as any)[2].toUpperCase())
+                                        && (particules as any)[1].concat((particules as any)[2]) === parsedDescription['participantId']
+                                        && Object.keys(deviceTypes).includes((particules as any)[3].toUpperCase())
+                                        && validate((particules as any)[4].toUpperCase())
+                                        && (particules as any)[3].concat((particules as any)[4]) === parsedDescription['deviceId']
+                                        && parsedFileNameStartDate < parsedFileNameEndDate
+                                        && (parsedFileNameStartDate - parseInt(parsedDescription['startDate'])) === (parsedFileNameEndDate - parseInt(parsedDescription['endDate'])))) {
+                                        return reject(new ApolloError('Filename and description must be matched and valid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                    }
+                                } else {
+                                    reject(new ApolloError('Filename and description must be matched and valid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                    return;
+                                }
+                            } else {
+                                reject(new ApolloError('Filename and description must be matched and valid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                return;
+                            }
+
                             const fileEntry: IFile = {
                                 id: uuid(),
                                 fileName: file.filename,
                                 studyId: args.studyId,
-                                fileSize: args.fileLength === undefined ? 0 : args.fileLength,
+                                fileSize: readBytes,
                                 description: args.description,
                                 uploadTime: `${Date.now()}`,
                                 uploadedBy: requester.id,
@@ -72,7 +112,6 @@ export const fileResolvers = {
                                 throw new ApolloError(errorCodes.DATABASE_ERROR);
                             }
                         });
-
                         objStore.uploadFile(stream, args.studyId, fileUri);
                     });
                 } catch (e) {

@@ -1,5 +1,5 @@
 import { db } from '../database/database';
-import { v4 as uuid} from 'uuid';
+import { v4 as uuid } from 'uuid';
 import { LOG_TYPE, LOG_ACTION, LOG_STATUS, USER_AGENT, userTypes } from 'itmat-commons';
 
 // only requests in white list will be recorded
@@ -8,7 +8,10 @@ export const logActionRecordWhiteList = Object.keys(LOG_ACTION);
 // only requests in white list will be recorded
 export const logActionShowWhiteList = Object.keys(LOG_ACTION);
 
-
+// fields that carry sensitive information will be ignored
+export const ignoredFields = {
+    login: ['password', 'totp']
+};
 export class LogPlugin {
     public async serverWillStartLogPlugin(): Promise<null> {
         await db.collections!.log_collection.insertOne({
@@ -33,16 +36,26 @@ export class LogPlugin {
             id: uuid(),
             requesterName: requestContext.context.req.user ? requestContext.context.req.user.username : 'NA',
             requesterType: requestContext.context.req.user ? requestContext.context.req.user.type : userTypes.SYSTEM,
-            userAgent: (requestContext.context.req.headers['user-agent'] as string).startsWith('Mozilla') ? USER_AGENT.MOZILLA: USER_AGENT.OTHER,
+            userAgent: (requestContext.context.req.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
             logType: LOG_TYPE.REQUEST_LOG,
             actionType: LOG_ACTION[requestContext.operationName],
-            actionData: JSON.stringify(requestContext.request.variables),
+            actionData: JSON.stringify(ignoreFieldsHelper(requestContext.request.variables, requestContext.operationName)),
             time: Date.now(),
             status: requestContext.errors === undefined ? LOG_STATUS.SUCCESS : LOG_STATUS.FAIL,
             error: requestContext.errors === undefined ? '' : requestContext.errors[0].message
         });
         return null;
     }
+}
+
+function ignoreFieldsHelper(dataObj: any, operationName: string) {
+    if (Object.keys(ignoredFields).includes(operationName)) {
+        for (let i = 0; i < ignoredFields[operationName].length; i++) {
+            // Not using hard copy as the request is useless in this step (response are to send)
+            delete dataObj[ignoredFields[operationName][i]];
+        }
+    }
+    return dataObj;
 }
 
 export const logPlugin = Object.freeze(new LogPlugin());
