@@ -2166,15 +2166,6 @@
     tunnel-agent "^0.6.0"
     uuid "^3.3.2"
 
-"@cypress/webpack-preprocessor@5.4.10":
-  version "5.4.10"
-  resolved "https://registry.yarnpkg.com/@cypress/webpack-preprocessor/-/webpack-preprocessor-5.4.10.tgz#ed0a3ed495f5455899f7c567830b37477c3f26f5"
-  integrity sha512-6j809mAQcZsAbpIaQFlKwFQPKv1Y+ZyLr9bpW7d2utMGVll0W8Up4RPhIuAf4q9Tx+DOBQoiCpy/n0cRPxporw==
-  dependencies:
-    bluebird "^3.7.1"
-    debug "^4.1.1"
-    lodash "^4.17.20"
-
 "@cypress/webpack-preprocessor@5.4.11":
   version "5.4.11"
   resolved "https://registry.yarnpkg.com/@cypress/webpack-preprocessor/-/webpack-preprocessor-5.4.11.tgz#77f86e399f04969d5d8692ada96c794c52d38f87"
@@ -13965,10 +13956,10 @@ node-releases@^1.1.65:
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-1.1.65.tgz#52d9579176bd60f23eba05c4438583f341944b81"
   integrity sha512-YpzJOe2WFIW0V4ZkJQd/DGR/zdVwc/pI4Nl1CZrBO19FdRcSTmsuhdttw9rsTzzJLrNcSloLiBbEYx1C4f6gpA==
 
-nodemailer@6.4.15:
-  version "6.4.15"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.4.15.tgz#da5dbb78b8376e34c232c6aa3d2d65cfe17440e9"
-  integrity sha512-2/z13dBTWdgTRlxVMAK6C13dCI22GEShET4+jFLlQsxpblxYhojnucfcTZO1QBu5CsHvABsBj2JCGO3vl0HSQA==
+nodemailer@6.4.17:
+  version "6.4.17"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.4.17.tgz#8de98618028953b80680775770f937243a7d7877"
+  integrity sha512-89ps+SBGpo0D4Bi5ZrxcrCiRFaMmkCt+gItMXQGzEtZVR3uAD3QAQIDoxTWnx3ky0Dwwy/dhFrQ+6NNGXpw/qQ==
 
 nopt@^4.0.1:
   version "4.0.3"
