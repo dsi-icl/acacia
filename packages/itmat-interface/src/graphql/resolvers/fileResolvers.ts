@@ -37,10 +37,6 @@ export const fileResolvers = {
                     countStream.on('data', chunk => {
                         readBytes += chunk.length;
                         hash.update(chunk);
-                        if (readBytes > fileSizeLimit) {
-                            reject(new ApolloError('File should not be larger than 8GB', errorCodes.CLIENT_MALFORMED_INPUT));
-                            return;
-                        }
                     });
 
                     countStream.on('error', (e) => {
@@ -61,6 +57,10 @@ export const fileResolvers = {
                         if (args.fileLength !== undefined) {
                             if (args.fileLength !== readBytes) {
                                 reject(new ApolloError('File size mismatch', errorCodes.CLIENT_MALFORMED_INPUT));
+                                return;
+                            }
+                            if (readBytes > fileSizeLimit) {
+                                reject(new ApolloError('File should not be larger than 8GB', errorCodes.CLIENT_MALFORMED_INPUT));
                                 return;
                             }
                         }
