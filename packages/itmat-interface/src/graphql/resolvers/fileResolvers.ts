@@ -11,6 +11,8 @@ import crypto from 'crypto';
 import { validate } from '@ideafast/idgen';
 import { deviceTypes, sitesIDMarker } from '../../utils/definition';
 
+export const fileSizeLimit = 8589934592;
+
 export const fileResolvers = {
     Query: {
     },
@@ -35,6 +37,10 @@ export const fileResolvers = {
                     countStream.on('data', chunk => {
                         readBytes += chunk.length;
                         hash.update(chunk);
+                        if (readBytes > fileSizeLimit) {
+                            reject(new ApolloError('File should not be larger than 8GB', errorCodes.CLIENT_MALFORMED_INPUT));
+                            return;
+                        }
                     });
 
                     countStream.on('end', () => {
