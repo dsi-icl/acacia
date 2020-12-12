@@ -43,6 +43,11 @@ export const fileResolvers = {
                         }
                     });
 
+                    countStream.on('error', (e) => {
+                        Logger.error(e);
+                        reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
+                    });
+
                     countStream.on('end', () => {
                         // hash is optional, but should be correct if provided
                         const hashString = hash.digest('hex');
