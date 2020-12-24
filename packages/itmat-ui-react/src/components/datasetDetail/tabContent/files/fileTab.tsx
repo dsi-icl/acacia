@@ -5,10 +5,10 @@ import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Query } from '@apollo/client/react/components';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
-import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS } from 'itmat-commons';
-import { FileList } from '../../../reusable/fileList/fileList';
+import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, IFile } from 'itmat-commons';
+import { FileList, formatBytes } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
-import { Subsection } from '../../../reusable/subsection/subsection';
+import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { ApolloError } from '@apollo/client/errors';
 import { validate } from '@ideafast/idgen';
@@ -44,11 +44,13 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const [isUploading, setIsUploading] = useState(false);
     const store = useApolloClient();
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
-
+    const { loading: getStudyLoading, error: getStudyError, data: getStudyData} = useQuery(GET_STUDY, {variables: {studyId: studyId}});
+    const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
     // let { loading, progress, error } = useUpload(files, {
     //     mutation: UPLOAD_FILE,
     //     variables: { input: { files, name: 'test' } },
     // });
+    const [searchTerm, setSearchTerm] = useState('');
 
     const [uploadFile] = useMutation(UPLOAD_FILE, {
         onCompleted: ({ uploadFile }) => {
@@ -270,18 +272,42 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             };
         });
 
-    if (getOrgsLoading)
+    if (getOrgsLoading || getStudyLoading || getUsersLoading)
         return <LoadSpinner />;
 
-    if (getOrgsError)
+    if (getOrgsError || getStudyError || getUsersError)
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator: {getOrgsError.message}
+            A error occured, please contact your administrator: {(getOrgsError as any).message} {(getStudyError as any).message} {(getUsersError as any).message}
         </div>;
+
+    const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
 
     const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
         ...prev,
         [current.metadata.siteIDMarker]: current.shortname ?? current.name
     }), {});
+
+    function dataSourceFilter(files: IFile[]) {
+        return files.filter(file =>
+            !searchTerm
+            || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1
+            || sites[JSON.parse(file.description).participantId[0]].toUpperCase().indexOf(searchTerm) > -1
+            || JSON.parse(file.description).deviceId.toUpperCase().indexOf(searchTerm) > -1
+            || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
+            || (!userIdNameMapping[file.uploadedBy] || userIdNameMapping[file.uploadedBy].toUpperCase().indexOf(searchTerm) > -1)
+        ).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime));
+    }
+
+    const sortedFiles = dataSourceFilter(getStudyData.getStudy.files).sort((a, b) => parseInt((b as any).uploadTime) - parseInt((a as any).uploadTime));
+    const numberOfFiles = sortedFiles.length;
+    const sizeOfFiles = sortedFiles.reduce((a, b) => a + (b['fileSize'] || 0), 0);
+    const participantOfFiles = sortedFiles.reduce(function(values, v) {
+        if (!values.set[v['uploadedBy']]) {
+            (values as any).set[v['uploadedBy']] = 1;
+            values.count++;
+        }
+        return values;
+    }, { set: {}, count: 0 }).count;
 
     return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input {...getInputProps()} />
@@ -335,20 +361,12 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     <br />
                     <br />
                 </Subsection>
-                <Subsection title='Existing files'>
-                    <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
-                        {({ loading, data, error }) => {
-                            if (loading) { return <LoadSpinner />; }
-                            if (error) { return <p>{error.toString()}</p>; }
-                            if (!data.getStudy || !data.getStudy.files || data.getStudy.files.length === 0) {
-                                return <p>There seems to be no files for this study. You can start uploading files.</p>;
-                            }
-                            return <FileList files={data.getStudy.files} />;
-                        }}
-                    </Query>
+                <SubsectionWithComment title='Existing files' comment={'Total Files: ' + numberOfFiles + '\t\tTotal Size: ' + formatBytes(sizeOfFiles) + '\t\tTotal Participants: ' + participantOfFiles }>
+                    <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
+                    <FileList files={sortedFiles} searchTerm={searchTerm}></FileList>
                     <br />
                     <br />
-                </Subsection>
+                </SubsectionWithComment>
 
             </div>}
     </div>;

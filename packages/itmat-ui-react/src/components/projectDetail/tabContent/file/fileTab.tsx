@@ -16,7 +16,7 @@ export const FileTabContent: React.FunctionComponent<{ studyId: string; projectI
                     if (!data || !data.getProject || !data.getProject.files || data.getProject.files.length === 0) {
                         return <p>Seems like there is no file for this project!</p>;
                     }
-                    return <FileList files={data.getProject.files} />;
+                    return <FileList files={data.getProject.files} searchTerm={undefined}/>;
                 }}
             </Query>
 
