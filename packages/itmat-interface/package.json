@@ -28,6 +28,7 @@
         "express": "4.17.1",
         "express-session": "1.17.1",
         "fs-extra": "9.0.1",
+        "graphql-scalars": "1.7.0",
         "graphql-type-json": "0.3.2",
         "hi-base32": "0.5.0",
         "itmat-commons": "0.6.0",

@@ -15,6 +15,7 @@ import { userLoginUtils } from '../utils/userLoginUtils';
 import { IConfiguration } from '../utils/configManager';
 import { logPlugin } from '../log/logPlugin';
 import { spaceFixing } from '../utils/regrex';
+import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 // const MongoStore = connectMongo(session);
 
 export class Router {
@@ -51,7 +52,10 @@ export class Router {
         /* register apolloserver for graphql requests */
         const gqlServer = new ApolloServer({
             typeDefs: schema,
-            resolvers,
+            resolvers: {
+                ...resolvers,
+                BigInt: scalarResolvers
+            },
             plugins: [
                 {
                     serverWillStart() {

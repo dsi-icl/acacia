@@ -17,3 +17,5 @@ export const sitesIDMarker = {
     G: 'GHI Muenster',
     E: 'EMC Rotterdam'
 };
+
+export const fileSizeLimit = 8589934592;
