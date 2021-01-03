@@ -94,7 +94,7 @@ export class Router {
                         }
                     });
                     // store the associated user with the JWT to context
-                    const associatedUser = await userRetrieval(pubkey);                    
+                    const associatedUser = await userRetrieval(pubkey);
                     req.user = associatedUser;
                 }
                 return ({ req, res });
