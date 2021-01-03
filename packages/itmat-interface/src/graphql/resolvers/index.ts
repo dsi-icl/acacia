@@ -36,8 +36,8 @@ const bounceNotLoggedInDecorator = (reducerFunction: any) => {
         const uncheckedFunctionWhitelist = ['login', 'issueAccessToken', 'whoAmI', 'getOrganisations', 'requestUsernameOrResetPassword', 'resetPassword', 'createUser', 'writeLog', 'validateResetPassword'];
         const requester: IUser = context.req.user;
 
-        console.log("context.user: ", JSON.stringify(context.user));
-        console.log("context.req.user: ", JSON.stringify(requester));
+        console.log('context.associatedUser: ', JSON.stringify(context.associatedUser));
+        console.log('context.req.user: ', JSON.stringify(requester));
 
         if (!requester) {
             if (!(uncheckedFunctionWhitelist as any).includes(reducerFunction.name)) {

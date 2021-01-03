@@ -17,7 +17,7 @@ import { logPlugin } from '../log/logPlugin';
 import { spaceFixing } from '../utils/regrex';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
-import { IUser } from 'itmat-commons';
+// import { IUser } from 'itmat-commons';
 // const MongoStore = connectMongo(session);
 
 export class Router {
@@ -49,7 +49,7 @@ export class Router {
         this.app.use(passport.session());
         passport.serializeUser(userLoginUtils.serialiseUser);
         passport.deserializeUser(userLoginUtils.deserialiseUser);
-        
+
         /* register apolloserver for graphql requests */
         const gqlServer = new ApolloServer({
             typeDefs: schema,
@@ -95,8 +95,10 @@ export class Router {
                     });
 
                     const associatedUser = await userRetrieval(pubkey);
-                    console.log("Associated User with the JWT: ", JSON.stringify(associatedUser));
-                    user: associatedUser;
+                    console.log('Associated User with the JWT: ', JSON.stringify(associatedUser));
+                    //user: associatedUser;
+                    return ({ req, res, associatedUser });
+
                 }
                 return ({ req, res });
             },
