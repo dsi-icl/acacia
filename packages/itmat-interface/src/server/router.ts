@@ -1,4 +1,4 @@
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, UserInputError } from 'apollo-server-express';
 import bodyParser from 'body-parser';
 // import connectMongo from 'connect-mongo';
 import cors from 'cors';
@@ -15,6 +15,9 @@ import { userLoginUtils } from '../utils/userLoginUtils';
 import { IConfiguration } from '../utils/configManager';
 import { logPlugin } from '../log/logPlugin';
 import { spaceFixing } from '../utils/regrex';
+import jwt from 'jsonwebtoken';
+import { userRetrieval } from '../authentication/pubkeyAuthentication';
+import { IUser } from 'itmat-commons';
 // const MongoStore = connectMongo(session);
 
 export class Router {
@@ -46,8 +49,7 @@ export class Router {
         this.app.use(passport.session());
         passport.serializeUser(userLoginUtils.serialiseUser);
         passport.deserializeUser(userLoginUtils.deserialiseUser);
-
-
+        
         /* register apolloserver for graphql requests */
         const gqlServer = new ApolloServer({
             typeDefs: schema,
@@ -73,11 +75,29 @@ export class Router {
                     },
                 }
             ],
-            context: ({ req, res }) => {
+            context: async ({ req, res }) => {
                 /* Bounce all unauthenticated graphql requests */
                 // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
                 //     throw new ForbiddenError('not logged in');
                 // }
+                const token = req.headers.authorization || '';
+                if ((token !== '') && (req.user === undefined)) {
+                    // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
+                    const decodedPayload = jwt.decode(token);
+                    // obtain the public-key of the robot user in the JWT payload
+                    const pubkey = decodedPayload.publicKey;
+
+                    // verify the JWT
+                    jwt.verify(token, pubkey, function(err) {
+                        if (err) {
+                            throw new UserInputError('JWT verification failed. ' + err);
+                        }
+                    });
+
+                    const associatedUser = await userRetrieval(pubkey);
+                    console.log("Associated User with the JWT: ", JSON.stringify(associatedUser));
+                    user: associatedUser;
+                }
                 return ({ req, res });
             },
             formatError: (error) => {

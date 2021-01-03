@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
-
 export function rsasigner(privateKey: string, message: string, scheme = 'RSA-SHA256', passphrase = 'idea-fast'): string {
     const signer = crypto.createSign(scheme);
     // Signing
@@ -64,7 +63,7 @@ export function eckeygen(curve = 'secp256k1') {
 }
 
 export function tokengen(payload, secret, passphrase = 'idea-fast', algorithm = 'RS256', life = 1200) {
-    // algorithm is set default = RS256 implying that asymmetric JWT is used by default.
+    // Asymmetric JWT is used by default by setting algorithm = RS256.
     let token;
     try {
         token = jwt.sign(payload,

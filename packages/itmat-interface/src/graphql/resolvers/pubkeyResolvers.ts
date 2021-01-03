@@ -54,7 +54,7 @@ export const pubkeyResolvers = {
 
             // payload of the JWT for storing user information
             const payload = {
-                publicKey: pubkey,
+                publicKey: pubkeyrec.jwtPubkey,
                 associatedUserId: pubkeyrec.associatedUserId,
                 refreshCounter: pubkeyrec.refreshCounter,
                 Issuer: 'IDEA-FAST DMP'

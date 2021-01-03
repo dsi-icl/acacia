@@ -35,6 +35,10 @@ const bounceNotLoggedInDecorator = (reducerFunction: any) => {
     return async (parent: any, args: any, context: any, info: any) => {
         const uncheckedFunctionWhitelist = ['login', 'issueAccessToken', 'whoAmI', 'getOrganisations', 'requestUsernameOrResetPassword', 'resetPassword', 'createUser', 'writeLog', 'validateResetPassword'];
         const requester: IUser = context.req.user;
+
+        console.log("context.user: ", JSON.stringify(context.user));
+        console.log("context.req.user: ", JSON.stringify(requester));
+
         if (!requester) {
             if (!(uncheckedFunctionWhitelist as any).includes(reducerFunction.name)) {
                 throw new ApolloError(errorCodes.NOT_LOGGED_IN);
