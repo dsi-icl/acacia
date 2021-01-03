@@ -93,12 +93,9 @@ export class Router {
                             throw new UserInputError('JWT verification failed. ' + err);
                         }
                     });
-
-                    const associatedUser = await userRetrieval(pubkey);
-                    console.log('Associated User with the JWT: ', JSON.stringify(associatedUser));
-                    //user: associatedUser;
-                    return ({ req, res, associatedUser });
-
+                    // store the associated user with the JWT to context
+                    const associatedUser = await userRetrieval(pubkey);                    
+                    req.user = associatedUser;
                 }
                 return ({ req, res });
             },

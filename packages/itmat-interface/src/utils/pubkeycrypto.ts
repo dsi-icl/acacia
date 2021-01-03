@@ -62,7 +62,7 @@ export function eckeygen(curve = 'secp256k1') {
     return keyPair;
 }
 
-export function tokengen(payload, secret, passphrase = 'idea-fast', algorithm = 'RS256', life = 1200) {
+export function tokengen(payload, secret, passphrase = 'idea-fast', algorithm = 'RS256', life = 12000) {
     // Asymmetric JWT is used by default by setting algorithm = RS256.
     let token;
     try {
