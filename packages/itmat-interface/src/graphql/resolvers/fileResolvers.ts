@@ -53,7 +53,8 @@ export const fileResolvers = {
                         }
                         // check if readbytes equal to filelength in parameters
                         if (args.fileLength !== undefined) {
-                            const parsedBigInt = args.fileLength.toString().substring(0, args.fileLength.toString().length);
+                            // const parsedBigInt = args.fileLength.toString().substring(0, args.fileLength.toString().length);
+                            const parsedBigInt = args.fileLength.toString();
                             if (parsedBigInt !== readBytes.toString()) {
                                 reject(new ApolloError('File size mismatch', errorCodes.CLIENT_MALFORMED_INPUT));
                                 return;
@@ -106,7 +107,7 @@ export const fileResolvers = {
                                 id: uuid(),
                                 fileName: file.filename,
                                 studyId: args.studyId,
-                                fileSize: readBytes,
+                                fileSize: readBytes.toString(),
                                 description: args.description,
                                 uploadTime: `${Date.now()}`,
                                 uploadedBy: requester.id,

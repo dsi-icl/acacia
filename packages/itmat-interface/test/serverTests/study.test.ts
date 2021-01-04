@@ -760,7 +760,7 @@ describe('STUDY API', () => {
                         id: 'mockfile1_id',
                         fileName: 'mockfile1_name',
                         studyId: createdStudy.id,
-                        fileSize: 1000,
+                        fileSize: '1000',
                         description: 'Just a test file1',
                         uploadTime: '1599345644000',
                         uploadedBy: adminId,
@@ -772,7 +772,7 @@ describe('STUDY API', () => {
                         id: 'mockfile2_id',
                         fileName: 'mockfile2_name',
                         studyId: createdStudy.id,
-                        fileSize: 1000,
+                        fileSize: '1000',
                         description: 'Just a test file2',
                         uploadTime: '1599345644000',
                         uploadedBy: adminId,
@@ -1364,7 +1364,7 @@ describe('STUDY API', () => {
                             fileName: 'mockfile1_name',
                             studyId: createdStudy.id,
                             projectId: null,
-                            fileSize: 1000,
+                            fileSize: '1000',
                             description: 'Just a test file1',
                             uploadTime: '1599345644000',
                             uploadedBy: adminId,
@@ -1375,7 +1375,7 @@ describe('STUDY API', () => {
                             fileName: 'mockfile2_name',
                             studyId: createdStudy.id,
                             projectId: null,
-                            fileSize: 1000,
+                            fileSize: '1000',
                             description: 'Just a test file2',
                             uploadTime: '1599345644000',
                             uploadedBy: adminId,
@@ -1810,7 +1810,7 @@ describe('STUDY API', () => {
                     fileName: mockFiles[0].fileName,
                     studyId: createdStudy.id,
                     projectId: null,
-                    fileSize: mockFiles[0].fileSize,
+                    fileSize: (mockFiles[0].fileSize as any).toString(),
                     description: mockFiles[0].description,
                     uploadedBy: adminId
                 }]
@@ -1818,7 +1818,7 @@ describe('STUDY API', () => {
             expect(typeof editProjectApprovedFiles.id).toEqual('string');
             expect(typeof editProjectApprovedFiles.files[0].fileName).toEqual('string');
             expect(typeof editProjectApprovedFiles.files[0].studyId).toEqual('string');
-            expect(typeof editProjectApprovedFiles.files[0].fileSize).toEqual('number');
+            expect(typeof editProjectApprovedFiles.files[0].fileSize).toEqual('string');
             expect(typeof editProjectApprovedFiles.files[0].description).toEqual('string');
             expect(typeof editProjectApprovedFiles.files[0].uploadedBy).toEqual('string');
 
@@ -1845,7 +1845,7 @@ describe('STUDY API', () => {
                     fileName: mockFiles[0].fileName,
                     studyId: createdStudy.id,
                     projectId: null,
-                    fileSize: mockFiles[0].fileSize,
+                    fileSize: (mockFiles[0].fileSize as any).toString(),
                     description: mockFiles[0].description,
                     uploadedBy: adminId
                 }]
@@ -1853,7 +1853,7 @@ describe('STUDY API', () => {
             expect(typeof editProjectApprovedFiles.id).toEqual('string');
             expect(typeof editProjectApprovedFiles.files[0].fileName).toEqual('string');
             expect(typeof editProjectApprovedFiles.files[0].studyId).toEqual('string');
-            expect(typeof editProjectApprovedFiles.files[0].fileSize).toEqual('number');
+            expect(typeof editProjectApprovedFiles.files[0].fileSize).toEqual('string');
             expect(typeof editProjectApprovedFiles.files[0].description).toEqual('string');
             expect(typeof editProjectApprovedFiles.files[0].uploadedBy).toEqual('string');
 
