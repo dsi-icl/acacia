@@ -12,6 +12,7 @@ export const deviceTypes = {
     IEN: 'English Interview Transcripts',
     INL: 'Dutch Interview Transcripts',
     TEQ: 'Technology Experience Questionnaire',
+    PSG: 'PSG Study Polysomnography Data'
 };
 
 export const sitesIDMarker = {
