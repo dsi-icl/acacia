@@ -8,6 +8,11 @@ export const deviceTypes = {
     BED: 'VTT Bed Sensor',
     YSM: 'ZKOne',
     MBT: 'Mbient',
+    IDE: 'German Interview Transcripts',
+    IEN: 'English Interview Transcripts',
+    INL: 'Dutch Interview Transcripts',
+    TEQ: 'Technology Experience Questionnaire',
+    PSG: 'PSG Study Polysomnography Data'
 };
 
 export const sitesIDMarker = {
