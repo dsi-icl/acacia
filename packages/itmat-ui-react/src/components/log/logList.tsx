@@ -287,6 +287,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                 columns={detailColumns}
                 dataSource={[formatActionData(verboseInfo)]}
                 size='small'
+                scroll={{x:true}}
             >
             </Table>
         </Modal>
