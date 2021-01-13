@@ -377,8 +377,7 @@ export const TokenManagement: React.FunctionComponent<{ userId: string }> = ( {u
                     <br />
                     <div>
                         <p>Securely keep this token as an authentication key when interacting with APIs</p>
-                        <textarea disabled value={tokendata.issueAccessToken.accessToken}>
-                        </textarea>
+                        <textarea disabled value={tokendata.issueAccessToken.accessToken} cols={100} rows={20} />
                     </div>
                     <br />
                 </div>

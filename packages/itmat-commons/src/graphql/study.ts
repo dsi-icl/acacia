@@ -47,6 +47,7 @@ export const GET_STUDY = gql`
                 description
                 uploadTime
                 uploadedBy
+                hash
             }
             numOfSubjects
             currentDataVersion

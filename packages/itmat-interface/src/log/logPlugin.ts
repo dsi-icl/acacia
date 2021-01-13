@@ -12,6 +12,53 @@ export const logActionShowWhiteList = Object.keys(LOG_ACTION);
 export const ignoredFields = {
     login: ['password', 'totp']
 };
+
+// define global api parameters
+export const apiParameters = {
+    GET_USERS: ['fetchDetailsAdminOnly','fetchAccessPrivileges','userId'],
+    EDIT_USER: ['id','username','type','firstname','lastname','email','emailNotificationsActivated','password','description','organisation','expiredAt'],
+    DELETE_USER: ['userId'],
+    CREATE_USER: ['username','password','firstname','lastname','description','organisation','emailNotificationsActivated','email','type'],
+    LOGIN_USER: ['username','password','totp'],
+    WHO_AM_I: [],
+    LOGOUT: [],
+    REQUEST_USERNAME_OR_RESET_PASSWORD: ['forgotUsername','forgotPassword','email','username'],
+    RESET_PASSWORD: ['encryptedEmail','token','newPassword'],
+    VALIDATE_RESET_PASSWORD: ['encryptedEmail','token'],
+    GET_PROJECT: ['projectId','admin'],
+    GET_PROJECT_PATIENT_MAPPING: ['projectId'],
+    EDIT_PROJECT_APPROVED_FIELDS: ['projectId','fieldTreeId','approvedFields'],
+    EDIT_PROJECT_APPROVED_FILES: ['projectId','approvedFiles'],
+    CREATE_PROJECT: ['studyId','projectName','approvedFields'],
+    DELETE_PROJECT: ['projectId'],
+    SET_DATAVERSION_AS_CURRENT: ['studyId','dataVersionId'],
+    SUBSCRIBE_TO_JOB_STATUS: ['studyId'],
+    DELETE_STUDY: ['studyId'],
+    GET_STUDY: ['studyId'],
+    GET_STUDY_FIELDS: ['fieldTreeId', 'studyId'],
+    CREATE_STUDY: ['name'],
+    CREATE_DATA_CREATION_JOB: ['file','studyId','tag','version'],
+    CREATE_FIELD_CURATION_JOB: ['file','studyId','tag','dataVersionId'],
+    EDIT_ROLE: ['roleId','name','permissionChanges','userChanges'],
+    ADD_NEW_ROLE: ['studyId','projectId','roleName'],
+    REMOVE_ROLE: ['roleId'],
+    UPLOAD_FILE: ['studyId','file','description','fileLength'],
+    DOWNLOAD_FILE: [],
+    DELETE_FILE: ['fileId'],
+    GET_QUERIES: ['studyId','projectId','id'],
+    GET_QUERY_BYID: ['id'],
+    CREATE_QUERY: ['queryString','returnFieldSelection','study','project'],
+    GET_QUERY_RESULT: ['id'],
+    GET_LOGS: ['requesterName','requesterType','logType','actionType'],
+    GET_ORGANISATIONS: ['organisationId'],
+    CREATE_ORGANISATION: ['name','shortname','containOrg'],
+    GET_GRANTED_PERMISSIONS: ['studyId','projectId'],
+    GET_PUBKEYS: ['pubkeyId','associatedUserId'],
+    REGISTER_PUBKEY: ['pubkey','signature','associatedUserId'],
+    LINK_USER_PUBKEY: ['pubkey','signature','associatedUserId','pubkeyId'],
+    ISSUE_ACCESS_TOKEN: ['pubkey','signature']
+};
+
 export class LogPlugin {
     public async serverWillStartLogPlugin(): Promise<null> {
         await db.collections!.log_collection.insertOne({
