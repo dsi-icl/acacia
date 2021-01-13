@@ -31,7 +31,8 @@ export const logResolvers = {
 
 // fields that carry sensitive information will be hidden
 export const hiddenFields = {
-    LOGIN_USER: ['password', 'totp']
+    LOGIN_USER: ['password', 'totp'],
+    UPLOAD_FILE: ['file', 'description']
 };
 
 async function logDecorationHelper(actionData:any, actionType:string){
