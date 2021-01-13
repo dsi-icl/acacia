@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react/hooks';
-import { Table, Button, notification, Input } from 'antd';
-import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS } from 'itmat-commons';
+import { Table, Button, notification } from 'antd';
+import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS, GET_USERS } from 'itmat-commons';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
 import moment from 'moment';
@@ -19,9 +19,8 @@ export function formatBytes(size: number, decimal = 2): string {
     return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + ' ' + units[order];
 }
 
-export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files }) => {
+export const FileList: React.FunctionComponent<{ files: IFile[], searchTerm: string | undefined }> = ({ files, searchTerm }) => {
 
-    const [searchTerm, setSearchTerm] = useState<string | undefined>();
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
     const { data: dataWhoAmI, loading: loadingWhoAmI } = useQuery(WHO_AM_I);
     const [deleteFile] = useMutation(DELETE_FILE, {
@@ -36,6 +35,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         }
     });
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
+    const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
 
     const deletionHandler = (fileId: string) => {
         setIsDeleting({
@@ -50,11 +50,13 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         });
     };
 
-    if (getOrgsLoading)
+    if (getOrgsLoading || getUsersLoading)
         return <LoadSpinner />;
 
-    if (getOrgsError)
-        return <>A error occured, please contact your administrator: {getOrgsError.message}</>;
+    if (getOrgsError || getUsersError)
+        return <>A error occured, please contact your administrator: {(getOrgsError as any).message} {(getUsersError as any).message}</>;
+
+    const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
 
     const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
         ...prev,
@@ -80,7 +82,16 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         {
             title: 'Site',
             key: 'site',
-            render: (__unused__value, record) => sites[JSON.parse(record.description).participantId[0]],
+            render: (__unused__value, record) => {
+                const site = sites[JSON.parse(record.description).participantId[0]];
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={site} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return site;
+            },
             sorter: (a, b) => JSON.parse(a.description).participantId.localeCompare(JSON.parse(b.description).participantId)
         },
         {
@@ -101,7 +112,16 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         {
             title: 'Device Type',
             key: 'deviceType',
-            render: (__unused__value, record) => deviceTypes[JSON.parse(record.description).deviceId.substr(0, 3)],
+            render: (__unused__value, record) => {
+                const deviceType = deviceTypes[JSON.parse(record.description).deviceId.substr(0, 3)];
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={deviceType} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return deviceType;
+            },
             sorter: (a, b) => JSON.parse(a.description).deviceId.localeCompare(JSON.parse(b.description).deviceId)
         },
         {
@@ -119,6 +139,22 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             key: 'uploadTime',
             render: (value) => moment(parseInt(value)).format('YYYY-MM-DD'),
             sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
+        },
+        {
+            title: 'Uploaded By',
+            dataIndex: 'uploadBy',
+            key: 'uploadBy',
+            render: (__unused__value, record) => {
+                const uploadedBy = record.uploadedBy === undefined ? 'NA' : userIdNameMapping[record.uploadedBy];
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={uploadedBy} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return uploadedBy;
+            },
+            sorter: (a, b) => userIdNameMapping[a.uploadedBy].localeCompare(userIdNameMapping[b.uploadedBy])
         },
         {
             title: 'Size',
@@ -159,14 +195,13 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         ] : []);
 
     return <>
-        <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
         <br />
         <br />
         <Table
             rowKey={(rec) => rec.id}
             pagination={false}
             columns={columns}
-            dataSource={files.filter(file => !searchTerm || file.description.search(searchTerm) > -1).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime))}
+            dataSource={files}
             size='small' />
     </>;
 
