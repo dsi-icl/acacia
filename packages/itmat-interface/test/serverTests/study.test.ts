@@ -765,7 +765,8 @@ describe('STUDY API', () => {
                         uploadTime: '1599345644000',
                         uploadedBy: adminId,
                         uri: 'fakeuri',
-                        deleted: null
+                        deleted: null,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                     },
                     {
                         id: 'mockfile2_id',
@@ -776,7 +777,8 @@ describe('STUDY API', () => {
                         uploadTime: '1599345644000',
                         uploadedBy: adminId,
                         uri: 'fakeuri2',
-                        deleted: null
+                        deleted: null,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
                     }
                 ];
                 await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
@@ -1365,7 +1367,8 @@ describe('STUDY API', () => {
                             fileSize: 1000,
                             description: 'Just a test file1',
                             uploadTime: '1599345644000',
-                            uploadedBy: adminId
+                            uploadedBy: adminId,
+                            hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                         },
                         {
                             id: 'mockfile2_id',
@@ -1375,7 +1378,8 @@ describe('STUDY API', () => {
                             fileSize: 1000,
                             description: 'Just a test file2',
                             uploadTime: '1599345644000',
-                            uploadedBy: adminId
+                            uploadedBy: adminId,
+                            hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
                         }
                     ],
                     numOfSubjects: 2,

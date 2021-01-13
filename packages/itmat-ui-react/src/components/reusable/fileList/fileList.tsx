@@ -128,6 +128,12 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             key: 'size'
         },
         {
+            title: 'Hash',
+            dataIndex: 'hash',
+            key: 'hash',
+            render: (__unused__value, record) => record.hash
+        },
+        {
             render: (__unused__value, record) => {
                 const ext = record.fileName.substr(record.fileName.lastIndexOf('.')).toLowerCase();
                 const file = JSON.parse(record.description);

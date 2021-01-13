@@ -142,7 +142,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
-                                fileLength: 13
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -159,7 +160,8 @@ if (global.hasMinio) {
                         projectId: null,
                         fileSize: 13,
                         description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
-                        uploadedBy: adminId
+                        uploadedBy: adminId,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                     });
                 });
 
@@ -172,7 +174,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
-                                fileLength: 13
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -193,7 +196,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
-                                fileLength: 13
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -210,7 +214,8 @@ if (global.hasMinio) {
                         projectId: null,
                         fileSize: 13,
                         description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
-                        uploadedBy: authorisedUserProfile.id
+                        uploadedBy: authorisedUserProfile.id,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                     });
                 });
 
@@ -223,7 +228,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: JSON.stringify({participantId:'IR6R4AR',deviceId:'AX6VJH6F6',startDate:1590966000000,endDate:1593730800000}),
-                                fileLength: 0
+                                fileLength: 0,
+                                hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -240,8 +246,33 @@ if (global.hasMinio) {
                         projectId: null,
                         fileSize: 0,
                         description: JSON.stringify({participantId:'IR6R4AR',deviceId:'AX6VJH6F6',startDate:1590966000000,endDate:1593730800000}),
-                        uploadedBy: adminId
+                        uploadedBy: adminId,
+                        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                     });
+                });
+
+                test('Upload a file with incorrect hash', async () => {
+                    /* test: upload file */
+                    const res = await admin.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: 'just a file 3.',
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a4'
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
+
+                    /* setup: geting the created file Id */
+                    expect(res.status).toBe(200);
+
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0].message).toBe('File hash not match');
+                    expect(res.body.data.uploadFile).toEqual(null);
                 });
 
                 test('File size mismatch with actual read bytes', async () => {
@@ -319,7 +350,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
-                                fileLength: 13
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
@@ -449,7 +481,8 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id,
                                 file: null,
                                 description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
-                                fileLength: 13
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))

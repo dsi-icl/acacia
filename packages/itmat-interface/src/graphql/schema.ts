@@ -112,6 +112,7 @@ type File {
     description: String!
     uploadTime: String!
     uploadedBy: String!
+    hash: String!
 }
 
 type DataVersion {
@@ -406,7 +407,7 @@ type Mutation {
     removeRole(roleId: String!): GenericResponse
 
     # FILES
-    uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: Int): File
+    uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: Int, hash: String): File
     deleteFile(fileId: String!): GenericResponse
 
     # QUERY

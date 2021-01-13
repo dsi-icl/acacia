@@ -7,6 +7,7 @@ import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 import { Readable } from 'stream';
+import crypto from 'crypto';
 import { validate } from '@ideafast/idgen';
 import { deviceTypes, sitesIDMarker } from '../../utils/definition';
 
@@ -14,7 +15,7 @@ export const fileResolvers = {
     Query: {
     },
     Mutation: {
-        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: Readable, filename: string }>, description: string }, context: any): Promise<IFile> => {
+        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<{ stream: Readable, filename: string }>, description: string, hash?: string }, context: any): Promise<IFile> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -25,17 +26,31 @@ export const fileResolvers = {
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             const file = await args.file;
-
             return new Promise<IFile>((resolve, reject) => {
                 try {
-                    let readBytes = 0;
+                    const hash = crypto.createHash('sha256');
                     const countStream: Readable = (file as any).createReadStream();
+                    let readBytes = 0;
 
                     countStream.on('data', chunk => {
                         readBytes += chunk.length;
+                        hash.update(chunk);
+                    });
+
+                    countStream.on('error', (e) => {
+                        Logger.error(e);
+                        reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
                     });
 
                     countStream.on('end', () => {
+                        // hash is optional, but should be correct if provided
+                        const hashString = hash.digest('hex');
+                        if (args.hash !== undefined) {
+                            if (args.hash !== hashString) {
+                                reject(new ApolloError('File hash not match', errorCodes.CLIENT_MALFORMED_INPUT));
+                                return;
+                            }
+                        }
                         // check if readbytes equal to filelength in parameters
                         if (args.fileLength !== undefined) {
                             if (args.fileLength !== readBytes) {
@@ -91,7 +106,8 @@ export const fileResolvers = {
                                 uploadTime: `${Date.now()}`,
                                 uploadedBy: requester.id,
                                 uri: fileUri,
-                                deleted: null
+                                deleted: null,
+                                hash: hashString
                             };
 
                             const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
@@ -101,7 +117,6 @@ export const fileResolvers = {
                                 throw new ApolloError(errorCodes.DATABASE_ERROR);
                             }
                         });
-
                         objStore.uploadFile(stream, args.studyId, fileUri);
                     });
                 } catch (e) {
