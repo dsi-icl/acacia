@@ -9,7 +9,7 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 import { Readable } from 'stream';
 import crypto from 'crypto';
 import { validate } from '@ideafast/idgen';
-import { deviceTypes, sitesIDMarker } from '../../utils/definition';
+import { deviceTypes, sitesIDMarker, fileSizeLimit } from '../../utils/definition';
 
 export const fileResolvers = {
     Query: {
@@ -53,10 +53,16 @@ export const fileResolvers = {
                         }
                         // check if readbytes equal to filelength in parameters
                         if (args.fileLength !== undefined) {
-                            if (args.fileLength !== readBytes) {
+                            // const parsedBigInt = args.fileLength.toString().substring(0, args.fileLength.toString().length);
+                            const parsedBigInt = args.fileLength.toString();
+                            if (parsedBigInt !== readBytes.toString()) {
                                 reject(new ApolloError('File size mismatch', errorCodes.CLIENT_MALFORMED_INPUT));
                                 return;
                             }
+                        }
+                        if (readBytes > fileSizeLimit) {
+                            reject(new ApolloError('File should not be larger than 8GB', errorCodes.CLIENT_MALFORMED_INPUT));
+                            return;
                         }
                         const stream: Readable = (file as any).createReadStream();
                         const fileUri = uuid();
@@ -101,7 +107,7 @@ export const fileResolvers = {
                                 id: uuid(),
                                 fileName: file.filename,
                                 studyId: args.studyId,
-                                fileSize: readBytes,
+                                fileSize: readBytes.toString(),
                                 description: args.description,
                                 uploadTime: `${Date.now()}`,
                                 uploadedBy: requester.id,

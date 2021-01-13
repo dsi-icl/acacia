@@ -305,7 +305,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     const sortedFiles = dataSourceFilter(getStudyData.getStudy.files).sort((a, b) => parseInt((b as any).uploadTime) - parseInt((a as any).uploadTime));
     const numberOfFiles = sortedFiles.length;
-    const sizeOfFiles = sortedFiles.reduce((a, b) => a + (b['fileSize'] || 0), 0);
+    const sizeOfFiles = sortedFiles.reduce((a, b) => a + (parseInt(b['fileSize'] as any) || 0), 0);
     const participantOfFiles = sortedFiles.reduce(function(values, v) {
         if (!values.set[v['uploadedBy']]) {
             (values as any).set[v['uploadedBy']] = 1;

@@ -3,7 +3,7 @@ export interface IFile {
     fileName: string;
     studyId: string;
     projectId?: string;
-    fileSize?: number;
+    fileSize?: string;
     description: string;
     uploadTime: string;
     uploadedBy: string;  // userId
