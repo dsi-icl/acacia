@@ -37,7 +37,9 @@ export const deviceTypes = {
     IEN: 'English Interview Transcripts',
     INL: 'Dutch Interview Transcripts',
     TEQ: 'Technology Experience Questionnaire',
-    PSG: 'PSG Study Polysomnography Data'
+    PSG: 'PSG Study Polysomnography Data',
+    PSR: 'PSG raw data',
+    PSM: 'PSG meta data'
 };
 
 const { RangePicker } = DatePicker;
