@@ -14,7 +14,9 @@ export const deviceTypes = {
     TEQ: 'Technology Experience Questionnaire',
     PSG: 'PSG Study Polysomnography Data',
     PSR: 'PSG raw data',
-    PSM: 'PSG meta data'
+    PSM: 'PSG meta data',
+    SMA: 'Stress Monitor App',
+    TFA: 'ThinkFast App'
 };
 
 export const sitesIDMarker = {
