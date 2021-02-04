@@ -6,7 +6,9 @@ import {
     IUser,
     //IUserWithoutToken,
     IPubkey,
-    AccessToken
+    AccessToken,
+    KeyPairwSignature,
+    Signature
 } from 'itmat-commons';
 //import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
@@ -38,6 +40,35 @@ export const pubkeyResolvers = {
     },
 
     Mutation: {
+        keyPairGenwSignature: async (__unused__parent: Record<string, unknown>): Promise<KeyPairwSignature> => {
+            // Generate RSA key-pair with Signature for robot user
+            const keyPair = pubkeycrypto.rsakeygen();
+            //default message = hash of the public key (SHA256)
+            const messageToBeSigned = pubkeycrypto.hashdigest(keyPair.publicKey);
+            const signature = pubkeycrypto.rsasigner(keyPair.privateKey, messageToBeSigned);
+
+            return {privateKey: keyPair.privateKey, publicKey: keyPair.publicKey, signature: signature};
+        },
+
+        rsaSigner: async (__unused__parent: Record<string, unknown>, { privateKey, message }: { privateKey: string, message: string }): Promise<Signature> => {
+            let messageToBeSigned;
+            privateKey = privateKey.replace(/\\n/g, '\n');
+            if (message === undefined) {
+                //default message = hash of the public key (SHA256)
+                try {
+                    const reGenPubkey = pubkeycrypto.reGenPkfromSk(privateKey);
+                    messageToBeSigned = pubkeycrypto.hashdigest(reGenPubkey);
+                } catch (error) {
+                    throw new UserInputError('Error: private-key incorrect!', error);
+                }
+
+            } else {
+                messageToBeSigned = message;
+            }
+            const signature = pubkeycrypto.rsasigner(privateKey, messageToBeSigned);
+            return {signature: signature};
+        },
+
         issueAccessToken: async (__unused__parent: Record<string, unknown>, { pubkey, signature }: { pubkey: string, signature: string }): Promise<AccessToken> => {
             // refine the public-key parameter from browser
             pubkey = pubkey.replace(/\\n/g, '\n');

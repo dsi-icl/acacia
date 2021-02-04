@@ -2,32 +2,70 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
 export function rsasigner(privateKey: string, message: string, scheme = 'RSA-SHA256', passphrase = 'idea-fast'): string {
-    const signer = crypto.createSign(scheme);
-    // Signing
-    signer.update(message);
+    try {
+        const signer = crypto.createSign(scheme);
+        // Signing
+        signer.update(message);
 
-    // The signature output_format: HexBase64Latin1Encoding which can be either 'binary', 'hex' or 'base64'
-    const signature = signer.sign({
-        key: privateKey,
-        passphrase: passphrase
-    }, 'base64');
-    signer.end();
-
-    return signature;
+        // The signature output_format: HexBase64Latin1Encoding which can be either 'binary', 'hex' or 'base64'
+        const signature = signer.sign({
+            key: privateKey,
+            passphrase: passphrase
+        }, 'base64');
+        signer.end();
+        return signature;
+    }
+    catch(err){
+        return err;
+    }
 }
 
-export function rsaverifier(pubkey: string, signature: string, method = 'RSA-SHA256'): boolean {
-    const verifier = crypto.createVerify(method);
+export function hashdigest(message: string, method = 'sha256'): string {
+    const hash = crypto.createHash(method);
+    hash.update(message);
+    return hash.copy().digest('base64');
+}
 
-    //re-generate the message = hash of the public key
-    const hash = crypto.createHash('sha256');
-    hash.update(pubkey);
-    const pubhash = hash.copy().digest('base64');
-    verifier.update(pubhash);
+export function reGenPkfromSk(privateKey: string, passphrase = 'idea-fast'): string {
+    try {
+        const skObject = crypto.createPrivateKey({
+            key: privateKey,
+            type: 'pkcs8',
+            format: 'pem',
+            passphrase: passphrase
+        });
 
-    // Verify the signature in supported formats ('binary', 'hex' or 'base64')
-    // The encoded format must be same as the signature
-    return verifier.verify(pubkey, signature, 'base64');
+        const pkObject = crypto.createPublicKey(skObject);
+        const reGenPk = pkObject.export({
+            format: 'pem',
+            type: 'spki'
+        });
+        return reGenPk.toString('base64');
+    }
+    catch(err){
+        return err;
+    }
+}
+
+export function rsaverifier(pubkey: string, signature: string, message = '', scheme = 'RSA-SHA256'): boolean {
+    try {
+        const verifier = crypto.createVerify(scheme);
+        let messageToBeVerified = message;
+        if (messageToBeVerified === '') {
+            //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
+            const hash = crypto.createHash('sha256');
+            hash.update(pubkey);
+            messageToBeVerified = hash.copy().digest('base64');
+        }
+
+        verifier.update(messageToBeVerified);
+        // Verify the signature in supported formats ('binary', 'hex' or 'base64')
+        // The encoded format must be same as the signature
+        return verifier.verify(pubkey, signature, 'base64');
+    }
+    catch(err){
+        return err;
+    }
 }
 
 export function rsakeygen(passphrase = 'idea-fast', modulusLength = 4096) {

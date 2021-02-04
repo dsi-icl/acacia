@@ -78,6 +78,16 @@ type Pubkey {
     deleted: String
 }
 
+type KeyPairwSignature {
+    privateKey: String!
+    publicKey: String!
+    signature: String
+}
+
+type Signature {
+    signature: String
+}
+
 type AccessToken {
     accessToken: String
 }
@@ -384,6 +394,8 @@ type Mutation {
     # PUBLIC KEY AUTHENTICATION
     registerPubkey(pubkey: String!, signature: String!, associatedUserId: String): Pubkey    
     issueAccessToken(pubkey: String!, signature: String!): AccessToken
+    keyPairGenwSignature: KeyPairwSignature
+    rsaSigner(privateKey: String!, message: String): Signature
 
     # ORGANISATION
     createOrganisation(name: String!, containOrg: String): Organisation

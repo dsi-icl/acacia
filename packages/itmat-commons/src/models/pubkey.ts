@@ -11,3 +11,13 @@ export interface IPubkey {
 export type AccessToken = {
     accessToken?: string;
 }
+
+export type KeyPairwSignature = {
+    privateKey: string;
+    publicKey: string;
+    signature?: string;
+}
+
+export type Signature = {
+    signature: string;
+}
