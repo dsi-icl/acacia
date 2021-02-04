@@ -434,15 +434,11 @@ export const RsaSigner: React.FunctionComponent = () => {
     if (completedSignatureGen) {
         return (
             <div>
-                <div>
-                    <h3>The signature is successfully generated!</h3>
-                    <br />
-                    <div>
-                        <p>Securely keep this signature to register with the data management portal!</p>
-                        <textarea disabled value={data.rsaSigner.signature} cols={120} rows={7} />
-                    </div>
-                    <br />
-                </div>
+                <h3>The signature is successfully generated!</h3>
+                <br />
+                <p>Securely keep this signature to register with the data management portal!</p>
+                <textarea disabled value={data.rsaSigner.signature} cols={120} rows={7} />
+                <br />
             </div>
         );
     }
@@ -514,15 +510,11 @@ export const TokenManagement: React.FunctionComponent<{ userId: string }> = ( {u
     if (completedTokenGen) {
         return (
             <div>
-                <div>
-                    <h2>The access token is successfully generated!</h2>
-                    <br />
-                    <div>
-                        <p>Securely keep this token as an authentication key when interacting with APIs</p>
-                        <textarea disabled value={tokendata.issueAccessToken.accessToken} cols={120} rows={20} />
-                    </div>
-                    <br />
-                </div>
+                <h2>The access token is successfully generated!</h2>
+                <br />
+                <p>Securely keep this token as an authentication key when interacting with APIs</p>
+                <textarea disabled value={tokendata.issueAccessToken.accessToken} cols={120} rows={20} />
+                <br />
             </div>
         );
     }
