@@ -449,7 +449,7 @@ export const RsaSigner: React.FunctionComponent = () => {
 
     return (
         <Form layout='vertical' onFinish={(variables) => signatureGen({ variables })}>
-            <p>To generate the signature, you need the private-key</p>
+            <p>To generate a digital signature to use in the data management portal, you need a private-key</p>
 
             <Form.Item name='privateKey' label='Private Key' hasFeedback rules={[{ required: true, message: 'Please enter the private key' }]}>
                 <textarea cols={120} rows={10} />
