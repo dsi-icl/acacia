@@ -8,7 +8,6 @@ import { ProjectSection } from '../users/projectSection';
 import { Form, Input, Select, DatePicker, Button, Alert } from 'antd';
 import moment from 'moment';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
-import TextArea from 'antd/lib/input/TextArea';
 
 const {
     WHO_AM_I,
@@ -88,7 +87,7 @@ export const ProfileManagementSection: React.FunctionComponent = () => {
                 <Subsection title='Signature generation'>
                     <RsaSigner />
                     <br />
-                    <br />                    
+                    <br />
                 </Subsection>
                 <Subsection title='Access Token management'>
                     <TokenManagement userId={user.id} />
@@ -256,13 +255,6 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
         }
     });
 
-    const [completedRsaSigner, setcompletedRsaSigner] = React.useState(false);
-    const [rsaSigner, { data: rsaSignerdata }] = useMutation(RSA_SIGNER, {
-        onCompleted: () => {
-            setcompletedRsaSigner(true);
-        }
-    });
-
     const [completedRegister, setCompletedRegister] = React.useState(false);
     const { loading: getPubkeysloading, error: getPubkeyserror, data: getPubkeysdata } = useQuery(GET_PUBKEYS, {
         variables: {
@@ -298,11 +290,11 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                         <Form initialValues={{
                             associatedUserId: userId
                         }} layout='vertical' onFinish={(variables) => submit({ variables })}>
-    
+
                             <Form.Item name='associatedUserId' label='User ID'>
                                 <Input disabled />
                             </Form.Item>
-    
+
                             {((ipubkey === null) || (ipubkey === undefined))
                                 ? <>
                                     <p>Register your public-key for use.</p>
@@ -327,15 +319,15 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
 
                             <p>Signature:</p>
                             <textarea disabled value={keypairdata.keyPairGenwSignature.signature} cols={120} rows={7} />
-    
+
                             <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
                                 <Input />
                             </Form.Item>
-    
+
                             <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
                                 <Input />
                             </Form.Item>
-    
+
                             {error ? (
                                 <>
                                     <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
@@ -348,17 +340,17 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                                     <br />
                                 </>
                             ) : null}
-    
+
                             <Form.Item>
                                 <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
                                     Register
                                 </Button>
                             </Form.Item>
-    
+
                         </Form>
                     </>
                 }
-    
+
             </Mutation>
         );
     }
@@ -432,8 +424,8 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
 
 };
 export const RsaSigner: React.FunctionComponent = () => {
-    const [completedSignatureGen, setcompletedSignatureGen] = React.useState(false);    
-    const [signatureGen, { data: data, loading, error }] = useMutation(RSA_SIGNER, {
+    const [completedSignatureGen, setcompletedSignatureGen] = React.useState(false);
+    const [signatureGen, { data, loading, error }] = useMutation(RSA_SIGNER, {
         onCompleted: () => {
             setcompletedSignatureGen(true);
         }
@@ -456,7 +448,7 @@ export const RsaSigner: React.FunctionComponent = () => {
     }
 
     return (
-        <Form layout='vertical' onFinish={(variables) => signatureGen({ variables })}>                        
+        <Form layout='vertical' onFinish={(variables) => signatureGen({ variables })}>
             <p>To generate the signature, you need the private-key</p>
 
             <Form.Item name='privateKey' label='Private Key' hasFeedback rules={[{ required: true, message: 'Please enter the private key' }]}>
