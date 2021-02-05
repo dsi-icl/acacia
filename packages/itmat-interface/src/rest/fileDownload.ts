@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
-import { Models, task_required_permissions, IFile } from 'itmat-commons';
+import { Models, IFile, permissions } from 'itmat-commons';
 
 export const fileDownloadController = async (req: Request, res: Response): Promise<void> => {
     const requester = req.user as Models.UserModels.IUser;
@@ -23,7 +23,7 @@ export const fileDownloadController = async (req: Request, res: Response): Promi
 
         /* check permission */
         const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-            task_required_permissions.access_project_data,
+            permissions.dataset_specific.files.download_files,
             requester,
             file.studyId
         );
