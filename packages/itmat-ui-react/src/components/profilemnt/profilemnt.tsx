@@ -16,6 +16,8 @@ const {
     REGISTER_PUBKEY,
     GET_PUBKEYS,
     ISSUE_ACCESS_TOKEN,
+    KEYPAIRGEN_SIGNATURE,
+    RSA_SIGNER,
     GET_ORGANISATIONS
 } = GQLRequests;
 
@@ -82,7 +84,11 @@ export const ProfileManagementSection: React.FunctionComponent = () => {
                     <br />
                     <br />
                 </Subsection>
-
+                <Subsection title='Signature generation'>
+                    <RsaSigner />
+                    <br />
+                    <br />
+                </Subsection>
                 <Subsection title='Access Token management'>
                     <TokenManagement userId={user.id} />
                     <br />
@@ -242,6 +248,13 @@ export const changeTimeFunc = {
 };
 
 export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( {userId} ) => {
+    const [completedKeypairGen, setcompletedKeypairGen] = React.useState(false);
+    const [keypairGen, { data: keypairdata }] = useMutation(KEYPAIRGEN_SIGNATURE, {
+        onCompleted: () => {
+            setcompletedKeypairGen(true);
+        }
+    });
+
     const [completedRegister, setCompletedRegister] = React.useState(false);
     const { loading: getPubkeysloading, error: getPubkeyserror, data: getPubkeysdata } = useQuery(GET_PUBKEYS, {
         variables: {
@@ -266,6 +279,82 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
     }
     const ipubkey: IPubkey = getPubkeysdata?.getPubkeys?.[0];
 
+    if (completedKeypairGen) {
+        return (
+            <Mutation<any, any>
+                mutation={REGISTER_PUBKEY}
+                onCompleted={() => setCompletedRegister(true)}
+            >
+                {(submit, { loading, error }) =>
+                    <>
+                        <Form initialValues={{
+                            associatedUserId: userId
+                        }} layout='vertical' onFinish={(variables) => submit({ variables })}>
+
+                            <Form.Item name='associatedUserId' label='User ID'>
+                                <Input disabled />
+                            </Form.Item>
+
+                            {((ipubkey === null) || (ipubkey === undefined))
+                                ? <>
+                                    <p>Register your public-key for use.</p>
+                                </>
+                                :
+                                <>
+                                    <Form.Item name='currentPubkey' label='Current registered public key'>
+                                        <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')}/>
+                                    </Form.Item>
+                                    <br />
+                                    <p>Register a new public-key. The current one will then be no longer valid.</p>
+                                </>
+                            }
+
+                            <h2>Securely keep the private key and the signature for use as we do not store such information on the server!.</h2>
+
+                            <p>Private Key:</p>
+                            <textarea disabled value={keypairdata.keyPairGenwSignature.privateKey.replace(/\n/g, '\\n')} cols={120} rows={20} />
+
+                            <p>Public Key:</p>
+                            <textarea disabled value={keypairdata.keyPairGenwSignature.publicKey.replace(/\n/g, '\\n')} cols={120} rows={7} />
+
+                            <p>Signature:</p>
+                            <textarea disabled value={keypairdata.keyPairGenwSignature.signature} cols={120} rows={7} />
+
+                            <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
+                                <Input />
+                            </Form.Item>
+
+                            <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
+                                <Input />
+                            </Form.Item>
+
+                            {error ? (
+                                <>
+                                    <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
+                                    <br />
+                                </>
+                            ) : null}
+                            {completedRegister ? (
+                                <>
+                                    <Alert type='success' message={'Public-key is Sucessfully Registered!'} />
+                                    <br />
+                                </>
+                            ) : null}
+
+                            <Form.Item>
+                                <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                                    Register
+                                </Button>
+                            </Form.Item>
+
+                        </Form>
+                    </>
+                }
+
+            </Mutation>
+        );
+    }
+
     return (
         <Mutation<any, any>
             mutation={REGISTER_PUBKEY}
@@ -274,7 +363,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
             {(submit, { loading, error }) =>
                 <>
                     <Form initialValues={{
-                        associatedUserId: userId,
+                        associatedUserId: userId
                     }} layout='vertical' onFinish={(variables) => submit({ variables })}>
 
                         <Form.Item name='associatedUserId' label='User ID'>
@@ -321,11 +410,60 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                                 Register
                             </Button>
                         </Form.Item>
+
                     </Form>
+
+                    <Button disabled={loading} onClick={() => {keypairGen();}}>
+                        Do not have public/private keypair? Generate one to use!
+                    </Button>
                 </>
             }
 
         </Mutation>
+    );
+
+};
+export const RsaSigner: React.FunctionComponent = () => {
+    const [completedSignatureGen, setcompletedSignatureGen] = React.useState(false);
+    const [signatureGen, { data, loading, error }] = useMutation(RSA_SIGNER, {
+        onCompleted: () => {
+            setcompletedSignatureGen(true);
+        }
+    });
+
+    if (completedSignatureGen) {
+        return (
+            <div>
+                <h3>The signature is successfully generated!</h3>
+                <br />
+                <p>Securely keep this signature to register with the data management portal!</p>
+                <textarea disabled value={data.rsaSigner.signature} cols={120} rows={7} />
+                <br />
+            </div>
+        );
+    }
+
+    return (
+        <Form layout='vertical' onFinish={(variables) => signatureGen({ variables })}>
+            <p>To generate a digital signature to use in the data management portal, you need a private-key</p>
+
+            <Form.Item name='privateKey' label='Private Key' hasFeedback rules={[{ required: true, message: 'Please enter the private key' }]}>
+                <textarea cols={120} rows={10} />
+            </Form.Item>
+
+            {error ? (
+                <>
+                    <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
+                    <br />
+                </>
+            ) : null}
+
+            <Form.Item>
+                <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                    Generate Signature
+                </Button>
+            </Form.Item>
+        </Form>
     );
 
 };
@@ -372,15 +510,11 @@ export const TokenManagement: React.FunctionComponent<{ userId: string }> = ( {u
     if (completedTokenGen) {
         return (
             <div>
-                <div>
-                    <h2>The access token is successfully generated!</h2>
-                    <br />
-                    <div>
-                        <p>Securely keep this token as an authentication key when interacting with APIs</p>
-                        <textarea disabled value={tokendata.issueAccessToken.accessToken} cols={100} rows={20} />
-                    </div>
-                    <br />
-                </div>
+                <h2>The access token is successfully generated!</h2>
+                <br />
+                <p>Securely keep this token as an authentication key when interacting with APIs</p>
+                <textarea disabled value={tokendata.issueAccessToken.accessToken} cols={120} rows={20} />
+                <br />
             </div>
         );
     }

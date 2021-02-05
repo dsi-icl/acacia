@@ -50,3 +50,21 @@ export const ISSUE_ACCESS_TOKEN = gql`
         }
     }
 `;
+
+export const KEYPAIRGEN_SIGNATURE = gql`
+    mutation keyPairGenwSignature {
+        keyPairGenwSignature {
+            privateKey
+            publicKey
+            signature
+        }        
+    }
+`;
+
+export const RSA_SIGNER = gql`
+    mutation rsaSigner($privateKey: String!, $message: String) {
+        rsaSigner(privateKey: $privateKey, message: $message) {
+            signature
+        }
+    }
+`;
