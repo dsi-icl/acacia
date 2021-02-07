@@ -53,7 +53,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const [isUploading, setIsUploading] = useState(false);
     const store = useApolloClient();
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
-    const { loading: getStudyLoading, error: getStudyError, data: getStudyData} = useQuery(GET_STUDY, {variables: {studyId: studyId}});
+    const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
     // let { loading, progress, error } = useUpload(files, {
     //     mutation: UPLOAD_FILE,
@@ -298,19 +298,20 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     function dataSourceFilter(files: IFile[]) {
         return files.filter(file =>
-            !searchTerm
-            || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1
-            || sites[JSON.parse(file.description).participantId[0]].toUpperCase().indexOf(searchTerm) > -1
-            || JSON.parse(file.description).deviceId.toUpperCase().indexOf(searchTerm) > -1
-            || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
-            || (!userIdNameMapping[file.uploadedBy] || userIdNameMapping[file.uploadedBy].toUpperCase().indexOf(searchTerm) > -1)
+            file !== null && file !== undefined &&
+            (!searchTerm
+                || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1
+                || sites[JSON.parse(file.description).participantId[0]].toUpperCase().indexOf(searchTerm) > -1
+                || JSON.parse(file.description).deviceId.toUpperCase().indexOf(searchTerm) > -1
+                || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
+                || (!userIdNameMapping[file.uploadedBy] || userIdNameMapping[file.uploadedBy].toUpperCase().indexOf(searchTerm) > -1))
         ).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime));
     }
 
     const sortedFiles = dataSourceFilter(getStudyData.getStudy.files).sort((a, b) => parseInt((b as any).uploadTime) - parseInt((a as any).uploadTime));
     const numberOfFiles = sortedFiles.length;
     const sizeOfFiles = sortedFiles.reduce((a, b) => a + (parseInt(b['fileSize'] as any) || 0), 0);
-    const participantOfFiles = sortedFiles.reduce(function(values, v) {
+    const participantOfFiles = sortedFiles.reduce(function (values, v) {
         if (!values.set[v['uploadedBy']]) {
             (values as any).set[v['uploadedBy']] = 1;
             values.count++;
@@ -370,7 +371,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     <br />
                     <br />
                 </Subsection>
-                <SubsectionWithComment title='Existing files' comment={'Total Files: ' + numberOfFiles + '\t\tTotal Size: ' + formatBytes(sizeOfFiles) + '\t\tTotal Participants: ' + participantOfFiles }>
+                <SubsectionWithComment title='Existing files' comment={'Total Files: ' + numberOfFiles + '\t\tTotal Size: ' + formatBytes(sizeOfFiles) + '\t\tTotal Participants: ' + participantOfFiles}>
                     <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
                     <FileList files={sortedFiles} searchTerm={searchTerm}></FileList>
                     <br />
@@ -408,7 +409,7 @@ interface EditableCellProps {
     children: React.ReactNode;
     dataIndex: string;
     record: StudyFile;
-    handleSave: (record: StudyFile) => void;
+    handleSave: (__unused__record: StudyFile) => void;
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({

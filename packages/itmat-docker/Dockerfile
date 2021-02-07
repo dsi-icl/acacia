@@ -10,9 +10,9 @@ COPY ./itmat-docker/package.json .
 COPY ./itmat-docker/.npmrc .
 
 RUN npm install --production
+RUN mkdir ./config
 
 COPY ./itmat-docker/launcher.js ./
-COPY ./itmat-docker/config/config.json ./config/
 COPY ./itmat-interface/build/* ./
 COPY ./itmat-job-executor/build/* ./
 COPY ./itmat-ui-react/build/* ./static/

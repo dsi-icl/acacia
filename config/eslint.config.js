@@ -38,8 +38,7 @@ var defaultRules = {
     ],
     'no-trailing-spaces': 'error',
     'no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^__unused__' }
+        'off'
     ],
     'quotes': [
         'error',

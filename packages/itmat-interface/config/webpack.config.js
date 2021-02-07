@@ -42,7 +42,6 @@ module.exports = {
     },
     plugins: (NODE_ENV === 'development' ? [
         new StartServerPlugin('interface.js'),
-        new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
         new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../src/utils/noop`),

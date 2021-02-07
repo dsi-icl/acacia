@@ -55,7 +55,7 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string; dataVer
 };
 
 
-const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: string; dataVersionId: string; cancel: (expanded: boolean) => void }> = ({ dataVersionId, studyId, cancel }) => {
+const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: string; dataVersionId: string; cancel: (__unused__expanded: boolean) => void }> = ({ dataVersionId, studyId, cancel }) => {
     return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data, error }) => {
             if (loading) return <LoadSpinner />;
@@ -68,7 +68,7 @@ const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: st
     </Query>;
 };
 
-const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string; files: IFile[]; dataVersionId: string; cancel: (expanded: boolean) => void }> = ({ cancel, dataVersionId, studyId, files }) => {
+const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string; files: IFile[]; dataVersionId: string; cancel: (__unused__expanded: boolean) => void }> = ({ cancel, dataVersionId, studyId, files }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above

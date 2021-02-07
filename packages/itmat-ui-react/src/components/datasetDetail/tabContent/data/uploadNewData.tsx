@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { CREATE_DATA_CURATION_JOB, GET_STUDY, IFile } from 'itmat-commons';
 import LoadSpinner from '../../../reusable/loadSpinner';
 
-export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton: (shown: boolean) => void }> = ({ studyId, cancelButton }) => {
+export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton: (__unused__shown: boolean) => void }> = ({ studyId, cancelButton }) => {
     return <div>
         <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>uploaded the data file to the file repository</span></NavLink>.</p>
         <br /><br />
@@ -23,7 +23,7 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelBut
     </div>;
 };
 
-const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile[]; cancelButton: (shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
+const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile[]; cancelButton: (__unused__shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above
