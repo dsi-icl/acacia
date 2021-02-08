@@ -50,7 +50,7 @@
         "cross-env": "7.0.3",
         "cypress": "6.4.0",
         "cypress-file-upload": "5.0.2",
-        "cypress-react-unit-test": "4.16.9",
+        "cypress-react-unit-test": "4.17.2",
         "enzyme": "3.11.0",
         "enzyme-adapter-react-16": "1.15.6",
         "react-git-info": "2.0.0",
