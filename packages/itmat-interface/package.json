@@ -1,6 +1,6 @@
 {
     "name": "itmat-interface",
-    "version": "0.7.0",
+    "version": "0.7.1",
     "description": "",
     "license": "MIT",
     "author": "Chon Sou",
@@ -31,7 +31,7 @@
         "graphql-scalars": "1.7.0",
         "graphql-type-json": "0.3.2",
         "hi-base32": "0.5.0",
-        "itmat-commons": "0.7.0",
+        "itmat-commons": "0.7.1",
         "jwt-decode": "^3.1.2",
         "mongodb": "3.6.4",
         "nodemailer": "6.4.17",
