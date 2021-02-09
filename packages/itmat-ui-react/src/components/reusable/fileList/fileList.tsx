@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react/hooks';
-import { Table, Button, notification } from 'antd';
+import { Table, Button, notification, Tooltip } from 'antd';
 import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS, GET_USERS } from 'itmat-commons';
-import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined } from '@ant-design/icons';
+import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined, NumberOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
 import moment from 'moment';
 import { deviceTypes } from '../../datasetDetail/tabContent/files/fileTab';
@@ -164,12 +164,6 @@ export const FileList: React.FunctionComponent<{ files: IFile[], searchTerm: str
             key: 'size'
         },
         {
-            title: 'Hash',
-            dataIndex: 'hash',
-            key: 'hash',
-            render: (__unused__value, record) => record.hash
-        },
-        {
             render: (__unused__value, record) => {
                 const ext = record.fileName.substr(record.fileName.lastIndexOf('.')).toLowerCase();
                 const file = JSON.parse(record.description);
@@ -192,7 +186,18 @@ export const FileList: React.FunctionComponent<{ files: IFile[], searchTerm: str
                 width: '8rem',
                 key: 'delete'
             }
-        ] : []);
+        ] : [])
+        .concat([
+            {
+                render: (__unused__value, record) => (
+                    <Tooltip title={record.hash} placement='bottomRight' >
+                        <Button type='link' icon={<NumberOutlined />} loading={isDeleting[record.id]}></Button>
+                    </Tooltip>
+                ),
+                width: '8rem',
+                key: 'delete'
+            }
+        ]);
 
     return <>
         <br />
