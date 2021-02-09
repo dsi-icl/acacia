@@ -7,7 +7,7 @@ export const ProfilePage: React.FunctionComponent = () => {
         <div className={css.page_container}>
             <div className={css.user_list_section + ' page_section'}>
                 <div className='page_ariane'>
-                    Profile Management
+                    My account
                 </div>
                 <div className='page_section additional_panel'>
                     <ProfileManagementSection />
