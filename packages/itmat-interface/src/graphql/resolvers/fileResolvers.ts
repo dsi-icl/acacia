@@ -76,36 +76,34 @@ export const fileResolvers = {
                         stream.on('end', async () => {
                             // check filename and description is valid and matches each other
                             const parsedDescription = JSON.parse(args.description);
-                            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
-                            const particules = file.filename.match(matcher);
-                            if (particules !== null) {
-                                if ((particules as any).length === 8) {
-                                    const parsedFileNameStartDate = new Date((particules as any)[5].substr(0,4).concat('-')
-                                        .concat((particules as any)[5].substr(4,2).concat('-').concat((particules as any)[5].substr(6,2)))).valueOf();
-                                    const parsedFileNameEndDate = new Date((particules as any)[6].substr(0,4).concat('-')
-                                        .concat((particules as any)[6].substr(4,2).concat('-').concat((particules as any)[6].substr(6,2)))).valueOf();
-                                    if (!(Object.keys(sitesIDMarker).includes((particules as any)[1].toUpperCase())
-                                        && validate((particules as any)[2].toUpperCase())
-                                        && (particules as any)[1].concat((particules as any)[2]) === parsedDescription['participantId']
-                                        && Object.keys(deviceTypes).includes((particules as any)[3].toUpperCase())
-                                        && validate((particules as any)[4].toUpperCase())
-                                        && (particules as any)[3].concat((particules as any)[4]) === parsedDescription['deviceId']
-                                        && parsedFileNameStartDate < parsedFileNameEndDate
-                                        && (parsedFileNameStartDate - parseInt(parsedDescription['startDate'])) === (parsedFileNameEndDate - parseInt(parsedDescription['endDate'])))) {
-                                        return reject(new ApolloError('Filename and description must be matched and valid', errorCodes.CLIENT_MALFORMED_INPUT));
-                                    }
-                                } else {
-                                    reject(new ApolloError('Filename and description must be matched and valid', errorCodes.CLIENT_MALFORMED_INPUT));
+                            let startDate;
+                            let endDate;
+                            try {
+                                startDate = parseInt(parsedDescription.startDate);
+                                endDate = parseInt(parsedDescription.endDate);
+                                if (
+                                    !validate(parsedDescription.participantId?.substr(1) ?? '') ||
+                                    !validate(parsedDescription.deviceId.substr(3) ?? '') ||
+                                    endDate < startDate
+                                ) {
+                                    reject(new ApolloError('File description is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
                                     return;
                                 }
-                            } else {
-                                reject(new ApolloError('Filename and description must be matched and valid', errorCodes.CLIENT_MALFORMED_INPUT));
+                            } catch (e) {
+                                reject(new ApolloError('File description is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
                                 return;
                             }
 
+                            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
+                            const typedStartDate = new Date(startDate);
+                            const formattedStartDate = typedStartDate.getFullYear() + `${typedStartDate.getMonth() + 1}`.padStart(2, '0') + `${typedStartDate.getDate()}`.padStart(2, '0');
+                            const typedEndDate = new Date(startDate);
+                            const formattedEndDate = typedEndDate.getFullYear() + `${typedEndDate.getMonth() + 1}`.padStart(2, '0') + `${typedEndDate.getDate()}`.padStart(2, '0');
                             const fileEntry: IFile = {
                                 id: uuid(),
-                                fileName: file.filename,
+                                fileName: matcher.test(file.filename)
+                                    ? file.filename :
+                                    `${parsedDescription.participantId.toUppercase()}-${parsedDescription.deviceId.toUppercase()}-${formattedStartDate}-${formattedEndDate}-${file.filename}`,
                                 studyId: args.studyId,
                                 fileSize: readBytes.toString(),
                                 description: args.description,
