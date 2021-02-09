@@ -312,8 +312,8 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const numberOfFiles = sortedFiles.length;
     const sizeOfFiles = sortedFiles.reduce((a, b) => a + (parseInt(b['fileSize'] as any) || 0), 0);
     const participantOfFiles = sortedFiles.reduce(function (values, v) {
-        if (!values.set[v['uploadedBy']]) {
-            (values as any).set[v['uploadedBy']] = 1;
+        if (!values.set[JSON.parse(v['description'])['participantId']]) {
+            (values as any).set[JSON.parse(v['description'])['participantId']] = 1;
             values.count++;
         }
         return values;
