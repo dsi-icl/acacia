@@ -82,6 +82,8 @@ export const fileResolvers = {
                                 startDate = parseInt(parsedDescription.startDate);
                                 endDate = parseInt(parsedDescription.endDate);
                                 if (
+                                    !Object.keys(sitesIDMarker).includes(parsedDescription.participantId?.substr(0, 1)?.toUppercase()) ||
+                                    !Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUppercase()) ||
                                     !validate(parsedDescription.participantId?.substr(1) ?? '') ||
                                     !validate(parsedDescription.deviceId.substr(3) ?? '') ||
                                     endDate < startDate
