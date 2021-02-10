@@ -82,17 +82,17 @@ export const fileResolvers = {
                                 startDate = parseInt(parsedDescription.startDate);
                                 endDate = parseInt(parsedDescription.endDate);
                                 if (
-                                    !Object.keys(sitesIDMarker).includes(parsedDescription.participantId?.substr(0, 1)?.toUppercase()) ||
-                                    !Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUppercase()) ||
+                                    !Object.keys(sitesIDMarker).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase()) ||
+                                    !Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
                                     !validate(parsedDescription.participantId?.substr(1) ?? '') ||
                                     !validate(parsedDescription.deviceId.substr(3) ?? '') ||
-                                    endDate < startDate
+                                    !startDate || !endDate
                                 ) {
                                     reject(new ApolloError('File description is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
                                     return;
                                 }
                             } catch (e) {
-                                reject(new ApolloError('File description is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                reject(new ApolloError('Missing file description', errorCodes.CLIENT_MALFORMED_INPUT));
                                 return;
                             }
 
@@ -105,7 +105,7 @@ export const fileResolvers = {
                                 id: uuid(),
                                 fileName: matcher.test(file.filename)
                                     ? file.filename :
-                                    `${parsedDescription.participantId.toUppercase()}-${parsedDescription.deviceId.toUppercase()}-${formattedStartDate}-${formattedEndDate}-${file.filename}`,
+                                    `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}-${file.filename}`,
                                 studyId: args.studyId,
                                 fileSize: readBytes.toString(),
                                 description: args.description,
