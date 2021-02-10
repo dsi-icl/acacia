@@ -1,6 +1,6 @@
 {
     "name": "itmat-docker",
-    "version": "0.7.4",
+    "version": "0.7.5",
     "description": "ITMAT Broker",
     "keywords": [
         "itmat",
