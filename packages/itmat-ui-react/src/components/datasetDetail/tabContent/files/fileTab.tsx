@@ -45,9 +45,11 @@ export const deviceTypes = {
 };
 
 const { RangePicker } = DatePicker;
+let progressReports = [];
 
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
 
+    const [uploadMovement, setUploadMovement] = useState(0);
     const [isDropOverlayShowing, setisDropOverlayShowing] = useState(false);
     const [fileList, setFileList] = useState<StudyFile[]>([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -55,10 +57,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
-    // let { loading, progress, error } = useUpload(files, {
-    //     mutation: UPLOAD_FILE,
-    //     variables: { input: { files, name: 'test' } },
-    // });
     const [searchTerm, setSearchTerm] = useState('');
 
     const [uploadFile] = useMutation(UPLOAD_FILE, {
@@ -143,6 +141,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 }
             }
             file.uuid = uuid();
+            progressReports[`UP_${file.participantId}_${file.deviceId}_${file.startDate?.valueOf()}_${file.endDate?.valueOf()}`] = undefined;
             fileList.push(file);
         });
         setFileList([...fileList]);
@@ -154,19 +153,32 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         const uploads: Promise<any>[] = [];
         setIsUploading(true);
         validFile.forEach(file => {
+            const description = {
+                participantId: file.participantId?.trim().toUpperCase(),
+                deviceId: file.deviceId?.trim().toUpperCase(),
+                startDate: file.startDate?.valueOf(),
+                endDate: file.endDate?.valueOf(),
+            };
+            const uploadMapHackName = `UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`;
+            if (!(window as any).onUploadProgressHackMap)
+                (window as any).onUploadProgressHackMap = {};
+            (window as any).onUploadProgressHackMap[uploadMapHackName] = (progressEvent) => {
+                setUploadMovement(Math.random);
+                progressReports = {
+                    ...progressReports,
+                    [uploadMapHackName]: progressEvent
+                };
+            };
             uploads.push(uploadFile({
                 variables: {
                     file,
                     studyId,
-                    description: JSON.stringify({
-                        participantId: file.participantId?.trim().toUpperCase(),
-                        deviceId: file.deviceId?.trim().toUpperCase(),
-                        startDate: file.startDate?.valueOf(),
-                        endDate: file.endDate?.valueOf(),
-                    }),
+                    description: JSON.stringify(description),
                     fileLength: file.size
                 }
             }).then(result => {
+                delete (window as any).onUploadProgressHackMap[uploadMapHackName];
+                delete progressReports[uploadMapHackName];
                 removeFile(file);
                 notification.success({
                     message: 'Upload succeeded!',
@@ -174,6 +186,8 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     placement: 'topRight',
                 });
             }).catch(error => {
+                delete (window as any).onUploadProgressHackMap[uploadMapHackName];
+                delete progressReports[uploadMapHackName];
                 notification.error({
                     message: 'Upload error!',
                     description: error?.message ?? error ?? 'Unknown Error Occurred!',
@@ -221,7 +235,13 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             title: 'File name',
             dataIndex: 'name',
             key: 'fileName',
-            sorter: (a, b) => a.fileName.localeCompare(b.fileName)
+            sorter: (a, b) => a.fileName.localeCompare(b.fileName),
+            render: (value, record) => {
+                const progress = progressReports[`UP_${record.participantId}_${record.deviceId}_${record.startDate?.valueOf()}_${record.endDate?.valueOf()}`];
+                if (progress)
+                    return <React.Fragment key={uploadMovement}>{Math.round(1000 * (progress.loaded - 1) / progress.total) / 10}%</React.Fragment>;
+                return value;
+            }
         },
         {
             title: 'Participant ID',
