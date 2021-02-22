@@ -304,7 +304,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'K7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                description: JSON.stringify({participantId:'27N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
                                 fileLength: 13
                             }
                         }))
@@ -313,7 +313,7 @@ if (global.hasMinio) {
 
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe('Filename and description must be matched and valid');
+                    expect(res.body.errors[0].message).toBe('File description is invalid');
                     expect(res.body.data.uploadFile).toEqual(null);
                 });
             });
