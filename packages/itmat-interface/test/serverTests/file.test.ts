@@ -85,7 +85,7 @@ if (global.hasMinio) {
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({
                         query: print(CREATE_STUDY),
-                        variables: { name: studyname }
+                        variables: { name: studyname, description: 'test description' }
                     });
                     expect(createStudyRes.status).toBe(200);
                     expect(createStudyRes.body.errors).toBeUndefined();
@@ -94,7 +94,8 @@ if (global.hasMinio) {
                     createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
-                        name: studyname
+                        name: studyname,
+                        description: 'test description'
                     });
 
                     /* setup: creating a privileged user */
@@ -304,7 +305,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'K7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                description: JSON.stringify({participantId:'27N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
                                 fileLength: 13
                             }
                         }))
@@ -313,7 +314,7 @@ if (global.hasMinio) {
 
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe('Filename and description must be matched and valid');
+                    expect(res.body.errors[0].message).toBe('File description is invalid');
                     expect(res.body.data.uploadFile).toEqual(null);
                 });
             });
@@ -330,7 +331,7 @@ if (global.hasMinio) {
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({
                         query: print(CREATE_STUDY),
-                        variables: { name: studyname }
+                        variables: { name: studyname, description: 'test description' }
                     });
                     expect(createStudyRes.status).toBe(200);
                     expect(createStudyRes.body.errors).toBeUndefined();
@@ -339,7 +340,8 @@ if (global.hasMinio) {
                     createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
-                        name: studyname
+                        name: studyname,
+                        description: 'test description'
                     });
 
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
@@ -461,7 +463,7 @@ if (global.hasMinio) {
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({
                         query: print(CREATE_STUDY),
-                        variables: { name: studyname }
+                        variables: { name: studyname, description: 'test description' }
                     });
                     expect(createStudyRes.status).toBe(200);
                     expect(createStudyRes.body.errors).toBeUndefined();
@@ -470,7 +472,8 @@ if (global.hasMinio) {
                     createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
-                        name: studyname
+                        name: studyname,
+                        description: 'test description'
                     });
 
                     /* setup: upload file (would be better to upload not via app api but will do for now) */

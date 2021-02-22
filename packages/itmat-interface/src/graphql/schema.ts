@@ -145,7 +145,7 @@ type Study {
     lastModified: Int!
     currentDataVersion: Int
     dataVersions: [DataVersion]!
-
+    description: String
     # external to mongo documents:
     jobs: [Job]!
     projects: [Project]!
@@ -405,8 +405,9 @@ type Mutation {
     deleteUser(userId: String!): GenericResponse
 
     # STUDY
-    createStudy(name: String!): Study
+    createStudy(name: String!, description: String): Study
     deleteStudy(studyId: String!): GenericResponse
+    editStudy(studyId: String!, description: String): Study
 
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project

@@ -24,7 +24,7 @@ export class StudyCore {
         return projectSearchResult;
     }
 
-    public async createNewStudy(studyName: string, requestedBy: string): Promise<IStudy> {
+    public async createNewStudy(studyName: string, description: string, requestedBy: string): Promise<IStudy> {
         /* check if study already  exist (lowercase because S3 minio buckets cant be mixed case) */
         const existingStudies = await db.collections!.studies_collection.aggregate(
             [
@@ -52,10 +52,20 @@ export class StudyCore {
             currentDataVersion: -1,
             lastModified: new Date().valueOf(),
             dataVersions: [],
-            deleted: null
+            deleted: null,
+            description: description
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;
+    }
+
+    public async editStudy(studyId: string, description: string): Promise<IStudy> {
+        const res = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId }, { $set: { description: description } }, { returnOriginal: false });
+        if (res.ok === 1) {
+            return res.value;
+        } else {
+            throw new ApolloError('Edit study failed');
+        }
     }
 
     public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {

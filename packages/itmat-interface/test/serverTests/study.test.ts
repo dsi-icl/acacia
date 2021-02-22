@@ -34,7 +34,8 @@ import {
     IStudyDataVersion,
     IStudy,
     enumValueType,
-    enumItemType
+    enumItemType,
+    EDIT_STUDY
 } from 'itmat-commons';
 
 let app;
@@ -98,7 +99,7 @@ describe('STUDY API', () => {
             const studyName = uuid();
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName }
+                variables: { name: studyName, description: 'test description' }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
@@ -106,7 +107,8 @@ describe('STUDY API', () => {
             const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
             expect(res.body.data.createStudy).toEqual({
                 id: createdStudy.id,
-                name: studyName
+                name: studyName,
+                description: 'test description'
             });
 
             const resWhoAmI = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
@@ -137,6 +139,36 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
 
+        test('Edit study (admin)', async () => {
+            const studyName = uuid();
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_STUDY),
+                variables: { name: studyName, description: 'test description' }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+
+            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
+            expect(res.body.data.createStudy).toEqual({
+                id: createdStudy.id,
+                name: studyName,
+                description: 'test description'
+            });
+
+            const editStudy = await admin.post('/graphql').send({
+                query: print(EDIT_STUDY),
+                variables: {studyId: createdStudy.id, description: 'edited description'}
+            })
+            expect(editStudy.body.data.editStudy).toEqual({
+                id: createdStudy.id,
+                name: studyName,
+                description: 'edited description'
+            })
+
+            /* cleanup: delete study */
+            await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+        });
+
         test('Create study that violate unique name constraint (admin)', async () => {
             const studyName = uuid();
             const newStudy = {
@@ -152,7 +184,7 @@ describe('STUDY API', () => {
 
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName }
+                variables: { name: studyName, description: 'test description' }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
@@ -182,7 +214,7 @@ describe('STUDY API', () => {
 
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName.toUpperCase() }
+                variables: { name: studyName.toUpperCase(), description: 'test description' }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
@@ -201,7 +233,7 @@ describe('STUDY API', () => {
             const studyName = uuid();
             const res = await user.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName }
+                variables: { name: studyName, description: 'test description' }
             });
             expect(res.status).toBe(200);
             expect(res.body.data.createStudy).toBe(null);
@@ -210,6 +242,35 @@ describe('STUDY API', () => {
 
             const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
             expect(createdStudy).toBe(null);
+        });
+
+        test('Edit study (user) (should fail)', async () => {
+            const studyName = uuid();
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_STUDY),
+                variables: { name: studyName, description: 'test description' }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+
+            const createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
+            expect(res.body.data.createStudy).toEqual({
+                id: createdStudy.id,
+                name: studyName,
+                description: 'test description'
+            });
+
+            const editStudy = await user.post('/graphql').send({
+                query: print(EDIT_STUDY),
+                variables: {studyId: createdStudy.id, description: 'edited description'}
+            })
+            expect(editStudy.status).toBe(200);
+            expect(editStudy.body.data.editStudy).toBe(null);
+            expect(editStudy.body.errors).toHaveLength(1);
+            expect(editStudy.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+
+            /* cleanup: delete study */
+            await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
 
         test('Delete study (no projects) (admin)', async () => {
@@ -653,14 +714,15 @@ describe('STUDY API', () => {
                 const studyName = uuid();
                 const res = await admin.post('/graphql').send({
                     query: print(CREATE_STUDY),
-                    variables: { name: studyName }
+                    variables: { name: studyName, description: 'test description' }
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
                 expect(res.body.data.createStudy).toEqual({
                     id: createdStudy.id,
-                    name: studyName
+                    name: studyName,
+                    description: 'test description'
                 });
             }
 
@@ -1321,6 +1383,7 @@ describe('STUDY API', () => {
                     name: createdStudy.name,
                     createdBy: adminId,
                     jobs: [],
+                    description: 'test description',
                     projects: [
                         {
                             id: createdProject.id,

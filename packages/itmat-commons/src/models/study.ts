@@ -8,6 +8,7 @@ export interface IStudy {
     deleted: number | null;
     currentDataVersion: number; // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
     dataVersions: IStudyDataVersion[];
+    description: string;
 }
 
 export interface IStudyDataVersion {

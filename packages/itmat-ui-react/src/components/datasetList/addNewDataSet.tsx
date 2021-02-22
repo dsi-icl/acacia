@@ -35,6 +35,9 @@ export const AddNewDataSet: React.FunctionComponent = () => {
                                         <Form.Item name='name' >
                                             <Input placeholder='Dataset name' />
                                         </Form.Item>
+                                        <Form.Item name='description' >
+                                            <Input placeholder='Dataset Description' />
+                                        </Form.Item>
                                         {createStudyError ? (
                                             <>
                                                 <Alert type='error' message={createStudyError?.graphQLErrors.map(error => error.message).join()} />
