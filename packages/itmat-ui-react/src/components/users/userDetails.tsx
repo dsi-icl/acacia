@@ -163,7 +163,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                             <Input disabled />
                         </Form.Item>
                         <Form.Item name='organisation' label='Organisation'>
-                            <Select placeholder='Organisation' showSearch filterOption={(input, option) =>
+                            <Select placeholder={user.organisation} showSearch filterOption={(input, option) =>
                                 option?.children?.toLocaleString()?.toLocaleLowerCase()?.includes(input.toLocaleLowerCase()) ?? false
                             }>
                                 {orgList.map((org) => <Select.Option key={org.id} value={org.id}>{org.name}</Select.Option>)}
