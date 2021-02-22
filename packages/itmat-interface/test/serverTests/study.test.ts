@@ -158,12 +158,12 @@ describe('STUDY API', () => {
             const editStudy = await admin.post('/graphql').send({
                 query: print(EDIT_STUDY),
                 variables: {studyId: createdStudy.id, description: 'edited description'}
-            })
+            });
             expect(editStudy.body.data.editStudy).toEqual({
                 id: createdStudy.id,
                 name: studyName,
                 description: 'edited description'
-            })
+            });
 
             /* cleanup: delete study */
             await mongoClient.collection(config.database.collections.studies_collection).findOneAndUpdate({ name: studyName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
@@ -263,7 +263,7 @@ describe('STUDY API', () => {
             const editStudy = await user.post('/graphql').send({
                 query: print(EDIT_STUDY),
                 variables: {studyId: createdStudy.id, description: 'edited description'}
-            })
+            });
             expect(editStudy.status).toBe(200);
             expect(editStudy.body.data.editStudy).toBe(null);
             expect(editStudy.body.errors).toHaveLength(1);
