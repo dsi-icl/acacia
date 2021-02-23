@@ -16,6 +16,7 @@ export const GET_STUDY = gql`
             id
             name
             createdBy
+            description
             jobs {
                 ...ALL_FOR_JOB
             }
@@ -68,10 +69,21 @@ export const GET_STUDY = gql`
 `;
 
 export const CREATE_STUDY = gql`
-    mutation createStudy($name: String!){
-        createStudy(name: $name) {
+    mutation createStudy($name: String!, $description: String){
+        createStudy(name: $name, description: $description) {
             id
             name
+            description
+        }
+    }
+`;
+
+export const EDIT_STUDY = gql`
+    mutation editStudy($studyId: String!, $description: String){
+        editStudy(studyId: $studyId, description: $description) {
+            id
+            name
+            description
         }
     }
 `;

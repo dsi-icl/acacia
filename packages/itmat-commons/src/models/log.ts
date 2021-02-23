@@ -54,6 +54,7 @@ export enum LOG_ACTION {
     getStudy = 'GET_STUDY',
     getStudyFields = 'GET_STUDY_FIELDS',
     createStudy = 'CREATE_STUDY',
+    editStudy = 'EDIT_STUDY',
     createDataCurationJob = 'CREATE_DATA_CREATION_JOB',
     //createDataCurationJob = 'CREATE_FIELD_CURATION_JOB',
 

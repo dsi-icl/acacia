@@ -186,7 +186,7 @@ export const studyResolvers = {
         }
     },
     Mutation: {
-        createStudy: async (__unused__parent: Record<string, unknown>, { name }: { name: string }, context: any): Promise<IStudy> => {
+        createStudy: async (__unused__parent: Record<string, unknown>, { name, description }: { name: string, description: string }, context: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -195,7 +195,19 @@ export const studyResolvers = {
             }
 
             /* create study */
-            const study = await studyCore.createNewStudy(name, requester.id);
+            const study = await studyCore.createNewStudy(name, description, requester.id);
+            return study;
+        },
+        editStudy: async (__unused__parent: Record<string, unknown>, { studyId, description }: { studyId: string, description: string }, context: any): Promise<IStudy> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            /* create study */
+            const study = await studyCore.editStudy(studyId, description);
             return study;
         },
         createProject: async (__unused__parent: Record<string, unknown>, { studyId, projectName }: { studyId: string, projectName: string }, context: any): Promise<IProject> => {

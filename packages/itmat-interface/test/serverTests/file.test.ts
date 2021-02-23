@@ -85,7 +85,7 @@ if (global.hasMinio) {
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({
                         query: print(CREATE_STUDY),
-                        variables: { name: studyname }
+                        variables: { name: studyname, description: 'test description' }
                     });
                     expect(createStudyRes.status).toBe(200);
                     expect(createStudyRes.body.errors).toBeUndefined();
@@ -94,7 +94,8 @@ if (global.hasMinio) {
                     createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
-                        name: studyname
+                        name: studyname,
+                        description: 'test description'
                     });
 
                     /* setup: creating a privileged user */
@@ -330,7 +331,7 @@ if (global.hasMinio) {
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({
                         query: print(CREATE_STUDY),
-                        variables: { name: studyname }
+                        variables: { name: studyname, description: 'test description' }
                     });
                     expect(createStudyRes.status).toBe(200);
                     expect(createStudyRes.body.errors).toBeUndefined();
@@ -339,7 +340,8 @@ if (global.hasMinio) {
                     createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
-                        name: studyname
+                        name: studyname,
+                        description: 'test description'
                     });
 
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
@@ -461,7 +463,7 @@ if (global.hasMinio) {
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({
                         query: print(CREATE_STUDY),
-                        variables: { name: studyname }
+                        variables: { name: studyname, description: 'test description' }
                     });
                     expect(createStudyRes.status).toBe(200);
                     expect(createStudyRes.body.errors).toBeUndefined();
@@ -470,7 +472,8 @@ if (global.hasMinio) {
                     createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
-                        name: studyname
+                        name: studyname,
+                        description: 'test description'
                     });
 
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
