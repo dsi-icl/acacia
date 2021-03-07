@@ -26,8 +26,8 @@
         "graphql": "15.4.0",
         "itmat-commons": "0.6.0",
         "qrcode": "1.4.4",
-        "react": "16.13.1",
-        "react-dom": "16.13.1",
+        "react": "17.0.1",
+        "react-dom": "17.0.1",
         "react-router-dom": "5.2.0",
         "subscriptions-transport-ws": "0.9.18"
     },
