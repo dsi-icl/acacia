@@ -143,7 +143,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 if (startDate.isSameOrBefore(endDate)) {
                     if (startDate.isValid())
                         file.startDate = startDate;
-                    if (endDate.isValid())
+                    if (endDate.isValid() && endDate.isSameOrBefore(moment()))
                         file.endDate = endDate;
                 }
             }
@@ -550,7 +550,9 @@ const EditableCell: React.FC<EditableCellProps> = ({
                         })
                     ]}
                 >
-                    <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ?? null, record.endDate ?? null]} onCalendarChange={(dates) => {
+                    <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ?? null, record.endDate ?? null]} disabledDate={(currentDate) => {
+                        return moment().isBefore(currentDate);
+                    }} onCalendarChange={(dates) => {
                         if (dates === null)
                             return;
                         form.setFieldsValue({ startDate: dates[0] });
