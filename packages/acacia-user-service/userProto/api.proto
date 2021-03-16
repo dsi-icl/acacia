@@ -1,0 +1,53 @@
+syntax = "proto3";
+package userService;
+option go_package = "github.com/dsi-icl/acacia/packages/acacia-user-service/userProto;userProto";
+
+
+service UserService {
+    rpc GetUser(GetUserRequest) returns (UserResponse);
+    rpc CreateUser(CreateUserRequest) returns (UserResponse);
+    rpc EditUser(EditUserRequest) returns (UserResponse);
+    rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+    //rpc ResendVerificationEmail() returns
+}
+
+message CreateUserRequest {
+    string username = 1;
+    string realName = 2;
+    string pw = 3;
+    string email = 4;
+    string organisationId = 5;
+    optional string description = 6;
+}
+
+message GetUserRequest {
+    string id = 1;
+}
+
+message UserResponse {
+    string id = 1;
+    string username = 2;
+    string realName = 3;
+    string email = 4;
+    string organisationId = 5;
+    string description = 6;
+    bool emailVerified = 7;
+}
+
+message EditUserRequest {
+    string id = 1;
+    optional string username = 2;
+    optional string realName = 3;
+    optional string pw = 4;
+    optional string email = 5;
+    optional string organisationId = 6;
+    optional string description = 7;
+}
+
+message DeleteUserRequest {
+    string id = 1;
+}
+
+message DeleteUserResponse {
+    bool successful = 1;
+}
