@@ -86,7 +86,8 @@ export const fileResolvers = {
                                     !Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
                                     !validate(parsedDescription.participantId?.substr(1) ?? '') ||
                                     !validate(parsedDescription.deviceId.substr(3) ?? '') ||
-                                    !startDate || !endDate
+                                    !startDate || !endDate ||
+                                    (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
                                 ) {
                                     reject(new ApolloError('File description is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
                                     return;
