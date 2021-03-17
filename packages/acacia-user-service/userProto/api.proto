@@ -8,7 +8,13 @@ service UserService {
     rpc CreateUser(CreateUserRequest) returns (UserResponse);
     rpc EditUser(EditUserRequest) returns (UserResponse);
     rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+    rpc VerifyUserPassword(VerifyUserPasswordRequest) returns (UserResponse);
     //rpc ResendVerificationEmail() returns
+}
+
+message VerifyUserPasswordRequest {
+    string username = 1;
+    string pw = 2;
 }
 
 message CreateUserRequest {

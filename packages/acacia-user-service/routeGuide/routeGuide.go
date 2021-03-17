@@ -36,8 +36,30 @@ func (s *Server) GetUser(ctx context.Context, in *pb.GetUserRequest) (*pb.UserRe
 	}, nil
 }
 
+func (s *Server) VerifyUserPassword(ctx context.Context, in *pb.VerifyUserPasswordRequest) (*pb.UserResponse, error) {
+	var userResult user.User
+	dbreq := db.MongoReq{
+		Bson: bson.M{"username": in.GetUsername(), "deleted": false},
+	}
+	if _, err := db.DbCon.GetOneRecord(&dbreq, &userResult); err != nil {
+		return &pb.UserResponse{}, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(userResult.Pw), []byte(in.GetPw())); err != nil {
+		return &pb.UserResponse{}, err
+	}
+
+	return &pb.UserResponse{
+		Id:             userResult.Id,
+		Username:       userResult.Username,
+		RealName:       userResult.RealName,
+		Email:          userResult.Email,
+		OrganisationId: userResult.OrganisationId,
+		Description:    userResult.Description,
+	}, nil
+}
+
 func (s *Server) CreateUser(ctx context.Context, in *pb.CreateUserRequest) (*pb.UserResponse, error) {
-	//TODO: send verification email
 	//TODO: check organisationId is valid
 	//TODO: check createdBy is valid
 
