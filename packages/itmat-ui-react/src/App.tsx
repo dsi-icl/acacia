@@ -41,6 +41,14 @@ export const App: React.FunctionComponent = () => (
                             );
                         }
                         if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) { // if logged in return the app
+                            const intervalId = window.setInterval(function() {
+                                // check if cookie expires periodically
+                                if (document.cookie === '') {
+                                    clearInterval(intervalId);
+                                    alert('This session has expired.');
+                                    window.location.reload();
+                                }
+                            }, 1000 * 5);
                             return <div className={css.app + ' dark_theme'}>
                                 <MainMenuBar projects={data.whoAmI.access.projects} />
                                 <MainPanel />

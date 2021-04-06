@@ -39,7 +39,7 @@ export class Router {
             secret: config.sessionsSecret,
             resave: true,
             saveUninitialized: true,
-            cookie: { maxAge: 2 * 60 * 60 * 1000 /** 2 hour **/ }
+            cookie: { maxAge: 2 * 60 * 60 * 1000 /** 2 hour **/, httpOnly: false }
             // store: new MongoStore({ client: db.client })
         }));
 
