@@ -148,7 +148,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         ...user,
                         createdAt: moment(user.createdAt),
                         expiredAt: moment(user.expiredAt),
-                        organisation: orgList.find(org => org.id === user.organisation)?.name
+                        organisation: orgList.find(org => org.id === user.organisation)?.id
                     }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
                         <Form.Item name='username' label='Username'>
                             <Input disabled />
@@ -163,7 +163,7 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                             <Input disabled />
                         </Form.Item>
                         <Form.Item name='organisation' label='Organisation'>
-                            <Select placeholder={user.organisation} showSearch filterOption={(input, option) =>
+                            <Select placeholder='Organisation' showSearch filterOption={(input, option) =>
                                 option?.children?.toLocaleString()?.toLocaleLowerCase()?.includes(input.toLocaleLowerCase()) ?? false
                             }>
                                 {orgList.map((org) => <Select.Option key={org.id} value={org.id}>{org.name}</Select.Option>)}
