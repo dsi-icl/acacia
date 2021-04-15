@@ -3,6 +3,8 @@
     "private": true,
     "license": "MIT",
     "scripts": {
+        "prepare": "husky install",
+        "postinstall": "husky install",
         "preinstall": "node ./scripts/hintYarn.js",
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
         "start:ui": "lerna run --stream --scope itmat-ui-react start",
@@ -36,43 +38,34 @@
         ]
     },
     "devDependencies": {
-        "@babel/core": "7.12.13",
-        "@types/jest": "26.0.20",
-        "@typescript-eslint/eslint-plugin": "4.14.2",
-        "@typescript-eslint/parser": "4.14.2",
-        "babel-eslint": "10.1.0",
-        "eslint": "7.19.0",
-        "eslint-config-react-app": "5.2.1",
+        "@babel/core": "7.13.15",
+        "@babel/preset-env": "7.13.15",
+        "@babel/eslint-parser": "7.13.14",
+        "@babel/eslint-plugin": "7.13.0",
+        "@types/jest": "26.0.22",
+        "@typescript-eslint/eslint-plugin": "4.22.0",
+        "@typescript-eslint/parser": "4.22.0",
+        "eslint": "7.24.0",
+        "eslint-config-react-app": "6.0.0",
         "eslint-plugin-cypress": "2.11.2",
-        "eslint-plugin-flowtype": "5.2.0",
+        "eslint-plugin-flowtype": "5.7.0",
         "eslint-plugin-import": "2.22.1",
-        "eslint-plugin-jest": "24.1.3",
+        "eslint-plugin-jest": "24.3.5",
         "eslint-plugin-jsx-a11y": "6.4.1",
-        "eslint-plugin-react": "7.22.0",
+        "eslint-plugin-react": "7.23.2",
         "eslint-plugin-react-hooks": "4.2.0",
-        "husky": "4.3.8",
+        "husky": "6.0.0",
         "jest-environment-node": "26.6.2",
-        "lerna": "3.22.1",
-        "typescript": "4.1.3"
+        "lerna": "4.0.0",
+        "typescript": "4.2.4"
     },
     "resolutions": {
-        "**/@types/node": "14.14.25",
-        "**/**/fs-capacitor": "^6.0.0",
-        "**/apollo-server-core": "2.19.2",
+        "**/**/fs-capacitor": "^6.2.0",
+        "**/apollo-server-core": "2.20.0",
         "**/graphql-upload": "^11.0.0",
-        "**/graphql": "15.5.0",
         "**/moment": "2.29.1"
     },
     "eslintConfig": {
         "extends": "./config/eslint.config.js"
-    },
-    "husky": {
-        "hooks": {
-            "pre-push": "npm run lint"
-        }
-    },
-    "dependencies": {
-        "json-web-token": "^3.2.0",
-        "jsonwebtoken": "^8.5.1"
     }
 }

@@ -204,7 +204,15 @@ export const FileList: React.FunctionComponent<{ files: IFile[], searchTerm: str
         <br />
         <Table
             rowKey={(rec) => rec.id}
-            pagination={false}
+            pagination={
+                {
+                    defaultPageSize: 50,
+                    showSizeChanger: true,
+                    pageSizeOptions: ['20', '50', '100', '200'],
+                    defaultCurrent: 1,
+                    showQuickJumper: true
+                }
+            }
             columns={columns}
             dataSource={files}
             size='small' />

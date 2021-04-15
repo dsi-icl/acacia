@@ -5,7 +5,7 @@ import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Query } from '@apollo/client/react/components';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
-import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, IFile } from 'itmat-commons';
+import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, IFile, EDIT_STUDY, WHO_AM_I, userTypes } from 'itmat-commons';
 import { FileList, formatBytes } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
@@ -57,7 +57,14 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
+    const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isEditingDescription, setIsEditingDescription] = React.useState(false);
+    const [datasetDescription, setDatasetDescription] = React.useState('');
+    const [editStudy] = useMutation(EDIT_STUDY, {
+        onCompleted: () => { window.location.reload(); },
+        onError: () => { return; }
+    });
 
     const [uploadFile] = useMutation(UPLOAD_FILE, {
         onCompleted: ({ uploadFile }) => {
@@ -136,7 +143,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 if (startDate.isSameOrBefore(endDate)) {
                     if (startDate.isValid())
                         file.startDate = startDate;
-                    if (endDate.isValid())
+                    if (endDate.isValid() && endDate.isSameOrBefore(moment()))
                         file.endDate = endDate;
                 }
             }
@@ -211,7 +218,10 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             fileFilter([file]);
             return true;
         },
-        fileList,
+        fileList: fileList.map(file => ({
+            ...file,
+            originFileObj: file
+        })),
         multiple: true,
         showUploadList: false
     };
@@ -301,12 +311,12 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             };
         });
 
-    if (getOrgsLoading || getStudyLoading || getUsersLoading)
+    if (getOrgsLoading || getStudyLoading || getUsersLoading || whoAmILoading)
         return <LoadSpinner />;
 
-    if (getOrgsError || getStudyError || getUsersError)
+    if (getOrgsError || getStudyError || getUsersError || whoAmIError)
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator: {(getOrgsError as any).message} {(getStudyError as any).message} {(getUsersError as any).message}
+            A error occured, please contact your administrator
         </div>;
 
     const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
@@ -341,12 +351,11 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input {...getInputProps()} />
-
         {fileList.length > 0
             ?
             <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
                 <Subsection title='Upload files'>
-                    <Upload {...uploaderProps}>
+                    <Upload {...uploaderProps} >
                         <Button>Select more files</Button>
                     </Upload>
                     <br />
@@ -374,6 +383,40 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 </Subsection>
             </div>
             : <div className={`${css.tab_page_wrapper} ${css.both_panel} fade_in`}>
+                <SubsectionWithComment title='Dataset Description' comment={
+                    whoAmIData.whoAmI.type === userTypes.ADMIN ?
+                        <>
+                            {isEditingDescription ?
+                                <>
+                                    <Button
+                                        type='primary'
+                                        onClick={() => { editStudy({ variables: { studyId: getStudyData.getStudy.id, description: datasetDescription } }); }}
+                                    >{'Submit'}
+                                    </Button>
+                                    <Button
+                                        type='primary'
+                                        onClick={() => { setIsEditingDescription(false); setDatasetDescription(''); }}
+                                    >{'Cancel'}
+                                    </Button>
+                                </> :
+                                <>
+                                    <Button
+                                        type='primary'
+                                        onClick={() => { setIsEditingDescription(true); }}
+                                    >{'Edit Description'}
+                                    </Button>
+                                </>
+                            }
+                        </> : null
+                }>
+                    <>{
+                        (isEditingDescription && whoAmIData.whoAmI.type === userTypes.ADMIN) ? <Input onChange={(e) => { setDatasetDescription(e.target.value); }}>
+                        </Input> :
+                            (getStudyData.getStudy.description === null || getStudyData.getStudy.description === '') ? 'No descriptions.' : getStudyData.getStudy.description
+                    }</>
+                    <br />
+                    <br />
+                </SubsectionWithComment>
                 <Subsection title='Upload files'>
                     <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                         {({ loading, data, error }) => {
@@ -384,7 +427,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     </Query>
                     <br />
                     If the file name is of the form <Tag style={{ fontFamily: 'monospace' }}>XAAAAAA-DDDBBBBBB-00000000-00000000.EXT</Tag>we will extract metadata automatically. If not, you will be prompted to enter the relevant information.<br /><br />
-                    <Upload  {...uploaderProps}>
+                    <Upload {...uploaderProps}>
                         <Button>Select files</Button>
                     </Upload>
                     <br />
@@ -510,7 +553,9 @@ const EditableCell: React.FC<EditableCellProps> = ({
                         })
                     ]}
                 >
-                    <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ?? null, record.endDate ?? null]} onCalendarChange={(dates) => {
+                    <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ?? null, record.endDate ?? null]} disabledDate={(currentDate) => {
+                        return moment().isBefore(currentDate);
+                    }} onCalendarChange={(dates) => {
                         if (dates === null)
                             return;
                         form.setFieldsValue({ startDate: dates[0] });
