@@ -22,11 +22,11 @@
         "test": "echo \"No tests\""
     },
     "dependencies": {
-        "bcrypt": "5.0.0",
+        "bcrypt": "5.0.1",
         "compression": "1.7.4",
         "express": "4.17.1",
         "express-rate-limit": "5.2.6",
         "isobject": "4.0.0",
-        "mongodb": "3.6.4"
+        "mongodb": "3.6.6"
     }
 }
