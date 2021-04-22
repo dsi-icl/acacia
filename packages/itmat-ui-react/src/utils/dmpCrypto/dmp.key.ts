@@ -119,12 +119,12 @@ export class Key {
         return {privateKey: Utils.convertBinaryToPem(privateKey, 'ENCRYPTED PRIVATE KEY'), publicKey: Utils.convertBinaryToPem(publicKey, 'PUBLIC KEY')};
     }
 
-    static async signwtRSAKey(key: CryptoKeyPair) {
-        const publicKeyEncoded = Utils.toSupportedArray(key.publicKey);
+    static async signwtRSAKey(message: string, key: CryptoKey) {
+        const publicKeyEncoded = Utils.toSupportedArray(message);
         const encoded = await Utils.hash(publicKeyEncoded);
         const signature = await crypto.subtle.sign(
             'RSASSA-PKCS1-V1_5',
-            key.privateKey,
+            key,
             encoded
         );
         return Utils.arrayBufferToBase64String(signature);

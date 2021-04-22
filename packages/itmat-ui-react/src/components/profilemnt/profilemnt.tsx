@@ -250,13 +250,14 @@ export const changeTimeFunc = {
 
 export const cryptoInBrowser = {
     keyGenTest: async function() {
+        let message = ''; //message to be signed for the validation
         Key.createRSAKey().then((keyPair: any) => {
             Key.exportRSAKey(keyPair).then(exportedKey => {
+                message = JSON.stringify(exportedKey.publicKey);
                 console.log('Exported PublicKey: ', JSON.stringify(exportedKey.publicKey));
                 console.log('Exported PrivateKey: ', JSON.stringify(exportedKey.privateKey));
             });
-
-            Key.signwtRSAKey(keyPair).then(signature => {
+            Key.signwtRSAKey(message, keyPair.privateKey).then(signature => {
                 console.log('Signature:', signature);
             });
 
@@ -267,8 +268,8 @@ export const cryptoInBrowser = {
     keyGen: async function() {
         return Key.createRSAKey();
     },
-    signGen: async function(signKey: CryptoKeyPair) {
-        return Key.signwtRSAKey(signKey);
+    signGen: async function(message: string, signKey: CryptoKey) {
+        return Key.signwtRSAKey(message, signKey);
     }
 };
 
@@ -288,9 +289,20 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
         const keyPair = await cryptoInBrowser.keyGen();
         const exportedKeyPair = await Key.exportRSAKey(keyPair);
         setExportedKeyPair(exportedKeyPair);
-        const signature  = await cryptoInBrowser.signGen(keyPair);
+        const message = exportedKeyPair.publicKey;
+        const signature  = await cryptoInBrowser.signGen(message, keyPair.privateKey);
         setSignature(signature);
         setcompletedKeypairGen(true);
+    };
+
+    const [downloadLink, setDownloadLink] = React.useState('');
+    // function for generating file and set download link
+    const makeTextFile = (filecontent: string) => {
+        const data = new Blob([filecontent], {type: 'text/plain'});
+        // this part avoids memory leaks
+        if (downloadLink !== '') window.URL.revokeObjectURL(downloadLink);
+        // update the download link state
+        setDownloadLink(window.URL.createObjectURL(data));
     };
 
     const [completedRegister, setCompletedRegister] = React.useState(false);
@@ -351,12 +363,30 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
 
                             <p>Private Key:</p>
                             <textarea disabled value={exportedKeyPair.privateKey.replace(/\n/g, '\\n')} cols={120} rows={20} />
+                            <br />
+                            <a download='privateKey.pem' href={downloadLink}>
+                                <Button type='primary' onClick={() => makeTextFile(exportedKeyPair.privateKey.replace(/\n/g, '\\n'))}>
+                                    Save the private key (PEM file)
+                                </Button>
+                            </a>
 
                             <p>Public Key:</p>
                             <textarea disabled value={exportedKeyPair.publicKey.replace(/\n/g, '\\n')} cols={120} rows={7} />
+                            <br />
+                            <a download='publicKey.pem' href={downloadLink}>
+                                <Button type='primary' onClick={() => makeTextFile(exportedKeyPair.publicKey.replace(/\n/g, '\\n'))}>
+                                    Save the public key (PEM file)
+                                </Button>
+                            </a>
 
                             <p>Signature:</p>
                             <textarea disabled value={signature} cols={120} rows={7} />
+                            <br />
+                            <a download='signature.txt' href={downloadLink}>
+                                <Button type='primary' onClick={() => makeTextFile(signature)}>
+                                    Save the signature (TXT file)
+                                </Button>
+                            </a>
 
                             <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
                                 <Input />
@@ -456,7 +486,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                     </Button>
                     <br />
                     <br />
-                    <Button onClick={() => keyGen2()}>
+                    <Button type='primary' onClick={() => keyGen2()}>
                         Do not have public/private keypair? Generate one (In-browser generator)!
                     </Button>
 
