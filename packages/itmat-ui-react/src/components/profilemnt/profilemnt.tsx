@@ -8,6 +8,7 @@ import { ProjectSection } from '../users/projectSection';
 import { Form, Input, Select, DatePicker, Button, Alert } from 'antd';
 import moment from 'moment';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
+import { Key } from '../../utils/dmpCrypto/dmp.key';
 
 const {
     WHO_AM_I,
@@ -247,13 +248,50 @@ export const changeTimeFunc = {
     }
 };
 
+export const cryptoInBrowser = {
+    keyGenTest: async function() {
+        Key.createRSAKey().then((keyPair: any) => {
+            Key.exportRSAKey(keyPair).then(exportedKey => {
+                console.log('Exported PublicKey: ', JSON.stringify(exportedKey.publicKey));
+                console.log('Exported PrivateKey: ', JSON.stringify(exportedKey.privateKey));
+            });
+
+            Key.signwtRSAKey(keyPair).then(signature => {
+                console.log('Signature:', signature);
+            });
+
+        }).catch((error: any) => {
+            console.error(error);
+        });
+    },
+    keyGen: async function() {
+        return Key.createRSAKey();
+    },
+    signGen: async function(signKey: CryptoKeyPair) {
+        return Key.signwtRSAKey(signKey);
+    }
+};
+
 export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( {userId} ) => {
     const [completedKeypairGen, setcompletedKeypairGen] = React.useState(false);
+    const [exportedKeyPair, setExportedKeyPair] = React.useState({privateKey: '', publicKey: ''});
+    const [signature, setSignature] = React.useState('');
+
     const [keypairGen, { data: keypairdata }] = useMutation(KEYPAIRGEN_SIGNATURE, {
         onCompleted: () => {
             setcompletedKeypairGen(true);
+            console.log(keypairdata);
         }
     });
+
+    const keyGen2 = async function() {
+        const keyPair = await cryptoInBrowser.keyGen();
+        const exportedKeyPair = await Key.exportRSAKey(keyPair);
+        setExportedKeyPair(exportedKeyPair);
+        const signature  = await cryptoInBrowser.signGen(keyPair);
+        setSignature(signature);
+        setcompletedKeypairGen(true);
+    };
 
     const [completedRegister, setCompletedRegister] = React.useState(false);
     const { loading: getPubkeysloading, error: getPubkeyserror, data: getPubkeysdata } = useQuery(GET_PUBKEYS, {
@@ -312,13 +350,13 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                             <h2>Securely keep the private key and the signature for use as we do not store such information on the server!.</h2>
 
                             <p>Private Key:</p>
-                            <textarea disabled value={keypairdata.keyPairGenwSignature.privateKey.replace(/\n/g, '\\n')} cols={120} rows={20} />
+                            <textarea disabled value={exportedKeyPair.privateKey.replace(/\n/g, '\\n')} cols={120} rows={20} />
 
                             <p>Public Key:</p>
-                            <textarea disabled value={keypairdata.keyPairGenwSignature.publicKey.replace(/\n/g, '\\n')} cols={120} rows={7} />
+                            <textarea disabled value={exportedKeyPair.publicKey.replace(/\n/g, '\\n')} cols={120} rows={7} />
 
                             <p>Signature:</p>
-                            <textarea disabled value={keypairdata.keyPairGenwSignature.signature} cols={120} rows={7} />
+                            <textarea disabled value={signature} cols={120} rows={7} />
 
                             <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
                                 <Input />
@@ -414,8 +452,14 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                     </Form>
 
                     <Button disabled={loading} onClick={() => {keypairGen();}}>
-                        Do not have public/private keypair? Generate one to use!
+                        Do not have public/private keypair? Generate one to use (server-side generator)!
                     </Button>
+                    <br />
+                    <br />
+                    <Button onClick={() => keyGen2()}>
+                        Do not have public/private keypair? Generate one (In-browser generator)!
+                    </Button>
+
                 </>
             }
 
