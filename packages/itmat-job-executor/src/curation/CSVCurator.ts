@@ -3,6 +3,7 @@ import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
 import { fieldValidator, fieldParser } from '../utils/jobUtils';
+import { parse } from 'querystring';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -19,18 +20,24 @@ export class CSVCurator {
     private _numOfSubj: number;
     private _errored: boolean;
     private _errors: string[];
+    private _subjectIdIndex: number;
+    private _visitIdIndex: number;
 
     constructor(
         private readonly dataCollection: Collection,
         private readonly incomingWebStream: Readable,
-        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
+        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_lines_with_error: true },
         private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
-        private readonly versionId: string
+        private readonly versionId: string,
+        private readonly fileId: string,
+        private readonly fieldsList: any[]
     ) {
         this._header = [null]; // the first element is subject id
         this._numOfSubj = 0;
         this._errored = false;
         this._errors = [];
+        this._subjectIdIndex = 0;
+        this._visitIdIndex = 0;
     }
 
     /* return list of errors. [] if no error */
@@ -55,23 +62,28 @@ export class CSVCurator {
                 write: async (line, _, next) => {
                     if (isHeader) {
                         lineNum++;
-                        const { error, parsedHeader } = processHeader(line);
+                        const { error, parsedHeader, subjectIdIndex, visitIdIndex } = processHeader(line, this.fieldsList);
                         if (error) {
                             this._errored = true;
                             this._errors.push(...error);
                         }
                         this._header = parsedHeader;
+                        this._subjectIdIndex = subjectIdIndex;
+                        this._visitIdIndex = visitIdIndex;
                         isHeader = false;
                         next();
                     } else {
                         const currentLineNum = ++lineNum;
                         subjectString.push(line[0]);
                         const { error, dataEntry } = processDataRow({
+                            subjectIdIndex: this._subjectIdIndex,
+                            visitIdIndex: this._visitIdIndex,
                             lineNum: currentLineNum,
                             row: line,
                             parsedHeader: this._header,
                             job: this.job,
-                            versionId: this.versionId
+                            versionId: this.versionId,
+                            fileId: this.fileId
                         });
 
                         if (error) {
@@ -87,8 +99,16 @@ export class CSVCurator {
                         // // TO_DO {
                         //     curator-defined constraints for values
                         // }
-
+                        const matchObj = {
+                            m_subjectId: dataEntry.m_subjectId,
+                            m_visitId: dataEntry.m_visitId,
+                            m_versionId: dataEntry.m_versionId,
+                            m_studyId: dataEntry.m_studyId
+                        }
                         bulkInsert.insert(dataEntry);
+                        // bulkInsert.find(matchObj).upsert().updateOne({$setOnInsert: dataEntry});
+                        // bulkInsert.find(matchObj).upsert().updateOne(dataEntry);
+                        
                         this._numOfSubj++;
                         if (this._numOfSubj > 999) {
                             this._numOfSubj = 0;
@@ -104,11 +124,11 @@ export class CSVCurator {
 
             uploadWriteStream.on('finish', async () => {
                 /* check for subject Id duplicate */
-                const set = new Set(subjectString);
-                if (set.size !== subjectString.length) {
-                    this._errors.push('Data Error: There is duplicate subject id.');
-                    this._errored = true;
-                }
+                // const set = new Set(subjectString);
+                // if (set.size !== subjectString.length) {
+                //     this._errors.push('Data Error: There is duplicate subject id.');
+                //     this._errored = true;
+                // }
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
@@ -127,64 +147,77 @@ export class CSVCurator {
 }
 
 
-export function processHeader(header: string[]): { error?: string[], parsedHeader: Array<IFieldDescriptionObject | null> } {
+export function processHeader(header: string[], fieldsList: any[]): { error?: string[], parsedHeader: any[], subjectIdIndex: number, visitIdIndex: number } {
     /* pure function */
     /* headerline is ['eid', 1@0.0, 2@0.1:c] */
     /* returns a parsed object array and error (undefined if no error) */
 
-    const fieldstrings: string[] = [];
+    // const fieldstrings: string[] = [];
     const error: string[] = [];
-    const parsedHeader: Array<IFieldDescriptionObject | null> = Array(header.length);
+    const parsedHeader: any[] = Array(header.length);
     let colNum = 0;
+    const fields: string[] = []
+    const validatedFieldNames = fieldsList.map(el => el.fieldName);
     for (const each of header) {
         if (colNum === 0) {
-            parsedHeader[0] = null;
+            colNum++;
+            continue;
+        } else if (each === null || each === undefined || each === '') {
+            continue;
         } else {
-            if (!fieldValidator(each)) {
-                error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
-                parsedHeader[colNum] = null;
+            if (validatedFieldNames.includes(each)) {
+                fields.push(each);
+                parsedHeader.push(fieldsList.filter(el => el.fieldName === each)[0]);
+                
             } else {
-                const { fieldId, timepoint, measurement, datatype } = fieldParser(each);
-                parsedHeader[colNum] = { fieldId, timepoint, measurement, datatype };
-                fieldstrings.push(`${fieldId}.${timepoint}.${measurement}`);
+                error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
+                parsedHeader[colNum] = null;         
             }
         }
         colNum++;
     }
 
     /* check for duplicate */
-    const set = new Set(fieldstrings);
-    if (set.size !== fieldstrings.length) {
+    const set = new Set(fields);
+    if (set.size !== fields.length) {
         error.push('Line 1: There is duplicate (field, timepoint, measurement) combination.');
     }
+    // get unique pair subjectid-visitid
+    const filteredParsedHeader = parsedHeader.filter(el => el !== undefined);
+    console.log(filteredParsedHeader);
+    console.log(filteredParsedHeader.length);
+    const subjectIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'SubjectID') + 1; // ID is the first
+    const visitIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'VisitID') + 1;
+    console.log(subjectIdIndex);
+    console.log(visitIdIndex);
 
-    return ({ parsedHeader, error: error.length === 0 ? undefined : error });
+    return ({ parsedHeader: filteredParsedHeader, error: error.length === 0 ? undefined : error , subjectIdIndex, visitIdIndex});
 }
 
-export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: { versionId: string, lineNum: number, row: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
+export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, parsedHeader, job, versionId, fileId }: { subjectIdIndex: number, visitIdIndex: number, fileId: string, versionId: string, lineNum: number, row: string[], parsedHeader: any[], job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;
     const dataEntry: any = {
         m_jobId: job.id,
         m_study: job.studyId,
-        m_versionId: versionId
+        m_versionId: versionId,
+        m_fileId: fileId
     };
 
-    if (row.length !== parsedHeader.length) {
-        error.push(`Line ${lineNum}: Uneven field Number; expected ${parsedHeader.length} fields but got ${row.length}`);
-        return ({ error, dataEntry });
-    }
-
+    // if (row.length !== parsedHeader.filter(el => el !== undefined).length) {
+    //     error.push(`Line ${lineNum}: Uneven field Number; expected ${parsedHeader.length} fields but got ${row.length}`);
+    //     return ({ error, dataEntry });
+    // }
     for (const each of row) {
         if (colIndex === 0) {
             /* extracting subject id */
-            if (each === '') {
-                error.push(`Line ${lineNum}: No subject id provided.`);
-                colIndex++;
-                continue;
-            }
-            dataEntry.m_eid = each;
+            // if (each === '') {
+            //     error.push(`Line ${lineNum}: No subject id provided.`);
+            //     colIndex++;
+            //     continue;
+            // }
+            // dataEntry.m_eid = each;
             colIndex++;
             continue;
         }
@@ -199,16 +232,28 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
             colIndex++;
             continue;
         }
-        const { fieldId, timepoint, measurement, datatype } = parsedHeader[colIndex] as IFieldDescriptionObject;
+
+        if (colIndex === subjectIdIndex) {
+            dataEntry.m_subjectId = each; 
+            colIndex++;
+            continue;
+        }
+
+        if (colIndex === visitIdIndex) {
+            dataEntry.m_visitId = each; 
+            colIndex++;
+            continue;
+        }
+        const { fieldId, dataType } = parsedHeader[colIndex];
 
         /* adding value to dataEntry */
         let value: any;
         try {
-            switch (datatype) {
-                case 'c': // categorical
-                    value = each;
-                    break;
-                case 'd': // decimal
+            switch (dataType) {
+                // case 'c': // categorical
+                //     value = each;
+                //     break;
+                case 'dec': // decimal
                     if (!/^\d+(.\d+)?$/.test(each)) {
                         error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
                         colIndex++;
@@ -216,7 +261,7 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
                     }
                     value = parseFloat(each);
                     break;
-                case 'i': // integer
+                case 'int': // integer
                     if (!/^\d+$/.test(each)) {
                         error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
                         colIndex++;
@@ -224,7 +269,7 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
                     }
                     value = parseInt(each, 10);
                     break;
-                case 'b': // boolean
+                case 'bit': // boolean
                     if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
                         value = each.toLowerCase() === 'true';
                     } else {
@@ -233,11 +278,14 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
                         continue;
                     }
                     break;
-                case 't':
-                    value = each;
+                case 'cha':
+                    value = each.toString();
+                    break;
+                case 'dat':
+                    value = each.toString();
                     break;
                 default:
-                    error.push(`Line ${lineNum}: Invalid data type '${datatype}'`);
+                    error.push(`Line ${lineNum}: Invalid data type '${dataType}'`);
                     colIndex++;
                     continue;
             }
@@ -247,12 +295,9 @@ export function processDataRow({ lineNum, row, parsedHeader, job, versionId }: {
         }
 
         if (dataEntry[fieldId] === undefined) {
-            dataEntry[fieldId] = {};
+            dataEntry[fieldId] = null;
         }
-        if (dataEntry[fieldId][timepoint] === undefined) {
-            dataEntry[fieldId][timepoint] = {};
-        }
-        dataEntry[fieldId][timepoint][measurement] = value;
+        dataEntry[fieldId] = value;
         colIndex++;
     }
 

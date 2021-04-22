@@ -45,13 +45,13 @@ class PipelineGenerator {
         }
     }
     */
-    public buildPipeline(query: any) {
+    public buildPipeline(query: any, studyId: string, availableDataVersions: number[]) {
         const fields = { _id: 0, m_eid: 1 };
         // We send back the requested fields
+        console.log(query);
         query.data_requested.forEach((field: any) => {
             (fields as any)[field] = 1;
         });
-
         const addFields = {};
         // We send back the newly created derived fields by default
         if (query.new_fields.length > 0) {
@@ -64,7 +64,6 @@ class PipelineGenerator {
                 }
             });
         }
-
         let match = {};
         if (query.cohort.length > 1) {
             const subqueries: any = [];
@@ -76,18 +75,19 @@ class PipelineGenerator {
         } else {
             match = this._translateCohort(query.cohort[0]);
         }
-
         if (this._isEmptyObject(addFields)) {
             return [
-                { $match: { m_study: query.studyId } },
+                { $match: { m_study: studyId } },
                 { $match: match },
+                { $match: { m_versionId: { $in: availableDataVersions } } },
                 { $project: fields }
             ];
         } else {
             return [
-                { $match: { m_study: query.studyId } },
+                { $match: { m_study: studyId } },
                 { $addFields: addFields },
                 { $match: match },
+                { $match: { m_versionId: { $in: availableDataVersions } } },
                 { $project: fields }
             ];
         }
@@ -107,7 +107,6 @@ class PipelineGenerator {
      */
     private _createNewField(expression: any) {
         let newField = {};
-
         switch (expression.op) {
             case '*':
                 newField = {

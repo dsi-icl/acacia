@@ -37,14 +37,14 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
             return;
         } else {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
-            await this.updateFieldTreesInMongo(job, fieldTreeId);
+            // await this.updateFieldTreesInMongo(job, fieldTreeId);
         }
 
     }
 
-    public async updateFieldTreesInMongo(job: IJobEntryForFieldCuration, fieldTreeId: string) {
-        const queryObject = { 'id': job.studyId, 'deleted': null, 'dataVersions.id': job.data!.dataVersionId };
-        const updateObject = { $push: { 'dataVersions.$.fieldTrees': fieldTreeId } };
-        return await db.collections!.studies_collection.findOneAndUpdate(queryObject, updateObject);
-    }
+    // public async updateFieldTreesInMongo(job: IJobEntryForFieldCuration, fieldTreeId: string) {
+    //     const queryObject = { 'id': job.studyId, 'deleted': null, 'dataVersions.id': job.data!.dataVersionId };
+    //     const updateObject = { $push: { 'dataVersions.$.fieldTrees': fieldTreeId } };
+    //     return await db.collections!.studies_collection.findOneAndUpdate(queryObject, updateObject);
+    // }
 }

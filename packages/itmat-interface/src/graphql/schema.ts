@@ -16,27 +16,56 @@ enum FIELD_ITEM_TYPE {
 }
 
 enum FIELD_VALUE_TYPE {
-    i # integer
-    c # categorical
-    d # decimal
-    b # boolean
-    t # free text
+    int # integer
+    dec # decimal
+    cha # characters
+    bit # bit
+    dat # datetime
 
+}
+
+enum STUDYTYPE {
+    SENSOR
+    CLINICAL
+    ANY
 }
 
 type Field {
     id: String!
     studyId: String!
-    path: String!
-    fieldId: Int!
+    fieldId: Int! # start
+    database: String!
+    tableName: String
+    tableId: String
+    sequentialOrder: String
+    questionNumber: String
     fieldName: String!
-    valueType: FIELD_VALUE_TYPE!,
-    possibleValues: [String],
-    unit: String,
-    itemType: FIELD_ITEM_TYPE!,
-    numOfTimePoints: Int!,
-    numOfMeasurements: Int!,
-    notes: String
+    label: String
+    labelDe: String
+    labelNl: String
+    labelIt: String
+    labelEs: String
+    labelPl: String
+    labelF: String
+    eligibleAnswer: String
+    ineligibleAnswer: String
+    validation: String
+    dataType: FIELD_VALUE_TYPE!
+    controlType: String
+    systemGenerated: String!
+    valueList: String
+    length: Int
+    displayFormat: String
+    nullable: Boolean!
+    required: Boolean!
+    mandatory: Boolean!
+    collectIf: String
+    notMapped: String!
+    defaultValue: String
+    regEx: String
+    regExErrorMsg: String
+    showOnIndexView: String!
+    comments: String
     fieldTreeId: String!
 }
 
@@ -131,10 +160,9 @@ type DataVersion {
     version: String!
     contentId: String!
     tag: String
-    uploadDate: String!
-    jobId: String!
-    extractedFrom: String!
-    fileSize: String!
+    updateDate: String!
+    jobId: [String]!
+    extractedFrom: [String]!
     fieldTrees: [String]!
 }
 
@@ -146,6 +174,7 @@ type Study {
     currentDataVersion: Int
     dataVersions: [DataVersion]!
     description: String
+    type: STUDYTYPE,
     # external to mongo documents:
     jobs: [Job]!
     projects: [Project]!
@@ -309,9 +338,9 @@ type JobStatusChange_Subscription {
 
 input QueryObjInput {
     queryString: String!
-    returnFieldSelection: [String]
-    study: String!
-    project: String
+    userId: String!
+    studyId: String!
+    projectId: String
 }
 
 input CreateUserInput {
@@ -368,7 +397,7 @@ type Query {
     getStudyFields(fieldTreeId: String!, studyId: String!): [Field]
 
     # QUERY
-    getQueries(studyId: String!, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
+    getQueries(studyId: String, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
     getQueryById(queryId: String!): QueryEntry
 
     # PERMISSION
@@ -405,7 +434,7 @@ type Mutation {
     deleteUser(userId: String!): GenericResponse
 
     # STUDY
-    createStudy(name: String!, description: String): Study
+    createStudy(name: String!, description: String, type: STUDYTYPE!): Study
     deleteStudy(studyId: String!): GenericResponse
     editStudy(studyId: String!, description: String): Study
 
@@ -428,8 +457,9 @@ type Mutation {
     createQuery(query: QueryObjInput!): QueryEntry
 
     # CURATION
-    createDataCurationJob(file: String!, studyId: String!, tag: String, version: String!): Job
-    createFieldCurationJob(file: String!, studyId: String!, dataVersionId: String!, tag: String!): Job
+    createDataCurationJob(file: [String]!, studyId: String!, tag: String, dataVersion: String!, fieldTreeId: String!): [Job]
+    createFieldCurationJob(file: String!, studyId: String!, tag: String!): Job
+    createQueryCurationJob(queryId: [String], studyId: String, projectId: String, dataVersionId: String): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
 
 }

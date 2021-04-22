@@ -1,6 +1,7 @@
 import React from 'react';
 import { Query } from '@apollo/client/react/components';
-import { GET_STUDY_FIELDS, IStudyDataVersion } from 'itmat-commons';
+import { useQuery } from '@apollo/client/react/hooks';
+import { GET_STUDY_FIELDS, GET_STUDY, IStudyDataVersion } from 'itmat-commons';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 // number of patients
@@ -10,6 +11,17 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 // upload new sets of data
 
 export const FieldListSelectionSection: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+    const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
+
+    if (getStudyLoading) {
+        return <LoadSpinner />;
+    }
+
+    if (getStudyError) {
+        return <p>
+            A error occured, please contact your administrator
+        </p>;
+    }
 
     const { fieldTrees } = versions[selectedVersion];
 
@@ -20,12 +32,12 @@ export const FieldListSelectionSection: React.FunctionComponent<{ studyId: strin
             fieldTrees.length === 0 ?
                 <p>There is no field annotations uploaded for this data version yet.</p>
                 :
-                <FieldListSelectionState studyId={studyId} fieldTreeIds={fieldTrees} />
+                <FieldListSelectionState studyId={studyId} fieldTreeIds={fieldTrees} studyData={getStudyData} />
         }
     </>;
 };
 
-const FieldListSelectionState: React.FunctionComponent<{ studyId: string; fieldTreeIds: string[] }> = ({ studyId, fieldTreeIds }) => {
+const FieldListSelectionState: React.FunctionComponent<{ studyId: string; fieldTreeIds: string[], studyData: any }> = ({ studyId, fieldTreeIds, studyData }) => {
     const [selectedTree, setSelectedTree] = React.useState(fieldTreeIds[0]);
 
     return <>
@@ -35,7 +47,7 @@ const FieldListSelectionState: React.FunctionComponent<{ studyId: string; fieldT
                 if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>{JSON.stringify(error)}</p>; }
                 if (!data || !data.getStudyFields || data.getStudyFields.length === 0) { return <p>There is no field annotations uploaded for this tag.</p>; }
-                return <FieldListSection checkable={false} fieldList={data.getStudyFields} />;
+                return <FieldListSection checkable={false} fieldList={data.getStudyFields} studyData={studyData.getStudy} />;
             }}
         </Query>
     </>;

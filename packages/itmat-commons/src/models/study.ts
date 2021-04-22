@@ -1,5 +1,11 @@
 import { IUser } from './user';
 
+export enum studyType {
+    SENSOR = 'SENSOR',
+    CLINICAL = 'CLINICAL',
+    ANY = 'ANY'
+}
+
 export interface IStudy {
     id: string;
     name: string;
@@ -9,6 +15,7 @@ export interface IStudy {
     currentDataVersion: number; // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
     dataVersions: IStudyDataVersion[];
     description: string;
+    type: studyType;
 }
 
 export interface IStudyDataVersion {
@@ -16,10 +23,9 @@ export interface IStudyDataVersion {
     contentId: string; // same contentId = same data
     version: string;
     tag?: string;
-    fileSize: string;
-    uploadDate: string;
-    jobId: string;
-    extractedFrom: string;
+    updateDate: string;
+    jobId: string[];
+    extractedFrom: string[];
     fieldTrees: string[];
 }
 

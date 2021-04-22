@@ -3,21 +3,21 @@ import { Query, Mutation } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I, IProject, userTypes } from 'itmat-commons';
 import css from './scaffold.module.css';
-import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined, SettingOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined, SettingOutlined, ProjectOutlined } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';
 
 type MainMenuBarProps = {
     projects: IProject[];
 }
-export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ projects: __unused__projects }) => (
+export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ projects }) => (
     <div className={css.main_menubar}>
-        {/*
+
         <div>
             <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title='Projects' activeClassName={css.clickedButton}>
                 <div className={css.button}><ProjectOutlined /> Projects</div>
             </NavLink>
         </div>
-        */}
+
 
         <div>
             <NavLink to='/datasets' title='Datasets' activeClassName={css.clickedButton}>

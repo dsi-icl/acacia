@@ -22,23 +22,25 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                     <div className={css.ariane}>
                         <h2>{data.getStudy.name.toUpperCase()}</h2>
                         <div className={css.tabs}>
-                            {/*
-                            <NavLink to={`/datasets/${studyId}/dashboard`} activeClassName={css.active}>DASHBOARD</NavLink>
-                            <NavLink to={`/datasets/${studyId}/data_management`} activeClassName={css.active}>DATA MANAGEMENT</NavLink>
-                            */}
-                            <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}>FILES REPOSITORY</NavLink>
-                            {/*
-                            <NavLink to={`/datasets/${studyId}/projects`} activeClassName={css.active}>PROJECTS</NavLink>
-                            */}
-
                             <Query<any, any> query={WHO_AM_I}>
                                 {({ loading, error, data }) => {
                                     if (loading) return <LoadSpinner />;
                                     if (error) return <p>{error.toString()}</p>;
-                                    if (data.whoAmI.type === userTypes.ADMIN)
+                                    if (data.whoAmI.type === userTypes.ADMIN) {
                                         return (
-                                            <NavLink to={`/datasets/${studyId}/admin`} activeClassName={css.active}>ADMINISTRATION</NavLink>
+                                            <>
+                                                <NavLink to={`/datasets/${studyId}/dashboard`} activeClassName={css.active}>DASHBOARD</NavLink>
+                                                <NavLink to={`/datasets/${studyId}/data_management`} activeClassName={css.active}>DATA MANAGEMENT</NavLink>
+                                                <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}>FILES REPOSITORY</NavLink>
+                                                <NavLink to={`/datasets/${studyId}/admin`} activeClassName={css.active}>ADMINISTRATION</NavLink>
+                                                <NavLink to={`/datasets/${studyId}/projects`} activeClassName={css.active}>PROJECTS</NavLink>
+                                            </>
                                         );
+                                    } else {
+                                        return (
+                                            <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}>FILES REPOSITORY</NavLink>
+                                        );
+                                    }
                                     return null;
                                 }}
                             </Query>

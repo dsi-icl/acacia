@@ -18,11 +18,12 @@ export class ExportProcessor {
         this.fieldInfo = await cursor.toArray();
         const tmp: string[] = [];
         this.fieldInfo!.forEach((el: IFieldEntry) => {
-            for (let i = el.startingTimePoint, maxTimePoint = el.startingTimePoint + el.numOfTimePoints; i < maxTimePoint; i++) {
-                for (let j = el.startingMeasurement, maxMeasurement = el.startingMeasurement + el.numOfMeasurements; j < maxMeasurement; j++) {
-                    tmp.push(`${el.fieldId}-${i}.${j}`);
-                }
-            }
+            // for (let i = el.startingTimePoint, maxTimePoint = el.startingTimePoint + el.numOfTimePoints; i < maxTimePoint; i++) {
+            //     for (let j = el.startingMeasurement, maxMeasurement = el.startingMeasurement + el.numOfMeasurements; j < maxMeasurement; j++) {
+            //         tmp.push(`${el.fieldId}-${i}.${j}`);
+            //     }
+            // }
+            tmp.push(`${el.fieldId}`);
         });
         this.fieldCSVHeaderList = tmp;
     }

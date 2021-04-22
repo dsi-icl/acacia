@@ -24,7 +24,8 @@ export class JSONCurator {
         private readonly dataCollection: Collection,
         private readonly incomingWebStream: Readable,
         private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
-        private readonly versionId: string
+        private readonly versionId: string,
+        private readonly fileId: string
     ) {
         this._header = [null]; // the first element is subject id
         this._numOfSubj = 0;
@@ -61,7 +62,8 @@ export class JSONCurator {
                             subject: chunk,
                             parsedHeader: this._header,
                             job: this.job,
-                            versionId: this.versionId
+                            versionId: this.versionId,
+                            fileId: this.fileId
                         });
                         if (error) {
                             this._errored = true;
@@ -92,11 +94,11 @@ export class JSONCurator {
 
             uploadWriteStream.on('finish', async () => {
                 /* check for subject Id duplicate */
-                const set = new Set(subjectString);
-                if (set.size !== subjectString.length) {
-                    this._errors.push('Data Error: There is duplicate subject id.');
-                    this._errored = true;
-                }
+                // const set = new Set(subjectString);
+                // if (set.size !== subjectString.length) {
+                //     this._errors.push('Data Error: There is duplicate subject id.');
+                //     this._errored = true;
+                // }
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
@@ -143,13 +145,14 @@ export function processJSONHeader(header: string[]): { error?: string[], parsedH
 
 }
 
-export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum }: { objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
+export function processEachSubject({ subject, parsedHeader, job, versionId, objectNum, fileId }: { fileId: string, objectNum: number, versionId: string, subject: string[], parsedHeader: Array<IFieldDescriptionObject | null>, job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
     const error: string[] = [];
     let colIndex = 0;
     const dataEntry: any = {
         m_jobId: job.id,
         m_study: job.studyId,
-        m_versionId: versionId
+        m_versionId: versionId,
+        m_fileId: fileId
     };
 
     if (subject.length !== parsedHeader.length) {

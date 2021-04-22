@@ -7,7 +7,8 @@ import {
     IStudy,
     IStudyDataVersion,
     IFieldEntry,
-    IUser
+    IUser,
+    studyType
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -60,7 +61,6 @@ export const studyResolvers = {
                 requester,
                 project.studyId
             );
-
             if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             return project;
@@ -95,7 +95,12 @@ export const studyResolvers = {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         numOfSubjects: async (study: IStudy): Promise<number> => {
-            return await db.collections!.data_collection.countDocuments({ m_study: study.id });
+            const validDataVersions = study.dataVersions.map((el, index) => {
+                if (index <= study.currentDataVersion) {
+                    return el.id;
+                }
+            });
+            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.distinct('m_eid', { m_study: study.id, m_versionId: { $in: validDataVersions }})).length;
         },
         currentDataVersion: async (study: IStudy): Promise<null | number> => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
@@ -107,7 +112,8 @@ export const studyResolvers = {
             const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, deleted: null }).toArray();
             const fieldTrees: Record<string, number> = {};
             const fields = result.reduce((a: { fieldTreeId: string, fieldsInFieldTree: IFieldEntry[] }[], e: IFieldEntry) => {
-                if (!fieldTrees[e.fieldTreeId]) {
+                // if (!fieldTrees[e.fieldTreeId]) {
+                if (!(a.map((el) => el.fieldTreeId)).includes(e.fieldTreeId)) {
                     fieldTrees[e.fieldTreeId] = a.length;
                     a.push({ fieldTreeId: e.fieldTreeId, fieldsInFieldTree: [] });
                 }
@@ -147,12 +153,12 @@ export const studyResolvers = {
         },
         approvedFields: async (project: IProject, __unused__args: never, context: any): Promise<Record<string, string[]>> => {
             const requester: IUser = context.req.user;
-
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+                task_required_permissions.manage_study_projects.concat(task_required_permissions.access_project_data),
                 requester,
-                project.studyId
+                project.studyId,
+                project.id
             ))) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
@@ -164,9 +170,10 @@ export const studyResolvers = {
 
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+                task_required_permissions.manage_study_projects.concat(task_required_permissions.access_project_data),
                 requester,
-                project.studyId
+                project.studyId,
+                project.id
             ))) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
@@ -186,7 +193,7 @@ export const studyResolvers = {
         }
     },
     Mutation: {
-        createStudy: async (__unused__parent: Record<string, unknown>, { name, description }: { name: string, description: string }, context: any): Promise<IStudy> => {
+        createStudy: async (__unused__parent: Record<string, unknown>, { name, description, type }: { name: string, description: string, type: studyType }, context: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -195,7 +202,7 @@ export const studyResolvers = {
             }
 
             /* create study */
-            const study = await studyCore.createNewStudy(name, description, requester.id);
+            const study = await studyCore.createNewStudy(name, description, type, requester.id);
             return study;
         },
         editStudy: async (__unused__parent: Record<string, unknown>, { studyId, description }: { studyId: string, description: string }, context: any): Promise<IStudy> => {

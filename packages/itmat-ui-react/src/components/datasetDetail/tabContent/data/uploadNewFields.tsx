@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { CREATE_FIELD_CURATION_JOB, GET_STUDY, IFile } from 'itmat-commons';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
+import { Button } from 'antd';
 
 export const UploadNewFields: React.FunctionComponent<{ studyId: string; dataVersionId: string }> = ({ studyId, dataVersionId }) => {
     const [expanded, setExpanded] = React.useState(false);
@@ -12,7 +13,7 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string; dataVer
     const fileRef = React.createRef();
     console.log(dataVersionId);
     if (!expanded) {
-        return <button onClick={() => setExpanded(true)}>Upload new annotations</button>;
+        return <Button onClick={() => setExpanded(true)}>Upload new annotations</Button>;
     }
 
     return <>

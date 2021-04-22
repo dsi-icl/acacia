@@ -7,7 +7,7 @@ import { Models, IJobEntryForFieldCuration, IFieldEntry, enumValueType } from 'i
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
 
-const CORRECT_NUMBER_OF_COLUMN = 11;
+const CORRECT_NUMBER_OF_COLUMN = 33;
 
 export class FieldCurator {
     private _errored: boolean;
@@ -17,7 +17,7 @@ export class FieldCurator {
     constructor(
         private readonly fieldCollection: Collection,
         private readonly incomingWebStream: Readable,
-        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
+        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_lines_with_error: true },
         private readonly job: IJobEntryForFieldCuration,
         private readonly fieldTreeId: string
     ) {
@@ -29,7 +29,9 @@ export class FieldCurator {
     /* return list of errors. [] if no error */
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         /**
-         *     fieldId  fieldName   valueType   possibleValues  unit    path    numOfTimePoints numOfMeasurements   startingTimepoint   startingMeasurement notes
+         *     ID	Database	TableName	TableID	SequentialOrder	QuestionNumber	Fieldname	Label	Label_DE	Label_NL	Label_IT	Label_ES	Label_PL	
+         *     Label_F	EligibleAnswer	IneligibleAnswer	Validation	DataType	ControlType	SystemGenerated	ValueList	Length	DisplayFormat	Nullable	Required	
+         *     Mandatory	CollectIf	NotMapped	DefaultValue	RegEx	RegExErrorMsg	ShowOnIndexView	Comments
          */
         return new Promise((resolve) => {
             console.log(`uploading for job ${this.job.id}`);
@@ -97,11 +99,11 @@ export class FieldCurator {
 
             uploadWriteStream.on('finish', async () => {
                 /* check for subject Id duplicate */
-                const set = new Set(fieldIdString);
-                if (set.size !== fieldIdString.length) {
-                    this._errors.push('Data Error: There is duplicate field id.');
-                    this._errored = true;
-                }
+                // const set = new Set(fieldIdString);
+                // if (set.size !== fieldIdString.length) {
+                //     this._errors.push('Data Error: There is duplicate field id.');
+                //     this._errored = true;
+                // }
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
@@ -125,13 +127,15 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
     const dataEntry_nouse: any = {};
     const THESE_COL_CANT_BE_EMPTY = {
         0: 'FieldID',
-        1: 'Field Name',
-        2: 'Value Type',
-        5: 'Path',
-        6: 'Number of Time Points',
-        7: 'Number of Measurements',
-        8: 'Starting Time Point',
-        9: 'Starting Measurement'
+        1: 'Database',
+        6: 'Field Name',
+        17: 'Data Type',
+        19: 'System Generated',
+        23: 'Nullable',
+        24: 'Required',
+        25: 'Mandatory',
+        27: 'Not mapped',
+        31: 'Show On Index View'
     };
 
     if (row.length !== CORRECT_NUMBER_OF_COLUMN) {
@@ -150,55 +154,75 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
     if (!/^\d+$/.test(row[0]) && row[0] !== '') {
         error.push(`Line ${lineNum} column 1: Cannot parse field ID as number.`);
     }
-    if (!/^\d+$/.test(row[6]) && row[6] !== '') {
-        error.push(`Line ${lineNum} column 7: Cannot parse number of time points as number.`);
+    if (!/^\d+$/.test(row[21]) && row[21] !== '') {
+        error.push(`Line ${lineNum} column 22: Cannot parse length of characters as number.`);
     }
-    if (!/^\d+$/.test(row[7]) && row[7] !== '') {
-        error.push(`Line ${lineNum} column 8: Cannot parse number of measurements as number.`);
-    }
-    if (!/^\d+$/.test(row[8]) && row[8] !== '') {
-        error.push(`Line ${lineNum} column 9: Cannot parse starting timepoint as number.`);
-    }
-    if (!/^\d+$/.test(row[9]) && row[9] !== '') {
-        error.push(`Line ${lineNum} column 10: Cannot parse starting measurement as number.`);
-    }
-
 
     /* check the value type */
-    if (!['c', 'd', 'i', 'b', 't'].includes(row[2])) {
-        error.push(`Line ${lineNum} column 3: Invalid value type "${row[2]}": use "c" for categorical, "i" for integer, "d" for decimal, "b" for boolean and "t" for free text.`);
+    const dataTypeNames = {
+        int: 'int', 
+        decimal: 'dec', 
+        nvarchar: 'cha', 
+        varchar: 'cha', 
+        datetime: 'dat', 
+        bit: 'bit'
+    }; 
+    if ( !(Object.keys(dataTypeNames).some(x => row[17].toUpperCase().indexOf(x.toUpperCase()) >=0)) ) {
+        error.push(`Line ${lineNum} column 3: Invalid value type "${row[2]}": use "int" for integers, "decimal()" for decimals, "nvarchar/varchar" for characters/strings, "datetime" for date time, "bit" for bit.`);
     }
 
     /* if valueType = C, then possibleValues cant be empty */
-    if (row[2] === 'c' && row[3] === '') {
-        error.push(`Line ${lineNum} column 4: "Possible values" cannot be empty if value type is categorical.`);
-    }
+    // if (row[2] === 'c' && row[3] === '') {
+    //     error.push(`Line ${lineNum} column 4: "Possible values" cannot be empty if value type is categorical.`);
+    // }
 
     if (error.length !== 0) {
         return ({ error, dataEntry: dataEntry_nouse });
     }
 
     const fieldId = parseInt(row[0], 10);
-    const numOfTimePoints = parseInt(row[6], 10);
-    const numOfMeasurements = parseInt(row[7], 10);
-    const startingTimePoint = parseInt(row[8], 10);
-    const startingMeasurement = parseInt(row[9], 10);
+    const dataType = dataTypeNames[Object.keys(dataTypeNames).filter(el => row[17].toUpperCase().indexOf(el.toUpperCase()) >= 0)[0]];
+    const length = parseInt(row[21], 10);
+    const nullable = row[23] === 'True';
+    const required = row[24] === 'True';
+    const mandatory = row[25] === 'True';
 
     const dataEntry: IFieldEntry = {
         id: uuid(),
         studyId: job.studyId,
-        path: row[5],
-        fieldId,
-        fieldName: row[1],
-        valueType: row[2] as enumValueType,
-        possibleValues: row[3] === '' ? undefined : row[3].split(','),
-        unit: row[4],
-        itemType: Models.Field.enumItemType.CLINICAL,
-        numOfTimePoints,
-        numOfMeasurements,
-        startingTimePoint,
-        startingMeasurement,
-        notes: row[10],
+        fieldId: fieldId,
+        database: row[1],
+        tableName: row[2],
+        tableId: row[3],
+        sequentialOrder: row[4],
+        questionNumber: row[5],
+        fieldName: row[6],
+        label: row[7],
+        labelDe: row[8],
+        labelNl: row[9],
+        labelIt: row[10],
+        labelEs: row[11],
+        labelPl: row[12],
+        labelF: row[13],
+        eligibleAnswer: row[14],
+        ineligibleAnswer: row[15],
+        validation: row[16],
+        dataType: dataType,
+        controlType: row[18],
+        systemGenerated: row[19],
+        valueList: row[20],
+        length: length,
+        displayFormat: row[22],
+        nullable: nullable,
+        required: required,
+        mandatory: mandatory,
+        collectIf: row[26],
+        notMapped: row[27],
+        defaultValue: row[28],
+        regEx: row[29],
+        regExErrorMsg: row[30],
+        showOnIndexView: row[31],
+        comments: row[32],
         jobId: job.id,
         deleted: null,
         dateAdded: (new Date()).valueOf(),

@@ -3,6 +3,8 @@ import { Mutation, Query } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
 import { CREATE_DATA_CURATION_JOB, GET_STUDY, IFile } from 'itmat-commons';
 import LoadSpinner from '../../../reusable/loadSpinner';
+import { Select, Input, Button } from 'antd';
+const { Option } = Select;
 
 export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton: (__unused__shown: boolean) => void }> = ({ studyId, cancelButton }) => {
     return <div>
@@ -26,34 +28,63 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelBut
 const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile[]; cancelButton: (__unused__shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
-    const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above
+    const [selectedFile, setSelectedFile] = React.useState<string[]>([]); // files.length > 0 because of checks above
     const [versionNumber, setVersionNumber] = React.useState('');
     const [tag, setTag] = React.useState('');
 
     return <>
-        <label>Data file:</label>
-        <select value={selectedFile} onChange={(e) => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
-        <label>Version number:</label>
-        <input value={versionNumber} onChange={(e) => { setSuccessfullySaved(false); setVersionNumber(e.target.value); setError(''); }} placeholder='x.y.z (y and z optional)' type='text' /> <br /><br />
-        <label>Tag:</label>
-        <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder='e.g. finalised (optional)' type='text' /><br /><br />
+        <span>Data file:</span>
+        <Select
+            mode='multiple'
+            onChange={(value) => {
+                const newArr: string[] = [];
+                for (let i=0; i<(value as any).length; i++) {
+                    newArr.push(value[i].toString());
+                }
+                setSelectedFile(newArr);
+                setError('');
+            }}
+            style={{width: '80%'}}
+            placeholder='Select files'
+        >
+            {files.map((el: IFile) => {
+                return <Option value={el.id}>{el.fileName}</Option>;
+            })}
+        </Select><br/><br/>
+        <span>Version Number: </span>
+        <Input
+            value={versionNumber}
+            onChange={(e) => {setVersionNumber(e.target.value); setError('');}}
+            placeholder='x.y.z (y and z optional)'
+            style={{width: '20%'}}
+        >
+        </Input><br/><br/>
+        <span>Tag: </span>
+        <Input
+            value={tag}
+            onChange={(e) => {setTag(e.target.value); setError('');}}
+            placeholder='e.g. finalised (optional)'
+            style={{width: '20%'}}
+        >
+        </Input><br/><br/>
 
         <Mutation<any, any>
             mutation={CREATE_DATA_CURATION_JOB}
             onCompleted={() => setSuccessfullySaved(true)}
-            update={(store, { data: { createDataCurationJob } }) => {
-                // Read the data from our cache for this query.
-                const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
-                // Add our comment from the mutation to the end.
-                const newjobs = data.getStudy.jobs.concat(createDataCurationJob);
-                data.getStudy.jobs = newjobs;
-                // Write our data back to the cache.
-                store.writeQuery({ query: GET_STUDY, variables: { studyId }, data });
-            }}
+            // update={(store, { data: { createDataCurationJob } }) => {
+            //     // Read the data from our cache for this query.
+            //     const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
+            //     // Add our comment from the mutation to the end.
+            //     const newjobs = data.getStudy.jobs.concat(createDataCurationJob);
+            //     data.getStudy.jobs = newjobs;
+            //     // Write our data back to the cache.
+            //     store.writeQuery({ query: GET_STUDY, variables: { studyId }, data });
+            // }}
         >
-            {(createCurationJob, { loading }) => {
+            {(createCurationJob, { loading, error }) => {
                 if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
-                return <button style={{ width: '45%', display: 'inline-block' }} onClick={() => {
+                if (error) { console.log(error); return <button style={{ width: '45%', display: 'inline-block' }}>{JSON.stringify(error)}</button>; }
+                return <Button style={{ width: '45%', display: 'inline-block' }} onClick={() => {
                     if (!selectedFile) {
                         setError('Please select a file.');
                         setSuccessfullySaved(false);
@@ -69,7 +100,6 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile
                         setSuccessfullySaved(false);
                         return;
                     }
-
                     createCurationJob({
                         variables: {
                             file: selectedFile,
@@ -79,11 +109,10 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile
                         }
                     });
 
-                }}>Submit</button>;
+                }}>Submit</Button>;
             }}
         </Mutation>
-        <button style={{ width: '45%', display: 'inline-block' }} className='button_grey' onClick={() => cancelButton(false)}>Cancel</button>
-
+        <Button style={{ width: '45%', display: 'inline-block' }} className='button_grey' onClick={() => cancelButton(false)}>Cancel</Button>
         {error ? <div className='error_banner'>{error}</div> : null}
         {successfullySaved ? <div className='saved_banner'>Job created and queued.</div> : null}
     </>;

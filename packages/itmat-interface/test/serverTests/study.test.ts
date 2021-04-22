@@ -35,7 +35,8 @@ import {
     IStudy,
     enumValueType,
     enumItemType,
-    EDIT_STUDY
+    EDIT_STUDY,
+    studyType
 } from 'itmat-commons';
 
 let app;
@@ -99,7 +100,7 @@ describe('STUDY API', () => {
             const studyName = uuid();
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName, description: 'test description' }
+                variables: { name: studyName, description: 'test description', type: studyType.SENSOR }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
@@ -108,7 +109,8 @@ describe('STUDY API', () => {
             expect(res.body.data.createStudy).toEqual({
                 id: createdStudy.id,
                 name: studyName,
-                description: 'test description'
+                description: 'test description',
+                type: studyType.SENSOR
             });
 
             const resWhoAmI = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
@@ -128,7 +130,8 @@ describe('STUDY API', () => {
                     projects: [],
                     studies: [{
                         id: createdStudy.id,
-                        name: studyName
+                        name: studyName,
+                        type: studyType.SENSOR
                     }]
                 },
                 createdAt: 1591134065000,
@@ -143,7 +146,7 @@ describe('STUDY API', () => {
             const studyName = uuid();
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName, description: 'test description' }
+                variables: { name: studyName, description: 'test description', type: studyType.SENSOR }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
@@ -152,7 +155,8 @@ describe('STUDY API', () => {
             expect(res.body.data.createStudy).toEqual({
                 id: createdStudy.id,
                 name: studyName,
-                description: 'test description'
+                description: 'test description',
+                type: studyType.SENSOR
             });
 
             const editStudy = await admin.post('/graphql').send({
@@ -162,7 +166,8 @@ describe('STUDY API', () => {
             expect(editStudy.body.data.editStudy).toEqual({
                 id: createdStudy.id,
                 name: studyName,
-                description: 'edited description'
+                description: 'edited description',
+                type: studyType.SENSOR
             });
 
             /* cleanup: delete study */
@@ -184,7 +189,7 @@ describe('STUDY API', () => {
 
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName, description: 'test description' }
+                variables: { name: studyName, description: 'test description', type: studyType.SENSOR }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
@@ -214,7 +219,7 @@ describe('STUDY API', () => {
 
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName.toUpperCase(), description: 'test description' }
+                variables: { name: studyName.toUpperCase(), description: 'test description', type: studyType.SENSOR }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
@@ -233,7 +238,7 @@ describe('STUDY API', () => {
             const studyName = uuid();
             const res = await user.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName, description: 'test description' }
+                variables: { name: studyName, description: 'test description', type: studyType.SENSOR }
             });
             expect(res.status).toBe(200);
             expect(res.body.data.createStudy).toBe(null);
@@ -248,7 +253,7 @@ describe('STUDY API', () => {
             const studyName = uuid();
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_STUDY),
-                variables: { name: studyName, description: 'test description' }
+                variables: { name: studyName, description: 'test description', type: studyType.SENSOR }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
@@ -257,7 +262,8 @@ describe('STUDY API', () => {
             expect(res.body.data.createStudy).toEqual({
                 id: createdStudy.id,
                 name: studyName,
-                description: 'test description'
+                description: 'test description',
+                type: studyType.SENSOR
             });
 
             const editStudy = await user.post('/graphql').send({
@@ -283,7 +289,8 @@ describe('STUDY API', () => {
                 lastModified: 200000002,
                 deleted: null,
                 currentDataVersion: -1,
-                dataVersions: []
+                dataVersions: [],
+                type: studyType.SENSOR
             };
             await mongoClient.collection(config.database.collections.studies_collection).insertOne(newStudy);
 
@@ -304,7 +311,8 @@ describe('STUDY API', () => {
                     projects: [],
                     studies: [{
                         id: newStudy.id,
-                        name: studyName
+                        name: studyName,
+                        type: studyType.SENSOR
                     }]
                 },
                 createdAt: 1591134065000,
@@ -699,11 +707,11 @@ describe('STUDY API', () => {
             id: 'mockDataVersionId2',
             contentId: 'mockContentId2',
             version: '0.0.1',
-            fileSize: '10000',
-            uploadDate: '5000000',
+            // fileSize: '10000',
+            updateDate: '5000000',
             tag: 'hey',
-            jobId: 'mockjobid2',
-            extractedFrom: 'mockfile2',
+            jobId: ['mockjobid2'],
+            extractedFrom: ['mockfile2'],
             fieldTrees: []
         };
 
@@ -714,7 +722,7 @@ describe('STUDY API', () => {
                 const studyName = uuid();
                 const res = await admin.post('/graphql').send({
                     query: print(CREATE_STUDY),
-                    variables: { name: studyName, description: 'test description' }
+                    variables: { name: studyName, description: 'test description', type: studyType.SENSOR }
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
@@ -722,7 +730,8 @@ describe('STUDY API', () => {
                 expect(res.body.data.createStudy).toEqual({
                     id: createdStudy.id,
                     name: studyName,
-                    description: 'test description'
+                    description: 'test description',
+                    type: studyType.SENSOR
                 });
             }
 
@@ -732,10 +741,10 @@ describe('STUDY API', () => {
                     id: 'mockDataVersionId',
                     contentId: 'mockContentId',
                     version: '0.0.1',
-                    fileSize: '10000',
-                    uploadDate: '5000000',
-                    jobId: 'mockjobid',
-                    extractedFrom: 'mockfile',
+                    // fileSize: '10000',
+                    updateDate: '5000000',
+                    jobId: ['mockjobid'],
+                    extractedFrom: ['mockfile'],
                     fieldTrees: [fieldTreeId]
                 };
                 const mockData: IDataEntry[] = [
@@ -1255,7 +1264,8 @@ describe('STUDY API', () => {
                         }],
                         studies: [{
                             id: createdStudy.id,
-                            name: createdStudy.name
+                            name: createdStudy.name,
+                            type: studyType.SENSOR
                         }]
                     },
                     createdAt: 1591134065000,
@@ -1384,6 +1394,7 @@ describe('STUDY API', () => {
                     createdBy: adminId,
                     jobs: [],
                     description: 'test description',
+                    type: studyType.SENSOR,
                     projects: [
                         {
                             id: createdProject.id,
@@ -1451,11 +1462,11 @@ describe('STUDY API', () => {
                         id: 'mockDataVersionId',
                         contentId: 'mockContentId',
                         version: '0.0.1',
-                        fileSize: '10000',
-                        uploadDate: '5000000',
+                        // fileSize: '10000',
+                        updateDate: '5000000',
                         tag: null,
-                        jobId: 'mockjobid',
-                        extractedFrom: 'mockfile',
+                        jobId: ['mockjobid'],
+                        extractedFrom: ['mockfile'],
                         fieldTrees: [fieldTreeId]
                     }]
                 });

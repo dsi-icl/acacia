@@ -9,7 +9,7 @@ import {
 } from 'itmat-commons';
 import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../../reusable/loadSpinner';
-
+import { Button } from 'antd';
 
 export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId } });
@@ -71,10 +71,10 @@ const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ select
                 <>
                     {
                         loading ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
-                            <button style={{ margin: '1rem 0 0 0' }} onClick={() => {
+                            <Button style={{ margin: '1rem 0 0 0' }} onClick={() => {
                                 editApprovedFields({ variables: { projectId, fieldTreeId: selectedTree, approvedFields: checkedList.filter((el) => el.indexOf('CAT') === -1) } });
                                 setSavedSuccessfully(false);
-                            }}>Save</button>
+                            }}>Save</Button>
                     }
                     {
                         error ? <div className='error_banner'>{JSON.stringify(error)}</div> : null

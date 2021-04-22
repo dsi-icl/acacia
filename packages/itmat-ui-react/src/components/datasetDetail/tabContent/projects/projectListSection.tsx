@@ -3,6 +3,7 @@ import { Mutation } from '@apollo/client/react/components';
 import { NavLink, Redirect } from 'react-router-dom';
 import { CREATE_PROJECT, GET_STUDY, WHO_AM_I } from 'itmat-commons';
 import css from './tabContent.module.css';
+import { Button, Input } from 'antd';
 
 export const ProjectListSection: React.FunctionComponent<{ studyId: string; projectList: Array<{ id: string; name: string }> }> = ({ studyId, projectList }) => {
     return <div>
@@ -11,7 +12,7 @@ export const ProjectListSection: React.FunctionComponent<{ studyId: string; proj
 };
 
 const OneProject: React.FunctionComponent<{ studyId: string; id: string; name: string }> = ({ id, name, studyId }) =>
-    <NavLink to={`/datasets/${studyId}/projects/${id}`}><button className={css.project_badge}>{name}</button></NavLink>;
+    <NavLink to={`/datasets/${studyId}/projects/${id}`}><Button className={css.project_badge}>{name}</Button></NavLink>;
 
 
 
@@ -20,7 +21,7 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
     const [error, setError] = React.useState('');
 
     return <div>
-        <input value={input} onChange={(e) => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name' />
+        <Input value={input} style={{width: '40%'}} onChange={(e) => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name' />
         <Mutation<any, any>
             mutation={CREATE_PROJECT}
             update={(store, { data: { createProject } }) => {
@@ -46,14 +47,14 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
                     {data ? <Redirect to={`/datasets/${studyId}/projects/${data.createProject.id}`} /> : null}
                     {
                         loading ?
-                            <button>Loading...</button> :
-                            <button onClick={() => {
+                            <Button>Loading...</Button> :
+                            <Button onClick={() => {
                                 if (!input) {
                                     setError('Please enter project name.');
                                     return;
                                 }
                                 addNewProject({ variables: { studyId, projectName: input, approvedFields: [] } });
-                            }}>Add new project</button>
+                            }}>Add new project</Button>
                     }
                 </>
             }

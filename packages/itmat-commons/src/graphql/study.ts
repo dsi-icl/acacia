@@ -17,6 +17,7 @@ export const GET_STUDY = gql`
             name
             createdBy
             description
+            type
             jobs {
                 ...ALL_FOR_JOB
             }
@@ -56,10 +57,9 @@ export const GET_STUDY = gql`
                 id
                 version
                 tag
-                uploadDate
+                updateDate
                 jobId
                 extractedFrom
-                fileSize
                 contentId
                 fieldTrees
             }
@@ -69,11 +69,12 @@ export const GET_STUDY = gql`
 `;
 
 export const CREATE_STUDY = gql`
-    mutation createStudy($name: String!, $description: String){
-        createStudy(name: $name, description: $description) {
+    mutation createStudy($name: String!, $description: String, $type: STUDYTYPE!){
+        createStudy(name: $name, description: $description, type: $type) {
             id
             name
             description
+            type
         }
     }
 `;
@@ -84,6 +85,7 @@ export const EDIT_STUDY = gql`
             id
             name
             description
+            type
         }
     }
 `;
@@ -117,11 +119,10 @@ export const SET_DATAVERSION_AS_CURRENT = gql`
                 id
                 version
                 tag
-                uploadDate
+                updateDate
                 jobId
                 extractedFrom
                 contentId
-                fileSize
                 fieldTrees
             }
         }

@@ -3,11 +3,12 @@ export interface IDataEntry {
     m_eid: string; // patient Id
     m_study: string; // study Id
     m_versionId: string; // data version Id
-    [field: string]: {
-        [instance: string]: {
-            [array: number]: number | string
-        }
-    } | string | boolean | string[];
+    // [field: string]: {
+    //     [instance: string]: {
+    //         [array: number]: number | string
+    //     }
+    // } | string | boolean | string[];
+    [field: string]: any
 }
 
 export interface IFieldDescriptionObject {

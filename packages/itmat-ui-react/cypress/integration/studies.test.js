@@ -32,7 +32,7 @@ describe('Studies page', function () {
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description' } }
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description', type: studyType.SENSOR } }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
@@ -62,7 +62,7 @@ describe('Studies page', function () {
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description' } }
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description', type: studyType.SENSOR } }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
@@ -106,7 +106,7 @@ describe('Studies page', function () {
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description' } }
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description', type: studyType.SENSOR } }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
@@ -130,7 +130,7 @@ describe('Studies page', function () {
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description' } }
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description', type: studyType.SENSOR } }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');

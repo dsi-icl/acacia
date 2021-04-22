@@ -9,7 +9,7 @@ describe('File upload page', function () {
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         /* setup: create a study via API */
-        const createStudyInput = { name: uuid(), description: 'test description' };
+        const createStudyInput = { name: uuid(), description: 'test description', type: studyType.SENSOR };
         cy.request('POST', 'http://localhost:3003/graphql',
             { query: print(CREATE_STUDY), variables: createStudyInput }
         ).then(res => {
@@ -52,7 +52,7 @@ describe('File upload page', function () {
         cy.request('POST', 'http://localhost:3003/graphql', LOGIN_BODY_ADMIN);
 
         /* setup: create a study via API */
-        const createStudyInput = { name: uuid(), description: 'test description' };
+        const createStudyInput = { name: uuid(), description: 'test description', type: studyType.SENSOR };
         cy.request('POST', 'http://localhost:3003/graphql',
             { query: print(CREATE_STUDY), variables: createStudyInput }
         ).then(res => {

@@ -4,17 +4,39 @@ export const field_fragment = gql`
     fragment ALL_FOR_FIELD on Field {
         id
         studyId
-        path
         fieldId
+        database
+        tableName
+        tableId
+        sequentialOrder
+        questionNumber
         fieldName
-        valueType
-        possibleValues
-        unit
-        itemType
-        numOfTimePoints
-        numOfMeasurements
-        notes
-        fieldTreeId
+        label
+        labelDe
+        labelNl
+        labelIt
+        labelEs
+        labelPl
+        labelF
+        eligibleAnswer
+        ineligibleAnswer
+        validation
+        dataType
+        controlType
+        systemGenerated
+        valueList
+        length
+        displayFormat
+        nullable
+        required
+        mandatory
+        collectIf
+        notMapped
+        defaultValue
+        regEx
+        regExErrorMsg
+        showOnIndexView
+        comments
     }
 `;
 

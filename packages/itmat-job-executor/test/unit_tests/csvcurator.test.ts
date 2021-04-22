@@ -85,7 +85,8 @@ describe('Unit tests for processDataRow function', () => {
         row: [],
         parsedHeader: processHeader(['eid', '1@3.3:c', '1@2.1:i', '2@3.2:b', '3@3.1:d']).parsedHeader,
         job,
-        versionId: 'mockVersionId'
+        versionId: 'mockVersionId',
+        fileId: 'mockFileId'
     };
 
     it('processDataRow function correctly parse data row', () => {
@@ -96,6 +97,7 @@ describe('Unit tests for processDataRow function', () => {
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
             m_versionId: 'mockVersionId',
+            m_fileId: 'mockFileId',
             1: { 2: { 1: 95 }, 3: { 3: 'male' } },
             2: { 3: { 2: true } },
             3: { 3: { 1: 4.64 } }
@@ -113,6 +115,7 @@ describe('Unit tests for processDataRow function', () => {
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
             m_versionId: 'mockVersionId',
+            m_fileId: 'mockFileId',
             1: { 3: { 3: 'male' } },
             3: { 3: { 1: 4.64 } }
         });
@@ -128,6 +131,7 @@ describe('Unit tests for processDataRow function', () => {
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
             m_versionId: 'mockVersionId',
+            m_fileId: 'mockFileId',
             1: { 2: { 1: 53 }, 3: { 3: '45' } },
             2: { 3: { 2: false } },
         });
@@ -141,6 +145,7 @@ describe('Unit tests for processDataRow function', () => {
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
             m_versionId: 'mockVersionId',
+            m_fileId: 'mockFileId',
             2: { 3: { 2: false } },
             3: { 3: { 1: 5.96 } }
         });
@@ -155,6 +160,7 @@ describe('Unit tests for processDataRow function', () => {
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
             m_versionId: 'mockVersionId',
+            m_fileId: 'mockFileId',
             1: { 2: { 1: 53 }, 3: { 3: 'male' } },
             2: { 3: { 2: false } },
             3: { 3: { 1: 5.3 } }
@@ -168,6 +174,8 @@ describe('CSVCuratorClass', () => {
         this._insertArray = [];
         this._executeCalled = []; // array of length of _insertArray when execute() is called
         this.insert = (object) => { this._insertArray.push(object); };
+        this.find.upsert = (object) => { console.log(object); };
+        // this.upsert = (object) => { console.log(object); };
         this.execute = () => new Promise<void>((resolve) => {
             setTimeout(() => {
                 this._executeCalled.push(this._insertArray.length);
@@ -210,7 +218,8 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId'
+            'mockVersionId',
+            'mockFileId'
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([]);
@@ -221,7 +230,8 @@ describe('CSVCuratorClass', () => {
             m_eid: 'Subj1',
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId'
+            m_versionId: 'mockVersionId',
+            m_fileId: 'mockFileId'
         });
 
     }, 10000);
@@ -242,7 +252,8 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId'
+            'mockVersionId',
+            'mockFileId'
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
@@ -270,7 +281,8 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId'
+            'mockVersionId',
+            'mockFileId'
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Data Error: There is duplicate subject id.']);
@@ -281,7 +293,8 @@ describe('CSVCuratorClass', () => {
             m_eid: 'Subj1',
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId'
+            m_versionId: 'mockVersionId',
+            m_fileId: 'mockFileId'
         });
 
     }, 10000);
@@ -302,7 +315,8 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId'
+            'mockVersionId',
+            'mockFileId'
         );
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
@@ -317,7 +331,8 @@ describe('CSVCuratorClass', () => {
             m_eid: 'Subj1',
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId'
+            m_versionId: 'mockVersionId',
+            m_fileId: 'mockFileId'
         });
 
     }, 10000);
@@ -338,7 +353,8 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId'
+            'mockVersionId',
+            'mockFileId'
         );
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
@@ -353,7 +369,8 @@ describe('CSVCuratorClass', () => {
             m_eid: 'Subj1',
             m_jobId: 'mockJobId',
             m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId'
+            m_versionId: 'mockVersionId',
+            m_fileId: 'mockFileId'
         });
 
     }, 10000);
@@ -374,7 +391,8 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId'
+            'mockVersionId',
+            'mockFileId'
         );
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();

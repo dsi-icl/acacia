@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy } from 'itmat-commons';
+import { IProject, IStudy, studyType } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -24,7 +24,7 @@ export class StudyCore {
         return projectSearchResult;
     }
 
-    public async createNewStudy(studyName: string, description: string, requestedBy: string): Promise<IStudy> {
+    public async createNewStudy(studyName: string, description: string, type: studyType, requestedBy: string): Promise<IStudy> {
         /* check if study already  exist (lowercase because S3 minio buckets cant be mixed case) */
         const existingStudies = await db.collections!.studies_collection.aggregate(
             [
@@ -53,7 +53,8 @@ export class StudyCore {
             lastModified: new Date().valueOf(),
             dataVersions: [],
             deleted: null,
-            description: description
+            description: description,
+            type: type
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;

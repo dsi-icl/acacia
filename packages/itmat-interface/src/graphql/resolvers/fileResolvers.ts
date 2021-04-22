@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models, task_required_permissions, IFile, Logger } from 'itmat-commons';
+import { Models, task_required_permissions, IFile, Logger, studyType } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
@@ -25,7 +25,15 @@ export const fileResolvers = {
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
+            const study = await db.collections!.studies_collection.findOne({ id: args.studyId});
+            if (!study) {
+                throw new ApolloError('Study does not exist.');
+            }
+
             const file = await args.file;
+            const fileNameParts = file.filename.split('.');
+
+
             return new Promise<IFile>((resolve, reject) => {
                 try {
                     const hash = crypto.createHash('sha256');
@@ -74,54 +82,119 @@ export const fileResolvers = {
                         });
 
                         stream.on('end', async () => {
+                            // description varies: SENSOR, CLINICAL (only participantId), ANY (No check)
                             // check filename and description is valid and matches each other
                             const parsedDescription = JSON.parse(args.description);
-                            let startDate;
-                            let endDate;
-                            try {
-                                startDate = parseInt(parsedDescription.startDate);
-                                endDate = parseInt(parsedDescription.endDate);
-                                if (
-                                    !Object.keys(sitesIDMarker).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase()) ||
-                                    !Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
-                                    !validate(parsedDescription.participantId?.substr(1) ?? '') ||
-                                    !validate(parsedDescription.deviceId.substr(3) ?? '') ||
-                                    !startDate || !endDate ||
-                                    (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
-                                ) {
-                                    reject(new ApolloError('File description is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
+                            if (study.type === studyType.SENSOR || study.type === null || study.type === undefined) {
+                                let startDate;
+                                let endDate;
+                                try {
+                                    startDate = parseInt(parsedDescription.startDate);
+                                    endDate = parseInt(parsedDescription.endDate);
+                                    if (
+                                        !Object.keys(sitesIDMarker).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase()) ||
+                                        !Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
+                                        !validate(parsedDescription.participantId?.substr(1) ?? '') ||
+                                        !validate(parsedDescription.deviceId.substr(3) ?? '') ||
+                                        !startDate || !endDate ||
+                                        (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
+                                    ) {
+                                        reject(new ApolloError('File description is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                        return;
+                                    }
+                                } catch (e) {
+                                    reject(new ApolloError('Missing file description', errorCodes.CLIENT_MALFORMED_INPUT));
                                     return;
                                 }
-                            } catch (e) {
-                                reject(new ApolloError('Missing file description', errorCodes.CLIENT_MALFORMED_INPUT));
-                                return;
-                            }
 
-                            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
-                            const typedStartDate = new Date(startDate);
-                            const formattedStartDate = typedStartDate.getFullYear() + `${typedStartDate.getMonth() + 1}`.padStart(2, '0') + `${typedStartDate.getDate()}`.padStart(2, '0');
-                            const typedEndDate = new Date(startDate);
-                            const formattedEndDate = typedEndDate.getFullYear() + `${typedEndDate.getMonth() + 1}`.padStart(2, '0') + `${typedEndDate.getDate()}`.padStart(2, '0');
-                            const fileEntry: IFile = {
-                                id: uuid(),
-                                fileName: matcher.test(file.filename)
-                                    ? file.filename :
-                                    `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}-${file.filename}`,
-                                studyId: args.studyId,
-                                fileSize: readBytes.toString(),
-                                description: args.description,
-                                uploadTime: `${Date.now()}`,
-                                uploadedBy: requester.id,
-                                uri: fileUri,
-                                deleted: null,
-                                hash: hashString
-                            };
+                                const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
+                                const typedStartDate = new Date(startDate);
+                                const formattedStartDate = typedStartDate.getFullYear() + `${typedStartDate.getMonth() + 1}`.padStart(2, '0') + `${typedStartDate.getDate()}`.padStart(2, '0');
+                                const typedEndDate = new Date(startDate);
+                                const formattedEndDate = typedEndDate.getFullYear() + `${typedEndDate.getMonth() + 1}`.padStart(2, '0') + `${typedEndDate.getDate()}`.padStart(2, '0');
+                                const fileEntry: IFile = {
+                                    id: uuid(),
+                                    fileName: matcher.test(file.filename)
+                                        ? file.filename :
+                                        `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}}`,
+                                    studyId: args.studyId,
+                                    fileSize: readBytes.toString(),
+                                    description: args.description,
+                                    uploadTime: `${Date.now()}`,
+                                    uploadedBy: requester.id,
+                                    uri: fileUri,
+                                    deleted: null,
+                                    hash: hashString
+                                };
 
-                            const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
-                            if (insertResult.result.ok === 1) {
-                                resolve(fileEntry);
-                            } else {
-                                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                                const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
+                                if (insertResult.result.ok === 1) {
+                                    resolve(fileEntry);
+                                } else {
+                                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                                }
+                            } else if (study.type === studyType.CLINICAL) {
+                                if (parsedDescription.participantId) {
+                                    if (
+                                        !Object.keys(sitesIDMarker).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase()) ||
+                                        !validate(parsedDescription.participantId?.substr(1) ?? '')
+                                    ) {
+                                        reject(new ApolloError('File description or name is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                        return;
+                                    }
+                                } else {
+                                    if (!file.filename.startsWith('VariablesList')) {
+                                        reject(new ApolloError('File name is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                        return;
+                                    }
+                                }
+                                const matcher = /(.{1})(.{6})/;
+                                const fileEntry: IFile = {
+                                    id: uuid(),
+                                    fileName: matcher.test(file.filename)
+                                        ? file.filename :
+                                        `${parsedDescription.participantId.toUpperCase()}.${fileNameParts[fileNameParts.length - 1]}}`,
+                                    studyId: args.studyId,
+                                    fileSize: readBytes.toString(),
+                                    description: args.description,
+                                    uploadTime: `${Date.now()}`,
+                                    uploadedBy: requester.id,
+                                    uri: fileUri,
+                                    deleted: null,
+                                    hash: hashString
+                                };
+                                const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
+                                // option: whether to keep the old files
+                                // if (oldFile && study.type === studyType.CLINICAL) {
+                                //     const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: oldFile.id }, { $set: { deleted: new Date().valueOf() } });
+                                //     if (updateResult.result.ok !== 1) {
+                                //         throw new ApolloError(errorCodes.DATABASE_ERROR);
+                                //     }
+                                // }
+                                if (insertResult.result.ok === 1) {
+                                    resolve(fileEntry);
+                                } else {
+                                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                                }
+                            } else if (study.type === studyType.ANY) {
+                                const fileEntry: IFile = {
+                                    id: uuid(),
+                                    fileName: file.filename,
+                                    studyId: args.studyId,
+                                    fileSize: readBytes.toString(),
+                                    description: args.description,
+                                    uploadTime: `${Date.now()}`,
+                                    uploadedBy: requester.id,
+                                    uri: fileUri,
+                                    deleted: null,
+                                    hash: hashString
+                                };
+                                const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
+                                if (insertResult.result.ok === 1) {
+                                    resolve(fileEntry);
+                                } else {
+                                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                                }
                             }
                         });
                         objStore.uploadFile(stream, args.studyId, fileUri);
