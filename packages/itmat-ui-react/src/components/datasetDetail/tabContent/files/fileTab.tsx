@@ -41,7 +41,9 @@ export const deviceTypes = {
     PSR: 'PSG raw data',
     PSM: 'PSG meta data',
     SMA: 'Stress Monitor App',
-    TFA: 'ThinkFast App'
+    TFA: 'ThinkFast App',
+    SMQ: 'Stress Monitor App Questionnaire',
+    VIR: 'Virtual device type'
 };
 
 const { RangePicker } = DatePicker;
