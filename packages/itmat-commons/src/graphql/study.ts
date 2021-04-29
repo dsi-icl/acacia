@@ -80,12 +80,57 @@ export const CREATE_STUDY = gql`
 `;
 
 export const EDIT_STUDY = gql`
-    mutation editStudy($studyId: String!, $description: String){
+    mutation editStudy($studyId: String!, $description: String) {
         editStudy(studyId: $studyId, description: $description) {
             id
             name
             description
             type
+        }
+    }
+`;
+
+export const CREATE_NEW_DATA_VERSION = gql`
+    mutation createNewDataVersion($studyId: String!, $dataVersion: String!, $tag: String){
+        createNewDataVersion(studyId: $studyId, dataVersion: $dataVersion, tag: $tag) {
+            id
+            version
+            tag
+            updateDate
+            jobId
+            extractedFrom
+            contentId
+            fieldTrees
+        }
+    }
+`;
+
+export const UPLOAD_DATA_IN_ARRAY = gql`
+    mutation uploadDataInArray($studyId: String!, $fieldTreeId: String!, $data: [DataClip]) {
+        uploadDataInArray(studyId: $studyId, fieldTreeId: $fieldTreeId, data: $data) {
+            detail
+            numOfRecordSucceed
+            numOfRecordFailed
+        }
+    }
+`;
+
+export const DELETE_DATA_RECORDS = gql`
+    mutation deleteDataRecords($studyId: String!, $subjectId: String, $versionId: String, $visitId: Int, $fieldIds: [String]) {
+        deleteDataRecords(studyId: $studyId, subjectId: $subjectId, versionId: $versionId, visitId: $visitId, fieldIds: $fieldIds) {
+            detail
+            numOfRecordSucceed
+            numOfRecordFailed
+        }
+    }
+`;
+
+export const RECOVER_DATA_RECORDS = gql`
+    mutation recoverDataRecords($studyId: String!, $subjectId: String, $versionId: String, $visitId: Int) {
+        recoverDataRecords(studyId: $studyId, subjectId: $subjectId, versionId: $versionId, visitId: $visitId) {
+            detail
+            numOfRecordSucceed
+            numOfRecordFailed
         }
     }
 `;

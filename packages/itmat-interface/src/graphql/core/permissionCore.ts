@@ -34,19 +34,12 @@ export class PermissionCore {
             { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
         ];
         const result: Array<{ _id: string, arrPrivileges: string[] }> = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
-        console.log('-------------------search result');
-        console.log(studyId);
-        console.log(projectId);
-        console.log(user.id);
-        console.log(result);
         if (result.length > 1) {
             throw new ApolloError('Internal error occurred when checking user privileges.', errorCodes.DATABASE_ERROR);
         }
         if (result.length === 0) {
             return false;
         }
-        console.log('----------------------needed permissions');
-        console.log(needAnyOneOfThesePermissions);
         const hisPrivileges = result[0].arrPrivileges;   // example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
 
         /* checking privileges */

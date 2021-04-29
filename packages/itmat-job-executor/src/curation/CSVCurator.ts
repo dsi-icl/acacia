@@ -2,8 +2,6 @@ import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
-import { fieldValidator, fieldParser } from '../utils/jobUtils';
-import { parse } from 'querystring';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -27,8 +25,7 @@ export class CSVCurator {
         private readonly dataCollection: Collection,
         private readonly incomingWebStream: Readable,
         private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_lines_with_error: true },
-        private readonly job: IJobEntry<{ dataVersion: string, versionTag?: string }>,
-        private readonly versionId: string,
+        private readonly job: IJobEntry<{ fieldTreeId: string }>,
         private readonly fileId: string,
         private readonly fieldsList: any[]
     ) {
@@ -74,16 +71,14 @@ export class CSVCurator {
                         next();
                     } else {
                         const currentLineNum = ++lineNum;
-                        subjectString.push(line[0]);
+                        subjectString.push(line[this._subjectIdIndex]);
                         const { error, dataEntry } = processDataRow({
                             subjectIdIndex: this._subjectIdIndex,
                             visitIdIndex: this._visitIdIndex,
                             lineNum: currentLineNum,
                             row: line,
                             parsedHeader: this._header,
-                            job: this.job,
-                            versionId: this.versionId,
-                            fileId: this.fileId
+                            job: this.job
                         });
 
                         if (error) {
@@ -104,11 +99,11 @@ export class CSVCurator {
                             m_visitId: dataEntry.m_visitId,
                             m_versionId: dataEntry.m_versionId,
                             m_studyId: dataEntry.m_studyId
-                        }
-                        bulkInsert.insert(dataEntry);
-                        // bulkInsert.find(matchObj).upsert().updateOne({$setOnInsert: dataEntry});
+                        };
+                        // bulkInsert.insert(dataEntry);
+                        bulkInsert.find(matchObj).upsert().updateOne({$set: dataEntry});
                         // bulkInsert.find(matchObj).upsert().updateOne(dataEntry);
-                        
+
                         this._numOfSubj++;
                         if (this._numOfSubj > 999) {
                             this._numOfSubj = 0;
@@ -129,7 +124,6 @@ export class CSVCurator {
                 //     this._errors.push('Data Error: There is duplicate subject id.');
                 //     this._errored = true;
                 // }
-
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
                         console.log('FINSIHED LOADING');
@@ -156,59 +150,63 @@ export function processHeader(header: string[], fieldsList: any[]): { error?: st
     const error: string[] = [];
     const parsedHeader: any[] = Array(header.length);
     let colNum = 0;
-    const fields: string[] = []
+    const fields: string[] = [];
     const validatedFieldNames = fieldsList.map(el => el.fieldName);
+    if (!header.includes('SubjectID') || !header.includes('VisitID')) {
+        error.push('SubjectID or VisitID not found.');
+    }
     for (const each of header) {
         if (colNum === 0) {
             colNum++;
             continue;
-        } else if (each === null || each === undefined || each === '') {
-            continue;
+        }
+        if (each === null || each === undefined || each === '') {
+            error.push(`Line 1, Column ${colNum}: Field Name should not be empty.`);
+            colNum++;
+            parsedHeader.push(null);
         } else {
+            if (fields.includes(each)) {
+                // if duplicates happens, we only extract data from the first one
+                error.push(`Line 1 column ${colNum + 1}: Duplicate field.`);
+                parsedHeader.push({fieldName: each, dataType: 'dul', fieldId: undefined});
+                colNum++;
+                continue;
+            }
+            fields.push(each);
             if (validatedFieldNames.includes(each)) {
-                fields.push(each);
                 parsedHeader.push(fieldsList.filter(el => el.fieldName === each)[0]);
-                
             } else {
-                error.push(`Line 1: '${each}' is not a valid header field descriptor.`);
-                parsedHeader[colNum] = null;         
+                error.push(`Line 1 column ${colNum + 1}: Unknown field.`);
+                parsedHeader.push({fieldName: each, dataType: 'unk', fieldId: undefined});
             }
         }
         colNum++;
     }
 
-    /* check for duplicate */
-    const set = new Set(fields);
-    if (set.size !== fields.length) {
-        error.push('Line 1: There is duplicate (field, timepoint, measurement) combination.');
-    }
+    // /* check for duplicate */
+    // const set = new Set(fields);
+    // if (set.size !== fields.length) {
+    //     error.push('Line 1: There is duplicate field name.');
+    // }
     // get unique pair subjectid-visitid
     const filteredParsedHeader = parsedHeader.filter(el => el !== undefined);
-    console.log(filteredParsedHeader);
-    console.log(filteredParsedHeader.length);
     const subjectIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'SubjectID') + 1; // ID is the first
     const visitIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'VisitID') + 1;
-    console.log(subjectIdIndex);
-    console.log(visitIdIndex);
-
     return ({ parsedHeader: filteredParsedHeader, error: error.length === 0 ? undefined : error , subjectIdIndex, visitIdIndex});
 }
 
-export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, parsedHeader, job, versionId, fileId }: { subjectIdIndex: number, visitIdIndex: number, fileId: string, versionId: string, lineNum: number, row: string[], parsedHeader: any[], job: IJobEntry<{ dataVersion: string, versionTag?: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
+export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, parsedHeader, job }: { subjectIdIndex: number, visitIdIndex: number, lineNum: number, row: string[], parsedHeader: any[], job: IJobEntry<{ fieldTreeId: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;
     const dataEntry: any = {
-        m_jobId: job.id,
-        m_study: job.studyId,
-        m_versionId: versionId,
-        m_fileId: fileId
+        m_studyId: job.studyId,
+        deleted: null
     };
-
-    // if (row.length !== parsedHeader.filter(el => el !== undefined).length) {
-    //     error.push(`Line ${lineNum}: Uneven field Number; expected ${parsedHeader.length} fields but got ${row.length}`);
-    //     return ({ error, dataEntry });
-    // }
+    if (row.length !== (parsedHeader.filter(el => el !== undefined).length + 1)) {
+        error.push(`Line ${lineNum}: Uneven field Number; expected ${parsedHeader.length + 1} fields but got ${row.length}`);
+        return ({ error, dataEntry });
+    }
     for (const each of row) {
         if (colIndex === 0) {
             /* extracting subject id */
@@ -234,18 +232,21 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
         }
 
         if (colIndex === subjectIdIndex) {
-            dataEntry.m_subjectId = each; 
+            dataEntry.m_subjectId = each.replace('-', '');
             colIndex++;
             continue;
         }
 
         if (colIndex === visitIdIndex) {
-            dataEntry.m_visitId = each; 
+            dataEntry.m_visitId = each;
             colIndex++;
             continue;
         }
-        const { fieldId, dataType } = parsedHeader[colIndex];
-
+        const { fieldId, dataType } = parsedHeader[colIndex - 1];
+        if (fieldId === undefined) {
+            colIndex++;
+            continue;
+        }
         /* adding value to dataEntry */
         let value: any;
         try {
@@ -269,7 +270,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                     }
                     value = parseInt(each, 10);
                     break;
-                case 'bit': // boolean
+                case 'boo': // boolean
                     if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
                         value = each.toLowerCase() === 'true';
                     } else {
@@ -278,10 +279,16 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                         continue;
                     }
                     break;
-                case 'cha':
+                case 'str':
                     value = each.toString();
                     break;
                 case 'dat':
+                    value = each.toString();
+                    break;
+                case 'jso': // save as string
+                    value = JSON.stringify(each);
+                    break;
+                case 'unk':
                     value = each.toString();
                     break;
                 default:
@@ -297,9 +304,16 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
         if (dataEntry[fieldId] === undefined) {
             dataEntry[fieldId] = null;
         }
+
         dataEntry[fieldId] = value;
         colIndex++;
     }
 
+    if (dataEntry.m_subjectId === undefined) {
+        error.push('No subject id provided.');
+    }
+    if (dataEntry.m_visitId === undefined) {
+        error.push('No visit id provided.');
+    }
     return ({ error: error.length === 0 ? undefined : error, dataEntry });
 }

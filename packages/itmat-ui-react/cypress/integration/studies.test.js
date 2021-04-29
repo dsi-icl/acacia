@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
 const { CREATE_PROJECT, CREATE_STUDY, DELETE_PROJECT } = require('itmat-commons').GQLRequests;
+const { studyType } = require('itmat-commons');
 const { print } = require('graphql');
 const { v4: uuid } = require('uuid');
 

@@ -134,26 +134,13 @@ export const fileResolvers = {
                                     throw new ApolloError(errorCodes.DATABASE_ERROR);
                                 }
                             } else if (study.type === studyType.CLINICAL) {
-                                if (parsedDescription.participantId) {
-                                    if (
-                                        !Object.keys(sitesIDMarker).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase()) ||
-                                        !validate(parsedDescription.participantId?.substr(1) ?? '')
-                                    ) {
-                                        reject(new ApolloError('File description or name is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
-                                        return;
-                                    }
-                                } else {
-                                    if (!file.filename.startsWith('VariablesList')) {
-                                        reject(new ApolloError('File name is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
-                                        return;
-                                    }
+                                if (!file.filename.startsWith('prolific')) {
+                                    reject(new ApolloError('File name is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
+                                    return;
                                 }
-                                const matcher = /(.{1})(.{6})/;
                                 const fileEntry: IFile = {
                                     id: uuid(),
-                                    fileName: matcher.test(file.filename)
-                                        ? file.filename :
-                                        `${parsedDescription.participantId.toUpperCase()}.${fileNameParts[fileNameParts.length - 1]}}`,
+                                    fileName: file.filename,
                                     studyId: args.studyId,
                                     fileSize: readBytes.toString(),
                                     description: args.description,

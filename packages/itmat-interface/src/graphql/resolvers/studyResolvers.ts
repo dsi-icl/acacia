@@ -8,7 +8,9 @@ import {
     IStudyDataVersion,
     IFieldEntry,
     IUser,
-    studyType
+    studyType,
+    IDataClip,
+    IDataRecordSummary
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -95,12 +97,13 @@ export const studyResolvers = {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         numOfSubjects: async (study: IStudy): Promise<number> => {
-            const validDataVersions = study.dataVersions.map((el, index) => {
-                if (index <= study.currentDataVersion) {
-                    return el.id;
+            const validDataVersions: any[] = [];
+            for (let i=0; i<study.dataVersions.length; i++) {
+                if (i <= study.currentDataVersion) {
+                    validDataVersions.push(study.dataVersions[i].id);
                 }
-            });
-            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.distinct('m_eid', { m_study: study.id, m_versionId: { $in: validDataVersions }})).length;
+            }
+            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, m_versionId: { $in: validDataVersions }})).length;
         },
         currentDataVersion: async (study: IStudy): Promise<null | number> => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
@@ -216,6 +219,148 @@ export const studyResolvers = {
             /* create study */
             const study = await studyCore.editStudy(studyId, description);
             return study;
+        },
+        uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, fieldTreeId, data }: { studyId: string, fieldTreeId: string, data: IDataClip[] }, context: any): Promise<any> => {
+            // check study exists
+            await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+
+            const requester: IUser = context.req.user;
+            /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_data,
+                requester,
+                studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            // find the fieldsList
+            const cursor = db.collections!.field_dictionary_collection.find({ fieldTreeId: fieldTreeId });
+            const fieldsList = await cursor.toArray();
+            if (!fieldsList) {
+                throw new ApolloError('FieldTree is not valid', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
+            const errors: string[] = [];
+            for (const each of data) {
+                const error = (await studyCore.uploadOneDataClip(studyId, fieldsList, each)).error;
+                if (error !== null) {
+                    errors.push(error);
+                }
+            }
+            const result: IDataRecordSummary = {
+                detail: errors,
+                numOfRecordSucceed: data.length - errors.filter(el => el !== null).length,
+                numOfRecordFailed: errors.length
+            };
+
+            return result;
+        },
+        deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectId, versionId, visitId, fieldIds }: { studyId: string, subjectId: string, versionId: string, visitId: number, fieldIds: string[] }, context: any): Promise<any> => {
+            // check study exists
+            await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+
+            const requester: IUser = context.req.user;
+            /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_data,
+                requester,
+                studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            // construct query object
+            const queryObj: any = {
+            };
+            if (subjectId) {
+                queryObj.m_subjectId = subjectId;
+            }
+            if (visitId) {
+                queryObj.m_visitId = visitId;
+            }
+            if (versionId) {
+                queryObj.m_versionId = versionId;
+            }
+
+            // delete records
+            let result;
+            if (fieldIds){
+                // remove certail value, but not set record as deleted
+                const fields = fieldIds.reduce((acc,curr)=> (acc[curr] = undefined,acc), {});
+                result = await db.collections!.data_collection.updateMany(queryObj, {
+                    $set: fields
+                });
+            } else {
+                // direct set satisfied records as deleted
+                result = await db.collections!.data_collection.updateMany(queryObj, {
+                    $set: { deleted: (new Date()).valueOf() }
+                });
+            }
+
+            const returnedObject: IDataRecordSummary = {
+                detail: [],
+                numOfRecordSucceed: result.modifiedCount,
+                numOfRecordFailed: result.matchedCount - result.modifiedCount
+            };
+            return returnedObject;
+        },
+        recoverDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectId, versionId, visitId }: { studyId: string, subjectId: string, versionId: string, visitId: string }, context: any): Promise<any> => {
+            // check study exists
+            await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+
+            const requester: IUser = context.req.user;
+            /* check privileges */
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_data,
+                requester,
+                studyId
+            ))) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            // construct query object
+            const queryObj: any = {
+            };
+            if (subjectId) {
+                queryObj.m_subjectId = subjectId;
+            }
+            if (visitId) {
+                queryObj.m_visitId = visitId;
+            }
+            if (versionId) {
+                queryObj.m_versionId = versionId;
+            }
+
+            const result = await db.collections!.data_collection.updateMany(queryObj, {
+                $set: { deleted: null }
+            });
+
+            const returnedObject: IDataRecordSummary = {
+                detail: [],
+                numOfRecordSucceed: result.modifiedCount,
+                numOfRecordFailed: result.matchedCount - result.modifiedCount
+            };
+            return returnedObject;
+        },
+        createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
+            // check study exists
+            await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            // check dataVersion name valid
+            if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(dataVersion)) {
+                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+
+            const created = await studyCore.createNewDataVersion(studyId, tag, dataVersion);
+            return created;
         },
         createProject: async (__unused__parent: Record<string, unknown>, { studyId, projectName }: { studyId: string, projectName: string }, context: any): Promise<IProject> => {
             const requester: IUser = context.req.user;

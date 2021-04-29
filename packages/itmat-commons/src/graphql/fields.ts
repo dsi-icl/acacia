@@ -37,6 +37,10 @@ export const field_fragment = gql`
         regExErrorMsg
         showOnIndexView
         comments
+        jobId
+        dateAdded
+        deleted
+        fieldTreeId
     }
 `;
 

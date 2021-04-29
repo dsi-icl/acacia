@@ -20,7 +20,7 @@ export interface IFieldEntry {
     validation: string;
     dataType: enumValueType;
     controlType: string;
-    systemGenerated: string;
+    systemGenerated: boolean;
     valueList: string;
     length: number;
     displayFormat: string;
@@ -28,11 +28,11 @@ export interface IFieldEntry {
     required: boolean;
     mandatory: boolean;
     collectIf: string;
-    notMapped: string;
+    notMapped: boolean;
     defaultValue: string;
     regEx: string;
     regExErrorMsg: string;
-    showOnIndexView: string;
+    showOnIndexView: boolean;
     comments: string;
     jobId: string;
     dateAdded: number;
@@ -40,14 +40,16 @@ export interface IFieldEntry {
     fieldTreeId: string;
 }
 
-export declare enum enumItemType {
-    IMAGE = "I",
-    CLINICAL = "C"
+export enum enumItemType {
+    IMAGE = 'I',
+    CLINICAL = 'C'
 }
-export declare enum enumValueType {
-    INTEGER = "int",
-    DECIMAL = "dec",
-    CHARACTERS = 'cha',
-    BIT = 'bit',
-    DATETIME = 'dat'
+export enum enumValueType {
+    INTEGER = 'int',
+    DECIMAL = 'dec',
+    STRING = 'str',
+    BOOLEAN = 'boo',
+    DATETIME = 'dat',
+    FILE = 'fil',
+    JSON = 'jso'
 }

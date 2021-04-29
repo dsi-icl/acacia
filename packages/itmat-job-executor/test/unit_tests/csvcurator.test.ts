@@ -1,187 +1,332 @@
 import { processDataRow, processHeader, CSVCurator } from '../../src/curation/CSVCurator';
 import fs from 'fs';
 import { stub } from './_stubHelper';
-import { IJobEntryForDataCuration } from 'itmat-commons';
+import { IJobEntryForDataCuration, enumValueType } from 'itmat-commons';
 
 describe('Unit tests for processHeader function', () => {
-    it('processHeader function weeds out syntax error', () => {
-        const exampleheader = ['eid', '1-3.3', '1-4.3'];
-        const { error, parsedHeader } = processHeader(exampleheader);
-        expect(parsedHeader.length).toBe(3);
-        expect(parsedHeader[0]).toBeNull();
-        expect(parsedHeader[1]).toBeNull();
-        expect(parsedHeader[2]).toBeNull();
+    const fieldsList = [
+        {
+            fieldId: 1,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'SubjectID',
+            dataType: enumValueType.STRING
+        },
+        {
+            fieldId: 2,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'VisitID',
+            dataType: enumValueType.STRING
+        },
+        {
+            fieldId: 31,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'Sex',
+            dataType: enumValueType.INTEGER
+        },
+        {
+            fieldId: 32,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'Description',
+            dataType: enumValueType.STRING
+        },
+        {
+            fieldId: 33,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'Weight',
+            dataType: enumValueType.DECIMAL
+        },
+    ];
+
+    it('processHeader function', () => {
+        const exampleheader = ['ID', 'SubjectID', 'VisitID', 'Sex', 'Description', 'Weight'];
+        const { parsedHeader, error, subjectIdIndex, visitIdIndex } = processHeader(exampleheader, fieldsList);
+        expect(parsedHeader.length).toBe(5);
+        expect(parsedHeader).toEqual(fieldsList);
+        expect(error).toBeUndefined();
+        expect(subjectIdIndex).toBe(1);
+        expect(visitIdIndex).toBe(2);
+    });
+
+    it('processHeader function without SubjectID or VisitID', () => {
+        const exampleheader = ['ID', 'SubjectID', 'Sex', 'Description', 'Weight'];
+        const { parsedHeader, error, subjectIdIndex, visitIdIndex } = processHeader(exampleheader, fieldsList);
+        expect(parsedHeader.length).toBe(4);
+        expect(parsedHeader[0]).toEqual(fieldsList[0]);
+        expect(parsedHeader[1]).toEqual(fieldsList[2]);
+        expect(parsedHeader[2]).toEqual(fieldsList[3]);
+        expect(parsedHeader[3]).toEqual(fieldsList[4]);
         expect(error).toBeDefined();
-        expect(error.length).toBe(2);
-        expect(error[0]).toBe('Line 1: \'1-3.3\' is not a valid header field descriptor.');
-        expect(error[1]).toBe('Line 1: \'1-4.3\' is not a valid header field descriptor.');
+        expect(error.length).toBe(1);
+        expect(error[0]).toBe('SubjectID or VisitID not found.');
+        expect(subjectIdIndex).toBe(1);
+        expect(visitIdIndex).toBe(0);
     });
 
     it('processHeader function weeds out duplicates', () => {
-        const exampleheader = ['eid', '1@3.3', '1@3.3', '1@2.1', '2@3.2'];
-        const { error, parsedHeader } = processHeader(exampleheader);
-        expect(parsedHeader.length).toBe(5);
-        expect(parsedHeader[0]).toBeNull();
-        expect(parsedHeader[1]).toEqual({ fieldId: 1, timepoint: 3, measurement: 3, datatype: 'c' });
-        expect(parsedHeader[2]).toEqual({ fieldId: 1, timepoint: 3, measurement: 3, datatype: 'c' });
-        expect(parsedHeader[3]).toEqual({ fieldId: 1, timepoint: 2, measurement: 1, datatype: 'c' });
-        expect(parsedHeader[4]).toEqual({ fieldId: 2, timepoint: 3, measurement: 2, datatype: 'c' });
+        const exampleheader = ['ID', 'SubjectID', 'VisitID', 'Sex', 'Description', 'Weight', 'Weight'];
+        const { error, parsedHeader } = processHeader(exampleheader, fieldsList);
+        expect(parsedHeader.length).toBe(6);
+        expect(parsedHeader[0]).toEqual(fieldsList[0]);
+        expect(parsedHeader[1]).toEqual(fieldsList[1]);
+        expect(parsedHeader[2]).toEqual(fieldsList[2]);
+        expect(parsedHeader[3]).toEqual(fieldsList[3]);
+        expect(parsedHeader[4]).toEqual(fieldsList[4]);
+        expect(parsedHeader[5]).toEqual({
+            dataType: 'dul',
+            fieldId: undefined,
+            fieldName: 'Weight'
+        });
         expect(error).toBeDefined();
         expect(error.length).toBe(1);
-        expect(error[0]).toBe('Line 1: There is duplicate (field, timepoint, measurement) combination.');
+        expect(error[0]).toBe('Line 1 column 7: Duplicate field.');
     });
 
-    it('processHeader function, user can annotate data type', () => {
-        const exampleheader = ['eid', '1@3.3:i', '1@3.3:c', '1@2.1:b', '2@3.2:c'];
-        const { error, parsedHeader } = processHeader(exampleheader);
-        expect(parsedHeader.length).toBe(5);
-        expect(parsedHeader[0]).toBeNull();
-        expect(parsedHeader[1]).toEqual({ fieldId: 1, timepoint: 3, measurement: 3, datatype: 'i' });
-        expect(parsedHeader[2]).toEqual({ fieldId: 1, timepoint: 3, measurement: 3, datatype: 'c' });
-        expect(parsedHeader[3]).toEqual({ fieldId: 1, timepoint: 2, measurement: 1, datatype: 'b' });
-        expect(parsedHeader[4]).toEqual({ fieldId: 2, timepoint: 3, measurement: 2, datatype: 'c' });
+    it('processHeader function weeds with unregistered fields', () => {
+        const exampleheader = ['ID', 'SubjectID', 'VisitID', 'Sex', 'Description', 'Weight', 'UNKNOWN'];
+        const { error, parsedHeader } = processHeader(exampleheader, fieldsList);
+        expect(parsedHeader.length).toBe(6);
+        expect(parsedHeader[0]).toEqual(fieldsList[0]);
+        expect(parsedHeader[1]).toEqual(fieldsList[1]);
+        expect(parsedHeader[2]).toEqual(fieldsList[2]);
+        expect(parsedHeader[3]).toEqual(fieldsList[3]);
+        expect(parsedHeader[4]).toEqual(fieldsList[4]);
+        expect(parsedHeader[5]).toEqual({fieldName: 'UNKNOWN', dataType: 'unk', fieldId: undefined});
         expect(error).toBeDefined();
-        expect(error.length).toBe(1);
-        expect(error[0]).toBe('Line 1: There is duplicate (field, timepoint, measurement) combination.');
-    });
-
-    it('processHeader function weeds out wrong data type', () => {
-        const exampleheader = ['eid', '1@3.3:p', '1@2.1:b', '2@3.2:e'];
-        const { error, parsedHeader } = processHeader(exampleheader);
-        expect(parsedHeader.length).toBe(4);
-        expect(parsedHeader[0]).toBeNull();
-        expect(parsedHeader[1]).toBeNull();
-        expect(parsedHeader[2]).toEqual({ fieldId: 1, timepoint: 2, measurement: 1, datatype: 'b' });
-        expect(parsedHeader[3]).toBeNull();
-        expect(error).toBeDefined();
-        expect(error.length).toBe(2);
-        expect(error[0]).toBe('Line 1: \'1@3.3:p\' is not a valid header field descriptor.');
-        expect(error[1]).toBe('Line 1: \'2@3.2:e\' is not a valid header field descriptor.');
-    });
-
-    it('processHeader function correctly parsed header', () => {
-        const exampleheader = ['eid', '1@3.3:c', '1@2.1:i', '2@3.2:b'];
-        const { error, parsedHeader } = processHeader(exampleheader);
-        expect(parsedHeader.length).toBe(4);
-        expect(parsedHeader[0]).toBeNull();
-        expect(parsedHeader[1]).toEqual({ fieldId: 1, timepoint: 3, measurement: 3, datatype: 'c' });
-        expect(parsedHeader[2]).toEqual({ fieldId: 1, timepoint: 2, measurement: 1, datatype: 'i' });
-        expect(parsedHeader[3]).toEqual({ fieldId: 2, timepoint: 3, measurement: 2, datatype: 'b' });
-        expect(error).toBeUndefined();
+        expect(error[0]).toBe('Line 1 column 7: Unknown field.');
     });
 });
 
 describe('Unit tests for processDataRow function', () => {
+    const fieldsList = [
+        {
+            fieldId: 1,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'SubjectID',
+            dataType: enumValueType.STRING
+        },
+        {
+            fieldId: 2,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'VisitID',
+            dataType: enumValueType.STRING
+        },
+        {
+            fieldId: 31,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'Sex',
+            dataType: enumValueType.INTEGER
+        },
+        {
+            fieldId: 32,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'Description',
+            dataType: enumValueType.STRING
+        },
+        {
+            fieldId: 33,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'Weight',
+            dataType: enumValueType.DECIMAL
+        },
+    ];
+
     const job = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
         id: 'mockJobId',
         studyId: 'mockStudyId',
         data: {
-            dataVersion: '0.0.1',
-            versionTag: 'testData'
+            fieldTreeId: 'mockFieldTreeId',
         }
     });
+    const { subjectIdIndex, visitIdIndex, parsedHeader } = processHeader(['ID', 'SubjectID', 'VisitID', 'Sex', 'Description', 'Weight'], fieldsList);
     const templateParams = {
+        subjectIdIndex: subjectIdIndex,
+        visitIdIndex: visitIdIndex,
         lineNum: 22,
         row: [],
-        parsedHeader: processHeader(['eid', '1@3.3:c', '1@2.1:i', '2@3.2:b', '3@3.1:d']).parsedHeader,
-        job,
-        versionId: 'mockVersionId',
-        fileId: 'mockFileId'
+        parsedHeader: parsedHeader,
+        job
     };
 
     it('processDataRow function correctly parse data row', () => {
-        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', 'male', '95', 'true', '4.64'] }));
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['0', 'I7N3G6G', '1', 0, 'description', 60.2] }));
         expect(error).toBeUndefined();
         expect(dataEntry).toEqual({
-            m_eid: 'A001',
-            m_jobId: 'mockJobId',
-            m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId',
-            m_fileId: 'mockFileId',
-            1: { 2: { 1: 95 }, 3: { 3: 'male' } },
-            2: { 3: { 2: true } },
-            3: { 3: { 1: 4.64 } }
+            m_subjectId: 'I7N3G6G',
+            m_visitId: '1',
+            m_studyId: 'mockStudyId',
+            31: 0,
+            32: 'description',
+            33: 60.2,
+            deleted: null
         });
     });
 
     it('processDataRow function weeds out datatype mismatch', () => {
-        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', 'male', 'female', 'male', '4.64'] }));
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['0', 'I7N3G6G', '1', 'a', 'description', 'b'] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(2);
-        expect(error[0]).toBe('Line 22 column 3: Cannot parse \'female\' as integer.');
-        expect(error[1]).toBe('Line 22 column 4: value for boolean type must be \'true\' or \'false\'.');
+        expect(error[0]).toBe('Line 22 column 4: Cannot parse \'a\' as integer.');
+        expect(error[1]).toBe('Line 22 column 6: Cannot parse \'b\' as decimal.');
         expect(dataEntry).toEqual({
-            m_eid: 'A001',
-            m_jobId: 'mockJobId',
-            m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId',
-            m_fileId: 'mockFileId',
-            1: { 3: { 3: 'male' } },
-            3: { 3: { 1: 4.64 } }
-        });
-    });
-
-    it('processDataRow function weeds out datatype mismatch (2)', () => {
-        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', '45', '53', 'false', '5a'] }));
-        expect(error).toBeDefined();
-        expect(error).toHaveLength(1);
-        expect(error[0]).toBe('Line 22 column 5: Cannot parse \'5a\' as decimal.');
-        expect(dataEntry).toEqual({
-            m_eid: 'A001',
-            m_jobId: 'mockJobId',
-            m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId',
-            m_fileId: 'mockFileId',
-            1: { 2: { 1: 53 }, 3: { 3: '45' } },
-            2: { 3: { 2: false } },
+            m_subjectId: 'I7N3G6G',
+            m_visitId: '1',
+            m_studyId: 'mockStudyId',
+            32: 'description',
+            deleted: null
         });
     });
 
     it('processDataRow function deals with missing value by skipping', () => {
-        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['A001', '', '', 'false', '5.96'] }));
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['0', 'I7N3G6G', '1', 0, 'description', ''] }));
         expect(error).toBeUndefined();
         expect(dataEntry).toEqual({
-            m_eid: 'A001',
-            m_jobId: 'mockJobId',
-            m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId',
-            m_fileId: 'mockFileId',
-            2: { 3: { 2: false } },
-            3: { 3: { 1: 5.96 } }
+            m_subjectId: 'I7N3G6G',
+            m_visitId: '1',
+            m_studyId: 'mockStudyId',
+            31: 0,
+            32: 'description',
+            deleted: null
         });
     });
 
     it('processDataRow function deals with missing subject id correctly', () => {
-        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['', 'male', '53', 'false', '5.3'] }));
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['0', '', '1', 0, 'description', 60.2] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
-        expect(error[0]).toBe('Line 22: No subject id provided.');
+        expect(error[0]).toBe('No subject id provided.');
         expect(dataEntry).toEqual({
-            m_jobId: 'mockJobId',
-            m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId',
-            m_fileId: 'mockFileId',
-            1: { 2: { 1: 53 }, 3: { 3: 'male' } },
-            2: { 3: { 2: false } },
-            3: { 3: { 1: 5.3 } }
+            m_visitId: '1',
+            m_studyId: 'mockStudyId',
+            31: 0,
+            32: 'description',
+            33: 60.2,
+            deleted: null
+        });
+    });
+
+    it('processDataRow function deals with missing subject id correctly', () => {
+        const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['0', 'I7N3G6G', '', 0, 'description', 60.2] }));
+        expect(error).toBeDefined();
+        expect(error).toHaveLength(1);
+        expect(error[0]).toBe('No visit id provided.');
+        expect(dataEntry).toEqual({
+            m_subjectId: 'I7N3G6G',
+            m_studyId: 'mockStudyId',
+            31: 0,
+            32: 'description',
+            33: 60.2,
+            deleted: null
         });
     });
 });
 
 describe('CSVCuratorClass', () => {
+    const fieldsList = [
+        {
+            fieldId: 1,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'SubjectID',
+            dataType: enumValueType.STRING
+        },
+        {
+            fieldId: 2,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'VisitID',
+            dataType: enumValueType.STRING
+        },
+        {
+            fieldId: 31,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'Sex',
+            dataType: enumValueType.INTEGER
+        },
+        {
+            fieldId: 32,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'Description',
+            dataType: enumValueType.STRING
+        },
+        {
+            fieldId: 33,
+            database: 'mockDatabase1',
+            tableName: 'mockTable1',
+            tableId: 'mockTableId1',
+            fieldName: 'Weight',
+            dataType: enumValueType.DECIMAL
+        },
+    ];
+
     // should stop uploading when error occurs
     function BulkInsert() {
         this._insertArray = [];
         this._executeCalled = []; // array of length of _insertArray when execute() is called
         this.insert = (object) => { this._insertArray.push(object); };
-        this.find.upsert = (object) => { console.log(object); };
-        // this.upsert = (object) => { console.log(object); };
+        this._foundobj = null;
+        this.find = (object) => {
+            let tag;
+            for (const each of this._insertArray) {
+                tag = true;
+                for (const field of Object.keys(object)) {
+                    if (JSON.stringify(object[field]) !== JSON.stringify(each[field])) {
+                        tag = false;
+                        break;
+                    }
+                }
+                if (tag === true) {
+                    this._foundobj = each;
+                    break;
+                }
+            }
+            return this;
+        };
+        this.upsert = () => { return this; };
         this.execute = () => new Promise<void>((resolve) => {
             setTimeout(() => {
                 this._executeCalled.push(this._insertArray.length);
                 resolve();
             }, 10);
         });
+        this.updateOne = (object) => {
+            if (this._foundobj === null) {
+                this._insertArray.push(object['$set']);
+            }
+            for (let i=0; i<this._insertArray.length;i++) {
+                if (JSON.stringify(this._insertArray[i]) === JSON.stringify(this._foundobj)) {
+                    for (const field of Object.keys(object['$set'])) {
+                        this._insertArray[i][field] = object['$set'][field];
+                    }
+                }
+            }
+            this._foundobj = null;
+        };
     }
 
     function MongoStub() {
@@ -189,18 +334,31 @@ describe('CSVCuratorClass', () => {
         this.initializeUnorderedBulkOp = () => this._bulkinsert;
     }
 
-    it('test mongostub', () => {
+    it('test mongostub update new', async () => {
         const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
-        bulkinsert.insert({});
-        bulkinsert.insert({});
+        bulkinsert.insert({a: 1});
+        bulkinsert.insert({b: 2});
         bulkinsert.execute().then(() => {
-            bulkinsert.insert({});
+            bulkinsert.find({c: 3}).upsert().updateOne({$set: {c:4}});
             return bulkinsert.execute();
         }).then(() => {
-            expect(bulkinsert._insertArray).toEqual([{}, {}, {}]);
+            expect(bulkinsert._insertArray).toEqual([{a: 1}, {b: 2}, {c: 4}]);
             expect(bulkinsert._executeCalled).toEqual([2, 3]);
         });
-    });
+    }, 10000);
+
+    it('test mongostub update existing', async () => {
+        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
+        bulkinsert.insert({a: 1});
+        bulkinsert.insert({b: 2});
+        bulkinsert.execute().then(() => {
+            bulkinsert.find({b: 2}).upsert().updateOne({$set: {d: 4}});
+            return bulkinsert.execute();
+        }).then(() => {
+            expect(bulkinsert._insertArray).toEqual([{a: 1}, {b: 2, d: 4}]);
+            expect(bulkinsert._executeCalled).toEqual([2, 2]);
+        });
+    }, 10000);
 
     it('csvcurator uploads csv file okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator.tsv');
@@ -209,8 +367,7 @@ describe('CSVCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData'
+                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const csvcurator = new CSVCurator(
@@ -218,33 +375,33 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId',
-            'mockFileId'
+            null,
+            fieldsList
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([]);
-        expect(mongoStub._bulkinsert._insertArray).toHaveLength(2107);
-        expect(mongoStub._bulkinsert._executeCalled).toEqual([1000, 2000, 2107]);
+        expect(mongoStub._bulkinsert._insertArray).toHaveLength(2226);
+        expect(mongoStub._bulkinsert._executeCalled).toEqual([1000, 2000, 2226]);
         expect(mongoStub._bulkinsert._insertArray[0]).toEqual({
-            1: { 1: { 1: '1', 2: 2 }, 2: { 1: 2, } }, 2: { 1: { 1: 'male' } },
-            m_eid: 'Subj1',
-            m_jobId: 'mockJobId',
-            m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId',
-            m_fileId: 'mockFileId'
+            m_subjectId: 'I7N3G6G',
+            m_visitId: '1',
+            m_studyId: 'mockStudyId',
+            31: 0,
+            32: 'no description',
+            33: 60.2,
+            deleted: null
         });
 
     }, 10000);
 
-    it('csvcurator catches wrong headers', async () => {
+    it('csvcurator catches non-existing headers', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error1.tsv');
         const mongoStub = new MongoStub();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData'
+                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const csvcurator = new CSVCurator(
@@ -252,28 +409,25 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId',
-            'mockFileId'
+            null,
+            fieldsList
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
-        expect(errors).toEqual([
-            'Line 1: \'2@1.1:p\' is not a valid header field descriptor.',
-            'Line 1: There is duplicate (field, timepoint, measurement) combination.',
-        ]);
-        expect(mongoStub._bulkinsert._insertArray).toHaveLength(0); // nothing gets uploaded if errors are caught in header
+        expect(errors.length).toBe(1);
+        expect(errors[0]).toBe('Line 1 column 7: Unknown field.');
+        expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
 
     }, 10000);
 
-    it('csvcurator catches duplicate subject before first watermark', async () => {
+    it('csvcurator catches duplicate header', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error2.tsv');
         const mongoStub = new MongoStub();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData'
+                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const csvcurator = new CSVCurator(
@@ -281,21 +435,13 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId',
-            'mockFileId'
+            null,
+            fieldsList
         );
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
-        expect(errors).toEqual(['Data Error: There is duplicate subject id.']);
-        expect(mongoStub._bulkinsert._insertArray).toHaveLength(2108);
-        expect(mongoStub._bulkinsert._executeCalled).toEqual([1000, 2000]);
-        expect(mongoStub._bulkinsert._insertArray[0]).toEqual({
-            1: { 1: { 1: '1', 2: 2 }, 2: { 1: 2, } }, 2: { 1: { 1: 'male' } },
-            m_eid: 'Subj1',
-            m_jobId: 'mockJobId',
-            m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId',
-            m_fileId: 'mockFileId'
-        });
+        expect(errors[0]).toBe('Line 1 column 6: Duplicate field.');
+        expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
+        expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
 
     }, 10000);
 
@@ -306,8 +452,7 @@ describe('CSVCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData'
+                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const csvcurator = new CSVCurator(
@@ -315,24 +460,25 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId',
-            'mockFileId'
+            null,
+            fieldsList
         );
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            'Line 18: Uneven field Number; expected 5 fields but got 4',
-            'Line 28: Uneven field Number; expected 5 fields but got 4'
+            'Line 18: Uneven field Number; expected 6 fields but got 5',
+            'Line 28: Uneven field Number; expected 6 fields but got 5'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(16);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray[0]).toEqual({
-            1: { 1: { 1: '1', 2: 2 }, 2: { 1: 2, } }, 2: { 1: { 1: 'male' } },
-            m_eid: 'Subj1',
-            m_jobId: 'mockJobId',
-            m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId',
-            m_fileId: 'mockFileId'
+            m_subjectId: 'I7N3G6G',
+            m_visitId: '1',
+            m_studyId: 'mockStudyId',
+            31: 0,
+            32: 'no description',
+            33: 60.2,
+            deleted: null
         });
 
     }, 10000);
@@ -344,8 +490,7 @@ describe('CSVCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData'
+                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const csvcurator = new CSVCurator(
@@ -353,24 +498,25 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId',
-            'mockFileId'
+            null,
+            fieldsList
         );
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            'Line 1530: Uneven field Number; expected 5 fields but got 3',
-            'Line 1836: Uneven field Number; expected 5 fields but got 4'
+            'Line 1530: Uneven field Number; expected 6 fields but got 4',
+            'Line 1836: Uneven field Number; expected 6 fields but got 5'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(1528);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000]);
         expect(mongoStub._bulkinsert._insertArray[0]).toEqual({
-            1: { 1: { 1: '1', 2: 2 }, 2: { 1: 2, } }, 2: { 1: { 1: 'male' } },
-            m_eid: 'Subj1',
-            m_jobId: 'mockJobId',
-            m_study: 'mockStudyId',
-            m_versionId: 'mockVersionId',
-            m_fileId: 'mockFileId'
+            m_subjectId: 'I7N3G6G',
+            m_visitId: '1',
+            m_studyId: 'mockStudyId',
+            31: 0,
+            32: 'no description',
+            33: 60.2,
+            deleted: null
         });
 
     }, 10000);
@@ -382,8 +528,7 @@ describe('CSVCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                dataVersion: '0.0.1',
-                versionTag: 'testData'
+                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const csvcurator = new CSVCurator(
@@ -391,19 +536,18 @@ describe('CSVCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId',
-            'mockFileId'
+            null,
+            fieldsList
         );
 
         const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
-            'Line 1: \'1@2.1:8\' is not a valid header field descriptor.',
-            'Line 7 column 3: Cannot parse \'as.d\' as decimal.',
-            'Line 31: Uneven field Number; expected 5 fields but got 4',
-            'Line 32: Uneven field Number; expected 5 fields but got 4',
-            'Line 1531: Uneven field Number; expected 5 fields but got 3',
-            'Line 1837: Uneven field Number; expected 5 fields but got 4',
-            'Data Error: There is duplicate subject id.'
+            'Line 1 column 7: Unknown field.',
+            'Line 8 column 4: Cannot parse \'a\' as integer.',
+            'Line 31: Uneven field Number; expected 7 fields but got 6',
+            'Line 32: Uneven field Number; expected 7 fields but got 6',
+            'Line 1531: Uneven field Number; expected 7 fields but got 3',
+            'Line 1532: Uneven field Number; expected 7 fields but got 4'
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);

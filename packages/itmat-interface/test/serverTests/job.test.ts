@@ -101,10 +101,9 @@ describe('JOB API', () => {
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
-                    file: createdFile.id,
+                    file: [createdFile.id],
                     studyId: createdStudy.id,
-                    tag: 'test_tag',
-                    version: '2.1'
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             });
             expect(res.status).toBe(200);
@@ -114,9 +113,9 @@ describe('JOB API', () => {
             });
             expect(res.body.data.createDataCurationJob).toEqual([{
                 id: job.id,
-                studyId: createdStudy.id,
-                projectId: null,
                 jobType: 'DATA_UPLOAD_CSV',
+                projectId: null,
+                studyId: createdStudy.id,
                 requester: adminId,
                 requestTime: job.requestTime,
                 receivedFiles: [createdFile.id],
@@ -125,8 +124,7 @@ describe('JOB API', () => {
                 cancelled: false,
                 cancelledTime: null,
                 data: {
-                    versionTag: 'test_tag',
-                    dataVersion: '2.1'
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             }]);
         });
@@ -135,10 +133,9 @@ describe('JOB API', () => {
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
-                    file: createdFile.id,
+                    file: [createdFile.id],
                     studyId: createdStudy.id,
-                    tag: undefined,
-                    version: '2.1'
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             });
             expect(res.status).toBe(200);
@@ -148,9 +145,9 @@ describe('JOB API', () => {
             });
             expect(res.body.data.createDataCurationJob).toEqual([{
                 id: job.id,
-                studyId: createdStudy.id,
-                projectId: null,
                 jobType: 'DATA_UPLOAD_CSV',
+                projectId: null,
+                studyId: createdStudy.id,
                 requester: adminId,
                 requestTime: job.requestTime,
                 receivedFiles: [createdFile.id],
@@ -159,7 +156,7 @@ describe('JOB API', () => {
                 cancelled: false,
                 cancelledTime: null,
                 data: {
-                    dataVersion: '2.1'
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             }]);
         });
@@ -168,10 +165,9 @@ describe('JOB API', () => {
             const res = await user.post('/graphql').send({
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
-                    file: createdFile.id,
+                    file: [createdFile.id],
                     studyId: createdStudy.id,
-                    tag: 'just_a_tag',
-                    version: '2.1'
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             });
             expect(res.status).toBe(200);
@@ -223,10 +219,9 @@ describe('JOB API', () => {
             const res = await authorisedUser.post('/graphql').send({
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
-                    file: createdFile.id,
+                    file: [createdFile.id],
                     studyId: createdStudy.id,
-                    tag: 'just_a_tag',
-                    version: '2.1'
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             });
             expect(res.status).toBe(200);
@@ -236,9 +231,9 @@ describe('JOB API', () => {
             });
             expect(res.body.data.createDataCurationJob).toEqual([{
                 id: job.id,
-                studyId: createdStudy.id,
-                projectId: null,
                 jobType: 'DATA_UPLOAD_CSV',
+                projectId: null,
+                studyId: createdStudy.id,
                 requester: authorisedUserProfile.id,
                 requestTime: job.requestTime,
                 receivedFiles: [createdFile.id],
@@ -247,8 +242,7 @@ describe('JOB API', () => {
                 cancelled: false,
                 cancelledTime: null,
                 data: {
-                    dataVersion: '2.1',
-                    versionTag: 'just_a_tag'
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             }]);
         });
@@ -257,10 +251,9 @@ describe('JOB API', () => {
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
-                    file: 'fake_file_id',
+                    file: ['fakeFile'],
                     studyId: createdStudy.id,
-                    tag: 'just_a_tag',
-                    version: '2.1'
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             });
             expect(res.status).toBe(200);
@@ -276,10 +269,9 @@ describe('JOB API', () => {
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
-                    file: createdFile.id,
-                    studyId: 'fake_study_id',
-                    tag: 'just_a_tag',
-                    version: '2.1'
+                    file: [createdFile.id],
+                    studyId: 'fakeStudyId',
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             });
             expect(res.status).toBe(200);
@@ -295,10 +287,9 @@ describe('JOB API', () => {
             const res = await user.post('/graphql').send({
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
-                    file: createdFile.id,
-                    studyId: 'fake_study_id',
-                    tag: 'just_a_tag',
-                    version: '2.1'
+                    file: [createdFile.id],
+                    studyId: createdStudy.id,
+                    fieldTreeId: 'mockFieldTreeId'
                 }
             });
             expect(res.status).toBe(200);
@@ -309,26 +300,7 @@ describe('JOB API', () => {
             });
             expect(job).toBe(null);
         });
-
-        test('Create a data curation job with a malformed version id (admin)', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(CREATE_DATA_CURATION_JOB),
-                variables: {
-                    file: createdFile.id,
-                    studyId: createdStudy.id,
-                    tag: 'just_a_tag',
-                    version: '2-3.1'
-                }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
-            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-                receivedFiles: createdFile.id
-            });
-            expect(job).toBe(null);
-        });
-    }),
+    });
 
     describe('CREATE FIELD CURATION API', () => {
         beforeEach(async () => {
@@ -366,8 +338,7 @@ describe('JOB API', () => {
                 variables: {
                     file: createdFile.id,
                     studyId: createdStudy.id,
-                    tag: 'test_tag',
-                    dataVersionId: '2.1'
+                    tag: 'mockTag'
                 }
             });
             expect(res.status).toBe(200);
@@ -377,9 +348,9 @@ describe('JOB API', () => {
             });
             expect(res.body.data.createFieldCurationJob).toEqual({
                 id: job.id,
-                studyId: createdStudy.id,
-                projectId: null,
                 jobType: 'FIELD_INFO_UPLOAD',
+                projectId: null,
+                studyId: createdStudy.id,
                 requester: adminId,
                 requestTime: job.requestTime,
                 receivedFiles: [createdFile.id],
@@ -388,8 +359,7 @@ describe('JOB API', () => {
                 cancelled: false,
                 cancelledTime: null,
                 data: {
-                    tag: 'test_tag',
-                    dataVersionId: '2.1'
+                    tag: 'mockTag'
                 }
             });
         });
@@ -400,8 +370,7 @@ describe('JOB API', () => {
                 variables: {
                     file: createdFile.id,
                     studyId: createdStudy.id,
-                    tag: undefined,
-                    dataVersionId: '2.1'
+                    tag: undefined
                 }
             });
             expect(res.status).toBe(400);
@@ -414,8 +383,7 @@ describe('JOB API', () => {
                 variables: {
                     file: createdFile.id,
                     studyId: createdStudy.id,
-                    tag: 'just_a_tag',
-                    dataVersionId: '2.1'
+                    tag: 'mockTag'
                 }
             });
             expect(res.status).toBe(200);
@@ -469,8 +437,7 @@ describe('JOB API', () => {
                 variables: {
                     file: createdFile.id,
                     studyId: createdStudy.id,
-                    tag: 'just_a_tag',
-                    dataVersionId: '2.1'
+                    tag: 'mockTag'
                 }
             });
             expect(res.status).toBe(200);
@@ -491,8 +458,7 @@ describe('JOB API', () => {
                 cancelled: false,
                 cancelledTime: null,
                 data: {
-                    dataVersionId: '2.1',
-                    tag: 'just_a_tag'
+                    tag: 'mockTag'
                 }
             });
         });
@@ -503,8 +469,7 @@ describe('JOB API', () => {
                 variables: {
                     file: 'fake_file_id',
                     studyId: createdStudy.id,
-                    tag: 'just_a_tag',
-                    dataVersionId: '2.1'
+                    tag: 'just_a_tag'
                 }
             });
             expect(res.status).toBe(200);
@@ -522,8 +487,7 @@ describe('JOB API', () => {
                 variables: {
                     file: createdFile.id,
                     studyId: 'fake_study_id',
-                    tag: 'just_a_tag',
-                    dataVersionId: '2.1'
+                    tag: 'just_a_tag'
                 }
             });
             expect(res.status).toBe(200);
@@ -541,8 +505,7 @@ describe('JOB API', () => {
                 variables: {
                     file: createdFile.id,
                     studyId: 'fake_study_id',
-                    tag: 'just_a_tag',
-                    dataVersionId: '2.1'
+                    tag: 'just_a_tag'
                 }
             });
             expect(res.status).toBe(200);
@@ -553,7 +516,7 @@ describe('JOB API', () => {
             });
             expect(job).toBe(null);
         });
-    }),
+    });
 
     describe('CREATE QUERY CURATION API', () => {
         beforeEach(async () => {
@@ -693,7 +656,7 @@ describe('JOB API', () => {
             };
             await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
-            const tmp = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: roleId});
+            await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: roleId});
             const authorisedUser = request.agent(app);
             await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 

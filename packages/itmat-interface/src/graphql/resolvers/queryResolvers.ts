@@ -1,4 +1,4 @@
-import { IQueryEntry, GET_STUDY_FIELDS } from 'itmat-commons';
+import { IQueryEntry } from 'itmat-commons';
 import { queryCore } from '../core/queryCore';
 
 export const queryResolvers = {

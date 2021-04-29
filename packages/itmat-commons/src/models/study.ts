@@ -52,3 +52,18 @@ export interface IProject {
     lastModified: number;
     deleted: number | null;
 }
+
+export interface IDataClip {
+    fieldId: number,
+    fieldName: string,
+    value: string,
+    subjectId: string,
+    visitId: number,
+    tableName: string
+}
+
+export interface IDataRecordSummary {
+    numOfRecordSucceed: number,
+    numOfRecordFailed: number,
+    detail: string[]
+}

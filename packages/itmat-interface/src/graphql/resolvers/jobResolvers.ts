@@ -18,7 +18,7 @@ enum JOB_TYPE {
 export const jobResolvers = {
     Query: {},
     Mutation: {
-        createDataCurationJob: async (__unused__parent: Record<string, unknown>, args: { file: string[], studyId: string, tag?: string, dataVersion: string, fieldTreeId: string }, context: any): Promise<Models.JobModels.IJobEntryForDataCuration[]> => {
+        createDataCurationJob: async (__unused__parent: Record<string, unknown>, args: { file: string[], studyId: string, fieldTreeId: string }, context: any): Promise<Models.JobModels.IJobEntryForDataCuration[]> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -69,9 +69,7 @@ export const jobResolvers = {
                     status: 'QUEUED',
                     cancelled: false,
                     data: {
-                        dataVersion: args.dataVersion,
                         fieldTreeId: args.fieldTreeId,
-                        versionTag: args.tag
                     }
                 };
 

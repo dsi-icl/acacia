@@ -2,7 +2,7 @@ import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import { v4 as uuid } from 'uuid';
-import { Models, IJobEntryForFieldCuration, IFieldEntry, enumValueType } from 'itmat-commons';
+import { IJobEntryForFieldCuration, IFieldEntry } from 'itmat-commons';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -29,8 +29,8 @@ export class FieldCurator {
     /* return list of errors. [] if no error */
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         /**
-         *     ID	Database	TableName	TableID	SequentialOrder	QuestionNumber	Fieldname	Label	Label_DE	Label_NL	Label_IT	Label_ES	Label_PL	
-         *     Label_F	EligibleAnswer	IneligibleAnswer	Validation	DataType	ControlType	SystemGenerated	ValueList	Length	DisplayFormat	Nullable	Required	
+         *     ID	Database	TableName	TableID	SequentialOrder	QuestionNumber	Fieldname	Label	Label_DE	Label_NL	Label_IT	Label_ES	Label_PL
+         *     Label_F	EligibleAnswer	IneligibleAnswer	Validation	DataType	ControlType	SystemGenerated	ValueList	Length	DisplayFormat	Nullable	Required
          *     Mandatory	CollectIf	NotMapped	DefaultValue	RegEx	RegExErrorMsg	ShowOnIndexView	Comments
          */
         return new Promise((resolve) => {
@@ -99,11 +99,11 @@ export class FieldCurator {
 
             uploadWriteStream.on('finish', async () => {
                 /* check for subject Id duplicate */
-                // const set = new Set(fieldIdString);
-                // if (set.size !== fieldIdString.length) {
-                //     this._errors.push('Data Error: There is duplicate field id.');
-                //     this._errored = true;
-                // }
+                const set = new Set(fieldIdString);
+                if (set.size !== fieldIdString.length) {
+                    this._errors.push('Data Error: There is duplicate field id.');
+                    this._errored = true;
+                }
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
@@ -160,15 +160,17 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
 
     /* check the value type */
     const dataTypeNames = {
-        int: 'int', 
-        decimal: 'dec', 
-        nvarchar: 'cha', 
-        varchar: 'cha', 
-        datetime: 'dat', 
-        bit: 'bit'
-    }; 
+        int: 'int',
+        decimal: 'dec',
+        nvarchar: 'str',
+        varchar: 'str',
+        datetime: 'dat',
+        bit: 'boo',
+        json: 'jso',
+        file: 'fil'
+    };
     if ( !(Object.keys(dataTypeNames).some(x => row[17].toUpperCase().indexOf(x.toUpperCase()) >=0)) ) {
-        error.push(`Line ${lineNum} column 3: Invalid value type "${row[2]}": use "int" for integers, "decimal()" for decimals, "nvarchar/varchar" for characters/strings, "datetime" for date time, "bit" for bit.`);
+        error.push(`Line ${lineNum} column 18: Invalid value type "${row[2]}": use "int" for integers, "decimal()" for decimals, "nvarchar/varchar" for characters/strings, "datetime" for date time, "bit" for bit.`);
     }
 
     /* if valueType = C, then possibleValues cant be empty */
@@ -181,11 +183,14 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
     }
 
     const fieldId = parseInt(row[0], 10);
+    const systemGenerated = row[19].toUpperCase() === 'TRUE';
     const dataType = dataTypeNames[Object.keys(dataTypeNames).filter(el => row[17].toUpperCase().indexOf(el.toUpperCase()) >= 0)[0]];
     const length = parseInt(row[21], 10);
-    const nullable = row[23] === 'True';
-    const required = row[24] === 'True';
-    const mandatory = row[25] === 'True';
+    const nullable = row[23].toUpperCase() === 'TRUE';
+    const required = row[24].toUpperCase() === 'TRUE';
+    const mandatory = row[25].toUpperCase() === 'TRUE';
+    const notMapped = row[27].toUpperCase() === 'TRUE';
+    const showOnIndexView = row[31].toUpperCase() === 'TRUE';
 
     const dataEntry: IFieldEntry = {
         id: uuid(),
@@ -209,7 +214,7 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
         validation: row[16],
         dataType: dataType,
         controlType: row[18],
-        systemGenerated: row[19],
+        systemGenerated: systemGenerated,
         valueList: row[20],
         length: length,
         displayFormat: row[22],
@@ -217,11 +222,11 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
         required: required,
         mandatory: mandatory,
         collectIf: row[26],
-        notMapped: row[27],
+        notMapped: notMapped,
         defaultValue: row[28],
         regEx: row[29],
         regExErrorMsg: row[30],
-        showOnIndexView: row[31],
+        showOnIndexView: showOnIndexView,
         comments: row[32],
         jobId: job.id,
         deleted: null,

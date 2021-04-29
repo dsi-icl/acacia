@@ -1,9 +1,10 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, studyType } from 'itmat-commons';
+import { IProject, IStudy, studyType, IStudyDataVersion } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
+import { validate } from '@ideafast/idgen';
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -69,6 +70,126 @@ export class StudyCore {
         }
     }
 
+    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion> {
+        const res = (await db.collections!.data_collection.find({ m_versionId: null })).toArray();
+        if ((res as any).length <= 0) {
+            throw new ApolloError('No records uploaded since last operation.');
+        }
+        const newDataVersionId = uuid();
+        // update record version
+        const updateVersion = await db.collections!.data_collection.updateMany({ m_versionId: null }, { $set: { m_versionId: newDataVersionId } });
+        if (updateVersion.result.ok !== 1) {
+            throw new ApolloError('Create new adta version failed: cannot add data version to new records.');
+        }
+        // insert a new version into study
+        const newDataVersion: IStudyDataVersion = {
+            id: newDataVersionId,
+            contentId: uuid(), // same content = same id - used in reverting data, version control
+            jobId: [],
+            version: dataVersion,
+            tag: tag,
+            updateDate: (new Date().valueOf()).toString(),
+            extractedFrom: [],
+            fieldTrees: []
+        };
+        await db.collections!.studies_collection.updateOne({ id: studyId }, {
+            $push: { dataVersions: newDataVersion },
+            $inc: {
+                currentDataVersion: 1
+            }
+        });
+        return newDataVersion;
+    }
+
+    public async uploadOneDataClip(studyId: string, fieldList: any[], dataClip: any): Promise<any> {
+        let fieldInDb;
+        if (dataClip.fieldId) {
+            fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId);
+        } else {
+            fieldInDb = fieldList.filter(el => (el.fieldName === dataClip.fieldName && el.tableName === dataClip.tableName));
+        }
+        if (!fieldInDb) {
+            return { error: `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} is not registered. Please update the annotations first.` };
+        }
+        // check subjectId
+        if(!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
+            throw new ApolloError('Subject ID is illegal.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+        }
+
+        // check visitId is number
+        if (!/^\d+$/.test(dataClip.visitId)) {
+            throw new ApolloError('Visit ID is illegal.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+        }
+
+        // check if field fOUND
+        let error;
+
+
+        // check value is valid
+        let parsedValue;
+        if (fieldInDb.length === 0) {
+            error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Field Not found`;
+        } else {
+            switch (fieldInDb[0].dataType) {
+                case 'dec': // decimal
+                    if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as decimal.`;
+                        break;
+                    }
+                    parsedValue = parseFloat(dataClip.value);
+                    break;
+                case 'int': // integer
+                    if (!/^\d+$/.test(dataClip.value)) {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as integer.`;
+                        break;
+                    }
+                    parsedValue = parseInt(dataClip.value, 10);
+                    break;
+                case 'boo': // boolean
+                    if (dataClip.value.toLowerCase() === 'true' || dataClip.value.toLowerCase() === 'false') {
+                        parsedValue = dataClip.value.toLowerCase() === 'true';
+                    } else {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as boolean.`;
+                        break;
+                    }
+                    break;
+                case 'str':
+                    parsedValue = dataClip.value.toString();
+                    break;
+                case 'dat':
+                    parsedValue = dataClip.value.toString();
+                    break;
+                case 'jso': // save as string
+                    parsedValue = JSON.stringify(dataClip.value);
+                    break;
+                case 'unk':
+                    parsedValue = dataClip.value.toString();
+                    break;
+                default:
+                    error = (`Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Invalid data Type.`);
+                    break;
+            }
+        }
+        if (error !== undefined) {
+            return { error: error };
+        }
+        const obj = {
+            m_studyId: studyId,
+            m_subjectId: dataClip.subjectId,
+            m_versionId: null,
+            m_visitId: dataClip.visitId
+        };
+        const objWithData = {
+            ...obj,
+        };
+        objWithData[dataClip.fieldId] = parsedValue;
+        await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, {
+            upsert: true
+        });
+        return { error: null };
+
+    }
+
     public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuid(),
@@ -83,8 +204,8 @@ export class StudyCore {
         };
 
         const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
-            { $match: { m_study: studyId } },
-            { $group: { _id: null, array: { $addToSet: '$m_eid' } } },
+            { $match: { m_studyId: studyId } },
+            { $group: { _id: null, array: { $addToSet: '$m_subjectId' } } },
             { $project: { array: 1 } }
         ]).toArray();
 

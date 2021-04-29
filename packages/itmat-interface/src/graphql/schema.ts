@@ -18,10 +18,11 @@ enum FIELD_ITEM_TYPE {
 enum FIELD_VALUE_TYPE {
     int # integer
     dec # decimal
-    cha # characters
-    bit # bit
-    dat # datetime
-
+    str # characters/string
+    boo # boolean
+    dat # datetime, temporaily save as string
+    fil # file id
+    jso # JSON: array & object
 }
 
 enum STUDYTYPE {
@@ -52,7 +53,7 @@ type Field {
     validation: String
     dataType: FIELD_VALUE_TYPE!
     controlType: String
-    systemGenerated: String!
+    systemGenerated: Boolean!
     valueList: String
     length: Int
     displayFormat: String
@@ -60,13 +61,31 @@ type Field {
     required: Boolean!
     mandatory: Boolean!
     collectIf: String
-    notMapped: String!
+    notMapped: Boolean!
     defaultValue: String
     regEx: String
     regExErrorMsg: String
-    showOnIndexView: String!
+    showOnIndexView: Boolean!
     comments: String
+    jobId: String
+    dateAdded: Float
+    deleted: Float
     fieldTreeId: String!
+}
+
+input DataClip {
+    fieldId: Int,
+    fieldName: String,
+    value: String,
+    subjectId: String,
+    visitId: Int,
+    tableName: String
+}
+
+type DataRecordSummary {
+    numOfRecordSucceed: Int!,
+    numOfRecordFailed: Int!,
+    detail: [String]
 }
 
 type UserAccess {
@@ -437,6 +456,10 @@ type Mutation {
     createStudy(name: String!, description: String, type: STUDYTYPE!): Study
     deleteStudy(studyId: String!): GenericResponse
     editStudy(studyId: String!, description: String): Study
+    createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
+    uploadDataInArray(studyId: String!, fieldTreeId: String, data: [DataClip]): DataRecordSummary
+    deleteDataRecords(studyId: String!, subjectId: String, versionId: String, visitId: Int, fieldIds: [String]): DataRecordSummary
+    recoverDataRecords(studyId: String!, subjectId: String, versionId: String, visitId: Int): DataRecordSummary
 
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
@@ -457,7 +480,7 @@ type Mutation {
     createQuery(query: QueryObjInput!): QueryEntry
 
     # CURATION
-    createDataCurationJob(file: [String]!, studyId: String!, tag: String, dataVersion: String!, fieldTreeId: String!): [Job]
+    createDataCurationJob(file: [String]!, studyId: String!, fieldTreeId: String!): [Job]
     createFieldCurationJob(file: String!, studyId: String!, tag: String!): Job
     createQueryCurationJob(queryId: [String], studyId: String, projectId: String, dataVersionId: String): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study

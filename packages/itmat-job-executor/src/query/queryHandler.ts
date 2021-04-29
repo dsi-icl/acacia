@@ -1,4 +1,4 @@
-import { IQueryEntry, IProject, Logger, IJobEntry } from 'itmat-commons';
+import { IProject, Logger, IJobEntry } from 'itmat-commons';
 import { db } from '../database/database';
 import { pipelineGenerator } from './pipeLineGenerator';
 import { JobHandler } from '../jobHandlers/jobHandlerInterface';
@@ -43,7 +43,7 @@ export class QueryHandler extends JobHandler {
                     el.m_eid = mapping[el.m_eid];
                 });
             }
-            const res = await db.collections!.queries_collection.findOneAndUpdate({ id: queryId }, { $set: {
+            await db.collections!.queries_collection.findOneAndUpdate({ id: queryId }, { $set: {
                 queryResult: JSON.stringify(result),
                 status: 'FINISHED'
             }});
