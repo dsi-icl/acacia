@@ -577,7 +577,6 @@ describe('JOB API', () => {
                     projectId: createdProject.id
                 }
             });
-            console.log(res);
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
