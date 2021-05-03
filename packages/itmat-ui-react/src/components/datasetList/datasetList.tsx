@@ -14,7 +14,6 @@ export const DatasetList: React.FunctionComponent = () => {
                 if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>Error :( {error}</p>; }
                 if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.studies) {
-                    console.log(data.whoAmI.access);
                     const datasets = data.whoAmI.access.studies;
                     if (datasets.length > 0) {
                         return <PickDatasetSection datasets={datasets} />;
@@ -30,7 +29,6 @@ export const DatasetList: React.FunctionComponent = () => {
 const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => {
 
     const history = useHistory();
-    console.log(datasets);
     const columns = [
         {
             title: 'Dataset name',

@@ -2,8 +2,8 @@ import React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { GET_STUDY, IStudyDataVersion } from 'itmat-commons';
 // import { formatBytes } from '../../../reusable/fileList/fileList';
-import { useQuery } from '@apollo/client/react/hooks';
-import LoadSpinner from '../../../reusable/loadSpinner';
+// import { useQuery } from '@apollo/client/react/hooks';
+// import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 // number of patients
 // newest version of data - date / tag
@@ -12,10 +12,12 @@ import css from './tabContent.module.css';
 // upload new sets of data
 
 export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
-
-    const { id, version, tag, updateDate, extractedFrom } = versions[selectedVersion];
-    const { data, loading } = useQuery(GET_STUDY, { variables: { studyId } });
-    if (loading) { return <LoadSpinner />; }
+    if (selectedVersion === null || selectedVersion === -1) {
+        return null;
+    }
+    const { id, version, tag, updateDate } = versions[selectedVersion];
+    // const { data, loading } = useQuery(GET_STUDY, { variables: { studyId } });
+    // if (loading) { return <LoadSpinner />; }
 
     return <>
         {selectedVersion === currentVersion ? null : <><span className='warning_banner'>Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
@@ -25,7 +27,7 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selec
             <VersionTag tag={tag || 'n/a'} />
             <DateOfUpload date={updateDate} />
             {/* <FileSize size={(fileSize && formatBytes(parseInt(fileSize, 10))) || 'n/a'} /> */}
-            <OriginalFile study={data.getStudy} fileLists={(extractedFrom as any) || 'n/a'} />
+            {/* <OriginalFile study={data.getStudy} fileLists={(extractedFrom as any) || 'n/a'} /> */}
         </div>
 
     </>;
@@ -54,7 +56,7 @@ const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyI
 
 const NewestVersionOfData: React.FunctionComponent<{ version: string }> = ({ version }) => {
     return <div style={{ gridArea: 'version' }}><div>
-        <p>Dataset version</p>
+        <p>Current Dataset version</p>
         <span className={css.number_highlight}>{version}</span>
     </div>
     </div>;
@@ -69,24 +71,24 @@ const VersionTag: React.FunctionComponent<{ tag: string }> = ({ tag }) => {
     </div>;
 };
 
-const OriginalFile: React.FunctionComponent<{ study: any, fileLists: string[][] }> = ({ study, fileLists }) => {
-    const uniqueFiles: any[] = [];
-    for (let i=0; i<fileLists.length; i++) {
-        if (!uniqueFiles.includes(fileLists[i])) {
-            uniqueFiles.push(fileLists[i]);
-        }
-    }
-    const fileIdNameMapping = study.files.reduce((a, b) => { a[b['id']] = b['fileName']; return a; }, {});
-    console.log(uniqueFiles);
-    console.log(fileIdNameMapping);
-    return <div style={{ gridArea: 'filename' }}>
-        <div>
-            <p>Data were extracted from</p>
-            {/* <span className={css.number_highlight}>{fileLists}</span> */}
-            {uniqueFiles.map((el) => <><span className={css.number_highlight}>{fileIdNameMapping[el]}</span><br/></>)}
-        </div>
-    </div>;
-};
+// const OriginalFile: React.FunctionComponent<{ study: any, fileLists: string[][] }> = ({ study, fileLists }) => {
+//     const uniqueFiles: any[] = [];
+//     for (let i=0; i<fileLists.length; i++) {
+//         if (!uniqueFiles.includes(fileLists[i])) {
+//             uniqueFiles.push(fileLists[i]);
+//         }
+//     }
+//     const fileIdNameMapping = study.files.reduce((a, b) => { a[b['id']] = b['fileName']; return a; }, {});
+//     console.log(uniqueFiles);
+//     console.log(fileIdNameMapping);
+//     return <div style={{ gridArea: 'filename' }}>
+//         <div>
+//             <p>Data were extracted from</p>
+//             {/* <span className={css.number_highlight}>{fileLists}</span> */}
+//             {uniqueFiles.map((el) => <><span className={css.number_highlight}>{fileIdNameMapping[el]}</span><br/></>)}
+//         </div>
+//     </div>;
+// };
 
 const DateOfUpload: React.FunctionComponent<{ date: string | number /* UNIX timestamp */ }> = ({ date }) => {
     return <div style={{ gridArea: 'date' }}><div>

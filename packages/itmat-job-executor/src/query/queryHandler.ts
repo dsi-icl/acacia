@@ -14,17 +14,23 @@ export class QueryHandler extends JobHandler {
         return this._instance;
     }
 
-    public async execute(job: IJobEntry<{ queryId: string[], projectId: string, studyId: string, dataVersionId: string }>) {
+    public async execute(job: IJobEntry<{ queryId: string[], projectId: string, studyId: string }>) {
         // get available data versions
         const thisStudy = await db.collections!.studies_collection.findOne({ id: job.studyId });
-        const allContentId = Array.from(new Set(thisStudy.dataVersions.map(el => el.contentId)));
         const endContentId = thisStudy.dataVersions[thisStudy.currentDataVersion].contentId;
-        const availableDataVersions = thisStudy.dataVersions.map(el => el.id).slice(0, allContentId.indexOf(endContentId) + 1);
-
+        const availableDataVersions: any[] = [];
+        for (let i=0; i<thisStudy.dataVersions.length; i++) {
+            availableDataVersions.push(thisStudy.dataVersions[i].contentId);
+            if (thisStudy.dataVersions[i].contentId === endContentId) {
+                break;
+            }
+        }
         const  queryId  = job.data.queryId[0];
         const queryString = await db.collections!.queries_collection.findOne({id: queryId})!;
         const document = JSON.parse(queryString.queryString);
         const pipeline = pipelineGenerator.buildPipeline(document, job.studyId, availableDataVersions);
+        console.log(pipeline);
+        console.log(pipeline[2]['$match']['m_versionId']);
         try {
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             /* if the query is on a project, then we need to map the results m_eid */

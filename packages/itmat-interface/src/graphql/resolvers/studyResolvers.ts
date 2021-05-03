@@ -10,7 +10,8 @@ import {
     IUser,
     studyType,
     IDataClip,
-    IDataRecordSummary
+    IDataRecordSummary,
+    userTypes
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -18,6 +19,7 @@ import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
+import { buildPipeline } from '../../utils/query';
 
 export const studyResolvers = {
     Query: {
@@ -49,7 +51,7 @@ export const studyResolvers = {
             if (project === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-
+            
             /* check if user has permission */
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_project.specific_project_readonly_access],
@@ -67,20 +69,66 @@ export const studyResolvers = {
 
             return project;
         },
-        getStudyFields: async (__unused__parent: Record<string, unknown>, { fieldTreeId, studyId }: { fieldTreeId: string, studyId: string }, context: any): Promise<IFieldEntry[]> => {
+        getStudyFields: async (__unused__parent: Record<string, unknown>, { fieldTreeId, studyId, projectId }: { fieldTreeId: string, studyId: string, projectId?: string }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
-
+            console.log('getstudyfields', studyId, projectId);
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],
                 requester,
                 studyId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_project.specific_project_readonly_access],
+                requester,
+                studyId,
+                projectId
+            );
+            if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            const result = await db.collections!.field_dictionary_collection.find({ studyId: studyId }).toArray();
 
-            const result = await db.collections!.field_dictionary_collection.find({ studyId, fieldTreeId }).toArray();
+            return fieldTreeId === undefined ? result : result.filter(el => el.fieldTreeId === fieldTreeId);
+        },
+        getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: string, studyId: string, versionId: string[], projectId?: string }, context: any): Promise<any> => {
+            const requester: IUser = context.req.user;
 
-            return result;
+            /* user can get study if he has readonly permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_data_management, permissions.specific_project.specific_project_readonly_access],
+                requester,
+                studyId
+            );
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_project.specific_project_readonly_access],
+                requester,
+                studyId,
+                projectId
+            );
+            if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            const thisStudy = await db.collections!.studies_collection.findOne({ id: studyId });
+            const endContentId = thisStudy.dataVersions[thisStudy.currentDataVersion].contentId;
+            const availableDataVersions: any[] = [];
+            for (let i=0; i<thisStudy.dataVersions.length; i++) {
+                availableDataVersions.push(thisStudy.dataVersions[i].contentId);
+                if (thisStudy.dataVersions[i].contentId === endContentId) {
+                    break;
+                }
+            }
+            let result;
+            if (requester.type === userTypes.ADMIN) {
+                availableDataVersions.push(null);
+            }
+            if (versionId !== undefined && versionId !== null) {
+
+            }
+            if (queryString !== undefined && JSON.parse(queryString).data_requested.length !== 0) {
+                const document = JSON.parse(queryString);
+                const pipeline = buildPipeline(document, studyId, availableDataVersions);
+                result = await db.collections!.data_collection.aggregate(pipeline).toArray();
+            } else {
+                result = await db.collections!.data_collection.find({ m_versionId: {$in: availableDataVersions} }).toArray();
+            }
+            return JSON.stringify({data: result});
         }
     },
     Study: {
@@ -97,13 +145,24 @@ export const studyResolvers = {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         numOfSubjects: async (study: IStudy): Promise<number> => {
+            if (study.currentDataVersion === -1) {
+                return 0;
+            }
             const validDataVersions: any[] = [];
             for (let i=0; i<study.dataVersions.length; i++) {
                 if (i <= study.currentDataVersion) {
                     validDataVersions.push(study.dataVersions[i].id);
                 }
             }
-            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, m_versionId: { $in: validDataVersions }})).length;
+            const validContentIds: string[] = [];
+            const endContentId = study.dataVersions[study.currentDataVersion].contentId;
+            for (let i=0; i<study.dataVersions.length; i++) {
+                validContentIds.push(study.dataVersions[i].contentId);
+                if (study.dataVersions[i].contentId === endContentId) {
+                    break;
+                }
+            }
+            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, m_versionId: { $in: validContentIds }})).length;
         },
         currentDataVersion: async (study: IStudy): Promise<null | number> => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
@@ -343,7 +402,7 @@ export const studyResolvers = {
             };
             return returnedObject;
         },
-        createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
+        createNewDataVersion: async (__unused__parent: Record<string, unknown>, { fieldTreeId, studyId, dataVersion, tag }: { fieldTreeId: string, studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
@@ -358,8 +417,7 @@ export const studyResolvers = {
             if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(dataVersion)) {
                 throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
-
-            const created = await studyCore.createNewDataVersion(studyId, tag, dataVersion);
+            const created = await studyCore.createNewDataVersion(fieldTreeId, studyId, tag, dataVersion);
             return created;
         },
         createProject: async (__unused__parent: Record<string, unknown>, { studyId, projectName }: { studyId: string, projectName: string }, context: any): Promise<IProject> => {

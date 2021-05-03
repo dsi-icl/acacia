@@ -1491,7 +1491,7 @@ describe('STUDY API', () => {
                             hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
                         }
                     ],
-                    numOfSubjects: 2,
+                    numOfSubjects: 0,
                     currentDataVersion: 0,
                     dataVersions: [{
                         id: 'mockDataVersionId',
@@ -2736,22 +2736,20 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-
+            
             const createRes = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', fieldTreeId: fieldTreeId }
             });
-
             expect(createRes.status).toBe(200);
             expect(createRes.body.errors).toBeUndefined();
             expect(createRes.body.data.createNewDataVersion.version).toBe('1');
             expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
-
             const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
             expect(studyInDb.dataVersions).toHaveLength(1);
             expect(studyInDb.dataVersions[0].version).toBe('1');
             expect(studyInDb.dataVersions[0].tag).toBe('testTag');
-            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
+            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.contentId }).toArray();
             expect(dataInDb).toHaveLength(3);
 
         });
@@ -2766,7 +2764,7 @@ describe('STUDY API', () => {
 
             const createRes = await authorisedUser.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', fieldTreeId: fieldTreeId }
             });
             expect(createRes.status).toBe(200);
             expect(createRes.body.errors).toHaveLength(1);
@@ -2875,7 +2873,7 @@ describe('STUDY API', () => {
 
             const createRes = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', fieldTreeId: fieldTreeId }
             });
 
             expect(createRes.status).toBe(200);
@@ -2885,7 +2883,7 @@ describe('STUDY API', () => {
 
             const deleteRes = await authorisedUser.post('/graphql').send({
                 query: print(DELETE_DATA_RECORDS),
-                variables: { studyId: createdStudy.id, versionId: createRes.body.data.createNewDataVersion.id }
+                variables: { studyId: createdStudy.id, versionId: createRes.body.data.createNewDataVersion.contentId }
             });
             expect(deleteRes.status).toBe(200);
             expect(deleteRes.body.errors).toBeUndefined();
@@ -3049,7 +3047,7 @@ describe('STUDY API', () => {
 
             const createRes = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', fieldTreeId: fieldTreeId }
             });
 
             expect(createRes.status).toBe(200);
@@ -3070,7 +3068,7 @@ describe('STUDY API', () => {
             });
             const recoverRes = await authorisedUser.post('/graphql').send({
                 query: print(RECOVER_DATA_RECORDS),
-                variables: { studyId: createdStudy.id, versionId: createRes.body.data.createNewDataVersion.id }
+                variables: { studyId: createdStudy.id, versionId: createRes.body.data.createNewDataVersion.contentId }
             });
             expect(recoverRes.status).toBe(200);
             expect(recoverRes.body.errors).toBeUndefined();

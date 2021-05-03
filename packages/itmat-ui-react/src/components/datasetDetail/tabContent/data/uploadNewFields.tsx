@@ -6,12 +6,12 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 import { Button } from 'antd';
 
-export const UploadNewFields: React.FunctionComponent<{ studyId: string; dataVersionId: string }> = ({ studyId, dataVersionId }) => {
+export const UploadNewFields: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const [expanded, setExpanded] = React.useState(false);
     const [error, setError] = React.useState('');
     const [uploadFileTabSelected, setUploadFileTabSelected] = React.useState(true);
     const fileRef = React.createRef();
-    console.log(dataVersionId);
+
     if (!expanded) {
         return <Button onClick={() => setExpanded(true)}>Upload new annotations</Button>;
     }
@@ -49,14 +49,14 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string; dataVer
                         {error ? <div className='error_banner'>{error}</div> : null}
                     </>
                     :
-                    <UploadFieldBySelectingFileFormFetch {...{ studyId, dataVersionId, cancel: setExpanded }} />
+                    <UploadFieldBySelectingFileFormFetch {...{ studyId, cancel: setExpanded }} />
             }
         </div>
     </>;
 };
 
 
-const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: string; dataVersionId: string; cancel: (__unused__expanded: boolean) => void }> = ({ dataVersionId, studyId, cancel }) => {
+const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: string; cancel: (__unused__expanded: boolean) => void }> = ({ studyId, cancel }) => {
     return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data, error }) => {
             if (loading) return <LoadSpinner />;
@@ -64,12 +64,12 @@ const UploadFieldBySelectingFileFormFetch: React.FunctionComponent<{ studyId: st
             if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
                 return <p>No file has been uploaded to this dataset yet. You can do this in the <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>file repository</span></NavLink></p>;
             }
-            return <UploadFieldBySelectingFileForm dataVersionId={dataVersionId} files={data.getStudy.files} studyId={studyId} cancel={cancel} />;
+            return <UploadFieldBySelectingFileForm files={data.getStudy.files} studyId={studyId} cancel={cancel} />;
         }}
     </Query>;
 };
 
-const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string; files: IFile[]; dataVersionId: string; cancel: (__unused__expanded: boolean) => void }> = ({ cancel, dataVersionId, studyId, files }) => {
+const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string; files: IFile[]; cancel: (__unused__expanded: boolean) => void }> = ({ cancel, studyId, files }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState(files[files.length - 1].id); // files.length > 0 because of checks above
@@ -99,8 +99,7 @@ const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string;
                         variables: {
                             file: selectedFile,
                             studyId,
-                            tag,
-                            dataVersionId
+                            tag
                         }
                     });
 

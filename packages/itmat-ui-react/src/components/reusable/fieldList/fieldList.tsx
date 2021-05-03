@@ -22,7 +22,7 @@ const { TreeNode } = Tree;
 export const FieldListSection: React.FunctionComponent<{ studyData?: any, onCheck?: any; checkedList?: string[]; checkable: boolean; fieldList: Models.Field.IFieldEntry[] }> = ({ studyData, onCheck, checkedList, checkable, fieldList }) => {
     const fieldIdNameMapping = [];
     fieldList.forEach(el => fieldIdNameMapping[el.fieldName] = el.id);
-    if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p>; }
+    if (fieldList.length === 0) { return <p>There is no available field for field tree. Please contact admin or curator of this project.</p>; }
     const transformedList = fieldList.map(el => `${el.tableName.concat('>').concat(el.fieldName)}>${el.id}|${el.fieldName}`);
     const makeTree = (paths: string[]) => {
         const output: any = [];
@@ -90,11 +90,11 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ studyData?: a
 
     const [selectedNode, setSelectedNode] = React.useState<string>('');
 
-
+    const filteredFieldList = fieldList.filter(el => el.fieldName !== 'SubjectID' && el.fieldName !== 'VisitID');
     const fieldIdNameMapping = [];
-    fieldList.forEach(el => fieldIdNameMapping[el.fieldName] = el.id);
-    if (fieldList.length === 0) { return <p>There is no available field for this project. Please contact admin or curator of this project.</p>; }
-    const transformedList = fieldList.map(el => `${el.tableName.concat('>').concat(el.fieldName)}>${el.id}|${el.fieldName}`);
+    filteredFieldList.forEach(el => fieldIdNameMapping[el.fieldName] = el.id);
+    if (filteredFieldList.length === 0) { return <p>There is no available field for this field tree. Please contact admin or curator of this project.</p>; }
+    const transformedList = filteredFieldList.map(el => `${el.tableName.concat('>').concat(el.fieldName)}>${el.id}|${el.fieldName}`);
     const makeTree = (paths: string[]) => {
         const output: any = [];
         for (let i = 0; i < paths.length; i++) {
@@ -112,6 +112,9 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ studyData?: a
                 }
             }
         }
+        // output.push({fieldId: 'CAT:m_subjectId', name: 'SubjectID', children:[{fieldId: 'm_subjectId', name: 'SubjectID', children:[]}]});
+        // output.push({fieldId: 'CAT:m_visitId', name: 'VisitID', children:[{fieldId: 'm_visitId', name: 'VisitID', children:[]}]});
+        // console.log(output);
         const pushed: any = [];
         for (let i=0; i<output.length; i++) {
             pushed.push(output[i]);

@@ -174,10 +174,11 @@ describe('Unit tests for processDataRow function', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
+            m_versionId: null,
             31: 0,
             32: 'description',
             33: 60.2,
-            deleted: null
+            deleted: null,
         });
     });
 
@@ -191,6 +192,7 @@ describe('Unit tests for processDataRow function', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
+            m_versionId: null,
             32: 'description',
             deleted: null
         });
@@ -203,6 +205,7 @@ describe('Unit tests for processDataRow function', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
+            m_versionId: null,
             31: 0,
             32: 'description',
             deleted: null
@@ -217,6 +220,7 @@ describe('Unit tests for processDataRow function', () => {
         expect(dataEntry).toEqual({
             m_visitId: '1',
             m_studyId: 'mockStudyId',
+            m_versionId: null,
             31: 0,
             32: 'description',
             33: 60.2,
@@ -232,6 +236,7 @@ describe('Unit tests for processDataRow function', () => {
         expect(dataEntry).toEqual({
             m_subjectId: 'I7N3G6G',
             m_studyId: 'mockStudyId',
+            m_versionId: null,
             31: 0,
             32: 'description',
             33: 60.2,
@@ -386,6 +391,7 @@ describe('CSVCuratorClass', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
+            m_versionId: null,
             31: 0,
             32: 'no description',
             33: 60.2,
@@ -475,6 +481,7 @@ describe('CSVCuratorClass', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
+            m_versionId: null,
             31: 0,
             32: 'no description',
             33: 60.2,
@@ -513,6 +520,7 @@ describe('CSVCuratorClass', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
+            m_versionId: null,
             31: 0,
             32: 'no description',
             33: 60.2,

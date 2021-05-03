@@ -70,27 +70,28 @@ export class StudyCore {
         }
     }
 
-    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion> {
+    public async createNewDataVersion(fieldTreeId: string, studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion> {
         const res = (await db.collections!.data_collection.find({ m_versionId: null })).toArray();
         if ((res as any).length <= 0) {
             throw new ApolloError('No records uploaded since last operation.');
         }
         const newDataVersionId = uuid();
+        const contentId = uuid();
         // update record version
-        const updateVersion = await db.collections!.data_collection.updateMany({ m_versionId: null }, { $set: { m_versionId: newDataVersionId } });
+        const updateVersion = await db.collections!.data_collection.updateMany({ m_versionId: null }, { $set: { m_versionId: contentId } });
         if (updateVersion.result.ok !== 1) {
             throw new ApolloError('Create new adta version failed: cannot add data version to new records.');
         }
         // insert a new version into study
         const newDataVersion: IStudyDataVersion = {
             id: newDataVersionId,
-            contentId: uuid(), // same content = same id - used in reverting data, version control
+            contentId: contentId, // same content = same id - used in reverting data, version control
             jobId: [],
             version: dataVersion,
             tag: tag,
             updateDate: (new Date().valueOf()).toString(),
             extractedFrom: [],
-            fieldTrees: []
+            fieldTrees: [fieldTreeId]
         };
         await db.collections!.studies_collection.updateOne({ id: studyId }, {
             $push: { dataVersions: newDataVersion },

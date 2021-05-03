@@ -1,124 +1,175 @@
-import { Switch } from 'antd';
 import 'antd/lib/switch/style/css';
 import * as React from 'react';
-import { Query } from '@apollo/client/react/components';
-import { useMutation } from '@apollo/client/react/hooks';
-import { GET_STUDY, SET_DATAVERSION_AS_CURRENT, IStudy, IStudyDataVersion } from 'itmat-commons';
+import { useQuery, useMutation } from '@apollo/client/react/hooks';
+import { GET_STUDY, GET_STUDY_FIELDS, GET_DATA_RECORDS, CREATE_NEW_DATA_VERSION, SET_DATAVERSION_AS_CURRENT, IStudyDataVersion } from 'itmat-commons';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import { DataSummaryVisual } from './dataSummary';
-import { FieldListSelectionSection } from './fieldListSelection';
+import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import css from './tabContent.module.css';
 import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
-import { Button } from 'antd';
-
+import { Select, Button, Form, Input, Switch } from 'antd';
+const { Option } = Select;
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    return <div className={`${css.scaffold_wrapper} fade_in`}>
-        <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
-            {({ loading, data, error }) => {
-                if (loading) { return <LoadSpinner />; }
-                if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
-                if (data.getStudy && data.getStudy.currentDataVersion !== null && data.getStudy.currentDataVersion !== undefined && data.getStudy.dataVersions && data.getStudy.dataVersions[data.getStudy.currentDataVersion]) {
-                    return <div className={css.data_management_section}><DataManagement data={data.getStudy} showSaveVersionButton /></div>;
-                }
-                return <div>
-                    <p>There is no data uploaded for this study yet.</p>
-                    <UploadNewData studyId={studyId} cancelButton={() => { return; }} />
-                </div>;
-            }}
-        </Query>
-    </div>;
-};
-
-
-export const DataManagement: React.FunctionComponent<{ data: IStudy; showSaveVersionButton: boolean }> = ({ data, showSaveVersionButton }) => {
-    const [selectedVersion, setSelectedVersion] = React.useState(data.currentDataVersion);
-    const [addNewDataSectionShown, setAddNewDataSectionShown] = React.useState(false);
+    const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
+    const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
+    const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, { variables: { studyId: studyId, versionId: [null] } });
+    const [createNewDataVersion] = useMutation(CREATE_NEW_DATA_VERSION);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
+
+    const [selectedVersion, setSelectedVersion] = React.useState(getStudyData.getStudy.currentDataVersion);
+    const [selectedFieldTreeId, setSelectedFieldTreeId] = React.useState('');
+    const [selectedFieldTreeIdForDataUpload, setSelectedFieldTreeIdForDataUpload] = React.useState<string>('');
     const [useLinearHistory, setUseLinearHistory] = React.useState(false);
 
-    const currentVersionContent = data.dataVersions[data.currentDataVersion].contentId;
+    if (getStudyLoading || getStudyFieldsLoading || getDataRecordsLoading) {
+        return <LoadSpinner />;
+    }
+    if (getStudyError) {
+        return <p>
+            A error occured, please contact your administrator: {(getStudyError as any).message || ''}, {(getStudyFieldsError as any).message || ''}, {(getDataRecordsError as any).message || ''}
+        </p>;
+    }
 
-    return <>
-        <div className={css.top_panel}>
+    const currentVersionContent = getStudyData.getStudy.dataVersions[getStudyData.getStudy.currentDataVersion]?.contentId;
+    const showSaveVersionButton = true;
+    const uniqueFieldTreeIds: string[] = Array.from(new Set(getStudyFieldsData.getStudyFields.map(el => el.fieldTreeId)));
+    return <div className={css.data_management_section}>
+        {getStudyData.getStudy.currentDataVersion !== -1 ?
+            <div className={css.top_panel}>
+                {getStudyData.getStudy.dataVersions.length >= 1 ? <>
+                    <div><h5>Data versions</h5>  <h5>Linear history<InfoCircleOutlined className={css.infocircle} />:  <Switch onChange={(checked) => setUseLinearHistory(checked)} checked={useLinearHistory} className={css.switchButton} /></h5></div>
 
-
-            {data.dataVersions.length >= 1 ? <>
-                <div><h5>Data versions</h5>  <h5>Linear history<InfoCircleOutlined className={css.infocircle} />:  <Switch onChange={(checked) => setUseLinearHistory(checked)} checked={useLinearHistory} className={css.switchButton} /></h5></div>
-
-                {
-                    useLinearHistory ?
-                        (
-                            data.dataVersions.map((el, ind) =>
-                                <React.Fragment key={el.id}>
+                    {
+                        useLinearHistory ?
+                            (
+                                getStudyData.getStudy.dataVersions.map((el, ind) =>
+                                    <React.Fragment key={el.id}>
+                                        <div
+                                            key={el.id}
+                                            onClick={() => { setSelectedVersion(ind); }}
+                                            className={css.data_version_cube + (ind === selectedVersion ? (ind === getStudyData.getStudy.currentDataVersion ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '')}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
+                                        </div>
+                                        {ind === getStudyData.getStudy.dataVersions.length - 1 ? null : <span className={css.arrow}>⟶</span>}
+                                    </React.Fragment>
+                                )
+                            )
+                            :
+                            (
+                                removeDuplicateVersion(getStudyData.getStudy.dataVersions).map((el, ind) => <React.Fragment key={el.id}>
                                     <div
                                         key={el.id}
-                                        onClick={() => { setSelectedVersion(ind); setAddNewDataSectionShown(false); }}
-                                        className={css.data_version_cube + (ind === selectedVersion ? (ind === data.currentDataVersion ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '')}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
+                                        onClick={() => { setSelectedVersion(el.originalPosition); }}
+                                        className={css.data_version_cube + (el.originalPosition === selectedVersion ? (el.contentId === currentVersionContent ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '')}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
                                     </div>
-                                    {ind === data.dataVersions.length - 1 ? null : <span className={css.arrow}>⟶</span>}
-                                </React.Fragment>
+                                    {ind === removeDuplicateVersion(getStudyData.getStudy.dataVersions).length - 1 ? null : <span className={css.arrow}>⟶</span>}
+                                </React.Fragment>)
                             )
-                        )
-                        :
-                        (
-                            removeDuplicateVersion(data.dataVersions).map((el, ind) => <React.Fragment key={el.id}>
-                                <div
-                                    key={el.id}
-                                    onClick={() => { setSelectedVersion(el.originalPosition); setAddNewDataSectionShown(false); }}
-                                    className={css.data_version_cube + (el.originalPosition === selectedVersion ? (el.contentId === currentVersionContent ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '')}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
-                                </div>
-                                {ind === removeDuplicateVersion(data.dataVersions).length - 1 ? null : <span className={css.arrow}>⟶</span>}
-                            </React.Fragment>)
-                        )
-                }
+                    }
 
-                <Button key='new data' className={css.versioning_section_button} onClick={() => setAddNewDataSectionShown(true)}>Upload new data</Button>
-                {showSaveVersionButton && (selectedVersion !== data.currentDataVersion) ?
-                    <Button key='save version' onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: data.id, dataVersionId: data.dataVersions[selectedVersion].id } }); }} className={css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</Button>
-                    : null
-                }<br />
-            </> : null}
-
-            {
-                addNewDataSectionShown ?
-                    <div className={css.add_new_fields_section}>
-                        <UploadNewData studyId={data.id} cancelButton={setAddNewDataSectionShown} />
-                    </div> :
-                    null
-            }
-        </div>
-
+                    {showSaveVersionButton && (selectedVersion !== getStudyData.getStudy.currentDataVersion) ?
+                        <Button key='save version' onClick={() => { if (loading) { return; } setDataVersion({ variables: { studyId: getStudyData.getStudy.id, dataVersionId: getStudyData.getStudy.dataVersions[selectedVersion].id } }); window.location.reload(); }} className={css.versioning_section_button}>{loading ? 'Loading...' : 'Set as current version'}</Button>
+                        : null
+                    }<br />
+                </> : null}
+            </div> : null }
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
+            <Subsection title='Upload New Fields'>
+                <UploadNewFields studyId={studyId} />
+            </Subsection><br/>
             <Subsection title='Fields & Variables'>
-                <UploadNewFields key={selectedVersion} dataVersionId={data.dataVersions[selectedVersion].id} studyId={data.id} />
+                {console.log(uniqueFieldTreeIds)}
+                <Select
+                    placeholder='Select Field'
+                    allowClear
+                    onChange={(value) => {
+                        console.log(value);
+                        setSelectedFieldTreeId(value.toString());
+                    }}
+                    style={{width: '80%'}}
+                >
+                    {uniqueFieldTreeIds.map((el) => <Option value={el} >{el}</Option>)}
+                </Select>
+                <FieldListSection
+                    studyData={getStudyData.getStudy}
+                    onCheck={false}
+                    checkable={false}
+                    fieldList={getStudyFieldsData.getStudyFields.filter(el => el.fieldTreeId === selectedFieldTreeId)}
+                ></FieldListSection>
                 <br /><br />
-                <FieldListSelectionSection
-                    studyId={data.id}
-                    selectedVersion={selectedVersion}
-                    currentVersion={data.currentDataVersion}
-                    versions={data.dataVersions}
-                    key={data.id}
-                />
+
             </Subsection>
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title='Data'>
+            <Subsection title='Upload New Data'>
+                <Select
+                    placeholder='Select Field'
+                    allowClear
+                    onChange={(value) => {
+                        console.log(value);
+                        setSelectedFieldTreeIdForDataUpload(value.toString());
+                    }}
+                    style={{width: '80%'}}
+                >
+                    {uniqueFieldTreeIds.map((el) => <Option value={el} >{el}</Option>)}
+                </Select>
+                <UploadNewData studyId={studyId} fieldTreeId={selectedFieldTreeIdForDataUpload} cancelButton={() => { return; }} ></UploadNewData>
+            </Subsection><br/>
+            <Subsection title='Unsettled Data'>
+                {JSON.parse(getDataRecordsData.getDataRecords).data.length !== 0 ?
+                    <div>
+                        <p>Number Of Records: {JSON.parse(getDataRecordsData.getDataRecords).data.length}</p>
+                        <Form onFinish={(variables) => {
+                            console.log(variables);
+                            createNewDataVersion({
+                                variables: {
+                                    ...variables,
+                                    studyId: studyId
+                                }
+                            });}}>
+                            <Form.Item name='fieldTreeId' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                <Select
+                                    placeholder='Select Field'
+                                    allowClear
+                                    // onChange={(value) => {
+                                    //     console.log(value);
+                                    //     setSelectedFieldTreeIdForDataUpload(value.toString());
+                                    // }}
+                                    style={{width: '80%'}}
+                                >
+                                    {uniqueFieldTreeIds.map((el) => <Option value={el} >{el}</Option>)}
+                                </Select>
+                            </Form.Item>
+                            <Form.Item name='dataVersion' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                <Input placeholder='Data Version' />
+                            </Form.Item>
+                            <Form.Item name='tag' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                <Input placeholder='Tag' />
+                            </Form.Item>
+                            <Form.Item>
+                                <Button type='primary' htmlType='submit'>
+                            Submit
+                                </Button>
+                            </Form.Item>
+                        </Form>
+                    </div> :
+                    <p>No unsettled data found.</p>}
+            </Subsection>
+            <Subsection title='Data Summary'>
                 <DataSummaryVisual
-                    studyId={data.id}
-                    selectedVersion={selectedVersion}
-                    currentVersion={data.currentDataVersion}
-                    versions={data.dataVersions}
-                    key={data.id}
+                    studyId={studyId}
+                    selectedVersion={getStudyData.getStudy.currentDataVersion}
+                    currentVersion={getStudyData.getStudy.currentDataVersion}
+                    versions={getStudyData.getStudy.dataVersions}
+                    key={studyId}
                 />
             </Subsection>
         </div>
-
-    </>;
+    </div>;
 };
 
 function removeDuplicateVersion(versions: IStudyDataVersion[]) {

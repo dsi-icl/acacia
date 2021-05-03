@@ -46,9 +46,8 @@ class PipelineGenerator {
     }
     */
     public buildPipeline(query: any, studyId: string, availableDataVersions: number[]) {
-        const fields = { _id: 0, m_eid: 1 };
+        const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
         // We send back the requested fields
-        console.log(query);
         query.data_requested.forEach((field: any) => {
             (fields as any)[field] = 1;
         });
@@ -77,14 +76,14 @@ class PipelineGenerator {
         }
         if (this._isEmptyObject(addFields)) {
             return [
-                { $match: { m_study: studyId } },
+                { $match: { m_studyId: studyId } },
                 { $match: match },
                 { $match: { m_versionId: { $in: availableDataVersions } } },
                 { $project: fields }
             ];
         } else {
             return [
-                { $match: { m_study: studyId } },
+                { $match: { m_studyId: studyId } },
                 { $addFields: addFields },
                 { $match: match },
                 { $match: { m_versionId: { $in: availableDataVersions } } },

@@ -68,6 +68,12 @@ export const GET_STUDY = gql`
     ${job_fragment}
 `;
 
+export const GET_DATA_RECORDS = gql`
+    query getDataRecords($studyId: String!, $queryString: JSON, $versionId: [String], $projectId: String) {
+        getDataRecords(studyId: $studyId, queryString: $queryString, versionId: $versionId, projectId: $projectId)
+    }
+`;
+
 export const CREATE_STUDY = gql`
     mutation createStudy($name: String!, $description: String, $type: STUDYTYPE!){
         createStudy(name: $name, description: $description, type: $type) {
@@ -91,8 +97,8 @@ export const EDIT_STUDY = gql`
 `;
 
 export const CREATE_NEW_DATA_VERSION = gql`
-    mutation createNewDataVersion($studyId: String!, $dataVersion: String!, $tag: String){
-        createNewDataVersion(studyId: $studyId, dataVersion: $dataVersion, tag: $tag) {
+    mutation createNewDataVersion($fieldTreeId: String!, $studyId: String!, $dataVersion: String!, $tag: String){
+        createNewDataVersion(fieldTreeId: $fieldTreeId, studyId: $studyId, dataVersion: $dataVersion, tag: $tag) {
             id
             version
             tag

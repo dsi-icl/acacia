@@ -201,6 +201,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
     let colIndex = 0;
     const dataEntry: any = {
         m_studyId: job.studyId,
+        m_versionId: null,
         deleted: null
     };
     if (row.length !== (parsedHeader.filter(el => el !== undefined).length + 1)) {

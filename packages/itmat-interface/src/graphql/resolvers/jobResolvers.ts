@@ -133,7 +133,7 @@ export const jobResolvers = {
             }
             return job;
         },
-        createQueryCurationJob: async (__unused__parent: Record<string, unknown>, args: { queryId: string[], studyId: string, projectId: string, dataVersionId: string }, context: any): Promise<Models.JobModels.IJobEntryForQueryCuration> => {
+        createQueryCurationJob: async (__unused__parent: Record<string, unknown>, args: { queryId: string[], studyId: string, projectId: string }, context: any): Promise<Models.JobModels.IJobEntryForQueryCuration> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -161,9 +161,9 @@ export const jobResolvers = {
             }
 
             /* check version format */
-            if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(args.dataVersionId)) {
-                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
-            }
+            // if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(args.dataVersionId)) {
+            //     throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+            // }
 
             const job: Models.JobModels.IJobEntryForQueryCuration = {
                 id: uuid(),
@@ -178,8 +178,7 @@ export const jobResolvers = {
                 data: {
                     queryId: args.queryId,
                     projectId: args.projectId,
-                    studyId: args.studyId,
-                    dataVersionId: args.dataVersionId,
+                    studyId: args.studyId
                 }
             };
             const result = await db.collections!.jobs_collection.insertOne(job);

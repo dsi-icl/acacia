@@ -18,6 +18,7 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                 if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
                 if (!data || !data.getStudy) { return <div>Oops! Cannot find this dataset.</div>; }
+                console.log(data);
                 return <div className={css.page_container}>
                     <div className={css.ariane}>
                         <h2>{data.getStudy.name.toUpperCase()}</h2>

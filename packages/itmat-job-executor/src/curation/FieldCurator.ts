@@ -151,7 +151,8 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
     }
 
     /* these fields has to be numbers */
-    if (!/^\d+$/.test(row[0]) && row[0] !== '') {
+    // fieldId should not be ''
+    if (!/^\d+$/.test(row[0]) && row[0]) {
         error.push(`Line ${lineNum} column 1: Cannot parse field ID as number.`);
     }
     if (!/^\d+$/.test(row[21]) && row[21] !== '') {
@@ -185,7 +186,7 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
     const fieldId = parseInt(row[0], 10);
     const systemGenerated = row[19].toUpperCase() === 'TRUE';
     const dataType = dataTypeNames[Object.keys(dataTypeNames).filter(el => row[17].toUpperCase().indexOf(el.toUpperCase()) >= 0)[0]];
-    const length = parseInt(row[21], 10);
+    const length = row[21] === '' ? undefined : parseInt(row[21], 10);
     const nullable = row[23].toUpperCase() === 'TRUE';
     const required = row[24].toUpperCase() === 'TRUE';
     const mandatory = row[25].toUpperCase() === 'TRUE';

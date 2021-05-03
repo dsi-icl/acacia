@@ -413,7 +413,8 @@ type Query {
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
-    getStudyFields(fieldTreeId: String!, studyId: String!): [Field]
+    getStudyFields(fieldTreeId: String, studyId: String!, projectId: String): [Field]
+    getDataRecords(studyId: String!, queryString: JSON, versionId: [String], projectId: String): JSON
 
     # QUERY
     getQueries(studyId: String, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
@@ -456,11 +457,11 @@ type Mutation {
     createStudy(name: String!, description: String, type: STUDYTYPE!): Study
     deleteStudy(studyId: String!): GenericResponse
     editStudy(studyId: String!, description: String): Study
-    createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
+    createNewDataVersion(fieldTreeId: String!, studyId: String!, dataVersion: String!, tag: String): DataVersion
     uploadDataInArray(studyId: String!, fieldTreeId: String, data: [DataClip]): DataRecordSummary
     deleteDataRecords(studyId: String!, subjectId: String, versionId: String, visitId: Int, fieldIds: [String]): DataRecordSummary
     recoverDataRecords(studyId: String!, subjectId: String, versionId: String, visitId: Int): DataRecordSummary
-
+    
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
     deleteProject(projectId: String!): GenericResponse
@@ -482,7 +483,7 @@ type Mutation {
     # CURATION
     createDataCurationJob(file: [String]!, studyId: String!, fieldTreeId: String!): [Job]
     createFieldCurationJob(file: String!, studyId: String!, tag: String!): Job
-    createQueryCurationJob(queryId: [String], studyId: String, projectId: String, dataVersionId: String): Job
+    createQueryCurationJob(queryId: [String], studyId: String, projectId: String): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
 
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mutation, Query } from '@apollo/client/react/components';
+import { Mutation } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
 import {
     EDIT_PROJECT_APPROVED_FIELDS,
@@ -9,7 +9,8 @@ import {
 } from 'itmat-commons';
 import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../../reusable/loadSpinner';
-import { Button } from 'antd';
+import { Button, Select } from 'antd';
+const { Option } = Select;
 
 export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId } });
@@ -20,27 +21,41 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
     if (!getStudy || !getStudy.dataVersions || getStudy.dataVersions.length === 0) {
         return <p>No data has been uploaded.</p>;
     }
-    if (getStudy.dataVersions[getStudy.currentDataVersion] === undefined || getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees === undefined || getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees.length === 0) {
-        return <p>No field tree uploaded.</p>;
-    }
+    // if (getStudy.dataVersions[getStudy.currentDataVersion] === undefined || getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees === undefined || getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees.length === 0) {
+    //     return <p>No field tree uploaded.</p>;
+    // }
 
-    return <FieldListSelectionState originalCheckedList={originalCheckedList} projectId={projectId} studyId={studyId} fieldTreeIds={getStudy.dataVersions[getStudy.currentDataVersion].fieldTrees} />;
+    return <FieldListSelectionState originalCheckedList={originalCheckedList} projectId={projectId} studyId={studyId} />;
 };
 
-const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; projectId: string; studyId: string; fieldTreeIds: string[] }> = ({ originalCheckedList, projectId, studyId, fieldTreeIds }) => {
-    const [selectedTree, setSelectedTree] = React.useState(fieldTreeIds[0]);
+const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: { [fieldTreeId: string]: string[] }; projectId: string; studyId: string; }> = ({ originalCheckedList, projectId, studyId }) => {
+    const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
+    const [selectedFieldTreeId, setSelectedFieldTreeId] = React.useState('');
 
+    if (getStudyFieldsLoading) {
+        return <LoadSpinner />;
+    }
+
+    if (getStudyFieldsError) {
+        return <p>
+            A error occured, please contact your administrator: {(getStudyFieldsError as any).message || ''}
+        </p>;
+    }
+    const uniqueFieldTreeIds: string[] = Array.from(new Set(getStudyFieldsData.getStudyFields.map(el => el.fieldTreeId)));
+    console.log(uniqueFieldTreeIds);
     return <>
-        <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
-        <Query<any, any> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
-            {({ data, loading, error }) => {
-                if (loading) { return <LoadSpinner />; }
-                if (error) { return <p>{JSON.stringify(error)}</p>; }
-                if (!data || !data.getStudyFields || data.getStudyFields.length === 0) { return <p>There is no field annotations uploaded for this tag.</p>; }
-                // return <FieldListSection projectId={projectId} checkable={false} fieldList={data.getStudyFields} />;
-                return <GrantedFieldListSectionSelectedFieldTree selectedTree={selectedTree} originalCheckedList={originalCheckedList} projectId={projectId} fieldList={data.getStudyFields} studyId={studyId} />;
+        <Select
+            placeholder='Select Field'
+            allowClear
+            onChange={(value) => {
+                console.log(value);
+                setSelectedFieldTreeId(value.toString());
             }}
-        </Query>
+            style={{width: '80%'}}
+        >
+            {uniqueFieldTreeIds.map((el) => <Option value={el} >{el}</Option>)}
+        </Select>
+        <GrantedFieldListSectionSelectedFieldTree selectedTree={selectedFieldTreeId} originalCheckedList={originalCheckedList} projectId={projectId} fieldList={getStudyFieldsData.getStudyFields.filter(el => el.fieldTreeId === selectedFieldTreeId)} studyId={studyId} />;
     </>;
 };
 

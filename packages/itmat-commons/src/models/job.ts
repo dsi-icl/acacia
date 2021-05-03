@@ -20,4 +20,4 @@ export interface IJobEntry<dataobj> {
 
 export type IJobEntryForDataCuration = IJobEntry<{ fieldTreeId: string }>;
 export type IJobEntryForFieldCuration = IJobEntry<{ tag: string }>;
-export type IJobEntryForQueryCuration = IJobEntry<{ queryId: string[], projectId: string, studyId: string, dataVersionId: string }>;
+export type IJobEntryForQueryCuration = IJobEntry<{ queryId: string[], projectId: string, studyId: string }>;
