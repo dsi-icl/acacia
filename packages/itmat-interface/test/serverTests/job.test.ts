@@ -67,456 +67,456 @@ describe('JOB API', () => {
         adminId = result.filter(e => e.username === 'admin')[0].id;
     });
 
-    // describe('CREATE DATA CURATION API', () => {
-    //     beforeEach(async () => {
-    //         /* setup: create a study to upload file to */
-    //         const studyname = uuid();
-    //         createdStudy = {
-    //             id: `new_study_id_${studyname}`,
-    //             name: studyname,
-    //             createdBy: 'admin',
-    //             lastModified: 200000002,
-    //             deleted: null,
-    //             currentDataVersion: -1,
-    //             dataVersions: []
-    //         };
-    //         await mongoClient.collection(config.database.collections.studies_collection).insertOne(createdStudy);
+    describe('CREATE DATA CURATION API', () => {
+        beforeEach(async () => {
+            /* setup: create a study to upload file to */
+            const studyname = uuid();
+            createdStudy = {
+                id: `new_study_id_${studyname}`,
+                name: studyname,
+                createdBy: 'admin',
+                lastModified: 200000002,
+                deleted: null,
+                currentDataVersion: -1,
+                dataVersions: []
+            };
+            await mongoClient.collection(config.database.collections.studies_collection).insertOne(createdStudy);
 
-    //         /* setup: created file entry in the database */
-    //         const fileName = uuid();
-    //         createdFile = {
-    //             id: `new_file_id_${fileName}`,
-    //             fileName: fileName + '.csv',
-    //             studyId: createdStudy.id,
-    //             fileSize: '1000',
-    //             description: 'just a test file here.',
-    //             uploadedBy: adminId,
-    //             uri: `new_file_uri_${fileName}`,
-    //             deleted: null
-    //         };
-    //         await mongoClient.collection(config.database.collections.files_collection).insertOne(createdFile);
-    //     });
+            /* setup: created file entry in the database */
+            const fileName = uuid();
+            createdFile = {
+                id: `new_file_id_${fileName}`,
+                fileName: fileName + '.csv',
+                studyId: createdStudy.id,
+                fileSize: '1000',
+                description: 'just a test file here.',
+                uploadedBy: adminId,
+                uri: `new_file_uri_${fileName}`,
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.files_collection).insertOne(createdFile);
+        });
 
-    //     test('Create a data curation job with tag (admin)', async () => {
-    //         const res = await admin.post('/graphql').send({
-    //             query: print(CREATE_DATA_CURATION_JOB),
-    //             variables: {
-    //                 file: [createdFile.id],
-    //                 studyId: createdStudy.id,
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toBeUndefined();
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(res.body.data.createDataCurationJob).toEqual([{
-    //             id: job.id,
-    //             jobType: 'DATA_UPLOAD_CSV',
-    //             projectId: null,
-    //             studyId: createdStudy.id,
-    //             requester: adminId,
-    //             requestTime: job.requestTime,
-    //             receivedFiles: [createdFile.id],
-    //             status: 'QUEUED',
-    //             error: null,
-    //             cancelled: false,
-    //             cancelledTime: null,
-    //             data: {
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         }]);
-    //     });
+        test('Create a data curation job with tag (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_DATA_CURATION_JOB),
+                variables: {
+                    file: [createdFile.id],
+                    studyId: createdStudy.id,
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(res.body.data.createDataCurationJob).toEqual([{
+                id: job.id,
+                jobType: 'DATA_UPLOAD_CSV',
+                projectId: null,
+                studyId: createdStudy.id,
+                requester: adminId,
+                requestTime: job.requestTime,
+                receivedFiles: [createdFile.id],
+                status: 'QUEUED',
+                error: null,
+                cancelled: false,
+                cancelledTime: null,
+                data: {
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            }]);
+        });
 
-    //     test('Create a data curation job without tag (admin)', async () => {
-    //         const res = await admin.post('/graphql').send({
-    //             query: print(CREATE_DATA_CURATION_JOB),
-    //             variables: {
-    //                 file: [createdFile.id],
-    //                 studyId: createdStudy.id,
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toBeUndefined();
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(res.body.data.createDataCurationJob).toEqual([{
-    //             id: job.id,
-    //             jobType: 'DATA_UPLOAD_CSV',
-    //             projectId: null,
-    //             studyId: createdStudy.id,
-    //             requester: adminId,
-    //             requestTime: job.requestTime,
-    //             receivedFiles: [createdFile.id],
-    //             status: 'QUEUED',
-    //             error: null,
-    //             cancelled: false,
-    //             cancelledTime: null,
-    //             data: {
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         }]);
-    //     });
+        test('Create a data curation job without tag (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_DATA_CURATION_JOB),
+                variables: {
+                    file: [createdFile.id],
+                    studyId: createdStudy.id,
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(res.body.data.createDataCurationJob).toEqual([{
+                id: job.id,
+                jobType: 'DATA_UPLOAD_CSV',
+                projectId: null,
+                studyId: createdStudy.id,
+                requester: adminId,
+                requestTime: job.requestTime,
+                receivedFiles: [createdFile.id],
+                status: 'QUEUED',
+                error: null,
+                cancelled: false,
+                cancelledTime: null,
+                data: {
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            }]);
+        });
 
-    //     test('Create a data curation job (user with no privilege)', async () => {
-    //         const res = await user.post('/graphql').send({
-    //             query: print(CREATE_DATA_CURATION_JOB),
-    //             variables: {
-    //                 file: [createdFile.id],
-    //                 studyId: createdStudy.id,
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toHaveLength(1);
-    //         expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(job).toBe(null);
-    //     });
+        test('Create a data curation job (user with no privilege)', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(CREATE_DATA_CURATION_JOB),
+                variables: {
+                    file: [createdFile.id],
+                    studyId: createdStudy.id,
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(job).toBe(null);
+        });
 
-    //     test('Create a data curation job (user with privilege)', async () => {
-    //         /* setup: creating a privileged user */
-    //         const username = uuid();
-    //         const authorisedUserProfile = {
-    //             username,
-    //             type: 'STANDARD',
-    //             firstname: `${username}_firstname`,
-    //             lastname: `${username}_lastname`,
-    //             password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-    //             otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-    //             email: `${username}@example.com`,
-    //             description: 'I am a new user.',
-    //             emailNotificationsActivated: true,
-    //             organisation: 'organisation_system',
-    //             deleted: null,
-    //             id: `new_user_id_${username}`
-    //         };
-    //         await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+        test('Create a data curation job (user with privilege)', async () => {
+            /* setup: creating a privileged user */
+            const username = uuid();
+            const authorisedUserProfile = {
+                username,
+                type: 'STANDARD',
+                firstname: `${username}_firstname`,
+                lastname: `${username}_lastname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                email: `${username}@example.com`,
+                description: 'I am a new user.',
+                emailNotificationsActivated: true,
+                organisation: 'organisation_system',
+                deleted: null,
+                id: `new_user_id_${username}`
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
-    //         const roleId = uuid();
-    //         const newRole = {
-    //             id: roleId,
-    //             projectId: null,
-    //             studyId: createdStudy.id,
-    //             name: `${roleId}_rolename`,
-    //             permissions: [
-    //                 permissions.specific_study.specific_study_data_management
-    //             ],
-    //             users: [authorisedUserProfile.id],
-    //             deleted: null
-    //         };
-    //         await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
+            const roleId = uuid();
+            const newRole = {
+                id: roleId,
+                projectId: null,
+                studyId: createdStudy.id,
+                name: `${roleId}_rolename`,
+                permissions: [
+                    permissions.specific_study.specific_study_data_management
+                ],
+                users: [authorisedUserProfile.id],
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
-    //         const authorisedUser = request.agent(app);
-    //         await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
+            const authorisedUser = request.agent(app);
+            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
-    //         /* test */
-    //         const res = await authorisedUser.post('/graphql').send({
-    //             query: print(CREATE_DATA_CURATION_JOB),
-    //             variables: {
-    //                 file: [createdFile.id],
-    //                 studyId: createdStudy.id,
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toBeUndefined();
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(res.body.data.createDataCurationJob).toEqual([{
-    //             id: job.id,
-    //             jobType: 'DATA_UPLOAD_CSV',
-    //             projectId: null,
-    //             studyId: createdStudy.id,
-    //             requester: authorisedUserProfile.id,
-    //             requestTime: job.requestTime,
-    //             receivedFiles: [createdFile.id],
-    //             status: 'QUEUED',
-    //             error: null,
-    //             cancelled: false,
-    //             cancelledTime: null,
-    //             data: {
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         }]);
-    //     });
+            /* test */
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(CREATE_DATA_CURATION_JOB),
+                variables: {
+                    file: [createdFile.id],
+                    studyId: createdStudy.id,
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(res.body.data.createDataCurationJob).toEqual([{
+                id: job.id,
+                jobType: 'DATA_UPLOAD_CSV',
+                projectId: null,
+                studyId: createdStudy.id,
+                requester: authorisedUserProfile.id,
+                requestTime: job.requestTime,
+                receivedFiles: [createdFile.id],
+                status: 'QUEUED',
+                error: null,
+                cancelled: false,
+                cancelledTime: null,
+                data: {
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            }]);
+        });
 
-    //     test('Create a data curation job with a non-existent file id (admin)', async () => {
-    //         const res = await admin.post('/graphql').send({
-    //             query: print(CREATE_DATA_CURATION_JOB),
-    //             variables: {
-    //                 file: ['fakeFile'],
-    //                 studyId: createdStudy.id,
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toHaveLength(1);
-    //         expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(job).toBe(null);
-    //     });
+        test('Create a data curation job with a non-existent file id (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_DATA_CURATION_JOB),
+                variables: {
+                    file: ['fakeFile'],
+                    studyId: createdStudy.id,
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(job).toBe(null);
+        });
 
-    //     test('Create a data curation job with a non-existent study id (admin)', async () => {
-    //         const res = await admin.post('/graphql').send({
-    //             query: print(CREATE_DATA_CURATION_JOB),
-    //             variables: {
-    //                 file: [createdFile.id],
-    //                 studyId: 'fakeStudyId',
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toHaveLength(1);
-    //         expect(res.body.errors[0].message).toBe('Study does not exist.');
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(job).toBe(null);
-    //     });
+        test('Create a data curation job with a non-existent study id (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_DATA_CURATION_JOB),
+                variables: {
+                    file: [createdFile.id],
+                    studyId: 'fakeStudyId',
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('Study does not exist.');
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(job).toBe(null);
+        });
 
-    //     test('Create a data curation job with a non-existent study id (user)', async () => {
-    //         const res = await user.post('/graphql').send({
-    //             query: print(CREATE_DATA_CURATION_JOB),
-    //             variables: {
-    //                 file: [createdFile.id],
-    //                 studyId: createdStudy.id,
-    //                 fieldTreeId: 'mockFieldTreeId'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toHaveLength(1);
-    //         expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(job).toBe(null);
-    //     });
-    // });
+        test('Create a data curation job with a non-existent study id (user)', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(CREATE_DATA_CURATION_JOB),
+                variables: {
+                    file: [createdFile.id],
+                    studyId: createdStudy.id,
+                    fieldTreeId: 'mockFieldTreeId'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(job).toBe(null);
+        });
+    });
 
-    // describe('CREATE FIELD CURATION API', () => {
-    //     beforeEach(async () => {
-    //         /* setup: create a study to upload file to */
-    //         const studyname = uuid();
-    //         createdStudy = {
-    //             id: `new_study_id_${studyname}`,
-    //             name: studyname,
-    //             createdBy: 'admin',
-    //             lastModified: 200000002,
-    //             deleted: null,
-    //             currentDataVersion: -1,
-    //             dataVersions: []
-    //         };
-    //         await mongoClient.collection(config.database.collections.studies_collection).insertOne(createdStudy);
+    describe('CREATE FIELD CURATION API', () => {
+        beforeEach(async () => {
+            /* setup: create a study to upload file to */
+            const studyname = uuid();
+            createdStudy = {
+                id: `new_study_id_${studyname}`,
+                name: studyname,
+                createdBy: 'admin',
+                lastModified: 200000002,
+                deleted: null,
+                currentDataVersion: -1,
+                dataVersions: []
+            };
+            await mongoClient.collection(config.database.collections.studies_collection).insertOne(createdStudy);
 
-    //         /* setup: created file entry in the database */
-    //         const fileName = uuid();
-    //         createdFile = {
-    //             id: `new_file_id_${fileName}`,
-    //             fileName: fileName + '.csv',
-    //             studyId: createdStudy.id,
-    //             fileSize: '1000',
-    //             description: 'just a test file here.',
-    //             uploadedBy: adminId,
-    //             uri: `new_file_uri_${fileName}`,
-    //             deleted: null
-    //         };
-    //         await mongoClient.collection(config.database.collections.files_collection).insertOne(createdFile);
-    //     });
+            /* setup: created file entry in the database */
+            const fileName = uuid();
+            createdFile = {
+                id: `new_file_id_${fileName}`,
+                fileName: fileName + '.csv',
+                studyId: createdStudy.id,
+                fileSize: '1000',
+                description: 'just a test file here.',
+                uploadedBy: adminId,
+                uri: `new_file_uri_${fileName}`,
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.files_collection).insertOne(createdFile);
+        });
 
-    //     test('Create a field curation job with tag (admin)', async () => {
-    //         const res = await admin.post('/graphql').send({
-    //             query: print(CREATE_FIELD_CURATION_JOB),
-    //             variables: {
-    //                 file: createdFile.id,
-    //                 studyId: createdStudy.id,
-    //                 tag: 'mockTag'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toBeUndefined();
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(res.body.data.createFieldCurationJob).toEqual({
-    //             id: job.id,
-    //             jobType: 'FIELD_INFO_UPLOAD',
-    //             projectId: null,
-    //             studyId: createdStudy.id,
-    //             requester: adminId,
-    //             requestTime: job.requestTime,
-    //             receivedFiles: [createdFile.id],
-    //             status: 'QUEUED',
-    //             error: null,
-    //             cancelled: false,
-    //             cancelledTime: null,
-    //             data: {
-    //                 tag: 'mockTag'
-    //             }
-    //         });
-    //     });
+        test('Create a field curation job with tag (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_FIELD_CURATION_JOB),
+                variables: {
+                    file: createdFile.id,
+                    studyId: createdStudy.id,
+                    tag: 'mockTag'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(res.body.data.createFieldCurationJob).toEqual({
+                id: job.id,
+                jobType: 'FIELD_INFO_UPLOAD',
+                projectId: null,
+                studyId: createdStudy.id,
+                requester: adminId,
+                requestTime: job.requestTime,
+                receivedFiles: [createdFile.id],
+                status: 'QUEUED',
+                error: null,
+                cancelled: false,
+                cancelledTime: null,
+                data: {
+                    tag: 'mockTag'
+                }
+            });
+        });
 
-    //     test('Create a field curation job without tag (admin) (should fail)', async () => {
-    //         const res = await admin.post('/graphql').send({
-    //             query: print(CREATE_FIELD_CURATION_JOB),
-    //             variables: {
-    //                 file: createdFile.id,
-    //                 studyId: createdStudy.id,
-    //                 tag: undefined
-    //             }
-    //         });
-    //         expect(res.status).toBe(400);
-    //         expect(res.body.errors).toHaveLength(1);
-    //     });
+        test('Create a field curation job without tag (admin) (should fail)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_FIELD_CURATION_JOB),
+                variables: {
+                    file: createdFile.id,
+                    studyId: createdStudy.id,
+                    tag: undefined
+                }
+            });
+            expect(res.status).toBe(400);
+            expect(res.body.errors).toHaveLength(1);
+        });
 
-    //     test('Create a data curation job (user with no privilege)', async () => {
-    //         const res = await user.post('/graphql').send({
-    //             query: print(CREATE_FIELD_CURATION_JOB),
-    //             variables: {
-    //                 file: createdFile.id,
-    //                 studyId: createdStudy.id,
-    //                 tag: 'mockTag'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toHaveLength(1);
-    //         expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(job).toBe(null);
-    //     });
+        test('Create a data curation job (user with no privilege)', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(CREATE_FIELD_CURATION_JOB),
+                variables: {
+                    file: createdFile.id,
+                    studyId: createdStudy.id,
+                    tag: 'mockTag'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(job).toBe(null);
+        });
 
-    //     test('Create a field curation job (user with privilege)', async () => {
-    //         /* setup: creating a privileged user */
-    //         const username = uuid();
-    //         const authorisedUserProfile = {
-    //             username,
-    //             type: 'STANDARD',
-    //             firstname: `${username}_firstname`,
-    //             lastname: `${username}_lastname`,
-    //             password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-    //             otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-    //             email: `${username}@example.com`,
-    //             description: 'I am a new user.',
-    //             emailNotificationsActivated: true,
-    //             organisation: 'organisation_system',
-    //             deleted: null,
-    //             id: `new_user_id_${username}`
-    //         };
-    //         await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
+        test('Create a field curation job (user with privilege)', async () => {
+            /* setup: creating a privileged user */
+            const username = uuid();
+            const authorisedUserProfile = {
+                username,
+                type: 'STANDARD',
+                firstname: `${username}_firstname`,
+                lastname: `${username}_lastname`,
+                password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                email: `${username}@example.com`,
+                description: 'I am a new user.',
+                emailNotificationsActivated: true,
+                organisation: 'organisation_system',
+                deleted: null,
+                id: `new_user_id_${username}`
+            };
+            await mongoClient.collection(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
-    //         const roleId = uuid();
-    //         const newRole = {
-    //             id: roleId,
-    //             projectId: null,
-    //             studyId: createdStudy.id,
-    //             name: `${roleId}_rolename`,
-    //             permissions: [
-    //                 permissions.specific_study.specific_study_data_management
-    //             ],
-    //             users: [authorisedUserProfile.id],
-    //             deleted: null
-    //         };
-    //         await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
+            const roleId = uuid();
+            const newRole = {
+                id: roleId,
+                projectId: null,
+                studyId: createdStudy.id,
+                name: `${roleId}_rolename`,
+                permissions: [
+                    permissions.specific_study.specific_study_data_management
+                ],
+                users: [authorisedUserProfile.id],
+                deleted: null
+            };
+            await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
-    //         const authorisedUser = request.agent(app);
-    //         await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
+            const authorisedUser = request.agent(app);
+            await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 
-    //         /* test */
-    //         const res = await authorisedUser.post('/graphql').send({
-    //             query: print(CREATE_FIELD_CURATION_JOB),
-    //             variables: {
-    //                 file: createdFile.id,
-    //                 studyId: createdStudy.id,
-    //                 tag: 'mockTag'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toBeUndefined();
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(res.body.data.createFieldCurationJob).toEqual({
-    //             id: job.id,
-    //             studyId: createdStudy.id,
-    //             projectId: null,
-    //             jobType: 'FIELD_INFO_UPLOAD',
-    //             requester: authorisedUserProfile.id,
-    //             requestTime: job.requestTime,
-    //             receivedFiles: [createdFile.id],
-    //             status: 'QUEUED',
-    //             error: null,
-    //             cancelled: false,
-    //             cancelledTime: null,
-    //             data: {
-    //                 tag: 'mockTag'
-    //             }
-    //         });
-    //     });
+            /* test */
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(CREATE_FIELD_CURATION_JOB),
+                variables: {
+                    file: createdFile.id,
+                    studyId: createdStudy.id,
+                    tag: 'mockTag'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(res.body.data.createFieldCurationJob).toEqual({
+                id: job.id,
+                studyId: createdStudy.id,
+                projectId: null,
+                jobType: 'FIELD_INFO_UPLOAD',
+                requester: authorisedUserProfile.id,
+                requestTime: job.requestTime,
+                receivedFiles: [createdFile.id],
+                status: 'QUEUED',
+                error: null,
+                cancelled: false,
+                cancelledTime: null,
+                data: {
+                    tag: 'mockTag'
+                }
+            });
+        });
 
-    //     test('Create a field curation job with a non-existent file id (admin)', async () => {
-    //         const res = await admin.post('/graphql').send({
-    //             query: print(CREATE_FIELD_CURATION_JOB),
-    //             variables: {
-    //                 file: 'fake_file_id',
-    //                 studyId: createdStudy.id,
-    //                 tag: 'just_a_tag'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toHaveLength(1);
-    //         expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(job).toBe(null);
-    //     });
+        test('Create a field curation job with a non-existent file id (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_FIELD_CURATION_JOB),
+                variables: {
+                    file: 'fake_file_id',
+                    studyId: createdStudy.id,
+                    tag: 'just_a_tag'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(job).toBe(null);
+        });
 
-    //     test('Create a field curation job with a non-existent study id (admin)', async () => {
-    //         const res = await admin.post('/graphql').send({
-    //             query: print(CREATE_FIELD_CURATION_JOB),
-    //             variables: {
-    //                 file: createdFile.id,
-    //                 studyId: 'fake_study_id',
-    //                 tag: 'just_a_tag'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toHaveLength(1);
-    //         expect(res.body.errors[0].message).toBe('Study does not exist.');
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(job).toBe(null);
-    //     });
+        test('Create a field curation job with a non-existent study id (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_FIELD_CURATION_JOB),
+                variables: {
+                    file: createdFile.id,
+                    studyId: 'fake_study_id',
+                    tag: 'just_a_tag'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe('Study does not exist.');
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(job).toBe(null);
+        });
 
-    //     test('Create a field curation job with a non-existent study id (user)', async () => {
-    //         const res = await user.post('/graphql').send({
-    //             query: print(CREATE_FIELD_CURATION_JOB),
-    //             variables: {
-    //                 file: createdFile.id,
-    //                 studyId: 'fake_study_id',
-    //                 tag: 'just_a_tag'
-    //             }
-    //         });
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.errors).toHaveLength(1);
-    //         expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-    //         const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
-    //             receivedFiles: createdFile.id
-    //         });
-    //         expect(job).toBe(null);
-    //     });
-    // });
+        test('Create a field curation job with a non-existent study id (user)', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(CREATE_FIELD_CURATION_JOB),
+                variables: {
+                    file: createdFile.id,
+                    studyId: 'fake_study_id',
+                    tag: 'just_a_tag'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            const job = await mongoClient.collection(config.database.collections.jobs_collection).findOne({
+                receivedFiles: createdFile.id
+            });
+            expect(job).toBe(null);
+        });
+    });
 
     describe('CREATE QUERY CURATION API', () => {
         beforeEach(async () => {

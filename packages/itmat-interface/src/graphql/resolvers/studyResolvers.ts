@@ -51,7 +51,7 @@ export const studyResolvers = {
             if (project === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-            
+
             /* check if user has permission */
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_project.specific_project_readonly_access],
@@ -107,7 +107,7 @@ export const studyResolvers = {
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
             const thisStudy = await db.collections!.studies_collection.findOne({ id: studyId });
             const endContentId = thisStudy.dataVersions[thisStudy.currentDataVersion].contentId;
-            const availableDataVersions: any[] = [];
+            let availableDataVersions: any[] = [];
             for (let i=0; i<thisStudy.dataVersions.length; i++) {
                 availableDataVersions.push(thisStudy.dataVersions[i].contentId);
                 if (thisStudy.dataVersions[i].contentId === endContentId) {
@@ -118,8 +118,8 @@ export const studyResolvers = {
             if (requester.type === userTypes.ADMIN) {
                 availableDataVersions.push(null);
             }
-            if (versionId !== undefined && versionId !== null) {
-
+            if (versionId !== undefined && versionId !== null && requester.type === userTypes.ADMIN) {
+                availableDataVersions = versionId;
             }
             if (queryString !== undefined && JSON.parse(queryString).data_requested.length !== 0) {
                 const document = JSON.parse(queryString);

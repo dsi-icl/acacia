@@ -2736,7 +2736,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            
+
             const createRes = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
                 variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', fieldTreeId: fieldTreeId }
