@@ -5,7 +5,7 @@ export function rsasigner(privateKey: string, message: string, scheme = 'RSA-SHA
     try {
         const signer = crypto.createSign(scheme);
         // Signing
-        signer.update(message);        
+        signer.update(message);
 
         // The signature output_format: HexBase64Latin1Encoding which can be either 'binary', 'hex' or 'base64'
         const signature = signer.sign({
@@ -47,7 +47,7 @@ export function reGenPkfromSk(privateKey: string, passphrase = 'idea-fast'): str
     }
 }
 
-export async function rsaverifier2(pubkey, signature, data = '') {    
+export async function rsaverifier2(pubkey, signature, data = '') {
     let dataToBeVerified;
     if (data === '') {
         //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
@@ -66,25 +66,19 @@ export async function rsaverifier2(pubkey, signature, data = '') {
 }
 
 export async function rsaverifier(pubkey: string, signature: string, message = '', scheme = 'RSA-SHA256') {
-    try {
-        const verifier = crypto.createVerify(scheme);
-        let messageToBeVerified;
+    const verifier = crypto.createVerify(scheme);
+    let messageToBeVerified;
 
-        if (message === '') {
-            //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
-            const ec = new TextEncoder();
-            const hash = crypto.createHash('sha256');
-            hash.update(toSupportedArray(pubkey));
-            messageToBeVerified = hash.digest('base64');
-        }
-        verifier.update(messageToBeVerified);
-        // Verify the signature in supported formats ('binary', 'hex' or 'base64')
-        // The encoded format must be same as the signature
-        return verifier.verify(pubkey, signature, 'base64');
+    if (message === '') {
+        //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
+        const hash = crypto.createHash('sha256');
+        hash.update(toSupportedArray(pubkey));
+        messageToBeVerified = hash.digest('base64');
     }
-    catch(err){
-        throw err;
-    }
+    verifier.update(messageToBeVerified);
+    // Verify the signature in supported formats ('binary', 'hex' or 'base64')
+    // The encoded format must be same as the signature
+    return verifier.verify(pubkey, signature, 'base64');
 }
 
 export function rsakeygen(passphrase = 'idea-fast', modulusLength = 4096) {
@@ -121,27 +115,15 @@ export function eckeygen(curve = 'secp256k1') {
 
 export function tokengen(payload, secret, passphrase = 'idea-fast', algorithm = 'RS256', life = 12000) {
     // Asymmetric JWT is used by default by setting algorithm = RS256.
-    let token;
-    try {
-        token = jwt.sign(payload,
-            { key: secret, passphrase: passphrase },
-            { algorithm: algorithm, expiresIn: life }
-        );
-    }
-    catch(err){
-        throw err;
-    }
+    const token = jwt.sign(payload,
+        { key: secret, passphrase: passphrase },
+        { algorithm: algorithm, expiresIn: life }
+    );
     return token;
 }
 
 export function tokenverifier(token, secret) {
-    let decoded = '';
-    try {
-        decoded = jwt.verify(token, secret);
-    }
-    catch(err){
-        throw err;
-    }
+    const decoded = jwt.verify(token, secret);
     return decoded;
 }
 
