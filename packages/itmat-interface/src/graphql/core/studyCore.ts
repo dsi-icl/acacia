@@ -164,7 +164,7 @@ export class StudyCore {
                 case 'jso': // save as string
                     parsedValue = JSON.stringify(dataClip.value);
                     break;
-                case 'fil':
+                case 'fil': {
                     const file = await db.collections!.files_collection.findOne({ id: parseValue });
                     if (!file) {
                         error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as file or file does not exist.`;
@@ -172,7 +172,8 @@ export class StudyCore {
                     } else {
                         parsedValue = dataClip.value.toString();
                     }
-                    break    
+                    break;
+                }
                 case 'unk':
                     parsedValue = dataClip.value.toString();
                     break;

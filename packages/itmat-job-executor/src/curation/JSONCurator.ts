@@ -258,8 +258,8 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                     value = JSON.stringify(each);
                     break;
                 case 'fil':
-                        value = each.toString();
-                        break;
+                    value = each.toString();
+                    break;
                 case 'unk':
                     value = each.toString();
                     break;
