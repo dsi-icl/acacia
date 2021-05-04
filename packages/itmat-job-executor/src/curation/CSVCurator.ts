@@ -2,6 +2,7 @@ import csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
+import { db } from '../database/database';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -268,6 +269,9 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                     break;
                 case 'jso': // save as string
                     value = JSON.stringify(each);
+                    break;
+                case 'fil':
+                    value = each.toString();
                     break;
                 case 'unk':
                     value = each.toString();

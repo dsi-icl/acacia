@@ -5,6 +5,7 @@ import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
 import { validate } from '@ideafast/idgen';
+import { parseValue } from 'graphql';
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -163,6 +164,15 @@ export class StudyCore {
                 case 'jso': // save as string
                     parsedValue = JSON.stringify(dataClip.value);
                     break;
+                case 'fil':
+                    const file = await db.collections!.files_collection.findOne({ id: parseValue });
+                    if (!file) {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as file or file does not exist.`;
+                        break;
+                    } else {
+                        parsedValue = dataClip.value.toString();
+                    }
+                    break    
                 case 'unk':
                     parsedValue = dataClip.value.toString();
                     break;

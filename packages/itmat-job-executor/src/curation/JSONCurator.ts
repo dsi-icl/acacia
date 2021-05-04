@@ -257,6 +257,9 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                 case 'jso': // save as string
                     value = JSON.stringify(each);
                     break;
+                case 'fil':
+                        value = each.toString();
+                        break;
                 case 'unk':
                     value = each.toString();
                     break;
