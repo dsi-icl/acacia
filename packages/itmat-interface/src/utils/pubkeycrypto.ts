@@ -5,7 +5,7 @@ export function rsasigner(privateKey: string, message: string, scheme = 'RSA-SHA
     try {
         const signer = crypto.createSign(scheme);
         // Signing
-        signer.update(message);
+        signer.update(message);        
 
         // The signature output_format: HexBase64Latin1Encoding which can be either 'binary', 'hex' or 'base64'
         const signature = signer.sign({
@@ -47,24 +47,43 @@ export function reGenPkfromSk(privateKey: string, passphrase = 'idea-fast'): str
     }
 }
 
-export function rsaverifier(pubkey: string, signature: string, message = '', scheme = 'RSA-SHA256'): boolean {
+export async function rsaverifier2(pubkey, signature, data = '') {    
+    let dataToBeVerified;
+    if (data === '') {
+        //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
+        const hash = crypto.createHash('sha256');
+        hash.update(toSupportedArray(pubkey));
+        dataToBeVerified = hash.copy().digest('base64');
+    }
+    const ec = new TextEncoder();
+    const verified = await crypto.verify(
+        'RSASSA-PKCS1-v1_5',
+        ec.encode(dataToBeVerified),
+        pubkey,
+        ec.encode(signature)
+    );
+    return verified;
+}
+
+export async function rsaverifier(pubkey: string, signature: string, message = '', scheme = 'RSA-SHA256') {
     try {
         const verifier = crypto.createVerify(scheme);
-        let messageToBeVerified = message;
-        if (messageToBeVerified === '') {
-            //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
-            const hash = crypto.createHash('sha256');
-            hash.update(pubkey);
-            messageToBeVerified = hash.copy().digest('base64');
-        }
+        let messageToBeVerified;
 
+        if (message === '') {
+            //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
+            const ec = new TextEncoder();
+            const hash = crypto.createHash('sha256');
+            hash.update(toSupportedArray(pubkey));
+            messageToBeVerified = hash.digest('base64');
+        }
         verifier.update(messageToBeVerified);
         // Verify the signature in supported formats ('binary', 'hex' or 'base64')
         // The encoded format must be same as the signature
         return verifier.verify(pubkey, signature, 'base64');
     }
     catch(err){
-        return err;
+        throw err;
     }
 }
 
@@ -110,7 +129,7 @@ export function tokengen(payload, secret, passphrase = 'idea-fast', algorithm = 
         );
     }
     catch(err){
-        return err;
+        throw err;
     }
     return token;
 }
@@ -121,7 +140,55 @@ export function tokenverifier(token, secret) {
         decoded = jwt.verify(token, secret);
     }
     catch(err){
-        return err;
+        throw err;
     }
     return decoded;
+}
+
+
+// Converts Arrays, ArrayBuffers, TypedArrays, and Strings to
+// to either a Uint8Array or a regular Array depending on browser support.
+// You should use this when passing byte data in or out of crypto functions
+export function toSupportedArray(data) {
+
+    // does this browser support Typed Arrays?
+    const typedArraySupport = (typeof Uint8Array !== 'undefined');
+
+    // get the data type of the parameter
+    let dataType = Object.prototype.toString.call(data);
+    dataType = dataType.substring(8, dataType.length - 1);
+    const newArray = typedArraySupport ? new Uint8Array(data.length) : new Array(data.length);
+    // determine the type
+    switch (dataType) {
+
+        // Regular JavaScript Array. Convert to Uint8Array if supported
+        // else do nothing and return the array
+        case 'Array':
+            return typedArraySupport ? new Uint8Array(data) : data;
+
+            // ArrayBuffer. IE11 Web Crypto API returns ArrayBuffers that you have to convert
+            // to Typed Arrays. Convert to a Uint8Arrays and return;
+        case 'ArrayBuffer':
+            return new Uint8Array(data);
+
+            // Already Uint8Array. Obviously there is support.
+        case 'Uint8Array':
+            return data;
+
+        case 'Uint16Array':
+        case 'Uint32Array':
+            return new Uint8Array(data);
+
+            // String. Convert the string to a byte array using Typed Arrays if supported.
+        case 'String':
+            for (let i = 0; i < data.length; i += 1) {
+                newArray[i] = data.charCodeAt(i);
+            }
+            return newArray;
+
+            // Some other type. Just return the data unchanged.
+        default:
+            throw new Error('toSupportedArray : unsupported data type ' + dataType);
+    }
+
 }

@@ -202,6 +202,20 @@ export function convertBinaryToPem(binaryData, label) {
     return pemCert;
 }
 
+export function convertPemPrivateKeyToArrayBuffer(pem) {
+    const removedLinesPem = pem.replace(/\\n/g, '');
+    const b64Prefix = removedLinesPem.replace('-----BEGIN ENCRYPTED PRIVATE KEY-----', '');
+    const b64Final = b64Prefix.replace('-----END ENCRYPTED PRIVATE KEY-----', '');
+    return base64StringToArrayBuffer(b64Final);
+}
+
+export function convertPemPublicKeyToArrayBuffer(pem) {
+    const removedLinesPem = pem.replace(/\\n/g, '');
+    const b64Prefix = removedLinesPem.replace('-----BEGIN PUBLIC KEY-----', '');
+    const b64Final = b64Prefix.replace('-----END PUBLIC KEY-----', '');
+    return base64StringToArrayBuffer(b64Final);
+}
+
 // Converts Arrays, ArrayBuffers, TypedArrays, and Strings to
 // to either a Uint8Array or a regular Array depending on browser support.
 // You should use this when passing byte data in or out of crypto functions

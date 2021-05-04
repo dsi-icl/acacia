@@ -18,7 +18,7 @@ import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
 //import { makeGenericReponse, IGenericResponse } from '../responses';
 import * as pubkeycrypto from '../../utils/pubkeycrypto';
-
+//import { Key} from '../../../../itmat-ui-react/src/utils/dmpCrypto/dmp.key';
 export const pubkeyResolvers = {
     Query: {
         getPubkeys: async (__unused__parent: Record<string, unknown>, args: any): Promise<IPubkey[]> => {
@@ -109,7 +109,6 @@ export const pubkeyResolvers = {
         registerPubkey: async (__unused__parent: Record<string, unknown>, { pubkey, signature, associatedUserId }: { pubkey: string, signature: string, associatedUserId: string }, context: any): Promise<IPubkey> => {
             // refine the public-key parameter from browser
             pubkey = pubkey.replace(/\\n/g, '\n');
-
             const alreadyExist = await db.collections!.pubkeys_collection.findOne({ pubkey, deleted: null });
             if (alreadyExist !== null && alreadyExist !== undefined) {
                 throw new UserInputError('This public-key has already been registered.');
@@ -122,8 +121,12 @@ export const pubkeyResolvers = {
             }
 
             /* Validate the signature with the public key */
-            if (!pubkeycrypto.rsaverifier(pubkey, signature)) {
-                throw new UserInputError('Signature vs Public key mismatched.');
+            try {
+                if (!pubkeycrypto.rsaverifier(pubkey, signature)) {
+                    throw new UserInputError('Signature vs Public-key mismatched.');
+                }
+            } catch (error) {
+                throw new UserInputError('Error: Signature or Public-key not correct.', error);
             }
 
             /* Generate a public key-pair for generating and authenticating JWT access token later */

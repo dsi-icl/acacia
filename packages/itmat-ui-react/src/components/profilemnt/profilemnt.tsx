@@ -17,8 +17,6 @@ const {
     REGISTER_PUBKEY,
     GET_PUBKEYS,
     ISSUE_ACCESS_TOKEN,
-    KEYPAIRGEN_SIGNATURE,
-    RSA_SIGNER,
     GET_ORGANISATIONS
 } = GQLRequests;
 
@@ -249,22 +247,6 @@ export const changeTimeFunc = {
 };
 
 export const cryptoInBrowser = {
-    keyGenTest: async function() {
-        let message = ''; //message to be signed for the validation
-        Key.createRSAKey().then((keyPair: any) => {
-            Key.exportRSAKey(keyPair).then(exportedKey => {
-                message = JSON.stringify(exportedKey.publicKey);
-                console.log('Exported PublicKey: ', JSON.stringify(exportedKey.publicKey));
-                console.log('Exported PrivateKey: ', JSON.stringify(exportedKey.privateKey));
-            });
-            Key.signwtRSAKey(message, keyPair.privateKey).then(signature => {
-                console.log('Signature:', signature);
-            });
-
-        }).catch((error: any) => {
-            console.error(error);
-        });
-    },
     keyGen: async function() {
         return Key.createRSAKey();
     },
@@ -278,14 +260,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
     const [exportedKeyPair, setExportedKeyPair] = React.useState({privateKey: '', publicKey: ''});
     const [signature, setSignature] = React.useState('');
 
-    const [keypairGen, { data: keypairdata }] = useMutation(KEYPAIRGEN_SIGNATURE, {
-        onCompleted: () => {
-            setcompletedKeypairGen(true);
-            console.log(keypairdata);
-        }
-    });
-
-    const keyGen2 = async function() {
+    const keyGenInBrowser = async function() {
         const keyPair = await cryptoInBrowser.keyGen();
         const exportedKeyPair = await Key.exportRSAKey(keyPair);
         setExportedKeyPair(exportedKeyPair);
@@ -293,6 +268,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
         const signature  = await cryptoInBrowser.signGen(message, keyPair.privateKey);
         setSignature(signature);
         setcompletedKeypairGen(true);
+        console.log('verifier RSA: (expected to be true) ', await Key.verifyRSA(exportedKeyPair.publicKey, signature));
     };
 
     const [downloadLink, setDownloadLink] = React.useState('');
@@ -369,6 +345,8 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                                     Save the private key (PEM file)
                                 </Button>
                             </a>
+                            <br />
+                            <br />
 
                             <p>Public Key:</p>
                             <textarea disabled value={exportedKeyPair.publicKey.replace(/\n/g, '\\n')} cols={120} rows={7} />
@@ -378,6 +356,8 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                                     Save the public key (PEM file)
                                 </Button>
                             </a>
+                            <br />
+                            <br />
 
                             <p>Signature:</p>
                             <textarea disabled value={signature} cols={120} rows={7} />
@@ -387,13 +367,15 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                                     Save the signature (TXT file)
                                 </Button>
                             </a>
+                            <br />
+                            <br />
 
                             <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
-                                <Input />
+                                <textarea cols={120} rows={10} />
                             </Form.Item>
 
                             <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
-                                <Input />
+                                <textarea cols={120} rows={10} />
                             </Form.Item>
 
                             {error ? (
@@ -453,11 +435,11 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                         }
 
                         <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
-                            <Input />
+                            <textarea cols={120} rows={10} />
                         </Form.Item>
 
                         <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
-                            <Input />
+                            <textarea cols={120} rows={10} />
                         </Form.Item>
 
                         {error ? (
@@ -481,13 +463,9 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
 
                     </Form>
 
-                    <Button disabled={loading} onClick={() => {keypairGen();}}>
-                        Do not have public/private keypair? Generate one to use (server-side generator)!
-                    </Button>
                     <br />
-                    <br />
-                    <Button type='primary' onClick={() => keyGen2()}>
-                        Do not have public/private keypair? Generate one (In-browser generator)!
+                    <Button type='primary' onClick={() => keyGenInBrowser()}>
+                        Do not have public/private keypair? Generate one (In-browser)!
                     </Button>
 
                 </>
@@ -498,12 +476,38 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
 
 };
 export const RsaSigner: React.FunctionComponent = () => {
+    const [privateKey, setPrivateKey] = React.useState('');
+    const [publicKey, setPublicKey] = React.useState('');
+
+    const handlePrivateKey = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const privateKey = event.target.value;
+        setPrivateKey(privateKey);
+    };
+
+    const handlePublicKey = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const publicKey = event.target.value;
+        setPublicKey(publicKey);
+    };
+
+    const [signature, setSignature] = React.useState('');
     const [completedSignatureGen, setcompletedSignatureGen] = React.useState(false);
-    const [signatureGen, { data, loading, error }] = useMutation(RSA_SIGNER, {
-        onCompleted: () => {
-            setcompletedSignatureGen(true);
-        }
-    });
+
+    const signGen = async function() {
+        const privateKeyFormatted = await Key.importRSAPrivateKey(privateKey);
+        const signature  = await cryptoInBrowser.signGen(publicKey, privateKeyFormatted);
+        setSignature(signature);
+        setcompletedSignatureGen(true);
+    };
+
+    const [downloadLink, setDownloadLink] = React.useState('');
+    // function for generating file and set download link
+    const makeTextFile = (filecontent: string) => {
+        const data = new Blob([filecontent], {type: 'text/plain'});
+        // this part avoids memory leaks
+        if (downloadLink !== '') window.URL.revokeObjectURL(downloadLink);
+        // update the download link state
+        setDownloadLink(window.URL.createObjectURL(data));
+    };
 
     if (completedSignatureGen) {
         return (
@@ -511,33 +515,30 @@ export const RsaSigner: React.FunctionComponent = () => {
                 <h3>The signature is successfully generated!</h3>
                 <br />
                 <p>Securely keep this signature to register with the data management portal!</p>
-                <textarea disabled value={data.rsaSigner.signature} cols={120} rows={7} />
+                <textarea disabled value={signature} cols={120} rows={7} />
                 <br />
+                <a download='signature.txt' href={downloadLink}>
+                    <Button type='primary' onClick={() => makeTextFile(signature)}>
+                        Save the signature (TXT file)
+                    </Button>
+                </a>
             </div>
         );
     }
 
     return (
-        <Form layout='vertical' onFinish={(variables) => signatureGen({ variables })}>
-            <p>To generate a digital signature to use in the data management portal, you need a private-key</p>
-
-            <Form.Item name='privateKey' label='Private Key' hasFeedback rules={[{ required: true, message: 'Please enter the private key' }]}>
-                <textarea cols={120} rows={10} />
-            </Form.Item>
-
-            {error ? (
-                <>
-                    <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
-                    <br />
-                </>
-            ) : null}
-
-            <Form.Item>
-                <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
-                    Generate Signature
-                </Button>
-            </Form.Item>
-        </Form>
+        <div>
+            <p>To generate a digital signature to use in the data management portal, you need a public and private keypair</p>
+            <p>Private Key: </p>
+            <textarea cols={120} rows={10} name='privateKey' value={privateKey} onChange={handlePrivateKey}> </textarea>
+            <br />
+            <p>Public Key: </p>
+            <textarea cols={120} rows={10} name='privateKey' value={publicKey} onChange={handlePublicKey}> </textarea>
+            <br />
+            <Button type='primary' onClick={() => signGen()}>
+                Generate Signature (In-Browser)
+            </Button>
+        </div>
     );
 
 };

@@ -117,17 +117,96 @@ export class Key {
         const publicKey = await crypto.subtle.exportKey('spki', keyPair.publicKey);
         const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
         return {privateKey: Utils.convertBinaryToPem(privateKey, 'ENCRYPTED PRIVATE KEY'), publicKey: Utils.convertBinaryToPem(publicKey, 'PUBLIC KEY')};
+        //return {privateKey: Utils.arrayBufferToBase64String(privateKey), publicKey: Utils.arrayBufferToBase64String(publicKey)};
     }
 
-    static async signwtRSAKey(message: string, key: CryptoKey) {
-        const publicKeyEncoded = Utils.toSupportedArray(message);
-        const encoded = await Utils.hash(publicKeyEncoded);
+    static async exportRSAPublicKey(publicKey: CryptoKey) {
+        const exportedPublicKey = await crypto.subtle.exportKey('spki', publicKey);
+        return Utils.convertBinaryToPem(exportedPublicKey, 'PUBLIC KEY');
+    }
+
+    static async signwtRSAKey(message: string, privateKey: CryptoKey) {
+        const testhash = 'abc';
+        const testhash_encoded = await Utils.hash(Utils.toSupportedArray(testhash));
+        console.log('testhash = abc: ', Utils.arrayBufferToBase64String(testhash_encoded));
+        const messageEncoded = Utils.toSupportedArray(message);
+        const finalEncoded = await Utils.hash(messageEncoded);
+        console.log('hash of pubkey (as a message) to be signed: ', Utils.arrayBufferToBase64String(finalEncoded));
         const signature = await crypto.subtle.sign(
             'RSASSA-PKCS1-V1_5',
-            key,
-            encoded
+            privateKey,
+            finalEncoded
         );
         return Utils.arrayBufferToBase64String(signature);
+    }
+
+    static async verifyRSA(publicKey: string, signature: string, message = '') {
+        const publicKey_formatted = await this.importRSAPublicKey(publicKey);
+        const signature_formatted = Utils.base64StringToArrayBuffer(signature);
+        let message_formatted;
+        if (message === '') {
+            //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
+            const messageEncoded = Utils.toSupportedArray(publicKey);
+            message_formatted = await Utils.hash(messageEncoded);
+            console.log('hash of pubkey to be verified: ', Utils.arrayBufferToBase64String(message_formatted));
+        } else {
+            message_formatted = Utils.toSupportedArray(message);
+        }
+
+        return crypto.subtle.verify(
+            {
+                name: 'RSASSA-PKCS1-v1_5',
+            },
+            publicKey_formatted, //from generateKey or importKey above
+            signature_formatted, //ArrayBuffer of the signature
+            message_formatted //ArrayBuffer of the data
+        );
+    }
+
+    static async importRSAPublicKey(pem) {
+        const convertedPem = Utils.convertPemPublicKeyToArrayBuffer(pem);
+        return window.crypto.subtle.importKey(
+            'spki',
+            convertedPem,
+            {
+                name: 'RSASSA-PKCS1-v1_5',
+                hash: {name: 'SHA-256'},
+            },
+            true,
+            ['verify']
+        );
+    }
+
+    static async importRSAPrivateKey(pem) {
+        //convert PEM to Array Buffer
+        const pemArrayBuffer = Utils.convertPemPrivateKeyToArrayBuffer(pem);
+
+        const importKey = await window.crypto.subtle.importKey(
+            'pkcs8',
+            pemArrayBuffer,
+            {
+                name: 'RSASSA-PKCS1-v1_5',
+                hash: {name: 'SHA-256'},
+            },
+            true,
+            ['sign']
+        );
+        return importKey;
+    }
+
+    static async extractPublicKey(privateKeyPem) {
+        const privateKey = await this.importRSAPrivateKey(privateKeyPem);
+        const jwk_sk = await crypto.subtle.exportKey('jwk', privateKey);
+        // remove private data from JWK_SK
+        delete jwk_sk.d;
+        delete jwk_sk.dp;
+        delete jwk_sk.dq;
+        delete jwk_sk.q;
+        delete jwk_sk.qi;
+        jwk_sk.key_ops = ['verify'];
+        //return public key
+        const pubkey = await crypto.subtle.importKey('jwk', jwk_sk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, true, ['verify']);
+        return pubkey;
     }
 
     static async importKey(exportableKey: ClearKeyPair): Promise<Key> {
