@@ -86,7 +86,6 @@ export class JSONCurator {
                             m_versionId: dataEntry.m_versionId,
                             m_studyId: dataEntry.m_studyId
                         };
-                        // bulkInsert.insert(dataEntry);
                         bulkInsert.find(matchObj).upsert().updateOne({$set: dataEntry});
                         this._numOfSubj++;
 
@@ -106,13 +105,6 @@ export class JSONCurator {
             });
 
             uploadWriteStream.on('finish', async () => {
-                /* check for subject Id duplicate */
-                // const set = new Set(subjectString);
-                // if (set.size !== subjectString.length) {
-                //     this._errors.push('Data Error: There is duplicate subject id.');
-                //     this._errored = true;
-                // }
-
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
                         console.log('FINSIHED LOADING');
@@ -172,12 +164,6 @@ export function processJSONHeader(header: string[], fieldsList: any[]): { error?
         colNum++;
     }
 
-    // /* check for duplicate */
-    // const set = new Set(fields);
-    // if (set.size !== fields.length) {
-    //     error.push('Object 1: There is duplicate field name.');
-    // }
-    // get unique pair subjectid-visitid
     const filteredParsedHeader = parsedHeader.filter(el => el !== undefined);
     const subjectIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'SubjectID') + 1; // ID is the first
     const visitIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'VisitID') + 1;
@@ -198,13 +184,7 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
     }
     for (const each of subject) {
         if (colIndex === 0) {
-            /* extracting subject id */
-            // if (each === '') {
-            //     error.push(`Object ${ObjectNum}: No subject id provided.`);
-            //     colIndex++;
-            //     continue;
-            // }
-            // dataEntry.m_eid = each;
+            // first column is ID, no actual meaning
             colIndex++;
             continue;
         }

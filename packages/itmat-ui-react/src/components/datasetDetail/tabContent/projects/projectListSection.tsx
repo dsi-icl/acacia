@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_PROJECT, GET_STUDY, WHO_AM_I } from 'itmat-commons';
+import { CREATE_PROJECT } from 'itmat-commons';
 import css from './tabContent.module.css';
 import { Button, Input } from 'antd';
 
@@ -24,23 +24,23 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
         <Input value={input} style={{width: '40%'}} onChange={(e) => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name' />
         <Mutation<any, any>
             mutation={CREATE_PROJECT}
-            update={(store, { data: { createProject } }) => {
-                // Read the data from our cache for this query.
-                const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId, admin: true } });
-                // Add our comment from the mutation to the end.
-                const newProjects = data.getStudy.projects.concat(createProject);
-                data.getStudy.projects = newProjects;
-                // Write our data back to the cache.
-                store.writeQuery({ query: GET_STUDY, variables: { studyId, admin: true }, data });
+            // update={(store, { data: { createProject } }) => {
+            //     // Read the data from our cache for this query.
+            //     const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId, admin: true } });
+            //     // Add our comment from the mutation to the end.
+            //     const newProjects = data.getStudy.projects.concat(createProject);
+            //     data.getStudy.projects = newProjects;
+            //     // Write our data back to the cache.
+            //     store.writeQuery({ query: GET_STUDY, variables: { studyId, admin: true }, data });
 
-                // Read the data from our cache for this query.
-                const whoAmI: any = store.readQuery({ query: WHO_AM_I });
-                // Add our comment from the mutation to the end.
-                // const newWhoAmIProjects = whoAmI.whoAmI.access.projects.concat(createProject);
-                whoAmI.whoAmI.access.projects = newProjects;
-                // Write our data back to the cache.
-                store.writeQuery({ query: WHO_AM_I, data: whoAmI });
-            }}
+            //     // Read the data from our cache for this query.
+            //     const whoAmI: any = store.readQuery({ query: WHO_AM_I });
+            //     // Add our comment from the mutation to the end.
+            //     // const newWhoAmIProjects = whoAmI.whoAmI.access.projects.concat(createProject);
+            //     whoAmI.whoAmI.access.projects = newProjects;
+            //     // Write our data back to the cache.
+            //     store.writeQuery({ query: WHO_AM_I, data: whoAmI });
+            // }}
         >
             {(addNewProject, { loading, data }) =>
                 <>

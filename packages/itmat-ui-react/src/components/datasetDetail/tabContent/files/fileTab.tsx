@@ -164,7 +164,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         });
         setFileList([...fileList]);
     };
-    console.log(fileList);
     const validFile = (getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) ? fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate)
         : ( (getStudyData.getStudy.type === studyType.CLINICAL) ? fileList.filter((file) => file.participantId || file.name.startsWith('VariablesList')) : fileList.filter((file) => file.name) );
     const uploadHandler = () => {

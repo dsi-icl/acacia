@@ -16,8 +16,6 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selec
         return null;
     }
     const { id, version, tag, updateDate } = versions[selectedVersion];
-    // const { data, loading } = useQuery(GET_STUDY, { variables: { studyId } });
-    // if (loading) { return <LoadSpinner />; }
 
     return <>
         {selectedVersion === currentVersion ? null : <><span className='warning_banner'>Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
@@ -26,8 +24,6 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selec
             <NewestVersionOfData version={version || 'n/a'} />
             <VersionTag tag={tag || 'n/a'} />
             <DateOfUpload date={updateDate} />
-            {/* <FileSize size={(fileSize && formatBytes(parseInt(fileSize, 10))) || 'n/a'} /> */}
-            {/* <OriginalFile study={data.getStudy} fileLists={(extractedFrom as any) || 'n/a'} /> */}
         </div>
 
     </>;
@@ -71,41 +67,12 @@ const VersionTag: React.FunctionComponent<{ tag: string }> = ({ tag }) => {
     </div>;
 };
 
-// const OriginalFile: React.FunctionComponent<{ study: any, fileLists: string[][] }> = ({ study, fileLists }) => {
-//     const uniqueFiles: any[] = [];
-//     for (let i=0; i<fileLists.length; i++) {
-//         if (!uniqueFiles.includes(fileLists[i])) {
-//             uniqueFiles.push(fileLists[i]);
-//         }
-//     }
-//     const fileIdNameMapping = study.files.reduce((a, b) => { a[b['id']] = b['fileName']; return a; }, {});
-//     console.log(uniqueFiles);
-//     console.log(fileIdNameMapping);
-//     return <div style={{ gridArea: 'filename' }}>
-//         <div>
-//             <p>Data were extracted from</p>
-//             {/* <span className={css.number_highlight}>{fileLists}</span> */}
-//             {uniqueFiles.map((el) => <><span className={css.number_highlight}>{fileIdNameMapping[el]}</span><br/></>)}
-//         </div>
-//     </div>;
-// };
-
 const DateOfUpload: React.FunctionComponent<{ date: string | number /* UNIX timestamp */ }> = ({ date }) => {
     return <div style={{ gridArea: 'date' }}><div>
         <p>Data were uploaded on</p>
         <span className={css.number_highlight}>{date ? (new Date(parseInt(date as any))).toLocaleString() : 'n/a'}</span>
     </div></div>;
 };
-
-// const FileSize: React.FunctionComponent<{ size: string }> = ({ size }) => {
-//     return <div style={{ gridArea: 'dummy' }}>
-//         <div>
-//             <p>Original data file size</p>
-//             <span className={css.number_highlight}>{size}</span>
-//         </div>
-//     </div>;
-// };
-
 
 ///////////////////////////////////////////////////////////////////////////////////
 

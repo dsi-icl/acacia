@@ -71,7 +71,6 @@ export const studyResolvers = {
         },
         getStudyFields: async (__unused__parent: Record<string, unknown>, { fieldTreeId, studyId, projectId }: { fieldTreeId: string, studyId: string, projectId?: string }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
-            console.log('getstudyfields', studyId, projectId);
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_readonly_access],

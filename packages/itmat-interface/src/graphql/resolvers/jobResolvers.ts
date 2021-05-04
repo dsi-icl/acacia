@@ -46,11 +46,6 @@ export const jobResolvers = {
                 /* check study exists */
                 await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
 
-                /* check version format */
-                // if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(args.version)) {
-                //     throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
-                // }
-
                 /* create job */
                 const parts = file.fileName.split('.');
                 const dataFormat = parts[parts.length - 1];
@@ -100,11 +95,6 @@ export const jobResolvers = {
 
             /* check study exists */
             await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
-
-            // /* check version format */
-            // if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(args.dataVersionId)) {
-            //     throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
-            // }
 
             /* check tag not undefined */
             if (args.tag === undefined) {
@@ -159,11 +149,6 @@ export const jobResolvers = {
             if (!queryExist) {
                 throw new ApolloError('Query does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-
-            /* check version format */
-            // if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(args.dataVersionId)) {
-            //     throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
-            // }
 
             const job: Models.JobModels.IJobEntryForQueryCuration = {
                 id: uuid(),

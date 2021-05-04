@@ -135,10 +135,6 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                                 <Select
                                     placeholder='Select Field'
                                     allowClear
-                                    // onChange={(value) => {
-                                    //     console.log(value);
-                                    //     setSelectedFieldTreeIdForDataUpload(value.toString());
-                                    // }}
                                     style={{width: '80%'}}
                                 >
                                     {uniqueFieldTreeIds.map((el) => <Option value={el} >{el}</Option>)}

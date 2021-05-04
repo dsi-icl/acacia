@@ -100,9 +100,7 @@ export class CSVCurator {
                             m_versionId: dataEntry.m_versionId,
                             m_studyId: dataEntry.m_studyId
                         };
-                        // bulkInsert.insert(dataEntry);
                         bulkInsert.find(matchObj).upsert().updateOne({$set: dataEntry});
-                        // bulkInsert.find(matchObj).upsert().updateOne(dataEntry);
 
                         this._numOfSubj++;
                         if (this._numOfSubj > 999) {
@@ -118,12 +116,6 @@ export class CSVCurator {
             });
 
             uploadWriteStream.on('finish', async () => {
-                /* check for subject Id duplicate */
-                // const set = new Set(subjectString);
-                // if (set.size !== subjectString.length) {
-                //     this._errors.push('Data Error: There is duplicate subject id.');
-                //     this._errored = true;
-                // }
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
                         console.log('FINSIHED LOADING');
@@ -183,12 +175,6 @@ export function processHeader(header: string[], fieldsList: any[]): { error?: st
         colNum++;
     }
 
-    // /* check for duplicate */
-    // const set = new Set(fields);
-    // if (set.size !== fields.length) {
-    //     error.push('Line 1: There is duplicate field name.');
-    // }
-    // get unique pair subjectid-visitid
     const filteredParsedHeader = parsedHeader.filter(el => el !== undefined);
     const subjectIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'SubjectID') + 1; // ID is the first
     const visitIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'VisitID') + 1;
@@ -210,13 +196,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
     }
     for (const each of row) {
         if (colIndex === 0) {
-            /* extracting subject id */
-            // if (each === '') {
-            //     error.push(`Line ${lineNum}: No subject id provided.`);
-            //     colIndex++;
-            //     continue;
-            // }
-            // dataEntry.m_eid = each;
+            // first column is ID, no actual meaning
             colIndex++;
             continue;
         }
