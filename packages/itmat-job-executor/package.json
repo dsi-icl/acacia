@@ -36,7 +36,7 @@
         "@babel/core": "7.13.13",
         "@babel/preset-env": "7.13.12",
         "@types/connect-timeout": "0.0.34",
-        "@types/express": "4.17.8",
+        "@types/express": "4.17.11",
         "@types/jest": "26.0.23",
         "@types/json2csv": "5.0.2",
         "@types/mongodb": "3.6.10",
