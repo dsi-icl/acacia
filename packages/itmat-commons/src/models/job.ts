@@ -18,6 +18,6 @@ export interface IJobEntry<dataobj> {
     data?: dataobj;
 }
 
-export type IJobEntryForDataCuration = IJobEntry<{ fieldTreeId: string }>;
+export type IJobEntryForDataCuration = IJobEntry<never>;
 export type IJobEntryForFieldCuration = IJobEntry<{ tag: string }>;
 export type IJobEntryForQueryCuration = IJobEntry<{ queryId: string[], projectId: string, studyId: string }>;

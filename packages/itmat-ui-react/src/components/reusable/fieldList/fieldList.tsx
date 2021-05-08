@@ -23,7 +23,7 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
     const fieldIdNameMapping = [];
     fieldList.forEach(el => fieldIdNameMapping[el.fieldName] = el.id);
     if (fieldList.length === 0) { return <p>There is no available field for field tree. Please contact admin or curator of this project.</p>; }
-    const transformedList = fieldList.map(el => `${el.tableName.concat('>').concat(el.fieldName)}>${el.id}|${el.fieldName}`);
+    const transformedList = fieldList.map(el => `${el.fieldName}>${el.id}|${el.fieldName}`);
     const makeTree = (paths: string[]) => {
         const output: any = [];
         for (let i = 0; i < paths.length; i++) {
@@ -94,7 +94,7 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ studyData?: a
     const fieldIdNameMapping = [];
     filteredFieldList.forEach(el => fieldIdNameMapping[el.fieldName] = el.id);
     if (filteredFieldList.length === 0) { return <p>There is no available field for this field tree. Please contact admin or curator of this project.</p>; }
-    const transformedList = filteredFieldList.map(el => `${el.tableName.concat('>').concat(el.fieldName)}>${el.id}|${el.fieldName}`);
+    const transformedList = filteredFieldList.map(el => `${el.fieldName}>${el.id}|${el.fieldName}`);
     const makeTree = (paths: string[]) => {
         const output: any = [];
         for (let i = 0; i < paths.length; i++) {
@@ -202,7 +202,7 @@ const ValueEditForm: React.FunctionComponent<{ visible: boolean; onCreate: any; 
 
     const fieldOptions: any[] = [];
     for (let i=0; i<fieldList.length; i++) {
-        fieldOptions.push({label: fieldList[i].fieldName.concat(' (').concat(fieldList[i].path).concat(')'), value: fieldList[i].id, valueType: fieldList[i].valueType});
+        fieldOptions.push({label: fieldList[i].fieldName, value: fieldList[i].id, valueType: fieldList[i].valueType});
     }
     return (
         (

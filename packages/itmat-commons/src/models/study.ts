@@ -24,9 +24,6 @@ export interface IStudyDataVersion {
     version: string;
     tag?: string;
     updateDate: string;
-    jobId: string[];
-    extractedFrom: string[];
-    fieldTrees: string[];
 }
 
 
@@ -54,12 +51,10 @@ export interface IProject {
 }
 
 export interface IDataClip {
-    fieldId: number,
-    fieldName: string,
+    fieldId: string,
     value: string,
     subjectId: string,
-    visitId: number,
-    tableName: string
+    visitId: string
 }
 
 export interface IDataRecordSummary {

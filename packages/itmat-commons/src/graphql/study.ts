@@ -58,10 +58,7 @@ export const GET_STUDY = gql`
                 version
                 tag
                 updateDate
-                jobId
-                extractedFrom
                 contentId
-                fieldTrees
             }
         }
     }
@@ -97,23 +94,20 @@ export const EDIT_STUDY = gql`
 `;
 
 export const CREATE_NEW_DATA_VERSION = gql`
-    mutation createNewDataVersion($fieldTreeId: String!, $studyId: String!, $dataVersion: String!, $tag: String){
-        createNewDataVersion(fieldTreeId: $fieldTreeId, studyId: $studyId, dataVersion: $dataVersion, tag: $tag) {
+    mutation createNewDataVersion($studyId: String!, $dataVersion: String!, $tag: String){
+        createNewDataVersion(studyId: $studyId, dataVersion: $dataVersion, tag: $tag) {
             id
             version
             tag
             updateDate
-            jobId
-            extractedFrom
             contentId
-            fieldTrees
         }
     }
 `;
 
 export const UPLOAD_DATA_IN_ARRAY = gql`
-    mutation uploadDataInArray($studyId: String!, $fieldTreeId: String!, $data: [DataClip]) {
-        uploadDataInArray(studyId: $studyId, fieldTreeId: $fieldTreeId, data: $data) {
+    mutation uploadDataInArray($studyId: String!, $data: [DataClip]) {
+        uploadDataInArray(studyId: $studyId, data: $data) {
             detail
             numOfRecordSucceed
             numOfRecordFailed
@@ -122,18 +116,8 @@ export const UPLOAD_DATA_IN_ARRAY = gql`
 `;
 
 export const DELETE_DATA_RECORDS = gql`
-    mutation deleteDataRecords($studyId: String!, $subjectId: String, $versionId: String, $visitId: Int, $fieldIds: [String]) {
-        deleteDataRecords(studyId: $studyId, subjectId: $subjectId, versionId: $versionId, visitId: $visitId, fieldIds: $fieldIds) {
-            detail
-            numOfRecordSucceed
-            numOfRecordFailed
-        }
-    }
-`;
-
-export const RECOVER_DATA_RECORDS = gql`
-    mutation recoverDataRecords($studyId: String!, $subjectId: String, $versionId: String, $visitId: Int) {
-        recoverDataRecords(studyId: $studyId, subjectId: $subjectId, versionId: $versionId, visitId: $visitId) {
+    mutation deleteDataRecords($studyId: String!, $subjectId: String, $visitId: String, $fieldIds: [String]) {
+        deleteDataRecords(studyId: $studyId, subjectId: $subjectId, visitId: $visitId, fieldIds: $fieldIds) {
             detail
             numOfRecordSucceed
             numOfRecordFailed
@@ -171,10 +155,7 @@ export const SET_DATAVERSION_AS_CURRENT = gql`
                 version
                 tag
                 updateDate
-                jobId
-                extractedFrom
                 contentId
-                fieldTrees
             }
         }
     }

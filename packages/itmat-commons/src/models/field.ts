@@ -1,49 +1,26 @@
 export interface IFieldEntry {
     id: string;
     studyId: string;
-    fieldId: number;
-    database: string;
-    tableName: string;
-    tableId: string;
-    sequentialOrder: string;
-    questionNumber: string;
+    fieldId: string;
     fieldName: string;
-    label: string;
-    labelDe: string;
-    labelNl: string;
-    labelIt: string;
-    labelEs: string;
-    labelPl: string;
-    labelF: string;
-    eligibleAnswer: string;
-    ineligibleAnswer: string;
-    validation: string;
     dataType: enumValueType;
-    controlType: string;
-    systemGenerated: boolean;
-    valueList: string;
-    length: number;
-    displayFormat: string;
-    nullable: boolean;
-    required: boolean;
-    mandatory: boolean;
-    collectIf: string;
-    notMapped: boolean;
-    defaultValue: string;
-    regEx: string;
-    regExErrorMsg: string;
-    showOnIndexView: boolean;
-    comments: string;
-    jobId: string;
+    possibleValues?: IValueDescription[];
+    unit?: string;
+    comments?: string;
     dateAdded: number;
-    deleted: number | null;
-    fieldTreeId: string;
+    deleted: number | null
+}
+
+export interface IValueDescription {
+    code: string;
+    description: string
 }
 
 export enum enumItemType {
     IMAGE = 'I',
     CLINICAL = 'C'
 }
+
 export enum enumValueType {
     INTEGER = 'int',
     DECIMAL = 'dec',
@@ -51,5 +28,6 @@ export enum enumValueType {
     BOOLEAN = 'boo',
     DATETIME = 'dat',
     FILE = 'fil',
-    JSON = 'jso'
+    JSON = 'jso',
+    CATEGORICAL = 'cat'
 }

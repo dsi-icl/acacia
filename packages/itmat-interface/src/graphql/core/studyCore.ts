@@ -71,7 +71,7 @@ export class StudyCore {
         }
     }
 
-    public async createNewDataVersion(fieldTreeId: string, studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion> {
+    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion> {
         const res = (await db.collections!.data_collection.find({ m_versionId: null })).toArray();
         if ((res as any).length <= 0) {
             throw new ApolloError('No records uploaded since last operation.');
@@ -87,12 +87,9 @@ export class StudyCore {
         const newDataVersion: IStudyDataVersion = {
             id: newDataVersionId,
             contentId: contentId, // same content = same id - used in reverting data, version control
-            jobId: [],
             version: dataVersion,
             tag: tag,
             updateDate: (new Date().valueOf()).toString(),
-            extractedFrom: [],
-            fieldTrees: [fieldTreeId]
         };
         await db.collections!.studies_collection.updateOne({ id: studyId }, {
             $push: { dataVersions: newDataVersion },
@@ -104,50 +101,39 @@ export class StudyCore {
     }
 
     public async uploadOneDataClip(studyId: string, fieldList: any[], dataClip: any): Promise<any> {
-        let fieldInDb;
-        if (dataClip.fieldId) {
-            fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId);
-        } else {
-            fieldInDb = fieldList.filter(el => (el.fieldName === dataClip.fieldName && el.tableName === dataClip.tableName));
-        }
+        const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId);
         if (!fieldInDb) {
             return { error: `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} is not registered. Please update the annotations first.` };
         }
         // check subjectId
         if(!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
-            throw new ApolloError('Subject ID is illegal.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            return { error: `Subject ID ${dataClip.subjectId} is illegal.`};
         }
-
-        // check visitId is number
-        if (!/^\d+$/.test(dataClip.visitId)) {
-            throw new ApolloError('Visit ID is illegal.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-        }
-
-        // check if field fOUND
-        let error;
-
 
         // check value is valid
+        let error;
         let parsedValue;
         if (fieldInDb.length === 0) {
             error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Field Not found`;
         } else {
             switch (fieldInDb[0].dataType) {
-                case 'dec': // decimal
+                case 'dec': {// decimal
                     if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
                         error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as decimal.`;
                         break;
                     }
                     parsedValue = parseFloat(dataClip.value);
                     break;
-                case 'int': // integer
+                }
+                case 'int': {// integer
                     if (!/^\d+$/.test(dataClip.value)) {
                         error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as integer.`;
                         break;
                     }
                     parsedValue = parseInt(dataClip.value, 10);
                     break;
-                case 'boo': // boolean
+                }
+                case 'boo': {// boolean
                     if (dataClip.value.toLowerCase() === 'true' || dataClip.value.toLowerCase() === 'false') {
                         parsedValue = dataClip.value.toLowerCase() === 'true';
                     } else {
@@ -155,19 +141,37 @@ export class StudyCore {
                         break;
                     }
                     break;
-                case 'str':
+                }
+                case 'str': {
                     parsedValue = dataClip.value.toString();
                     break;
-                case 'dat':
-                    parsedValue = dataClip.value.toString();
+                }
+                // 01/02/2021 00:00:00
+                case 'dat': {
+                    const part = dataClip.value.split('/');
+                    const tmp = part[1];
+                    part[1] = part[0];
+                    part[0] = tmp;
+                    parsedValue = new Date(part[0].concat('/').concat(part[1]).concat('/').concat(part[2])).toISOString();
                     break;
-                case 'jso': // save as string
+                }
+                case 'jso': {// save as string
                     parsedValue = JSON.stringify(dataClip.value);
                     break;
+                }
                 case 'fil': {
                     const file = await db.collections!.files_collection.findOne({ id: parseValue });
                     if (!file) {
                         error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as file or file does not exist.`;
+                        break;
+                    } else {
+                        parsedValue = dataClip.value.toString();
+                    }
+                    break;
+                }
+                case 'cat': {
+                    if (!fieldInDb[0].possibleValues.map(el => el.code).includes(dataClip.value.toString())) {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as categorical, value not in value list.`;
                         break;
                     } else {
                         parsedValue = dataClip.value.toString();
@@ -276,9 +280,9 @@ export class StudyCore {
         await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });
     }
 
-    public async editProjectApprovedFields(projectId: string, fieldTreeId: string, approvedFields: string[]): Promise<IProject> {
+    public async editProjectApprovedFields(projectId: string, approvedFields: string[]): Promise<IProject> {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { [`approvedFields.${fieldTreeId}`]: approvedFields } }, { returnOriginal: false });
+        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields: approvedFields } }, { returnOriginal: false });
         if (result.ok === 1) {
             return result.value;
         } else {

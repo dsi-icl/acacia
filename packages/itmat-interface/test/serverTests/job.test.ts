@@ -102,8 +102,7 @@ describe('JOB API', () => {
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
                     file: [createdFile.id],
-                    studyId: createdStudy.id,
-                    fieldTreeId: 'mockFieldTreeId'
+                    studyId: createdStudy.id
                 }
             });
             expect(res.status).toBe(200);
@@ -123,9 +122,7 @@ describe('JOB API', () => {
                 error: null,
                 cancelled: false,
                 cancelledTime: null,
-                data: {
-                    fieldTreeId: 'mockFieldTreeId'
-                }
+                data: null
             }]);
         });
 
@@ -134,8 +131,7 @@ describe('JOB API', () => {
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
                     file: [createdFile.id],
-                    studyId: createdStudy.id,
-                    fieldTreeId: 'mockFieldTreeId'
+                    studyId: createdStudy.id
                 }
             });
             expect(res.status).toBe(200);
@@ -155,9 +151,7 @@ describe('JOB API', () => {
                 error: null,
                 cancelled: false,
                 cancelledTime: null,
-                data: {
-                    fieldTreeId: 'mockFieldTreeId'
-                }
+                data: null
             }]);
         });
 
@@ -166,8 +160,7 @@ describe('JOB API', () => {
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
                     file: [createdFile.id],
-                    studyId: createdStudy.id,
-                    fieldTreeId: 'mockFieldTreeId'
+                    studyId: createdStudy.id
                 }
             });
             expect(res.status).toBe(200);
@@ -220,8 +213,7 @@ describe('JOB API', () => {
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
                     file: [createdFile.id],
-                    studyId: createdStudy.id,
-                    fieldTreeId: 'mockFieldTreeId'
+                    studyId: createdStudy.id
                 }
             });
             expect(res.status).toBe(200);
@@ -241,9 +233,7 @@ describe('JOB API', () => {
                 error: null,
                 cancelled: false,
                 cancelledTime: null,
-                data: {
-                    fieldTreeId: 'mockFieldTreeId'
-                }
+                data: null
             }]);
         });
 
@@ -252,8 +242,7 @@ describe('JOB API', () => {
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
                     file: ['fakeFile'],
-                    studyId: createdStudy.id,
-                    fieldTreeId: 'mockFieldTreeId'
+                    studyId: createdStudy.id
                 }
             });
             expect(res.status).toBe(200);
@@ -270,8 +259,7 @@ describe('JOB API', () => {
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
                     file: [createdFile.id],
-                    studyId: 'fakeStudyId',
-                    fieldTreeId: 'mockFieldTreeId'
+                    studyId: 'fakeStudyId'
                 }
             });
             expect(res.status).toBe(200);
@@ -288,8 +276,7 @@ describe('JOB API', () => {
                 query: print(CREATE_DATA_CURATION_JOB),
                 variables: {
                     file: [createdFile.id],
-                    studyId: createdStudy.id,
-                    fieldTreeId: 'mockFieldTreeId'
+                    studyId: createdStudy.id
                 }
             });
             expect(res.status).toBe(200);

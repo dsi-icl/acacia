@@ -15,7 +15,8 @@ describe('Unit tests for processFieldRow function', () => {
         lineNum: 22,
         row: [],
         job,
-        fieldTreeId: 'mockFieldTreeId'
+        fieldTreeId: 'mockFieldTreeId',
+        codes: {}
     };
 
     it('processFieldRow function correctly parse data row', () => {
@@ -27,43 +28,13 @@ describe('Unit tests for processFieldRow function', () => {
         expect(error).toBeUndefined();
         expect(dataEntry.id).toBeDefined();
         expect(typeof dataEntry.id).toBe('string');
-        expect(dataEntry.fieldId).toBe(564);
-        expect(dataEntry.database).toBe('IDEAFAST');
-        expect(dataEntry.tableName).toBe('Participants');
-        expect(dataEntry.tableId).toBe('');
-        expect(dataEntry.sequentialOrder).toBe('');
-        expect(dataEntry.questionNumber).toBe('');
         expect(dataEntry.fieldName).toBe('SubjectID');
-        expect(dataEntry.label).toBe('Subject ID');
-        expect(dataEntry.labelDe).toBe('');
-        expect(dataEntry.labelNl).toBe('');
-        expect(dataEntry.labelIt).toBe('');
-        expect(dataEntry.labelEs).toBe('');
-        expect(dataEntry.labelPl).toBe('');
-        expect(dataEntry.labelF).toBe('');
-        expect(dataEntry.eligibleAnswer).toBe('');
-        expect(dataEntry.ineligibleAnswer).toBe('');
-        expect(dataEntry.validation).toBe('');
         expect(dataEntry.dataType).toBe(enumValueType.STRING);
-        expect(dataEntry.controlType).toBe('');
-        expect(dataEntry.systemGenerated).toBe(false);
-        expect(dataEntry.valueList).toBe('');
-        expect(dataEntry.length).toBe(9);
-        expect(dataEntry.displayFormat).toBe('');
-        expect(dataEntry.nullable).toBe(true);
-        expect(dataEntry.required).toBe(false);
-        expect(dataEntry.mandatory).toBe(true);
-        expect(dataEntry.collectIf).toBe('');
-        expect(dataEntry.notMapped).toBe(false);
-        expect(dataEntry.defaultValue).toBe('');
-        expect(dataEntry.regEx).toBe('');
-        expect(dataEntry.regExErrorMsg).toBe('');
-        expect(dataEntry.showOnIndexView).toBe(false);
+        expect(dataEntry.possibleValues).toEqual([]);
+        expect(dataEntry.unit).toBe('');
         expect(dataEntry.comments).toBe('');
-        expect(dataEntry.jobId).toBe('mockJobId');
         expect(dataEntry.deleted).toBe(null);
         expect(typeof dataEntry.dateAdded).toBe('number');
-        expect(dataEntry.fieldTreeId).toBe('mockFieldTreeId');
     });
 
     it('processFieldRow function detects necessary fields that are empty', () => {
@@ -176,7 +147,7 @@ describe('FieldCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockFieldTreeId'
+            {}
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([]);
@@ -184,43 +155,13 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._executeCalled).toEqual([26]);
         expect(mongoStub._bulkinsert._insertArray[0].id).toBeDefined();
         expect(typeof mongoStub._bulkinsert._insertArray[0].id).toBe('string');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldId).toBe(1);
-        expect(mongoStub._bulkinsert._insertArray[0].database).toBe('IDEAFAST');
-        expect(mongoStub._bulkinsert._insertArray[0].tableName).toBe('Participants');
-        expect(mongoStub._bulkinsert._insertArray[0].tableId).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].sequentialOrder).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].questionNumber).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].fieldName).toBe('SubjectID');
-        expect(mongoStub._bulkinsert._insertArray[0].label).toBe('Subject ID');
-        expect(mongoStub._bulkinsert._insertArray[0].labelDe).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelNl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelIt).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelEs).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelPl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelF).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].eligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].ineligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].validation).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dataType).toBe(enumValueType.STRING);
-        expect(mongoStub._bulkinsert._insertArray[0].controlType).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].systemGenerated).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].valueList).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].length).toBe(9);
-        expect(mongoStub._bulkinsert._insertArray[0].displayFormat).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].nullable).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].required).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].mandatory).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].collectIf).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].notMapped).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].defaultValue).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regEx).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regExErrorMsg).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].showOnIndexView).toBe(false);
+        expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
+        expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].jobId).toBe('mockJobId');
         expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldTreeId).toBe('mockFieldTreeId');
     }, 10000);
 
     it('fieldcurator uploads csv file > 1000 fields okay', async () => {
@@ -238,7 +179,7 @@ describe('FieldCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockFieldTreeId'
+            {}
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([]);
@@ -246,43 +187,13 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000, 1226]);
         expect(mongoStub._bulkinsert._insertArray[0].id).toBeDefined();
         expect(typeof mongoStub._bulkinsert._insertArray[0].id).toBe('string');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldId).toBe(1);
-        expect(mongoStub._bulkinsert._insertArray[0].database).toBe('IDEAFAST');
-        expect(mongoStub._bulkinsert._insertArray[0].tableName).toBe('Participants');
-        expect(mongoStub._bulkinsert._insertArray[0].tableId).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].sequentialOrder).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].questionNumber).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].fieldName).toBe('SubjectID');
-        expect(mongoStub._bulkinsert._insertArray[0].label).toBe('Subject ID');
-        expect(mongoStub._bulkinsert._insertArray[0].labelDe).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelNl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelIt).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelEs).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelPl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelF).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].eligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].ineligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].validation).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dataType).toBe(enumValueType.STRING);
-        expect(mongoStub._bulkinsert._insertArray[0].controlType).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].systemGenerated).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].valueList).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].length).toBe(9);
-        expect(mongoStub._bulkinsert._insertArray[0].displayFormat).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].nullable).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].required).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].mandatory).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].collectIf).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].notMapped).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].defaultValue).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regEx).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regExErrorMsg).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].showOnIndexView).toBe(false);
+        expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
+        expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].jobId).toBe('mockJobId');
         expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldTreeId).toBe('mockFieldTreeId');
     }, 10000);
 
     it('fieldcurator catches duplicate fieldId before first watermark', async () => {
@@ -300,7 +211,7 @@ describe('FieldCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockFieldTreeId'
+            {}
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Data Error: There is duplicate field id.']);
@@ -308,43 +219,13 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000]);
         expect(mongoStub._bulkinsert._insertArray[0].id).toBeDefined();
         expect(typeof mongoStub._bulkinsert._insertArray[0].id).toBe('string');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldId).toBe(1);
-        expect(mongoStub._bulkinsert._insertArray[0].database).toBe('IDEAFAST');
-        expect(mongoStub._bulkinsert._insertArray[0].tableName).toBe('Participants');
-        expect(mongoStub._bulkinsert._insertArray[0].tableId).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].sequentialOrder).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].questionNumber).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].fieldName).toBe('SubjectID');
-        expect(mongoStub._bulkinsert._insertArray[0].label).toBe('Subject ID');
-        expect(mongoStub._bulkinsert._insertArray[0].labelDe).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelNl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelIt).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelEs).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelPl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelF).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].eligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].ineligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].validation).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dataType).toBe(enumValueType.STRING);
-        expect(mongoStub._bulkinsert._insertArray[0].controlType).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].systemGenerated).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].valueList).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].length).toBe(9);
-        expect(mongoStub._bulkinsert._insertArray[0].displayFormat).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].nullable).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].required).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].mandatory).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].collectIf).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].notMapped).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].defaultValue).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regEx).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regExErrorMsg).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].showOnIndexView).toBe(false);
+        expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
+        expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].jobId).toBe('mockJobId');
         expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldTreeId).toBe('mockFieldTreeId');
     }, 10000);
 
     it('fieldcurator catches duplicate fieldId after first watermark', async () => {
@@ -362,7 +243,7 @@ describe('FieldCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockFieldTreeId'
+            {}
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Data Error: There is duplicate field id.']);
@@ -370,43 +251,13 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000]);
         expect(mongoStub._bulkinsert._insertArray[0].id).toBeDefined();
         expect(typeof mongoStub._bulkinsert._insertArray[0].id).toBe('string');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldId).toBe(1);
-        expect(mongoStub._bulkinsert._insertArray[0].database).toBe('IDEAFAST');
-        expect(mongoStub._bulkinsert._insertArray[0].tableName).toBe('Participants');
-        expect(mongoStub._bulkinsert._insertArray[0].tableId).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].sequentialOrder).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].questionNumber).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].fieldName).toBe('SubjectID');
-        expect(mongoStub._bulkinsert._insertArray[0].label).toBe('Subject ID');
-        expect(mongoStub._bulkinsert._insertArray[0].labelDe).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelNl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelIt).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelEs).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelPl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelF).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].eligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].ineligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].validation).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dataType).toBe(enumValueType.STRING);
-        expect(mongoStub._bulkinsert._insertArray[0].controlType).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].systemGenerated).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].valueList).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].length).toBe(9);
-        expect(mongoStub._bulkinsert._insertArray[0].displayFormat).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].nullable).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].required).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].mandatory).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].collectIf).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].notMapped).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].defaultValue).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regEx).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regExErrorMsg).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].showOnIndexView).toBe(false);
+        expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
+        expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].jobId).toBe('mockJobId');
         expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldTreeId).toBe('mockFieldTreeId');
     }, 10000);
 
     it('fieldcurator catches uneven field before watermark', async () => {
@@ -424,7 +275,7 @@ describe('FieldCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockFieldTreeId'
+            {}
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Line 24: Uneven field Number; expected 33 fields but got 31.']);
@@ -432,43 +283,13 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray[0].id).toBeDefined();
         expect(typeof mongoStub._bulkinsert._insertArray[0].id).toBe('string');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldId).toBe(1);
-        expect(mongoStub._bulkinsert._insertArray[0].database).toBe('IDEAFAST');
-        expect(mongoStub._bulkinsert._insertArray[0].tableName).toBe('Participants');
-        expect(mongoStub._bulkinsert._insertArray[0].tableId).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].sequentialOrder).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].questionNumber).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].fieldName).toBe('SubjectID');
-        expect(mongoStub._bulkinsert._insertArray[0].label).toBe('Subject ID');
-        expect(mongoStub._bulkinsert._insertArray[0].labelDe).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelNl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelIt).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelEs).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelPl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelF).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].eligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].ineligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].validation).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dataType).toBe(enumValueType.STRING);
-        expect(mongoStub._bulkinsert._insertArray[0].controlType).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].systemGenerated).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].valueList).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].length).toBe(9);
-        expect(mongoStub._bulkinsert._insertArray[0].displayFormat).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].nullable).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].required).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].mandatory).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].collectIf).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].notMapped).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].defaultValue).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regEx).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regExErrorMsg).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].showOnIndexView).toBe(false);
+        expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
+        expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].jobId).toBe('mockJobId');
         expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldTreeId).toBe('mockFieldTreeId');
     }, 10000);
 
     it('fieldcurator catches uneven field after watermark', async () => {
@@ -486,7 +307,7 @@ describe('FieldCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockFieldTreeId'
+            {}
         );
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual(['Line 1121: Uneven field Number; expected 33 fields but got 32.']);
@@ -494,43 +315,13 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._executeCalled).toEqual([1000]);
         expect(mongoStub._bulkinsert._insertArray[0].id).toBeDefined();
         expect(typeof mongoStub._bulkinsert._insertArray[0].id).toBe('string');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldId).toBe(1);
-        expect(mongoStub._bulkinsert._insertArray[0].database).toBe('IDEAFAST');
-        expect(mongoStub._bulkinsert._insertArray[0].tableName).toBe('Participants');
-        expect(mongoStub._bulkinsert._insertArray[0].tableId).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].sequentialOrder).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].questionNumber).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].fieldName).toBe('SubjectID');
-        expect(mongoStub._bulkinsert._insertArray[0].label).toBe('Subject ID');
-        expect(mongoStub._bulkinsert._insertArray[0].labelDe).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelNl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelIt).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelEs).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelPl).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].labelF).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].eligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].ineligibleAnswer).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].validation).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dataType).toBe(enumValueType.STRING);
-        expect(mongoStub._bulkinsert._insertArray[0].controlType).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].systemGenerated).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].valueList).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].length).toBe(9);
-        expect(mongoStub._bulkinsert._insertArray[0].displayFormat).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].nullable).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].required).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].mandatory).toBe(true);
-        expect(mongoStub._bulkinsert._insertArray[0].collectIf).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].notMapped).toBe(false);
-        expect(mongoStub._bulkinsert._insertArray[0].defaultValue).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regEx).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].regExErrorMsg).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].showOnIndexView).toBe(false);
+        expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
+        expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].jobId).toBe('mockJobId');
         expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
-        expect(mongoStub._bulkinsert._insertArray[0].fieldTreeId).toBe('mockFieldTreeId');
     }, 10000);
 
     it('fieldcurator catches mixed errors', async () => {
@@ -548,7 +339,7 @@ describe('FieldCuratorClass', () => {
             readStream,
             undefined,
             jobEntry,
-            'mockVersionId'
+            {}
         );
 
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();

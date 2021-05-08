@@ -23,6 +23,7 @@ enum FIELD_VALUE_TYPE {
     dat # datetime, temporaily save as string
     fil # file id
     jso # JSON: array & object
+    cat # CATEGORICAL
 }
 
 enum STUDYTYPE {
@@ -31,55 +32,29 @@ enum STUDYTYPE {
     ANY
 }
 
+type ValueCategory {
+    code: String!,
+    description: String
+}
+
 type Field {
     id: String!
     studyId: String!
-    fieldId: Int! # start
-    database: String!
-    tableName: String
-    tableId: String
-    sequentialOrder: String
-    questionNumber: String
+    fieldId: String! # start
     fieldName: String!
-    label: String
-    labelDe: String
-    labelNl: String
-    labelIt: String
-    labelEs: String
-    labelPl: String
-    labelF: String
-    eligibleAnswer: String
-    ineligibleAnswer: String
-    validation: String
     dataType: FIELD_VALUE_TYPE!
-    controlType: String
-    systemGenerated: Boolean!
-    valueList: String
-    length: Int
-    displayFormat: String
-    nullable: Boolean!
-    required: Boolean!
-    mandatory: Boolean!
-    collectIf: String
-    notMapped: Boolean!
-    defaultValue: String
-    regEx: String
-    regExErrorMsg: String
-    showOnIndexView: Boolean!
+    possibleValues: [ValueCategory]
+    unit: String
     comments: String
-    jobId: String
-    dateAdded: Float
+    dateAdded: Float!
     deleted: Float
-    fieldTreeId: String!
 }
 
 input DataClip {
-    fieldId: Int,
-    fieldName: String,
-    value: String,
-    subjectId: String,
-    visitId: Int,
-    tableName: String
+    fieldId: String!,
+    value: String!,
+    subjectId: String!,
+    visitId: String!,
 }
 
 type DataRecordSummary {
@@ -180,9 +155,6 @@ type DataVersion {
     contentId: String!
     tag: String
     updateDate: String!
-    jobId: [String]!
-    extractedFrom: [String]!
-    fieldTrees: [String]!
 }
 
 type Study {
@@ -203,11 +175,6 @@ type Study {
     numOfSubjects: Int!
 }
 
-type ProjectFields {
-    fieldTreeId: String!
-    fieldsInFieldTree: [Field]!
-}
-
 type Project {
     id: String!
     studyId: String!
@@ -222,7 +189,7 @@ type Project {
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
-    fields: [ProjectFields]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
+    fields: [Field]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
     files: [File]!
 }
 
@@ -398,6 +365,20 @@ input StringArrayChangesInput {
     remove: [String]!
 }
 
+input ValueCategoryInput {
+    code: String!,
+    description: String
+}
+
+input FieldInput {
+    fieldId: String! # start
+    fieldName: String!
+    dataType: FIELD_VALUE_TYPE!
+    possibleValues: [ValueCategoryInput]
+    unit: String
+    comments: String
+}
+
 type Query {
     # USER
     whoAmI: User
@@ -413,7 +394,7 @@ type Query {
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
-    getStudyFields(fieldTreeId: String, studyId: String!, projectId: String): [Field]
+    getStudyFields(studyId: String!, projectId: String): [Field]
     getDataRecords(studyId: String!, queryString: JSON, versionId: [String], projectId: String): JSON
 
     # QUERY
@@ -457,15 +438,17 @@ type Mutation {
     createStudy(name: String!, description: String, type: STUDYTYPE!): Study
     deleteStudy(studyId: String!): GenericResponse
     editStudy(studyId: String!, description: String): Study
-    createNewDataVersion(fieldTreeId: String!, studyId: String!, dataVersion: String!, tag: String): DataVersion
-    uploadDataInArray(studyId: String!, fieldTreeId: String, data: [DataClip]): DataRecordSummary
-    deleteDataRecords(studyId: String!, subjectId: String, versionId: String, visitId: Int, fieldIds: [String]): DataRecordSummary
-    recoverDataRecords(studyId: String!, subjectId: String, versionId: String, visitId: Int): DataRecordSummary
-    
+    createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
+    uploadDataInArray(studyId: String!, data: [DataClip]): DataRecordSummary
+    deleteDataRecords(studyId: String!, subjectId: String, visitId: String, fieldIds: [String]): DataRecordSummary
+    createNewField(studyId: String!, fieldInput: FieldInput!): Field
+    editField(studyId: String!, fieldInput: FieldInput!): Field
+    deleteField(studyId: String!, fieldId: String!): Field
+
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
     deleteProject(projectId: String!): GenericResponse
-    editProjectApprovedFields(projectId: String!, fieldTreeId: String!, approvedFields: [String]!): Project
+    editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
     editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project
 
     # ACCESS MANAGEMENT
@@ -481,7 +464,7 @@ type Mutation {
     createQuery(query: QueryObjInput!): QueryEntry
 
     # CURATION
-    createDataCurationJob(file: [String]!, studyId: String!, fieldTreeId: String!): [Job]
+    createDataCurationJob(file: [String]!, studyId: String!): [Job]
     createFieldCurationJob(file: String!, studyId: String!, tag: String!): Job
     createQueryCurationJob(queryId: [String], studyId: String, projectId: String): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study

@@ -16,6 +16,7 @@ import {
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
+import { validateAndGenerateFieldEntry } from '../core/fieldCore';
 import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
@@ -69,7 +70,7 @@ export const studyResolvers = {
 
             return project;
         },
-        getStudyFields: async (__unused__parent: Record<string, unknown>, { fieldTreeId, studyId, projectId }: { fieldTreeId: string, studyId: string, projectId?: string }, context: any): Promise<IFieldEntry[]> => {
+        getStudyFields: async (__unused__parent: Record<string, unknown>, { studyId, projectId }: { studyId: string, projectId?: string }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -84,9 +85,9 @@ export const studyResolvers = {
                 projectId
             );
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
-            const result = await db.collections!.field_dictionary_collection.find({ studyId: studyId }).toArray();
+            const result = await db.collections!.field_dictionary_collection.find({ studyId: studyId, deleted: null }).toArray();
 
-            return fieldTreeId === undefined ? result : result.filter(el => el.fieldTreeId === fieldTreeId);
+            return result;
         },
         getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: string, studyId: string, versionId: string[], projectId?: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
@@ -104,21 +105,29 @@ export const studyResolvers = {
                 projectId
             );
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
-            const thisStudy = await db.collections!.studies_collection.findOne({ id: studyId });
-            const endContentId = thisStudy.dataVersions[thisStudy.currentDataVersion].contentId;
             let availableDataVersions: any[] = [];
-            for (let i=0; i<thisStudy.dataVersions.length; i++) {
-                availableDataVersions.push(thisStudy.dataVersions[i].contentId);
-                if (thisStudy.dataVersions[i].contentId === endContentId) {
-                    break;
-                }
-            }
             let result;
-            if (requester.type === userTypes.ADMIN) {
-                availableDataVersions.push(null);
-            }
-            if (versionId !== undefined && versionId !== null && requester.type === userTypes.ADMIN) {
-                availableDataVersions = versionId;
+            const thisStudy = await db.collections!.studies_collection.findOne({ id: studyId });
+
+            if (versionId !== undefined && versionId !== null) {
+                if (requester.type === userTypes.ADMIN) {
+                    availableDataVersions = versionId;
+                } else {
+                    throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                }
+            } else {
+                if (thisStudy.currentDataVersion !== -1) {
+                    const endContentId = thisStudy.dataVersions[thisStudy.currentDataVersion].contentId;
+                    for (let i=0; i<thisStudy.dataVersions.length; i++) {
+                        availableDataVersions.push(thisStudy.dataVersions[i].contentId);
+                        if (thisStudy.dataVersions[i].contentId === endContentId) {
+                            break;
+                        }
+                    }
+                }
+                if (requester.type === userTypes.ADMIN) {
+                    availableDataVersions.push(null);
+                }
             }
             if (queryString !== undefined && JSON.parse(queryString).data_requested.length !== 0) {
                 const document = JSON.parse(queryString);
@@ -171,17 +180,7 @@ export const studyResolvers = {
         fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Record<string, any>> => {
             const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields));
             const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, deleted: null }).toArray();
-            const fieldTrees: Record<string, number> = {};
-            const fields = result.reduce((a: { fieldTreeId: string, fieldsInFieldTree: IFieldEntry[] }[], e: IFieldEntry) => {
-                // if (!fieldTrees[e.fieldTreeId]) {
-                if (!(a.map((el) => el.fieldTreeId)).includes(e.fieldTreeId)) {
-                    fieldTrees[e.fieldTreeId] = a.length;
-                    a.push({ fieldTreeId: e.fieldTreeId, fieldsInFieldTree: [] });
-                }
-                a[fieldTrees[e.fieldTreeId]].fieldsInFieldTree.push(e);
-                return a;
-            }, []);
-            return fields;
+            return result;
         },
         jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
@@ -278,7 +277,80 @@ export const studyResolvers = {
             const study = await studyCore.editStudy(studyId, description);
             return study;
         },
-        uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, fieldTreeId, data }: { studyId: string, fieldTreeId: string, data: IDataClip[] }, context: any): Promise<any> => {
+        createNewField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {
+            const requester: IUser = context.req.user;
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            // check study exists
+            await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+
+            // check fieldId duplicate
+            const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldInput.fieldId });
+            if (searchField) {
+                throw new ApolloError('Field already exists, please select another ID.', errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+
+            // check data valid
+            const {fieldEntry, error} = validateAndGenerateFieldEntry(fieldInput);
+            if (error.length !== 0) {
+                throw new ApolloError(JSON.stringify(error), errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+
+            // construct the rest of the fields
+            fieldEntry.id = uuid();
+            fieldEntry.studyId = studyId;
+            fieldEntry.dateAdded = (new Date()).valueOf();
+            fieldEntry.deleted = null;
+
+            await db.collections!.field_dictionary_collection.insertOne(fieldEntry);
+            return fieldEntry;
+        },
+        editField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {
+            const requester: IUser = context.req.user;
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            // check fieldId exist
+            const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldInput.fieldId });
+            if (!searchField) {
+                throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+            for (const each of Object.keys(fieldInput)) {
+                searchField[each] = fieldInput[each];
+            }
+            const {fieldEntry, error} = validateAndGenerateFieldEntry(searchField);
+            if (error.length !== 0) {
+                throw new ApolloError(JSON.stringify(error), errorCodes.CLIENT_MALFORMED_INPUT);
+            }
+            const newFieldEntry = {...fieldEntry, id: searchField.id, dateAdded: searchField.dateAdded, deleted: searchField.deleted, studyId: searchField.studyId};
+            await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: newFieldEntry.fieldId }, {$set: newFieldEntry});
+
+            return newFieldEntry;
+
+        },
+        deleteField: async (__unused__parent: Record<string, unknown>, { studyId, fieldId }: { studyId: string, fieldId: number }, context: any): Promise<IFieldEntry> => {
+            const requester: IUser = context.req.user;
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            // check fieldId exist
+            const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldId });
+            if (!searchField) {
+                throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+            await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: fieldId }, {$set: {deleted: (new Date()).valueOf()} });
+
+            return searchField;
+
+        },
+        uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, data }: { studyId: string, data: IDataClip[] }, context: any): Promise<any> => {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
@@ -293,8 +365,7 @@ export const studyResolvers = {
             }
 
             // find the fieldsList
-            const cursor = db.collections!.field_dictionary_collection.find({ fieldTreeId: fieldTreeId });
-            const fieldsList = await cursor.toArray();
+            const fieldsList = await db.collections!.field_dictionary_collection.find({ studyId: studyId }).toArray();
             if (!fieldsList) {
                 throw new ApolloError('FieldTree is not valid', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
@@ -314,7 +385,7 @@ export const studyResolvers = {
 
             return result;
         },
-        deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectId, versionId, visitId, fieldIds }: { studyId: string, subjectId: string, versionId: string, visitId: number, fieldIds: string[] }, context: any): Promise<any> => {
+        deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectId, visitId, fieldIds }: { studyId: string, subjectId: string, visitId: string, fieldIds: string[] }, context: any): Promise<any> => {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
@@ -336,9 +407,6 @@ export const studyResolvers = {
             }
             if (visitId) {
                 queryObj.m_visitId = visitId;
-            }
-            if (versionId) {
-                queryObj.m_versionId = versionId;
             }
 
             // delete records
@@ -363,45 +431,7 @@ export const studyResolvers = {
             };
             return returnedObject;
         },
-        recoverDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectId, versionId, visitId }: { studyId: string, subjectId: string, versionId: string, visitId: string }, context: any): Promise<any> => {
-            // check study exists
-            await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-
-            const requester: IUser = context.req.user;
-            /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
-                requester,
-                studyId
-            ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
-            }
-
-            // construct query object
-            const queryObj: any = {
-            };
-            if (subjectId) {
-                queryObj.m_subjectId = subjectId;
-            }
-            if (visitId) {
-                queryObj.m_visitId = visitId;
-            }
-            if (versionId) {
-                queryObj.m_versionId = versionId;
-            }
-
-            const result = await db.collections!.data_collection.updateMany(queryObj, {
-                $set: { deleted: null }
-            });
-
-            const returnedObject: IDataRecordSummary = {
-                detail: [],
-                numOfRecordSucceed: result.modifiedCount,
-                numOfRecordFailed: result.matchedCount - result.modifiedCount
-            };
-            return returnedObject;
-        },
-        createNewDataVersion: async (__unused__parent: Record<string, unknown>, { fieldTreeId, studyId, dataVersion, tag }: { fieldTreeId: string, studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
+        createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
@@ -416,7 +446,7 @@ export const studyResolvers = {
             if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(dataVersion)) {
                 throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
-            const created = await studyCore.createNewDataVersion(fieldTreeId, studyId, tag, dataVersion);
+            const created = await studyCore.createNewDataVersion(studyId, tag, dataVersion);
             return created;
         },
         createProject: async (__unused__parent: Record<string, unknown>, { studyId, projectName }: { studyId: string, projectName: string }, context: any): Promise<IProject> => {
@@ -475,7 +505,7 @@ export const studyResolvers = {
 
             return makeGenericReponse(studyId);
         },
-        editProjectApprovedFields: async (__unused__parent: Record<string, unknown>, { projectId, fieldTreeId, approvedFields }: { projectId: string, fieldTreeId: string, approvedFields: string[] }, context: any): Promise<IProject> => {
+        editProjectApprovedFields: async (__unused__parent: Record<string, unknown>, { projectId, approvedFields }: { projectId: string, approvedFields: string[] }, context: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check study id for the project */
@@ -493,19 +523,19 @@ export const studyResolvers = {
             /* check field tree exists */
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(project.studyId);
             const currentDataVersion = study.dataVersions[study.currentDataVersion];
-            if (!currentDataVersion || !currentDataVersion.fieldTrees.includes(fieldTreeId)) {
+            if (!currentDataVersion) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* check all the fields are valid */
-            const activefields = await db.collections!.field_dictionary_collection.find({ id: { $in: approvedFields }, deleted: null, fieldTreeId }).toArray();
+            const activefields = await db.collections!.field_dictionary_collection.find({ id: { $in: approvedFields }, deleted: null }).toArray();
             if (activefields.length !== approvedFields.length) {
                 throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
             }
 
 
             /* edit approved fields */
-            const resultingProject = await studyCore.editProjectApprovedFields(projectId, fieldTreeId, approvedFields);
+            const resultingProject = await studyCore.editProjectApprovedFields(projectId, approvedFields);
             return resultingProject;
         },
         editProjectApprovedFiles: async (__unused__parent: Record<string, unknown>, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any): Promise<IProject> => {

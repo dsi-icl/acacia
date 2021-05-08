@@ -24,8 +24,7 @@ export class JSONCurator {
     constructor(
         private readonly dataCollection: Collection,
         private readonly incomingWebStream: Readable,
-        private readonly job: IJobEntry<{ fieldTreeId: string }>,
-        private readonly fileId: string,
+        private readonly job: IJobEntry<never>,
         private readonly fieldsList: any[]
     ) {
         this._header = [null]; // the first element is subject id
@@ -170,7 +169,7 @@ export function processJSONHeader(header: string[], fieldsList: any[]): { error?
     return ({ parsedHeader: filteredParsedHeader, error: error.length === 0 ? undefined : error , subjectIdIndex, visitIdIndex});
 }
 
-export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, subject, parsedHeader, job }: { subjectIdIndex: number, visitIdIndex: number, objectNum: number, subject: string[], parsedHeader: any[], job: IJobEntry<{ fieldTreeId: string }> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
+export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, subject, parsedHeader, job }: { subjectIdIndex: number, visitIdIndex: number, objectNum: number, subject: string[], parsedHeader: any[], job: IJobEntry<never> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;
@@ -211,7 +210,7 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
             colIndex++;
             continue;
         }
-        const { fieldId, dataType } = parsedHeader[colIndex - 1];
+        const { fieldId, dataType, possibleValues } = parsedHeader[colIndex - 1];
         if (fieldId === undefined) {
             colIndex++;
             continue;
@@ -220,10 +219,17 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
         let value: any;
         try {
             switch (dataType) {
-                // case 'c': // categorical
-                //     value = each;
-                //     break;
-                case 'dec': // decimal
+                case 'cat': {// categorical
+                    const code = parseInt(each, 10).toString();
+                    if (!possibleValues.map(el => el.code).includes(code)) {
+                        error.push(`Object ${objectNum} column ${colIndex + 1}: Cannot parse '${each}' as categorical, value is illegal.`);
+                        colIndex++;
+                        continue;
+                    }
+                    value = code;
+                    break;
+                }
+                case 'dec': {// decimal
                     if (!/^\d+(.\d+)?$/.test(each)) {
                         error.push(`Object ${objectNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
                         colIndex++;
@@ -231,7 +237,8 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                     }
                     value = parseFloat(each);
                     break;
-                case 'int': // integer
+                }
+                case 'int': {// integer
                     if (!/^\d+$/.test(each)) {
                         error.push(`Object ${objectNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
                         colIndex++;
@@ -239,7 +246,8 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                     }
                     value = parseInt(each, 10);
                     break;
-                case 'boo': // boolean
+                }
+                case 'boo': {// boolean
                     if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
                         value = each.toLowerCase() === 'true';
                     } else {
@@ -248,25 +256,31 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                         continue;
                     }
                     break;
-                case 'str':
+                }
+                case 'str': {
                     value = each.toString();
                     break;
-                case 'dat':
-                    value = each.toString();
+                }
+                case 'dat': {
+                    const part = each.split('/');
+                    const tmp = part[1];
+                    part[1] = part[0];
+                    part[0] = tmp;
+                    value = new Date(part[0].concat('/').concat(part[1]).concat('/').concat(part[2])).toISOString();
                     break;
-                case 'jso': // save as string
+                }
+                case 'jso': {// save as string
                     value = JSON.stringify(each);
                     break;
-                case 'fil':
+                }
+                case 'fil': {
                     value = each.toString();
                     break;
-                case 'unk':
+                }
+                case 'unk': {
                     value = each.toString();
                     break;
-                default:
-                    error.push(`Object ${objectNum}: Invalid data type '${dataType}'`);
-                    colIndex++;
-                    continue;
+                }
             }
         } catch (e) {
             error.push(e.toString());

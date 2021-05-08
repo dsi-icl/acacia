@@ -12,18 +12,20 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 
 export const FieldListSelectionSection: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
-
-    if (getStudyLoading) {
+    const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
+    console.log(versions);
+    if (getStudyLoading || getStudyFieldsLoading) {
         return <LoadSpinner />;
     }
 
-    if (getStudyError) {
+    if (getStudyError || getStudyFieldsError) {
         return <p>
             A error occured, please contact your administrator
         </p>;
     }
 
-    const { fieldTrees } = versions[selectedVersion];
+    // const { fieldTrees } = versions[selectedVersion];
+    const fieldTrees = getStudyFieldsData.getStudyFields;
 
     return <>
         {selectedVersion === currentVersion ? null : <><span className='warning_banner'>Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}

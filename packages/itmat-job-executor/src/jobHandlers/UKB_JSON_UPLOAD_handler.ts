@@ -16,10 +16,10 @@ export class UKB_JSON_UPLOAD_Handler extends JobHandler {
         return this._instance;
     }
 
-    public async execute(job: IJobEntry<{ fieldTreeId: string }>) {
+    public async execute(job: IJobEntry<never>) {
         const errorsList = [];
         // get fieldid info from database
-        const fieldsList = await db.collections!.field_dictionary_collection.find({ fieldTreeId: job.data!.fieldTreeId }).toArray();
+        const fieldsList = await db.collections!.field_dictionary_collection.find({ studyId: job.studyId }).toArray();
 
         for (const fileId of job.receivedFiles) {
             try {
@@ -37,7 +37,6 @@ export class UKB_JSON_UPLOAD_Handler extends JobHandler {
                     db.collections!.data_collection,
                     fileStream,
                     job,
-                    fileId,
                     filteredFieldsList
                 );
                 const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();

@@ -19,7 +19,7 @@ export class FieldCurator {
         private readonly incomingWebStream: Readable,
         private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_lines_with_error: true },
         private readonly job: IJobEntryForFieldCuration,
-        private readonly fieldTreeId: string
+        private readonly codesObj: any
     ) {
         this._errored = false;
         this._errors = [];
@@ -66,7 +66,7 @@ export class FieldCurator {
                             lineNum: currentLineNum,
                             row: line,
                             job: this.job,
-                            fieldTreeId: this.fieldTreeId
+                            codes: this.codesObj
                         });
 
                         if (error) {
@@ -121,21 +121,14 @@ export class FieldCurator {
     }
 }
 
-export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } {
+export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, codes: any }): { error?: string[], dataEntry: IFieldEntry } {
     /* pure function */
     const error: string[] = [];
     const dataEntry_nouse: any = {};
     const THESE_COL_CANT_BE_EMPTY = {
         0: 'FieldID',
-        1: 'Database',
         6: 'Field Name',
         17: 'Data Type',
-        19: 'System Generated',
-        23: 'Nullable',
-        24: 'Required',
-        25: 'Mandatory',
-        27: 'Not mapped',
-        31: 'Show On Index View'
     };
 
     if (row.length !== CORRECT_NUMBER_OF_COLUMN) {
@@ -168,8 +161,19 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
         datetime: 'dat',
         bit: 'boo',
         json: 'jso',
-        file: 'fil'
+        file: 'fil',
+        categorical: 'cat'
     };
+
+    // datatypes: if fieldid exist in codes, then convert datatype to categorical
+    let dataType;
+    let possibleValues: any[] = [];
+    if (codes[row[0].toString()] !== undefined) {
+        dataType = dataTypeNames.categorical;
+        possibleValues = codes[row[0].toString()];
+    } else {
+        dataType = dataTypeNames[Object.keys(dataTypeNames).filter(el => row[17].toUpperCase().indexOf(el.toUpperCase()) >= 0)[0]];
+    }
     if ( !(Object.keys(dataTypeNames).some(x => row[17].toUpperCase().indexOf(x.toUpperCase()) >=0)) ) {
         error.push(`Line ${lineNum} column 18: Invalid value type "${row[2]}": use "int" for integers, "decimal()" for decimals, "nvarchar/varchar" for characters/strings, "datetime" for date time, "bit" for bit.`);
     }
@@ -183,56 +187,18 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
         return ({ error, dataEntry: dataEntry_nouse });
     }
 
-    const fieldId = parseInt(row[0], 10);
-    const systemGenerated = row[19].toUpperCase() === 'TRUE';
-    const dataType = dataTypeNames[Object.keys(dataTypeNames).filter(el => row[17].toUpperCase().indexOf(el.toUpperCase()) >= 0)[0]];
-    const length = row[21] === '' ? undefined : parseInt(row[21], 10);
-    const nullable = row[23].toUpperCase() === 'TRUE';
-    const required = row[24].toUpperCase() === 'TRUE';
-    const mandatory = row[25].toUpperCase() === 'TRUE';
-    const notMapped = row[27].toUpperCase() === 'TRUE';
-    const showOnIndexView = row[31].toUpperCase() === 'TRUE';
 
     const dataEntry: IFieldEntry = {
         id: uuid(),
         studyId: job.studyId,
-        fieldId: fieldId,
-        database: row[1],
-        tableName: row[2],
-        tableId: row[3],
-        sequentialOrder: row[4],
-        questionNumber: row[5],
+        fieldId: row[0],
         fieldName: row[6],
-        label: row[7],
-        labelDe: row[8],
-        labelNl: row[9],
-        labelIt: row[10],
-        labelEs: row[11],
-        labelPl: row[12],
-        labelF: row[13],
-        eligibleAnswer: row[14],
-        ineligibleAnswer: row[15],
-        validation: row[16],
         dataType: dataType,
-        controlType: row[18],
-        systemGenerated: systemGenerated,
-        valueList: row[20],
-        length: length,
-        displayFormat: row[22],
-        nullable: nullable,
-        required: required,
-        mandatory: mandatory,
-        collectIf: row[26],
-        notMapped: notMapped,
-        defaultValue: row[28],
-        regEx: row[29],
-        regExErrorMsg: row[30],
-        showOnIndexView: showOnIndexView,
+        possibleValues: possibleValues,
+        unit: '',
         comments: row[32],
-        jobId: job.id,
-        deleted: null,
         dateAdded: (new Date()).valueOf(),
-        fieldTreeId
+        deleted: null
     };
 
     return ({ error: undefined, dataEntry });

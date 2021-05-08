@@ -5,48 +5,49 @@ export const field_fragment = gql`
         id
         studyId
         fieldId
-        database
-        tableName
-        tableId
-        sequentialOrder
-        questionNumber
         fieldName
-        label
-        labelDe
-        labelNl
-        labelIt
-        labelEs
-        labelPl
-        labelF
-        eligibleAnswer
-        ineligibleAnswer
-        validation
         dataType
-        controlType
-        systemGenerated
-        valueList
-        length
-        displayFormat
-        nullable
-        required
-        mandatory
-        collectIf
-        notMapped
-        defaultValue
-        regEx
-        regExErrorMsg
-        showOnIndexView
+        possibleValues {
+            code
+            description
+        }
+        unit
         comments
-        jobId
         dateAdded
         deleted
-        fieldTreeId
     }
 `;
 
 export const GET_STUDY_FIELDS = gql`
-    query getStudyFields($fieldTreeId: String, $studyId: String!, $projectId: String) {
-        getStudyFields(fieldTreeId: $fieldTreeId, studyId: $studyId, projectId: $projectId) {
+    query getStudyFields($studyId: String!, $projectId: String) {
+        getStudyFields(studyId: $studyId, projectId: $projectId) {
+            ...ALL_FOR_FIELD
+        }
+    }
+    ${field_fragment}
+`;
+
+export const CREATE_NEW_FIELD = gql`
+    mutation createNewField($studyId: String!, $fieldInput: FieldInput!) {
+        createNewField(studyId: $studyId, fieldInput: $fieldInput) {
+            ...ALL_FOR_FIELD
+        }
+    }
+    ${field_fragment}
+`;
+
+export const EDIT_FIELD = gql`
+    mutation editField($studyId: String!, $fieldInput: FieldInput!) {
+        editField(studyId: $studyId, fieldInput: $fieldInput) {
+            ...ALL_FOR_FIELD
+        }
+    }
+    ${field_fragment}
+`;
+
+export const DELETE_FIELD = gql`
+    mutation deleteField($studyId: String!, $fieldId: String!) {
+        deleteField(studyId: $studyId, fieldId: $fieldId) {
             ...ALL_FOR_FIELD
         }
     }

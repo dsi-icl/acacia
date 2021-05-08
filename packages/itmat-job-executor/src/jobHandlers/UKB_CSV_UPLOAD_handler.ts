@@ -16,14 +16,14 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
         return this._instance;
     }
 
-    public async execute(job: IJobEntry<{ fieldTreeId: string }>) {
+    public async execute(job: IJobEntry<never>) {
         // check if study version exists: checked by resolvers
         // check if fieldTreeId version exists: checked by resolvers
 
 
         const errorsList = [];
         // get fieldid info from database
-        const fieldsList = await db.collections!.field_dictionary_collection.find({ fieldTreeId: job.data!.fieldTreeId }).toArray();
+        const fieldsList = await db.collections!.field_dictionary_collection.find({ studyId: job.studyId }).toArray();
 
         for (const fileId of job.receivedFiles) {
             try {
@@ -32,18 +32,13 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
                     errorsList.push({fileId: fileId, error: 'file does not exist'});
                     continue;
                 }
-                const components = file.fileName.split('.')[0].split('_');
-                components.shift();
-                const tableName = components.join('_');
-                const filteredFieldsList = fieldsList.filter(el => el.tableName === tableName);
                 const fileStream: Readable = await objStore.downloadFile(job.studyId, file.uri);
                 const csvcurator = new CSVCurator(
                     db.collections!.data_collection,
                     fileStream,
                     undefined,
                     job,
-                    fileId,
-                    filteredFieldsList
+                    fieldsList
                 );
                 const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
                 if (errors.length !== 0) {

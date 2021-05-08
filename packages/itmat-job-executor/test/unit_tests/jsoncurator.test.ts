@@ -7,42 +7,42 @@ describe('Unit tests for processJSONHeader function', () => {
     const fieldsList = [
         {
             fieldId: 1,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'SubjectID',
+            possibleValues: [],
+            unit: '',
+            comments: '',
             dataType: enumValueType.STRING
         },
         {
             fieldId: 2,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'VisitID',
+            possibleValues: [],
+            unit: '',
+            comments: '',
             dataType: enumValueType.STRING
         },
         {
             fieldId: 31,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'Sex',
-            dataType: enumValueType.INTEGER
+            possibleValues: [{code: '1', description: 'male'}, {code: '0', description: 'female'}],
+            unit: '',
+            comments: '',
+            dataType: enumValueType.CATEGORICAL
         },
         {
             fieldId: 32,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'Description',
+            possibleValues: [],
+            unit: '',
+            comments: '',
             dataType: enumValueType.STRING
         },
         {
             fieldId: 33,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'Weight',
+            possibleValues: [],
+            unit: 'Kg',
+            comments: '',
             dataType: enumValueType.DECIMAL
         },
     ];
@@ -110,42 +110,42 @@ describe('Unit tests for processEachSubject function', () => {
     const fieldsList = [
         {
             fieldId: 1,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'SubjectID',
+            possibleValues: [],
+            unit: '',
+            comments: '',
             dataType: enumValueType.STRING
         },
         {
             fieldId: 2,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'VisitID',
+            possibleValues: [],
+            unit: '',
+            comments: '',
             dataType: enumValueType.STRING
         },
         {
             fieldId: 31,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'Sex',
-            dataType: enumValueType.INTEGER
+            possibleValues: [{code: '1', description: 'male'}, {code: '0', description: 'female'}],
+            unit: '',
+            comments: '',
+            dataType: enumValueType.CATEGORICAL
         },
         {
             fieldId: 32,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'Description',
+            possibleValues: [],
+            unit: '',
+            comments: '',
             dataType: enumValueType.STRING
         },
         {
             fieldId: 33,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'Weight',
+            possibleValues: [],
+            unit: 'Kg',
+            comments: '',
             dataType: enumValueType.DECIMAL
         },
     ];
@@ -154,7 +154,6 @@ describe('Unit tests for processEachSubject function', () => {
         id: 'mockJobId',
         studyId: 'mockStudyId',
         data: {
-            fieldTreeId: 'mockFieldTreeId',
         }
     });
     const { subjectIdIndex, visitIdIndex, parsedHeader } = processJSONHeader(['ID', 'SubjectID', 'VisitID', 'Sex', 'Description', 'Weight'], fieldsList);
@@ -174,7 +173,7 @@ describe('Unit tests for processEachSubject function', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
-            31: 0,
+            31: '0',
             32: 'description',
             33: 60.2,
             deleted: null
@@ -185,7 +184,7 @@ describe('Unit tests for processEachSubject function', () => {
         const { error, dataEntry } = processEachSubject(stub<any>({ ...templateParams, subject: ['0', 'I7N3G6G', '1', 'a', 'description', 'b'] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(2);
-        expect(error[0]).toBe('Object 22 column 4: Cannot parse \'a\' as integer.');
+        expect(error[0]).toBe('Object 22 column 4: Cannot parse \'a\' as categorical, value is illegal.');
         expect(error[1]).toBe('Object 22 column 6: Cannot parse \'b\' as decimal.');
         expect(dataEntry).toEqual({
             m_subjectId: 'I7N3G6G',
@@ -203,7 +202,7 @@ describe('Unit tests for processEachSubject function', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
-            31: 0,
+            31: '0',
             32: 'description',
             deleted: null
         });
@@ -217,7 +216,7 @@ describe('Unit tests for processEachSubject function', () => {
         expect(dataEntry).toEqual({
             m_visitId: '1',
             m_studyId: 'mockStudyId',
-            31: 0,
+            31: '0',
             32: 'description',
             33: 60.2,
             deleted: null
@@ -232,7 +231,7 @@ describe('Unit tests for processEachSubject function', () => {
         expect(dataEntry).toEqual({
             m_subjectId: 'I7N3G6G',
             m_studyId: 'mockStudyId',
-            31: 0,
+            31: '0',
             32: 'description',
             33: 60.2,
             deleted: null
@@ -244,42 +243,42 @@ describe('JSONCuratorClass', () => {
     const fieldsList = [
         {
             fieldId: 1,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'SubjectID',
+            possibleValues: [],
+            unit: '',
+            comments: '',
             dataType: enumValueType.STRING
         },
         {
             fieldId: 2,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'VisitID',
+            possibleValues: [],
+            unit: '',
+            comments: '',
             dataType: enumValueType.STRING
         },
         {
             fieldId: 31,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'Sex',
-            dataType: enumValueType.INTEGER
+            possibleValues: [{code: '1', description: 'male'}, {code: '0', description: 'female'}],
+            unit: '',
+            comments: '',
+            dataType: enumValueType.CATEGORICAL
         },
         {
             fieldId: 32,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'Description',
+            possibleValues: [],
+            unit: '',
+            comments: '',
             dataType: enumValueType.STRING
         },
         {
             fieldId: 33,
-            database: 'mockDatabase1',
-            tableName: 'mockTable1',
-            tableId: 'mockTableId1',
             fieldName: 'Weight',
+            possibleValues: [],
+            unit: 'Kg',
+            comments: '',
             dataType: enumValueType.DECIMAL
         },
     ];
@@ -366,14 +365,12 @@ describe('JSONCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
             jobEntry,
-            '',
             fieldsList
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
@@ -384,7 +381,7 @@ describe('JSONCuratorClass', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
-            31: 0,
+            31: '0',
             32: 'no description',
             33: 60.2,
             deleted: null
@@ -399,14 +396,12 @@ describe('JSONCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
             jobEntry,
-            '',
             fieldsList
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
@@ -425,14 +420,12 @@ describe('JSONCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
             jobEntry,
-            'null',
             fieldsList
         );
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
@@ -449,14 +442,12 @@ describe('JSONCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
             jobEntry,
-            'null',
             fieldsList
         );
 
@@ -471,7 +462,7 @@ describe('JSONCuratorClass', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
-            31: 0,
+            31: '0',
             32: 'no description',
             33: 60.2,
             deleted: null
@@ -486,14 +477,12 @@ describe('JSONCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
             jobEntry,
-            'null',
             fieldsList
         );
 
@@ -508,7 +497,7 @@ describe('JSONCuratorClass', () => {
             m_subjectId: 'I7N3G6G',
             m_visitId: '1',
             m_studyId: 'mockStudyId',
-            31: 0,
+            31: '0',
             32: 'no description',
             33: 60.2,
             deleted: null
@@ -523,21 +512,19 @@ describe('JSONCuratorClass', () => {
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {
-                fieldTreeId: 'mockFieldTreeId'
             }
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
             readStream,
             jobEntry,
-            'null',
             fieldsList
         );
 
         const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
         expect(errors).toEqual([
             'Object 1 column 7: Unknown field.',
-            'Object 4 column 4: Cannot parse \'a\' as integer.',
+            'Object 4 column 4: Cannot parse \'a\' as categorical, value is illegal.',
             'Object 130: Uneven field Number; expected 7 fields but got 6',
             'Object 153: Uneven field Number; expected 7 fields but got 5',
             'Object 2003: Uneven field Number; expected 7 fields but got 6',

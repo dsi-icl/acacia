@@ -18,8 +18,8 @@ export const job_fragment = gql`
 `;
 
 export const CREATE_DATA_CURATION_JOB = gql`
-    mutation createDataCurationJob($file: [String]!, $studyId: String!, $fieldTreeId: String!) {
-        createDataCurationJob(file: $file, studyId: $studyId, fieldTreeId: $fieldTreeId) {
+    mutation createDataCurationJob($file: [String]!, $studyId: String!) {
+        createDataCurationJob(file: $file, studyId: $studyId) {
             ...ALL_FOR_JOB
         }
     }

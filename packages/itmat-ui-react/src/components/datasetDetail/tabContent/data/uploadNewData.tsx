@@ -6,7 +6,7 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 import { Select, Button } from 'antd';
 const { Option } = Select;
 
-export const UploadNewData: React.FunctionComponent<{ studyId: string; fieldTreeId: string; cancelButton: (__unused__shown: boolean) => void }> = ({ studyId, fieldTreeId, cancelButton }) => {
+export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton: (__unused__shown: boolean) => void }> = ({ studyId, cancelButton }) => {
     return <div>
         <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>uploaded the data file to the file repository</span></NavLink>.</p>
         <br /><br />
@@ -18,14 +18,14 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string; fieldTree
                 if (!data.getStudy || data.getStudy.files === undefined || data.getStudy.files.length === 0) {
                     return null;
                 }
-                return <UploadNewDataForm cancelButton={cancelButton} studyId={studyId} fieldTreeId={fieldTreeId} files={data.getStudy.files} />;
+                return <UploadNewDataForm cancelButton={cancelButton} studyId={studyId} files={data.getStudy.files} />;
             }}
         </Query>
 
     </div>;
 };
 
-const UploadNewDataForm: React.FunctionComponent<{ studyId: string; fieldTreeId: string; files: IFile[]; cancelButton: (__unused__shown: boolean) => void }> = ({ cancelButton, files, fieldTreeId, studyId }) => {
+const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile[]; cancelButton: (__unused__shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState<string[]>([]); // files.length > 0 because of checks above
@@ -75,8 +75,7 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string; fieldTreeId:
                     createCurationJob({
                         variables: {
                             file: selectedFile,
-                            studyId,
-                            fieldTreeId: fieldTreeId
+                            studyId
                         }
                     });
 
