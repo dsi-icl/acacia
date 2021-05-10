@@ -495,6 +495,7 @@ export const RsaSigner: React.FunctionComponent = () => {
     const signGen = async function() {
         const privateKeyFormatted = await Key.importRSAPrivateKey(privateKey);
         const signature  = await cryptoInBrowser.signGen(publicKey, privateKeyFormatted);
+        //const signature  = await cryptoInBrowser.signGen('abc', privateKeyFormatted);
         setSignature(signature);
         setcompletedSignatureGen(true);
     };
@@ -512,7 +513,7 @@ export const RsaSigner: React.FunctionComponent = () => {
     if (completedSignatureGen) {
         return (
             <div>
-                <h3>The signature is successfully generated!</h3>
+                <h3>The signature is successfully generated! The original text to be signed hash_of('abc')</h3>
                 <br />
                 <p>Securely keep this signature to register with the data management portal!</p>
                 <textarea disabled value={signature} cols={120} rows={7} />

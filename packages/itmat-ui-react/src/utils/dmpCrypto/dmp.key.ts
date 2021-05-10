@@ -103,20 +103,20 @@ export class Key {
 
     static async createRSAKey(): Promise<CryptoKeyPair> {
         return await crypto.subtle.generateKey({
-            name: 'RSASSA-PKCS1-v1_5',
+            name: 'RSA-PSS',
             modulusLength: 4096,
             publicExponent: new Uint8Array([1, 0, 1]),
             hash: 'SHA-256'
         },
         true,
-        ['verify', 'sign']
+        ['sign', 'verify']
         );
     }
 
     static async exportRSAKey(keyPair: CryptoKeyPair) {
         const publicKey = await crypto.subtle.exportKey('spki', keyPair.publicKey);
         const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
-        return {privateKey: Utils.convertBinaryToPem(privateKey, 'ENCRYPTED PRIVATE KEY'), publicKey: Utils.convertBinaryToPem(publicKey, 'PUBLIC KEY')};
+        return {privateKey: Utils.convertBinaryToPem(privateKey, 'PRIVATE KEY'), publicKey: Utils.convertBinaryToPem(publicKey, 'PUBLIC KEY')};
         //return {privateKey: Utils.arrayBufferToBase64String(privateKey), publicKey: Utils.arrayBufferToBase64String(publicKey)};
     }
 
@@ -126,36 +126,40 @@ export class Key {
     }
 
     static async signwtRSAKey(message: string, privateKey: CryptoKey) {
-        const testhash = 'abc';
-        const testhash_encoded = await Utils.hash(Utils.toSupportedArray(testhash));
-        console.log('testhash = abc: ', Utils.arrayBufferToBase64String(testhash_encoded));
         const messageEncoded = Utils.toSupportedArray(message);
         const finalEncoded = await Utils.hash(messageEncoded);
-        console.log('hash of pubkey (as a message) to be signed: ', Utils.arrayBufferToBase64String(finalEncoded));
+        //console.log('final encoded to be signed: ', Utils.arrayBufferToBase64String(finalEncoded));
+
         const signature = await crypto.subtle.sign(
-            'RSASSA-PKCS1-V1_5',
+            {
+                name: 'RSA-PSS',
+                saltLength: 32,
+            },
             privateKey,
             finalEncoded
         );
+        //console.log('Signature: ', signature);
         return Utils.arrayBufferToBase64String(signature);
     }
 
     static async verifyRSA(publicKey: string, signature: string, message = '') {
         const publicKey_formatted = await this.importRSAPublicKey(publicKey);
         const signature_formatted = Utils.base64StringToArrayBuffer(signature);
+
         let message_formatted;
         if (message === '') {
             //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
             const messageEncoded = Utils.toSupportedArray(publicKey);
             message_formatted = await Utils.hash(messageEncoded);
-            console.log('hash of pubkey to be verified: ', Utils.arrayBufferToBase64String(message_formatted));
+            //console.log('hash of pubkey to be verified: ', Utils.arrayBufferToBase64String(message_formatted));
         } else {
             message_formatted = Utils.toSupportedArray(message);
         }
 
         return crypto.subtle.verify(
             {
-                name: 'RSASSA-PKCS1-v1_5',
+                name: 'RSA-PSS',
+                saltLength: 32,
             },
             publicKey_formatted, //from generateKey or importKey above
             signature_formatted, //ArrayBuffer of the signature
@@ -169,7 +173,7 @@ export class Key {
             'spki',
             convertedPem,
             {
-                name: 'RSASSA-PKCS1-v1_5',
+                name: 'RSA-PSS',
                 hash: {name: 'SHA-256'},
             },
             true,
@@ -185,7 +189,7 @@ export class Key {
             'pkcs8',
             pemArrayBuffer,
             {
-                name: 'RSASSA-PKCS1-v1_5',
+                name: 'RSA-PSS',
                 hash: {name: 'SHA-256'},
             },
             true,
