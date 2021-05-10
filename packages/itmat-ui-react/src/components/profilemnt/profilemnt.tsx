@@ -513,7 +513,7 @@ export const RsaSigner: React.FunctionComponent = () => {
     if (completedSignatureGen) {
         return (
             <div>
-                <h3>The signature is successfully generated! The original text to be signed hash_of('abc')</h3>
+                <h3>The signature is successfully generated!</h3>
                 <br />
                 <p>Securely keep this signature to register with the data management portal!</p>
                 <textarea disabled value={signature} cols={120} rows={7} />
@@ -531,10 +531,10 @@ export const RsaSigner: React.FunctionComponent = () => {
         <div>
             <p>To generate a digital signature to use in the data management portal, you need a public and private keypair</p>
             <p>Private Key: </p>
-            <textarea cols={120} rows={10} name='privateKey' value={privateKey} onChange={handlePrivateKey}> </textarea>
+            <textarea cols={120} rows={10} name='privateKey' value={privateKey} onChange={handlePrivateKey} required> </textarea>
             <br />
             <p>Public Key: </p>
-            <textarea cols={120} rows={10} name='privateKey' value={publicKey} onChange={handlePublicKey}> </textarea>
+            <textarea cols={120} rows={10} name='privateKey' value={publicKey} onChange={handlePublicKey} required> </textarea>
             <br />
             <Button type='primary' onClick={() => signGen()}>
                 Generate Signature (In-Browser)
