@@ -74,7 +74,7 @@ export const pubkeyResolvers = {
             pubkey = pubkey.replace(/\\n/g, '\n');
 
             /* Validate the signature with the public key */
-            if (!pubkeycrypto.rsaverifier(pubkey, signature)) {
+            if (!await pubkeycrypto.rsaverifier(pubkey, signature)) {
                 throw new UserInputError('Signature vs Public key mismatched.');
             }
 
