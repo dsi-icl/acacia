@@ -31,7 +31,7 @@
         "graphql-scalars": "1.9.0",
         "graphql-type-json": "0.3.2",
         "hi-base32": "0.5.1",
-        "itmat-commons": "0.8.1",
+        "itmat-commons": "0.8.2",
         "jwt-decode": "^3.1.2",
         "mongodb": "3.6.6",
         "nodemailer": "6.5.0",
