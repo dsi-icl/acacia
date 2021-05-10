@@ -103,6 +103,7 @@ export const pubkeyResolvers = {
             const accessToken = {
                 accessToken: pubkeycrypto.tokengen(payload, pubkeyrec.jwtSeckey)
             };
+
             return accessToken;
         },
 
@@ -122,11 +123,13 @@ export const pubkeyResolvers = {
 
             /* Validate the signature with the public key */
             try {
-                if (!pubkeycrypto.rsaverifier(pubkey, signature)) {
+                const signature_verifier = await pubkeycrypto.rsaverifier(pubkey, signature);
+                if (!signature_verifier){
                     throw new UserInputError('Signature vs Public-key mismatched.');
                 }
             } catch (error) {
-                throw new UserInputError('Error: Signature or Public-key not correct.', error);
+                console.log(error);
+                throw new UserInputError('Error: Signature or Public-key is incorrect.');
             }
 
             /* Generate a public key-pair for generating and authenticating JWT access token later */

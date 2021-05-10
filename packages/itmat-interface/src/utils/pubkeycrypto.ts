@@ -47,38 +47,83 @@ export function reGenPkfromSk(privateKey: string, passphrase = 'idea-fast'): str
     }
 }
 
-export async function rsaverifier2(pubkey, signature, data = '') {
-    let dataToBeVerified;
-    if (data === '') {
-        //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
-        const hash = crypto.createHash('sha256');
-        hash.update(toSupportedArray(pubkey));
-        dataToBeVerified = hash.copy().digest('base64');
+export async function rsaverifier(pubkey: string, signature: string, message = '', scheme = 'RSA-SHA256') {
+    try {
+        let messageToBeVerified = message;
+        const ec = new TextEncoder();
+        const pkObject = crypto.createPublicKey({
+            key: pubkey,
+            type: 'spki',
+            format: 'pem'
+        });
+
+        if (message === '') {
+            //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
+            const hash = crypto.createHash('sha256');
+            hash.update(ec.encode(pubkey));
+            messageToBeVerified = hash.digest('base64');
+            //console.log('message to be verified: ', messageToBeVerified);
+        }
+
+        const result = crypto.verify(
+            scheme,
+            Buffer.from(messageToBeVerified, 'base64'),
+            {
+                key: pkObject,
+                saltLength: 32,
+                padding: crypto.constants.RSA_PKCS1_PSS_PADDING
+            },
+            Buffer.from(signature, 'base64')
+        );
+        return result;
     }
-    const ec = new TextEncoder();
-    const verified = await crypto.verify(
-        'RSASSA-PKCS1-v1_5',
-        ec.encode(dataToBeVerified),
-        pubkey,
-        ec.encode(signature)
-    );
-    return verified;
+    catch(err){
+        console.log(err);
+        throw err;
+    }
 }
 
-export async function rsaverifier(pubkey: string, signature: string, message = '', scheme = 'RSA-SHA256') {
-    const verifier = crypto.createVerify(scheme);
-    let messageToBeVerified;
+export async function rsaSigner_test(privateKey: string, signature: string, message = 'abc', scheme = 'RSA-SHA256') {
+    try {
+        const ec = new TextEncoder();
 
-    if (message === '') {
-        //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
-        const hash = crypto.createHash('sha256');
-        hash.update(toSupportedArray(pubkey));
-        messageToBeVerified = hash.digest('base64');
+        const hash3 = crypto.createHash('sha256');
+        hash3.update(ec.encode(message));
+        const messagetobeSigned = hash3.digest('base64');
+        console.log('Final encoded message to be signed: ', messagetobeSigned);
+
+        const skObject = crypto.createPrivateKey({
+            key: privateKey,
+            type: 'pkcs8',
+            format: 'pem'
+        });
+
+        let temp_signature;
+        try {
+            const signer = crypto.createSign(scheme);
+            // Signing
+            signer.update(messagetobeSigned);
+
+            // The signature output_format: HexBase64Latin1Encoding which can be either 'binary', 'hex' or 'base64'
+            temp_signature = signer.sign({
+                key: skObject,
+                saltLength: 32,
+                padding: crypto.constants.RSA_PKCS1_PSS_PADDING
+            }, 'base64');
+            signer.end();
+        }
+        catch(err){
+            return err;
+        }
+        console.log('Signature generated at client-side: ', signature);
+        console.log('Signature generated at server-side: ', temp_signature);
+
+        return false;
     }
-    verifier.update(messageToBeVerified);
-    // Verify the signature in supported formats ('binary', 'hex' or 'base64')
-    // The encoded format must be same as the signature
-    return verifier.verify(pubkey, signature, 'base64');
+    catch(err){
+        console.log(err);
+        throw err;
+    }
 }
 
 export function rsakeygen(passphrase = 'idea-fast', modulusLength = 4096) {
@@ -115,62 +160,12 @@ export function eckeygen(curve = 'secp256k1') {
 
 export function tokengen(payload, secret, passphrase = 'idea-fast', algorithm = 'RS256', life = 12000) {
     // Asymmetric JWT is used by default by setting algorithm = RS256.
-    const token = jwt.sign(payload,
+    return jwt.sign(payload,
         { key: secret, passphrase: passphrase },
         { algorithm: algorithm, expiresIn: life }
     );
-    return token;
 }
 
 export function tokenverifier(token, secret) {
-    const decoded = jwt.verify(token, secret);
-    return decoded;
-}
-
-
-// Converts Arrays, ArrayBuffers, TypedArrays, and Strings to
-// to either a Uint8Array or a regular Array depending on browser support.
-// You should use this when passing byte data in or out of crypto functions
-export function toSupportedArray(data) {
-
-    // does this browser support Typed Arrays?
-    const typedArraySupport = (typeof Uint8Array !== 'undefined');
-
-    // get the data type of the parameter
-    let dataType = Object.prototype.toString.call(data);
-    dataType = dataType.substring(8, dataType.length - 1);
-    const newArray = typedArraySupport ? new Uint8Array(data.length) : new Array(data.length);
-    // determine the type
-    switch (dataType) {
-
-        // Regular JavaScript Array. Convert to Uint8Array if supported
-        // else do nothing and return the array
-        case 'Array':
-            return typedArraySupport ? new Uint8Array(data) : data;
-
-            // ArrayBuffer. IE11 Web Crypto API returns ArrayBuffers that you have to convert
-            // to Typed Arrays. Convert to a Uint8Arrays and return;
-        case 'ArrayBuffer':
-            return new Uint8Array(data);
-
-            // Already Uint8Array. Obviously there is support.
-        case 'Uint8Array':
-            return data;
-
-        case 'Uint16Array':
-        case 'Uint32Array':
-            return new Uint8Array(data);
-
-            // String. Convert the string to a byte array using Typed Arrays if supported.
-        case 'String':
-            for (let i = 0; i < data.length; i += 1) {
-                newArray[i] = data.charCodeAt(i);
-            }
-            return newArray;
-
-            // Some other type. Just return the data unchanged.
-        default:
-            throw new Error('toSupportedArray : unsupported data type ' + dataType);
-    }
-
+    return jwt.verify(token, secret);
 }
