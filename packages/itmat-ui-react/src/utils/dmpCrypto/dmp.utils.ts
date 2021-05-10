@@ -204,8 +204,8 @@ export function convertBinaryToPem(binaryData, label) {
 
 export function convertPemPrivateKeyToArrayBuffer(pem) {
     const removedLinesPem = pem.replace(/\\n/g, '');
-    const b64Prefix = removedLinesPem.replace('-----BEGIN ENCRYPTED PRIVATE KEY-----', '');
-    const b64Final = b64Prefix.replace('-----END ENCRYPTED PRIVATE KEY-----', '');
+    const b64Prefix = removedLinesPem.replace('-----BEGIN PRIVATE KEY-----', '');
+    const b64Final = b64Prefix.replace('-----END PRIVATE KEY-----', '');
     return base64StringToArrayBuffer(b64Final);
 }
 
