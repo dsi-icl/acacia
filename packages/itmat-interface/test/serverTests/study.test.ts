@@ -42,8 +42,7 @@ import {
     GET_DATA_RECORDS,
     DELETE_ONTOLOGY_FIELD
 } from 'itmat-commons';
-import { CREATE_NEW_DATA_VERSION, CREATE_NEW_FIELD, EDIT_FIELD } from 'itmat-commons/src';
-import { syncBuiltinESMExports } from 'module';
+
 
 let app;
 let mongodb;
@@ -750,8 +749,8 @@ describe('STUDY API', () => {
                         m_visitId: 'mockvisitId',
                         m_studyId: createdStudy.id,
                         m_versionId: mockDataVersion.id,
-                        '31': 'male',
-                        '49': 'England',
+                        31: 'male',
+                        49: 'England',
                         deleted: null
                     },
                     {
@@ -759,8 +758,8 @@ describe('STUDY API', () => {
                         m_visitId: 'mockvisitId',
                         m_studyId: createdStudy.id,
                         m_versionId: mockDataVersion.id,
-                        '31': 'female',
-                        '49': 'France',
+                        31: 'female',
+                        49: 'France',
                         deleted: null
                     }
                 ];
@@ -2242,7 +2241,7 @@ describe('STUDY API', () => {
                 query: print(DELETE_ONTOLOGY_FIELD),
                 variables: {
                     studyId: createdStudy.id,
-                    fieldId: ["1"]
+                    fieldId: ['1']
                 }
             });
             const studyDelete = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
