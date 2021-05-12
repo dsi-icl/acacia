@@ -251,7 +251,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                     break;
                 }
                 case 'int': {// integer
-                    if (!/^\d+$/.test(each)) {
+                    if (!/^-?\d+$/.test(each)) {
                         error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
                         colIndex++;
                         continue;

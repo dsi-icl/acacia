@@ -200,123 +200,14 @@ export const FileList: React.FunctionComponent<{ group?: boolean,type: studyType
 
 
     const notVariablesListFiles = files.filter(el => !(el.fileName.indexOf('VariablesList') >= 0));
-    const variablesListFiles = files.filter(el => el.fileName.indexOf('VariablesList') >= 0);
-
-    const clinicalMainColumns = [
-        {
-            title: 'Participant ID',
-            dataIndex: 'participantId',
-            key: 'participantId',
-            render: (__unused__value, record) => {
-                return record.participantId;
-            }
-        },
-        {
-            title: 'Site',
-            key: 'site',
-            render: (__unused__value, record) => {
-                return record.site;
-            },
-            sorter: (a, b) => JSON.parse(a.description).participantId.localeCompare(JSON.parse(b.description).participantId)
-        }
-    ];
-
-    const clinicalSecondaryColumns = [
-        {
-            title: 'Participant ID',
-            dataIndex: 'participantId',
-            key: 'participantId',
-            render: (__unused__value, record) => {
-                const participantId = JSON.parse(record.description).participantId;
-                if (searchTerm)
-                    return <Highlighter searchWords={[searchTerm]} textToHighlight={participantId} highlightStyle={{
-                        backgroundColor: '#FFC733',
-                        padding: 0
-                    }} />;
-                else
-                    return participantId;
-            }
-        },
-        {
-            title: 'Site',
-            key: 'site',
-            render: (__unused__value, record) => {
-                const site = sites[JSON.parse(record.description).participantId[0]];
-                if (searchTerm)
-                    return <Highlighter searchWords={[searchTerm]} textToHighlight={site} highlightStyle={{
-                        backgroundColor: '#FFC733',
-                        padding: 0
-                    }} />;
-                else
-                    return site;
-            },
-            sorter: (a, b) => JSON.parse(a.description).participantId.localeCompare(JSON.parse(b.description).participantId)
-        },
-        {
-            title: 'Updated',
-            dataIndex: 'uploadTime',
-            key: 'uploadTime',
-            render: (value) => moment(parseInt(value)).format('YYYY-MM-DD'),
-            sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
-        },
-        {
-            title: 'Uploaded By',
-            dataIndex: 'uploadBy',
-            key: 'uploadBy',
-            render: (__unused__value, record) => {
-                const uploadedBy = record.uploadedBy === undefined ? 'NA' : userIdNameMapping[record.uploadedBy];
-                if (searchTerm)
-                    return <Highlighter searchWords={[searchTerm]} textToHighlight={uploadedBy} highlightStyle={{
-                        backgroundColor: '#FFC733',
-                        padding: 0
-                    }} />;
-                else
-                    return uploadedBy;
-            },
-            sorter: (a, b) => userIdNameMapping[a.uploadedBy].localeCompare(userIdNameMapping[b.uploadedBy])
-        },
-        {
-            title: 'Size',
-            dataIndex: 'fileSize',
-            render: (size) => formatBytes(size),
-            width: '8rem',
-            key: 'size'
-        },
-        {
-            render: (__unused__value, record) => {
-                const ext = record.fileName.substr(record.fileName.lastIndexOf('.')).toLowerCase();
-                const file = JSON.parse(record.description);
-                const startDate = moment(file.startDate).format('YYYYMMDD');
-                const endDate = moment(file.endDate).format('YYYYMMDD');
-                return <Button icon={<CloudDownloadOutlined />} download={`${file.participantId}-${file.deviceId}-${startDate}-${endDate}.${ext}`} href={`/file/${record.id}`}>
-                    Download
-                </Button>;
-            },
-            width: '10rem',
-            key: 'download'
-        }]
-        .concat(!loadingWhoAmI && dataWhoAmI?.whoAmI?.type === userTypes.ADMIN ? [
-            {
-                render: (__unused__value, record) => (
-                    <Button icon={<DeleteOutlined />} loading={isDeleting[record.id]} danger onClick={() => deletionHandler(record.id)}>
-                    Delete
-                    </Button>
-                ),
-                width: '8rem',
-                key: 'delete'
-            }
-        ] : [])
-        .concat([
-            {
-                render: (__unused__value, record) => (
-                    <Tooltip title={record.hash} placement='bottomRight' >
-                        <Button type='link' icon={<NumberOutlined />} loading={isDeleting[record.id]}></Button>
-                    </Tooltip>
-                ),
-                width: '8rem',
-                key: 'delete'
-            }
-        ]);
+    const variablesListFiles = files.filter(el => (
+        el.fileName.indexOf('VariablesList') >= 0
+        || el.fileName.indexOf('Site') >= 0
+        || el.fileName.indexOf('Codes') >= 0
+        || el.fileName.indexOf('SubjectGroup') >= 0
+        || el.fileName.indexOf('Tables') >= 0
+        || el.fileName.indexOf('Visits') >= 0
+    ));
 
     const fileNameColumns = [
         {
@@ -423,18 +314,25 @@ export const FileList: React.FunctionComponent<{ group?: boolean,type: studyType
                         showQuickJumper: true
                     }
                 }
-                expandable={{
-                    expandedRowRender: record => {
-                        return (<Table
-                            rowKey={(rec) => rec.id}
-                            columns={(type === studyType.SENSOR) ? sensorColumns : (type === studyType.CLINICAL ? clinicalSecondaryColumns : fileNameColumns)}
-                            dataSource={notVariablesListFiles.filter(file => JSON.parse(file.description).participantId === record.participantId)}
-                        />);
-                    }
-                }}
-                columns={clinicalMainColumns}
+                // expandable={{
+                //     expandedRowRender: record => {
+                //         return (<Table
+                //             rowKey={(rec) => rec.id}
+                //             columns={(type === studyType.SENSOR) ? sensorColumns : (type === studyType.CLINICAL ? clinicalSecondaryColumns : fileNameColumns)}
+                //             dataSource={notVariablesListFiles.filter(file => JSON.parse(file.description).participantId === record.participantId)}
+                //         />);
+                //     }
+                // }}
+                columns={fileNameColumns}
                 dataSource={
-                    Array.from(new Set(files.filter(el => !(el.fileName.indexOf('VariablesList') >= 0)).map((el) => {
+                    Array.from(new Set(files.filter(el => !(
+                        el.fileName.indexOf('VariablesList') >= 0
+                        || el.fileName.indexOf('Site') >= 0
+                        || el.fileName.indexOf('Codes') >= 0
+                        || el.fileName.indexOf('SubjectGroup') >= 0
+                        || el.fileName.indexOf('Tables') >= 0
+                        || el.fileName.indexOf('Visits') >= 0
+                    )).map((el) => {
                         const file = JSON.parse(el.description);
                         return JSON.stringify({
                             participantId: file.participantId,
@@ -465,7 +363,7 @@ export const FileList: React.FunctionComponent<{ group?: boolean,type: studyType
                             showQuickJumper: true
                         }
                     }
-                    columns={(type === studyType.SENSOR) ? sensorColumns : (type === studyType.CLINICAL ? clinicalSecondaryColumns : sensorColumns)}
+                    columns={(type === studyType.SENSOR) ? sensorColumns : fileNameColumns}
                     dataSource={notVariablesListFiles}
                     size='small' />
                 {variablesListFiles.length ===0 ? null :

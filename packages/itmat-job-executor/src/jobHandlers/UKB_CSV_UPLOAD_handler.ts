@@ -32,17 +32,24 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
                     errorsList.push({fileId: fileId, error: 'file does not exist'});
                     continue;
                 }
+                const components = file.fileName.split('.')[0].split('_');
+                components.shift();
+                const tableName = components.join('_');
+                const filteredFieldsList = fieldsList.filter(el => el.tableName === tableName);
                 const fileStream: Readable = await objStore.downloadFile(job.studyId, file.uri);
                 const csvcurator = new CSVCurator(
                     db.collections!.data_collection,
                     fileStream,
                     undefined,
                     job,
-                    fieldsList
+                    filteredFieldsList
                 );
                 const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
                 if (errors.length !== 0) {
                     errorsList.push({fileId: file.id, fileName: file.fileName, error: errors});
+                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errorsList } });
+                } else {
+                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
                 }
             } catch (e) {
                 throw new Error();

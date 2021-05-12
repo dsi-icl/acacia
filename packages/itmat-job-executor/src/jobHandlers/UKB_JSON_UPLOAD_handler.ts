@@ -42,6 +42,9 @@ export class UKB_JSON_UPLOAD_Handler extends JobHandler {
                 const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
                 if (errors.length !== 0) {
                     errorsList.push({fileId: file.id, fileName: file.fileName, error: errors});
+                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errorsList } });
+                } else {
+                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
                 }
             } catch (e) {
                 throw new Error();

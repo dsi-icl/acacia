@@ -239,7 +239,7 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                     break;
                 }
                 case 'int': {// integer
-                    if (!/^\d+$/.test(each)) {
+                    if (!/^-?\d+$/.test(each)) {
                         error.push(`Object ${objectNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
                         colIndex++;
                         continue;

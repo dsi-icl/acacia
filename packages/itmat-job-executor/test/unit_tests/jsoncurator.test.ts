@@ -152,9 +152,7 @@ describe('Unit tests for processEachSubject function', () => {
 
     const job = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
         id: 'mockJobId',
-        studyId: 'mockStudyId',
-        data: {
-        }
+        studyId: 'mockStudyId'
     });
     const { subjectIdIndex, visitIdIndex, parsedHeader } = processJSONHeader(['ID', 'SubjectID', 'VisitID', 'Sex', 'Description', 'Weight'], fieldsList);
     const templateParams = {
@@ -363,9 +361,7 @@ describe('JSONCuratorClass', () => {
         const mongoStub = new MongoStub();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-            }
+            studyId: 'mockStudyId'
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
@@ -394,9 +390,7 @@ describe('JSONCuratorClass', () => {
         const mongoStub = new MongoStub();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-            }
+            studyId: 'mockStudyId'
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
@@ -418,9 +412,7 @@ describe('JSONCuratorClass', () => {
         const mongoStub = new MongoStub();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-            }
+            studyId: 'mockStudyId'
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
@@ -440,9 +432,7 @@ describe('JSONCuratorClass', () => {
         const mongoStub = new MongoStub();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-            }
+            studyId: 'mockStudyId'
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
@@ -475,9 +465,7 @@ describe('JSONCuratorClass', () => {
         const mongoStub = new MongoStub();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-            }
+            studyId: 'mockStudyId'
         });
         const jsoncurator = new JSONCurator(
             mongoStub,
@@ -510,9 +498,7 @@ describe('JSONCuratorClass', () => {
         const mongoStub = new MongoStub();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
-            studyId: 'mockStudyId',
-            data: {
-            }
+            studyId: 'mockStudyId'
         });
         const jsoncurator = new JSONCurator(
             mongoStub,

@@ -42,6 +42,7 @@ type Field {
     studyId: String!
     fieldId: String! # start
     fieldName: String!
+    tableName: String
     dataType: FIELD_VALUE_TYPE!
     possibleValues: [ValueCategory]
     unit: String
@@ -166,6 +167,7 @@ type Study {
     dataVersions: [DataVersion]!
     description: String
     type: STUDYTYPE,
+    ontologyTree: [OntologyField]
     # external to mongo documents:
     jobs: [Job]!
     projects: [Project]!
@@ -373,10 +375,21 @@ input ValueCategoryInput {
 input FieldInput {
     fieldId: String! # start
     fieldName: String!
+    tableName: String
     dataType: FIELD_VALUE_TYPE!
     possibleValues: [ValueCategoryInput]
     unit: String
     comments: String
+}
+
+input OntologyFieldInput {
+    fieldId: String!
+    path: String!
+}
+
+type OntologyField {
+    fieldId: String!
+    path: String!
 }
 
 type Query {
@@ -396,7 +409,8 @@ type Query {
     getProject(projectId: String!): Project
     getStudyFields(studyId: String!, projectId: String): [Field]
     getDataRecords(studyId: String!, queryString: JSON, versionId: [String], projectId: String): JSON
-
+    getOntologyTree(studyId: String!, projectId: String): [OntologyField]
+    
     # QUERY
     getQueries(studyId: String, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
     getQueryById(queryId: String!): QueryEntry
@@ -444,6 +458,8 @@ type Mutation {
     createNewField(studyId: String!, fieldInput: FieldInput!): Field
     editField(studyId: String!, fieldInput: FieldInput!): Field
     deleteField(studyId: String!, fieldId: String!): Field
+    addOntologyField(studyId: String!, ontologyInput: [OntologyFieldInput]!): [OntologyField]
+    deleteOntologyField(studyId: String!, fieldId: [String]!): [OntologyField]
 
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project

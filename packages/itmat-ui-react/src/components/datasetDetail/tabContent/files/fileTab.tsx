@@ -165,7 +165,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         setFileList([...fileList]);
     };
     const validFile = (getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) ? fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate)
-        : ( (getStudyData.getStudy.type === studyType.CLINICAL) ? fileList.filter((file) => file.participantId || file.name.startsWith('VariablesList')) : fileList.filter((file) => file.name) );
+        : fileList.filter((file) => file.name);
     const uploadHandler = () => {
 
         const uploads: Promise<any>[] = [];
@@ -182,9 +182,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 };
                 uploadMapHackName = `UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`;
             } else if (getStudyData.getStudy.type === studyType.CLINICAL) {
-                description = {
-                    participantId: file.participantId?.trim().toUpperCase()
-                };
+                description = {};
                 uploadMapHackName = `UP_${description.participantId}`;
             } else {
                 description = {};
@@ -345,27 +343,14 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             }
         },
         {
-            title: 'Participant ID',
-            dataIndex: 'participantId',
-            key: 'pid',
-            editable: true,
-            width: '10rem'
-        },
-        {
-            title: 'Site',
-            dataIndex: 'siteId',
-            key: 'site',
-            render: (__unused__value, record) => record.participantId ? sites[record.participantId.substr(0, 1)] : null
-        },
-        {
             key: 'delete',
             render: (__unused__value, record) => <Button disabled={isUploading} type='primary' danger icon={<DeleteOutlined />} onClick={() => {
                 removeFile(record);
             }}></Button>
         }].map(col => {
-        if (!col.editable) {
-            return col;
-        }
+        // if (!col.editable) {
+        //     return col;
+        // }
         return {
             ...col,
             onCell: record => ({
@@ -373,7 +358,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     ...record,
                     period: [record.startDate, record.endDate]
                 },
-                editable: col.editable,
+                editable: false,
                 dataIndex: col.dataIndex,
                 title: col.title,
                 handleSave

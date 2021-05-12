@@ -1,6 +1,5 @@
 import { Models } from 'itmat-commons';
 import * as React from 'react';
-
 import { Tree, Form, Modal, Input, Select } from 'antd';
 import 'antd/lib/tree/style/css';
 const { TreeNode } = Tree;
@@ -23,7 +22,27 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
     const fieldIdNameMapping = [];
     fieldList.forEach(el => fieldIdNameMapping[el.fieldName] = el.id);
     if (fieldList.length === 0) { return <p>There is no available field for field tree. Please contact admin or curator of this project.</p>; }
-    const transformedList = fieldList.map(el => `${el.fieldName}>${el.id}|${el.fieldName}`);
+    const transformedList = fieldList.map((el) => {
+        // const findPath = getstudyd
+        if (studyData.ontologyTree === [] || studyData.ontologyTree === undefined) {
+            return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
+        } else {
+            const ontologyField = studyData.ontologyTree.filter(es => es.fieldId === el.fieldId);
+            if (ontologyField.length === 0) {
+                return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
+            } else {
+                console.log(`${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`);
+                return `${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`;
+            }
+        }
+    });
+    transformedList.sort((a, b) => {
+        if (a.split('>')[0] < b.split('>')[0]) {
+            return -1;
+        } else {
+            return 0;
+        }
+    });
     const makeTree = (paths: string[]) => {
         const output: any = [];
         for (let i = 0; i < paths.length; i++) {
@@ -83,18 +102,37 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
     }
 };
 
-export const FieldListSectionWithFilter: React.FunctionComponent<{ studyData?: any, onCheck?: any; checkedList?: string[]; checkable: boolean; fieldList: Models.Field.IFieldEntry[], queryOptions: any }> = ({ studyData, onCheck, checkedList, checkable, fieldList, queryOptions }) => {
+export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree: any, onCheck?: any; checkedList?: string[]; checkable: boolean; fieldList: Models.Field.IFieldEntry[], queryOptions: any }> = ({ ontologyTree, onCheck, checkedList, checkable, fieldList, queryOptions }) => {
 
     const [isModalShown, setIsModalShown] = React.useState(false); // show filter inputs
     // const [derivedFields, setDerivedFields] = React.useState<any[]>([]);
-
     const [selectedNode, setSelectedNode] = React.useState<string>('');
 
     const filteredFieldList = fieldList.filter(el => el.fieldName !== 'SubjectID' && el.fieldName !== 'VisitID');
     const fieldIdNameMapping = [];
     filteredFieldList.forEach(el => fieldIdNameMapping[el.fieldName] = el.id);
     if (filteredFieldList.length === 0) { return <p>There is no available field for this field tree. Please contact admin or curator of this project.</p>; }
-    const transformedList = filteredFieldList.map(el => `${el.fieldName}>${el.id}|${el.fieldName}`);
+    const transformedList = fieldList.map((el) => {
+        // const findPath = getstudyd
+        if (ontologyTree === [] || ontologyTree === undefined) {
+            return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
+        } else {
+            const ontologyField = ontologyTree.filter(es => es.fieldId === el.fieldId);
+            if (ontologyField.length === 0) {
+                return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
+            } else {
+                console.log(`${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`);
+                return `${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`;
+            }
+        }
+    });
+    transformedList.sort((a, b) => {
+        if (a.split('>')[0] < b.split('>')[0]) {
+            return -1;
+        } else {
+            return 0;
+        }
+    });
     const makeTree = (paths: string[]) => {
         const output: any = [];
         for (let i = 0; i < paths.length; i++) {
@@ -119,12 +157,13 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ studyData?: a
         for (let i=0; i<output.length; i++) {
             pushed.push(output[i]);
         }
-        if (studyData) {
-            const withStudy: any = [{fieldId: studyData.name, name: studyData.name, children: pushed}];
-            return withStudy;
-        } else {
-            return output;
-        }
+        return output;
+        // if (studyData) {
+        //     const withStudy: any = [{fieldId: studyData.name, name: studyData.name, children: pushed}];
+        //     return withStudy;
+        // } else {
+        //     return output;
+        // }
     };
     const renderTreeNodes = (fieldList: any[]) => fieldList.map(item => {
         if (item.children.length !== 0) {
@@ -271,3 +310,18 @@ const ValueEditForm: React.FunctionComponent<{ visible: boolean; onCreate: any; 
         )
     );
 };
+
+function constructPath(fieldPath: string, fieldList: any[]) {
+    const parts = fieldPath.split('>');
+    const newPath: any[] = [];
+    for (let i=0; i<parts.length; i++) {
+        if (fieldList.filter(el => el.fieldId === parts[i]).length === 1) {
+            newPath.push(fieldList.filter(el => el.fieldId === parts[i])[0].fieldName);
+        } else {
+            newPath.push(parts[i]);
+        }
+        newPath.push('>');
+    }
+    newPath.splice(newPath.length-1, 1);
+    return newPath.join('');
+}

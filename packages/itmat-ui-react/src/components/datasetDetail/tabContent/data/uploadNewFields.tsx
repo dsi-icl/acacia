@@ -77,7 +77,7 @@ const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string;
 
     return <div>
         <label>Data file:</label>
-        <select value={selectedFile} onChange={(e) => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
+        <select value={selectedFile} onChange={(e) => { setSuccessfullySaved(false); setSelectedFile(e.target.value); setError(''); }}>{files.filter(el => el.fileName.indexOf('VariablesList') >= 0).map((el: IFile) => <option key={el.id} value={el.id}>{el.fileName}</option>)}</select><br /><br />
         <label>Tag:</label>
         <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder='e.g main tree' type='text' /><br /><br />
         <Mutation<any, any> mutation={CREATE_FIELD_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>

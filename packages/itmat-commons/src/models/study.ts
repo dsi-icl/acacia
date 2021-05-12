@@ -16,6 +16,12 @@ export interface IStudy {
     dataVersions: IStudyDataVersion[];
     description: string;
     type: studyType;
+    ontologyTree?: IOntologyField[];
+}
+
+export interface IOntologyField {
+    fieldId: string;
+    path: string;
 }
 
 export interface IStudyDataVersion {

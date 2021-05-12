@@ -126,7 +126,7 @@ export class StudyCore {
                     break;
                 }
                 case 'int': {// integer
-                    if (!/^\d+$/.test(dataClip.value)) {
+                    if (!/^-?\d+$/.test(dataClip.value)) {
                         error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as integer.`;
                         break;
                     }

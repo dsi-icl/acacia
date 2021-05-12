@@ -1,24 +1,23 @@
 import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { GET_PROJECT, IFieldEntry, CREATE_QUERY, CREATE_QUERY_CURATION_JOB, WHO_AM_I, GET_DATA_RECORDS, GET_QUERY, GET_QUERY_BY_ID, GET_STUDY_FIELDS } from 'itmat-commons';
+import { GET_PROJECT, IFieldEntry, CREATE_QUERY, CREATE_QUERY_CURATION_JOB, WHO_AM_I, GET_DATA_RECORDS, GET_QUERY, GET_QUERY_BY_ID, GET_STUDY_FIELDS, GET_ONTOLOGY_TREE } from 'itmat-commons';
 import { FieldListSectionWithFilter } from '../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { CSVLink } from 'react-csv';
-import { List, Card, Button, Table, Select, Modal } from 'antd';
-const { Option } = Select;
+import { List, Card, Button, Table, Modal } from 'antd';
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string; projectId: string }> = ({ studyId, projectId }) => {
     const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
     const { loading: getQueryLoading, error: getQueryError, data: getQueryData } = useQuery(GET_QUERY, { variables: { projectId: projectId, studyId: studyId } });
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId, projectId: projectId } });
+    const { loading: getOntologyTreeLoading, error: getOntologyTreeError, data: getOntologyTreeData } = useQuery(GET_ONTOLOGY_TREE, { variables: { studyId: studyId, projectId: projectId } });
 
     const [checkedFields, setCheckedFields] = React.useState<any[]>([]);
     const [queryOptions, setQueryOptions] = React.useState<any>({filters: [], returned_fields: [], derivedFields: []});
-    const [selectedTree, setSelectedTree] = React.useState(Object.keys(getProjectData.getProject.fields)[0]);
 
     const [isQueryResultShown, setIsQueryResultShown] = React.useState(false);
     const [viewQueryId, setViewQueryId] = React.useState('');
@@ -45,13 +44,13 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
         }
     });
 
-    if (getProjectLoading || whoAmILoading || getQueryLoading || getStudyFieldsLoading) {
+    if (getProjectLoading || whoAmILoading || getQueryLoading || getStudyFieldsLoading || getOntologyTreeLoading) {
         return <LoadSpinner />;
     }
 
-    if (getProjectError || whoAmIError || getQueryError || getStudyFieldsError) {
+    if (getProjectError || whoAmIError || getQueryError || getStudyFieldsError || getOntologyTreeError) {
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator {JSON.stringify(getProjectError)},{JSON.stringify(whoAmIError)},{JSON.stringify(getQueryError)},{JSON.stringify(getStudyFieldsError)}
+            A error occured, please contact your administrator
         </div>;
     }
     if (Object.keys(getProjectData.getProject.fields).length === 0) { return <p>No fields uploaded or available to you. If this should not be the case, check your permission with admin.</p>; }
@@ -134,7 +133,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
     return <div className={css.scaffold_wrapper}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title='Fileds & Variables'>
-                <FieldListSelectionStateProject fields={getProjectData.getProject.fields.map(el => el.fieldsInFieldTree)} checkedFields={checkedFields} onCheck={setCheckedFields} queryOptions={[queryOptions, setQueryOptions]} setTopSelectedTree={setSelectedTree}/>
+                <FieldListSelectionStateProject ontologyTree={getOntologyTreeData.getOntologyTree} fields={getProjectData.getProject.fields} checkedFields={checkedFields} onCheck={setCheckedFields} queryOptions={[queryOptions, setQueryOptions]} />
             </Subsection>
             <Subsection title='Filters'>
                 {queryOptions.filters.length === 0 ? <p>No filters added.</p>:
@@ -154,7 +153,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
             <Subsection title='any'>
-                <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, projectId: projectId, queryString: JSON.stringify(constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields[selectedTree].fieldsInFieldTree, queryOptions['filters'], queryOptions['derivedFields'])) }}>
+                <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, projectId: projectId, queryString: JSON.stringify(constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields'])) }}>
                     {({ data, loading, error }) => {
                         if (loading) { return <LoadSpinner />; }
                         if (error) { return <p>No results found.</p>; }
@@ -162,7 +161,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                         console.log(data);
 
                         const columns: any[] = [];
-                        const fieldsList = getProjectData.getProject.fields[selectedTree].fieldsInFieldTree;
+                        const fieldsList = getProjectData.getProject.fields;
                         const queryResult = JSON.parse(data.getDataRecords).data;
                         const fieldKeysInQueryResult = Object.keys(queryResult.reduce(function(result, obj) {
                             return Object.assign(result, obj);
@@ -211,7 +210,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                                     size='middle'
                                 ></Table>
                                 <Button type='primary' htmlType='submit' onClick={() => {
-                                    createQuery({variables: {query: {queryString: JSON.stringify(constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields[selectedTree].fieldsInFieldTree, queryOptions['filters'], queryOptions['derivedFields'])), studyId: studyId, projectId: projectId, userId: whoAmIData.whoAmI.id}}});
+                                    createQuery({variables: {query: {queryString: JSON.stringify(constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields'])), studyId: studyId, projectId: projectId, userId: whoAmIData.whoAmI.id}}});
                                 }}>
                                             Save this query
                                 </Button>
@@ -271,17 +270,9 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
     </div>;
 };
 
-const FieldListSelectionStateProject: React.FunctionComponent<{ fields: { [fieldTreeId: string]: IFieldEntry[] }, checkedFields: any, onCheck: any, queryOptions: any, setTopSelectedTree: any }> = ({ fields, checkedFields,onCheck, queryOptions, setTopSelectedTree }) => {
+const FieldListSelectionStateProject: React.FunctionComponent<{ ontologyTree: any, fields: IFieldEntry[], checkedFields: any, onCheck: any, queryOptions: any }> = ({ ontologyTree, fields, checkedFields,onCheck, queryOptions }) => {
     /* PRECONDITION: it is given (checked by parent component that fields at least have one key */
-    const allFieldTreeIds = (fields as any).map(el => el[0].fieldTreeId);
-    const [selectedTree, setSelectedTree] = React.useState('');
-
-    return <>
-        <label>Select field tree: </label><Select onChange={(e) => {setSelectedTree(e); setTopSelectedTree(e);}} value={selectedTree}>{Object.keys(fields).map((index, el) => <Option key={el} value={el}>{allFieldTreeIds[index]}</Option>)}</Select><br /><br />
-        {selectedTree !== '' ?
-            <FieldListSectionWithFilter checkable={true} fieldList={fields[selectedTree]} onCheck={onCheck} checkedList={checkedFields} queryOptions={queryOptions} /> : null}
-    </>;
-
+    return <FieldListSectionWithFilter ontologyTree={ontologyTree} checkable={true} fieldList={fields} onCheck={onCheck} checkedList={checkedFields} queryOptions={queryOptions} />;
 };
 
 function constructQueryString(checkedList: any, fieldsList: any, filters: any, derivedFields: any) {

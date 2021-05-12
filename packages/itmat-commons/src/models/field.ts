@@ -3,6 +3,7 @@ export interface IFieldEntry {
     studyId: string;
     fieldId: string;
     fieldName: string;
+    tableName?: string;
     dataType: enumValueType;
     possibleValues?: IValueDescription[];
     unit?: string;

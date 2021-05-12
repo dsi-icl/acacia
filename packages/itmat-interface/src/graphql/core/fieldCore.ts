@@ -56,11 +56,11 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
             error.push(`${fieldEntry.fieldId}-${fieldEntry.fieldName}: possible values can't be empty if data type is categorical.`);
         }
     }
-    // should be number
 
     const newField: any = {
         fieldId: fieldEntry.fieldId,
         fieldName: fieldEntry.fieldName,
+        tableName: fieldEntry.tableName,
         dataType: fieldEntry.dataType,
         possibleValues: fieldEntry.possibleValues,
         unit: fieldEntry.unit,

@@ -6,7 +6,7 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 import { Select, Button } from 'antd';
 const { Option } = Select;
 
-export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton: (__unused__shown: boolean) => void }> = ({ studyId, cancelButton }) => {
+export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton?: () => void }> = ({ studyId, cancelButton }) => {
     return <div>
         <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>uploaded the data file to the file repository</span></NavLink>.</p>
         <br /><br />
@@ -25,10 +25,20 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelBut
     </div>;
 };
 
-const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile[]; cancelButton: (__unused__shown: boolean) => void }> = ({ cancelButton, files, studyId }) => {
+const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile[]; cancelButton?: () => void }> = ({ cancelButton, files, studyId }) => {
     const [error, setError] = React.useState('');
     const [successfullySaved, setSuccessfullySaved] = React.useState(false);
     const [selectedFile, setSelectedFile] = React.useState<string[]>([]); // files.length > 0 because of checks above
+    const handleCancel = cancelButton === undefined ? (() => setSelectedFile([])) : cancelButton;
+
+    const filteredFiles = files.filter(el => !(
+        el.fileName.indexOf('VariablesList') >= 0
+        || el.fileName.indexOf('Site') >= 0
+        || el.fileName.indexOf('Codes') >= 0
+        || el.fileName.indexOf('SubjectGroup') >= 0
+        || el.fileName.indexOf('Tables') >= 0
+        || el.fileName.indexOf('Visits') >= 0
+    ));
 
     return <>
         <span>Data file:</span>
@@ -42,10 +52,11 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile
                 setSelectedFile(newArr);
                 setError('');
             }}
+            value={selectedFile}
             style={{width: '80%'}}
             placeholder='Select files'
         >
-            {files.map((el: IFile) => {
+            {filteredFiles.map((el: IFile) => {
                 return <Option value={el.id}>{el.fileName}</Option>;
             })}
         </Select><br/><br/>
@@ -66,7 +77,7 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile
             {(createCurationJob, { loading, error }) => {
                 if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
                 if (error) { console.log(error); return <button style={{ width: '45%', display: 'inline-block' }}>{JSON.stringify(error)}</button>; }
-                return <Button style={{ width: '45%', display: 'inline-block' }} onClick={() => {
+                return <Button style={{ width: '30%', display: 'inline-block' }} onClick={() => {
                     if (!selectedFile) {
                         setError('Please select a file.');
                         setSuccessfullySaved(false);
@@ -82,7 +93,8 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile
                 }}>Submit</Button>;
             }}
         </Mutation>
-        <Button style={{ width: '45%', display: 'inline-block' }} className='button_grey' onClick={() => cancelButton(false)}>Cancel</Button>
+        <Button style={{ width: '30%', display: 'inline-block' }} className='button_grey' onClick={() => setSelectedFile(filteredFiles.map(el => el.id))}>Select All</Button>
+        <Button style={{ width: '30%', display: 'inline-block' }} className='button_grey' onClick={handleCancel}>Cancel</Button>
         {error ? <div className='error_banner'>{error}</div> : null}
         {successfullySaved ? <div className='saved_banner'>Job created and queued.</div> : null}
     </>;

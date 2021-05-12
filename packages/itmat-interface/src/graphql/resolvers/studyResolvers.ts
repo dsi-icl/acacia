@@ -11,7 +11,8 @@ import {
     studyType,
     IDataClip,
     IDataRecordSummary,
-    userTypes
+    userTypes,
+    IOntologyField
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -88,6 +89,24 @@ export const studyResolvers = {
             const result = await db.collections!.field_dictionary_collection.find({ studyId: studyId, deleted: null }).toArray();
 
             return result;
+        },
+        getOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, projectId }: { studyId: string, projectId: string }, context: any): Promise<any> => {
+            const requester: IUser = context.req.user;
+            /* user can get study if he has readonly permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_readonly_access],
+                requester,
+                studyId
+            );
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_project.specific_project_readonly_access],
+                requester,
+                studyId,
+                projectId
+            );
+            if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            const result = await db.collections!.studies_collection.findOne({ id: studyId });
+            return result.ontologyTree;
         },
         getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: string, studyId: string, versionId: string[], projectId?: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
@@ -269,7 +288,11 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_data,
+                requester,
+                studyId
+            ))) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -336,7 +359,11 @@ export const studyResolvers = {
         deleteField: async (__unused__parent: Record<string, unknown>, { studyId, fieldId }: { studyId: string, fieldId: number }, context: any): Promise<IFieldEntry> => {
             const requester: IUser = context.req.user;
             /* check privileges */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            if (!(await permissionCore.userHasTheNeccessaryPermission(
+                task_required_permissions.manage_study_data,
+                requester,
+                studyId
+            ))) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -448,6 +475,73 @@ export const studyResolvers = {
             }
             const created = await studyCore.createNewDataVersion(studyId, tag, dataVersion);
             return created;
+        },
+        addOntologyField: async (__unused__parent: Record<string, unknown>, { studyId, ontologyInput }: { studyId: string, ontologyInput: IOntologyField[] }, context: any): Promise<any> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            // sample path
+            // name1>name2>fieldId1>fieldId2...
+            // check study exists
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+            let newOntologyFields;
+            if (study.ontologyTree === undefined || study.ontologyTree === null) {
+                newOntologyFields = [];
+            } else {
+                newOntologyFields = study.ontologyTree;
+            }
+            for (let i=0; i<ontologyInput.length; i++) {
+                // check fieldId exists
+                const fieldExist = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: ontologyInput[i].fieldId });
+                // check path last item is the same fieldId
+                const parts = ontologyInput[i].path.split('>');
+                if (parts[parts.length - 1] !== ontologyInput[i].fieldId) {
+                    continue;
+                }
+                if (fieldExist) {
+                    // check if existing in ontologyTree
+                    const index = newOntologyFields.map(el => JSON.stringify(el)).indexOf(JSON.stringify(newOntologyFields.filter(el => el.fieldId === ontologyInput[i].fieldId)[0]));
+                    if (index !== -1) {
+                        newOntologyFields[index] = ontologyInput[i];
+                    } else {
+                        newOntologyFields.push(ontologyInput[i]);
+                    }
+                } else {
+                    continue;
+                }
+            }
+            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId }, { $set: { ontologyTree: newOntologyFields } });
+            return newOntologyFields;
+        },
+        deleteOntologyField: async (__unused__parent: Record<string, unknown>, { studyId, fieldId }: { studyId: string, fieldId: string[] }, context: any): Promise<any> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            // check study exists
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+            const returnResut: any[] = [];
+            let ontologyFields;
+            if (study.ontologyTree === undefined) {
+                ontologyFields = [];
+            } else {
+                ontologyFields = study.ontologyTree;
+            }
+            for (let i=0; i< ontologyFields.length; i++) {
+                if (fieldId.includes(ontologyFields[i].fieldId)) {
+                    returnResut.push(ontologyFields[i]);
+                    ontologyFields.splice(i, 1);
+                }
+            }
+            await db.collections!.studies_collection.findOneAndUpdate({id: studyId}, {$set: {ontologyTree: ontologyFields}});
+            return returnResut;
         },
         createProject: async (__unused__parent: Record<string, unknown>, { studyId, projectName }: { studyId: string, projectName: string }, context: any): Promise<IProject> => {
             const requester: IUser = context.req.user;

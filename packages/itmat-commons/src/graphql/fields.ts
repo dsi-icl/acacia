@@ -6,6 +6,7 @@ export const field_fragment = gql`
         studyId
         fieldId
         fieldName
+        tableName
         dataType
         possibleValues {
             code

@@ -10,8 +10,7 @@ import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import css from './tabContent.module.css';
 import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
-import { Select, Button, Form, Input, Switch } from 'antd';
-// const { Option } = Select;
+import { Button, Form, Input, Switch } from 'antd';
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
@@ -31,7 +30,6 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
             A error occured, please contact your administrator: {(getStudyError as any).message || ''}, {(getStudyFieldsError as any).message || ''}, {(getDataRecordsError as any).message || ''}
         </p>;
     }
-    console.log(getStudyFieldsData);
     const currentVersionContent = getStudyData.getStudy.dataVersions[getStudyData.getStudy.currentDataVersion]?.contentId;
     const showSaveVersionButton = true;
     return <div className={css.data_management_section}>
@@ -91,7 +89,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
 
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
             <Subsection title='Upload New Data'>
-                <UploadNewData studyId={studyId} cancelButton={() => { return; }} ></UploadNewData>
+                <UploadNewData studyId={studyId} ></UploadNewData>
             </Subsection><br/>
             <Subsection title='Unsettled Data'>
                 {JSON.parse(getDataRecordsData.getDataRecords).data.length !== 0 ?
@@ -104,15 +102,6 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                                     studyId: studyId
                                 }
                             });}}>
-                            <Form.Item name='fieldTreeId' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                <Select
-                                    placeholder='Select Field'
-                                    allowClear
-                                    style={{width: '80%'}}
-                                >
-                                    {/* {uniqueFieldTreeIds.map((el) => <Option value={el} >{el}</Option>)} */}
-                                </Select>
-                            </Form.Item>
                             <Form.Item name='dataVersion' hasFeedback rules={[{ required: true, message: ' ' }]}>
                                 <Input placeholder='Data Version' />
                             </Form.Item>

@@ -37,9 +37,13 @@ import {
     EDIT_STUDY,
     studyType,
     UPLOAD_DATA_IN_ARRAY,
-    DELETE_DATA_RECORDS
+    DELETE_DATA_RECORDS,
+    ADD_ONTOLOGY_FIELD,
+    GET_DATA_RECORDS,
+    DELETE_ONTOLOGY_FIELD
 } from 'itmat-commons';
 import { CREATE_NEW_DATA_VERSION, CREATE_NEW_FIELD, EDIT_FIELD } from 'itmat-commons/src';
+import { syncBuiltinESMExports } from 'module';
 
 let app;
 let mongodb;
@@ -746,8 +750,8 @@ describe('STUDY API', () => {
                         m_visitId: 'mockvisitId',
                         m_studyId: createdStudy.id,
                         m_versionId: mockDataVersion.id,
-                        31: 'male',
-                        49: 'England',
+                        '31': 'male',
+                        '49': 'England',
                         deleted: null
                     },
                     {
@@ -755,8 +759,8 @@ describe('STUDY API', () => {
                         m_visitId: 'mockvisitId',
                         m_studyId: createdStudy.id,
                         m_versionId: mockDataVersion.id,
-                        31: 'female',
-                        49: 'France',
+                        '31': 'female',
+                        '49': 'France',
                         deleted: null
                     }
                 ];
@@ -1363,6 +1367,7 @@ describe('STUDY API', () => {
                     jobs: [],
                     description: 'test description',
                     type: studyType.SENSOR,
+                    ontologyTree: null,
                     projects: [
                         {
                             id: createdProject.id,
@@ -1594,6 +1599,7 @@ describe('STUDY API', () => {
                     studyId: createdStudy.id,
                     fieldId: '31',
                     fieldName: 'Sex',
+                    tableName: null,
                     dataType: enumValueType.STRING,
                     possibleValues: [],
                     unit: 'person',
@@ -1606,6 +1612,7 @@ describe('STUDY API', () => {
                     studyId: createdStudy.id,
                     fieldId: '32',
                     fieldName: 'Sex',
+                    tableName: null,
                     dataType: enumValueType.STRING,
                     possibleValues: [],
                     unit: 'person',
@@ -1664,6 +1671,7 @@ describe('STUDY API', () => {
                         studyId: createdStudy.id,
                         fieldId: '31',
                         fieldName: 'Sex',
+                        tableName: null,
                         dataType: enumValueType.STRING,
                         possibleValues: [],
                         unit: 'person',
@@ -1676,6 +1684,7 @@ describe('STUDY API', () => {
                         studyId: createdStudy.id,
                         fieldId: '32',
                         fieldName: 'Sex',
+                        tableName: null,
                         dataType: enumValueType.STRING,
                         possibleValues: [],
                         unit: 'person',
@@ -1739,6 +1748,7 @@ describe('STUDY API', () => {
                         studyId: createdStudy.id,
                         fieldId: '31',
                         fieldName: 'Sex',
+                        tableName: null,
                         dataType: enumValueType.STRING,
                         possibleValues: [],
                         unit: 'person',
@@ -1751,6 +1761,7 @@ describe('STUDY API', () => {
                         studyId: createdStudy.id,
                         fieldId: '32',
                         fieldName: 'Sex',
+                        tableName: null,
                         dataType: enumValueType.STRING,
                         possibleValues: [],
                         unit: 'person',
@@ -2130,6 +2141,148 @@ describe('STUDY API', () => {
             await db.collections!.roles_collection.deleteOne({ id: roleDataCurator.id });
         });
 
+        test('Upload ontologyTree (admin)', async () => {
+            // insert necessary field
+            await db.collections!.field_dictionary_collection.insertMany([
+                {
+                    id: 'fakeid1',
+                    studyId: createdStudy.id,
+                    fieldId: '1',
+                    fieldName: 'Age',
+                    dataType: 'int',
+                    dateAdded: 100000000
+                },
+                {
+                    id: 'fakeid2',
+                    studyId: createdStudy.id,
+                    fieldId: '2',
+                    fieldName: 'Gender',
+                    dataType: 'int',
+                    dateAdded: 100000000
+                },
+                {
+                    id: 'fakeid3',
+                    studyId: createdStudy.id,
+                    fieldId: '3',
+                    fieldName: 'Date',
+                    dataType: 'dat',
+                    dateAdded: 100000000
+                }
+            ]);
+
+            const res = await admin.post('/graphql').send({
+                query: print(ADD_ONTOLOGY_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyInput: [{
+                        fieldId: '1',
+                        path: 'Metadata>Subject>1'
+                    }, {
+                        fieldId: '2',
+                        path: 'Metadata>Subject>2'
+                    }]
+                }
+            });
+            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.addOntologyField).toEqual([{
+                fieldId: '1',
+                path: 'Metadata>Subject>1'
+            }, {
+                fieldId: '2',
+                path: 'Metadata>Subject>2'
+            }]);
+            expect(study.ontologyTree).toEqual([{
+                fieldId: '1',
+                path: 'Metadata>Subject>1'
+            }, {
+                fieldId: '2',
+                path: 'Metadata>Subject>2'
+            }]);
+
+            const resAddMore = await admin.post('/graphql').send({
+                query: print(ADD_ONTOLOGY_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyInput: [{
+                        fieldId: '1',
+                        path: 'Metadata>SubjectNew>1'
+                    }, {
+                        fieldId: '3',
+                        path: 'Metadata>Subject>3'
+                    }]
+                }
+            });
+            const studyMore = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
+            expect(resAddMore.status).toBe(200);
+            expect(resAddMore.body.errors).toBeUndefined();
+            expect(resAddMore.body.data.addOntologyField).toEqual([{
+                fieldId: '1',
+                path: 'Metadata>SubjectNew>1'
+            }, {
+                fieldId: '2',
+                path: 'Metadata>Subject>2'
+            }, {
+                fieldId: '3',
+                path: 'Metadata>Subject>3'
+            }]);
+            expect(studyMore.ontologyTree).toEqual([{
+                fieldId: '1',
+                path: 'Metadata>SubjectNew>1'
+            }, {
+                fieldId: '2',
+                path: 'Metadata>Subject>2'
+            }, {
+                fieldId: '3',
+                path: 'Metadata>Subject>3'
+            }]);
+
+            const deleteRes = await admin.post('/graphql').send({
+                query: print(DELETE_ONTOLOGY_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    fieldId: ["1"]
+                }
+            });
+            const studyDelete = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
+            expect(deleteRes.status).toBe(200);
+            expect(deleteRes.body.errors).toBeUndefined();
+            expect(deleteRes.body.data.deleteOntologyField).toEqual([{
+                fieldId: '1',
+                path: 'Metadata>SubjectNew>1'
+            }]);
+            expect(studyDelete.ontologyTree).toEqual([{
+                fieldId: '2',
+                path: 'Metadata>Subject>2'
+            }, {
+                fieldId: '3',
+                path: 'Metadata>Subject>3'
+            }]);
+
+            // delete fields
+            await db.collections!.studies_collection.findOneAndUpdate({id: createdStudy.id}, { $set: {ontologyTree: []} });
+            await db.collections!.field_dictionary_collection.deleteMany({});
+        });
+
+        test('Upload ontologyTree (user) should fail', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(ADD_ONTOLOGY_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyInput: [{
+                        fieldId: '1',
+                        path: 'Metadata>Subject>Age'
+                    }, {
+                        fieldId: '2',
+                        path: 'Metadata>Subject>Gender'
+                    }]
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+        });
 
     });
 
@@ -2636,6 +2789,11 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.uploadDataInArray).toEqual({
+                detail: [],
+                numOfRecordSucceed: 3,
+                numOfRecordFailed: 0
+            });
 
             const deleteRes = await authorisedUser.post('/graphql').send({
                 query: print(DELETE_DATA_RECORDS),
@@ -2652,345 +2810,37 @@ describe('STUDY API', () => {
             const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
             expect(dataInDb).toHaveLength(0);
         });
-    });
 
-    /**
-     * setDataversion as current
-     */
-    describe('CREATE/EDIT FIELD', () => {
-        let createdStudy;
-        let createdUserNoAuthorisedProfile;
-        // let createdUserAuthorisedProfile;
-        // let authorisedUser;
-        let unauthorisedUser;
-        // let mockFields: any[];
-
-        beforeAll(async () => {
-            /*** setup: create a setup study ***/
-            /* 1. create study */
-            {
-                const studyName = uuid();
-                const res = await admin.post('/graphql').send({
-                    query: print(CREATE_STUDY),
-                    variables: { name: studyName, description: 'test description', type: studyType.SENSOR }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
-                expect(res.body.data.createStudy).toEqual({
-                    id: createdStudy.id,
-                    name: studyName,
-                    description: 'test description',
-                    type: studyType.SENSOR
-                });
-            }
-
-            /* 3. create an general study user that cannot manage projects (no role yet) */
-            {
-                const username = uuid();
-                const newUser: IUser = {
-                    username: username,
-                    type: userTypes.STANDARD,
-                    firstname: `${username}_firstname`,
-                    lastname: `${username}_lastname`,
-                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
-                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
-                    email: `${username}'@user.io'`,
-                    resetPasswordRequests: [],
-                    description: 'I am an authorised study user managing project.',
-                    emailNotificationsActivated: true,
-                    organisation: 'organisation_system',
-                    deleted: null,
-                    id: `UnAuthorisedStudyUserManageProject_${username}`,
-                    createdAt: 1591134065000,
-                    expiredAt: 1991134065000
-                };
-
-                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
-                createdUserNoAuthorisedProfile = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
-            }
-
-            /* Connect users */
-            {
-                unauthorisedUser = request.agent(app);
-                await connectAgent(unauthorisedUser, createdUserNoAuthorisedProfile.username, 'admin', createdUserNoAuthorisedProfile.otpSecret);
-
-            }
-
-
-        });
-
-        afterAll(async () => {
-            {
-                const res = await admin.post('/graphql').send({
-                    query: print(DELETE_STUDY),
-                    variables: { studyId: createdStudy.id }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getProject).toBe(null);
-            }
-
-            {
-                const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
-                expect(res.body.data.whoAmI).toEqual({
-                    username: 'admin',
-                    type: userTypes.ADMIN,
-                    firstname: 'Fadmin',
-                    lastname: 'Ladmin',
-                    organisation: 'organisation_system',
-                    email: 'admin@example.com',
-                    description: 'I am an admin user.',
-                    id: adminId,
-                    access: {
-                        id: `user_access_obj_user_id_${adminId}`,
-                        projects: [],
-                        studies: []
-                    }
-                });
-
-                // study data is NOT deleted for audit purposes - unless explicitly requested separately
-                const roles = await db.collections!.roles_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                const projects = await db.collections!.projects_collection.find({ studyId: createdStudy.id, deleted: null }).toArray();
-                const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
-                expect(roles).toEqual([]);
-                expect(projects).toEqual([]);
-                expect(study).toBe(null);
-            }
-
-            /* cannot get study from api anymore */
-            {
-                const res = await admin.post('/graphql').send({
-                    query: print(GET_STUDY),
-                    variables: { studyId: createdStudy.id }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-                expect(res.body.data.getStudy).toBe(null);
-            }
-
-            {
-                await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
-            }
-        });
-
-        beforeEach(async () => {
-            const oldField = {
-                id: 'mockfieldold',
-                studyId: createdStudy.id,
-                fieldId: '31',
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-                possibleValues: [],
-                unit: 'person',
-                comments: 'mockComments1',
-                dateAdded: 100000000,
-                deleted: null,
-            };
-            await db.collections!.field_dictionary_collection.insertOne(oldField);
-        });
-
-        afterEach(async () => {
-            await db.collections!.field_dictionary_collection.deleteMany({});
-        });
-
-
-        test('Create field with all properties (admin)', async () => {
-            const newField = {
-                fieldId: '32',
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-                possibleValues: [],
-                unit: 'person',
-                comments: 'mockComments1'
-            };
-            const res = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
+        test('Get data records (authorised user)', async () => {
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(UPLOAD_DATA_IN_ARRAY),
+                variables: { studyId: createdStudy.id, data: multipleRecords }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-        });
-
-        test('Create field with only compulsory properties (admin)', async () => {
-            const newField = {
-                fieldId: '32',
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-            };
-            const res = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
+            expect(res.body.data.uploadDataInArray).toEqual({
+                detail: [],
+                numOfRecordSucceed: 3,
+                numOfRecordFailed: 0
             });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-        });
-
-        test('Create field, lack compulsory fields (admin)', async () => {
-            const newField = {
-                studyId: createdStudy.id,
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-                possibleValues: [],
-                unit: 'person',
-                comments: 'mockComments1',
-            };
-            const res = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
+            const createRes = await admin.post('/graphql').send({
+                query: print(CREATE_NEW_DATA_VERSION),
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
             });
-            expect(res.status).toBe(400); // checked by graphql validataion
-        });
-
-        test('Create field, properties type mismatch (admin)', async () => {
-            const newField = {
-                fieldId: 32,
-                database: 'mockDatabase1',
-                fieldName: 'Country',
-                dataType: enumValueType.STRING,
-                systemGenerated: true,
-                nullable: '1',
-                required: true,
-                mandatory: true,
-                notMapped: true,
-                showOnIndexView: true,
-            };
-            const res = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
+            expect(createRes.status).toBe(200);
+            expect(createRes.body.errors).toBeUndefined();
+            expect(createRes.body.data.createNewDataVersion.version).toBe('1');
+            expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
+            const getRes = await authorisedUser.post('/graphql').send({
+                query: print(GET_DATA_RECORDS),
+                variables: {
+                    studyId: createdStudy.id,
+                    queryString: undefined
+                }
             });
-            expect(res.status).toBe(400); // checked by graphql validataion
+            expect(getRes.status).toBe(200);
+            expect(getRes.body.errors).toBeUndefined();
+            expect(JSON.parse(getRes.body.data.getDataRecords).data).toHaveLength(3);
         });
-
-        test('Create field with unrevognized datatypes (admin)', async () => {
-            const newField = {
-                fieldId: 32,
-                database: 'mockDatabase1',
-                fieldName: 'Country',
-                dataType: 'fak',
-                systemGenerated: true,
-                nullable: true,
-                required: true,
-                mandatory: true,
-                notMapped: true,
-                showOnIndexView: true,
-            };
-            const res = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
-            });
-            expect(res.status).toBe(400); // checked by graphql validataion
-        });
-
-        test('Create field with all properties (user) (should fail)', async () => {
-            const newField = {
-                fieldId: '32',
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-                possibleValues: [],
-                unit: 'person',
-                comments: 'mockComments1'
-            };
-            const res = await user.post('/graphql').send({
-                query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-        });
-
-        test('Create field with illegal studyId (admin)', async () => {
-            const newField = {
-                fieldId: '32',
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-                possibleValues: [],
-                unit: 'person',
-                comments: 'mockComments1'
-            };
-            const res = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_FIELD),
-                variables: { studyId: 'fakestudyId', fieldInput: newField }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('Study does not exist.');
-        });
-
-        test('Create field with existing fieldId (admin)', async () => {
-            const newField = {
-                fieldId: '32',
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-                possibleValues: [],
-                unit: 'person',
-                comments: 'mockComments1'
-            };
-            await admin.post('/graphql').send({
-                query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
-            });
-            const res = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('Field already exists, please select another ID.');
-        });
-
-        test('Edit field with all properties (admin)', async () => {
-            const newField = {
-                fieldId: '31',
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-                possibleValues: [],
-                unit: 'person',
-                comments: 'mockComments1'
-            };
-            const res = await admin.post('/graphql').send({
-                query: print(EDIT_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.editField.fieldName).toEqual(newField.fieldName);
-        });
-
-        test('Edit field with only compulsory properties (admin)', async () => {
-            const newField = {
-                fieldId: '31',
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-            };
-            const res = await admin.post('/graphql').send({
-                query: print(EDIT_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-        });
-
-        test('Edit field (user) (should fail)', async () => {
-            const newField = {
-                fieldId: '32',
-                fieldName: 'Sex',
-                dataType: enumValueType.STRING,
-                possibleValues: [],
-                unit: 'person',
-                comments: 'mockComments1'
-            };
-            const res = await user.post('/graphql').send({
-                query: print(EDIT_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: newField }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-        });
-
     });
 });
-
