@@ -8,8 +8,8 @@ export interface IFieldEntry {
     possibleValues?: IValueDescription[];
     unit?: string;
     comments?: string;
-    dateAdded: number;
-    deleted: number | null
+    dateAdded: string;
+    dateDeleted: string | null
 }
 
 export interface IValueDescription {
@@ -26,9 +26,9 @@ export enum enumValueType {
     INTEGER = 'int',
     DECIMAL = 'dec',
     STRING = 'str',
-    BOOLEAN = 'boo',
-    DATETIME = 'dat',
-    FILE = 'fil',
-    JSON = 'jso',
+    BOOLEAN = 'bool',
+    DATETIME = 'date',
+    FILE = 'file',
+    JSON = 'json',
     CATEGORICAL = 'cat'
 }

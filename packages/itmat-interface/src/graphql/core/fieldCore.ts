@@ -43,7 +43,7 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
 
     // data types
     if (!Object.values(enumValueType).includes(fieldEntry.dataType)) {
-        error.push(`Data type shouldn't be ${fieldEntry.dataType}: use 'int' for integer, 'dec' for decimal, 'str' for string, 'boo' for boolean, 'dat' for datetime, 'fil' for FILE, 'jso' for json.`);
+        error.push(`Data type shouldn't be ${fieldEntry.dataType}: use 'int' for integer, 'dec' for decimal, 'str' for string, 'bool' for boolean, 'date' for datetime, 'file' for FILE, 'json' for json.`);
     }
 
     // check possiblevalues to be not-empty if datatype is categorical

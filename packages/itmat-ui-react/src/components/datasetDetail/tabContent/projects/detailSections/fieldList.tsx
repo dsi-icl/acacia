@@ -62,7 +62,7 @@ const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ origin
                     {
                         loading ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
                             <Button style={{ margin: '1rem 0 0 0' }} onClick={() => {
-                                editApprovedFields({ variables: { projectId, approvedFields: checkedList.filter((el) => el.indexOf('CAT') === -1) } });
+                                editApprovedFields({ variables: { projectId, approvedFields: checkedList.filter((el) => (el.indexOf('CAT') === -1 || el.indexOf('Study') === -1)) } });
                                 setSavedSuccessfully(false);
                             }}>Save</Button>
                     }

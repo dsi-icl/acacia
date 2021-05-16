@@ -130,7 +130,6 @@ export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number,
         6: 'Field Name',
         17: 'Data Type',
     };
-
     if (row.length !== CORRECT_NUMBER_OF_COLUMN) {
         error.push(`Line ${lineNum}: Uneven field Number; expected ${CORRECT_NUMBER_OF_COLUMN} fields but got ${row.length}.`);
         return ({ error, dataEntry: dataEntry_nouse });
@@ -158,10 +157,10 @@ export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number,
         decimal: 'dec',
         nvarchar: 'str',
         varchar: 'str',
-        datetime: 'dat',
-        bit: 'boo',
-        json: 'jso',
-        file: 'fil',
+        datetime: 'date',
+        bit: 'bool',
+        json: 'json',
+        file: 'file',
         categorical: 'cat'
     };
 
@@ -198,8 +197,8 @@ export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number,
         possibleValues: possibleValues,
         unit: '',
         comments: row[32],
-        dateAdded: (new Date()).valueOf(),
-        deleted: null
+        dateAdded: (new Date()).toISOString(),
+        dateDeleted: null
     };
 
     return ({ error: undefined, dataEntry });

@@ -24,7 +24,7 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
     if (fieldList.length === 0) { return <p>There is no available field for field tree. Please contact admin or curator of this project.</p>; }
     const transformedList = fieldList.map((el) => {
         // const findPath = getstudyd
-        if (studyData.ontologyTree === [] || studyData.ontologyTree === undefined) {
+        if (studyData.ontologyTree === [] || studyData.ontologyTree === undefined || studyData.ontologyTree === null) {
             return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
         } else {
             const ontologyField = studyData.ontologyTree.filter(es => es.fieldId === el.fieldId);
@@ -65,7 +65,7 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
             pushed.push(output[i]);
         }
         if (studyData) {
-            const withStudy: any = [{fieldId: studyData.name, name: studyData.name, children: pushed}];
+            const withStudy: any = [{fieldId: studyData.name, name: 'Study:'.concat(studyData.name), children: pushed}];
             return withStudy;
         } else {
             return output;
@@ -114,7 +114,7 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
     if (filteredFieldList.length === 0) { return <p>There is no available field for this field tree. Please contact admin or curator of this project.</p>; }
     const transformedList = fieldList.map((el) => {
         // const findPath = getstudyd
-        if (ontologyTree === [] || ontologyTree === undefined) {
+        if (ontologyTree === [] || ontologyTree === undefined || ontologyTree === null) {
             return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
         } else {
             const ontologyField = ontologyTree.filter(es => es.fieldId === el.fieldId);

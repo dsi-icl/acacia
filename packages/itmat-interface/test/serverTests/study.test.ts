@@ -40,7 +40,8 @@ import {
     DELETE_DATA_RECORDS,
     ADD_ONTOLOGY_FIELD,
     GET_DATA_RECORDS,
-    DELETE_ONTOLOGY_FIELD
+    DELETE_ONTOLOGY_FIELD,
+    CREATE_NEW_DATA_VERSION
 } from 'itmat-commons';
 
 
@@ -773,8 +774,8 @@ describe('STUDY API', () => {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: 100000000,
-                        deleted: null,
+                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        dateDeleted: null,
                     },
                     {
                         id: 'mockfield2',
@@ -785,8 +786,8 @@ describe('STUDY API', () => {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: 100000000,
-                        deleted: null,
+                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        dateDeleted: null,
                     }
                 ];
 
@@ -1603,8 +1604,8 @@ describe('STUDY API', () => {
                     possibleValues: [],
                     unit: 'person',
                     comments: 'mockComments1',
-                    dateAdded: 100000000,
-                    deleted: null,
+                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    dateDeleted: null,
                 },
                 {
                     id: 'mockfield2',
@@ -1616,8 +1617,8 @@ describe('STUDY API', () => {
                     possibleValues: [],
                     unit: 'person',
                     comments: 'mockComments1',
-                    dateAdded: 100000000,
-                    deleted: null,
+                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    dateDeleted: null,
                 }
             ]);
         });
@@ -1675,8 +1676,8 @@ describe('STUDY API', () => {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: 100000000,
-                        deleted: null,
+                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        dateDeleted: null,
                     },
                     {
                         id: 'mockfield2',
@@ -1688,8 +1689,8 @@ describe('STUDY API', () => {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: 100000000,
-                        deleted: null,
+                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        dateDeleted: null,
                     }
                 ]
             });
@@ -1752,8 +1753,8 @@ describe('STUDY API', () => {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: 100000000,
-                        deleted: null,
+                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        dateDeleted: null,
                     },
                     {
                         id: 'mockfield2',
@@ -1765,8 +1766,8 @@ describe('STUDY API', () => {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: 100000000,
-                        deleted: null,
+                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        dateDeleted: null,
                     }
                 ]
             });
@@ -2637,17 +2638,13 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.uploadDataInArray).toEqual({
-                detail: [
-                    'Field 33-undefined-undefined : Field Not found',
-                    'Field 31-undefined-undefined : Cannot parse as integer.',
-                    'Subject ID I777770 is illegal.'
-                ],
-                numOfRecordSucceed: 3,
-                numOfRecordFailed: 3
-            });
+            expect(res.body.data.uploadDataInArray).toEqual([
+                {code: 'MALFORMED_INPUT', description: 'Field 33-undefined-undefined : Field Not found'},
+                {code: 'MALFORMED_INPUT', description: 'Field 31-undefined-undefined : Cannot parse as integer.'},
+                {code: 'ACTION_ON_NON_EXISTENT_ENTRY', description: 'Subject ID I777770 is illegal.'}
+            ]);
 
-            const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
+            const dataInDb = await db.collections!.data_collection.find({ dateDeleted: null }).toArray();
             expect(dataInDb).toHaveLength(2);
         });
 
@@ -2727,13 +2724,9 @@ describe('STUDY API', () => {
             });
             expect(deleteRes.status).toBe(200);
             expect(deleteRes.body.errors).toBeUndefined();
-            expect(deleteRes.body.data.deleteDataRecords).toEqual({
-                detail: [],
-                numOfRecordSucceed: 2,
-                numOfRecordFailed: 0
-            });
+            expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
 
-            const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
+            const dataInDb = await db.collections!.data_collection.find({ dateDeleted: null }).toArray();
             expect(dataInDb).toHaveLength(1);
         });
 
@@ -2753,7 +2746,7 @@ describe('STUDY API', () => {
             expect(deleteRes.body.errors).toHaveLength(1);
             expect(deleteRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
 
-            const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
+            const dataInDb = await db.collections!.data_collection.find({ dateDeleted: null }).toArray();
             expect(dataInDb).toHaveLength(3);
         });
 
@@ -2771,13 +2764,9 @@ describe('STUDY API', () => {
             });
             expect(deleteRes.status).toBe(200);
             expect(deleteRes.body.errors).toBeUndefined();
-            expect(deleteRes.body.data.deleteDataRecords).toEqual({
-                detail: [],
-                numOfRecordSucceed: 2,
-                numOfRecordFailed: 0
-            });
+            expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
 
-            const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
+            const dataInDb = await db.collections!.data_collection.find({ dateDeleted: null }).toArray();
             expect(dataInDb).toHaveLength(1);
         });
 
@@ -2788,11 +2777,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.uploadDataInArray).toEqual({
-                detail: [],
-                numOfRecordSucceed: 3,
-                numOfRecordFailed: 0
-            });
+            expect(res.body.data.uploadDataInArray).toEqual([]);
 
             const deleteRes = await authorisedUser.post('/graphql').send({
                 query: print(DELETE_DATA_RECORDS),
@@ -2800,13 +2785,9 @@ describe('STUDY API', () => {
             });
             expect(deleteRes.status).toBe(200);
             expect(deleteRes.body.errors).toBeUndefined();
-            expect(deleteRes.body.data.deleteDataRecords).toEqual({
-                detail: [],
-                numOfRecordSucceed: 3,
-                numOfRecordFailed: 0
-            });
+            expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
 
-            const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
+            const dataInDb = await db.collections!.data_collection.find({ dateDeleted: null }).toArray();
             expect(dataInDb).toHaveLength(0);
         });
 
@@ -2817,11 +2798,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.uploadDataInArray).toEqual({
-                detail: [],
-                numOfRecordSucceed: 3,
-                numOfRecordFailed: 0
-            });
+            expect(res.body.data.uploadDataInArray).toEqual([]);
             const createRes = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
                 variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }

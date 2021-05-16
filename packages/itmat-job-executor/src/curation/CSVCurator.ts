@@ -259,7 +259,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                     value = parseInt(each, 10);
                     break;
                 }
-                case 'boo': {// boolean
+                case 'bool': {// boolean
                     if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
                         value = each.toLowerCase() === 'true';
                     } else {
@@ -273,19 +273,21 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                     value = each.toString();
                     break;
                 }
-                case 'dat': {
-                    const part = each.split('/');
-                    const tmp = part[1];
-                    part[1] = part[0];
-                    part[0] = tmp;
-                    value = new Date(part[0].concat('/').concat(part[1]).concat('/').concat(part[2])).toISOString();
+                case 'date': {
+                    const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
+                    if (!each.match(matcher)) {
+                        error.push(`Object ${lineNum} column ${colIndex + 1}: value for date type must be in ISO format.`);
+                        colIndex++;
+                        continue;
+                    }
+                    value = each.toString();
                     break;
                 }
-                case 'jso': {// save as string
-                    value = JSON.stringify(each);
+                case 'json': {
+                    value = each;
                     break;
                 }
-                case 'fil': {
+                case 'file': {
                     value = each.toString();
                     break;
                 }

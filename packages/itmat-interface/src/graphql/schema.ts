@@ -19,10 +19,10 @@ enum FIELD_VALUE_TYPE {
     int # integer
     dec # decimal
     str # characters/string
-    boo # boolean
-    dat # datetime, temporaily save as string
-    fil # file id
-    jso # JSON: array & object
+    bool # boolean
+    date # datetime, temporaily save as string
+    file # file id
+    json # JSON: array & object
     cat # CATEGORICAL
 }
 
@@ -47,8 +47,8 @@ type Field {
     possibleValues: [ValueCategory]
     unit: String
     comments: String
-    dateAdded: Float!
-    deleted: Float
+    dateAdded: String!
+    dateDeleted: String
 }
 
 input DataClip {
@@ -58,10 +58,14 @@ input DataClip {
     visitId: String!,
 }
 
-type DataRecordSummary {
-    numOfRecordSucceed: Int!,
-    numOfRecordFailed: Int!,
-    detail: [String]
+enum DATA_CLIP_ERROR_TYPE{
+    ACTION_ON_NON_EXISTENT_ENTRY
+    MALFORMED_INPUT
+}
+
+type DataClipError {
+    code: DATA_CLIP_ERROR_TYPE!,
+    description: String
 }
 
 type UserAccess {
@@ -290,7 +294,7 @@ type Log {
 
 type QueryEntry {
     id: String!,
-    queryString: String!,
+    queryString: JSON!,
     studyId: String!,
     projectId: String,
     requester: String!,
@@ -325,7 +329,7 @@ type JobStatusChange_Subscription {
 }
 
 input QueryObjInput {
-    queryString: String!
+    queryString: JSON!
     userId: String!
     studyId: String!
     projectId: String
@@ -453,8 +457,8 @@ type Mutation {
     deleteStudy(studyId: String!): GenericResponse
     editStudy(studyId: String!, description: String): Study
     createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
-    uploadDataInArray(studyId: String!, data: [DataClip]): DataRecordSummary
-    deleteDataRecords(studyId: String!, subjectId: String, visitId: String, fieldIds: [String]): DataRecordSummary
+    uploadDataInArray(studyId: String!, data: [DataClip]): [DataClipError]
+    deleteDataRecords(studyId: String!, subjectId: String, visitId: String, fieldIds: [String]): [DataClipError]
     createNewField(studyId: String!, fieldInput: FieldInput!): Field
     editField(studyId: String!, fieldInput: FieldInput!): Field
     deleteField(studyId: String!, fieldId: String!): Field

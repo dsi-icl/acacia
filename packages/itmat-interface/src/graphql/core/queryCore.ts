@@ -13,9 +13,9 @@ export class QueryCore {
             status: 'QUEUED',
             error: null,
             cancelled: false,
-            data_requested: JSON.parse(args.query.queryString).data_requested,
-            cohort: JSON.parse(args.query.queryString).cohort,
-            new_fields: JSON.parse(args.query.queryString).new_fields
+            data_requested: args.query.queryString.data_requested,
+            cohort: args.query.queryString.cohort,
+            new_fields: args.query.queryString.new_fields
         };
         await db.collections!.queries_collection.insertOne(query);
         return query;

@@ -33,8 +33,8 @@ describe('Unit tests for processFieldRow function', () => {
         expect(dataEntry.possibleValues).toEqual([]);
         expect(dataEntry.unit).toBe('');
         expect(dataEntry.comments).toBe('');
-        expect(dataEntry.deleted).toBe(null);
-        expect(typeof dataEntry.dateAdded).toBe('number');
+        expect(dataEntry.dateDeleted).toBe(null);
+        expect(typeof dataEntry.dateAdded).toBe('string');
     });
 
     it('processFieldRow function detects necessary fields that are empty', () => {
@@ -160,8 +160,8 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
-        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
+        expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
+        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
     }, 10000);
 
     it('fieldcurator uploads csv file > 1000 fields okay', async () => {
@@ -192,8 +192,8 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
-        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
+        expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
+        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
     }, 10000);
 
     it('fieldcurator catches duplicate fieldId before first watermark', async () => {
@@ -224,8 +224,8 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
-        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
+        expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
+        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
     }, 10000);
 
     it('fieldcurator catches duplicate fieldId after first watermark', async () => {
@@ -256,8 +256,8 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
-        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
+        expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
+        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
     }, 10000);
 
     it('fieldcurator catches uneven field before watermark', async () => {
@@ -288,8 +288,8 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
-        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
+        expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
+        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
     }, 10000);
 
     it('fieldcurator catches uneven field after watermark', async () => {
@@ -320,8 +320,8 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].possibleValues).toEqual([]);
         expect(mongoStub._bulkinsert._insertArray[0].unit).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
-        expect(mongoStub._bulkinsert._insertArray[0].deleted).toBe(null);
-        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('number');
+        expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
+        expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
     }, 10000);
 
     it('fieldcurator catches mixed errors', async () => {

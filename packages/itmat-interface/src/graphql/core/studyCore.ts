@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, studyType, IStudyDataVersion } from 'itmat-commons';
+import { IProject, IStudy, studyType, IStudyDataVersion, DATA_CLIP_ERROR_TYPE } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -103,11 +103,11 @@ export class StudyCore {
     public async uploadOneDataClip(studyId: string, fieldList: any[], dataClip: any): Promise<any> {
         const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId);
         if (!fieldInDb) {
-            return { error: `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} is not registered. Please update the annotations first.` };
+            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} is not registered. Please update the annotations first.` };
         }
         // check subjectId
         if(!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
-            return { error: `Subject ID ${dataClip.subjectId} is illegal.`};
+            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Subject ID ${dataClip.subjectId} is illegal.` };
         }
 
         // check value is valid
@@ -133,7 +133,7 @@ export class StudyCore {
                     parsedValue = parseInt(dataClip.value, 10);
                     break;
                 }
-                case 'boo': {// boolean
+                case 'bool': {// boolean
                     if (dataClip.value.toLowerCase() === 'true' || dataClip.value.toLowerCase() === 'false') {
                         parsedValue = dataClip.value.toLowerCase() === 'true';
                     } else {
@@ -147,19 +147,20 @@ export class StudyCore {
                     break;
                 }
                 // 01/02/2021 00:00:00
-                case 'dat': {
-                    const part = dataClip.value.split('/');
-                    const tmp = part[1];
-                    part[1] = part[0];
-                    part[0] = tmp;
-                    parsedValue = new Date(part[0].concat('/').concat(part[1]).concat('/').concat(part[2])).toISOString();
+                case 'date': {
+                    const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
+                    if (!dataClip.value.match(matcher)) {
+                        error.push(`Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName}: value for date type must be in ISO format.`);
+                        break;
+                    }
+                    parsedValue = dataClip.value.toString();
                     break;
                 }
-                case 'jso': {// save as string
-                    parsedValue = JSON.stringify(dataClip.value);
+                case 'json': {
+                    parsedValue = dataClip.value;
                     break;
                 }
-                case 'fil': {
+                case 'file': {
                     const file = await db.collections!.files_collection.findOne({ id: parseValue });
                     if (!file) {
                         error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as file or file does not exist.`;
@@ -187,7 +188,7 @@ export class StudyCore {
             }
         }
         if (error !== undefined) {
-            return { error: error };
+            return { code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: error };
         }
         const obj = {
             m_studyId: studyId,
@@ -202,8 +203,7 @@ export class StudyCore {
         await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, {
             upsert: true
         });
-        return { error: null };
-
+        return null;
     }
 
     public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {

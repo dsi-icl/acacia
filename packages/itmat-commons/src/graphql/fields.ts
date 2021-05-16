@@ -15,7 +15,7 @@ export const field_fragment = gql`
         unit
         comments
         dateAdded
-        deleted
+        dateDeleted
     }
 `;
 

@@ -10,7 +10,6 @@ import {
     IUser,
     studyType,
     IDataClip,
-    IDataRecordSummary,
     userTypes,
     IOntologyField
 } from 'itmat-commons';
@@ -108,7 +107,7 @@ export const studyResolvers = {
             const result = await db.collections!.studies_collection.findOne({ id: studyId });
             return result.ontologyTree;
         },
-        getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: string, studyId: string, versionId: string[], projectId?: string }, context: any): Promise<any> => {
+        getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: any, studyId: string, versionId: string[], projectId?: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
 
             /* user can get study if he has readonly permission */
@@ -148,9 +147,8 @@ export const studyResolvers = {
                     availableDataVersions.push(null);
                 }
             }
-            if (queryString !== undefined && JSON.parse(queryString).data_requested.length !== 0) {
-                const document = JSON.parse(queryString);
-                const pipeline = buildPipeline(document, studyId, availableDataVersions);
+            if (queryString !== undefined && queryString.data_requested.length !== 0) {
+                const pipeline = buildPipeline(queryString, studyId, availableDataVersions);
                 result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             } else {
                 result = await db.collections!.data_collection.find({ m_versionId: {$in: availableDataVersions} }).toArray();
@@ -326,7 +324,7 @@ export const studyResolvers = {
             fieldEntry.id = uuid();
             fieldEntry.studyId = studyId;
             fieldEntry.dateAdded = (new Date()).valueOf();
-            fieldEntry.deleted = null;
+            fieldEntry.dateDeleted = null;
 
             await db.collections!.field_dictionary_collection.insertOne(fieldEntry);
             return fieldEntry;
@@ -350,7 +348,7 @@ export const studyResolvers = {
             if (error.length !== 0) {
                 throw new ApolloError(JSON.stringify(error), errorCodes.CLIENT_MALFORMED_INPUT);
             }
-            const newFieldEntry = {...fieldEntry, id: searchField.id, dateAdded: searchField.dateAdded, deleted: searchField.deleted, studyId: searchField.studyId};
+            const newFieldEntry = {...fieldEntry, id: searchField.id, dateAdded: searchField.dateAdded, deleted: searchField.dateDeleted, studyId: searchField.studyId};
             await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: newFieldEntry.fieldId }, {$set: newFieldEntry});
 
             return newFieldEntry;
@@ -399,18 +397,12 @@ export const studyResolvers = {
 
             const errors: string[] = [];
             for (const each of data) {
-                const error = (await studyCore.uploadOneDataClip(studyId, fieldsList, each)).error;
+                const error = (await studyCore.uploadOneDataClip(studyId, fieldsList, each));
                 if (error !== null) {
                     errors.push(error);
                 }
             }
-            const result: IDataRecordSummary = {
-                detail: errors,
-                numOfRecordSucceed: data.length - errors.filter(el => el !== null).length,
-                numOfRecordFailed: errors.length
-            };
-
-            return result;
+            return errors;
         },
         deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectId, visitId, fieldIds }: { studyId: string, subjectId: string, visitId: string, fieldIds: string[] }, context: any): Promise<any> => {
             // check study exists
@@ -437,26 +429,20 @@ export const studyResolvers = {
             }
 
             // delete records
-            let result;
             if (fieldIds){
-                // remove certail value, but not set record as deleted
+                // remove certain value, but not set record as deleted
                 const fields = fieldIds.reduce((acc,curr)=> (acc[curr] = undefined,acc), {});
-                result = await db.collections!.data_collection.updateMany(queryObj, {
+                await db.collections!.data_collection.updateMany(queryObj, {
                     $set: fields
                 });
             } else {
                 // direct set satisfied records as deleted
-                result = await db.collections!.data_collection.updateMany(queryObj, {
-                    $set: { deleted: (new Date()).valueOf() }
+                await db.collections!.data_collection.updateMany(queryObj, {
+                    $set: { dateDeleted: (new Date()).toISOString() }
                 });
             }
 
-            const returnedObject: IDataRecordSummary = {
-                detail: [],
-                numOfRecordSucceed: result.modifiedCount,
-                numOfRecordFailed: result.matchedCount - result.modifiedCount
-            };
-            return returnedObject;
+            return [];
         },
         createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
             // check study exists

@@ -541,7 +541,7 @@ describe('JOB API', () => {
             createdQuery = {
                 id: `new_query_id_${queryId}`,
                 requester: 'admin',
-                queryString: 'test_query_string',
+                queryString: {date_requested: 'test_query_string'},
                 studyId: createdStudy.id,
                 projectId: createdProject.id,
                 status: 'QUEUED',

@@ -153,7 +153,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
             <Subsection title='any'>
-                <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, projectId: projectId, queryString: JSON.stringify(constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields'])) }}>
+                <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, projectId: projectId, queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']) }}>
                     {({ data, loading, error }) => {
                         if (loading) { return <LoadSpinner />; }
                         if (error) { return <p>No results found.</p>; }
@@ -210,7 +210,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                                     size='middle'
                                 ></Table>
                                 <Button type='primary' htmlType='submit' onClick={() => {
-                                    createQuery({variables: {query: {queryString: JSON.stringify(constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields'])), studyId: studyId, projectId: projectId, userId: whoAmIData.whoAmI.id}}});
+                                    createQuery({variables: {query: {queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']), studyId: studyId, projectId: projectId, userId: whoAmIData.whoAmI.id}}});
                                 }}>
                                             Save this query
                                 </Button>

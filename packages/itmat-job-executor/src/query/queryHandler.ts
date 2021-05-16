@@ -27,8 +27,7 @@ export class QueryHandler extends JobHandler {
         }
         const  queryId  = job.data.queryId[0];
         const queryString = await db.collections!.queries_collection.findOne({id: queryId})!;
-        const document = JSON.parse(queryString.queryString);
-        const pipeline = pipelineGenerator.buildPipeline(document, job.studyId, availableDataVersions);
+        const pipeline = pipelineGenerator.buildPipeline(queryString.queryString, job.studyId, availableDataVersions);
         try {
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             /* if the query is on a project, then we need to map the results m_eid */

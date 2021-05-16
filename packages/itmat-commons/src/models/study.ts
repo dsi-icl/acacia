@@ -63,8 +63,12 @@ export interface IDataClip {
     visitId: string
 }
 
-export interface IDataRecordSummary {
-    numOfRecordSucceed: number,
-    numOfRecordFailed: number,
-    detail: string[]
+export enum DATA_CLIP_ERROR_TYPE{
+    ACTION_ON_NON_EXISTENT_ENTRY = 'ACTION_ON_NON_EXISTENT_ENTRY',
+    MALFORMED_INPUT = 'MALFORMED_INPUT'
+}
+
+export interface IDataClipError {
+    code:DATA_CLIP_ERROR_TYPE
+    description?: string
 }

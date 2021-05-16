@@ -121,9 +121,8 @@ export const CREATE_NEW_DATA_VERSION = gql`
 export const UPLOAD_DATA_IN_ARRAY = gql`
     mutation uploadDataInArray($studyId: String!, $data: [DataClip]) {
         uploadDataInArray(studyId: $studyId, data: $data) {
-            detail
-            numOfRecordSucceed
-            numOfRecordFailed
+            code
+            description
         }
     }
 `;
@@ -131,9 +130,8 @@ export const UPLOAD_DATA_IN_ARRAY = gql`
 export const DELETE_DATA_RECORDS = gql`
     mutation deleteDataRecords($studyId: String!, $subjectId: String, $visitId: String, $fieldIds: [String]) {
         deleteDataRecords(studyId: $studyId, subjectId: $subjectId, visitId: $visitId, fieldIds: $fieldIds) {
-            detail
-            numOfRecordSucceed
-            numOfRecordFailed
+            code
+            description
         }
     }
 `;

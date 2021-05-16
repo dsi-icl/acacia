@@ -30,6 +30,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
             A error occured, please contact your administrator: {(getStudyError as any).message || ''}, {(getStudyFieldsError as any).message || ''}, {(getDataRecordsError as any).message || ''}
         </p>;
     }
+    console.log(getStudyFieldsData);
     const currentVersionContent = getStudyData.getStudy.dataVersions[getStudyData.getStudy.currentDataVersion]?.contentId;
     const showSaveVersionButton = true;
     return <div className={css.data_management_section}>

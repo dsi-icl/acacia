@@ -55,14 +55,14 @@ export const queryResolvers = {
         }
     },
     Mutation: {
-        createQuery: async (__unused__parent: Record<string, unknown>, args: {userId: string, queryString: string, studyId: string, projectId?: string}): Promise<IQueryEntry> => {
+        createQuery: async (__unused__parent: Record<string, unknown>, args: {query: {userId: string, queryString: any, studyId: string, projectId?: string}}): Promise<IQueryEntry> => {
             /* check study exists */
-            const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: args.studyId, deleted: null })!;
+            const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: args.query.studyId, deleted: null });
             if (studySearchResult === null || studySearchResult === undefined) {
                 throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
             /* check project exists */
-            const project = await db.collections!.projects_collection.findOne<Omit<IProject, 'patientMapping'>>({ id: args.projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
+            const project = await db.collections!.projects_collection.findOne<Omit<IProject, 'patientMapping'>>({ id: args.query.projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
             if (project === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
