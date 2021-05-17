@@ -41,7 +41,9 @@ export const deviceTypes = {
     PSR: 'PSG raw data',
     PSM: 'PSG meta data',
     SMA: 'Stress Monitor App',
-    TFA: 'ThinkFast App'
+    TFA: 'ThinkFast App',
+    SMQ: 'Stress Monitor App Questionnaire',
+    VIR: 'Virtual device type'
 };
 
 const { RangePicker } = DatePicker;
@@ -62,7 +64,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const [isEditingDescription, setIsEditingDescription] = React.useState(false);
     const [datasetDescription, setDatasetDescription] = React.useState('');
     const [editStudy] = useMutation(EDIT_STUDY, {
-        onCompleted: () => {window.location.reload();},
+        onCompleted: () => { window.location.reload(); },
         onError: () => { return; }
     });
     const [isSwitchOn, setIsSwitchOn] = React.useState(false);
@@ -239,7 +241,10 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             fileFilter([file]);
             return true;
         },
-        fileList,
+        fileList: fileList.map(file => ({
+            ...file,
+            originFileObj: file
+        })),
         multiple: true,
         showUploadList: false
     };
@@ -378,7 +383,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         }
     ];
 
-    if (getOrgsLoading || getStudyLoading || getUsersLoading  || whoAmILoading)
+    if (getOrgsLoading || getStudyLoading || getUsersLoading || whoAmILoading)
         return <LoadSpinner />;
 
     if (getOrgsError || getStudyError || getUsersError || whoAmIError)
@@ -438,7 +443,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             ?
             <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
                 <Subsection title='Upload files'>
-                    <Upload {...uploaderProps}>
+                    <Upload {...uploaderProps} >
                         <Button>Select more files</Button>
                     </Upload>
                     <br />
@@ -469,23 +474,23 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 <SubsectionWithComment title='Dataset Description' comment={
                     whoAmIData.whoAmI.type === userTypes.ADMIN ?
                         <>
-                            { isEditingDescription ?
+                            {isEditingDescription ?
                                 <>
                                     <Button
                                         type='primary'
-                                        onClick={() => { editStudy({variables: {studyId: getStudyData.getStudy.id, description: datasetDescription}}); }}
+                                        onClick={() => { editStudy({ variables: { studyId: getStudyData.getStudy.id, description: datasetDescription } }); }}
                                     >{'Submit'}
                                     </Button>
                                     <Button
                                         type='primary'
-                                        onClick={() => {setIsEditingDescription(false); setDatasetDescription('');}}
+                                        onClick={() => { setIsEditingDescription(false); setDatasetDescription(''); }}
                                     >{'Cancel'}
                                     </Button>
                                 </> :
                                 <>
                                     <Button
                                         type='primary'
-                                        onClick={() => {setIsEditingDescription(true);}}
+                                        onClick={() => { setIsEditingDescription(true); }}
                                     >{'Edit Description'}
                                     </Button>
                                 </>
@@ -493,9 +498,9 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                         </> : null
                 }>
                     <>{
-                        (isEditingDescription && whoAmIData.whoAmI.type === userTypes.ADMIN)? <Input onChange={(e) => {setDatasetDescription(e.target.value);}}>
+                        (isEditingDescription && whoAmIData.whoAmI.type === userTypes.ADMIN) ? <Input onChange={(e) => { setDatasetDescription(e.target.value); }}>
                         </Input> :
-                            (getStudyData.getStudy.description === null || getStudyData.getStudy.description === '')  ? 'No descriptions.' : getStudyData.getStudy.description
+                            (getStudyData.getStudy.description === null || getStudyData.getStudy.description === '') ? 'No descriptions.' : getStudyData.getStudy.description
                     }</>
                     <br />
                     <br />
@@ -510,7 +515,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     </Query>
                     <br />
                     If the file name is of the form <Tag style={{ fontFamily: 'monospace' }}>XAAAAAA-DDDBBBBBB-00000000-00000000.EXT</Tag>we will extract metadata automatically. If not, you will be prompted to enter the relevant information.<br /><br />
-                    <Upload  {...uploaderProps}>
+                    <Upload {...uploaderProps}>
                         <Button>Select files</Button>
                     </Upload>
                     <br />
