@@ -10,7 +10,7 @@ import css from './components/scaffold/scaffold.module.css';
 import { ResetPasswordPage } from './components/login/resetPasswordPage';
 import { RequestResetPassword } from './components/login/requestResetPasswordPage';
 import { RegisterNewUser } from './components/login/register';
-import { WHO_AM_I } from 'itmat-commons';
+import { WHO_AM_I, RECOVER_SESSION_EXPIRE_TIME } from 'itmat-commons';
 import LoadSpinner from './components/reusable/loadSpinner';
 import { StatusBar } from './components/scaffold/statusBar';
 
@@ -41,15 +41,12 @@ export const App: React.FunctionComponent = () => (
                             );
                         }
                         if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) { // if logged in return the app
-                            const intervalId = window.setInterval(function() {
-                                // check if cookie expires periodically
-                                if (document.cookie === '') {
-                                    clearInterval(intervalId);
-                                    alert('This session has expired.');
-                                    window.location.reload();
-                                }
-                            }, 1000 * 5);
                             return <div className={css.app + ' dark_theme'}>
+                                <Query<any, any> query={RECOVER_SESSION_EXPIRE_TIME} pollInterval={30 * 60 * 1000 /* 30 minutes */}>
+                                    { () => {
+                                        return null;
+                                    }}
+                                </Query>
                                 <MainMenuBar projects={data.whoAmI.access.projects} />
                                 <MainPanel />
                                 <StatusBar />

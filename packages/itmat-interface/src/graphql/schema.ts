@@ -355,6 +355,7 @@ type Query {
     whoAmI: User
     getUsers(userId: String): [User]
     validateResetPassword(encryptedEmail: String!, token: String!): GenericResponse
+    recoverSessionExpireTime: GenericResponse
 
     # ORGANISATION
     getOrganisations(organisationId: String): [Organisation]

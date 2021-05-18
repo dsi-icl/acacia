@@ -129,3 +129,11 @@ export const CREATE_USER = gql`
         }
     }
 `;
+
+export const RECOVER_SESSION_EXPIRE_TIME = gql`
+    query recoverSessionExpireTime {
+        recoverSessionExpireTime {
+            successful
+        }
+    }
+`;

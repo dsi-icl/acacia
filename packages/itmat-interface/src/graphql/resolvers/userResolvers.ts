@@ -66,6 +66,9 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
             return makeGenericReponse();
+        },
+        recoverSessionExpireTime: async (__unused__parent: Record<string, unknown>, __unused__context: any): Promise<IGenericResponse> => {
+            return makeGenericReponse();
         }
     },
     User: {
