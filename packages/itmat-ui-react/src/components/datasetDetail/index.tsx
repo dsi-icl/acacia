@@ -42,7 +42,6 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
                                             <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}>FILES REPOSITORY</NavLink>
                                         );
                                     }
-                                    return null;
                                 }}
                             </Query>
                         </div>
