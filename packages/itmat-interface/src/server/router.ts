@@ -35,13 +35,17 @@ export class Router {
 
 
         /* save persistent sessions in mongo */
-        this.app.use(session({
-            secret: config.sessionsSecret,
-            resave: true,
-            saveUninitialized: true,
-            cookie: { maxAge: 2 * 60 * 60 * 1000 /** 2 hour **/, httpOnly: false }
-            // store: new MongoStore({ client: db.client })
-        }));
+        this.app.use (
+            session ({
+                secret: config.sessionsSecret,
+                saveUninitialized: false,
+                resave: true,
+                rolling: true,
+                cookie: {
+                    maxAge: 2 * 60 * 60 * 1000 /* 2 hour */
+                }
+            })
+        );
 
 
         /* authenticating user of the request */
