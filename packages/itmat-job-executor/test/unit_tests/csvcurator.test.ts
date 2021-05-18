@@ -391,7 +391,7 @@ describe('CSVCuratorClass', () => {
             deleted: null
         });
 
-    }, 10000);
+    }, 20000);
 
     it('csvcurator catches non-existing headers', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error1.tsv');
@@ -413,7 +413,7 @@ describe('CSVCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
 
-    }, 10000);
+    }, 20000);
 
     it('csvcurator catches duplicate header', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error2.tsv');
@@ -434,7 +434,7 @@ describe('CSVCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
 
-    }, 10000);
+    }, 20000);
 
     it('csvcurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error3.tsv');
@@ -469,7 +469,7 @@ describe('CSVCuratorClass', () => {
             deleted: null
         });
 
-    }, 10000);
+    }, 20000);
 
     it('csvcurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error4.tsv');
@@ -504,7 +504,7 @@ describe('CSVCuratorClass', () => {
             deleted: null
         });
 
-    }, 10000);
+    }, 20000);
 
     it('csvcurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error5.tsv');
@@ -532,5 +532,5 @@ describe('CSVCuratorClass', () => {
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
-    }, 10000);
+    }, 20000);
 });

@@ -383,7 +383,7 @@ describe('JSONCuratorClass', () => {
             deleted: null
         });
 
-    }, 10000);
+    }, 20000);
 
     it('jsoncurator catches non-esisting headers', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error1.json');
@@ -405,7 +405,7 @@ describe('JSONCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0); // nothing gets uploaded if errors are caught in header
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
 
-    }, 10000);
+    }, 20000);
 
     it('jsoncurator catches duplicate header', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error2.json');
@@ -425,7 +425,7 @@ describe('JSONCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
 
-    }, 10000);
+    }, 20000);
 
     it('jsoncurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error3.json');
@@ -458,7 +458,7 @@ describe('JSONCuratorClass', () => {
             deleted: null
         });
 
-    }, 10000);
+    }, 20000);
 
     it('jsoncurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error4.json');
@@ -491,7 +491,7 @@ describe('JSONCuratorClass', () => {
             deleted: null
         });
 
-    }, 10000);
+    }, 20000);
 
     it('jsoncurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error5.json');
@@ -518,5 +518,5 @@ describe('JSONCuratorClass', () => {
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
-    }, 10000);
+    }, 20000);
 });

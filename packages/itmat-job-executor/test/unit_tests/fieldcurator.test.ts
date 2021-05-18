@@ -162,7 +162,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 10000);
+    }, 20000);
 
     it('fieldcurator uploads csv file > 1000 fields okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_1000.tsv');
@@ -194,7 +194,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 10000);
+    }, 20000);
 
     it('fieldcurator catches duplicate fieldId before first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error1.tsv');
@@ -226,7 +226,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 10000);
+    }, 20000);
 
     it('fieldcurator catches duplicate fieldId after first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error2.tsv');
@@ -258,7 +258,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 10000);
+    }, 20000);
 
     it('fieldcurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error3.tsv');
@@ -290,7 +290,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 10000);
+    }, 20000);
 
     it('fieldcurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error4.tsv');
@@ -322,7 +322,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 10000);
+    }, 20000);
 
     it('fieldcurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error5.tsv');
@@ -352,5 +352,5 @@ describe('FieldCuratorClass', () => {
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(8);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
-    }, 10000);
+    }, 20000);
 });
