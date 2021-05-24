@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { Button, Upload, notification, Tag, Table, Form, Input, DatePicker, Switch } from 'antd';
+import { Button, Upload, notification, Tag, Table, Form, Input, DatePicker } from 'antd';
 import { RcFile } from 'antd/lib/upload';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Query } from '@apollo/client/react/components';
@@ -67,7 +67,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         onCompleted: () => { window.location.reload(); },
         onError: () => { return; }
     });
-    const [isSwitchOn, setIsSwitchOn] = React.useState(false);
     const [uploadFile] = useMutation(UPLOAD_FILE, {
         onCompleted: ({ uploadFile }) => {
             const cachedata = store.readQuery({
@@ -522,17 +521,9 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     <br />
                     <br />
                 </Subsection>
-                <Switch
-                    size='default'
-                    style={{float: 'right', whiteSpace: 'pre', height:'3%', width: '5%', verticalAlign: 'middle' }}
-                    checkedChildren='Group'
-                    unCheckedChildren='Query'
-                    defaultChecked
-                    onChange={() => setIsSwitchOn(!isSwitchOn)}
-                ></Switch>
                 <SubsectionWithComment title='Existing files' comment={'Total Files: ' + numberOfFiles + '\t\tTotal Size: ' + formatBytes(sizeOfFiles) + '\t\tTotal Participants: ' + participantOfFiles}>
                     <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
-                    <FileList group={isSwitchOn} type={getStudyData.getStudy.type} files={sortedFiles} searchTerm={searchTerm}></FileList>
+                    <FileList type={getStudyData.getStudy.type} files={sortedFiles} searchTerm={searchTerm}></FileList>
                     <br />
                     <br />
                 </SubsectionWithComment>

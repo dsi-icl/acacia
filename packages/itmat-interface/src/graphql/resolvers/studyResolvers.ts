@@ -11,7 +11,9 @@ import {
     studyType,
     IDataClip,
     userTypes,
-    IOntologyField
+    IOntologyField,
+    ISubjectDataRecordSummary,
+    DATA_CLIP_ERROR_TYPE
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -107,6 +109,38 @@ export const studyResolvers = {
             const result = await db.collections!.studies_collection.findOne({ id: studyId });
             return result.ontologyTree;
         },
+        checkDataComplete: async (__unused__parent: Record<string, unknown>, { studyId }: { studyId: string }, context: any): Promise<any> => {
+            const requester: IUser = context.req.user;
+
+            /* user can get study if he has readonly permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_data_management],
+                requester,
+                studyId
+            );
+            if (!hasPermission) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+            // console.log(await db.collections!.field_dictionary_collection.find({ }).toArray());
+            const fieldsList = await db.collections!.field_dictionary_collection.find({ studyId: studyId, dateDeleted: null }).toArray();
+            const summary: ISubjectDataRecordSummary[] = [];
+            // we only check data that hasnt been pushed to a new data version
+            const data: any[] = await db.collections!.data_collection.find({ m_studyId: studyId, m_versionId: null, deleted: null }).toArray();
+            for (let i=0; i<data.length; i++) {
+                const record: ISubjectDataRecordSummary = {
+                    subjectId: data[i].m_subjectId,
+                    visitId: data[i].m_visitId,
+                    missingFields: []
+                };
+                for (let j=0; j<fieldsList.length; j++) {
+                    if (data[i][fieldsList[j].fieldId] === undefined || data[i][fieldsList[j].fieldId] === null) {
+                        record.missingFields.push(fieldsList[j].fieldId);
+                    }
+                }
+                summary.push(record);
+            }
+            return summary;
+        },
         getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: any, studyId: string, versionId: string[], projectId?: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
 
@@ -126,12 +160,15 @@ export const studyResolvers = {
             let availableDataVersions: any[] = [];
             let result;
             const thisStudy = await db.collections!.studies_collection.findOne({ id: studyId });
-
-            if (versionId !== undefined && versionId !== null) {
-                if (requester.type === userTypes.ADMIN) {
-                    availableDataVersions = versionId;
+            if (versionId !== undefined) {
+                if (versionId.length === 1 && versionId[0] === null) {
+                    if (hasPermission) {
+                        availableDataVersions = versionId;
+                    } else {
+                        throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                    }
                 } else {
-                    throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                    availableDataVersions = versionId;
                 }
             } else {
                 if (thisStudy.currentDataVersion !== -1) {
@@ -151,9 +188,9 @@ export const studyResolvers = {
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions);
                 result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             } else {
-                result = await db.collections!.data_collection.find({ m_versionId: {$in: availableDataVersions} }).toArray();
+                result = await db.collections!.data_collection.find({ m_studyId: studyId, m_versionId: {$in: availableDataVersions} }).toArray();
             }
-            return JSON.stringify({data: result});
+            return {data: result};
         }
     },
     Study: {
@@ -286,11 +323,7 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
-                requester,
-                studyId
-            ))) {
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -298,36 +331,53 @@ export const studyResolvers = {
             const study = await studyCore.editStudy(studyId, description);
             return study;
         },
-        createNewField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {
+        createNewField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any[] }, context: any): Promise<any[]> => {
             const requester: IUser = context.req.user;
             /* check privileges */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            /* user can get study if he has readonly permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_data_management],
+                requester,
+                studyId
+            );
+            if (!hasPermission) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
+            const error: any[] = [];
+            let isError = false;
             // check fieldId duplicate
-            const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldInput.fieldId });
-            if (searchField) {
-                throw new ApolloError('Field already exists, please select another ID.', errorCodes.CLIENT_MALFORMED_INPUT);
+            for (const oneFieldInput of fieldInput) {
+                isError = false;
+                const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: oneFieldInput.fieldId });
+                if (searchField) {
+                    // throw new ApolloError('Field already exists, please select another ID.', errorCodes.CLIENT_MALFORMED_INPUT);
+                    error.push({code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId} already exists, please select another ID.`});
+                    isError = true;
+                }
+
+                // check data valid
+                if (!isError) {
+                    const {fieldEntry, error: thisError} = validateAndGenerateFieldEntry(oneFieldInput);
+                    if (error.length !== 0) {
+                        error.push({code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId}: ${JSON.stringify(thisError)}`});
+                        isError = true;
+                    }
+
+                    // // construct the rest of the fields
+                    if (!isError) {
+                        fieldEntry.id = uuid();
+                        fieldEntry.studyId = studyId;
+                        fieldEntry.dateAdded = (new Date()).valueOf();
+                        fieldEntry.dateDeleted = null;
+                        await db.collections!.field_dictionary_collection.insertOne(fieldEntry);
+                    }
+                }
             }
-
-            // check data valid
-            const {fieldEntry, error} = validateAndGenerateFieldEntry(fieldInput);
-            if (error.length !== 0) {
-                throw new ApolloError(JSON.stringify(error), errorCodes.CLIENT_MALFORMED_INPUT);
-            }
-
-            // construct the rest of the fields
-            fieldEntry.id = uuid();
-            fieldEntry.studyId = studyId;
-            fieldEntry.dateAdded = (new Date()).valueOf();
-            fieldEntry.dateDeleted = null;
-
-            await db.collections!.field_dictionary_collection.insertOne(fieldEntry);
-            return fieldEntry;
+            return error;
         },
         editField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {
             const requester: IUser = context.req.user;
@@ -381,11 +431,13 @@ export const studyResolvers = {
 
             const requester: IUser = context.req.user;
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
+            /* user can get study if he has readonly permission */
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_data_management],
                 requester,
                 studyId
-            ))) {
+            );
+            if (!hasPermission) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -427,7 +479,7 @@ export const studyResolvers = {
             if (visitId) {
                 queryObj.m_visitId = visitId;
             }
-
+            queryObj.m_versionId = null;
             // delete records
             if (fieldIds){
                 // remove certain value, but not set record as deleted
@@ -474,7 +526,7 @@ export const studyResolvers = {
             // name1>name2>fieldId1>fieldId2...
             // check study exists
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-            let newOntologyFields;
+            let newOntologyFields: any[];
             if (study.ontologyTree === undefined || study.ontologyTree === null) {
                 newOntologyFields = [];
             } else {
@@ -484,7 +536,7 @@ export const studyResolvers = {
                 // check fieldId exists
                 const fieldExist = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: ontologyInput[i].fieldId });
                 // check path last item is the same fieldId
-                const parts = ontologyInput[i].path.split('>');
+                const parts = ontologyInput[i].path;
                 if (parts[parts.length - 1] !== ontologyInput[i].fieldId) {
                     continue;
                 }

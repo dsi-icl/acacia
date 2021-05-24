@@ -19,7 +19,7 @@ export function formatBytes(size: number, decimal = 2): string {
     return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + ' ' + units[order];
 }
 
-export const FileList: React.FunctionComponent<{ group?: boolean,type: studyType, files: IFile[], searchTerm: string | undefined }> = ({ group, type, files, searchTerm }) => {
+export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[], searchTerm: string | undefined }> = ({ type, files, searchTerm }) => {
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
     const { data: dataWhoAmI, loading: loadingWhoAmI } = useQuery(WHO_AM_I);
     const [deleteFile] = useMutation(DELETE_FILE, {
@@ -300,7 +300,8 @@ export const FileList: React.FunctionComponent<{ group?: boolean,type: studyType
             }
             columns={fileNameColumns}
             dataSource={files}
-            size='small' /> : group ? <>
+            size='small' /> :
+        <>
             <br />
             <br />
             <Table
@@ -314,32 +315,8 @@ export const FileList: React.FunctionComponent<{ group?: boolean,type: studyType
                         showQuickJumper: true
                     }
                 }
-                // expandable={{
-                //     expandedRowRender: record => {
-                //         return (<Table
-                //             rowKey={(rec) => rec.id}
-                //             columns={(type === studyType.SENSOR) ? sensorColumns : (type === studyType.CLINICAL ? clinicalSecondaryColumns : fileNameColumns)}
-                //             dataSource={notVariablesListFiles.filter(file => JSON.parse(file.description).participantId === record.participantId)}
-                //         />);
-                //     }
-                // }}
-                columns={fileNameColumns}
-                dataSource={
-                    Array.from(new Set(files.filter(el => !(
-                        el.fileName.indexOf('VariablesList') >= 0
-                        || el.fileName.indexOf('Site') >= 0
-                        || el.fileName.indexOf('Codes') >= 0
-                        || el.fileName.indexOf('SubjectGroup') >= 0
-                        || el.fileName.indexOf('Tables') >= 0
-                        || el.fileName.indexOf('Visits') >= 0
-                    )).map((el) => {
-                        const file = JSON.parse(el.description);
-                        return JSON.stringify({
-                            participantId: file.participantId,
-                            site: sites[file.participantId[0]]
-                        });
-                    }))).map(el => JSON.parse(el))
-                }
+                columns={(type === studyType.SENSOR) ? sensorColumns : fileNameColumns}
+                dataSource={notVariablesListFiles}
                 size='small' />
             {variablesListFiles.length ===0 ? null :
                 <Table
@@ -348,32 +325,7 @@ export const FileList: React.FunctionComponent<{ group?: boolean,type: studyType
                     dataSource={variablesListFiles}
                     size='small' />
             }
-        </> :
-            <>
-                <br />
-                <br />
-                <Table
-                    rowKey={(rec) => rec.id}
-                    pagination={
-                        {
-                            defaultPageSize: 50,
-                            showSizeChanger: true,
-                            pageSizeOptions: ['20', '50', '100', '200'],
-                            defaultCurrent: 1,
-                            showQuickJumper: true
-                        }
-                    }
-                    columns={(type === studyType.SENSOR) ? sensorColumns : fileNameColumns}
-                    dataSource={notVariablesListFiles}
-                    size='small' />
-                {variablesListFiles.length ===0 ? null :
-                    <Table
-                        rowKey={(rec) => rec.id}
-                        columns={fileNameColumns}
-                        dataSource={variablesListFiles}
-                        size='small' />
-                }
-            </>
+        </>
     ;
 
 };

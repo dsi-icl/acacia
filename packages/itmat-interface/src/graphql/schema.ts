@@ -68,6 +68,11 @@ type DataClipError {
     description: String
 }
 
+type FieldClipError {
+    code: DATA_CLIP_ERROR_TYPE!,
+    description: String
+}
+
 type UserAccess {
     id: String!
     projects: [Project]!
@@ -262,7 +267,8 @@ enum LOG_ACTION {
     CREATE_STUDY
     CREATE_DATA_CREATION_JOB
     #CREATE_FIELD_CURATION_JOB
-
+    CHECK_DATA_COMPLETE
+    
     # STUDY & PROJECT
     EDIT_ROLE
     ADD_NEW_ROLE
@@ -388,12 +394,18 @@ input FieldInput {
 
 input OntologyFieldInput {
     fieldId: String!
-    path: String!
+    path: [String]!
 }
 
 type OntologyField {
     fieldId: String!
-    path: String!
+    path: [String]!
+}
+
+type SubjectDataRecordSummary {
+    subjectId: String!
+    visitId: String
+    missingFields: [String]
 }
 
 type Query {
@@ -414,6 +426,7 @@ type Query {
     getStudyFields(studyId: String!, projectId: String): [Field]
     getDataRecords(studyId: String!, queryString: JSON, versionId: [String], projectId: String): JSON
     getOntologyTree(studyId: String!, projectId: String): [OntologyField]
+    checkDataComplete(studyId: String!): [SubjectDataRecordSummary]
     
     # QUERY
     getQueries(studyId: String, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
@@ -459,7 +472,7 @@ type Mutation {
     createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
     uploadDataInArray(studyId: String!, data: [DataClip]): [DataClipError]
     deleteDataRecords(studyId: String!, subjectId: String, visitId: String, fieldIds: [String]): [DataClipError]
-    createNewField(studyId: String!, fieldInput: FieldInput!): Field
+    createNewField(studyId: String!, fieldInput: [FieldInput]!): [FieldClipError]
     editField(studyId: String!, fieldInput: FieldInput!): Field
     deleteField(studyId: String!, fieldId: String!): Field
     addOntologyField(studyId: String!, ontologyInput: [OntologyFieldInput]!): [OntologyField]

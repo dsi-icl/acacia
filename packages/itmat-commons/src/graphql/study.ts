@@ -84,6 +84,16 @@ export const GET_ONTOLOGY_TREE = gql`
     }
 `;
 
+export const CHECK_DATA_COMPLETE = gql`
+    query checkDataComplete($studyId: String!) {
+        checkDataComplete(studyId: $studyId) {
+            subjectId
+            visitId
+            missingFields
+        }
+    }
+`;
+
 export const CREATE_STUDY = gql`
     mutation createStudy($name: String!, $description: String, $type: STUDYTYPE!){
         createStudy(name: $name, description: $description, type: $type) {

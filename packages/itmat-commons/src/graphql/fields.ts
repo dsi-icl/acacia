@@ -29,12 +29,12 @@ export const GET_STUDY_FIELDS = gql`
 `;
 
 export const CREATE_NEW_FIELD = gql`
-    mutation createNewField($studyId: String!, $fieldInput: FieldInput!) {
+    mutation createNewField($studyId: String!, $fieldInput: [FieldInput]!) {
         createNewField(studyId: $studyId, fieldInput: $fieldInput) {
-            ...ALL_FOR_FIELD
+            code
+            description
         }
     }
-    ${field_fragment}
 `;
 
 export const EDIT_FIELD = gql`

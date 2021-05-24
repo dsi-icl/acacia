@@ -65,7 +65,7 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
             pushed.push(output[i]);
         }
         if (studyData) {
-            const withStudy: any = [{fieldId: studyData.name, name: 'Study:'.concat(studyData.name), children: pushed}];
+            const withStudy: any = [{fieldId: 'Study:'.concat(studyData.name), name: 'Study:'.concat(studyData.name), children: pushed}];
             return withStudy;
         } else {
             return output;
@@ -312,13 +312,12 @@ const ValueEditForm: React.FunctionComponent<{ visible: boolean; onCreate: any; 
 };
 
 function constructPath(fieldPath: string, fieldList: any[]) {
-    const parts = fieldPath.split('>');
     const newPath: any[] = [];
-    for (let i=0; i<parts.length; i++) {
-        if (fieldList.filter(el => el.fieldId === parts[i]).length === 1) {
-            newPath.push(fieldList.filter(el => el.fieldId === parts[i])[0].fieldName);
+    for (let i=0; i<fieldPath.length; i++) {
+        if (fieldList.filter(el => el.fieldId === fieldPath[i]).length === 1) {
+            newPath.push(fieldList.filter(el => el.fieldId === fieldPath[i])[0].fieldName);
         } else {
-            newPath.push(parts[i]);
+            newPath.push(fieldPath[i]);
         }
         newPath.push('>');
     }

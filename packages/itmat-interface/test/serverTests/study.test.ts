@@ -41,8 +41,11 @@ import {
     ADD_ONTOLOGY_FIELD,
     GET_DATA_RECORDS,
     DELETE_ONTOLOGY_FIELD,
-    CREATE_NEW_DATA_VERSION
+    CREATE_NEW_DATA_VERSION,
+    CHECK_DATA_COMPLETE,
+    CREATE_NEW_FIELD
 } from 'itmat-commons';
+import { createSecretKey } from 'crypto';
 
 
 let app;
@@ -2176,10 +2179,10 @@ describe('STUDY API', () => {
                     studyId: createdStudy.id,
                     ontologyInput: [{
                         fieldId: '1',
-                        path: 'Metadata>Subject>1'
+                        path: ['Metadata', 'Subject', '1']
                     }, {
                         fieldId: '2',
-                        path: 'Metadata>Subject>2'
+                        path: ['Metadata', 'Subject', '2']
                     }]
                 }
             });
@@ -2188,17 +2191,17 @@ describe('STUDY API', () => {
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.addOntologyField).toEqual([{
                 fieldId: '1',
-                path: 'Metadata>Subject>1'
+                path: ['Metadata', 'Subject', '1']
             }, {
                 fieldId: '2',
-                path: 'Metadata>Subject>2'
+                path: ['Metadata', 'Subject', '2']
             }]);
             expect(study.ontologyTree).toEqual([{
                 fieldId: '1',
-                path: 'Metadata>Subject>1'
+                path: ['Metadata', 'Subject', '1']
             }, {
                 fieldId: '2',
-                path: 'Metadata>Subject>2'
+                path: ['Metadata', 'Subject', '2']
             }]);
 
             const resAddMore = await admin.post('/graphql').send({
@@ -2207,10 +2210,10 @@ describe('STUDY API', () => {
                     studyId: createdStudy.id,
                     ontologyInput: [{
                         fieldId: '1',
-                        path: 'Metadata>SubjectNew>1'
+                        path: ['Metadata', 'SubjectNew', '1']
                     }, {
                         fieldId: '3',
-                        path: 'Metadata>Subject>3'
+                        path: ['Metadata', 'Subject', '3']
                     }]
                 }
             });
@@ -2219,23 +2222,23 @@ describe('STUDY API', () => {
             expect(resAddMore.body.errors).toBeUndefined();
             expect(resAddMore.body.data.addOntologyField).toEqual([{
                 fieldId: '1',
-                path: 'Metadata>SubjectNew>1'
+                path: ['Metadata', 'SubjectNew', '1']
             }, {
                 fieldId: '2',
-                path: 'Metadata>Subject>2'
+                path: ['Metadata', 'Subject', '2']
             }, {
                 fieldId: '3',
-                path: 'Metadata>Subject>3'
+                path: ['Metadata', 'Subject', '3']
             }]);
             expect(studyMore.ontologyTree).toEqual([{
                 fieldId: '1',
-                path: 'Metadata>SubjectNew>1'
+                path: ['Metadata', 'SubjectNew', '1']
             }, {
                 fieldId: '2',
-                path: 'Metadata>Subject>2'
+                path: ['Metadata', 'Subject', '2']
             }, {
                 fieldId: '3',
-                path: 'Metadata>Subject>3'
+                path: ['Metadata', 'Subject', '3']
             }]);
 
             const deleteRes = await admin.post('/graphql').send({
@@ -2250,14 +2253,14 @@ describe('STUDY API', () => {
             expect(deleteRes.body.errors).toBeUndefined();
             expect(deleteRes.body.data.deleteOntologyField).toEqual([{
                 fieldId: '1',
-                path: 'Metadata>SubjectNew>1'
+                path: ['Metadata', 'SubjectNew', '1']
             }]);
             expect(studyDelete.ontologyTree).toEqual([{
                 fieldId: '2',
-                path: 'Metadata>Subject>2'
+                path: ['Metadata', 'Subject', '2']
             }, {
                 fieldId: '3',
-                path: 'Metadata>Subject>3'
+                path: ['Metadata', 'Subject', '3']
             }]);
 
             // delete fields
@@ -2272,10 +2275,10 @@ describe('STUDY API', () => {
                     studyId: createdStudy.id,
                     ontologyInput: [{
                         fieldId: '1',
-                        path: 'Metadata>Subject>Age'
+                        path: ['Metadata', 'Subject', 'Age']
                     }, {
                         fieldId: '2',
-                        path: 'Metadata>Subject>Gender'
+                        path: ['Metadata', 'Subject', 'Gender']
                     }]
                 }
             });
@@ -2284,6 +2287,43 @@ describe('STUDY API', () => {
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
         });
 
+        test('Create New fields (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(CREATE_NEW_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    fieldInput: [
+                        {
+                            fieldId: '8',
+                            fieldName: 'newField8',
+                            tableName: 'test',
+                            dataType: 'int',
+                            comments: 'test',
+                            possibleValues: [
+                                {code: '1', description: 'NOW'},
+                                {code: '2', description: 'OLD'}
+                            ]
+                        },
+                        {
+                            fieldId: '9',
+                            fieldName: 'newField9',
+                            tableName: 'test',
+                            dataType: 'cat',
+                            comments: 'test',
+                            possibleValues: [
+                                {code: '1', description: 'TRUE'},
+                                {code: '2', description: 'FALSE'}
+                            ]
+                        }
+                    ]
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.createNewField).toEqual([]);
+            const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id }).toArray();
+            expect(fieldsInDb).toHaveLength(2);
+        });
     });
 
     describe('UPLOAD/DELETE DATA RECORDS DIRECTLY VIA API', () => {
@@ -2816,7 +2856,40 @@ describe('STUDY API', () => {
             });
             expect(getRes.status).toBe(200);
             expect(getRes.body.errors).toBeUndefined();
-            expect(JSON.parse(getRes.body.data.getDataRecords).data).toHaveLength(3);
+            expect(getRes.body.data.getDataRecords.data).toHaveLength(3);
+        });
+
+        test('Check data complete (admin)', async () => {
+            const res = await admin.post('/graphql').send({
+                query: print(UPLOAD_DATA_IN_ARRAY),
+                variables: { studyId: createdStudy.id, data: multipleRecords }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.uploadDataInArray).toEqual([]);
+            const checkRes = await admin.post('/graphql').send({
+                query: print(CHECK_DATA_COMPLETE),
+                variables: { studyId: createdStudy.id}
+            });
+            expect(checkRes.status).toBe(200);
+            expect(checkRes.body.errors).toBeUndefined();
+            expect(checkRes.body.data.checkDataComplete).toEqual([
+                {
+                    subjectId: 'I7N3G6G',
+                    visitId: '1',
+                    missingFields: ['32']
+                },
+                {
+                    subjectId: 'I7N3G6G',
+                    visitId: '2',
+                    missingFields: ['31']
+                },
+                {
+                    subjectId: 'GR6R4AR',
+                    visitId: '1',
+                    missingFields: ['32']
+                }
+            ]);
         });
     });
 });

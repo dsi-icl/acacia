@@ -1,7 +1,8 @@
 import 'antd/lib/switch/style/css';
 import * as React from 'react';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { GET_STUDY, GET_STUDY_FIELDS, GET_DATA_RECORDS, CREATE_NEW_DATA_VERSION, SET_DATAVERSION_AS_CURRENT, IStudyDataVersion } from 'itmat-commons';
+import { Query } from '@apollo/client/react/components';
+import { GET_STUDY, GET_STUDY_FIELDS, GET_DATA_RECORDS, CREATE_NEW_DATA_VERSION, SET_DATAVERSION_AS_CURRENT, IStudyDataVersion, CHECK_DATA_COMPLETE, WHO_AM_I, userTypes } from 'itmat-commons';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
@@ -10,7 +11,7 @@ import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import css from './tabContent.module.css';
 import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
-import { Button, Form, Input, Switch } from 'antd';
+import { Button, Form, Input, Switch, Modal, Table } from 'antd';
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
@@ -18,21 +19,45 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
     const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, { variables: { studyId: studyId, versionId: [null] } });
     const [createNewDataVersion] = useMutation(CREATE_NEW_DATA_VERSION);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
-
+    const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
+    const { error: checkDataCompleteError, loading: checkDataCompleteLoading, data: checkDataCompleteData } = useQuery(
+        CHECK_DATA_COMPLETE,
+        { variables: { studyId: studyId } }
+    );
     const [selectedVersion, setSelectedVersion] = React.useState(getStudyData.getStudy.currentDataVersion);
     const [useLinearHistory, setUseLinearHistory] = React.useState(false);
-
-    if (getStudyLoading || getStudyFieldsLoading || getDataRecordsLoading) {
+    const [isModalOn, setIsModalOn] = React.useState(false);
+    if (getStudyLoading || getStudyFieldsLoading || getDataRecordsLoading || whoAmILoading || checkDataCompleteLoading) {
         return <LoadSpinner />;
     }
-    if (getStudyError) {
+    if (getStudyError || getStudyFieldsError || getDataRecordsError || whoAmIError || checkDataCompleteError) {
         return <p>
-            A error occured, please contact your administrator: {(getStudyError as any).message || ''}, {(getStudyFieldsError as any).message || ''}, {(getDataRecordsError as any).message || ''}
+            A error occured, please contact your administrator
         </p>;
     }
-    console.log(getStudyFieldsData);
     const currentVersionContent = getStudyData.getStudy.dataVersions[getStudyData.getStudy.currentDataVersion]?.contentId;
     const showSaveVersionButton = true;
+
+    // build the table columns for unversioned data
+    const columns = [
+        {
+            title: 'Subject ID',
+            dataIndex: 'subjectId',
+            key: 'subjectId',
+            render: (__unused__value, record) => {
+                return record.subjectId;
+            }
+        },
+        {
+            title: 'Visit ID',
+            dataIndex: 'visitId',
+            key: 'visitId',
+            render: (__unused__value, record) => {
+                return record.visitId.join('\t');
+            }
+        }
+    ];
+
     return <div className={css.data_management_section}>
         {getStudyData.getStudy.currentDataVersion !== -1 ?
             <div className={css.top_panel}>
@@ -93,28 +118,80 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                 <UploadNewData studyId={studyId} ></UploadNewData>
             </Subsection><br/>
             <Subsection title='Unsettled Data'>
-                {JSON.parse(getDataRecordsData.getDataRecords).data.length !== 0 ?
+                {getDataRecordsData.getDataRecords.data.length !== 0 ?
                     <div>
-                        <p>Number Of Records: {JSON.parse(getDataRecordsData.getDataRecords).data.length}</p>
-                        <Form onFinish={(variables) => {
-                            createNewDataVersion({
-                                variables: {
-                                    ...variables,
-                                    studyId: studyId
-                                }
-                            });}}>
-                            <Form.Item name='dataVersion' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                <Input placeholder='Data Version' />
-                            </Form.Item>
-                            <Form.Item name='tag' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                <Input placeholder='Tag' />
-                            </Form.Item>
-                            <Form.Item>
-                                <Button type='primary' htmlType='submit'>
+                        <p>Number Of Records: {getDataRecordsData.getDataRecords.data.length}</p>
+                        <Button onClick={() => setIsModalOn(true)}>View</Button>
+                        <Button onClick={() => {
+                            if (checkDataCompleteData.checkDataComplete.map(el => el.missingFields).some((es) => es.length !== 0)) {
+                                alert('Some fields are missing.');
+                            }
+                        }}>Check Data Complete</Button>
+                        <br/><br/>
+                        <Modal
+                            width='80%'
+                            visible={isModalOn}
+                            title='Unversioned Data'
+                            onOk={() => setIsModalOn(false)}
+                            onCancel={() => setIsModalOn(false)}
+                        >
+                            <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, versionId: [null] }}>
+                                {({ data, loading, error }) => {
+                                    if (loading) { return <LoadSpinner />; }
+                                    if (error) { return <p>{JSON.stringify(error)}</p>; }
+                                    if (!data) { return <p>Not executed.</p>; }
+                                    const parsedData = getDataRecordsData.getDataRecords.data;
+                                    const groupedData: any = {};
+                                    for (let i=0; i<parsedData.length; i++) {
+                                        if (!Object.keys(groupedData).includes(parsedData[i].m_subjectId)) {
+                                            groupedData[parsedData[i].m_subjectId] = [];
+                                        }
+                                        groupedData[parsedData[i].m_subjectId].push(parsedData[i].m_visitId);
+                                    }
+                                    console.log(Object.keys(groupedData).map((el) => {
+                                        return {
+                                            id: el,
+                                            subjectId: el,
+                                            visitId: groupedData[el]
+                                        };
+                                    }));
+                                    return (<Table
+                                        scroll={{ x: 'max-content' }}
+                                        rowKey={(rec) => rec.id}
+                                        pagination={false}
+                                        columns={columns}
+                                        dataSource={Object.keys(groupedData).map((el) => {
+                                            return {
+                                                id: el,
+                                                subjectId: el,
+                                                visitId: groupedData[el]
+                                            };
+                                        })}
+                                        size='middle'
+                                    ></Table>);
+                                }}
+                            </Query>
+                        </Modal>
+                        {whoAmIData.whoAmI.type === userTypes.ADMIN ?
+                            <Form onFinish={(variables) => {
+                                createNewDataVersion({
+                                    variables: {
+                                        ...variables,
+                                        studyId: studyId
+                                    }
+                                });}}>
+                                <Form.Item name='dataVersion' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                    <Input placeholder='Data Version' />
+                                </Form.Item>
+                                <Form.Item name='tag' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                    <Input placeholder='Tag' />
+                                </Form.Item>
+                                <Form.Item>
+                                    <Button type='primary' htmlType='submit'>
                             Submit
-                                </Button>
-                            </Form.Item>
-                        </Form>
+                                    </Button>
+                                </Form.Item>
+                            </Form> : null}
                     </div> :
                     <p>No unsettled data found.</p>}
             </Subsection>

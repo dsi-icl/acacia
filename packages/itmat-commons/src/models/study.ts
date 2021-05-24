@@ -72,3 +72,9 @@ export interface IDataClipError {
     code:DATA_CLIP_ERROR_TYPE
     description?: string
 }
+
+export interface ISubjectDataRecordSummary {
+    subjectId: string,
+    visitId?: string,
+    missingFields: string[]
+}

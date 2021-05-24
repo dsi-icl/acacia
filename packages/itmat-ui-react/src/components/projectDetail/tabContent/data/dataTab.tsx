@@ -162,7 +162,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
 
                         const columns: any[] = [];
                         const fieldsList = getProjectData.getProject.fields;
-                        const queryResult = JSON.parse(data.getDataRecords).data;
+                        const queryResult = data.getDataRecords.data;
                         const fieldKeysInQueryResult = Object.keys(queryResult.reduce(function(result, obj) {
                             return Object.assign(result, obj);
                         }, {}));
