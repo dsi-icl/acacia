@@ -66,7 +66,7 @@ export enum LOG_ACTION {
     createStudy = 'CREATE_STUDY',
     editStudy = 'EDIT_STUDY',
     createFieldCurationJob = 'CREATE_FIELD_CREATION_JOB',
-    createDataCurationJob = 'CREATE_FIELD_CURATION_JOB',
+    createDataCurationJob = 'CREATE_DATA_CURATION_JOB',
     getDataRecords = 'GET_DATA_RECORDS',
     getOntologyTree = 'GET_ONTOLOGY_TREE',
     checkDataComplete = 'CHECK_DATA_COMPLETE',

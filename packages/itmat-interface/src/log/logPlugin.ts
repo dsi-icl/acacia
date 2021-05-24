@@ -93,6 +93,9 @@ export class LogPlugin {
         if (!logActionRecordWhiteList.includes(requestContext.operationName)) {
             return null;
         }
+        if (LOG_ACTION[requestContext.operationName] === undefined || LOG_ACTION[requestContext.operationName] === null) {
+            return null;
+        }
         await db.collections!.log_collection.insertOne({
             id: uuid(),
             requesterName: requestContext.context.req.user ? requestContext.context.req.user.username : 'NA',
