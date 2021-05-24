@@ -31,7 +31,6 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
             if (ontologyField.length === 0) {
                 return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
             } else {
-                console.log(`${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`);
                 return `${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`;
             }
         }
@@ -87,7 +86,7 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
         return (
             <Tree
                 checkable={checkable}
-                onCheck={(checkedList) => {console.log(checkedList); onCheck(checkedList);}}
+                onCheck={(checkedList) => {onCheck(checkedList);}}
                 checkedKeys={checkedList}
             >
                 {renderTreeNodes(makeTree(transformedList))}
@@ -121,7 +120,6 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
             if (ontologyField.length === 0) {
                 return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
             } else {
-                console.log(`${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`);
                 return `${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`;
             }
         }
@@ -150,20 +148,11 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
                 }
             }
         }
-        // output.push({fieldId: 'CAT:m_subjectId', name: 'SubjectID', children:[{fieldId: 'm_subjectId', name: 'SubjectID', children:[]}]});
-        // output.push({fieldId: 'CAT:m_visitId', name: 'VisitID', children:[{fieldId: 'm_visitId', name: 'VisitID', children:[]}]});
-        // console.log(output);
         const pushed: any = [];
         for (let i=0; i<output.length; i++) {
             pushed.push(output[i]);
         }
         return output;
-        // if (studyData) {
-        //     const withStudy: any = [{fieldId: studyData.name, name: studyData.name, children: pushed}];
-        //     return withStudy;
-        // } else {
-        //     return output;
-        // }
     };
     const renderTreeNodes = (fieldList: any[]) => fieldList.map(item => {
         if (item.children.length !== 0) {
@@ -201,14 +190,12 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
                 />
                 <Tree
                     checkable={checkable}
-                    onCheck={(checkedList) => {console.log(checkedList); onCheck(checkedList);}}
+                    onCheck={(checkedList) => {onCheck(checkedList);}}
                     checkedKeys={checkedList}
                     onRightClick={(info) => {
-                        console.log(info);
                         if (!('children' in info.node)) {
                             setIsModalShown(true);
                             setSelectedNode(info.node.key.toString());
-                            console.log(info.node.key.toString());
                         }
                     }}
                 >
@@ -255,9 +242,7 @@ const ValueEditForm: React.FunctionComponent<{ visible: boolean; onCreate: any; 
                     form
                         .validateFields()
                         .then(values => {
-                            console.log(values);
                             values.field = selectedNode;
-                            console.log(values);
                             onCreate(values);
                         })
                         .catch(info => {

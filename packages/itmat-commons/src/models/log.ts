@@ -39,6 +39,16 @@ export enum LOG_ACTION {
     requestUsernameOrResetPassword = 'REQUEST_USERNAME_OR_RESET_PASSWORD',
     resetPassword = 'RESET_PASSWORD',
 
+    // KEY
+    registerPubkey = 'REGISTER_PUBKEY',
+    issueAccessToken = 'ISSUE_ACCESS_TOKEN',
+    keyPairGenwSignature = 'KEYPAIRGEN_SIGNATURE',
+    rsaSigner = 'RSA_SIGNER',
+    linkUserPubkey = 'LINK_USER_PUBKEY',
+
+    // ORGANIZATION
+    createOrganisation = 'CREATE_ORGANISATION',
+
     // PROJECT
     getProject = 'GET_PROJECT',
     // GET_PROJECT_PATIENT_MAPPING = 'GET_PROJECT_PATIENT_MAPPING',
@@ -55,9 +65,19 @@ export enum LOG_ACTION {
     getStudyFields = 'GET_STUDY_FIELDS',
     createStudy = 'CREATE_STUDY',
     editStudy = 'EDIT_STUDY',
-    createDataCurationJob = 'CREATE_DATA_CREATION_JOB',
-    //createDataCurationJob = 'CREATE_FIELD_CURATION_JOB',
+    createFieldCurationJob = 'CREATE_FIELD_CREATION_JOB',
+    createDataCurationJob = 'CREATE_FIELD_CURATION_JOB',
+    getDataRecords = 'GET_DATA_RECORDS',
+    getOntologyTree = 'GET_ONTOLOGY_TREE',
     checkDataComplete = 'CHECK_DATA_COMPLETE',
+    createNewDataVersion = 'CREATE_NEW_DATA_VERSION',
+    uploadDataInArray = 'UPLOAD_DATA_IN_ARRAY',
+    deleteDataRecords = 'DELETE_DATA_RECORDS',
+    createNewField = 'CREATE_NEW_FIELD',
+    editField = 'EDIT_FIELD',
+    deleteField = 'DELETE_FIELD',
+    addOntologyField = 'ADD_ONTOLOGY_FIELD',
+    deleteOntologyField = 'DELETE_ONTOLOGY_FIELD',
 
     // STUDY & PROJECT
     editRole = 'EDIT_ROLE',
@@ -72,7 +92,8 @@ export enum LOG_ACTION {
     //QUERY
     getQueries = 'GET_QUERY',
     createQuery = 'CREATE_QUERY',
-    //GET_QUERY_RESULT = 'GET_QUERY_RESULT'
+    getQueryById = 'GET_QUERY_BY_ID',
+    createQueryCurationJob = 'CREATE_QUERY_CURATION_JOB'
 
 }
 

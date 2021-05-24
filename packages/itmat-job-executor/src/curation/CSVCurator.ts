@@ -276,7 +276,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                 case 'date': {
                     const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
                     if (!each.match(matcher)) {
-                        error.push(`Object ${lineNum} column ${colIndex + 1}: value for date type must be in ISO format.`);
+                        error.push(`Line ${lineNum} column ${colIndex + 1}: value for date type must be in ISO format.`);
                         colIndex++;
                         continue;
                     }
@@ -291,8 +291,8 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                     value = each.toString();
                     break;
                 }
-                case 'unk': {
-                    value = each.toString();
+                default: {
+                    error.push(`Line ${lineNum} column ${colIndex + 1}: Invalid data Type.`);
                     break;
                 }
             }

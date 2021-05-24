@@ -16,13 +16,13 @@ export const FieldListSelectionSection: React.FunctionComponent<{ studyId: strin
     if (getStudyLoading || getStudyFieldsLoading) {
         return <LoadSpinner />;
     }
-    console.log(versions);
     if (getStudyError || getStudyFieldsError) {
         return <p>
             A error occured, please contact your administrator
         </p>;
     }
-
+    // leave as placeholder;
+    console.log(versions);
     // const { fieldTrees } = versions[selectedVersion];
     const fieldTrees = getStudyFieldsData.getStudyFields;
 

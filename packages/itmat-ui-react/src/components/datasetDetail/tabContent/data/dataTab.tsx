@@ -125,6 +125,8 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                         <Button onClick={() => {
                             if (checkDataCompleteData.checkDataComplete.map(el => el.missingFields).some((es) => es.length !== 0)) {
                                 alert('Some fields are missing.');
+                            } else {
+                                alert('All the fields are complete.');
                             }
                         }}>Check Data Complete</Button>
                         <br/><br/>
@@ -148,13 +150,6 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                                         }
                                         groupedData[parsedData[i].m_subjectId].push(parsedData[i].m_visitId);
                                     }
-                                    console.log(Object.keys(groupedData).map((el) => {
-                                        return {
-                                            id: el,
-                                            subjectId: el,
-                                            visitId: groupedData[el]
-                                        };
-                                    }));
                                     return (<Table
                                         scroll={{ x: 'max-content' }}
                                         rowKey={(rec) => rec.id}

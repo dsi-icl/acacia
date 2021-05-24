@@ -57,6 +57,11 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
         }
     }
 
+    // check visitID and subjectId should not be included
+    if (fieldEntry.fieldName.toString().toUpperCase() === 'SUBJECTID' || fieldEntry.fieldName.toString().toUpperCase() === 'VISITID') {
+        error.push(`${fieldEntry.fieldId}-${fieldEntry.fieldName}: visitId and subjectId are reserved words.`);
+    }
+
     const newField: any = {
         fieldId: fieldEntry.fieldId,
         fieldName: fieldEntry.fieldName,

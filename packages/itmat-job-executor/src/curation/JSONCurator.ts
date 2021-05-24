@@ -279,8 +279,8 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                     value = each.toString();
                     break;
                 }
-                case 'unk': {
-                    value = each.toString();
+                default: {
+                    error.push(`Object ${objectNum} column ${colIndex + 1}: Invalid data Type.`);
                     break;
                 }
             }

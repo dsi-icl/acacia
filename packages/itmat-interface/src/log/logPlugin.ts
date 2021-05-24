@@ -54,9 +54,23 @@ export const apiParameters = {
     CREATE_ORGANISATION: ['name','shortname','containOrg'],
     GET_GRANTED_PERMISSIONS: ['studyId','projectId'],
     GET_PUBKEYS: ['pubkeyId','associatedUserId'],
-    REGISTER_PUBKEY: ['pubkey','signature','associatedUserId'],
-    LINK_USER_PUBKEY: ['pubkey','signature','associatedUserId','pubkeyId'],
-    ISSUE_ACCESS_TOKEN: ['pubkey','signature']
+    REGISTER_PUBKEY: ['associatedUserId'],
+    LINK_USER_PUBKEY: ['associatedUserId'],
+    ISSUE_ACCESS_TOKEN: [],
+    KEYPAIRGEN_SIGNATURE: [],
+    RSA_SIGNER: [],
+    GET_DATA_RECORDS: ['studyId', 'versionId', 'projectId'],
+    GET_ONTOLOGY_TREE: ['studyId', 'projectId'],
+    CHECK_DATA_COMPLETE: ['studyId'],
+    CREATE_NEW_DATA_VERSION: ['studyId', 'dataVersion', 'tag'],
+    UPLOAD_DATA_IN_ARRAY: ['studyId'],
+    DELETE_DATA_RECORDS: ['studyId', 'subjectId', 'visitId', 'fieldIds'],
+    CREATE_NEW_FIELD: ['studyId'],
+    EDIT_FIELD: ['studyId', 'fieldIdInput'],
+    DELETE_FIELD: ['studyId', 'fieldId'],
+    ADD_ONTOLOGY_FIELD: ['studyId'],
+    DELETE_ONTOLOGY_FIELD: ['studyId', 'fieldId'],
+    CREATE_QUERY_CURATION_JOB: ['queryId', 'studyId', 'projectId']
 };
 
 export class LogPlugin {

@@ -1,9 +1,6 @@
 import React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { GET_STUDY, IStudyDataVersion } from 'itmat-commons';
-// import { formatBytes } from '../../../reusable/fileList/fileList';
-// import { useQuery } from '@apollo/client/react/hooks';
-// import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 // number of patients
 // newest version of data - date / tag

@@ -362,7 +362,7 @@ export const studyResolvers = {
                 // check data valid
                 if (!isError) {
                     const {fieldEntry, error: thisError} = validateAndGenerateFieldEntry(oneFieldInput);
-                    if (error.length !== 0) {
+                    if (thisError.length !== 0) {
                         error.push({code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId}: ${JSON.stringify(thisError)}`});
                         isError = true;
                     }

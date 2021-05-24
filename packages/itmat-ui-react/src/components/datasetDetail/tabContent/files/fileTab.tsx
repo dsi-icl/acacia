@@ -352,9 +352,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 removeFile(record);
             }}></Button>
         }].map(col => {
-        // if (!col.editable) {
-        //     return col;
-        // }
         return {
             ...col,
             onCell: record => ({

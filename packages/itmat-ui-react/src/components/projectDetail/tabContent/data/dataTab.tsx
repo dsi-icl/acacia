@@ -122,7 +122,6 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                     return Array.from(new Set(total.concat(arr)));
                 }), []);
                 const filteredHeaders = headers.filter(el => uniqueFields.includes(el.key.toString()));
-                console.log(uniqueFields);
                 return (<CSVLink data={queryResult} headers={filteredHeaders}>
                     Download me
                 </CSVLink>);
@@ -158,7 +157,6 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                         if (loading) { return <LoadSpinner />; }
                         if (error) { return <p>No results found.</p>; }
                         if (!data || data.getDataRecords === null) { return <p>Not available.</p>; }
-                        console.log(data);
 
                         const columns: any[] = [];
                         const fieldsList = getProjectData.getProject.fields;

@@ -179,12 +179,10 @@ export class StudyCore {
                     }
                     break;
                 }
-                case 'unk':
-                    parsedValue = dataClip.value.toString();
-                    break;
-                default:
+                default: {
                     error = (`Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Invalid data Type.`);
                     break;
+                }
             }
         }
         if (error !== undefined) {
