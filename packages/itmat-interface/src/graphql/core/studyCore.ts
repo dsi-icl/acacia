@@ -1,9 +1,11 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy } from 'itmat-commons';
+import { IProject, IStudy, studyType, IStudyDataVersion, DATA_CLIP_ERROR_TYPE } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
+import { validate } from '@ideafast/idgen';
+import { parseValue } from 'graphql';
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -24,7 +26,7 @@ export class StudyCore {
         return projectSearchResult;
     }
 
-    public async createNewStudy(studyName: string, description: string, requestedBy: string): Promise<IStudy> {
+    public async createNewStudy(studyName: string, description: string, type: studyType, requestedBy: string): Promise<IStudy> {
         /* check if study already  exist (lowercase because S3 minio buckets cant be mixed case) */
         const existingStudies = await db.collections!.studies_collection.aggregate(
             [
@@ -53,7 +55,8 @@ export class StudyCore {
             lastModified: new Date().valueOf(),
             dataVersions: [],
             deleted: null,
-            description: description
+            description: description,
+            type: type
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;
@@ -66,6 +69,139 @@ export class StudyCore {
         } else {
             throw new ApolloError('Edit study failed');
         }
+    }
+
+    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion> {
+        const res = (await db.collections!.data_collection.find({ m_versionId: null })).toArray();
+        if ((res as any).length <= 0) {
+            throw new ApolloError('No records uploaded since last operation.');
+        }
+        const newDataVersionId = uuid();
+        const contentId = uuid();
+        // update record version
+        const updateVersion = await db.collections!.data_collection.updateMany({ m_versionId: null }, { $set: { m_versionId: contentId } });
+        if (updateVersion.result.ok !== 1) {
+            throw new ApolloError('Create new adta version failed: cannot add data version to new records.');
+        }
+        // insert a new version into study
+        const newDataVersion: IStudyDataVersion = {
+            id: newDataVersionId,
+            contentId: contentId, // same content = same id - used in reverting data, version control
+            version: dataVersion,
+            tag: tag,
+            updateDate: (new Date().valueOf()).toString(),
+        };
+        await db.collections!.studies_collection.updateOne({ id: studyId }, {
+            $push: { dataVersions: newDataVersion },
+            $inc: {
+                currentDataVersion: 1
+            }
+        });
+        return newDataVersion;
+    }
+
+    public async uploadOneDataClip(studyId: string, fieldList: any[], dataClip: any): Promise<any> {
+        const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId);
+        if (!fieldInDb) {
+            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} is not registered. Please update the annotations first.` };
+        }
+        // check subjectId
+        if(!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
+            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Subject ID ${dataClip.subjectId} is illegal.` };
+        }
+
+        // check value is valid
+        let error;
+        let parsedValue;
+        if (fieldInDb.length === 0) {
+            error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Field Not found`;
+        } else {
+            switch (fieldInDb[0].dataType) {
+                case 'dec': {// decimal
+                    if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as decimal.`;
+                        break;
+                    }
+                    parsedValue = parseFloat(dataClip.value);
+                    break;
+                }
+                case 'int': {// integer
+                    if (!/^-?\d+$/.test(dataClip.value)) {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as integer.`;
+                        break;
+                    }
+                    parsedValue = parseInt(dataClip.value, 10);
+                    break;
+                }
+                case 'bool': {// boolean
+                    if (dataClip.value.toLowerCase() === 'true' || dataClip.value.toLowerCase() === 'false') {
+                        parsedValue = dataClip.value.toLowerCase() === 'true';
+                    } else {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as boolean.`;
+                        break;
+                    }
+                    break;
+                }
+                case 'str': {
+                    parsedValue = dataClip.value.toString();
+                    break;
+                }
+                // 01/02/2021 00:00:00
+                case 'date': {
+                    const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
+                    if (!dataClip.value.match(matcher)) {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName}: value for date type must be in ISO format.`;
+                        break;
+                    }
+                    parsedValue = dataClip.value.toString();
+                    break;
+                }
+                case 'json': {
+                    parsedValue = dataClip.value;
+                    break;
+                }
+                case 'file': {
+                    const file = await db.collections!.files_collection.findOne({ id: parseValue });
+                    if (!file) {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as file or file does not exist.`;
+                        break;
+                    } else {
+                        parsedValue = dataClip.value.toString();
+                    }
+                    break;
+                }
+                case 'cat': {
+                    if (!fieldInDb[0].possibleValues.map(el => el.code).includes(dataClip.value.toString())) {
+                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as categorical, value not in value list.`;
+                        break;
+                    } else {
+                        parsedValue = dataClip.value.toString();
+                    }
+                    break;
+                }
+                default: {
+                    error = (`Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Invalid data Type.`);
+                    break;
+                }
+            }
+        }
+        if (error !== undefined) {
+            return { code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: error };
+        }
+        const obj = {
+            m_studyId: studyId,
+            m_subjectId: dataClip.subjectId,
+            m_versionId: null,
+            m_visitId: dataClip.visitId
+        };
+        const objWithData = {
+            ...obj,
+        };
+        objWithData[dataClip.fieldId] = parsedValue;
+        await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, {
+            upsert: true
+        });
+        return null;
     }
 
     public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
@@ -82,8 +218,8 @@ export class StudyCore {
         };
 
         const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
-            { $match: { m_study: studyId } },
-            { $group: { _id: null, array: { $addToSet: '$m_eid' } } },
+            { $match: { m_studyId: studyId } },
+            { $group: { _id: null, array: { $addToSet: '$m_subjectId' } } },
             { $project: { array: 1 } }
         ]).toArray();
 
@@ -142,9 +278,9 @@ export class StudyCore {
         await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });
     }
 
-    public async editProjectApprovedFields(projectId: string, fieldTreeId: string, approvedFields: string[]): Promise<IProject> {
+    public async editProjectApprovedFields(projectId: string, approvedFields: string[]): Promise<IProject> {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { [`approvedFields.${fieldTreeId}`]: approvedFields } }, { returnOriginal: false });
+        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields: approvedFields } }, { returnOriginal: false });
         if (result.ok === 1) {
             return result.value;
         } else {

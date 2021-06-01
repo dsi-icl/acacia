@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Redirect } from 'react-router-dom';
 import { WHO_AM_I, Models } from 'itmat-commons';
+import { Button } from 'antd';
 
 export const ProjectList: React.FunctionComponent = () => {
     return (
@@ -31,7 +32,7 @@ const PickProjectSection: React.FunctionComponent<{ projects: Models.Study.IProj
         You have access to two or more projects. Please pick the one you would like to access: <br /><br /><br />
         {projects.map((el) =>
             <NavLink key={el.id} to={`/projects/${el.id}/dashboard`}>
-                <button>{el.name}</button>
+                <Button>{el.name}</Button>
             </NavLink>
         )}
     </>;

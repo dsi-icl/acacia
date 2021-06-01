@@ -4,6 +4,7 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import css from './tabContent.module.css';
 import { useSubscription } from '@apollo/client/react/hooks';
 import { GET_STUDY, IJobEntry } from 'itmat-commons';
+import { Table, Button } from 'antd';
 
 const STATUSES: { [status: string]: any } = {
     finished: () => <td className={css.finishedStatus_td}><span>Finished</span></td>,
@@ -24,61 +25,99 @@ const STATUSES: { [status: string]: any } = {
     CANCELLED: () => <td className={css.cancelledStatus_td}><span>Cancelled</span></td>
 };
 
-const JOBTYPES: { [type: string]: any } = {
-    DATA_UPLOAD_CSV: <span>Data upload</span>,
-    DATA_UPLOAD_JSON: <span>Data upload json</span>,
-    FIELD_INFO_UPLOAD: <span>Field annotation upload</span>
-};
+// const JOBTYPES: { [type: string]: any } = {
+//     DATA_UPLOAD_CSV: <span>Data upload</span>,
+//     DATA_UPLOAD_JSON: <span>Data upload json</span>,
+//     FIELD_INFO_UPLOAD: <span>Field annotation upload</span>
+// };
 
 export const JobSection: React.FunctionComponent<{ studyId: string; jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
     useSubscription(
         GQLRequests.SUBSCRIBE_TO_JOB_STATUS,
         {
             variables: { studyId }, onSubscriptionData: ({ client: store, subscriptionData }) => {
-                const olddata: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
-                const oldjobs = olddata.getStudy.jobs;
-                const newjobs = oldjobs.map((el: any) => {
-                    if (el.id === subscriptionData.data.subscribeToJobStatusChange.jobId) {
-                        el.status = subscriptionData.data.subscribeToJobStatusChange.newStatus;
-                        if (el.status === 'error') {
-                            el.error = subscriptionData.data.subscribeToJobStatusChange.errors;
+                if (subscriptionData.data.subscribeToJobStatusChange !== null) {
+                    const olddata: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
+                    const oldjobs = olddata.getStudy.jobs;
+                    const newjobs = oldjobs.map((el: any) => {
+                        if (el.id === subscriptionData.data.subscribeToJobStatusChange.jobId) {
+                            el.status = subscriptionData.data.subscribeToJobStatusChange.newStatus;
+                            if (el.status === 'error') {
+                                el.error = subscriptionData.data.subscribeToJobStatusChange.errors;
+                            }
                         }
-                    }
-                    return el;
-                });
-                olddata.getStudy.jobs = newjobs;
-                store.writeQuery({ query: GET_STUDY, variables: { studyId }, data: olddata });
+                        return el;
+                    });
+                    const tmp = {...olddata.getStudy, jobs: newjobs};
+                    store.writeQuery({ query: GET_STUDY, variables: { studyId }, data: {getStudy: tmp} });
+                }
             }
         }
     );
-    return <div>
-        {jobs === null || jobs.length === 0 ? <p>There has been no past jobs associated with this project.</p> :
-            <table className={css.job_table}>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th></th>
-                        <th>Metadata</th>
-                        <th>Cancel</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {jobs.map((el) => <OneJob key={el.id} job={el} />)}
-                </tbody>
-            </table>
-        }
-    </div>;
-};
+    const columns = [
+        {
+            title: 'Created At',
+            dataIndex: 'requestTime',
+            key: 'requestTime',
+            render: (__unused__value, record) => {
+                return new Date(record.requestTime).toUTCString();
+            }
+        },
+        {
+            title: 'Job Type',
+            dataIndex: 'jobType',
+            key: 'jobType',
+            render: (__unused__value, record) => {
+                return record.jobType;
+            }
+        },
+        {
+            title: 'Parameters',
+            dataIndex: 'parameters',
+            key: 'parameters',
+            render: (__unused__value, record) => {
+                return record.receivedFiles;
+            }
+        },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            render: (__unused__value, record) => {
+                return record.cancelled ? STATUSES.CANCELLED() : (STATUSES[record.status] || (() => null))(record.error);
+            }
+        },
+        {
+            title: 'Cancel',
+            dataIndex: 'cancel',
+            key: 'cancel',
+            render: (__unused__value, __unused__record) => {
+                return (<Button type='primary' htmlType='submit'
+                    // onClick={() => {}}
+                >
+                  Cancel
+                </Button>);
+            }
+        },
+    ];
 
-const OneJob: React.FunctionComponent<{ job: IJobEntry<any> }> = ({ job }) => {
-    return (
-        <tr>
-            <td>{new Date(job.requestTime).toLocaleString()}</td>
-            <td>{JOBTYPES[job.jobType]}</td>
-            {job.cancelled ? STATUSES.CANCELLED() : (STATUSES[job.status] || (() => null))(job.error)}
-            <td>{JSON.stringify(job.data, null, 4)}</td>
-            <td className={css.cancelButton}>x</td>
-        </tr>
-    );
+    return (<div>
+        <Table
+            rowKey={(rec) => rec.id}
+            columns={columns}
+            dataSource={jobs}
+            size='small'
+            pagination={
+                {
+                    defaultPageSize: 50,
+                    showSizeChanger: true,
+                    pageSizeOptions: ['20', '50', '100', '200'],
+                    defaultCurrent: 1,
+                    showQuickJumper: true
+                }
+            }
+        >
+        </Table>
+    </div>);
+
 };

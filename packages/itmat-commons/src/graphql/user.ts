@@ -20,6 +20,7 @@ export const user_fragment = gql`
             studies {
                 id
                 name
+                type
             }
         },
         createdAt,

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { GET_PROJECT_PATIENT_MAPPING } from 'itmat-commons';
 import LoadSpinner from '../../../../reusable/loadSpinner';
+import { Button } from 'antd';
 
 export const PatientIdMappingSection: React.FunctionComponent<{ projectId: string }> = ({ projectId }) => {
     const [clickedFetch, setClickedFetch] = useState(false);
@@ -12,7 +13,7 @@ export const PatientIdMappingSection: React.FunctionComponent<{ projectId: strin
         setCurrentProjectId(projectId);
     }
 
-    if (!clickedFetch) { return <button onClick={() => setClickedFetch(true)}>Fetch mapping</button>; }
+    if (!clickedFetch) { return <Button onClick={() => setClickedFetch(true)}>Fetch mapping</Button>; }
     return <Query<any, any> query={GET_PROJECT_PATIENT_MAPPING} variables={{ projectId }}>
         {({ data, loading, error }) => {
             if (loading) { return <LoadSpinner />; }
