@@ -5,7 +5,7 @@ import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Query } from '@apollo/client/react/components';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
-import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, IFile, EDIT_STUDY, WHO_AM_I, userTypes } from 'itmat-commons';
+import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, IFile, EDIT_STUDY, WHO_AM_I, userTypes, studyType } from 'itmat-commons';
 import { FileList, formatBytes } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
@@ -41,11 +41,13 @@ export const deviceTypes = {
     PSR: 'PSG raw data',
     PSM: 'PSG meta data',
     SMA: 'Stress Monitor App',
-    TFA: 'ThinkFast App'
+    TFA: 'ThinkFast App',
+    SMQ: 'Stress Monitor App Questionnaire',
+    VIR: 'Virtual device type'
 };
 
 const { RangePicker } = DatePicker;
-let progressReports = [];
+let progressReports: any[] = [];
 
 export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
 
@@ -65,7 +67,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         onCompleted: () => { window.location.reload(); },
         onError: () => { return; }
     });
-
     const [uploadFile] = useMutation(UPLOAD_FILE, {
         onCompleted: ({ uploadFile }) => {
             const cachedata = store.readQuery({
@@ -129,44 +130,65 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     const fileFilter = (files: StudyFile[]) => {
         files.forEach((file) => {
-            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
-            const particules = file.name.match(matcher);
-            if (particules?.length === 8) {
-                if (Object.keys(sites).includes(particules[1].toUpperCase())
-                    && validate(particules[2].toUpperCase()))
-                    file.participantId = `${particules[1].toUpperCase()}${particules[2].toUpperCase()}`;
-                if (Object.keys(deviceTypes).includes(particules[3].toUpperCase())
-                    && validate(particules[4].toUpperCase()))
-                    file.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
-                const startDate = moment(particules[5], 'YYYYMMDD');
-                const endDate = moment(particules[6], 'YYYYMMDD');
-                if (startDate.isSameOrBefore(endDate)) {
-                    if (startDate.isValid())
-                        file.startDate = startDate;
-                    if (endDate.isValid() && endDate.isSameOrBefore(moment()))
-                        file.endDate = endDate;
+            if (getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) {
+                const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
+                const particules = file.name.match(matcher);
+                if (particules?.length === 8) {
+                    if (Object.keys(sites).includes(particules[1].toUpperCase())
+                        && validate(particules[2].toUpperCase()))
+                        file.participantId = `${particules[1].toUpperCase()}${particules[2].toUpperCase()}`;
+                    if (Object.keys(deviceTypes).includes(particules[3].toUpperCase())
+                        && validate(particules[4].toUpperCase()))
+                        file.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
+                    const startDate = moment(particules[5], 'YYYYMMDD');
+                    const endDate = moment(particules[6], 'YYYYMMDD');
+                    if (startDate.isSameOrBefore(endDate)) {
+                        if (startDate.isValid())
+                            file.startDate = startDate;
+                        if (endDate.isValid() && endDate.isSameOrBefore(moment()))
+                            file.endDate = endDate;
+                    }
                 }
+                progressReports[`UP_${file.participantId}_${file.deviceId}_${file.startDate?.valueOf()}_${file.endDate?.valueOf()}`] = undefined;
+            } else if (getStudyData.getStudy.type === studyType.CLINICAL) {
+                const matcher = /(.{1})(.{6}).(.*)/;
+                const particules = file.name.match(matcher);
+                if (particules?.length === 4) {
+                    if (Object.keys(sites).includes(particules[1].toUpperCase())
+                        && validate(particules[2].toUpperCase()))
+                        file.participantId = `${particules[1].toUpperCase()}${particules[2].toUpperCase()}`;
+                }
+                progressReports[`UP_${file.participantId}`] = undefined;
             }
             file.uuid = uuid();
-            progressReports[`UP_${file.participantId}_${file.deviceId}_${file.startDate?.valueOf()}_${file.endDate?.valueOf()}`] = undefined;
             fileList.push(file);
         });
         setFileList([...fileList]);
     };
-
-    const validFile = fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate);
+    const validFile = (getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) ? fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate)
+        : fileList.filter((file) => file.name);
     const uploadHandler = () => {
 
         const uploads: Promise<any>[] = [];
         setIsUploading(true);
         validFile.forEach(file => {
-            const description = {
-                participantId: file.participantId?.trim().toUpperCase(),
-                deviceId: file.deviceId?.trim().toUpperCase(),
-                startDate: file.startDate?.valueOf(),
-                endDate: file.endDate?.valueOf(),
-            };
-            const uploadMapHackName = `UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`;
+            let description: any;
+            let uploadMapHackName: any;
+            if (getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) {
+                description = {
+                    participantId: file.participantId?.trim().toUpperCase(),
+                    deviceId: file.deviceId?.trim().toUpperCase(),
+                    startDate: file.startDate?.valueOf(),
+                    endDate: file.endDate?.valueOf()
+                };
+                uploadMapHackName = `UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`;
+            } else if (getStudyData.getStudy.type === studyType.CLINICAL) {
+                description = {};
+                uploadMapHackName = `UP_${description.participantId}`;
+            } else {
+                description = {};
+                uploadMapHackName = `UP_${file.name}`;
+            }
             if (!(window as any).onUploadProgressHackMap)
                 (window as any).onUploadProgressHackMap = {};
             (window as any).onUploadProgressHackMap[uploadMapHackName] = (progressEvent) => {
@@ -240,7 +262,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         });
     };
 
-    const columns = [
+    const sensorColumns = [
         {
             title: 'File name',
             dataIndex: 'name',
@@ -311,6 +333,52 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             };
         });
 
+    const clinicalColumns = [
+        {
+            title: 'File name',
+            dataIndex: 'name',
+            key: 'fileName',
+            sorter: (a, b) => a.fileName.localeCompare(b.fileName),
+            render: (value, record) => {
+                const progress = progressReports[`UP_${record.participantId}_${record.deviceId}_${record.startDate?.valueOf()}_${record.endDate?.valueOf()}`];
+                if (progress)
+                    return <React.Fragment key={uploadMovement}>{Math.round(1000 * (progress.loaded - 1) / progress.total) / 10}%</React.Fragment>;
+                return value;
+            }
+        },
+        {
+            key: 'delete',
+            render: (__unused__value, record) => <Button disabled={isUploading} type='primary' danger icon={<DeleteOutlined />} onClick={() => {
+                removeFile(record);
+            }}></Button>
+        }].map(col => {
+        return {
+            ...col,
+            onCell: record => ({
+                record: {
+                    ...record,
+                    period: [record.startDate, record.endDate]
+                },
+                editable: false,
+                dataIndex: col.dataIndex,
+                title: col.title,
+                handleSave
+            }),
+        };
+    });
+
+    const fileNameColumns = [
+        {
+            title: 'File Name',
+            dataIndex: 'fileName',
+            key: 'fileName',
+            render: (__unused__value, record) => {
+                return record.name;
+            },
+            sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
+        }
+    ];
+
     if (getOrgsLoading || getStudyLoading || getUsersLoading || whoAmILoading)
         return <LoadSpinner />;
 
@@ -327,15 +395,31 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     }), {});
 
     function dataSourceFilter(files: IFile[]) {
-        return files.filter(file =>
-            file !== null && file !== undefined &&
-            (!searchTerm
-                || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1
-                || sites[JSON.parse(file.description).participantId[0]].toUpperCase().indexOf(searchTerm) > -1
-                || JSON.parse(file.description).deviceId.toUpperCase().indexOf(searchTerm) > -1
-                || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
-                || (!userIdNameMapping[file.uploadedBy] || userIdNameMapping[file.uploadedBy].toUpperCase().indexOf(searchTerm) > -1))
-        ).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime));
+        if (getStudyData.getStudy.type === studyType.SENSOR) {
+            return files.filter(file =>
+                file !== null && file !== undefined &&
+                (!searchTerm
+                    || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1
+                    || sites[JSON.parse(file.description).participantId[0]].toUpperCase().indexOf(searchTerm) > -1
+                    || JSON.parse(file.description).deviceId.toUpperCase().indexOf(searchTerm) > -1
+                    || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
+                    || (!userIdNameMapping[file.uploadedBy] || userIdNameMapping[file.uploadedBy].toUpperCase().indexOf(searchTerm) > -1))
+            ).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime));
+        } else if (getStudyData.getStudy.type === studyType.CLINICAL) {
+            return files.filter((file) => {
+                if (file.fileName.startsWith('VariablesList')) {
+                    return true;
+                } else if (file !== null && file !== undefined && (!searchTerm || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1)) {
+                    return true;
+                }
+                return false;
+            });
+        } else {
+            return files.filter(file =>
+                file !== null && file !== undefined &&
+                (!searchTerm
+                    || file.fileName.toUpperCase().indexOf(searchTerm) > -1));
+        }
     }
 
     const sortedFiles = dataSourceFilter(getStudyData.getStudy.files).sort((a, b) => parseInt((b as any).uploadTime) - parseInt((a as any).uploadTime));
@@ -364,7 +448,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                         rowKey={(rec) => rec.uuid}
                         rowClassName={() => css.editable_row}
                         pagination={false}
-                        columns={columns}
+                        columns={(getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) ? sensorColumns : (getStudyData.getStudy.type === studyType.CLINICAL ? clinicalColumns : fileNameColumns)}
                         dataSource={fileList}
                         size='small'
                         components={{ body: { row: EditableRow, cell: EditableCell } }} />
@@ -436,7 +520,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 </Subsection>
                 <SubsectionWithComment title='Existing files' comment={'Total Files: ' + numberOfFiles + '\t\tTotal Size: ' + formatBytes(sizeOfFiles) + '\t\tTotal Participants: ' + participantOfFiles}>
                     <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
-                    <FileList files={sortedFiles} searchTerm={searchTerm}></FileList>
+                    <FileList type={getStudyData.getStudy.type} files={sortedFiles} searchTerm={searchTerm}></FileList>
                     <br />
                     <br />
                 </SubsectionWithComment>
