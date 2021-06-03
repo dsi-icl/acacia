@@ -1,7 +1,7 @@
-import {db} from '../../database/database';
-import {ILogEntry, LOG_ACTION, Models, userTypes} from 'itmat-commons';
-import {ApolloError} from 'apollo-server-errors';
-import {errorCodes} from '../errors';
+import { db } from '../../database/database';
+import { ILogEntry, LOG_ACTION, Models, userTypes } from 'itmat-commons';
+import { ApolloError } from 'apollo-server-errors';
+import { errorCodes } from '../errors';
 
 export const logResolvers = {
     Query: {
@@ -19,7 +19,7 @@ export const logResolvers = {
                     queryObj[prop] = args.prop;
                 }
             }
-            const logData = await db.collections!.log_collection.find<ILogEntry>(queryObj, {projection: {_id: 0}}).sort('time', -1).toArray();
+            const logData = await db.collections!.log_collection.find<ILogEntry>(queryObj, { projection: { _id: 0 } }).limit(1000).sort('time', -1).toArray();
             // log information decoration
             for (const i in logData) {
                 logData[i].actionData = JSON.stringify(await logDecorationHelper(logData[i].actionData, logData[i].actionType));
@@ -35,16 +35,16 @@ export const hiddenFields = {
     UPLOAD_FILE: ['file', 'description']
 };
 
-async function logDecorationHelper(actionData:any, actionType:string){
+async function logDecorationHelper(actionData: any, actionType: string) {
     const obj = JSON.parse(actionData);
     if (Object.keys(hiddenFields).includes(actionType)) {
         for (let i = 0; i < hiddenFields[actionType].length; i++) {
             delete obj[hiddenFields[actionType][i]];
         }
     }
-    if (actionType === LOG_ACTION.getStudy){
+    if (actionType === LOG_ACTION.getStudy) {
         const studyId = obj['studyId'];
-        const study = await db.collections!.studies_collection.findOne({id: studyId, deleted: null})!;
+        const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
         if (study === null || study === undefined) {
             obj['name'] = '';
         }
