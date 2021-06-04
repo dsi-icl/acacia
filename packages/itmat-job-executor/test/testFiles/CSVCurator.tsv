@@ -1,2108 +1,2227 @@
-Eid	1@1.1	1@1.2:d	1@2.1:i	2@1.1
-Subj1	1	2	2	male
-Subj2	>100	4.2	4	female
-Subj3	2	4.2	4	female
-Subj4	2	4.2	4	female
-Subj5	2	4.2	4	female
-Subj6	2	4.2	4	female
-Subj7	2	4.2	4	female
-Subj8	2	4.2	4	female
-Subj9	2	4.5	4	female
-Subj10	2	4.8	4	female
-Subj11	2	5.1	4	female
-Subj12	3	5.4	4	female
-Subj13	3	5.7	4	female
-Subj14	3	6	4	female
-Subj15	44	6.3	4	female
-Subj16	44	6.6	4	female
-Subj17	44	6.9	4	male
-Subj18	44	7.2	4	male
-Subj19	44	7.5	4	male
-Subj20	44	7.8	4	male
-Subj21	55	8.1	4	male
-Subj22	55	8.4	4	male
-Subj23	55	8.7	4	male
-Subj24	55	9	4	male
-Subj25	55	9.3	4	male
-Subj26	55	9.6	4	male
-Subj27	55	9.9	4	male
-Subj28	55	10.2	4	male
-Subj29	55	10.5	4	male
-Subj30	55	10.8	4	male
-Subj31	55	11.1	4	male
-Subj32	55	11.4	4	male
-Subj33	55	11.7	4	male
-Subj34	55	12	4	male
-Subj35	55	12.3	4	male
-Subj36	55	12.6	4	male
-Subj37	55	12.9	4	male
-Subj38	55	13.2	4	male
-Subj39	55	13.5	4	male
-Subj40	55	13.8	4	male
-Subj41	55	14.1	4	male
-Subj42	55	14.4	4	male
-Subj43	55	14.7	4	male
-Subj44	55	15	4	male
-Subj45	55	15.3	4	male
-Subj46	55	15.6	4	male
-Subj47	55	15.9	4	male
-Subj48	55	16.2	4	male
-Subj49	55	16.5	4	male
-Subj50	55	16.8	4	male
-Subj51	55	17.1	4	male
-Subj52	55	17.4	4	male
-Subj53	55	17.7	4	male
-Subj54	55	18	4	male
-Subj55	55	18.3	4	male
-Subj56	55	18.6	4	male
-Subj57	55	18.9	4	male
-Subj58	55	19.2	4	male
-Subj59	55	19.5	4	male
-Subj60	55	19.8	4	male
-Subj61	55	20.1	4	male
-Subj62	55	20.4	4	male
-Subj63	55	20.7	4	male
-Subj64	55	21	4	male
-Subj65	55	21.3	4	male
-Subj66	55	21.6	4	male
-Subj67	55	21.9	4	male
-Subj68	55	22.2	4	male
-Subj69	55	22.5	4	male
-Subj70	55	22.8	4	male
-Subj71	55	23.1	4	male
-Subj72	55	23.4	4	male
-Subj73	55	23.7	4	male
-Subj74	55	24	4	male
-Subj75	55	24.3	4	male
-Subj76	55	24.6	4	male
-Subj77	55	24.9	4	male
-Subj78	55	25.2	4	male
-Subj79	55	25.5	4	male
-Subj80	55	25.8	4	male
-Subj81	55	26.1	4	male
-Subj82	55	26.4	4	male
-Subj83	55	26.7	4	male
-Subj84	55	27	4	male
-Subj85	55	27.3	4	male
-Subj86	55	27.6	4	male
-Subj87	55	27.9	4	male
-Subj88	55	28.2	4	male
-Subj89	55	28.5	4	male
-Subj90	55	28.8	4	male
-Subj91	55	29.1	4	male
-Subj92	55	29.4	4	male
-Subj93	55	29.7	4	male
-Subj94	55	30	4	male
-Subj95	55	30.3	4	male
-Subj96	55	30.6	4	male
-Subj97	55	30.9	4	male
-Subj98	55	31.2	4	male
-Subj99	55	31.5	4	male
-Subj100	55	31.8	4	male
-Subj101	55	32.1	4	male
-Subj102	55	32.4	4	male
-Subj103	55	32.7	4	male
-Subj104	55	33	4	male
-Subj105	55	33.3	4	male
-Subj106	55	33.6	4	male
-Subj107	55	33.9	4	male
-Subj108	55	34.2	4	male
-Subj109	55	34.5	4	male
-Subj110	55	34.8	4	male
-Subj111	55	35.1	4	male
-Subj112	55	35.4	4	male
-Subj113	55	35.7	4	male
-Subj114	55	36	4	male
-Subj115	55	36.3	4	male
-Subj116	55	36.6	4	male
-Subj117	55	36.9	4	male
-Subj118	55	37.2	4	male
-Subj119	55	37.5	4	male
-Subj120	55	37.8	4	male
-Subj121	55	38.1	4	male
-Subj122	55	38.4	4	male
-Subj123	55	38.7	4	male
-Subj124	55	39	4	male
-Subj125	55	39.3	4	male
-Subj126	55	39.6	4	male
-Subj127	55	39.9	4	male
-Subj128	55	40.2	4	male
-Subj129	55	40.5	4	male
-Subj130	55	40.8	4	male
-Subj131	55	41.1	4	male
-Subj132	55	41.4	4	male
-Subj133	55	41.7	4	male
-Subj134	55	42	4	male
-Subj135	55	42.3	4	male
-Subj136	55	42.6	4	male
-Subj137	55	42.9	4	male
-Subj138	55	43.2	4	male
-Subj139	55	43.5	4	male
-Subj140	55	43.8	4	male
-Subj141	55	44.1	4	male
-Subj142	55	44.4	4	male
-Subj143	55	44.7	4	male
-Subj144	55	45	4	male
-Subj145	55	45.3	4	male
-Subj146	55	45.6	4	male
-Subj147	55	45.9	4	male
-Subj148	55	46.2	4	male
-Subj149	55	46.5	4	male
-Subj150	55	46.8	4	male
-Subj151	55	47.1	4	male
-Subj152	55	47.4	4	male
-Subj153	55	47.7	4	male
-Subj154	55	48	4	male
-Subj155	55	48.3	4	male
-Subj156	55	48.6	4	male
-Subj157	55	48.9	4	male
-Subj158	55	49.2	4	male
-Subj159	55	49.5	4	male
-Subj160	55	49.8	4	male
-Subj161	55	50.1	4	male
-Subj162	55	50.4	4	male
-Subj163	55	50.7	4	male
-Subj164	55	51	4	male
-Subj165	55	51.3	4	male
-Subj166	55	51.6	4	male
-Subj167	55	51.9	4	male
-Subj168	55	52.2	4	male
-Subj169	55	52.5	4	male
-Subj170	55	52.8	4	male
-Subj171	55	53.1	4	male
-Subj172	55	53.4	4	male
-Subj173	55	53.7	4	male
-Subj174	66	54	4	male
-Subj175	66	54.3	4	male
-Subj176	66	54.6	4	male
-Subj177	66	54.9	4	male
-Subj178	66	55.2	4	male
-Subj179	66	55.5	4	male
-Subj180	66	55.8	4	male
-Subj181	66	56.1	4	male
-Subj182	66	56.4	4	male
-Subj183	66	56.7	4	male
-Subj184	66	57	4	male
-Subj185	66	57.3	4	male
-Subj186	66	57.6	4	male
-Subj187	66	57.9	4	male
-Subj188	66	58.2	4	male
-Subj189	66	58.5	4	male
-Subj190	66	58.8	4	male
-Subj191	66	59.1	4	male
-Subj192	66	59.4	4	male
-Subj193	66	59.7	4	male
-Subj194	66	60	4	male
-Subj195	66	60.3	4	male
-Subj196	66	60.6	4	male
-Subj197	66	60.9	4	male
-Subj198	66	61.2	4	male
-Subj199	66	61.5	4	male
-Subj200	66	61.8	4	male
-Subj201	66	62.1	4	male
-Subj202	66	62.4	4	male
-Subj203	66	62.7	4	male
-Subj204	66	63	4	male
-Subj205	66	63.3	4	male
-Subj206	66	63.6	4	male
-Subj207	66	63.9	4	male
-Subj208	66	64.2	4	male
-Subj209	66	64.5	4	male
-Subj210	66	64.8	4	male
-Subj211	66	65.1	4	male
-Subj212	66	65.4	4	male
-Subj213	66	65.7	4	male
-Subj214	66	66	4	male
-Subj215	66	66.3	4	male
-Subj216	66	66.6	4	male
-Subj217	66	66.9	4	male
-Subj218	66	67.2	4	male
-Subj219	66	67.5	4	male
-Subj220	66	67.8	4	male
-Subj221	66	68.1	4	male
-Subj222	66	68.4	4	male
-Subj223	66	68.7	4	male
-Subj224	66	69	4	male
-Subj225	66	69.3	4	male
-Subj226	66	69.6	4	male
-Subj227	66	69.9	4	male
-Subj228	66	70.2	4	male
-Subj229	66	70.5	4	male
-Subj230	66	70.8	4	male
-Subj231	66	71.1	4	male
-Subj232	66	71.4	4	male
-Subj233	66	71.7	4	male
-Subj234	66	72	4	male
-Subj235	66	72.3	4	male
-Subj236	66	72.6	4	male
-Subj237	66	72.9	4	male
-Subj238	66	73.2	4	male
-Subj239	66	73.5	4	male
-Subj240	66	73.8	4	male
-Subj241	66	74.1	4	male
-Subj242	66	74.4	4	male
-Subj243	66	74.7	4	male
-Subj244	66	75	4	male
-Subj245	66	75.3	4	male
-Subj246	66	75.6	4	male
-Subj247	66	75.9	4	male
-Subj248	66	76.2	4	male
-Subj249	66	76.5	4	male
-Subj250	66	76.8	4	male
-Subj251	66	77.1	4	male
-Subj252	66	77.4	4	male
-Subj253	66	77.7	4	male
-Subj254	66	78	4	male
-Subj255	66	78.3	4	male
-Subj256	66	78.6	4	male
-Subj257	66	78.9	4	male
-Subj258	66	79.2	4	male
-Subj259	66	79.5	4	male
-Subj260	66	79.8	4	male
-Subj261	66	80.1	4	male
-Subj262	66	80.4	4	male
-Subj263	66	80.7	4	male
-Subj264	66	81	4	male
-Subj265	66	81.3	4	male
-Subj266	66	81.6	4	male
-Subj267	66	81.9	4	male
-Subj268	66	82.2	4	male
-Subj269	66	82.5	4	male
-Subj270	66	82.8	4	male
-Subj271	66	83.1	4	male
-Subj272	66	83.4	4	male
-Subj273	66	83.7	4	male
-Subj274	66	84	4	male
-Subj275	40	84.3	4	male
-Subj276	40	84.6	4	male
-Subj277	40	84.9	4	male
-Subj278	40	85.2	4	male
-Subj279	40	85.5	4	male
-Subj280	40	85.8	4	male
-Subj281	40	86.1	4	male
-Subj282	40	86.4	4	male
-Subj283	40	86.7	4	male
-Subj284	40	87	4	male
-Subj285	40	87.3	4	male
-Subj286	40	87.6	4	male
-Subj287	40	87.9	4	male
-Subj288	40	88.2	4	male
-Subj289	40	88.5	4	male
-Subj290	40	88.8	4	male
-Subj291	40	89.1	4	male
-Subj292	40	89.4	4	male
-Subj293	40	89.7	4	male
-Subj294	40	90	4	male
-Subj295	40	90.3	4	male
-Subj296	40	90.6	4	male
-Subj297	40	90.9	4	male
-Subj298	40	91.2	4	male
-Subj299	40	91.5	4	male
-Subj300	40	91.8	4	male
-Subj301	40	92.1	4	male
-Subj302	40	92.4	4	male
-Subj303	40	92.7	4	male
-Subj304	40	93	4	male
-Subj305	40	93.3	4	male
-Subj306	40	93.6	4	male
-Subj307	40	93.9	4	male
-Subj308	40	94.2	4	male
-Subj309	40	94.5	4	male
-Subj310	40	94.8	4	male
-Subj311	40	95.1	4	male
-Subj312	40	95.4	4	male
-Subj313	40	95.7	4	male
-Subj314	40	96	4	male
-Subj315	40	96.3	4	male
-Subj316	40	96.6	4	male
-Subj317	40	96.9	4	male
-Subj318	40	97.2	4	male
-Subj319	40	97.5	4	male
-Subj320	40	97.8	4	male
-Subj321	40	98.1	4	male
-Subj322	40	98.4	4	male
-Subj323	40	98.7	4	male
-Subj324	40	99	4	male
-Subj325	40	99.3	4	male
-Subj326	40	99.6	4	male
-Subj327	40	99.9	4	male
-Subj328	40	100.2	4	male
-Subj329	40	100.5	4	male
-Subj330	40	100.8	4	male
-Subj331	40	101.1	4	male
-Subj332	40	101.4	4	male
-Subj333	40	101.7	4	male
-Subj334	40	102	4	male
-Subj335	40	102.3	4	male
-Subj336	40	102.6	4	male
-Subj337	40	102.9	4	male
-Subj338	40	103.2	4	male
-Subj339	40	103.5	4	male
-Subj340	40	103.8	4	male
-Subj341	40	104.1	4	male
-Subj342	40	104.4	4	male
-Subj343	40	104.7	4	male
-Subj344	40	105	4	male
-Subj345	40	105.3	4	male
-Subj346	40	105.6	4	male
-Subj347	40	105.9	4	male
-Subj348	40	106.2	4	male
-Subj349	40	106.5	4	male
-Subj350	40	106.8	4	male
-Subj351	40	107.1	4	male
-Subj352	40	107.4	4	male
-Subj353	40	107.7	4	male
-Subj354	40	108	4	male
-Subj355	40	108.3	4	male
-Subj356	40	108.6	4	male
-Subj357	40	108.9	4	male
-Subj358	40	109.2	4	male
-Subj359	40	109.5	4	male
-Subj360	40	109.8	4	male
-Subj361	40	110.1	4	male
-Subj362	40	110.4	4	male
-Subj363	40	110.7	4	male
-Subj364	40	111	4	male
-Subj365	40	111.3	4	male
-Subj366	40	111.6	4	male
-Subj367	40	111.9	4	male
-Subj368	40	112.2	4	male
-Subj369	40	112.5	4	male
-Subj370	40	112.8	4	male
-Subj371	40	113.1	4	male
-Subj372	40	113.4	4	male
-Subj373	40	113.7	4	male
-Subj374	40	114	4	male
-Subj375	40	114.3	4	male
-Subj376	40	114.6	4	male
-Subj377	40	114.9	4	male
-Subj378	40	115.2	4	male
-Subj379	40	115.5	4	male
-Subj380	40	115.8	4	male
-Subj381	40	116.1	4	male
-Subj382	40	116.4	4	male
-Subj383	40	116.7	4	male
-Subj384	40	117	4	male
-Subj385	40	117.3	4	male
-Subj386	40	117.6	4	male
-Subj387	40	117.9	4	male
-Subj388	40	118.2	4	male
-Subj389	40	118.5	4	male
-Subj390	40	118.8	4	male
-Subj391	40	119.1	4	male
-Subj392	40	119.4	4	male
-Subj393	40	119.7	4	male
-Subj394	40	120	4	male
-Subj395	40	120.3	4	male
-Subj396	40	120.6	4	male
-Subj397	40	120.9	4	male
-Subj398	40	121.2	4	male
-Subj399	40	121.5	4	male
-Subj400	40	121.8	4	male
-Subj401	40	122.1	4	male
-Subj402	40	122.4	4	male
-Subj403	40	122.7	4	male
-Subj404	40	123	4	male
-Subj405	40	123.3	4	male
-Subj406	40	123.6	4	male
-Subj407	40	123.9	4	male
-Subj408	40	124.2	4	male
-Subj409	40	124.5	4	male
-Subj410	40	124.8	4	male
-Subj411	40	125.1	4	male
-Subj412	40	125.4	4	male
-Subj413	40	125.7	4	male
-Subj414	40	126	4	male
-Subj415	40	126.3	4	male
-Subj416	40	126.6	4	male
-Subj417	40	126.9	4	male
-Subj418	40	127.2	4	male
-Subj419	40	127.5	4	male
-Subj420	40	127.8	4	male
-Subj421	40	128.1	4	male
-Subj422	40	128.4	4	male
-Subj423	40	128.7	4	male
-Subj424	40	129	4	male
-Subj425	40	129.3	4	male
-Subj426	40	129.6	4	male
-Subj427	40	129.9	4	male
-Subj428	40	130.2	4	male
-Subj429	40	130.5	4	male
-Subj430	40	130.8	4	male
-Subj431	40	131.1	4	male
-Subj432	40	131.4	4	male
-Subj433	40	131.7	4	male
-Subj434	40	132	4	male
-Subj435	40	132.3	4	male
-Subj436	40	132.6	4	male
-Subj437	40	132.9	4	male
-Subj438	40	133.2	4	male
-Subj439	40	133.5	4	male
-Subj440	40	133.8	4	male
-Subj441	40	134.1	4	male
-Subj442	40	134.4	4	male
-Subj443	40	134.7	4	male
-Subj444	40	135	4	male
-Subj445	40	135.3	4	male
-Subj446	40	135.6	4	male
-Subj447	40	135.9	4	male
-Subj448	40	136.2	4	male
-Subj449	40	136.5	4	male
-Subj450	40	136.8	4	male
-Subj451	40	137.1	4	male
-Subj452	40	137.4	4	male
-Subj453	40	137.7	4	male
-Subj454	40	138	4	male
-Subj455	40	138.3	4	male
-Subj456	40	138.6	4	male
-Subj457	40	138.9	4	male
-Subj458	40	139.2	4	male
-Subj459	40	139.5	4	male
-Subj460	40	139.8	4	male
-Subj461	40	140.1	4	male
-Subj462	40	140.4	4	male
-Subj463	40	140.7	4	male
-Subj464	40	141	4	male
-Subj465	40	141.3	4	male
-Subj466	40	141.6	4	male
-Subj467	40	141.9	4	male
-Subj468	40	142.2	4	male
-Subj469	40	142.5	4	male
-Subj470	40	142.8	4	male
-Subj471	40	143.1	4	male
-Subj472	40	143.4	4	male
-Subj473	40	143.7	4	male
-Subj474	40	144	4	male
-Subj475	40	144.3	4	male
-Subj476	40	144.6	4	male
-Subj477	40	144.9	4	male
-Subj478	40	145.2	4	male
-Subj479	40	145.5	4	male
-Subj480	40	145.8	4	male
-Subj481	40	146.1	4	male
-Subj482	40	146.4	4	male
-Subj483	40	146.7	4	male
-Subj484	40	147	4	male
-Subj485	40	147.3	4	male
-Subj486	40	147.6	4	male
-Subj487	40	147.9	4	male
-Subj488	40	148.2	4	male
-Subj489	40	148.5	4	male
-Subj490	40	148.8	4	male
-Subj491	40	149.1	4	male
-Subj492	40	149.4	4	male
-Subj493	40	149.7	4	male
-Subj494	40	150	4	male
-Subj495	40	150.3	4	male
-Subj496	40	150.6	4	male
-Subj497	40	150.9	4	male
-Subj498	40	151.2	4	male
-Subj499	40	151.5	4	male
-Subj500	40	151.8	4	male
-Subj501	40	152.1	4	male
-Subj502	40	152.4	4	male
-Subj503	40	152.7	4	male
-Subj504	40	153	4	male
-Subj505	40	153.3	4	male
-Subj506	40	153.6	4	male
-Subj507	40	153.9	4	male
-Subj508	40	154.2	4	male
-Subj509	40	154.5	4	male
-Subj510	40	154.8	4	male
-Subj511	40	155.1	4	male
-Subj512	40	155.4	4	male
-Subj513	40	155.7	4	male
-Subj514	40	156	4	male
-Subj515	40	156.3	4	male
-Subj516	40	156.6	4	male
-Subj517	40	156.9	4	male
-Subj518	40	157.2	4	male
-Subj519	40	157.5	4	male
-Subj520	40	157.8	4	male
-Subj521	40	158.1	4	male
-Subj522	40	158.4	4	male
-Subj523	40	158.7	4	male
-Subj524	40	159	4	male
-Subj525	40	159.3	4	male
-Subj526	40	159.6	4	male
-Subj527	40	159.9	4	male
-Subj528	40	160.2	4	male
-Subj529	40	160.5	4	male
-Subj530	40	160.8	4	male
-Subj531	40	161.1	4	male
-Subj532	40	161.4	4	male
-Subj533	40	161.7	4	male
-Subj534	40	162	4	male
-Subj535	40	162.3	4	male
-Subj536	40	162.6	4	male
-Subj537	40	162.9	4	male
-Subj538	40	163.2	4	male
-Subj539	40	163.5	4	male
-Subj540	40	163.8	4	male
-Subj541	40	164.1	4	male
-Subj542	40	164.4	4	male
-Subj543	40	164.7	4	male
-Subj544	40	165	4	male
-Subj545	40	165.3	4	male
-Subj546	40	165.6	4	male
-Subj547	40	165.9	4	male
-Subj548	40	166.2	4	male
-Subj549	40	166.5	4	male
-Subj550	40	166.8	4	male
-Subj551	40	167.1	4	male
-Subj552	40	167.4	4	male
-Subj553	40	167.7	4	male
-Subj554	40	168	4	male
-Subj555	40	168.3	4	male
-Subj556	40	168.6	4	male
-Subj557	40	168.9	4	male
-Subj558	40	169.2	4	male
-Subj559	40	169.5	4	male
-Subj560	40	169.8	4	male
-Subj561	40	170.1	4	male
-Subj562	40	170.4	4	male
-Subj563	40	170.7	4	male
-Subj564	40	171	4	male
-Subj565	40	171.3	4	male
-Subj566	40	171.6	4	male
-Subj567	40	171.9	4	male
-Subj568	40	172.2	4	male
-Subj569	40	172.5	4	male
-Subj570	40	172.8	4	male
-Subj571	40	173.1	4	male
-Subj572	40	173.4	4	male
-Subj573	40	173.7	4	male
-Subj574	40	174	4	male
-Subj575	40	174.3	4	male
-Subj576	40	174.6	4	male
-Subj577	40	174.9	4	male
-Subj578	40	175.2	4	male
-Subj579	40	175.5	4	male
-Subj580	40	175.8	4	male
-Subj581	40	176.1	4	male
-Subj582	40	176.4	4	male
-Subj583	40	176.7	4	male
-Subj584	40	177	4	male
-Subj585	40	177.3	4	male
-Subj586	40	177.6	4	male
-Subj587	40	177.9	4	male
-Subj588	40	178.2	4	male
-Subj589	40	178.5	4	male
-Subj590	40	178.8	4	male
-Subj591	40	179.1	4	male
-Subj592	40	179.4	4	male
-Subj593	40	179.7	4	male
-Subj594	40	180	4	male
-Subj595	40	180.3	4	male
-Subj596	40	180.6	4	male
-Subj597	40	180.9	4	male
-Subj598	40	181.2	4	male
-Subj599	40	181.5	4	male
-Subj600	40	181.8	4	male
-Subj601	40	182.1	4	male
-Subj602	40	182.4	4	male
-Subj603	40	182.7	4	male
-Subj604	40	183	4	male
-Subj605	40	183.3	4	male
-Subj606	40	183.6	4	male
-Subj607	40	183.9	4	male
-Subj608	40	184.2	4	male
-Subj609	40	184.5	4	male
-Subj610	40	184.8	4	male
-Subj611	40	185.1	4	male
-Subj612	40	185.4	4	male
-Subj613	40	185.7	4	male
-Subj614	40	186	4	male
-Subj615	40	186.3	4	male
-Subj616	40	186.6	4	male
-Subj617	40	186.9	4	male
-Subj618	40	187.2	4	male
-Subj619	40	187.5	4	male
-Subj620	40	187.8	4	male
-Subj621	40	188.1	4	male
-Subj622	40	188.4	4	male
-Subj623	40	188.7	4	male
-Subj624	40	189	4	male
-Subj625	40	189.3	4	male
-Subj626	40	189.6	4	male
-Subj627	40	189.9	4	male
-Subj628	40	190.2	4	male
-Subj629	40	190.5	4	male
-Subj630	40	190.8	4	male
-Subj631	40	191.1	4	male
-Subj632	40	191.4	4	male
-Subj633	40	191.7	4	male
-Subj634	40	192	4	male
-Subj635	40	192.3	4	male
-Subj636	40	192.6	4	male
-Subj637	40	192.9	4	male
-Subj638	40	193.2	4	male
-Subj639	40	193.5	4	male
-Subj640	40	193.8	4	male
-Subj641	40	194.1	4	male
-Subj642	40	194.4	4	male
-Subj643	40	194.7	4	male
-Subj644	40	195	4	male
-Subj645	40	195.3	4	male
-Subj646	40	195.6	4	male
-Subj647	40	195.9	4	male
-Subj648	40	196.2	4	male
-Subj649	40	196.5	4	male
-Subj650	40	196.8	4	male
-Subj651	40	197.1	4	male
-Subj652	40	197.4	4	male
-Subj653	40	197.7	4	male
-Subj654	40	198	4	male
-Subj655	40	198.3	4	male
-Subj656	40	198.6	4	male
-Subj657	40	198.9	4	male
-Subj658	40	199.2	4	male
-Subj659	40	199.5	4	male
-Subj660	40	199.8	4	male
-Subj661	40	200.1	4	male
-Subj662	40	200.4	4	male
-Subj663	40	200.7	4	male
-Subj664	40	201	4	male
-Subj665	40	201.3	4	male
-Subj666	40	201.6	4	male
-Subj667	40	201.9	4	male
-Subj668	40	202.2	4	male
-Subj669	40	202.5	4	male
-Subj670	40	202.8	4	male
-Subj671	40	203.1	4	male
-Subj672	40	203.4	4	male
-Subj673	40	203.7	4	male
-Subj674	40	204	4	male
-Subj675	40	204.3	4	male
-Subj676	40	204.6	4	male
-Subj677	40	204.9	4	male
-Subj678	40	205.2	4	male
-Subj679	40	205.5	4	male
-Subj680	40	205.8	4	male
-Subj681	40	206.1	4	male
-Subj682	40	206.4	4	male
-Subj683	40	206.7	4	male
-Subj684	40	207	4	male
-Subj685	40	207.3	4	male
-Subj686	40	207.6	4	male
-Subj687	40	207.9	4	male
-Subj688	40	208.2	4	male
-Subj689	40	208.5	4	male
-Subj690	40	208.8	4	male
-Subj691	40	209.1	4	male
-Subj692	40	209.4	4	male
-Subj693	40	209.7	4	male
-Subj694	40	210	4	male
-Subj695	40	210.3	4	male
-Subj696	40	210.6	4	male
-Subj697	40	210.9	4	male
-Subj698	40	211.2	4	male
-Subj699	40	211.5	4	male
-Subj700	40	211.8	4	male
-Subj701	40	212.1	4	male
-Subj702	40	212.4	4	male
-Subj703	40	212.7	4	male
-Subj704	40	213	4	male
-Subj705	40	213.3	4	male
-Subj706	40	213.6	4	male
-Subj707	40	213.9	4	male
-Subj708	40	214.2	4	male
-Subj709	40	214.5	4	male
-Subj710	40	214.8	4	male
-Subj711	40	215.1	4	male
-Subj712	40	215.4	4	male
-Subj713	40	215.7	4	male
-Subj714	40	216	4	male
-Subj715	40	216.3	4	male
-Subj716	40	216.6	4	male
-Subj717	40	216.9	4	male
-Subj718	40	217.2	4	male
-Subj719	40	217.5	4	male
-Subj720	40	217.8	4	male
-Subj721	40	218.1	4	male
-Subj722	40	218.4	4	male
-Subj723	40	218.7	4	male
-Subj724	40	219	4	male
-Subj725	40	219.3	4	male
-Subj726	40	219.6	4	male
-Subj727	40	219.9	4	male
-Subj728	40	220.2	4	male
-Subj729	40	220.5	4	male
-Subj730	40	220.8	4	male
-Subj731	40	221.1	4	male
-Subj732	40	221.4	4	male
-Subj733	40	221.7	4	male
-Subj734	40	222	4	male
-Subj735	40	222.3	4	male
-Subj736	40	222.6	4	male
-Subj737	40	222.9	4	male
-Subj738	40	223.2	4	male
-Subj739	40	223.5	4	male
-Subj740	40	223.8	4	male
-Subj741	40	224.1	4	male
-Subj742	40	224.4	4	male
-Subj743	40	224.7	4	male
-Subj744	40	225	4	male
-Subj745	40	225.3	4	male
-Subj746	40	225.6	4	male
-Subj747	40	225.9	4	male
-Subj748	40	226.2	4	male
-Subj749	40	226.5	4	male
-Subj750	40	226.8	4	male
-Subj751	40	227.1	4	male
-Subj752	40	227.4	4	male
-Subj753	40	227.7	4	male
-Subj754	40	228	4	male
-Subj755	40	228.3	4	male
-Subj756	40	228.6	4	male
-Subj757	40	228.9	4	male
-Subj758	40	229.2	4	male
-Subj759	40	229.5	4	male
-Subj760	40	229.8	4	male
-Subj761	40	230.1	4	male
-Subj762	40	230.4	4	male
-Subj763	40	230.7	4	male
-Subj764	40	231	4	male
-Subj765	40	231.3	4	male
-Subj766	40	231.6	4	male
-Subj767	40	231.9	4	male
-Subj768	40	232.2	4	male
-Subj769	40	232.5	4	male
-Subj770	40	232.8	4	male
-Subj771	40	233.1	4	male
-Subj772	40	233.4	4	male
-Subj773	40	233.7	4	male
-Subj774	40	234	4	male
-Subj775	40	234.3	4	male
-Subj776	40	234.6	4	male
-Subj777	40	234.9	4	male
-Subj778	40	235.2	4	male
-Subj779	40	235.5	4	male
-Subj780	40	235.8	4	male
-Subj781	40	236.1	4	male
-Subj782	40	236.4	4	male
-Subj783	40	236.7	4	male
-Subj784	40	237	4	male
-Subj785	40	237.3	4	male
-Subj786	40	237.6	4	male
-Subj787	40	237.9	4	male
-Subj788	40	238.2	4	male
-Subj789	40	238.5	4	male
-Subj790	40	238.8	4	male
-Subj791	40	239.1	4	male
-Subj792	40	239.4	4	male
-Subj793	40	239.7	4	male
-Subj794	40	240	4	male
-Subj795	40	240.3	4	male
-Subj796	40	240.6	4	male
-Subj797	40	240.9	4	male
-Subj798	40	241.2	4	male
-Subj799	40	241.5	4	male
-Subj800	40	241.8	4	male
-Subj801	40	242.1	4	male
-Subj802	40	242.4	4	male
-Subj803	40	242.7	4	male
-Subj804	40	243	4	male
-Subj805	40	243.3	4	male
-Subj806	40	243.6	4	male
-Subj807	40	243.9	4	male
-Subj808	40	244.2	4	male
-Subj809	40	244.5	4	male
-Subj810	40	244.8	4	male
-Subj811	40	245.1	4	male
-Subj812	40	245.4	4	male
-Subj813	40	245.7	4	male
-Subj814	40	246	4	male
-Subj815	40	246.3	4	male
-Subj816	40	246.6	4	male
-Subj817	40	246.9	4	male
-Subj818	40	247.2	4	male
-Subj819	40	247.5	4	male
-Subj820	40	247.8	4	male
-Subj821	40	248.1	4	male
-Subj822	40	248.4	4	male
-Subj823	40	248.7	4	male
-Subj824	40	249	4	male
-Subj825	40	249.3	4	male
-Subj826	40	249.6	4	male
-Subj827	40	249.9	4	male
-Subj828	40	250.2	4	male
-Subj829	40	250.5	4	male
-Subj830	40	250.8	4	male
-Subj831	40	251.1	4	male
-Subj832	40	251.4	4	male
-Subj833	40	251.7	4	male
-Subj834	40	252	4	male
-Subj835	40	252.3	4	male
-Subj836	40	252.6	4	male
-Subj837	40	252.9	4	male
-Subj838	40	253.2	4	male
-Subj839	40	253.5	4	male
-Subj840	40	253.8	4	male
-Subj841	40	254.1	4	male
-Subj842	40	254.4	4	male
-Subj843	40	254.7	4	male
-Subj844	40	255	4	male
-Subj845	40	255.3	4	male
-Subj846	40	255.6	4	male
-Subj847	40	255.9	4	male
-Subj848	40	256.2	4	male
-Subj849	40	256.5	4	male
-Subj850	40	256.8	4	male
-Subj851	40	257.1	4	male
-Subj852	40	257.4	4	male
-Subj853	40	257.7	4	male
-Subj854	40	258	4	male
-Subj855	40	258.3	4	male
-Subj856	40	258.6	4	male
-Subj857	40	258.9	4	male
-Subj858	40	259.2	4	male
-Subj859	40	259.5	4	male
-Subj860	40	259.8	4	male
-Subj861	40	260.1	4	male
-Subj862	40	260.4	4	male
-Subj863	40	260.7	4	male
-Subj864	40	261	4	male
-Subj865	40	261.3	4	male
-Subj866	40	261.6	4	male
-Subj867	40	261.9	4	male
-Subj868	40	262.2	4	male
-Subj869	40	262.5	4	male
-Subj870	40	262.8	4	male
-Subj871	40	263.1	4	male
-Subj872	40	263.4	4	male
-Subj873	40	263.7	4	male
-Subj874	40	264	4	male
-Subj875	40	264.3	4	male
-Subj876	40	264.6	4	male
-Subj877	40	264.9	4	male
-Subj878	40	265.2	4	male
-Subj879	40	265.5	4	male
-Subj880	40	265.8	4	male
-Subj881	40	266.1	4	male
-Subj882	40	266.4	4	male
-Subj883	40	266.7	4	male
-Subj884	40	267	4	male
-Subj885	40	267.3	4	male
-Subj886	40	267.6	4	male
-Subj887	40	267.9	4	male
-Subj888	40	268.2	4	male
-Subj889	40	268.5	4	male
-Subj890	40	268.8	4	male
-Subj891	40	269.1	4	male
-Subj892	40	269.4	4	male
-Subj893	40	269.7	4	male
-Subj894	40	270	4	male
-Subj895	40	270.3	4	male
-Subj896	40	270.6	4	male
-Subj897	40	270.9	4	male
-Subj898	40	271.2	4	male
-Subj899	40	271.5	4	male
-Subj900	40	271.8	4	male
-Subj901	40	272.1	4	male
-Subj902	40	272.4	4	male
-Subj903	40	272.7	4	male
-Subj904	40	273	4	male
-Subj905	40	273.3	4	male
-Subj906	40	273.6	4	male
-Subj907	40	273.9	4	male
-Subj908	40	274.2	4	male
-Subj909	40	274.5	4	male
-Subj910	40	274.8	4	male
-Subj911	40	275.1	4	male
-Subj912	40	275.4	4	male
-Subj913	40	275.7	4	male
-Subj914	40	276	4	male
-Subj915	40	276.3	4	male
-Subj916	40	276.6	4	male
-Subj917	40	276.9	4	male
-Subj918	40	277.2	4	male
-Subj919	40	277.5	4	male
-Subj920	40	277.8	4	male
-Subj921	40	278.1	4	male
-Subj922	40	278.4	4	male
-Subj923	40	278.7	4	male
-Subj924	40	279	4	male
-Subj925	40	279.3	4	male
-Subj926	40	279.6	4	male
-Subj927	40	279.9	4	male
-Subj928	40	280.2	4	male
-Subj929	40	280.5	4	male
-Subj930	40	280.8	4	male
-Subj931	40	281.1	4	male
-Subj932	40	281.4	4	male
-Subj933	40	281.7	4	male
-Subj934	40	282	4	male
-Subj935	40	282.3	4	male
-Subj936	40	282.6	4	male
-Subj937	40	282.9	4	male
-Subj938	40	283.2	4	male
-Subj939	40	283.5	4	male
-Subj940	40	283.8	4	male
-Subj941	40	284.1	4	male
-Subj942	40	284.4	4	male
-Subj943	40	284.7	4	male
-Subj944	40	285	4	male
-Subj945	40	285.3	4	male
-Subj946	40	285.6	4	male
-Subj947	40	285.9	4	male
-Subj948	40	286.2	4	male
-Subj949	40	286.5	4	male
-Subj950	40	286.8	4	male
-Subj951	40	287.1	4	male
-Subj952	40	287.4	4	male
-Subj953	40	287.7	4	male
-Subj954	40	288	4	male
-Subj955	40	288.3	4	male
-Subj956	40	288.6	4	male
-Subj957	40	288.9	4	male
-Subj958	40	289.2	4	male
-Subj959	40	289.5	4	male
-Subj960	40	289.8	4	male
-Subj961	40	290.1	4	male
-Subj962	40	290.4	4	male
-Subj963	40	290.7	4	male
-Subj964	40	291	4	male
-Subj965	40	291.3	4	male
-Subj966	40	291.6	4	male
-Subj967	40	291.9	4	male
-Subj968	40	292.2	4	male
-Subj969	40	292.5	4	male
-Subj970	40	292.8	4	male
-Subj971	40	293.1	4	male
-Subj972	40	293.4	4	male
-Subj973	40	293.7	4	male
-Subj974	40	294	4	male
-Subj975	40	294.3	4	male
-Subj976	40	294.6	4	male
-Subj977	40	294.9	4	male
-Subj978	40	295.2	4	male
-Subj979	40	295.5	4	male
-Subj980	40	295.8	4	male
-Subj981	40	296.1	4	male
-Subj982	40	296.4	4	male
-Subj983	40	296.7	4	male
-Subj984	40	297	4	male
-Subj985	40	297.3	4	male
-Subj986	40	297.6	4	male
-Subj987	40	297.9	4	male
-Subj988	40	298.2	4	male
-Subj989	40	298.5	4	male
-Subj990	40	298.8	4	male
-Subj991	40	299.1	4	male
-Subj992	40	299.4	4	male
-Subj993	40	299.7	4	male
-Subj994	40	300	4	male
-Subj995	40	300.3	4	male
-Subj996	40	300.6	4	male
-Subj997	40	300.9	4	male
-Subj998	40	301.2	4	male
-Subj999	40	301.5	4	male
-Subj1000	40	301.8	4	male
-Subj1001	40	302.1	4	male
-Subj1002	40	302.4	4	male
-Subj1003	40	302.7	4	male
-Subj1004	40	303	4	male
-Subj1005	40	303.3	4	male
-Subj1006	40	303.6	4	male
-Subj1007	40	303.9	4	male
-Subj1008	40	304.2	4	male
-Subj1009	40	304.5	4	male
-Subj1010	40	304.8	4	male
-Subj1011	40	305.1	4	male
-Subj1012	40	305.4	4	male
-Subj1013	40	305.7	4	male
-Subj1014	40	306	4	male
-Subj1015	40	306.3	4	male
-Subj1016	40	306.6	4	male
-Subj1017	40	306.9	4	male
-Subj1018	40	307.2	4	male
-Subj1019	40	307.5	4	male
-Subj1020	40	307.8	4	male
-Subj1021	40	308.1	4	male
-Subj1022	40	308.4	4	male
-Subj1023	40	308.7	4	male
-Subj1024	40	309	4	male
-Subj1025	40	309.3	4	male
-Subj1026	40	309.6	4	male
-Subj1027	40	309.9	4	male
-Subj1028	40	310.2	4	male
-Subj1029	40	310.5	4	male
-Subj1030	40	310.8	4	male
-Subj1031	40	311.1	4	male
-Subj1032	40	311.4	4	male
-Subj1033	40	311.7	4	male
-Subj1034	40	312	4	male
-Subj1035	40	312.3	4	male
-Subj1036	40	312.6	4	male
-Subj1037	40	312.9	4	male
-Subj1038	40	313.2	4	male
-Subj1039	40	313.5	4	male
-Subj1040	40	313.8	4	male
-Subj1041	40	314.1	4	male
-Subj1042	40	314.4	4	male
-Subj1043	40	314.7	4	male
-Subj1044	40	315	4	male
-Subj1045	40	315.3	4	male
-Subj1046	40	315.6	4	male
-Subj1047	40	315.9	4	male
-Subj1048	40	316.2	4	male
-Subj1049	40	316.5	4	male
-Subj1050	40	316.8	4	male
-Subj1051	40	317.1	4	male
-Subj1052	40	317.4	4	male
-Subj1053	40	317.7	4	male
-Subj1054	40	318	4	male
-Subj1055	40	318.3	4	male
-Subj1056	40	318.6	4	male
-Subj1057	40	318.9	4	male
-Subj1058	40	319.2	4	male
-Subj1059	40	319.5	4	male
-Subj1060	40	319.8	4	male
-Subj1061	40	320.1	4	male
-Subj1062	40	320.4	4	male
-Subj1063	40	320.7	4	male
-Subj1064	40	321	4	male
-Subj1065	40	321.3	4	male
-Subj1066	40	321.6	4	male
-Subj1067	40	321.9	4	male
-Subj1068	40	322.2	4	male
-Subj1069	40	322.5	4	male
-Subj1070	40	322.8	4	male
-Subj1071	40	323.1	4	male
-Subj1072	>100	323.4	4	male
-Subj1073	40	323.7	4	male
-Subj1074	40	324	4	male
-Subj1075	40	324.3	4	male
-Subj1076	40	324.6	4	male
-Subj1077	40	324.9	4	male
-Subj1078	40	325.2	4	male
-Subj1079	40	325.5	4	male
-Subj1080	40	325.8	4	male
-Subj1081	40	326.1	4	male
-Subj1082	40	326.4	4	male
-Subj1083	40	326.7	4	male
-Subj1084	40	327	4	male
-Subj1085	40	327.3	4	male
-Subj1086	40	327.6	4	male
-Subj1087	40	327.9	4	male
-Subj1088	40	328.2	4	male
-Subj1089	>100	328.5	4	male
-Subj1090	>101	328.5	4	male
-Subj1091	>102	328.5	4	male
-Subj1092	>103	328.5	4	male
-Subj1093	>104	328.5	4	male
-Subj1094	>105	328.5	4	male
-Subj1095	>106	328.5	4	male
-Subj1096	>107	328.5	4	male
-Subj1097	>108	328.5	4	male
-Subj1098	>109	328.5	4	male
-Subj1099	>110	328.5	4	male
-Subj1100	>111	328.5	4	male
-Subj1101	>112	328.5	4	male
-Subj1102	>113	328.5	4	male
-Subj1103	>114	328.5	4	male
-Subj1104	>115	328.5	4	male
-Subj1105	>116	328.5	4	male
-Subj1106	>117	328.5	4	male
-Subj1107	>118	328.5	4	male
-Subj1108	>119	328.5	4	male
-Subj1109	>120	328.5	4	male
-Subj1110	>121	328.5	4	male
-Subj1111	>122	328.5	4	male
-Subj1112	>123	328.5	4	male
-Subj1113	>124	328.5	4	male
-Subj1114	>125	328.5	4	male
-Subj1115	>126	328.5	4	male
-Subj1116	>127	328.5	4	male
-Subj1117	>128	328.5	4	male
-Subj1118	>129	328.5	4	male
-Subj1119	>130	328.5	4	male
-Subj1120	>131	328.5	4	male
-Subj1121	>132	328.5	4	male
-Subj1122	>133	328.5	4	male
-Subj1123	>134	328.5	4	male
-Subj1124	>135	328.5	4	male
-Subj1125	>136	328.5	4	male
-Subj1126	>137	328.5	4	male
-Subj1127	>138	328.5	4	male
-Subj1128	>139	328.5	4	male
-Subj1129	>140	328.5	4	male
-Subj1130	>141	328.5	4	male
-Subj1131	>142	328.5	4	male
-Subj1132	>143	328.5	4	male
-Subj1133	>144	328.5	4	male
-Subj1134	>145	328.5	4	male
-Subj1135	>146	328.5	4	male
-Subj1136	>147	328.5	4	male
-Subj1137	>148	328.5	4	male
-Subj1138	>149	328.5	4	male
-Subj1139	>150	328.5	4	male
-Subj1140	>151	328.5	4	male
-Subj1141	>152	328.5	4	male
-Subj1142	>153	328.5	4	male
-Subj1143	>154	328.5	4	male
-Subj1144	>155	328.5	4	male
-Subj1145	>156	328.5	4	male
-Subj1146	>157	328.5	4	male
-Subj1147	>158	328.5	4	male
-Subj1148	>159	328.5	4	male
-Subj1149	>160	328.5	4	male
-Subj1150	>161	328.5	4	male
-Subj1151	>162	328.5	4	male
-Subj1152	>163	328.5	4	male
-Subj1153	>164	328.5	4	male
-Subj1154	>165	328.5	4	male
-Subj1155	>166	328.5	4	male
-Subj1156	>167	328.5	4	male
-Subj1157	>168	328.5	4	male
-Subj1158	>169	328.5	4	male
-Subj1159	>170	328.5	4	male
-Subj1160	>171	328.5	4	male
-Subj1161	>172	328.5	4	male
-Subj1162	>173	328.5	4	male
-Subj1163	>174	328.5	4	male
-Subj1164	>175	328.5	4	male
-Subj1165	>176	328.5	4	male
-Subj1166	>177	328.5	4	male
-Subj1167	>178	328.5	4	male
-Subj1168	>179	328.5	4	male
-Subj1169	>180	328.5	4	male
-Subj1170	>181	328.5	4	male
-Subj1171	>182	328.5	4	male
-Subj1172	>183	328.5	4	male
-Subj1173	>184	328.5	4	male
-Subj1174	>185	328.5	4	male
-Subj1175	>186	328.5	4	male
-Subj1176	>187	328.5	4	male
-Subj1177	>188	328.5	4	male
-Subj1178	>189	328.5	4	male
-Subj1179	>190	328.5	4	male
-Subj1180	>191	328.5	4	male
-Subj1181	>192	328.5	4	male
-Subj1182	>193	328.5	4	male
-Subj1183	>194	328.5	4	male
-Subj1184	>195	328.5	4	male
-Subj1185	>196	328.5	4	male
-Subj1186	>197	328.5	4	male
-Subj1187	>198	328.5	4	male
-Subj1188	>199	328.5	4	male
-Subj1189	>200	328.5	4	male
-Subj1190	>201	328.5	4	male
-Subj1191	>202	328.5	4	male
-Subj1192	>203	328.5	4	male
-Subj1193	>204	328.5	4	male
-Subj1194	>205	328.5	4	male
-Subj1195	>206	328.5	4	male
-Subj1196	>207	328.5	4	male
-Subj1197	>208	328.5	4	male
-Subj1198	>209	328.5	4	male
-Subj1199	>210	328.5	4	male
-Subj1200	>211	328.5	4	male
-Subj1201	>212	328.5	4	male
-Subj1202	>213	328.5	4	male
-Subj1203	>214	328.5	4	male
-Subj1204	>215	328.5	4	male
-Subj1205	>216	328.5	4	male
-Subj1206	>217	328.5	4	male
-Subj1207	>218	328.5	4	male
-Subj1208	>219	328.5	4	male
-Subj1209	>220	328.5	4	male
-Subj1210	>221	328.5	4	male
-Subj1211	>222	328.5	4	male
-Subj1212	>223	328.5	4	male
-Subj1213	>224	328.5	4	male
-Subj1214	>225	328.5	4	male
-Subj1215	>226	328.5	4	male
-Subj1216	>227	328.5	4	male
-Subj1217	>228	328.5	4	male
-Subj1218	>229	328.5	4	male
-Subj1219	>230	328.5	4	male
-Subj1220	>231	328.5	4	male
-Subj1221	>232	328.5	4	male
-Subj1222	>233	328.5	4	male
-Subj1223	>234	328.5	4	male
-Subj1224	>235	328.5	4	male
-Subj1225	>236	328.5	4	male
-Subj1226	>237	328.5	4	male
-Subj1227	>238	328.5	4	male
-Subj1228	>239	328.5	4	male
-Subj1229	>240	328.5	4	male
-Subj1230	>241	328.5	4	male
-Subj1231	>242	328.5	4	male
-Subj1232	>243	328.5	4	male
-Subj1233	>244	328.5	4	male
-Subj1234	>245	328.5	4	male
-Subj1235	>246	328.5	4	male
-Subj1236	>247	328.5	4	male
-Subj1237	>248	328.5	4	male
-Subj1238	>249	328.5	4	male
-Subj1239	>250	328.5	4	male
-Subj1240	>251	328.5	4	male
-Subj1241	>252	328.5	4	male
-Subj1242	>253	328.5	4	male
-Subj1243	>254	328.5	4	male
-Subj1244	>255	328.5	4	male
-Subj1245	>256	328.5	4	male
-Subj1246	>257	328.5	4	male
-Subj1247	>258	328.5	4	male
-Subj1248	>259	328.5	4	male
-Subj1249	>260	328.5	4	male
-Subj1250	>261	328.5	4	male
-Subj1251	>262	328.5	4	male
-Subj1252	>263	328.5	4	male
-Subj1253	>264	328.5	4	male
-Subj1254	>265	328.5	4	male
-Subj1255	>266	328.5	4	male
-Subj1256	>267	328.5	4	male
-Subj1257	>268	328.5	4	male
-Subj1258	>269	328.5	4	male
-Subj1259	>270	328.5	4	male
-Subj1260	>271	328.5	4	male
-Subj1261	>272	328.5	4	male
-Subj1262	>273	328.5	4	male
-Subj1263	>274	328.5	4	male
-Subj1264	>275	328.5	4	male
-Subj1265	>276	328.5	4	male
-Subj1266	>277	328.5	4	male
-Subj1267	>278	328.5	4	male
-Subj1268	>279	328.5	4	male
-Subj1269	>280	328.5	4	male
-Subj1270	>281	328.5	4	male
-Subj1271	>282	328.5	4	male
-Subj1272	>283	328.5	4	male
-Subj1273	>284	328.5	4	male
-Subj1274	>285	328.5	4	male
-Subj1275	>286	328.5	4	male
-Subj1276	>287	328.5	4	male
-Subj1277	>288	328.5	4	male
-Subj1278	>289	328.5	4	male
-Subj1279	>290	328.5	4	male
-Subj1280	>291	328.5	4	male
-Subj1281	>292	328.5	4	male
-Subj1282	>293	328.5	4	male
-Subj1283	>294	328.5	4	male
-Subj1284	>295	328.5	4	male
-Subj1285	>296	328.5	4	male
-Subj1286	>297	328.5	4	male
-Subj1287	>298	328.5	4	male
-Subj1288	>299	328.5	4	male
-Subj1289	>300	328.5	4	male
-Subj1290	>301	328.5	4	male
-Subj1291	>302	328.5	4	male
-Subj1292	>303	328.5	4	male
-Subj1293	>304	328.5	4	male
-Subj1294	>305	328.5	4	male
-Subj1295	>306	328.5	4	male
-Subj1296	>307	328.5	4	male
-Subj1297	>308	328.5	4	male
-Subj1298	>309	328.5	4	male
-Subj1299	>310	328.5	4	male
-Subj1300	>311	328.5	4	male
-Subj1301	>312	328.5	4	male
-Subj1302	>313	328.5	4	male
-Subj1303	>314	328.5	4	male
-Subj1304	>315	328.5	4	male
-Subj1305	>316	328.5	4	male
-Subj1306	>317	328.5	4	male
-Subj1307	>318	328.5	4	male
-Subj1308	>319	328.5	4	male
-Subj1309	>320	328.5	4	male
-Subj1310	>321	328.5	4	male
-Subj1311	>322	328.5	4	male
-Subj1312	>323	328.5	4	male
-Subj1313	>324	328.5	4	male
-Subj1314	>325	328.5	4	male
-Subj1315	>326	328.5	4	male
-Subj1316	>327	328.5	4	male
-Subj1317	>328	328.5	4	male
-Subj1318	>329	328.5	4	male
-Subj1319	>330	328.5	4	male
-Subj1320	>331	328.5	4	male
-Subj1321	>332	328.5	4	male
-Subj1322	>333	328.5	4	male
-Subj1323	>334	328.5	4	male
-Subj1324	>335	328.5	4	male
-Subj1325	>336	328.5	4	male
-Subj1326	>337	328.5	4	male
-Subj1327	>338	328.5	4	male
-Subj1328	>339	328.5	4	male
-Subj1329	>340	328.5	4	male
-Subj1330	>341	328.5	4	male
-Subj1331	>342	328.5	4	male
-Subj1332	>343	328.5	4	male
-Subj1333	>344	328.5	4	male
-Subj1334	>345	328.5	4	male
-Subj1335	>346	328.5	4	male
-Subj1336	>347	328.5	4	male
-Subj1337	>348	328.5	4	male
-Subj1338	>349	328.5	4	male
-Subj1339	>350	328.5	4	male
-Subj1340	>351	328.5	4	male
-Subj1341	>352	328.5	4	male
-Subj1342	>353	328.5	4	male
-Subj1343	>354	328.5	4	male
-Subj1344	>355	328.5	4	male
-Subj1345	>356	328.5	4	male
-Subj1346	>357	328.5	4	male
-Subj1347	>358	328.5	4	male
-Subj1348	>359	328.5	4	male
-Subj1349	>360	328.5	4	male
-Subj1350	>361	328.5	4	male
-Subj1351	>362	328.5	4	male
-Subj1352	>363	328.5	4	male
-Subj1353	>364	328.5	4	male
-Subj1354	>365	328.5	4	male
-Subj1355	>366	328.5	4	male
-Subj1356	>367	328.5	4	male
-Subj1357	>368	328.5	4	male
-Subj1358	>369	328.5	4	male
-Subj1359	>370	328.5	4	male
-Subj1360	>371	328.5	4	male
-Subj1361	>372	328.5	4	male
-Subj1362	>373	328.5	4	male
-Subj1363	>374	328.5	4	male
-Subj1364	>375	328.5	4	male
-Subj1365	>376	328.5	4	male
-Subj1366	>377	328.5	4	male
-Subj1367	>378	328.5	4	male
-Subj1368	>379	328.5	4	male
-Subj1369	>380	328.5	4	male
-Subj1370	>381	328.5	4	male
-Subj1371	>382	328.5	4	male
-Subj1372	>383	328.5	4	male
-Subj1373	>384	328.5	4	male
-Subj1374	>385	328.5	4	male
-Subj1375	>386	328.5	4	male
-Subj1376	>387	328.5	4	male
-Subj1377	>388	328.5	4	male
-Subj1378	>389	328.5	4	male
-Subj1379	>390	328.5	4	male
-Subj1380	>391	328.5	4	male
-Subj1381	>392	328.5	4	male
-Subj1382	>393	328.5	4	male
-Subj1383	>394	328.5	4	male
-Subj1384	>395	328.5	4	male
-Subj1385	>396	328.5	4	male
-Subj1386	>397	328.5	4	male
-Subj1387	>398	328.5	4	male
-Subj1388	>399	328.5	4	male
-Subj1389	>400	328.5	4	male
-Subj1390	>401	328.5	4	male
-Subj1391	>402	328.5	4	male
-Subj1392	>403	328.5	4	male
-Subj1393	>404	328.5	4	male
-Subj1394	>405	328.5	4	male
-Subj1395	>406	328.5	4	male
-Subj1396	>407	328.5	4	male
-Subj1397	>408	328.5	4	male
-Subj1398	>409	328.5	4	male
-Subj1399	>410	328.5	4	male
-Subj1400	>411	328.5	4	male
-Subj1401	>412	328.5	4	male
-Subj1402	>413	328.5	4	male
-Subj1403	>414	328.5	4	male
-Subj1404	>415	328.5	4	male
-Subj1405	>416	328.5	4	male
-Subj1406	>417	328.5	4	male
-Subj1407	>418	328.5	4	male
-Subj1408	>419	328.5	4	male
-Subj1409	>420	328.5	4	male
-Subj1410	>421	328.5	4	male
-Subj1411	>422	328.5	4	male
-Subj1412	>423	328.5	4	male
-Subj1413	>424	328.5	4	male
-Subj1414	>425	328.5	4	male
-Subj1415	>426	328.5	4	male
-Subj1416	>427	328.5	4	male
-Subj1417	>428	328.5	4	male
-Subj1418	>429	328.5	4	male
-Subj1419	>430	328.5	4	male
-Subj1420	>431	328.5	4	male
-Subj1421	>432	328.5	4	male
-Subj1422	>433	328.5	4	male
-Subj1423	>434	328.5	4	male
-Subj1424	>435	328.5	4	male
-Subj1425	>436	328.5	4	male
-Subj1426	>437	328.5	4	male
-Subj1427	>438	328.5	4	male
-Subj1428	>439	328.5	4	male
-Subj1429	>440	328.5	4	male
-Subj1430	>441	328.5	4	male
-Subj1431	>442	328.5	4	male
-Subj1432	>443	328.5	4	male
-Subj1433	>444	328.5	4	male
-Subj1434	>445	328.5	4	male
-Subj1435	>446	328.5	4	male
-Subj1436	>447	328.5	4	male
-Subj1437	>448	328.5	4	male
-Subj1438	>449	328.5	4	male
-Subj1439	>450	328.5	4	male
-Subj1440	>451	328.5	4	male
-Subj1441	>452	328.5	4	male
-Subj1442	>453	328.5	4	male
-Subj1443	>454	328.5	4	male
-Subj1444	>455	328.5	4	male
-Subj1445	>456	328.5	4	male
-Subj1446	>457	328.5	4	male
-Subj1447	>458	328.5	4	male
-Subj1448	>459	328.5	4	male
-Subj1449	>460	328.5	4	male
-Subj1450	>461	328.5	4	male
-Subj1451	>462	328.5	4	male
-Subj1452	>463	328.5	4	male
-Subj1453	>464	328.5	4	male
-Subj1454	>465	328.5	4	male
-Subj1455	>466	328.5	4	male
-Subj1456	>467	328.5	4	male
-Subj1457	>468	328.5	4	male
-Subj1458	>469	328.5	4	male
-Subj1459	>470	328.5	4	male
-Subj1460	>471	328.5	4	male
-Subj1461	>472	328.5	4	male
-Subj1462	>473	328.5	4	male
-Subj1463	>474	328.5	4	male
-Subj1464	>475	328.5	4	male
-Subj1465	>476	328.5	4	male
-Subj1466	>477	328.5	4	male
-Subj1467	>478	328.5	4	male
-Subj1468	>479	328.5	4	male
-Subj1469	>480	328.5	4	male
-Subj1470	>481	328.5	4	male
-Subj1471	>482	328.5	4	male
-Subj1472	>483	328.5	4	male
-Subj1473	>484	328.5	4	male
-Subj1474	>485	328.5	4	male
-Subj1475	>486	328.5	4	male
-Subj1476	>487	328.5	4	male
-Subj1477	>488	328.5	4	male
-Subj1478	>489	328.5	4	male
-Subj1479	>490	328.5	4	male
-Subj1480	>491	328.5	4	male
-Subj1481	>492	328.5	4	male
-Subj1482	>493	328.5	4	male
-Subj1483	>494	328.5	4	male
-Subj1484	>495	328.5	4	male
-Subj1485	>496	328.5	4	male
-Subj1486	>497	328.5	4	male
-Subj1487	>498	328.5	4	male
-Subj1488	>499	328.5	4	male
-Subj1489	>500	328.5	4	male
-Subj1490	>501	328.5	4	male
-Subj1491	>502	328.5	4	male
-Subj1492	>503	328.5	4	male
-Subj1493	>504	328.5	4	male
-Subj1494	>505	328.5	4	male
-Subj1495	>506	328.5	4	male
-Subj1496	>507	328.5	4	male
-Subj1497	>508	328.5	4	male
-Subj1498	>509	328.5	4	male
-Subj1499	>510	328.5	4	male
-Subj1500	>511	328.5	4	male
-Subj1501	>512	328.5	4	male
-Subj1502	>513	328.5	4	male
-Subj1503	>514	328.5	4	male
-Subj1504	>515	328.5	4	male
-Subj1505	>516	328.5	4	male
-Subj1506	>517	328.5	4	male
-Subj1507	>518	328.5	4	male
-Subj1508	>519	328.5	4	male
-Subj1509	>520	328.5	4	male
-Subj1510	>521	328.5	4	male
-Subj1511	>522	328.5	4	male
-Subj1512	>523	328.5	4	male
-Subj1513	>524	328.5	4	male
-Subj1514	>525	328.5	4	male
-Subj1515	>526	328.5	4	male
-Subj1516	>527	328.5	4	male
-Subj1517	>528	328.5	4	male
-Subj1518	>529	328.5	4	male
-Subj1519	>530	328.5	4	male
-Subj1520	>531	328.5	4	male
-Subj1521	>532	328.5	4	male
-Subj1522	>533	328.5	4	male
-Subj1523	>534	328.5	4	male
-Subj1524	>535	328.5	4	male
-Subj1525	>536	328.5	4	male
-Subj1526	>537	328.5	4	male
-Subj1527	>538	328.5	4	male
-Subj1528	>539	328.5	4	male
-Subj1529	>540	328.5	4	male
-Subj1530	>541	328.5	4	male
-Subj1531	>542	328.5	4	male
-Subj1532	>543	328.5	4	male
-Subj1533	>544	328.5	4	male
-Subj1534	>545	328.5	4	male
-Subj1535	>546	328.5	4	male
-Subj1536	>547	328.5	4	male
-Subj1537	>548	328.5	4	male
-Subj1538	>549	328.5	4	male
-Subj1539	>550	328.5	4	male
-Subj1540	>551	328.5	4	male
-Subj1541	>552	328.5	4	male
-Subj1542	>553	328.5	4	male
-Subj1543	>554	328.5	4	male
-Subj1544	>555	328.5	4	male
-Subj1545	>556	328.5	4	male
-Subj1546	>557	328.5	4	male
-Subj1547	>558	328.5	4	male
-Subj1548	>559	328.5	4	male
-Subj1549	>560	328.5	4	male
-Subj1550	>561	328.5	4	male
-Subj1551	>562	328.5	4	male
-Subj1552	>563	328.5	4	male
-Subj1553	>564	328.5	4	male
-Subj1554	>565	328.5	4	male
-Subj1555	>566	328.5	4	male
-Subj1556	>567	328.5	4	male
-Subj1557	>568	328.5	4	male
-Subj1558	>569	328.5	4	male
-Subj1559	>570	328.5	4	male
-Subj1560	>571	328.5	4	male
-Subj1561	>572	328.5	4	male
-Subj1562	>573	328.5	4	male
-Subj1563	>574	328.5	4	male
-Subj1564	>575	328.5	4	male
-Subj1565	>576	328.5	4	male
-Subj1566	>577	328.5	4	male
-Subj1567	>578	328.5	4	male
-Subj1568	>579	328.5	4	male
-Subj1569	>580	328.5	4	male
-Subj1570	>581	328.5	4	male
-Subj1571	>582	328.5	4	male
-Subj1572	>583	328.5	4	male
-Subj1573	>584	328.5	4	male
-Subj1574	>585	328.5	4	male
-Subj1575	>586	328.5	4	male
-Subj1576	>587	328.5	4	male
-Subj1577	>588	328.5	4	male
-Subj1578	>589	328.5	4	male
-Subj1579	>590	328.5	4	male
-Subj1580	>591	328.5	4	male
-Subj1581	>592	328.5	4	male
-Subj1582	>593	328.5	4	male
-Subj1583	>594	328.5	4	male
-Subj1584	>595	328.5	4	male
-Subj1585	>596	328.5	4	male
-Subj1586	>597	328.5	4	male
-Subj1587	>598	328.5	4	male
-Subj1588	>599	328.5	4	male
-Subj1589	>600	328.5	4	male
-Subj1590	>601	328.5	4	male
-Subj1591	>602	328.5	4	male
-Subj1592	>603	328.5	4	male
-Subj1593	>604	328.5	4	male
-Subj1594	>605	328.5	4	male
-Subj1595	>606	328.5	4	male
-Subj1596	>607	328.5	4	male
-Subj1597	>608	328.5	4	male
-Subj1598	>609	328.5	4	male
-Subj1599	>610	328.5	4	male
-Subj1600	>611	328.5	4	male
-Subj1601	>612	328.5	4	male
-Subj1602	>613	328.5	4	male
-Subj1603	>614	328.5	4	male
-Subj1604	>615	328.5	4	male
-Subj1605	>616	328.5	4	male
-Subj1606	>617	328.5	4	male
-Subj1607	>618	328.5	4	male
-Subj1608	>619	328.5	4	male
-Subj1609	>620	328.5	4	male
-Subj1610	>621	328.5	4	male
-Subj1611	>622	328.5	4	male
-Subj1612	>623	328.5	4	male
-Subj1613	>624	328.5	4	male
-Subj1614	>625	328.5	4	male
-Subj1615	>626	328.5	4	male
-Subj1616	>627	328.5	4	male
-Subj1617	>628	328.5	4	male
-Subj1618	>629	328.5	4	male
-Subj1619	>630	328.5	4	male
-Subj1620	>631	328.5	4	male
-Subj1621	>632	328.5	4	male
-Subj1622	>633	328.5	4	male
-Subj1623	>634	328.5	4	male
-Subj1624	>635	328.5	4	male
-Subj1625	>636	328.5	4	male
-Subj1626	>637	328.5	4	male
-Subj1627	>638	328.5	4	male
-Subj1628	>639	328.5	4	male
-Subj1629	>640	328.5	4	male
-Subj1630	>641	328.5	4	male
-Subj1631	>642	328.5	4	male
-Subj1632	>643	328.5	4	male
-Subj1633	>644	328.5	4	male
-Subj1634	>645	328.5	4	male
-Subj1635	>646	328.5	4	male
-Subj1636	>647	328.5	4	male
-Subj1637	>648	328.5	4	male
-Subj1638	>649	328.5	4	male
-Subj1639	>650	328.5	4	male
-Subj1640	>651	328.5	4	male
-Subj1641	>652	328.5	4	male
-Subj1642	>653	328.5	4	male
-Subj1643	>654	328.5	4	male
-Subj1644	>655	328.5	4	male
-Subj1645	>656	328.5	4	male
-Subj1646	>657	328.5	4	male
-Subj1647	>658	328.5	4	male
-Subj1648	>659	328.5	4	male
-Subj1649	>660	328.5	4	male
-Subj1650	>661	328.5	4	male
-Subj1651	>662	328.5	4	male
-Subj1652	>663	328.5	4	male
-Subj1653	>664	328.5	4	male
-Subj1654	>665	328.5	4	male
-Subj1655	>666	328.5	4	male
-Subj1656	>667	328.5	4	male
-Subj1657	>668	328.5	4	male
-Subj1658	>669	328.5	4	male
-Subj1659	>670	328.5	4	male
-Subj1660	>671	328.5	4	male
-Subj1661	>672	328.5	4	male
-Subj1662	>673	328.5	4	male
-Subj1663	>674	328.5	4	male
-Subj1664	>675	328.5	4	male
-Subj1665	>676	328.5	4	male
-Subj1666	>677	328.5	4	male
-Subj1667	>678	328.5	4	male
-Subj1668	>679	328.5	4	male
-Subj1669	>680	328.5	4	male
-Subj1670	>681	328.5	4	male
-Subj1671	>682	328.5	4	male
-Subj1672	>683	328.5	4	male
-Subj1673	>684	328.5	4	male
-Subj1674	>685	328.5	4	male
-Subj1675	>686	328.5	4	male
-Subj1676	>687	328.5	4	male
-Subj1677	>688	328.5	4	male
-Subj1678	>689	328.5	4	male
-Subj1679	>690	328.5	4	male
-Subj1680	>691	328.5	4	male
-Subj1681	>692	328.5	4	male
-Subj1682	>693	328.5	4	male
-Subj1683	>694	328.5	4	male
-Subj1684	>695	328.5	4	male
-Subj1685	>696	328.5	4	male
-Subj1686	>697	328.5	4	male
-Subj1687	>698	328.5	4	male
-Subj1688	>699	328.5	4	male
-Subj1689	>700	328.5	4	male
-Subj1690	>701	328.5	4	male
-Subj1691	>702	328.5	4	male
-Subj1692	>703	328.5	4	male
-Subj1693	>704	328.5	4	male
-Subj1694	>705	328.5	4	male
-Subj1695	>706	328.5	4	male
-Subj1696	>707	328.5	4	male
-Subj1697	>708	328.5	4	male
-Subj1698	>709	328.5	4	male
-Subj1699	>710	328.5	4	male
-Subj1700	>711	328.5	4	male
-Subj1701	>712	328.5	4	male
-Subj1702	>713	328.5	4	male
-Subj1703	>714	328.5	4	male
-Subj1704	>715	328.5	4	male
-Subj1705	>716	328.5	4	male
-Subj1706	>717	328.5	4	male
-Subj1707	>718	328.5	4	male
-Subj1708	>719	328.5	4	male
-Subj1709	>720	328.5	4	male
-Subj1710	>721	328.5	4	male
-Subj1711	>722	328.5	4	male
-Subj1712	>723	328.5	4	male
-Subj1713	>724	328.5	4	male
-Subj1714	>725	328.5	4	male
-Subj1715	>726	328.5	4	male
-Subj1716	>727	328.5	4	male
-Subj1717	>728	328.5	4	male
-Subj1718	>729	328.5	4	male
-Subj1719	>730	328.5	4	male
-Subj1720	>731	328.5	4	male
-Subj1721	>732	328.5	4	male
-Subj1722	>733	328.5	4	male
-Subj1723	>734	328.5	4	male
-Subj1724	>735	328.5	4	male
-Subj1725	>736	328.5	4	male
-Subj1726	>737	328.5	4	male
-Subj1727	>738	328.5	4	male
-Subj1728	>739	328.5	4	male
-Subj1729	>740	328.5	4	male
-Subj1730	>741	328.5	4	male
-Subj1731	>742	328.5	4	male
-Subj1732	>743	328.5	4	male
-Subj1733	>744	328.5	4	male
-Subj1734	>745	328.5	4	male
-Subj1735	>746	328.5	4	male
-Subj1736	>747	328.5	4	male
-Subj1737	>748	328.5	4	male
-Subj1738	>749	328.5	4	male
-Subj1739	>750	328.5	4	male
-Subj1740	>751	328.5	4	male
-Subj1741	>752	328.5	4	male
-Subj1742	>753	328.5	4	male
-Subj1743	>754	328.5	4	male
-Subj1744	>755	328.5	4	male
-Subj1745	>756	328.5	4	male
-Subj1746	>757	328.5	4	male
-Subj1747	>758	328.5	4	male
-Subj1748	>759	328.5	4	male
-Subj1749	>760	328.5	4	male
-Subj1750	>761	328.5	4	male
-Subj1751	>762	328.5	4	male
-Subj1752	>763	328.5	4	male
-Subj1753	>764	328.5	4	male
-Subj1754	>765	328.5	4	male
-Subj1755	>766	328.5	4	male
-Subj1756	>767	328.5	4	male
-Subj1757	>768	328.5	4	male
-Subj1758	>769	328.5	4	male
-Subj1759	>770	328.5	4	male
-Subj1760	>771	328.5	4	male
-Subj1761	>772	328.5	4	male
-Subj1762	>773	328.5	4	male
-Subj1763	>774	328.5	4	male
-Subj1764	>775	328.5	4	male
-Subj1765	>776	328.5	4	male
-Subj1766	>777	328.5	4	male
-Subj1767	>778	328.5	4	male
-Subj1768	>779	328.5	4	male
-Subj1769	>780	328.5	4	male
-Subj1770	>781	328.5	4	male
-Subj1771	>782	328.5	4	male
-Subj1772	>783	328.5	4	male
-Subj1773	>784	328.5	4	male
-Subj1774	>785	328.5	4	male
-Subj1775	>786	328.5	4	male
-Subj1776	>787	328.5	4	male
-Subj1777	>788	328.5	4	male
-Subj1778	>789	328.5	4	male
-Subj1779	>790	328.5	4	male
-Subj1780	>791	328.5	4	male
-Subj1781	>792	328.5	4	male
-Subj1782	>793	328.5	4	male
-Subj1783	>794	328.5	4	male
-Subj1784	>795	328.5	4	male
-Subj1785	>796	328.5	4	male
-Subj1786	>797	328.5	4	male
-Subj1787	>798	328.5	4	male
-Subj1788	>799	328.5	4	male
-Subj1789	>800	328.5	4	male
-Subj1790	>801	328.5	4	male
-Subj1791	>802	328.5	4	male
-Subj1792	>803	328.5	4	male
-Subj1793	>804	328.5	4	male
-Subj1794	>805	328.5	4	male
-Subj1795	>806	328.5	4	male
-Subj1796	>807	328.5	4	male
-Subj1797	>808	328.5	4	male
-Subj1798	>809	328.5	4	male
-Subj1799	>810	328.5	4	male
-Subj1800	>811	328.5	4	male
-Subj1801	>812	328.5	4	male
-Subj1802	>813	328.5	4	male
-Subj1803	>814	328.5	4	male
-Subj1804	>815	328.5	4	male
-Subj1805	>816	328.5	4	male
-Subj1806	>817	328.5	4	male
-Subj1807	>818	328.5	4	male
-Subj1808	>819	328.5	4	male
-Subj1809	>820	328.5	4	male
-Subj1810	>821	328.5	4	male
-Subj1811	>822	328.5	4	male
-Subj1812	>823	328.5	4	male
-Subj1813	>824	328.5	4	male
-Subj1814	>825	328.5	4	male
-Subj1815	>826	328.5	4	male
-Subj1816	>827	328.5	4	male
-Subj1817	>828	328.5	4	male
-Subj1818	>829	328.5	4	male
-Subj1819	>830	328.5	4	male
-Subj1820	>831	328.5	4	male
-Subj1821	>832	328.5	4	male
-Subj1822	>833	328.5	4	male
-Subj1823	>834	328.5	4	male
-Subj1824	>835	328.5	4	male
-Subj1825	>836	328.5	4	male
-Subj1826	>837	328.5	4	male
-Subj1827	>838	328.5	4	male
-Subj1828	>839	328.5	4	male
-Subj1829	>840	328.5	4	male
-Subj1830	>841	328.5	4	male
-Subj1831	>842	328.5	4	male
-Subj1832	>843	328.5	4	male
-Subj1833	>844	328.5	4	male
-Subj1834	>845	328.5	4	male
-Subj1835	>846	328.5	4	male
-Subj1836	>847	328.5	4	male
-Subj1837	>848	328.5	4	male
-Subj1838	>849	328.5	4	male
-Subj1839	>850	328.5	4	male
-Subj1840	>851	328.5	4	male
-Subj1841	>852	328.5	4	male
-Subj1842	>853	328.5	4	male
-Subj1843	>854	328.5	4	male
-Subj1844	>855	328.5	4	male
-Subj1845	>856	328.5	4	male
-Subj1846	>857	328.5	4	male
-Subj1847	>858	328.5	4	male
-Subj1848	>859	328.5	4	male
-Subj1849	>860	328.5	4	male
-Subj1850	>861	328.5	4	male
-Subj1851	>862	328.5	4	male
-Subj1852	>863	328.5	4	male
-Subj1853	>864	328.5	4	male
-Subj1854	>865	328.5	4	male
-Subj1855	>866	328.5	4	male
-Subj1856	>867	328.5	4	male
-Subj1857	>868	328.5	4	male
-Subj1858	>869	328.5	4	male
-Subj1859	>870	328.5	4	male
-Subj1860	>871	328.5	4	male
-Subj1861	>872	328.5	4	male
-Subj1862	>873	328.5	4	male
-Subj1863	>874	328.5	4	male
-Subj1864	>875	328.5	4	male
-Subj1865	>876	328.5	4	male
-Subj1866	>877	328.5	4	male
-Subj1867	>878	328.5	4	male
-Subj1868	>879	328.5	4	male
-Subj1869	>880	328.5	4	male
-Subj1870	>881	328.5	4	male
-Subj1871	>882	328.5	4	male
-Subj1872	>883	328.5	4	male
-Subj1873	>884	328.5	4	male
-Subj1874	>885	328.5	4	male
-Subj1875	>886	328.5	4	male
-Subj1876	>887	328.5	4	male
-Subj1877	>888	328.5	4	male
-Subj1878	>889	328.5	4	male
-Subj1879	>890	328.5	4	male
-Subj1880	>891	328.5	4	male
-Subj1881	>892	328.5	4	male
-Subj1882	>893	328.5	4	male
-Subj1883	>894	328.5	4	male
-Subj1884	>895	328.5	4	male
-Subj1885	>896	328.5	4	male
-Subj1886	>897	328.5	4	male
-Subj1887	>898	328.5	4	male
-Subj1888	>899	328.5	4	male
-Subj1889	>900	328.5	4	male
-Subj1890	>901	328.5	4	male
-Subj1891	>902	328.5	4	male
-Subj1892	>903	328.5	4	male
-Subj1893	>904	328.5	4	male
-Subj1894	>905	328.5	4	male
-Subj1895	>906	328.5	4	male
-Subj1896	>907	328.5	4	male
-Subj1897	>908	328.5	4	male
-Subj1898	>909	328.5	4	male
-Subj1899	>910	328.5	4	male
-Subj1900	>911	328.5	4	male
-Subj1901	>912	328.5	4	male
-Subj1902	>913	328.5	4	male
-Subj1903	>914	328.5	4	male
-Subj1904	>915	328.5	4	male
-Subj1905	>916	328.5	4	male
-Subj1906	>917	328.5	4	male
-Subj1907	>918	328.5	4	male
-Subj1908	>919	328.5	4	male
-Subj1909	>920	328.5	4	male
-Subj1910	>921	328.5	4	male
-Subj1911	>922	328.5	4	male
-Subj1912	>923	328.5	4	male
-Subj1913	>924	328.5	4	male
-Subj1914	>925	328.5	4	male
-Subj1915	>926	328.5	4	male
-Subj1916	>927	328.5	4	male
-Subj1917	>928	328.5	4	male
-Subj1918	>929	328.5	4	male
-Subj1919	>930	328.5	4	male
-Subj1920	>931	328.5	4	male
-Subj1921	>932	328.5	4	male
-Subj1922	>933	328.5	4	male
-Subj1923	>934	328.5	4	male
-Subj1924	>935	328.5	4	male
-Subj1925	>936	328.5	4	male
-Subj1926	>937	328.5	4	male
-Subj1927	>938	328.5	4	male
-Subj1928	>939	328.5	4	male
-Subj1929	>940	328.5	4	male
-Subj1930	>941	328.5	4	male
-Subj1931	>942	328.5	4	male
-Subj1932	>943	328.5	4	male
-Subj1933	>944	328.5	4	male
-Subj1934	>945	328.5	4	male
-Subj1935	>946	328.5	4	male
-Subj1936	>947	328.5	4	male
-Subj1937	>948	328.5	4	male
-Subj1938	>949	328.5	4	male
-Subj1939	>950	328.5	4	male
-Subj1940	>951	328.5	4	male
-Subj1941	>952	328.5	4	male
-Subj1942	>953	328.5	4	male
-Subj1943	>954	328.5	4	male
-Subj1944	>955	328.5	4	male
-Subj1945	>956	328.5	4	male
-Subj1946	>957	328.5	4	male
-Subj1947	>958	328.5	4	male
-Subj1948	>959	328.5	4	male
-Subj1949	>960	328.5	4	male
-Subj1950	>961	328.5	4	male
-Subj1951	>962	328.5	4	male
-Subj1952	>963	328.5	4	male
-Subj1953	>964	328.5	4	male
-Subj1954	>965	328.5	4	male
-Subj1955	>966	328.5	4	male
-Subj1956	>967	328.5	4	male
-Subj1957	>968	328.5	4	male
-Subj1958	>969	328.5	4	male
-Subj1959	>970	328.5	4	male
-Subj1960	>971	328.5	4	male
-Subj1961	>972	328.5	4	male
-Subj1962	>973	328.5	4	male
-Subj1963	>974	328.5	4	male
-Subj1964	>975	328.5	4	male
-Subj1965	>976	328.5	4	male
-Subj1966	>977	328.5	4	male
-Subj1967	>978	328.5	4	male
-Subj1968	>979	328.5	4	male
-Subj1969	>980	328.5	4	male
-Subj1970	>981	328.5	4	male
-Subj1971	>982	328.5	4	male
-Subj1972	>983	328.5	4	male
-Subj1973	>984	328.5	4	male
-Subj1974	>985	328.5	4	male
-Subj1975	>986	328.5	4	male
-Subj1976	>987	328.5	4	male
-Subj1977	>988	328.5	4	male
-Subj1978	>989	328.5	4	male
-Subj1979	>990	328.5	4	male
-Subj1980	>991	328.5	4	male
-Subj1981	>992	328.5	4	male
-Subj1982	>993	328.5	4	male
-Subj1983	>994	328.5	4	male
-Subj1984	>995	328.5	4	male
-Subj1985	>996	328.5	4	male
-Subj1986	>997	328.5	4	male
-Subj1987	>998	328.5	4	male
-Subj1988	>999	328.5	4	male
-Subj1989	>1000	328.5	4	male
-Subj1990	>1001	328.5	4	male
-Subj1991	>1002	328.5	4	male
-Subj1992	>1003	328.5	4	male
-Subj1993	>1004	328.5	4	male
-Subj1994	>1005	328.5	4	male
-Subj1995	>1006	328.5	4	male
-Subj1996	>1007	328.5	4	male
-Subj1997	>1008	328.5	4	male
-Subj1998	>1009	328.5	4	male
-Subj1999	>1010	328.5	4	male
-Subj2000	>1011	328.5	4	male
-Subj2001	>1012	328.5	4	male
-Subj2002	>1013	328.5	4	male
-Subj2003	>1014	328.5	4	male
-Subj2004	>1015	328.5	4	male
-Subj2005	>1016	328.5	4	male
-Subj2006	>1017	328.5	4	male
-Subj2007	>1018	328.5	4	male
-Subj2008	>1019	328.5	4	male
-Subj2009	>1020	328.5	4	male
-Subj2010	>1021	328.5	4	male
-Subj2011	>1022	328.5	4	male
-Subj2012	>1023	328.5	4	male
-Subj2013	>1024	328.5	4	male
-Subj2014	>1025	328.5	4	male
-Subj2015	>1026	328.5	4	male
-Subj2016	>1027	328.5	4	male
-Subj2017	>1028	328.5	4	male
-Subj2018	>1029	328.5	4	male
-Subj2019	>1030	328.5	4	male
-Subj2020	>1031	328.5	4	male
-Subj2021	>1032	328.5	4	male
-Subj2022	>1033	328.5	4	male
-Subj2023	>1034	328.5	4	male
-Subj2024	>1035	328.5	4	male
-Subj2025	>1036	328.5	4	male
-Subj2026	>1037	328.5	4	male
-Subj2027	>1038	328.5	4	male
-Subj2028	>1039	328.5	4	male
-Subj2029	>1040	328.5	4	male
-Subj2030	>1041	328.5	4	male
-Subj2031	>1042	328.5	4	male
-Subj2032	>1043	328.5	4	male
-Subj2033	>1044	328.5	4	male
-Subj2034	>1045	328.5	4	male
-Subj2035	>1046	328.5	4	male
-Subj2036	>1047	328.5	4	male
-Subj2037	>1048	328.5	4	male
-Subj2038	>1049	328.5	4	male
-Subj2039	>1050	328.5	4	male
-Subj2040	>1051	328.5	4	male
-Subj2041	>1052	328.5	4	male
-Subj2042	>1053	328.5	4	male
-Subj2043	>1054	328.5	4	male
-Subj2044	>1055	328.5	4	male
-Subj2045	>1056	328.5	4	male
-Subj2046	>1057	328.5	4	male
-Subj2047	>1058	328.5	4	male
-Subj2048	>1059	328.5	4	male
-Subj2049	>1060	328.5	4	male
-Subj2050	>1061	328.5	4	male
-Subj2051	>1062	328.5	4	male
-Subj2052	>1063	328.5	4	male
-Subj2053	>1064	328.5	4	male
-Subj2054	>1065	328.5	4	male
-Subj2055	>1066	328.5	4	male
-Subj2056	>1067	328.5	4	male
-Subj2057	>1068	328.5	4	male
-Subj2058	>1069	328.5	4	male
-Subj2059	>1070	328.5	4	male
-Subj2060	>1071	328.5	4	male
-Subj2061	>1072	328.5	4	male
-Subj2062	>1073	328.5	4	male
-Subj2063	>1074	328.5	4	male
-Subj2064	>1075	328.5	4	male
-Subj2065	>1076	328.5	4	male
-Subj2066	>1077	328.5	4	male
-Subj2067	>1078	328.5	4	male
-Subj2068	>1079	328.5	4	male
-Subj2069	>1080	328.5	4	male
-Subj2070	>1081	328.5	4	male
-Subj2071	>1082	328.5	4	male
-Subj2072	>1083	328.5	4	male
-Subj2073	>1084	328.5	4	male
-Subj2074	>1085	328.5	4	male
-Subj2075	>1086	328.5	4	male
-Subj2076	>1087	328.5	4	male
-Subj2077	>1088	328.5	4	male
-Subj2078	>1089	328.5	4	male
-Subj2079	>1090	328.5	4	male
-Subj2080	>1091	328.5	4	male
-Subj2081	>1092	328.5	4	male
-Subj2082	>1093	328.5	4	male
-Subj2083	>1094	328.5	4	male
-Subj2084	>1095	328.5	4	male
-Subj2085	>1096	328.5	4	male
-Subj2086	>1097	328.5	4	male
-Subj2087	>1098	328.5	4	male
-Subj2088	>1099	328.5	4	male
-Subj2089	>1100	328.5	4	male
-Subj2090	>1101	328.5	4	male
-Subj2091	>1102	328.5	4	male
-Subj2092	>1103	328.5	4	male
-Subj2093	>1104	328.5	4	male
-Subj2094	>1105	328.5	4	male
-Subj2095	>1106	328.5	4	male
-Subj2096	>1107	328.5	4	male
-Subj2097	>1108	328.5	4	male
-Subj2098	>1109	328.5	4	male
-Subj2099	>1110	328.5	4	male
-Subj2100	>1111	328.5	4	male
-Subj2101	>1112	328.5	4	male
-Subj2102	>1113	328.5	4	male
-Subj2103	>1114	328.5	4	male
-Subj2104	>1115	328.5	4	male
-Subj2105	>1116	328.5	4	male
-Subj2106	>1117	328.5	4	male
-Subj2107	>1118	328.5	4	male
+ID,SubjectID,VisitID,Sex,Description,Weight
+1,I7N3G6G,1,0,no description,60.2
+2,I7N3G6G,2,1,no description,60.2
+3,I7N3G6G,3,1,no description,60.2
+4,I7N3G6G,4,1,no description,60.2
+5,I7N3G6G,5,1,no description,60.2
+6,I7N3G6G,6,1,no description,60.2
+7,I7N3G6G,7,1,no description,60.2
+8,I7N3G6G,8,1,no description,60.2
+9,I7N3G6G,9,1,no description,60.2
+10,I7N3G6G,10,1,no description,60.2
+11,I7N3G6G,11,1,no description,60.2
+12,I7N3G6G,12,1,no description,60.2
+13,I7N3G6G,13,1,no description,60.2
+14,I7N3G6G,14,1,no description,60.2
+15,I7N3G6G,15,1,no description,60.2
+16,I7N3G6G,16,1,no description,60.2
+17,I7N3G6G,17,1,no description,60.2
+18,I7N3G6G,18,1,no description,60.2
+19,I7N3G6G,19,1,no description,60.2
+20,I7N3G6G,20,1,no description,60.2
+21,I7N3G6G,21,1,no description,60.2
+22,I7N3G6G,22,1,no description,60.2
+23,I7N3G6G,23,1,no description,60.2
+24,I7N3G6G,24,1,no description,60.2
+25,I7N3G6G,25,1,no description,60.2
+26,I7N3G6G,26,1,no description,60.2
+27,I7N3G6G,27,1,no description,60.2
+28,I7N3G6G,28,1,no description,60.2
+29,I7N3G6G,29,1,no description,60.2
+30,I7N3G6G,30,1,no description,60.2
+31,I7N3G6G,31,1,no description,60.2
+32,I7N3G6G,32,1,no description,60.2
+33,I7N3G6G,33,1,no description,60.2
+34,I7N3G6G,34,1,no description,60.2
+35,I7N3G6G,35,1,no description,60.2
+36,I7N3G6G,36,1,no description,60.2
+37,I7N3G6G,37,1,no description,60.2
+38,I7N3G6G,38,1,no description,60.2
+39,I7N3G6G,39,1,no description,60.2
+40,I7N3G6G,40,1,no description,60.2
+41,I7N3G6G,41,1,no description,60.2
+42,I7N3G6G,42,1,no description,60.2
+43,I7N3G6G,43,1,no description,60.2
+44,I7N3G6G,44,1,no description,60.2
+45,I7N3G6G,45,1,no description,60.2
+46,I7N3G6G,46,1,no description,60.2
+47,I7N3G6G,47,1,no description,60.2
+48,I7N3G6G,48,1,no description,60.2
+49,I7N3G6G,49,1,no description,60.2
+50,I7N3G6G,50,1,no description,60.2
+51,I7N3G6G,51,1,no description,60.2
+52,I7N3G6G,52,1,no description,60.2
+53,I7N3G6G,53,1,no description,60.2
+54,I7N3G6G,54,1,no description,60.2
+55,I7N3G6G,55,1,no description,60.2
+56,I7N3G6G,56,1,no description,60.2
+57,I7N3G6G,57,1,no description,60.2
+58,I7N3G6G,58,1,no description,60.2
+59,I7N3G6G,59,1,no description,60.2
+60,I7N3G6G,60,1,no description,60.2
+61,I7N3G6G,61,1,no description,60.2
+62,I7N3G6G,62,1,no description,60.2
+63,I7N3G6G,63,1,no description,60.2
+64,I7N3G6G,64,1,no description,60.2
+65,I7N3G6G,65,1,no description,60.2
+66,I7N3G6G,66,1,no description,60.2
+67,I7N3G6G,67,1,no description,60.2
+68,I7N3G6G,68,1,no description,60.2
+69,I7N3G6G,69,1,no description,60.2
+70,I7N3G6G,70,1,no description,60.2
+71,I7N3G6G,71,1,no description,60.2
+72,I7N3G6G,72,1,no description,60.2
+73,I7N3G6G,73,1,no description,60.2
+74,I7N3G6G,74,1,no description,60.2
+75,I7N3G6G,75,1,no description,60.2
+76,I7N3G6G,76,1,no description,60.2
+77,I7N3G6G,77,1,no description,60.2
+78,I7N3G6G,78,1,no description,60.2
+79,I7N3G6G,79,1,no description,60.2
+80,I7N3G6G,80,1,no description,60.2
+81,I7N3G6G,81,1,no description,60.2
+82,I7N3G6G,82,1,no description,60.2
+83,I7N3G6G,83,1,no description,60.2
+84,I7N3G6G,84,1,no description,60.2
+85,I7N3G6G,85,1,no description,60.2
+86,I7N3G6G,86,1,no description,60.2
+87,I7N3G6G,87,1,no description,60.2
+88,I7N3G6G,88,1,no description,60.2
+89,I7N3G6G,89,1,no description,60.2
+90,I7N3G6G,90,1,no description,60.2
+91,I7N3G6G,91,1,no description,60.2
+92,I7N3G6G,92,1,no description,60.2
+93,I7N3G6G,93,1,no description,60.2
+94,I7N3G6G,94,1,no description,60.2
+95,I7N3G6G,95,1,no description,60.2
+96,I7N3G6G,96,1,no description,60.2
+97,I7N3G6G,97,1,no description,60.2
+98,I7N3G6G,98,1,no description,60.2
+99,I7N3G6G,99,1,no description,60.2
+100,I7N3G6G,100,1,no description,60.2
+101,I7N3G6G,101,1,no description,60.2
+102,I7N3G6G,102,1,no description,60.2
+103,I7N3G6G,103,1,no description,60.2
+104,I7N3G6G,104,1,no description,60.2
+105,I7N3G6G,105,1,no description,60.2
+106,I7N3G6G,106,1,no description,60.2
+107,I7N3G6G,107,1,no description,60.2
+108,I7N3G6G,108,1,no description,60.2
+109,I7N3G6G,109,1,no description,60.2
+110,I7N3G6G,110,1,no description,60.2
+111,I7N3G6G,111,1,no description,60.2
+112,I7N3G6G,112,1,no description,60.2
+113,I7N3G6G,113,1,no description,60.2
+114,I7N3G6G,114,1,no description,60.2
+115,I7N3G6G,115,1,no description,60.2
+116,I7N3G6G,116,1,no description,60.2
+117,I7N3G6G,117,1,no description,60.2
+118,I7N3G6G,118,1,no description,60.2
+119,I7N3G6G,119,1,no description,60.2
+120,I7N3G6G,120,1,no description,60.2
+121,I7N3G6G,121,1,no description,60.2
+122,I7N3G6G,122,1,no description,60.2
+123,I7N3G6G,123,1,no description,60.2
+124,I7N3G6G,124,1,no description,60.2
+125,I7N3G6G,125,1,no description,60.2
+126,I7N3G6G,126,1,no description,60.2
+127,I7N3G6G,127,1,no description,60.2
+128,I7N3G6G,128,1,no description,60.2
+129,I7N3G6G,129,1,no description,60.2
+130,I7N3G6G,130,1,no description,60.2
+131,I7N3G6G,131,1,no description,60.2
+132,I7N3G6G,132,1,no description,60.2
+133,I7N3G6G,133,1,no description,60.2
+134,I7N3G6G,134,1,no description,60.2
+135,I7N3G6G,135,1,no description,60.2
+136,I7N3G6G,136,1,no description,60.2
+137,I7N3G6G,137,1,no description,60.2
+138,I7N3G6G,138,1,no description,60.2
+139,I7N3G6G,139,1,no description,60.2
+140,I7N3G6G,140,1,no description,60.2
+141,I7N3G6G,141,1,no description,60.2
+142,I7N3G6G,142,1,no description,60.2
+143,I7N3G6G,143,1,no description,60.2
+144,I7N3G6G,144,1,no description,60.2
+145,I7N3G6G,145,1,no description,60.2
+146,I7N3G6G,146,1,no description,60.2
+147,I7N3G6G,147,1,no description,60.2
+148,I7N3G6G,148,1,no description,60.2
+149,I7N3G6G,149,1,no description,60.2
+150,I7N3G6G,150,1,no description,60.2
+151,I7N3G6G,151,1,no description,60.2
+152,I7N3G6G,152,1,no description,60.2
+153,I7N3G6G,153,1,no description,60.2
+154,I7N3G6G,154,1,no description,60.2
+155,I7N3G6G,155,1,no description,60.2
+156,I7N3G6G,156,1,no description,60.2
+157,I7N3G6G,157,1,no description,60.2
+158,I7N3G6G,158,1,no description,60.2
+159,I7N3G6G,159,1,no description,60.2
+160,I7N3G6G,160,1,no description,60.2
+161,I7N3G6G,161,1,no description,60.2
+162,I7N3G6G,162,1,no description,60.2
+163,I7N3G6G,163,1,no description,60.2
+164,I7N3G6G,164,1,no description,60.2
+165,I7N3G6G,165,1,no description,60.2
+166,I7N3G6G,166,1,no description,60.2
+167,I7N3G6G,167,1,no description,60.2
+168,I7N3G6G,168,1,no description,60.2
+169,I7N3G6G,169,1,no description,60.2
+170,I7N3G6G,170,1,no description,60.2
+171,I7N3G6G,171,1,no description,60.2
+172,I7N3G6G,172,1,no description,60.2
+173,I7N3G6G,173,1,no description,60.2
+174,I7N3G6G,174,1,no description,60.2
+175,I7N3G6G,175,1,no description,60.2
+176,I7N3G6G,176,1,no description,60.2
+177,I7N3G6G,177,1,no description,60.2
+178,I7N3G6G,178,1,no description,60.2
+179,I7N3G6G,179,1,no description,60.2
+180,I7N3G6G,180,1,no description,60.2
+181,I7N3G6G,181,1,no description,60.2
+182,I7N3G6G,182,1,no description,60.2
+183,I7N3G6G,183,1,no description,60.2
+184,I7N3G6G,184,1,no description,60.2
+185,I7N3G6G,185,1,no description,60.2
+186,I7N3G6G,186,1,no description,60.2
+187,I7N3G6G,187,1,no description,60.2
+188,I7N3G6G,188,1,no description,60.2
+189,I7N3G6G,189,1,no description,60.2
+190,I7N3G6G,190,1,no description,60.2
+191,I7N3G6G,191,1,no description,60.2
+192,I7N3G6G,192,1,no description,60.2
+193,I7N3G6G,193,1,no description,60.2
+194,I7N3G6G,194,1,no description,60.2
+195,I7N3G6G,195,1,no description,60.2
+196,I7N3G6G,196,1,no description,60.2
+197,I7N3G6G,197,1,no description,60.2
+198,I7N3G6G,198,1,no description,60.2
+199,I7N3G6G,199,1,no description,60.2
+200,I7N3G6G,200,1,no description,60.2
+201,I7N3G6G,201,1,no description,60.2
+202,I7N3G6G,202,1,no description,60.2
+203,I7N3G6G,203,1,no description,60.2
+204,I7N3G6G,204,1,no description,60.2
+205,I7N3G6G,205,1,no description,60.2
+206,I7N3G6G,206,1,no description,60.2
+207,I7N3G6G,207,1,no description,60.2
+208,I7N3G6G,208,1,no description,60.2
+209,I7N3G6G,209,1,no description,60.2
+210,I7N3G6G,210,1,no description,60.2
+211,I7N3G6G,211,1,no description,60.2
+212,I7N3G6G,212,1,no description,60.2
+213,I7N3G6G,213,1,no description,60.2
+214,I7N3G6G,214,1,no description,60.2
+215,I7N3G6G,215,1,no description,60.2
+216,I7N3G6G,216,1,no description,60.2
+217,I7N3G6G,217,1,no description,60.2
+218,I7N3G6G,218,1,no description,60.2
+219,I7N3G6G,219,1,no description,60.2
+220,I7N3G6G,220,1,no description,60.2
+221,I7N3G6G,221,1,no description,60.2
+222,I7N3G6G,222,1,no description,60.2
+223,I7N3G6G,223,1,no description,60.2
+224,I7N3G6G,224,1,no description,60.2
+225,I7N3G6G,225,1,no description,60.2
+226,I7N3G6G,226,1,no description,60.2
+227,I7N3G6G,227,1,no description,60.2
+228,I7N3G6G,228,1,no description,60.2
+229,I7N3G6G,229,1,no description,60.2
+230,I7N3G6G,230,1,no description,60.2
+231,I7N3G6G,231,1,no description,60.2
+232,I7N3G6G,232,1,no description,60.2
+233,I7N3G6G,233,1,no description,60.2
+234,I7N3G6G,234,1,no description,60.2
+235,I7N3G6G,235,1,no description,60.2
+236,I7N3G6G,236,1,no description,60.2
+237,I7N3G6G,237,1,no description,60.2
+238,I7N3G6G,238,1,no description,60.2
+239,I7N3G6G,239,1,no description,60.2
+240,I7N3G6G,240,1,no description,60.2
+241,I7N3G6G,241,1,no description,60.2
+242,I7N3G6G,242,1,no description,60.2
+243,I7N3G6G,243,1,no description,60.2
+244,I7N3G6G,244,1,no description,60.2
+245,I7N3G6G,245,1,no description,60.2
+246,I7N3G6G,246,1,no description,60.2
+247,I7N3G6G,247,1,no description,60.2
+248,I7N3G6G,248,1,no description,60.2
+249,I7N3G6G,249,1,no description,60.2
+250,I7N3G6G,250,1,no description,60.2
+251,I7N3G6G,251,1,no description,60.2
+252,I7N3G6G,252,1,no description,60.2
+253,I7N3G6G,253,1,no description,60.2
+254,I7N3G6G,254,1,no description,60.2
+255,I7N3G6G,255,1,no description,60.2
+256,I7N3G6G,256,1,no description,60.2
+257,I7N3G6G,257,1,no description,60.2
+258,I7N3G6G,258,1,no description,60.2
+259,I7N3G6G,259,1,no description,60.2
+260,I7N3G6G,260,1,no description,60.2
+261,I7N3G6G,261,1,no description,60.2
+262,I7N3G6G,262,1,no description,60.2
+263,I7N3G6G,263,1,no description,60.2
+264,I7N3G6G,264,1,no description,60.2
+265,I7N3G6G,265,1,no description,60.2
+266,I7N3G6G,266,1,no description,60.2
+267,I7N3G6G,267,1,no description,60.2
+268,I7N3G6G,268,1,no description,60.2
+269,I7N3G6G,269,1,no description,60.2
+270,I7N3G6G,270,1,no description,60.2
+271,I7N3G6G,271,1,no description,60.2
+272,I7N3G6G,272,1,no description,60.2
+273,I7N3G6G,273,1,no description,60.2
+274,I7N3G6G,274,1,no description,60.2
+275,I7N3G6G,275,1,no description,60.2
+276,I7N3G6G,276,1,no description,60.2
+277,I7N3G6G,277,1,no description,60.2
+278,I7N3G6G,278,1,no description,60.2
+279,I7N3G6G,279,1,no description,60.2
+280,I7N3G6G,280,1,no description,60.2
+281,I7N3G6G,281,1,no description,60.2
+282,I7N3G6G,282,1,no description,60.2
+283,I7N3G6G,283,1,no description,60.2
+284,I7N3G6G,284,1,no description,60.2
+285,I7N3G6G,285,1,no description,60.2
+286,I7N3G6G,286,1,no description,60.2
+287,I7N3G6G,287,1,no description,60.2
+288,I7N3G6G,288,1,no description,60.2
+289,I7N3G6G,289,1,no description,60.2
+290,I7N3G6G,290,1,no description,60.2
+291,I7N3G6G,291,1,no description,60.2
+292,I7N3G6G,292,1,no description,60.2
+293,I7N3G6G,293,1,no description,60.2
+294,I7N3G6G,294,1,no description,60.2
+295,I7N3G6G,295,1,no description,60.2
+296,I7N3G6G,296,1,no description,60.2
+297,I7N3G6G,297,1,no description,60.2
+298,I7N3G6G,298,1,no description,60.2
+299,I7N3G6G,299,1,no description,60.2
+300,I7N3G6G,300,1,no description,60.2
+301,I7N3G6G,301,1,no description,60.2
+302,I7N3G6G,302,1,no description,60.2
+303,I7N3G6G,303,1,no description,60.2
+304,I7N3G6G,304,1,no description,60.2
+305,I7N3G6G,305,1,no description,60.2
+306,I7N3G6G,306,1,no description,60.2
+307,I7N3G6G,307,1,no description,60.2
+308,I7N3G6G,308,1,no description,60.2
+309,I7N3G6G,309,1,no description,60.2
+310,I7N3G6G,310,1,no description,60.2
+311,I7N3G6G,311,1,no description,60.2
+312,I7N3G6G,312,1,no description,60.2
+313,I7N3G6G,313,1,no description,60.2
+314,I7N3G6G,314,1,no description,60.2
+315,I7N3G6G,315,1,no description,60.2
+316,I7N3G6G,316,1,no description,60.2
+317,I7N3G6G,317,1,no description,60.2
+318,I7N3G6G,318,1,no description,60.2
+319,I7N3G6G,319,1,no description,60.2
+320,I7N3G6G,320,1,no description,60.2
+321,I7N3G6G,321,1,no description,60.2
+322,I7N3G6G,322,1,no description,60.2
+323,I7N3G6G,323,1,no description,60.2
+324,I7N3G6G,324,1,no description,60.2
+325,I7N3G6G,325,1,no description,60.2
+326,I7N3G6G,326,1,no description,60.2
+327,I7N3G6G,327,1,no description,60.2
+328,I7N3G6G,328,1,no description,60.2
+329,I7N3G6G,329,1,no description,60.2
+330,I7N3G6G,330,1,no description,60.2
+331,I7N3G6G,331,1,no description,60.2
+332,I7N3G6G,332,1,no description,60.2
+333,I7N3G6G,333,1,no description,60.2
+334,I7N3G6G,334,1,no description,60.2
+335,I7N3G6G,335,1,no description,60.2
+336,I7N3G6G,336,1,no description,60.2
+337,I7N3G6G,337,1,no description,60.2
+338,I7N3G6G,338,1,no description,60.2
+339,I7N3G6G,339,1,no description,60.2
+340,I7N3G6G,340,1,no description,60.2
+341,I7N3G6G,341,1,no description,60.2
+342,I7N3G6G,342,1,no description,60.2
+343,I7N3G6G,343,1,no description,60.2
+344,I7N3G6G,344,1,no description,60.2
+345,I7N3G6G,345,1,no description,60.2
+346,I7N3G6G,346,1,no description,60.2
+347,I7N3G6G,347,1,no description,60.2
+348,I7N3G6G,348,1,no description,60.2
+349,I7N3G6G,349,1,no description,60.2
+350,I7N3G6G,350,1,no description,60.2
+351,I7N3G6G,351,1,no description,60.2
+352,I7N3G6G,352,1,no description,60.2
+353,I7N3G6G,353,1,no description,60.2
+354,I7N3G6G,354,1,no description,60.2
+355,I7N3G6G,355,1,no description,60.2
+356,I7N3G6G,356,1,no description,60.2
+357,I7N3G6G,357,1,no description,60.2
+358,I7N3G6G,358,1,no description,60.2
+359,I7N3G6G,359,1,no description,60.2
+360,I7N3G6G,360,1,no description,60.2
+361,I7N3G6G,361,1,no description,60.2
+362,I7N3G6G,362,1,no description,60.2
+363,I7N3G6G,363,1,no description,60.2
+364,I7N3G6G,364,1,no description,60.2
+365,I7N3G6G,365,1,no description,60.2
+366,I7N3G6G,366,1,no description,60.2
+367,I7N3G6G,367,1,no description,60.2
+368,I7N3G6G,368,1,no description,60.2
+369,I7N3G6G,369,1,no description,60.2
+370,I7N3G6G,370,1,no description,60.2
+371,I7N3G6G,371,1,no description,60.2
+372,I7N3G6G,372,1,no description,60.2
+373,I7N3G6G,373,1,no description,60.2
+374,I7N3G6G,374,1,no description,60.2
+375,I7N3G6G,375,1,no description,60.2
+376,I7N3G6G,376,1,no description,60.2
+377,I7N3G6G,377,1,no description,60.2
+378,I7N3G6G,378,1,no description,60.2
+379,I7N3G6G,379,1,no description,60.2
+380,I7N3G6G,380,1,no description,60.2
+381,I7N3G6G,381,1,no description,60.2
+382,I7N3G6G,382,1,no description,60.2
+383,I7N3G6G,383,1,no description,60.2
+384,I7N3G6G,384,1,no description,60.2
+385,I7N3G6G,385,1,no description,60.2
+386,I7N3G6G,386,1,no description,60.2
+387,I7N3G6G,387,1,no description,60.2
+388,I7N3G6G,388,1,no description,60.2
+389,I7N3G6G,389,1,no description,60.2
+390,I7N3G6G,390,1,no description,60.2
+391,I7N3G6G,391,1,no description,60.2
+392,I7N3G6G,392,1,no description,60.2
+393,I7N3G6G,393,1,no description,60.2
+394,I7N3G6G,394,1,no description,60.2
+395,I7N3G6G,395,1,no description,60.2
+396,I7N3G6G,396,1,no description,60.2
+397,I7N3G6G,397,1,no description,60.2
+398,I7N3G6G,398,1,no description,60.2
+399,I7N3G6G,399,1,no description,60.2
+400,I7N3G6G,400,1,no description,60.2
+401,I7N3G6G,401,1,no description,60.2
+402,I7N3G6G,402,1,no description,60.2
+403,I7N3G6G,403,1,no description,60.2
+404,I7N3G6G,404,1,no description,60.2
+405,I7N3G6G,405,1,no description,60.2
+406,I7N3G6G,406,1,no description,60.2
+407,I7N3G6G,407,1,no description,60.2
+408,I7N3G6G,408,1,no description,60.2
+409,I7N3G6G,409,1,no description,60.2
+410,I7N3G6G,410,1,no description,60.2
+411,I7N3G6G,411,1,no description,60.2
+412,I7N3G6G,412,1,no description,60.2
+413,I7N3G6G,413,1,no description,60.2
+414,I7N3G6G,414,1,no description,60.2
+415,I7N3G6G,415,1,no description,60.2
+416,I7N3G6G,416,1,no description,60.2
+417,I7N3G6G,417,1,no description,60.2
+418,I7N3G6G,418,1,no description,60.2
+419,I7N3G6G,419,1,no description,60.2
+420,I7N3G6G,420,1,no description,60.2
+421,I7N3G6G,421,1,no description,60.2
+422,I7N3G6G,422,1,no description,60.2
+423,I7N3G6G,423,1,no description,60.2
+424,I7N3G6G,424,1,no description,60.2
+425,I7N3G6G,425,1,no description,60.2
+426,I7N3G6G,426,1,no description,60.2
+427,I7N3G6G,427,1,no description,60.2
+428,I7N3G6G,428,1,no description,60.2
+429,I7N3G6G,429,1,no description,60.2
+430,I7N3G6G,430,1,no description,60.2
+431,I7N3G6G,431,1,no description,60.2
+432,I7N3G6G,432,1,no description,60.2
+433,I7N3G6G,433,1,no description,60.2
+434,I7N3G6G,434,1,no description,60.2
+435,I7N3G6G,435,1,no description,60.2
+436,I7N3G6G,436,1,no description,60.2
+437,I7N3G6G,437,1,no description,60.2
+438,I7N3G6G,438,1,no description,60.2
+439,I7N3G6G,439,1,no description,60.2
+440,I7N3G6G,440,1,no description,60.2
+441,I7N3G6G,441,1,no description,60.2
+442,I7N3G6G,442,1,no description,60.2
+443,I7N3G6G,443,1,no description,60.2
+444,I7N3G6G,444,1,no description,60.2
+445,I7N3G6G,445,1,no description,60.2
+446,I7N3G6G,446,1,no description,60.2
+447,I7N3G6G,447,1,no description,60.2
+448,I7N3G6G,448,1,no description,60.2
+449,I7N3G6G,449,1,no description,60.2
+450,I7N3G6G,450,1,no description,60.2
+451,I7N3G6G,451,1,no description,60.2
+452,I7N3G6G,452,1,no description,60.2
+453,I7N3G6G,453,1,no description,60.2
+454,I7N3G6G,454,1,no description,60.2
+455,I7N3G6G,455,1,no description,60.2
+456,I7N3G6G,456,1,no description,60.2
+457,I7N3G6G,457,1,no description,60.2
+458,I7N3G6G,458,1,no description,60.2
+459,I7N3G6G,459,1,no description,60.2
+460,I7N3G6G,460,1,no description,60.2
+461,I7N3G6G,461,1,no description,60.2
+462,I7N3G6G,462,1,no description,60.2
+463,I7N3G6G,463,1,no description,60.2
+464,I7N3G6G,464,1,no description,60.2
+465,I7N3G6G,465,1,no description,60.2
+466,I7N3G6G,466,1,no description,60.2
+467,I7N3G6G,467,1,no description,60.2
+468,I7N3G6G,468,1,no description,60.2
+469,I7N3G6G,469,1,no description,60.2
+470,I7N3G6G,470,1,no description,60.2
+471,I7N3G6G,471,1,no description,60.2
+472,I7N3G6G,472,1,no description,60.2
+473,I7N3G6G,473,1,no description,60.2
+474,I7N3G6G,474,1,no description,60.2
+475,I7N3G6G,475,1,no description,60.2
+476,I7N3G6G,476,1,no description,60.2
+477,I7N3G6G,477,1,no description,60.2
+478,I7N3G6G,478,1,no description,60.2
+479,I7N3G6G,479,1,no description,60.2
+480,I7N3G6G,480,1,no description,60.2
+481,I7N3G6G,481,1,no description,60.2
+482,I7N3G6G,482,1,no description,60.2
+483,I7N3G6G,483,1,no description,60.2
+484,I7N3G6G,484,1,no description,60.2
+485,I7N3G6G,485,1,no description,60.2
+486,I7N3G6G,486,1,no description,60.2
+487,I7N3G6G,487,1,no description,60.2
+488,I7N3G6G,488,1,no description,60.2
+489,I7N3G6G,489,1,no description,60.2
+490,I7N3G6G,490,1,no description,60.2
+491,I7N3G6G,491,1,no description,60.2
+492,I7N3G6G,492,1,no description,60.2
+493,I7N3G6G,493,1,no description,60.2
+494,I7N3G6G,494,1,no description,60.2
+495,I7N3G6G,495,1,no description,60.2
+496,I7N3G6G,496,1,no description,60.2
+497,I7N3G6G,497,1,no description,60.2
+498,I7N3G6G,498,1,no description,60.2
+499,I7N3G6G,499,1,no description,60.2
+500,I7N3G6G,500,1,no description,60.2
+501,I7N3G6G,501,1,no description,60.2
+502,I7N3G6G,502,1,no description,60.2
+503,I7N3G6G,503,1,no description,60.2
+504,I7N3G6G,504,1,no description,60.2
+505,I7N3G6G,505,1,no description,60.2
+506,I7N3G6G,506,1,no description,60.2
+507,I7N3G6G,507,1,no description,60.2
+508,I7N3G6G,508,1,no description,60.2
+509,I7N3G6G,509,1,no description,60.2
+510,I7N3G6G,510,1,no description,60.2
+511,I7N3G6G,511,1,no description,60.2
+512,I7N3G6G,512,1,no description,60.2
+513,I7N3G6G,513,1,no description,60.2
+514,I7N3G6G,514,1,no description,60.2
+515,I7N3G6G,515,1,no description,60.2
+516,I7N3G6G,516,1,no description,60.2
+517,I7N3G6G,517,1,no description,60.2
+518,I7N3G6G,518,1,no description,60.2
+519,I7N3G6G,519,1,no description,60.2
+520,I7N3G6G,520,1,no description,60.2
+521,I7N3G6G,521,1,no description,60.2
+522,I7N3G6G,522,1,no description,60.2
+523,I7N3G6G,523,1,no description,60.2
+524,I7N3G6G,524,1,no description,60.2
+525,I7N3G6G,525,1,no description,60.2
+526,I7N3G6G,526,1,no description,60.2
+527,I7N3G6G,527,1,no description,60.2
+528,I7N3G6G,528,1,no description,60.2
+529,I7N3G6G,529,1,no description,60.2
+530,I7N3G6G,530,1,no description,60.2
+531,I7N3G6G,531,1,no description,60.2
+532,I7N3G6G,532,1,no description,60.2
+533,I7N3G6G,533,1,no description,60.2
+534,I7N3G6G,534,1,no description,60.2
+535,I7N3G6G,535,1,no description,60.2
+536,I7N3G6G,536,1,no description,60.2
+537,I7N3G6G,537,1,no description,60.2
+538,I7N3G6G,538,1,no description,60.2
+539,I7N3G6G,539,1,no description,60.2
+540,I7N3G6G,540,1,no description,60.2
+541,I7N3G6G,541,1,no description,60.2
+542,I7N3G6G,542,1,no description,60.2
+543,I7N3G6G,543,1,no description,60.2
+544,I7N3G6G,544,1,no description,60.2
+545,I7N3G6G,545,1,no description,60.2
+546,I7N3G6G,546,1,no description,60.2
+547,I7N3G6G,547,1,no description,60.2
+548,I7N3G6G,548,1,no description,60.2
+549,I7N3G6G,549,1,no description,60.2
+550,I7N3G6G,550,1,no description,60.2
+551,I7N3G6G,551,1,no description,60.2
+552,I7N3G6G,552,1,no description,60.2
+553,I7N3G6G,553,1,no description,60.2
+554,I7N3G6G,554,1,no description,60.2
+555,I7N3G6G,555,1,no description,60.2
+556,I7N3G6G,556,1,no description,60.2
+557,I7N3G6G,557,1,no description,60.2
+558,I7N3G6G,558,1,no description,60.2
+559,I7N3G6G,559,1,no description,60.2
+560,I7N3G6G,560,1,no description,60.2
+561,I7N3G6G,561,1,no description,60.2
+562,I7N3G6G,562,1,no description,60.2
+563,I7N3G6G,563,1,no description,60.2
+564,I7N3G6G,564,1,no description,60.2
+565,I7N3G6G,565,1,no description,60.2
+566,I7N3G6G,566,1,no description,60.2
+567,I7N3G6G,567,1,no description,60.2
+568,I7N3G6G,568,1,no description,60.2
+569,I7N3G6G,569,1,no description,60.2
+570,I7N3G6G,570,1,no description,60.2
+571,I7N3G6G,571,1,no description,60.2
+572,I7N3G6G,572,1,no description,60.2
+573,I7N3G6G,573,1,no description,60.2
+574,I7N3G6G,574,1,no description,60.2
+575,I7N3G6G,575,1,no description,60.2
+576,I7N3G6G,576,1,no description,60.2
+577,I7N3G6G,577,1,no description,60.2
+578,I7N3G6G,578,1,no description,60.2
+579,I7N3G6G,579,1,no description,60.2
+580,I7N3G6G,580,1,no description,60.2
+581,I7N3G6G,581,1,no description,60.2
+582,I7N3G6G,582,1,no description,60.2
+583,I7N3G6G,583,1,no description,60.2
+584,I7N3G6G,584,1,no description,60.2
+585,I7N3G6G,585,1,no description,60.2
+586,I7N3G6G,586,1,no description,60.2
+587,I7N3G6G,587,1,no description,60.2
+588,I7N3G6G,588,1,no description,60.2
+589,I7N3G6G,589,1,no description,60.2
+590,I7N3G6G,590,1,no description,60.2
+591,I7N3G6G,591,1,no description,60.2
+592,I7N3G6G,592,1,no description,60.2
+593,I7N3G6G,593,1,no description,60.2
+594,I7N3G6G,594,1,no description,60.2
+595,I7N3G6G,595,1,no description,60.2
+596,I7N3G6G,596,1,no description,60.2
+597,I7N3G6G,597,1,no description,60.2
+598,I7N3G6G,598,1,no description,60.2
+599,I7N3G6G,599,1,no description,60.2
+600,I7N3G6G,600,1,no description,60.2
+601,I7N3G6G,601,1,no description,60.2
+602,I7N3G6G,602,1,no description,60.2
+603,I7N3G6G,603,1,no description,60.2
+604,I7N3G6G,604,1,no description,60.2
+605,I7N3G6G,605,1,no description,60.2
+606,I7N3G6G,606,1,no description,60.2
+607,I7N3G6G,607,1,no description,60.2
+608,I7N3G6G,608,1,no description,60.2
+609,I7N3G6G,609,1,no description,60.2
+610,I7N3G6G,610,1,no description,60.2
+611,I7N3G6G,611,1,no description,60.2
+612,I7N3G6G,612,1,no description,60.2
+613,I7N3G6G,613,1,no description,60.2
+614,I7N3G6G,614,1,no description,60.2
+615,I7N3G6G,615,1,no description,60.2
+616,I7N3G6G,616,1,no description,60.2
+617,I7N3G6G,617,1,no description,60.2
+618,I7N3G6G,618,1,no description,60.2
+619,I7N3G6G,619,1,no description,60.2
+620,I7N3G6G,620,1,no description,60.2
+621,I7N3G6G,621,1,no description,60.2
+622,I7N3G6G,622,1,no description,60.2
+623,I7N3G6G,623,1,no description,60.2
+624,I7N3G6G,624,1,no description,60.2
+625,I7N3G6G,625,1,no description,60.2
+626,I7N3G6G,626,1,no description,60.2
+627,I7N3G6G,627,1,no description,60.2
+628,I7N3G6G,628,1,no description,60.2
+629,I7N3G6G,629,1,no description,60.2
+630,I7N3G6G,630,1,no description,60.2
+631,I7N3G6G,631,1,no description,60.2
+632,I7N3G6G,632,1,no description,60.2
+633,I7N3G6G,633,1,no description,60.2
+634,I7N3G6G,634,1,no description,60.2
+635,I7N3G6G,635,1,no description,60.2
+636,I7N3G6G,636,1,no description,60.2
+637,I7N3G6G,637,1,no description,60.2
+638,I7N3G6G,638,1,no description,60.2
+639,I7N3G6G,639,1,no description,60.2
+640,I7N3G6G,640,1,no description,60.2
+641,I7N3G6G,641,1,no description,60.2
+642,I7N3G6G,642,1,no description,60.2
+643,I7N3G6G,643,1,no description,60.2
+644,I7N3G6G,644,1,no description,60.2
+645,I7N3G6G,645,1,no description,60.2
+646,I7N3G6G,646,1,no description,60.2
+647,I7N3G6G,647,1,no description,60.2
+648,I7N3G6G,648,1,no description,60.2
+649,I7N3G6G,649,1,no description,60.2
+650,I7N3G6G,650,1,no description,60.2
+651,I7N3G6G,651,1,no description,60.2
+652,I7N3G6G,652,1,no description,60.2
+653,I7N3G6G,653,1,no description,60.2
+654,I7N3G6G,654,1,no description,60.2
+655,I7N3G6G,655,1,no description,60.2
+656,I7N3G6G,656,1,no description,60.2
+657,I7N3G6G,657,1,no description,60.2
+658,I7N3G6G,658,1,no description,60.2
+659,I7N3G6G,659,1,no description,60.2
+660,I7N3G6G,660,1,no description,60.2
+661,I7N3G6G,661,1,no description,60.2
+662,I7N3G6G,662,1,no description,60.2
+663,I7N3G6G,663,1,no description,60.2
+664,I7N3G6G,664,1,no description,60.2
+665,I7N3G6G,665,1,no description,60.2
+666,I7N3G6G,666,1,no description,60.2
+667,I7N3G6G,667,1,no description,60.2
+668,I7N3G6G,668,1,no description,60.2
+669,I7N3G6G,669,1,no description,60.2
+670,I7N3G6G,670,1,no description,60.2
+671,I7N3G6G,671,1,no description,60.2
+672,I7N3G6G,672,1,no description,60.2
+673,I7N3G6G,673,1,no description,60.2
+674,I7N3G6G,674,1,no description,60.2
+675,I7N3G6G,675,1,no description,60.2
+676,I7N3G6G,676,1,no description,60.2
+677,I7N3G6G,677,1,no description,60.2
+678,I7N3G6G,678,1,no description,60.2
+679,I7N3G6G,679,1,no description,60.2
+680,I7N3G6G,680,1,no description,60.2
+681,I7N3G6G,681,1,no description,60.2
+682,I7N3G6G,682,1,no description,60.2
+683,I7N3G6G,683,1,no description,60.2
+684,I7N3G6G,684,1,no description,60.2
+685,I7N3G6G,685,1,no description,60.2
+686,I7N3G6G,686,1,no description,60.2
+687,I7N3G6G,687,1,no description,60.2
+688,I7N3G6G,688,1,no description,60.2
+689,I7N3G6G,689,1,no description,60.2
+690,I7N3G6G,690,1,no description,60.2
+691,I7N3G6G,691,1,no description,60.2
+692,I7N3G6G,692,1,no description,60.2
+693,I7N3G6G,693,1,no description,60.2
+694,I7N3G6G,694,1,no description,60.2
+695,I7N3G6G,695,1,no description,60.2
+696,I7N3G6G,696,1,no description,60.2
+697,I7N3G6G,697,1,no description,60.2
+698,I7N3G6G,698,1,no description,60.2
+699,I7N3G6G,699,1,no description,60.2
+700,I7N3G6G,700,1,no description,60.2
+701,I7N3G6G,701,1,no description,60.2
+702,I7N3G6G,702,1,no description,60.2
+703,I7N3G6G,703,1,no description,60.2
+704,I7N3G6G,704,1,no description,60.2
+705,I7N3G6G,705,1,no description,60.2
+706,I7N3G6G,706,1,no description,60.2
+707,I7N3G6G,707,1,no description,60.2
+708,I7N3G6G,708,1,no description,60.2
+709,I7N3G6G,709,1,no description,60.2
+710,I7N3G6G,710,1,no description,60.2
+711,I7N3G6G,711,1,no description,60.2
+712,I7N3G6G,712,1,no description,60.2
+713,I7N3G6G,713,1,no description,60.2
+714,I7N3G6G,714,1,no description,60.2
+715,I7N3G6G,715,1,no description,60.2
+716,I7N3G6G,716,1,no description,60.2
+717,I7N3G6G,717,1,no description,60.2
+718,I7N3G6G,718,1,no description,60.2
+719,I7N3G6G,719,1,no description,60.2
+720,I7N3G6G,720,1,no description,60.2
+721,I7N3G6G,721,1,no description,60.2
+722,I7N3G6G,722,1,no description,60.2
+723,I7N3G6G,723,1,no description,60.2
+724,I7N3G6G,724,1,no description,60.2
+725,I7N3G6G,725,1,no description,60.2
+726,I7N3G6G,726,1,no description,60.2
+727,I7N3G6G,727,1,no description,60.2
+728,I7N3G6G,728,1,no description,60.2
+729,I7N3G6G,729,1,no description,60.2
+730,I7N3G6G,730,1,no description,60.2
+731,I7N3G6G,731,1,no description,60.2
+732,I7N3G6G,732,1,no description,60.2
+733,I7N3G6G,733,1,no description,60.2
+734,I7N3G6G,734,1,no description,60.2
+735,I7N3G6G,735,1,no description,60.2
+736,I7N3G6G,736,1,no description,60.2
+737,I7N3G6G,737,1,no description,60.2
+738,I7N3G6G,738,1,no description,60.2
+739,I7N3G6G,739,1,no description,60.2
+740,I7N3G6G,740,1,no description,60.2
+741,I7N3G6G,741,1,no description,60.2
+742,I7N3G6G,742,1,no description,60.2
+743,I7N3G6G,743,1,no description,60.2
+744,I7N3G6G,744,1,no description,60.2
+745,I7N3G6G,745,1,no description,60.2
+746,I7N3G6G,746,1,no description,60.2
+747,I7N3G6G,747,1,no description,60.2
+748,I7N3G6G,748,1,no description,60.2
+749,I7N3G6G,749,1,no description,60.2
+750,I7N3G6G,750,1,no description,60.2
+751,I7N3G6G,751,1,no description,60.2
+752,I7N3G6G,752,1,no description,60.2
+753,I7N3G6G,753,1,no description,60.2
+754,I7N3G6G,754,1,no description,60.2
+755,I7N3G6G,755,1,no description,60.2
+756,I7N3G6G,756,1,no description,60.2
+757,I7N3G6G,757,1,no description,60.2
+758,I7N3G6G,758,1,no description,60.2
+759,I7N3G6G,759,1,no description,60.2
+760,I7N3G6G,760,1,no description,60.2
+761,I7N3G6G,761,1,no description,60.2
+762,I7N3G6G,762,1,no description,60.2
+763,I7N3G6G,763,1,no description,60.2
+764,I7N3G6G,764,1,no description,60.2
+765,I7N3G6G,765,1,no description,60.2
+766,I7N3G6G,766,1,no description,60.2
+767,I7N3G6G,767,1,no description,60.2
+768,I7N3G6G,768,1,no description,60.2
+769,I7N3G6G,769,1,no description,60.2
+770,I7N3G6G,770,1,no description,60.2
+771,I7N3G6G,771,1,no description,60.2
+772,I7N3G6G,772,1,no description,60.2
+773,I7N3G6G,773,1,no description,60.2
+774,I7N3G6G,774,1,no description,60.2
+775,I7N3G6G,775,1,no description,60.2
+776,I7N3G6G,776,1,no description,60.2
+777,I7N3G6G,777,1,no description,60.2
+778,I7N3G6G,778,1,no description,60.2
+779,I7N3G6G,779,1,no description,60.2
+780,I7N3G6G,780,1,no description,60.2
+781,I7N3G6G,781,1,no description,60.2
+782,I7N3G6G,782,1,no description,60.2
+783,I7N3G6G,783,1,no description,60.2
+784,I7N3G6G,784,1,no description,60.2
+785,I7N3G6G,785,1,no description,60.2
+786,I7N3G6G,786,1,no description,60.2
+787,I7N3G6G,787,1,no description,60.2
+788,I7N3G6G,788,1,no description,60.2
+789,I7N3G6G,789,1,no description,60.2
+790,I7N3G6G,790,1,no description,60.2
+791,I7N3G6G,791,1,no description,60.2
+792,I7N3G6G,792,1,no description,60.2
+793,I7N3G6G,793,1,no description,60.2
+794,I7N3G6G,794,1,no description,60.2
+795,I7N3G6G,795,1,no description,60.2
+796,I7N3G6G,796,1,no description,60.2
+797,I7N3G6G,797,1,no description,60.2
+798,I7N3G6G,798,1,no description,60.2
+799,I7N3G6G,799,1,no description,60.2
+800,I7N3G6G,800,1,no description,60.2
+801,I7N3G6G,801,1,no description,60.2
+802,I7N3G6G,802,1,no description,60.2
+803,I7N3G6G,803,1,no description,60.2
+804,I7N3G6G,804,1,no description,60.2
+805,I7N3G6G,805,1,no description,60.2
+806,I7N3G6G,806,1,no description,60.2
+807,I7N3G6G,807,1,no description,60.2
+808,I7N3G6G,808,1,no description,60.2
+809,I7N3G6G,809,1,no description,60.2
+810,I7N3G6G,810,1,no description,60.2
+811,I7N3G6G,811,1,no description,60.2
+812,I7N3G6G,812,1,no description,60.2
+813,I7N3G6G,813,1,no description,60.2
+814,I7N3G6G,814,1,no description,60.2
+815,I7N3G6G,815,1,no description,60.2
+816,I7N3G6G,816,1,no description,60.2
+817,I7N3G6G,817,1,no description,60.2
+818,I7N3G6G,818,1,no description,60.2
+819,I7N3G6G,819,1,no description,60.2
+820,I7N3G6G,820,1,no description,60.2
+821,I7N3G6G,821,1,no description,60.2
+822,I7N3G6G,822,1,no description,60.2
+823,I7N3G6G,823,1,no description,60.2
+824,I7N3G6G,824,1,no description,60.2
+825,I7N3G6G,825,1,no description,60.2
+826,I7N3G6G,826,1,no description,60.2
+827,I7N3G6G,827,1,no description,60.2
+828,I7N3G6G,828,1,no description,60.2
+829,I7N3G6G,829,1,no description,60.2
+830,I7N3G6G,830,1,no description,60.2
+831,I7N3G6G,831,1,no description,60.2
+832,I7N3G6G,832,1,no description,60.2
+833,I7N3G6G,833,1,no description,60.2
+834,I7N3G6G,834,1,no description,60.2
+835,I7N3G6G,835,1,no description,60.2
+836,I7N3G6G,836,1,no description,60.2
+837,I7N3G6G,837,1,no description,60.2
+838,I7N3G6G,838,1,no description,60.2
+839,I7N3G6G,839,1,no description,60.2
+840,I7N3G6G,840,1,no description,60.2
+841,I7N3G6G,841,1,no description,60.2
+842,I7N3G6G,842,1,no description,60.2
+843,I7N3G6G,843,1,no description,60.2
+844,I7N3G6G,844,1,no description,60.2
+845,I7N3G6G,845,1,no description,60.2
+846,I7N3G6G,846,1,no description,60.2
+847,I7N3G6G,847,1,no description,60.2
+848,I7N3G6G,848,1,no description,60.2
+849,I7N3G6G,849,1,no description,60.2
+850,I7N3G6G,850,1,no description,60.2
+851,I7N3G6G,851,1,no description,60.2
+852,I7N3G6G,852,1,no description,60.2
+853,I7N3G6G,853,1,no description,60.2
+854,I7N3G6G,854,1,no description,60.2
+855,I7N3G6G,855,1,no description,60.2
+856,I7N3G6G,856,1,no description,60.2
+857,I7N3G6G,857,1,no description,60.2
+858,I7N3G6G,858,1,no description,60.2
+859,I7N3G6G,859,1,no description,60.2
+860,I7N3G6G,860,1,no description,60.2
+861,I7N3G6G,861,1,no description,60.2
+862,I7N3G6G,862,1,no description,60.2
+863,I7N3G6G,863,1,no description,60.2
+864,I7N3G6G,864,1,no description,60.2
+865,I7N3G6G,865,1,no description,60.2
+866,I7N3G6G,866,1,no description,60.2
+867,I7N3G6G,867,1,no description,60.2
+868,I7N3G6G,868,1,no description,60.2
+869,I7N3G6G,869,1,no description,60.2
+870,I7N3G6G,870,1,no description,60.2
+871,I7N3G6G,871,1,no description,60.2
+872,I7N3G6G,872,1,no description,60.2
+873,I7N3G6G,873,1,no description,60.2
+874,I7N3G6G,874,1,no description,60.2
+875,I7N3G6G,875,1,no description,60.2
+876,I7N3G6G,876,1,no description,60.2
+877,I7N3G6G,877,1,no description,60.2
+878,I7N3G6G,878,1,no description,60.2
+879,I7N3G6G,879,1,no description,60.2
+880,I7N3G6G,880,1,no description,60.2
+881,I7N3G6G,881,1,no description,60.2
+882,I7N3G6G,882,1,no description,60.2
+883,I7N3G6G,883,1,no description,60.2
+884,I7N3G6G,884,1,no description,60.2
+885,I7N3G6G,885,1,no description,60.2
+886,I7N3G6G,886,1,no description,60.2
+887,I7N3G6G,887,1,no description,60.2
+888,I7N3G6G,888,1,no description,60.2
+889,I7N3G6G,889,1,no description,60.2
+890,I7N3G6G,890,1,no description,60.2
+891,I7N3G6G,891,1,no description,60.2
+892,I7N3G6G,892,1,no description,60.2
+893,I7N3G6G,893,1,no description,60.2
+894,I7N3G6G,894,1,no description,60.2
+895,I7N3G6G,895,1,no description,60.2
+896,I7N3G6G,896,1,no description,60.2
+897,I7N3G6G,897,1,no description,60.2
+898,I7N3G6G,898,1,no description,60.2
+899,I7N3G6G,899,1,no description,60.2
+900,I7N3G6G,900,1,no description,60.2
+901,I7N3G6G,901,1,no description,60.2
+902,I7N3G6G,902,1,no description,60.2
+903,I7N3G6G,903,1,no description,60.2
+904,I7N3G6G,904,1,no description,60.2
+905,I7N3G6G,905,1,no description,60.2
+906,I7N3G6G,906,1,no description,60.2
+907,I7N3G6G,907,1,no description,60.2
+908,I7N3G6G,908,1,no description,60.2
+909,I7N3G6G,909,1,no description,60.2
+910,I7N3G6G,910,1,no description,60.2
+911,I7N3G6G,911,1,no description,60.2
+912,I7N3G6G,912,1,no description,60.2
+913,I7N3G6G,913,1,no description,60.2
+914,I7N3G6G,914,1,no description,60.2
+915,I7N3G6G,915,1,no description,60.2
+916,I7N3G6G,916,1,no description,60.2
+917,I7N3G6G,917,1,no description,60.2
+918,I7N3G6G,918,1,no description,60.2
+919,I7N3G6G,919,1,no description,60.2
+920,I7N3G6G,920,1,no description,60.2
+921,I7N3G6G,921,1,no description,60.2
+922,I7N3G6G,922,1,no description,60.2
+923,I7N3G6G,923,1,no description,60.2
+924,I7N3G6G,924,1,no description,60.2
+925,I7N3G6G,925,1,no description,60.2
+926,I7N3G6G,926,1,no description,60.2
+927,I7N3G6G,927,1,no description,60.2
+928,I7N3G6G,928,1,no description,60.2
+929,I7N3G6G,929,1,no description,60.2
+930,I7N3G6G,930,1,no description,60.2
+931,I7N3G6G,931,1,no description,60.2
+932,I7N3G6G,932,1,no description,60.2
+933,I7N3G6G,933,1,no description,60.2
+934,I7N3G6G,934,1,no description,60.2
+935,I7N3G6G,935,1,no description,60.2
+936,I7N3G6G,936,1,no description,60.2
+937,I7N3G6G,937,1,no description,60.2
+938,I7N3G6G,938,1,no description,60.2
+939,I7N3G6G,939,1,no description,60.2
+940,I7N3G6G,940,1,no description,60.2
+941,I7N3G6G,941,1,no description,60.2
+942,I7N3G6G,942,1,no description,60.2
+943,I7N3G6G,943,1,no description,60.2
+944,I7N3G6G,944,1,no description,60.2
+945,I7N3G6G,945,1,no description,60.2
+946,I7N3G6G,946,1,no description,60.2
+947,I7N3G6G,947,1,no description,60.2
+948,I7N3G6G,948,1,no description,60.2
+949,I7N3G6G,949,1,no description,60.2
+950,I7N3G6G,950,1,no description,60.2
+951,I7N3G6G,951,1,no description,60.2
+952,I7N3G6G,952,1,no description,60.2
+953,I7N3G6G,953,1,no description,60.2
+954,I7N3G6G,954,1,no description,60.2
+955,I7N3G6G,955,1,no description,60.2
+956,I7N3G6G,956,1,no description,60.2
+957,I7N3G6G,957,1,no description,60.2
+958,I7N3G6G,958,1,no description,60.2
+959,I7N3G6G,959,1,no description,60.2
+960,I7N3G6G,960,1,no description,60.2
+961,I7N3G6G,961,1,no description,60.2
+962,I7N3G6G,962,1,no description,60.2
+963,I7N3G6G,963,1,no description,60.2
+964,I7N3G6G,964,1,no description,60.2
+965,I7N3G6G,965,1,no description,60.2
+966,I7N3G6G,966,1,no description,60.2
+967,I7N3G6G,967,1,no description,60.2
+968,I7N3G6G,968,1,no description,60.2
+969,I7N3G6G,969,1,no description,60.2
+970,I7N3G6G,970,1,no description,60.2
+971,I7N3G6G,971,1,no description,60.2
+972,I7N3G6G,972,1,no description,60.2
+973,I7N3G6G,973,1,no description,60.2
+974,I7N3G6G,974,1,no description,60.2
+975,I7N3G6G,975,1,no description,60.2
+976,I7N3G6G,976,1,no description,60.2
+977,I7N3G6G,977,1,no description,60.2
+978,I7N3G6G,978,1,no description,60.2
+979,I7N3G6G,979,1,no description,60.2
+980,I7N3G6G,980,1,no description,60.2
+981,I7N3G6G,981,1,no description,60.2
+982,I7N3G6G,982,1,no description,60.2
+983,I7N3G6G,983,1,no description,60.2
+984,I7N3G6G,984,1,no description,60.2
+985,I7N3G6G,985,1,no description,60.2
+986,I7N3G6G,986,1,no description,60.2
+987,I7N3G6G,987,1,no description,60.2
+988,I7N3G6G,988,1,no description,60.2
+989,I7N3G6G,989,1,no description,60.2
+990,I7N3G6G,990,1,no description,60.2
+991,I7N3G6G,991,1,no description,60.2
+992,I7N3G6G,992,1,no description,60.2
+993,I7N3G6G,993,1,no description,60.2
+994,I7N3G6G,994,1,no description,60.2
+995,I7N3G6G,995,1,no description,60.2
+996,I7N3G6G,996,1,no description,60.2
+997,I7N3G6G,997,1,no description,60.2
+998,I7N3G6G,998,1,no description,60.2
+999,I7N3G6G,999,1,no description,60.2
+1000,I7N3G6G,1000,1,no description,60.2
+1001,I7N3G6G,1001,1,no description,60.2
+1002,I7N3G6G,1002,1,no description,60.2
+1003,I7N3G6G,1003,1,no description,60.2
+1004,I7N3G6G,1004,1,no description,60.2
+1005,I7N3G6G,1005,1,no description,60.2
+1006,I7N3G6G,1006,1,no description,60.2
+1007,I7N3G6G,1007,1,no description,60.2
+1008,I7N3G6G,1008,1,no description,60.2
+1009,I7N3G6G,1009,1,no description,60.2
+1010,I7N3G6G,1010,1,no description,60.2
+1011,I7N3G6G,1011,1,no description,60.2
+1012,I7N3G6G,1012,1,no description,60.2
+1013,I7N3G6G,1013,1,no description,60.2
+1014,I7N3G6G,1014,1,no description,60.2
+1015,I7N3G6G,1015,1,no description,60.2
+1016,I7N3G6G,1016,1,no description,60.2
+1017,I7N3G6G,1017,1,no description,60.2
+1018,I7N3G6G,1018,1,no description,60.2
+1019,I7N3G6G,1019,1,no description,60.2
+1020,I7N3G6G,1020,1,no description,60.2
+1021,I7N3G6G,1021,1,no description,60.2
+1022,I7N3G6G,1022,1,no description,60.2
+1023,I7N3G6G,1023,1,no description,60.2
+1024,I7N3G6G,1024,1,no description,60.2
+1025,I7N3G6G,1025,1,no description,60.2
+1026,I7N3G6G,1026,1,no description,60.2
+1027,I7N3G6G,1027,1,no description,60.2
+1028,I7N3G6G,1028,1,no description,60.2
+1029,I7N3G6G,1029,1,no description,60.2
+1030,I7N3G6G,1030,1,no description,60.2
+1031,I7N3G6G,1031,1,no description,60.2
+1032,I7N3G6G,1032,1,no description,60.2
+1033,I7N3G6G,1033,1,no description,60.2
+1034,I7N3G6G,1034,1,no description,60.2
+1035,I7N3G6G,1035,1,no description,60.2
+1036,I7N3G6G,1036,1,no description,60.2
+1037,I7N3G6G,1037,1,no description,60.2
+1038,I7N3G6G,1038,1,no description,60.2
+1039,I7N3G6G,1039,1,no description,60.2
+1040,I7N3G6G,1040,1,no description,60.2
+1041,I7N3G6G,1041,1,no description,60.2
+1042,I7N3G6G,1042,1,no description,60.2
+1043,I7N3G6G,1043,1,no description,60.2
+1044,I7N3G6G,1044,1,no description,60.2
+1045,I7N3G6G,1045,1,no description,60.2
+1046,I7N3G6G,1046,1,no description,60.2
+1047,I7N3G6G,1047,1,no description,60.2
+1048,I7N3G6G,1048,1,no description,60.2
+1049,I7N3G6G,1049,1,no description,60.2
+1050,I7N3G6G,1050,1,no description,60.2
+1051,I7N3G6G,1051,1,no description,60.2
+1052,I7N3G6G,1052,1,no description,60.2
+1053,I7N3G6G,1053,1,no description,60.2
+1054,I7N3G6G,1054,1,no description,60.2
+1055,I7N3G6G,1055,1,no description,60.2
+1056,I7N3G6G,1056,1,no description,60.2
+1057,I7N3G6G,1057,1,no description,60.2
+1058,I7N3G6G,1058,1,no description,60.2
+1059,I7N3G6G,1059,1,no description,60.2
+1060,I7N3G6G,1060,1,no description,60.2
+1061,I7N3G6G,1061,1,no description,60.2
+1062,I7N3G6G,1062,1,no description,60.2
+1063,I7N3G6G,1063,1,no description,60.2
+1064,I7N3G6G,1064,1,no description,60.2
+1065,I7N3G6G,1065,1,no description,60.2
+1066,I7N3G6G,1066,1,no description,60.2
+1067,I7N3G6G,1067,1,no description,60.2
+1068,I7N3G6G,1068,1,no description,60.2
+1069,I7N3G6G,1069,1,no description,60.2
+1070,I7N3G6G,1070,1,no description,60.2
+1071,I7N3G6G,1071,1,no description,60.2
+1072,I7N3G6G,1072,1,no description,60.2
+1073,I7N3G6G,1073,1,no description,60.2
+1074,I7N3G6G,1074,1,no description,60.2
+1075,I7N3G6G,1075,1,no description,60.2
+1076,I7N3G6G,1076,1,no description,60.2
+1077,I7N3G6G,1077,1,no description,60.2
+1078,I7N3G6G,1078,1,no description,60.2
+1079,I7N3G6G,1079,1,no description,60.2
+1080,I7N3G6G,1080,1,no description,60.2
+1081,I7N3G6G,1081,1,no description,60.2
+1082,I7N3G6G,1082,1,no description,60.2
+1083,I7N3G6G,1083,1,no description,60.2
+1084,I7N3G6G,1084,1,no description,60.2
+1085,I7N3G6G,1085,1,no description,60.2
+1086,I7N3G6G,1086,1,no description,60.2
+1087,I7N3G6G,1087,1,no description,60.2
+1088,I7N3G6G,1088,1,no description,60.2
+1089,I7N3G6G,1089,1,no description,60.2
+1090,I7N3G6G,1090,1,no description,60.2
+1091,I7N3G6G,1091,1,no description,60.2
+1092,I7N3G6G,1092,1,no description,60.2
+1093,I7N3G6G,1093,1,no description,60.2
+1094,I7N3G6G,1094,1,no description,60.2
+1095,I7N3G6G,1095,1,no description,60.2
+1096,I7N3G6G,1096,1,no description,60.2
+1097,I7N3G6G,1097,1,no description,60.2
+1098,I7N3G6G,1098,1,no description,60.2
+1099,I7N3G6G,1099,1,no description,60.2
+1100,I7N3G6G,1100,1,no description,60.2
+1101,I7N3G6G,1101,1,no description,60.2
+1102,I7N3G6G,1102,1,no description,60.2
+1103,I7N3G6G,1103,1,no description,60.2
+1104,I7N3G6G,1104,1,no description,60.2
+1105,I7N3G6G,1105,1,no description,60.2
+1106,I7N3G6G,1106,1,no description,60.2
+1107,I7N3G6G,1107,1,no description,60.2
+1108,I7N3G6G,1108,1,no description,60.2
+1109,I7N3G6G,1109,1,no description,60.2
+1110,I7N3G6G,1110,1,no description,60.2
+1111,I7N3G6G,1111,1,no description,60.2
+1112,I7N3G6G,1112,1,no description,60.2
+1113,I7N3G6G,1113,1,no description,60.2
+1114,I7N3G6G,1114,1,no description,60.2
+1115,I7N3G6G,1115,1,no description,60.2
+1116,I7N3G6G,1116,1,no description,60.2
+1117,I7N3G6G,1117,1,no description,60.2
+1118,I7N3G6G,1118,1,no description,60.2
+1119,I7N3G6G,1119,1,no description,60.2
+1120,I7N3G6G,1120,1,no description,60.2
+1121,I7N3G6G,1121,1,no description,60.2
+1122,I7N3G6G,1122,1,no description,60.2
+1123,I7N3G6G,1123,1,no description,60.2
+1124,I7N3G6G,1124,1,no description,60.2
+1125,I7N3G6G,1125,1,no description,60.2
+1126,I7N3G6G,1126,1,no description,60.2
+1127,I7N3G6G,1127,1,no description,60.2
+1128,I7N3G6G,1128,1,no description,60.2
+1129,I7N3G6G,1129,1,no description,60.2
+1130,I7N3G6G,1130,1,no description,60.2
+1131,I7N3G6G,1131,1,no description,60.2
+1132,I7N3G6G,1132,1,no description,60.2
+1133,I7N3G6G,1133,1,no description,60.2
+1134,I7N3G6G,1134,1,no description,60.2
+1135,I7N3G6G,1135,1,no description,60.2
+1136,I7N3G6G,1136,1,no description,60.2
+1137,I7N3G6G,1137,1,no description,60.2
+1138,I7N3G6G,1138,1,no description,60.2
+1139,I7N3G6G,1139,1,no description,60.2
+1140,I7N3G6G,1140,1,no description,60.2
+1141,I7N3G6G,1141,1,no description,60.2
+1142,I7N3G6G,1142,1,no description,60.2
+1143,I7N3G6G,1143,1,no description,60.2
+1144,I7N3G6G,1144,1,no description,60.2
+1145,I7N3G6G,1145,1,no description,60.2
+1146,I7N3G6G,1146,1,no description,60.2
+1147,I7N3G6G,1147,1,no description,60.2
+1148,I7N3G6G,1148,1,no description,60.2
+1149,I7N3G6G,1149,1,no description,60.2
+1150,I7N3G6G,1150,1,no description,60.2
+1151,I7N3G6G,1151,1,no description,60.2
+1152,I7N3G6G,1152,1,no description,60.2
+1153,I7N3G6G,1153,1,no description,60.2
+1154,I7N3G6G,1154,1,no description,60.2
+1155,I7N3G6G,1155,1,no description,60.2
+1156,I7N3G6G,1156,1,no description,60.2
+1157,I7N3G6G,1157,1,no description,60.2
+1158,I7N3G6G,1158,1,no description,60.2
+1159,I7N3G6G,1159,1,no description,60.2
+1160,I7N3G6G,1160,1,no description,60.2
+1161,I7N3G6G,1161,1,no description,60.2
+1162,I7N3G6G,1162,1,no description,60.2
+1163,I7N3G6G,1163,1,no description,60.2
+1164,I7N3G6G,1164,1,no description,60.2
+1165,I7N3G6G,1165,1,no description,60.2
+1166,I7N3G6G,1166,1,no description,60.2
+1167,I7N3G6G,1167,1,no description,60.2
+1168,I7N3G6G,1168,1,no description,60.2
+1169,I7N3G6G,1169,1,no description,60.2
+1170,I7N3G6G,1170,1,no description,60.2
+1171,I7N3G6G,1171,1,no description,60.2
+1172,I7N3G6G,1172,1,no description,60.2
+1173,I7N3G6G,1173,1,no description,60.2
+1174,I7N3G6G,1174,1,no description,60.2
+1175,I7N3G6G,1175,1,no description,60.2
+1176,I7N3G6G,1176,1,no description,60.2
+1177,I7N3G6G,1177,1,no description,60.2
+1178,I7N3G6G,1178,1,no description,60.2
+1179,I7N3G6G,1179,1,no description,60.2
+1180,I7N3G6G,1180,1,no description,60.2
+1181,I7N3G6G,1181,1,no description,60.2
+1182,I7N3G6G,1182,1,no description,60.2
+1183,I7N3G6G,1183,1,no description,60.2
+1184,I7N3G6G,1184,1,no description,60.2
+1185,I7N3G6G,1185,1,no description,60.2
+1186,I7N3G6G,1186,1,no description,60.2
+1187,I7N3G6G,1187,1,no description,60.2
+1188,I7N3G6G,1188,1,no description,60.2
+1189,I7N3G6G,1189,1,no description,60.2
+1190,I7N3G6G,1190,1,no description,60.2
+1191,I7N3G6G,1191,1,no description,60.2
+1192,I7N3G6G,1192,1,no description,60.2
+1193,I7N3G6G,1193,1,no description,60.2
+1194,I7N3G6G,1194,1,no description,60.2
+1195,I7N3G6G,1195,1,no description,60.2
+1196,I7N3G6G,1196,1,no description,60.2
+1197,I7N3G6G,1197,1,no description,60.2
+1198,I7N3G6G,1198,1,no description,60.2
+1199,I7N3G6G,1199,1,no description,60.2
+1200,I7N3G6G,1200,1,no description,60.2
+1201,I7N3G6G,1201,1,no description,60.2
+1202,I7N3G6G,1202,1,no description,60.2
+1203,I7N3G6G,1203,1,no description,60.2
+1204,I7N3G6G,1204,1,no description,60.2
+1205,I7N3G6G,1205,1,no description,60.2
+1206,I7N3G6G,1206,1,no description,60.2
+1207,I7N3G6G,1207,1,no description,60.2
+1208,I7N3G6G,1208,1,no description,60.2
+1209,I7N3G6G,1209,1,no description,60.2
+1210,I7N3G6G,1210,1,no description,60.2
+1211,I7N3G6G,1211,1,no description,60.2
+1212,I7N3G6G,1212,1,no description,60.2
+1213,I7N3G6G,1213,1,no description,60.2
+1214,I7N3G6G,1214,1,no description,60.2
+1215,I7N3G6G,1215,1,no description,60.2
+1216,I7N3G6G,1216,1,no description,60.2
+1217,I7N3G6G,1217,1,no description,60.2
+1218,I7N3G6G,1218,1,no description,60.2
+1219,I7N3G6G,1219,1,no description,60.2
+1220,I7N3G6G,1220,1,no description,60.2
+1221,I7N3G6G,1221,1,no description,60.2
+1222,I7N3G6G,1222,1,no description,60.2
+1223,I7N3G6G,1223,1,no description,60.2
+1224,I7N3G6G,1224,1,no description,60.2
+1225,I7N3G6G,1225,1,no description,60.2
+1226,I7N3G6G,1226,1,no description,60.2
+1227,I7N3G6G,1227,1,no description,60.2
+1228,I7N3G6G,1228,1,no description,60.2
+1229,I7N3G6G,1229,1,no description,60.2
+1230,I7N3G6G,1230,1,no description,60.2
+1231,I7N3G6G,1231,1,no description,60.2
+1232,I7N3G6G,1232,1,no description,60.2
+1233,I7N3G6G,1233,1,no description,60.2
+1234,I7N3G6G,1234,1,no description,60.2
+1235,I7N3G6G,1235,1,no description,60.2
+1236,I7N3G6G,1236,1,no description,60.2
+1237,I7N3G6G,1237,1,no description,60.2
+1238,I7N3G6G,1238,1,no description,60.2
+1239,I7N3G6G,1239,1,no description,60.2
+1240,I7N3G6G,1240,1,no description,60.2
+1241,I7N3G6G,1241,1,no description,60.2
+1242,I7N3G6G,1242,1,no description,60.2
+1243,I7N3G6G,1243,1,no description,60.2
+1244,I7N3G6G,1244,1,no description,60.2
+1245,I7N3G6G,1245,1,no description,60.2
+1246,I7N3G6G,1246,1,no description,60.2
+1247,I7N3G6G,1247,1,no description,60.2
+1248,I7N3G6G,1248,1,no description,60.2
+1249,I7N3G6G,1249,1,no description,60.2
+1250,I7N3G6G,1250,1,no description,60.2
+1251,I7N3G6G,1251,1,no description,60.2
+1252,I7N3G6G,1252,1,no description,60.2
+1253,I7N3G6G,1253,1,no description,60.2
+1254,I7N3G6G,1254,1,no description,60.2
+1255,I7N3G6G,1255,1,no description,60.2
+1256,I7N3G6G,1256,1,no description,60.2
+1257,I7N3G6G,1257,1,no description,60.2
+1258,I7N3G6G,1258,1,no description,60.2
+1259,I7N3G6G,1259,1,no description,60.2
+1260,I7N3G6G,1260,1,no description,60.2
+1261,I7N3G6G,1261,1,no description,60.2
+1262,I7N3G6G,1262,1,no description,60.2
+1263,I7N3G6G,1263,1,no description,60.2
+1264,I7N3G6G,1264,1,no description,60.2
+1265,I7N3G6G,1265,1,no description,60.2
+1266,I7N3G6G,1266,1,no description,60.2
+1267,I7N3G6G,1267,1,no description,60.2
+1268,I7N3G6G,1268,1,no description,60.2
+1269,I7N3G6G,1269,1,no description,60.2
+1270,I7N3G6G,1270,1,no description,60.2
+1271,I7N3G6G,1271,1,no description,60.2
+1272,I7N3G6G,1272,1,no description,60.2
+1273,I7N3G6G,1273,1,no description,60.2
+1274,I7N3G6G,1274,1,no description,60.2
+1275,I7N3G6G,1275,1,no description,60.2
+1276,I7N3G6G,1276,1,no description,60.2
+1277,I7N3G6G,1277,1,no description,60.2
+1278,I7N3G6G,1278,1,no description,60.2
+1279,I7N3G6G,1279,1,no description,60.2
+1280,I7N3G6G,1280,1,no description,60.2
+1281,I7N3G6G,1281,1,no description,60.2
+1282,I7N3G6G,1282,1,no description,60.2
+1283,I7N3G6G,1283,1,no description,60.2
+1284,I7N3G6G,1284,1,no description,60.2
+1285,I7N3G6G,1285,1,no description,60.2
+1286,I7N3G6G,1286,1,no description,60.2
+1287,I7N3G6G,1287,1,no description,60.2
+1288,I7N3G6G,1288,1,no description,60.2
+1289,I7N3G6G,1289,1,no description,60.2
+1290,I7N3G6G,1290,1,no description,60.2
+1291,I7N3G6G,1291,1,no description,60.2
+1292,I7N3G6G,1292,1,no description,60.2
+1293,I7N3G6G,1293,1,no description,60.2
+1294,I7N3G6G,1294,1,no description,60.2
+1295,I7N3G6G,1295,1,no description,60.2
+1296,I7N3G6G,1296,1,no description,60.2
+1297,I7N3G6G,1297,1,no description,60.2
+1298,I7N3G6G,1298,1,no description,60.2
+1299,I7N3G6G,1299,1,no description,60.2
+1300,I7N3G6G,1300,1,no description,60.2
+1301,I7N3G6G,1301,1,no description,60.2
+1302,I7N3G6G,1302,1,no description,60.2
+1303,I7N3G6G,1303,1,no description,60.2
+1304,I7N3G6G,1304,1,no description,60.2
+1305,I7N3G6G,1305,1,no description,60.2
+1306,I7N3G6G,1306,1,no description,60.2
+1307,I7N3G6G,1307,1,no description,60.2
+1308,I7N3G6G,1308,1,no description,60.2
+1309,I7N3G6G,1309,1,no description,60.2
+1310,I7N3G6G,1310,1,no description,60.2
+1311,I7N3G6G,1311,1,no description,60.2
+1312,I7N3G6G,1312,1,no description,60.2
+1313,I7N3G6G,1313,1,no description,60.2
+1314,I7N3G6G,1314,1,no description,60.2
+1315,I7N3G6G,1315,1,no description,60.2
+1316,I7N3G6G,1316,1,no description,60.2
+1317,I7N3G6G,1317,1,no description,60.2
+1318,I7N3G6G,1318,1,no description,60.2
+1319,I7N3G6G,1319,1,no description,60.2
+1320,I7N3G6G,1320,1,no description,60.2
+1321,I7N3G6G,1321,1,no description,60.2
+1322,I7N3G6G,1322,1,no description,60.2
+1323,I7N3G6G,1323,1,no description,60.2
+1324,I7N3G6G,1324,1,no description,60.2
+1325,I7N3G6G,1325,1,no description,60.2
+1326,I7N3G6G,1326,1,no description,60.2
+1327,I7N3G6G,1327,1,no description,60.2
+1328,I7N3G6G,1328,1,no description,60.2
+1329,I7N3G6G,1329,1,no description,60.2
+1330,I7N3G6G,1330,1,no description,60.2
+1331,I7N3G6G,1331,1,no description,60.2
+1332,I7N3G6G,1332,1,no description,60.2
+1333,I7N3G6G,1333,1,no description,60.2
+1334,I7N3G6G,1334,1,no description,60.2
+1335,I7N3G6G,1335,1,no description,60.2
+1336,I7N3G6G,1336,1,no description,60.2
+1337,I7N3G6G,1337,1,no description,60.2
+1338,I7N3G6G,1338,1,no description,60.2
+1339,I7N3G6G,1339,1,no description,60.2
+1340,I7N3G6G,1340,1,no description,60.2
+1341,I7N3G6G,1341,1,no description,60.2
+1342,I7N3G6G,1342,1,no description,60.2
+1343,I7N3G6G,1343,1,no description,60.2
+1344,I7N3G6G,1344,1,no description,60.2
+1345,I7N3G6G,1345,1,no description,60.2
+1346,I7N3G6G,1346,1,no description,60.2
+1347,I7N3G6G,1347,1,no description,60.2
+1348,I7N3G6G,1348,1,no description,60.2
+1349,I7N3G6G,1349,1,no description,60.2
+1350,I7N3G6G,1350,1,no description,60.2
+1351,I7N3G6G,1351,1,no description,60.2
+1352,I7N3G6G,1352,1,no description,60.2
+1353,I7N3G6G,1353,1,no description,60.2
+1354,I7N3G6G,1354,1,no description,60.2
+1355,I7N3G6G,1355,1,no description,60.2
+1356,I7N3G6G,1356,1,no description,60.2
+1357,I7N3G6G,1357,1,no description,60.2
+1358,I7N3G6G,1358,1,no description,60.2
+1359,I7N3G6G,1359,1,no description,60.2
+1360,I7N3G6G,1360,1,no description,60.2
+1361,I7N3G6G,1361,1,no description,60.2
+1362,I7N3G6G,1362,1,no description,60.2
+1363,I7N3G6G,1363,1,no description,60.2
+1364,I7N3G6G,1364,1,no description,60.2
+1365,I7N3G6G,1365,1,no description,60.2
+1366,I7N3G6G,1366,1,no description,60.2
+1367,I7N3G6G,1367,1,no description,60.2
+1368,I7N3G6G,1368,1,no description,60.2
+1369,I7N3G6G,1369,1,no description,60.2
+1370,I7N3G6G,1370,1,no description,60.2
+1371,I7N3G6G,1371,1,no description,60.2
+1372,I7N3G6G,1372,1,no description,60.2
+1373,I7N3G6G,1373,1,no description,60.2
+1374,I7N3G6G,1374,1,no description,60.2
+1375,I7N3G6G,1375,1,no description,60.2
+1376,I7N3G6G,1376,1,no description,60.2
+1377,I7N3G6G,1377,1,no description,60.2
+1378,I7N3G6G,1378,1,no description,60.2
+1379,I7N3G6G,1379,1,no description,60.2
+1380,I7N3G6G,1380,1,no description,60.2
+1381,I7N3G6G,1381,1,no description,60.2
+1382,I7N3G6G,1382,1,no description,60.2
+1383,I7N3G6G,1383,1,no description,60.2
+1384,I7N3G6G,1384,1,no description,60.2
+1385,I7N3G6G,1385,1,no description,60.2
+1386,I7N3G6G,1386,1,no description,60.2
+1387,I7N3G6G,1387,1,no description,60.2
+1388,I7N3G6G,1388,1,no description,60.2
+1389,I7N3G6G,1389,1,no description,60.2
+1390,I7N3G6G,1390,1,no description,60.2
+1391,I7N3G6G,1391,1,no description,60.2
+1392,I7N3G6G,1392,1,no description,60.2
+1393,I7N3G6G,1393,1,no description,60.2
+1394,I7N3G6G,1394,1,no description,60.2
+1395,I7N3G6G,1395,1,no description,60.2
+1396,I7N3G6G,1396,1,no description,60.2
+1397,I7N3G6G,1397,1,no description,60.2
+1398,I7N3G6G,1398,1,no description,60.2
+1399,I7N3G6G,1399,1,no description,60.2
+1400,I7N3G6G,1400,1,no description,60.2
+1401,I7N3G6G,1401,1,no description,60.2
+1402,I7N3G6G,1402,1,no description,60.2
+1403,I7N3G6G,1403,1,no description,60.2
+1404,I7N3G6G,1404,1,no description,60.2
+1405,I7N3G6G,1405,1,no description,60.2
+1406,I7N3G6G,1406,1,no description,60.2
+1407,I7N3G6G,1407,1,no description,60.2
+1408,I7N3G6G,1408,1,no description,60.2
+1409,I7N3G6G,1409,1,no description,60.2
+1410,I7N3G6G,1410,1,no description,60.2
+1411,I7N3G6G,1411,1,no description,60.2
+1412,I7N3G6G,1412,1,no description,60.2
+1413,I7N3G6G,1413,1,no description,60.2
+1414,I7N3G6G,1414,1,no description,60.2
+1415,I7N3G6G,1415,1,no description,60.2
+1416,I7N3G6G,1416,1,no description,60.2
+1417,I7N3G6G,1417,1,no description,60.2
+1418,I7N3G6G,1418,1,no description,60.2
+1419,I7N3G6G,1419,1,no description,60.2
+1420,I7N3G6G,1420,1,no description,60.2
+1421,I7N3G6G,1421,1,no description,60.2
+1422,I7N3G6G,1422,1,no description,60.2
+1423,I7N3G6G,1423,1,no description,60.2
+1424,I7N3G6G,1424,1,no description,60.2
+1425,I7N3G6G,1425,1,no description,60.2
+1426,I7N3G6G,1426,1,no description,60.2
+1427,I7N3G6G,1427,1,no description,60.2
+1428,I7N3G6G,1428,1,no description,60.2
+1429,I7N3G6G,1429,1,no description,60.2
+1430,I7N3G6G,1430,1,no description,60.2
+1431,I7N3G6G,1431,1,no description,60.2
+1432,I7N3G6G,1432,1,no description,60.2
+1433,I7N3G6G,1433,1,no description,60.2
+1434,I7N3G6G,1434,1,no description,60.2
+1435,I7N3G6G,1435,1,no description,60.2
+1436,I7N3G6G,1436,1,no description,60.2
+1437,I7N3G6G,1437,1,no description,60.2
+1438,I7N3G6G,1438,1,no description,60.2
+1439,I7N3G6G,1439,1,no description,60.2
+1440,I7N3G6G,1440,1,no description,60.2
+1441,I7N3G6G,1441,1,no description,60.2
+1442,I7N3G6G,1442,1,no description,60.2
+1443,I7N3G6G,1443,1,no description,60.2
+1444,I7N3G6G,1444,1,no description,60.2
+1445,I7N3G6G,1445,1,no description,60.2
+1446,I7N3G6G,1446,1,no description,60.2
+1447,I7N3G6G,1447,1,no description,60.2
+1448,I7N3G6G,1448,1,no description,60.2
+1449,I7N3G6G,1449,1,no description,60.2
+1450,I7N3G6G,1450,1,no description,60.2
+1451,I7N3G6G,1451,1,no description,60.2
+1452,I7N3G6G,1452,1,no description,60.2
+1453,I7N3G6G,1453,1,no description,60.2
+1454,I7N3G6G,1454,1,no description,60.2
+1455,I7N3G6G,1455,1,no description,60.2
+1456,I7N3G6G,1456,1,no description,60.2
+1457,I7N3G6G,1457,1,no description,60.2
+1458,I7N3G6G,1458,1,no description,60.2
+1459,I7N3G6G,1459,1,no description,60.2
+1460,I7N3G6G,1460,1,no description,60.2
+1461,I7N3G6G,1461,1,no description,60.2
+1462,I7N3G6G,1462,1,no description,60.2
+1463,I7N3G6G,1463,1,no description,60.2
+1464,I7N3G6G,1464,1,no description,60.2
+1465,I7N3G6G,1465,1,no description,60.2
+1466,I7N3G6G,1466,1,no description,60.2
+1467,I7N3G6G,1467,1,no description,60.2
+1468,I7N3G6G,1468,1,no description,60.2
+1469,I7N3G6G,1469,1,no description,60.2
+1470,I7N3G6G,1470,1,no description,60.2
+1471,I7N3G6G,1471,1,no description,60.2
+1472,I7N3G6G,1472,1,no description,60.2
+1473,I7N3G6G,1473,1,no description,60.2
+1474,I7N3G6G,1474,1,no description,60.2
+1475,I7N3G6G,1475,1,no description,60.2
+1476,I7N3G6G,1476,1,no description,60.2
+1477,I7N3G6G,1477,1,no description,60.2
+1478,I7N3G6G,1478,1,no description,60.2
+1479,I7N3G6G,1479,1,no description,60.2
+1480,I7N3G6G,1480,1,no description,60.2
+1481,I7N3G6G,1481,1,no description,60.2
+1482,I7N3G6G,1482,1,no description,60.2
+1483,I7N3G6G,1483,1,no description,60.2
+1484,I7N3G6G,1484,1,no description,60.2
+1485,I7N3G6G,1485,1,no description,60.2
+1486,I7N3G6G,1486,1,no description,60.2
+1487,I7N3G6G,1487,1,no description,60.2
+1488,I7N3G6G,1488,1,no description,60.2
+1489,I7N3G6G,1489,1,no description,60.2
+1490,I7N3G6G,1490,1,no description,60.2
+1491,I7N3G6G,1491,1,no description,60.2
+1492,I7N3G6G,1492,1,no description,60.2
+1493,I7N3G6G,1493,1,no description,60.2
+1494,I7N3G6G,1494,1,no description,60.2
+1495,I7N3G6G,1495,1,no description,60.2
+1496,I7N3G6G,1496,1,no description,60.2
+1497,I7N3G6G,1497,1,no description,60.2
+1498,I7N3G6G,1498,1,no description,60.2
+1499,I7N3G6G,1499,1,no description,60.2
+1500,I7N3G6G,1500,1,no description,60.2
+1501,I7N3G6G,1501,1,no description,60.2
+1502,I7N3G6G,1502,1,no description,60.2
+1503,I7N3G6G,1503,1,no description,60.2
+1504,I7N3G6G,1504,1,no description,60.2
+1505,I7N3G6G,1505,1,no description,60.2
+1506,I7N3G6G,1506,1,no description,60.2
+1507,I7N3G6G,1507,1,no description,60.2
+1508,I7N3G6G,1508,1,no description,60.2
+1509,I7N3G6G,1509,1,no description,60.2
+1510,I7N3G6G,1510,1,no description,60.2
+1511,I7N3G6G,1511,1,no description,60.2
+1512,I7N3G6G,1512,1,no description,60.2
+1513,I7N3G6G,1513,1,no description,60.2
+1514,I7N3G6G,1514,1,no description,60.2
+1515,I7N3G6G,1515,1,no description,60.2
+1516,I7N3G6G,1516,1,no description,60.2
+1517,I7N3G6G,1517,1,no description,60.2
+1518,I7N3G6G,1518,1,no description,60.2
+1519,I7N3G6G,1519,1,no description,60.2
+1520,I7N3G6G,1520,1,no description,60.2
+1521,I7N3G6G,1521,1,no description,60.2
+1522,I7N3G6G,1522,1,no description,60.2
+1523,I7N3G6G,1523,1,no description,60.2
+1524,I7N3G6G,1524,1,no description,60.2
+1525,I7N3G6G,1525,1,no description,60.2
+1526,I7N3G6G,1526,1,no description,60.2
+1527,I7N3G6G,1527,1,no description,60.2
+1528,I7N3G6G,1528,1,no description,60.2
+1529,I7N3G6G,1529,1,no description,60.2
+1530,I7N3G6G,1530,1,no description,60.2
+1531,I7N3G6G,1531,1,no description,60.2
+1532,I7N3G6G,1532,1,no description,60.2
+1533,I7N3G6G,1533,1,no description,60.2
+1534,I7N3G6G,1534,1,no description,60.2
+1535,I7N3G6G,1535,1,no description,60.2
+1536,I7N3G6G,1536,1,no description,60.2
+1537,I7N3G6G,1537,1,no description,60.2
+1538,I7N3G6G,1538,1,no description,60.2
+1539,I7N3G6G,1539,1,no description,60.2
+1540,I7N3G6G,1540,1,no description,60.2
+1541,I7N3G6G,1541,1,no description,60.2
+1542,I7N3G6G,1542,1,no description,60.2
+1543,I7N3G6G,1543,1,no description,60.2
+1544,I7N3G6G,1544,1,no description,60.2
+1545,I7N3G6G,1545,1,no description,60.2
+1546,I7N3G6G,1546,1,no description,60.2
+1547,I7N3G6G,1547,1,no description,60.2
+1548,I7N3G6G,1548,1,no description,60.2
+1549,I7N3G6G,1549,1,no description,60.2
+1550,I7N3G6G,1550,1,no description,60.2
+1551,I7N3G6G,1551,1,no description,60.2
+1552,I7N3G6G,1552,1,no description,60.2
+1553,I7N3G6G,1553,1,no description,60.2
+1554,I7N3G6G,1554,1,no description,60.2
+1555,I7N3G6G,1555,1,no description,60.2
+1556,I7N3G6G,1556,1,no description,60.2
+1557,I7N3G6G,1557,1,no description,60.2
+1558,I7N3G6G,1558,1,no description,60.2
+1559,I7N3G6G,1559,1,no description,60.2
+1560,I7N3G6G,1560,1,no description,60.2
+1561,I7N3G6G,1561,1,no description,60.2
+1562,I7N3G6G,1562,1,no description,60.2
+1563,I7N3G6G,1563,1,no description,60.2
+1564,I7N3G6G,1564,1,no description,60.2
+1565,I7N3G6G,1565,1,no description,60.2
+1566,I7N3G6G,1566,1,no description,60.2
+1567,I7N3G6G,1567,1,no description,60.2
+1568,I7N3G6G,1568,1,no description,60.2
+1569,I7N3G6G,1569,1,no description,60.2
+1570,I7N3G6G,1570,1,no description,60.2
+1571,I7N3G6G,1571,1,no description,60.2
+1572,I7N3G6G,1572,1,no description,60.2
+1573,I7N3G6G,1573,1,no description,60.2
+1574,I7N3G6G,1574,1,no description,60.2
+1575,I7N3G6G,1575,1,no description,60.2
+1576,I7N3G6G,1576,1,no description,60.2
+1577,I7N3G6G,1577,1,no description,60.2
+1578,I7N3G6G,1578,1,no description,60.2
+1579,I7N3G6G,1579,1,no description,60.2
+1580,I7N3G6G,1580,1,no description,60.2
+1581,I7N3G6G,1581,1,no description,60.2
+1582,I7N3G6G,1582,1,no description,60.2
+1583,I7N3G6G,1583,1,no description,60.2
+1584,I7N3G6G,1584,1,no description,60.2
+1585,I7N3G6G,1585,1,no description,60.2
+1586,I7N3G6G,1586,1,no description,60.2
+1587,I7N3G6G,1587,1,no description,60.2
+1588,I7N3G6G,1588,1,no description,60.2
+1589,I7N3G6G,1589,1,no description,60.2
+1590,I7N3G6G,1590,1,no description,60.2
+1591,I7N3G6G,1591,1,no description,60.2
+1592,I7N3G6G,1592,1,no description,60.2
+1593,I7N3G6G,1593,1,no description,60.2
+1594,I7N3G6G,1594,1,no description,60.2
+1595,I7N3G6G,1595,1,no description,60.2
+1596,I7N3G6G,1596,1,no description,60.2
+1597,I7N3G6G,1597,1,no description,60.2
+1598,I7N3G6G,1598,1,no description,60.2
+1599,I7N3G6G,1599,1,no description,60.2
+1600,I7N3G6G,1600,1,no description,60.2
+1601,I7N3G6G,1601,1,no description,60.2
+1602,I7N3G6G,1602,1,no description,60.2
+1603,I7N3G6G,1603,1,no description,60.2
+1604,I7N3G6G,1604,1,no description,60.2
+1605,I7N3G6G,1605,1,no description,60.2
+1606,I7N3G6G,1606,1,no description,60.2
+1607,I7N3G6G,1607,1,no description,60.2
+1608,I7N3G6G,1608,1,no description,60.2
+1609,I7N3G6G,1609,1,no description,60.2
+1610,I7N3G6G,1610,1,no description,60.2
+1611,I7N3G6G,1611,1,no description,60.2
+1612,I7N3G6G,1612,1,no description,60.2
+1613,I7N3G6G,1613,1,no description,60.2
+1614,I7N3G6G,1614,1,no description,60.2
+1615,I7N3G6G,1615,1,no description,60.2
+1616,I7N3G6G,1616,1,no description,60.2
+1617,I7N3G6G,1617,1,no description,60.2
+1618,I7N3G6G,1618,1,no description,60.2
+1619,I7N3G6G,1619,1,no description,60.2
+1620,I7N3G6G,1620,1,no description,60.2
+1621,I7N3G6G,1621,1,no description,60.2
+1622,I7N3G6G,1622,1,no description,60.2
+1623,I7N3G6G,1623,1,no description,60.2
+1624,I7N3G6G,1624,1,no description,60.2
+1625,I7N3G6G,1625,1,no description,60.2
+1626,I7N3G6G,1626,1,no description,60.2
+1627,I7N3G6G,1627,1,no description,60.2
+1628,I7N3G6G,1628,1,no description,60.2
+1629,I7N3G6G,1629,1,no description,60.2
+1630,I7N3G6G,1630,1,no description,60.2
+1631,I7N3G6G,1631,1,no description,60.2
+1632,I7N3G6G,1632,1,no description,60.2
+1633,I7N3G6G,1633,1,no description,60.2
+1634,I7N3G6G,1634,1,no description,60.2
+1635,I7N3G6G,1635,1,no description,60.2
+1636,I7N3G6G,1636,1,no description,60.2
+1637,I7N3G6G,1637,1,no description,60.2
+1638,I7N3G6G,1638,1,no description,60.2
+1639,I7N3G6G,1639,1,no description,60.2
+1640,I7N3G6G,1640,1,no description,60.2
+1641,I7N3G6G,1641,1,no description,60.2
+1642,I7N3G6G,1642,1,no description,60.2
+1643,I7N3G6G,1643,1,no description,60.2
+1644,I7N3G6G,1644,1,no description,60.2
+1645,I7N3G6G,1645,1,no description,60.2
+1646,I7N3G6G,1646,1,no description,60.2
+1647,I7N3G6G,1647,1,no description,60.2
+1648,I7N3G6G,1648,1,no description,60.2
+1649,I7N3G6G,1649,1,no description,60.2
+1650,I7N3G6G,1650,1,no description,60.2
+1651,I7N3G6G,1651,1,no description,60.2
+1652,I7N3G6G,1652,1,no description,60.2
+1653,I7N3G6G,1653,1,no description,60.2
+1654,I7N3G6G,1654,1,no description,60.2
+1655,I7N3G6G,1655,1,no description,60.2
+1656,I7N3G6G,1656,1,no description,60.2
+1657,I7N3G6G,1657,1,no description,60.2
+1658,I7N3G6G,1658,1,no description,60.2
+1659,I7N3G6G,1659,1,no description,60.2
+1660,I7N3G6G,1660,1,no description,60.2
+1661,I7N3G6G,1661,1,no description,60.2
+1662,I7N3G6G,1662,1,no description,60.2
+1663,I7N3G6G,1663,1,no description,60.2
+1664,I7N3G6G,1664,1,no description,60.2
+1665,I7N3G6G,1665,1,no description,60.2
+1666,I7N3G6G,1666,1,no description,60.2
+1667,I7N3G6G,1667,1,no description,60.2
+1668,I7N3G6G,1668,1,no description,60.2
+1669,I7N3G6G,1669,1,no description,60.2
+1670,I7N3G6G,1670,1,no description,60.2
+1671,I7N3G6G,1671,1,no description,60.2
+1672,I7N3G6G,1672,1,no description,60.2
+1673,I7N3G6G,1673,1,no description,60.2
+1674,I7N3G6G,1674,1,no description,60.2
+1675,I7N3G6G,1675,1,no description,60.2
+1676,I7N3G6G,1676,1,no description,60.2
+1677,I7N3G6G,1677,1,no description,60.2
+1678,I7N3G6G,1678,1,no description,60.2
+1679,I7N3G6G,1679,1,no description,60.2
+1680,I7N3G6G,1680,1,no description,60.2
+1681,I7N3G6G,1681,1,no description,60.2
+1682,I7N3G6G,1682,1,no description,60.2
+1683,I7N3G6G,1683,1,no description,60.2
+1684,I7N3G6G,1684,1,no description,60.2
+1685,I7N3G6G,1685,1,no description,60.2
+1686,I7N3G6G,1686,1,no description,60.2
+1687,I7N3G6G,1687,1,no description,60.2
+1688,I7N3G6G,1688,1,no description,60.2
+1689,I7N3G6G,1689,1,no description,60.2
+1690,I7N3G6G,1690,1,no description,60.2
+1691,I7N3G6G,1691,1,no description,60.2
+1692,I7N3G6G,1692,1,no description,60.2
+1693,I7N3G6G,1693,1,no description,60.2
+1694,I7N3G6G,1694,1,no description,60.2
+1695,I7N3G6G,1695,1,no description,60.2
+1696,I7N3G6G,1696,1,no description,60.2
+1697,I7N3G6G,1697,1,no description,60.2
+1698,I7N3G6G,1698,1,no description,60.2
+1699,I7N3G6G,1699,1,no description,60.2
+1700,I7N3G6G,1700,1,no description,60.2
+1701,I7N3G6G,1701,1,no description,60.2
+1702,I7N3G6G,1702,1,no description,60.2
+1703,I7N3G6G,1703,1,no description,60.2
+1704,I7N3G6G,1704,1,no description,60.2
+1705,I7N3G6G,1705,1,no description,60.2
+1706,I7N3G6G,1706,1,no description,60.2
+1707,I7N3G6G,1707,1,no description,60.2
+1708,I7N3G6G,1708,1,no description,60.2
+1709,I7N3G6G,1709,1,no description,60.2
+1710,I7N3G6G,1710,1,no description,60.2
+1711,I7N3G6G,1711,1,no description,60.2
+1712,I7N3G6G,1712,1,no description,60.2
+1713,I7N3G6G,1713,1,no description,60.2
+1714,I7N3G6G,1714,1,no description,60.2
+1715,I7N3G6G,1715,1,no description,60.2
+1716,I7N3G6G,1716,1,no description,60.2
+1717,I7N3G6G,1717,1,no description,60.2
+1718,I7N3G6G,1718,1,no description,60.2
+1719,I7N3G6G,1719,1,no description,60.2
+1720,I7N3G6G,1720,1,no description,60.2
+1721,I7N3G6G,1721,1,no description,60.2
+1722,I7N3G6G,1722,1,no description,60.2
+1723,I7N3G6G,1723,1,no description,60.2
+1724,I7N3G6G,1724,1,no description,60.2
+1725,I7N3G6G,1725,1,no description,60.2
+1726,I7N3G6G,1726,1,no description,60.2
+1727,I7N3G6G,1727,1,no description,60.2
+1728,I7N3G6G,1728,1,no description,60.2
+1729,I7N3G6G,1729,1,no description,60.2
+1730,I7N3G6G,1730,1,no description,60.2
+1731,I7N3G6G,1731,1,no description,60.2
+1732,I7N3G6G,1732,1,no description,60.2
+1733,I7N3G6G,1733,1,no description,60.2
+1734,I7N3G6G,1734,1,no description,60.2
+1735,I7N3G6G,1735,1,no description,60.2
+1736,I7N3G6G,1736,1,no description,60.2
+1737,I7N3G6G,1737,1,no description,60.2
+1738,I7N3G6G,1738,1,no description,60.2
+1739,I7N3G6G,1739,1,no description,60.2
+1740,I7N3G6G,1740,1,no description,60.2
+1741,I7N3G6G,1741,1,no description,60.2
+1742,I7N3G6G,1742,1,no description,60.2
+1743,I7N3G6G,1743,1,no description,60.2
+1744,I7N3G6G,1744,1,no description,60.2
+1745,I7N3G6G,1745,1,no description,60.2
+1746,I7N3G6G,1746,1,no description,60.2
+1747,I7N3G6G,1747,1,no description,60.2
+1748,I7N3G6G,1748,1,no description,60.2
+1749,I7N3G6G,1749,1,no description,60.2
+1750,I7N3G6G,1750,1,no description,60.2
+1751,I7N3G6G,1751,1,no description,60.2
+1752,I7N3G6G,1752,1,no description,60.2
+1753,I7N3G6G,1753,1,no description,60.2
+1754,I7N3G6G,1754,1,no description,60.2
+1755,I7N3G6G,1755,1,no description,60.2
+1756,I7N3G6G,1756,1,no description,60.2
+1757,I7N3G6G,1757,1,no description,60.2
+1758,I7N3G6G,1758,1,no description,60.2
+1759,I7N3G6G,1759,1,no description,60.2
+1760,I7N3G6G,1760,1,no description,60.2
+1761,I7N3G6G,1761,1,no description,60.2
+1762,I7N3G6G,1762,1,no description,60.2
+1763,I7N3G6G,1763,1,no description,60.2
+1764,I7N3G6G,1764,1,no description,60.2
+1765,I7N3G6G,1765,1,no description,60.2
+1766,I7N3G6G,1766,1,no description,60.2
+1767,I7N3G6G,1767,1,no description,60.2
+1768,I7N3G6G,1768,1,no description,60.2
+1769,I7N3G6G,1769,1,no description,60.2
+1770,I7N3G6G,1770,1,no description,60.2
+1771,I7N3G6G,1771,1,no description,60.2
+1772,I7N3G6G,1772,1,no description,60.2
+1773,I7N3G6G,1773,1,no description,60.2
+1774,I7N3G6G,1774,1,no description,60.2
+1775,I7N3G6G,1775,1,no description,60.2
+1776,I7N3G6G,1776,1,no description,60.2
+1777,I7N3G6G,1777,1,no description,60.2
+1778,I7N3G6G,1778,1,no description,60.2
+1779,I7N3G6G,1779,1,no description,60.2
+1780,I7N3G6G,1780,1,no description,60.2
+1781,I7N3G6G,1781,1,no description,60.2
+1782,I7N3G6G,1782,1,no description,60.2
+1783,I7N3G6G,1783,1,no description,60.2
+1784,I7N3G6G,1784,1,no description,60.2
+1785,I7N3G6G,1785,1,no description,60.2
+1786,I7N3G6G,1786,1,no description,60.2
+1787,I7N3G6G,1787,1,no description,60.2
+1788,I7N3G6G,1788,1,no description,60.2
+1789,I7N3G6G,1789,1,no description,60.2
+1790,I7N3G6G,1790,1,no description,60.2
+1791,I7N3G6G,1791,1,no description,60.2
+1792,I7N3G6G,1792,1,no description,60.2
+1793,I7N3G6G,1793,1,no description,60.2
+1794,I7N3G6G,1794,1,no description,60.2
+1795,I7N3G6G,1795,1,no description,60.2
+1796,I7N3G6G,1796,1,no description,60.2
+1797,I7N3G6G,1797,1,no description,60.2
+1798,I7N3G6G,1798,1,no description,60.2
+1799,I7N3G6G,1799,1,no description,60.2
+1800,I7N3G6G,1800,1,no description,60.2
+1801,I7N3G6G,1801,1,no description,60.2
+1802,I7N3G6G,1802,1,no description,60.2
+1803,I7N3G6G,1803,1,no description,60.2
+1804,I7N3G6G,1804,1,no description,60.2
+1805,I7N3G6G,1805,1,no description,60.2
+1806,I7N3G6G,1806,1,no description,60.2
+1807,I7N3G6G,1807,1,no description,60.2
+1808,I7N3G6G,1808,1,no description,60.2
+1809,I7N3G6G,1809,1,no description,60.2
+1810,I7N3G6G,1810,1,no description,60.2
+1811,I7N3G6G,1811,1,no description,60.2
+1812,I7N3G6G,1812,1,no description,60.2
+1813,I7N3G6G,1813,1,no description,60.2
+1814,I7N3G6G,1814,1,no description,60.2
+1815,I7N3G6G,1815,1,no description,60.2
+1816,I7N3G6G,1816,1,no description,60.2
+1817,I7N3G6G,1817,1,no description,60.2
+1818,I7N3G6G,1818,1,no description,60.2
+1819,I7N3G6G,1819,1,no description,60.2
+1820,I7N3G6G,1820,1,no description,60.2
+1821,I7N3G6G,1821,1,no description,60.2
+1822,I7N3G6G,1822,1,no description,60.2
+1823,I7N3G6G,1823,1,no description,60.2
+1824,I7N3G6G,1824,1,no description,60.2
+1825,I7N3G6G,1825,1,no description,60.2
+1826,I7N3G6G,1826,1,no description,60.2
+1827,I7N3G6G,1827,1,no description,60.2
+1828,I7N3G6G,1828,1,no description,60.2
+1829,I7N3G6G,1829,1,no description,60.2
+1830,I7N3G6G,1830,1,no description,60.2
+1831,I7N3G6G,1831,1,no description,60.2
+1832,I7N3G6G,1832,1,no description,60.2
+1833,I7N3G6G,1833,1,no description,60.2
+1834,I7N3G6G,1834,1,no description,60.2
+1835,I7N3G6G,1835,1,no description,60.2
+1836,I7N3G6G,1836,1,no description,60.2
+1837,I7N3G6G,1837,1,no description,60.2
+1838,I7N3G6G,1838,1,no description,60.2
+1839,I7N3G6G,1839,1,no description,60.2
+1840,I7N3G6G,1840,1,no description,60.2
+1841,I7N3G6G,1841,1,no description,60.2
+1842,I7N3G6G,1842,1,no description,60.2
+1843,I7N3G6G,1843,1,no description,60.2
+1844,I7N3G6G,1844,1,no description,60.2
+1845,I7N3G6G,1845,1,no description,60.2
+1846,I7N3G6G,1846,1,no description,60.2
+1847,I7N3G6G,1847,1,no description,60.2
+1848,I7N3G6G,1848,1,no description,60.2
+1849,I7N3G6G,1849,1,no description,60.2
+1850,I7N3G6G,1850,1,no description,60.2
+1851,I7N3G6G,1851,1,no description,60.2
+1852,I7N3G6G,1852,1,no description,60.2
+1853,I7N3G6G,1853,1,no description,60.2
+1854,I7N3G6G,1854,1,no description,60.2
+1855,I7N3G6G,1855,1,no description,60.2
+1856,I7N3G6G,1856,1,no description,60.2
+1857,I7N3G6G,1857,1,no description,60.2
+1858,I7N3G6G,1858,1,no description,60.2
+1859,I7N3G6G,1859,1,no description,60.2
+1860,I7N3G6G,1860,1,no description,60.2
+1861,I7N3G6G,1861,1,no description,60.2
+1862,I7N3G6G,1862,1,no description,60.2
+1863,I7N3G6G,1863,1,no description,60.2
+1864,I7N3G6G,1864,1,no description,60.2
+1865,I7N3G6G,1865,1,no description,60.2
+1866,I7N3G6G,1866,1,no description,60.2
+1867,I7N3G6G,1867,1,no description,60.2
+1868,I7N3G6G,1868,1,no description,60.2
+1869,I7N3G6G,1869,1,no description,60.2
+1870,I7N3G6G,1870,1,no description,60.2
+1871,I7N3G6G,1871,1,no description,60.2
+1872,I7N3G6G,1872,1,no description,60.2
+1873,I7N3G6G,1873,1,no description,60.2
+1874,I7N3G6G,1874,1,no description,60.2
+1875,I7N3G6G,1875,1,no description,60.2
+1876,I7N3G6G,1876,1,no description,60.2
+1877,I7N3G6G,1877,1,no description,60.2
+1878,I7N3G6G,1878,1,no description,60.2
+1879,I7N3G6G,1879,1,no description,60.2
+1880,I7N3G6G,1880,1,no description,60.2
+1881,I7N3G6G,1881,1,no description,60.2
+1882,I7N3G6G,1882,1,no description,60.2
+1883,I7N3G6G,1883,1,no description,60.2
+1884,I7N3G6G,1884,1,no description,60.2
+1885,I7N3G6G,1885,1,no description,60.2
+1886,I7N3G6G,1886,1,no description,60.2
+1887,I7N3G6G,1887,1,no description,60.2
+1888,I7N3G6G,1888,1,no description,60.2
+1889,I7N3G6G,1889,1,no description,60.2
+1890,I7N3G6G,1890,1,no description,60.2
+1891,I7N3G6G,1891,1,no description,60.2
+1892,I7N3G6G,1892,1,no description,60.2
+1893,I7N3G6G,1893,1,no description,60.2
+1894,I7N3G6G,1894,1,no description,60.2
+1895,I7N3G6G,1895,1,no description,60.2
+1896,I7N3G6G,1896,1,no description,60.2
+1897,I7N3G6G,1897,1,no description,60.2
+1898,I7N3G6G,1898,1,no description,60.2
+1899,I7N3G6G,1899,1,no description,60.2
+1900,I7N3G6G,1900,1,no description,60.2
+1901,I7N3G6G,1901,1,no description,60.2
+1902,I7N3G6G,1902,1,no description,60.2
+1903,I7N3G6G,1903,1,no description,60.2
+1904,I7N3G6G,1904,1,no description,60.2
+1905,I7N3G6G,1905,1,no description,60.2
+1906,I7N3G6G,1906,1,no description,60.2
+1907,I7N3G6G,1907,1,no description,60.2
+1908,I7N3G6G,1908,1,no description,60.2
+1909,I7N3G6G,1909,1,no description,60.2
+1910,I7N3G6G,1910,1,no description,60.2
+1911,I7N3G6G,1911,1,no description,60.2
+1912,I7N3G6G,1912,1,no description,60.2
+1913,I7N3G6G,1913,1,no description,60.2
+1914,I7N3G6G,1914,1,no description,60.2
+1915,I7N3G6G,1915,1,no description,60.2
+1916,I7N3G6G,1916,1,no description,60.2
+1917,I7N3G6G,1917,1,no description,60.2
+1918,I7N3G6G,1918,1,no description,60.2
+1919,I7N3G6G,1919,1,no description,60.2
+1920,I7N3G6G,1920,1,no description,60.2
+1921,I7N3G6G,1921,1,no description,60.2
+1922,I7N3G6G,1922,1,no description,60.2
+1923,I7N3G6G,1923,1,no description,60.2
+1924,I7N3G6G,1924,1,no description,60.2
+1925,I7N3G6G,1925,1,no description,60.2
+1926,I7N3G6G,1926,1,no description,60.2
+1927,I7N3G6G,1927,1,no description,60.2
+1928,I7N3G6G,1928,1,no description,60.2
+1929,I7N3G6G,1929,1,no description,60.2
+1930,I7N3G6G,1930,1,no description,60.2
+1931,I7N3G6G,1931,1,no description,60.2
+1932,I7N3G6G,1932,1,no description,60.2
+1933,I7N3G6G,1933,1,no description,60.2
+1934,I7N3G6G,1934,1,no description,60.2
+1935,I7N3G6G,1935,1,no description,60.2
+1936,I7N3G6G,1936,1,no description,60.2
+1937,I7N3G6G,1937,1,no description,60.2
+1938,I7N3G6G,1938,1,no description,60.2
+1939,I7N3G6G,1939,1,no description,60.2
+1940,I7N3G6G,1940,1,no description,60.2
+1941,I7N3G6G,1941,1,no description,60.2
+1942,I7N3G6G,1942,1,no description,60.2
+1943,I7N3G6G,1943,1,no description,60.2
+1944,I7N3G6G,1944,1,no description,60.2
+1945,I7N3G6G,1945,1,no description,60.2
+1946,I7N3G6G,1946,1,no description,60.2
+1947,I7N3G6G,1947,1,no description,60.2
+1948,I7N3G6G,1948,1,no description,60.2
+1949,I7N3G6G,1949,1,no description,60.2
+1950,I7N3G6G,1950,1,no description,60.2
+1951,I7N3G6G,1951,1,no description,60.2
+1952,I7N3G6G,1952,1,no description,60.2
+1953,I7N3G6G,1953,1,no description,60.2
+1954,I7N3G6G,1954,1,no description,60.2
+1955,I7N3G6G,1955,1,no description,60.2
+1956,I7N3G6G,1956,1,no description,60.2
+1957,I7N3G6G,1957,1,no description,60.2
+1958,I7N3G6G,1958,1,no description,60.2
+1959,I7N3G6G,1959,1,no description,60.2
+1960,I7N3G6G,1960,1,no description,60.2
+1961,I7N3G6G,1961,1,no description,60.2
+1962,I7N3G6G,1962,1,no description,60.2
+1963,I7N3G6G,1963,1,no description,60.2
+1964,I7N3G6G,1964,1,no description,60.2
+1965,I7N3G6G,1965,1,no description,60.2
+1966,I7N3G6G,1966,1,no description,60.2
+1967,I7N3G6G,1967,1,no description,60.2
+1968,I7N3G6G,1968,1,no description,60.2
+1969,I7N3G6G,1969,1,no description,60.2
+1970,I7N3G6G,1970,1,no description,60.2
+1971,I7N3G6G,1971,1,no description,60.2
+1972,I7N3G6G,1972,1,no description,60.2
+1973,I7N3G6G,1973,1,no description,60.2
+1974,I7N3G6G,1974,1,no description,60.2
+1975,I7N3G6G,1975,1,no description,60.2
+1976,I7N3G6G,1976,1,no description,60.2
+1977,I7N3G6G,1977,1,no description,60.2
+1978,I7N3G6G,1978,1,no description,60.2
+1979,I7N3G6G,1979,1,no description,60.2
+1980,I7N3G6G,1980,1,no description,60.2
+1981,I7N3G6G,1981,1,no description,60.2
+1982,I7N3G6G,1982,1,no description,60.2
+1983,I7N3G6G,1983,1,no description,60.2
+1984,I7N3G6G,1984,1,no description,60.2
+1985,I7N3G6G,1985,1,no description,60.2
+1986,I7N3G6G,1986,1,no description,60.2
+1987,I7N3G6G,1987,1,no description,60.2
+1988,I7N3G6G,1988,1,no description,60.2
+1989,I7N3G6G,1989,1,no description,60.2
+1990,I7N3G6G,1990,1,no description,60.2
+1991,I7N3G6G,1991,1,no description,60.2
+1992,I7N3G6G,1992,1,no description,60.2
+1993,I7N3G6G,1993,1,no description,60.2
+1994,I7N3G6G,1994,1,no description,60.2
+1995,I7N3G6G,1995,1,no description,60.2
+1996,I7N3G6G,1996,1,no description,60.2
+1997,I7N3G6G,1997,1,no description,60.2
+1998,I7N3G6G,1998,1,no description,60.2
+1999,I7N3G6G,1999,1,no description,60.2
+2000,I7N3G6G,2000,1,no description,60.2
+2001,I7N3G6G,2001,1,no description,60.2
+2002,I7N3G6G,2002,1,no description,60.2
+2003,I7N3G6G,2003,1,no description,60.2
+2004,I7N3G6G,2004,1,no description,60.2
+2005,I7N3G6G,2005,1,no description,60.2
+2006,I7N3G6G,2006,1,no description,60.2
+2007,I7N3G6G,2007,1,no description,60.2
+2008,I7N3G6G,2008,1,no description,60.2
+2009,I7N3G6G,2009,1,no description,60.2
+2010,I7N3G6G,2010,1,no description,60.2
+2011,I7N3G6G,2011,1,no description,60.2
+2012,I7N3G6G,2012,1,no description,60.2
+2013,I7N3G6G,2013,1,no description,60.2
+2014,I7N3G6G,2014,1,no description,60.2
+2015,I7N3G6G,2015,1,no description,60.2
+2016,I7N3G6G,2016,1,no description,60.2
+2017,I7N3G6G,2017,1,no description,60.2
+2018,I7N3G6G,2018,1,no description,60.2
+2019,I7N3G6G,2019,1,no description,60.2
+2020,I7N3G6G,2020,1,no description,60.2
+2021,I7N3G6G,2021,1,no description,60.2
+2022,I7N3G6G,2022,1,no description,60.2
+2023,I7N3G6G,2023,1,no description,60.2
+2024,I7N3G6G,2024,1,no description,60.2
+2025,I7N3G6G,2025,1,no description,60.2
+2026,I7N3G6G,2026,1,no description,60.2
+2027,I7N3G6G,2027,1,no description,60.2
+2028,I7N3G6G,2028,1,no description,60.2
+2029,I7N3G6G,2029,1,no description,60.2
+2030,I7N3G6G,2030,1,no description,60.2
+2031,I7N3G6G,2031,1,no description,60.2
+2032,I7N3G6G,2032,1,no description,60.2
+2033,I7N3G6G,2033,1,no description,60.2
+2034,I7N3G6G,2034,1,no description,60.2
+2035,I7N3G6G,2035,1,no description,60.2
+2036,I7N3G6G,2036,1,no description,60.2
+2037,I7N3G6G,2037,1,no description,60.2
+2038,I7N3G6G,2038,1,no description,60.2
+2039,I7N3G6G,2039,1,no description,60.2
+2040,I7N3G6G,2040,1,no description,60.2
+2041,I7N3G6G,2041,1,no description,60.2
+2042,I7N3G6G,2042,1,no description,60.2
+2043,I7N3G6G,2043,1,no description,60.2
+2044,I7N3G6G,2044,1,no description,60.2
+2045,I7N3G6G,2045,1,no description,60.2
+2046,I7N3G6G,2046,1,no description,60.2
+2047,I7N3G6G,2047,1,no description,60.2
+2048,I7N3G6G,2048,1,no description,60.2
+2049,I7N3G6G,2049,1,no description,60.2
+2050,I7N3G6G,2050,1,no description,60.2
+2051,I7N3G6G,2051,1,no description,60.2
+2052,I7N3G6G,2052,1,no description,60.2
+2053,I7N3G6G,2053,1,no description,60.2
+2054,I7N3G6G,2054,1,no description,60.2
+2055,I7N3G6G,2055,1,no description,60.2
+2056,I7N3G6G,2056,1,no description,60.2
+2057,I7N3G6G,2057,1,no description,60.2
+2058,I7N3G6G,2058,1,no description,60.2
+2059,I7N3G6G,2059,1,no description,60.2
+2060,I7N3G6G,2060,1,no description,60.2
+2061,I7N3G6G,2061,1,no description,60.2
+2062,I7N3G6G,2062,1,no description,60.2
+2063,I7N3G6G,2063,1,no description,60.2
+2064,I7N3G6G,2064,1,no description,60.2
+2065,I7N3G6G,2065,1,no description,60.2
+2066,I7N3G6G,2066,1,no description,60.2
+2067,I7N3G6G,2067,1,no description,60.2
+2068,I7N3G6G,2068,1,no description,60.2
+2069,I7N3G6G,2069,1,no description,60.2
+2070,I7N3G6G,2070,1,no description,60.2
+2071,I7N3G6G,2071,1,no description,60.2
+2072,I7N3G6G,2072,1,no description,60.2
+2073,I7N3G6G,2073,1,no description,60.2
+2074,I7N3G6G,2074,1,no description,60.2
+2075,I7N3G6G,2075,1,no description,60.2
+2076,I7N3G6G,2076,1,no description,60.2
+2077,I7N3G6G,2077,1,no description,60.2
+2078,I7N3G6G,2078,1,no description,60.2
+2079,I7N3G6G,2079,1,no description,60.2
+2080,I7N3G6G,2080,1,no description,60.2
+2081,I7N3G6G,2081,1,no description,60.2
+2082,I7N3G6G,2082,1,no description,60.2
+2083,I7N3G6G,2083,1,no description,60.2
+2084,I7N3G6G,2084,1,no description,60.2
+2085,I7N3G6G,2085,1,no description,60.2
+2086,I7N3G6G,2086,1,no description,60.2
+2087,I7N3G6G,2087,1,no description,60.2
+2088,I7N3G6G,2088,1,no description,60.2
+2089,I7N3G6G,2089,1,no description,60.2
+2090,I7N3G6G,2090,1,no description,60.2
+2091,I7N3G6G,2091,1,no description,60.2
+2092,I7N3G6G,2092,1,no description,60.2
+2093,I7N3G6G,2093,1,no description,60.2
+2094,I7N3G6G,2094,1,no description,60.2
+2095,I7N3G6G,2095,1,no description,60.2
+2096,I7N3G6G,2096,1,no description,60.2
+2097,I7N3G6G,2097,1,no description,60.2
+2098,I7N3G6G,2098,1,no description,60.2
+2099,I7N3G6G,2099,1,no description,60.2
+2100,I7N3G6G,2100,1,no description,60.2
+2101,I7N3G6G,2101,1,no description,60.2
+2102,I7N3G6G,2102,1,no description,60.2
+2103,I7N3G6G,2103,1,no description,60.2
+2104,I7N3G6G,2104,1,no description,60.2
+2105,I7N3G6G,2105,1,no description,60.2
+2106,I7N3G6G,2106,1,no description,60.2
+2107,I7N3G6G,2107,1,no description,60.2
+2108,I7N3G6G,2108,1,no description,60.2
+2109,I7N3G6G,2109,1,no description,60.2
+2110,I7N3G6G,2110,1,no description,60.2
+2111,I7N3G6G,2111,1,no description,60.2
+2112,I7N3G6G,2112,1,no description,60.2
+2113,I7N3G6G,2113,1,no description,60.2
+2114,I7N3G6G,2114,1,no description,60.2
+2115,I7N3G6G,2115,1,no description,60.2
+2116,I7N3G6G,2116,1,no description,60.2
+2117,I7N3G6G,2117,1,no description,60.2
+2118,I7N3G6G,2118,1,no description,60.2
+2119,I7N3G6G,2119,1,no description,60.2
+2120,I7N3G6G,2120,1,no description,60.2
+2121,I7N3G6G,2121,1,no description,60.2
+2122,I7N3G6G,2122,1,no description,60.2
+2123,I7N3G6G,2123,1,no description,60.2
+2124,I7N3G6G,2124,1,no description,60.2
+2125,I7N3G6G,2125,1,no description,60.2
+2126,I7N3G6G,2126,1,no description,60.2
+2127,I7N3G6G,2127,1,no description,60.2
+2128,I7N3G6G,2128,1,no description,60.2
+2129,I7N3G6G,2129,1,no description,60.2
+2130,I7N3G6G,2130,1,no description,60.2
+2131,I7N3G6G,2131,1,no description,60.2
+2132,I7N3G6G,2132,1,no description,60.2
+2133,I7N3G6G,2133,1,no description,60.2
+2134,I7N3G6G,2134,1,no description,60.2
+2135,I7N3G6G,2135,1,no description,60.2
+2136,I7N3G6G,2136,1,no description,60.2
+2137,I7N3G6G,2137,1,no description,60.2
+2138,I7N3G6G,2138,1,no description,60.2
+2139,I7N3G6G,2139,1,no description,60.2
+2140,I7N3G6G,2140,1,no description,60.2
+2141,I7N3G6G,2141,1,no description,60.2
+2142,I7N3G6G,2142,1,no description,60.2
+2143,I7N3G6G,2143,1,no description,60.2
+2144,I7N3G6G,2144,1,no description,60.2
+2145,I7N3G6G,2145,1,no description,60.2
+2146,I7N3G6G,2146,1,no description,60.2
+2147,I7N3G6G,2147,1,no description,60.2
+2148,I7N3G6G,2148,1,no description,60.2
+2149,I7N3G6G,2149,1,no description,60.2
+2150,I7N3G6G,2150,1,no description,60.2
+2151,I7N3G6G,2151,1,no description,60.2
+2152,I7N3G6G,2152,1,no description,60.2
+2153,I7N3G6G,2153,1,no description,60.2
+2154,I7N3G6G,2154,1,no description,60.2
+2155,I7N3G6G,2155,1,no description,60.2
+2156,I7N3G6G,2156,1,no description,60.2
+2157,I7N3G6G,2157,1,no description,60.2
+2158,I7N3G6G,2158,1,no description,60.2
+2159,I7N3G6G,2159,1,no description,60.2
+2160,I7N3G6G,2160,1,no description,60.2
+2161,I7N3G6G,2161,1,no description,60.2
+2162,I7N3G6G,2162,1,no description,60.2
+2163,I7N3G6G,2163,1,no description,60.2
+2164,I7N3G6G,2164,1,no description,60.2
+2165,I7N3G6G,2165,1,no description,60.2
+2166,I7N3G6G,2166,1,no description,60.2
+2167,I7N3G6G,2167,1,no description,60.2
+2168,I7N3G6G,2168,1,no description,60.2
+2169,I7N3G6G,2169,1,no description,60.2
+2170,I7N3G6G,2170,1,no description,60.2
+2171,I7N3G6G,2171,1,no description,60.2
+2172,I7N3G6G,2172,1,no description,60.2
+2173,I7N3G6G,2173,1,no description,60.2
+2174,I7N3G6G,2174,1,no description,60.2
+2175,I7N3G6G,2175,1,no description,60.2
+2176,I7N3G6G,2176,1,no description,60.2
+2177,I7N3G6G,2177,1,no description,60.2
+2178,I7N3G6G,2178,1,no description,60.2
+2179,I7N3G6G,2179,1,no description,60.2
+2180,I7N3G6G,2180,1,no description,60.2
+2181,I7N3G6G,2181,1,no description,60.2
+2182,I7N3G6G,2182,1,no description,60.2
+2183,I7N3G6G,2183,1,no description,60.2
+2184,I7N3G6G,2184,1,no description,60.2
+2185,I7N3G6G,2185,1,no description,60.2
+2186,I7N3G6G,2186,1,no description,60.2
+2187,I7N3G6G,2187,1,no description,60.2
+2188,I7N3G6G,2188,1,no description,60.2
+2189,I7N3G6G,2189,1,no description,60.2
+2190,I7N3G6G,2190,1,no description,60.2
+2191,I7N3G6G,2191,1,no description,60.2
+2192,I7N3G6G,2192,1,no description,60.2
+2193,I7N3G6G,2193,1,no description,60.2
+2194,I7N3G6G,2194,1,no description,60.2
+2195,I7N3G6G,2195,1,no description,60.2
+2196,I7N3G6G,2196,1,no description,60.2
+2197,I7N3G6G,2197,1,no description,60.2
+2198,I7N3G6G,2198,1,no description,60.2
+2199,I7N3G6G,2199,1,no description,60.2
+2200,I7N3G6G,2200,1,no description,60.2
+2201,I7N3G6G,2201,1,no description,60.2
+2202,I7N3G6G,2202,1,no description,60.2
+2203,I7N3G6G,2203,1,no description,60.2
+2204,I7N3G6G,2204,1,no description,60.2
+2205,I7N3G6G,2205,1,no description,60.2
+2206,I7N3G6G,2206,1,no description,60.2
+2207,I7N3G6G,2207,1,no description,60.2
+2208,I7N3G6G,2208,1,no description,60.2
+2209,I7N3G6G,2209,1,no description,60.2
+2210,I7N3G6G,2210,1,no description,60.2
+2211,I7N3G6G,2211,1,no description,60.2
+2212,I7N3G6G,2212,1,no description,60.2
+2213,I7N3G6G,2213,1,no description,60.2
+2214,I7N3G6G,2214,1,no description,60.2
+2215,I7N3G6G,2215,1,no description,60.2
+2216,I7N3G6G,2216,1,no description,60.2
+2217,I7N3G6G,2217,1,no description,60.2
+2218,I7N3G6G,2218,1,no description,60.2
+2219,I7N3G6G,2219,1,no description,60.2
+2220,I7N3G6G,2220,1,no description,60.2
+2221,I7N3G6G,2221,1,no description,60.2
+2222,I7N3G6G,2222,1,no description,60.2
+2223,I7N3G6G,2223,1,no description,60.2
+2224,I7N3G6G,2224,1,no description,60.2
+2225,I7N3G6G,2225,1,no description,60.2
+2226,I7N3G6G,2226,1,no description,60.2

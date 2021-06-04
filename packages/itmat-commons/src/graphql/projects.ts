@@ -30,10 +30,7 @@ export const GET_PROJECT = gql`
             }
             iCanEdit
             fields {
-                fieldTreeId
-                fieldsInFieldTree {
-                    ...ALL_FOR_FIELD
-                }
+                ...ALL_FOR_FIELD
             }
             files {
                 id
@@ -61,15 +58,12 @@ export const GET_PROJECT_PATIENT_MAPPING = gql`
 `;
 
 export const EDIT_PROJECT_APPROVED_FIELDS = gql`
-    mutation editProjectApprovedFields($projectId: String!, $fieldTreeId: String! $approvedFields: [String]!) {
-        editProjectApprovedFields(projectId: $projectId, fieldTreeId: $fieldTreeId, approvedFields: $approvedFields) {
+    mutation editProjectApprovedFields($projectId: String!, $approvedFields: [String]!) {
+        editProjectApprovedFields(projectId: $projectId, approvedFields: $approvedFields) {
             id
             approvedFields
             fields {
-                fieldTreeId
-                fieldsInFieldTree {
-                    ...ALL_FOR_FIELD
-                }
+                ...ALL_FOR_FIELD
             }
         }
     }

@@ -1,5 +1,11 @@
 import { IUser } from './user';
 
+export enum studyType {
+    SENSOR = 'SENSOR',
+    CLINICAL = 'CLINICAL',
+    ANY = 'ANY'
+}
+
 export interface IStudy {
     id: string;
     name: string;
@@ -8,6 +14,14 @@ export interface IStudy {
     deleted: number | null;
     currentDataVersion: number; // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
     dataVersions: IStudyDataVersion[];
+    description: string;
+    type: studyType;
+    ontologyTree?: IOntologyField[];
+}
+
+export interface IOntologyField {
+    fieldId: string;
+    path: string;
 }
 
 export interface IStudyDataVersion {
@@ -15,11 +29,7 @@ export interface IStudyDataVersion {
     contentId: string; // same contentId = same data
     version: string;
     tag?: string;
-    fileSize: string;
-    uploadDate: string;
-    jobId: string;
-    extractedFrom: string;
-    fieldTrees: string[];
+    updateDate: string;
 }
 
 
@@ -44,4 +54,27 @@ export interface IProject {
     approvedFiles: string[];
     lastModified: number;
     deleted: number | null;
+}
+
+export interface IDataClip {
+    fieldId: string,
+    value: string,
+    subjectId: string,
+    visitId: string
+}
+
+export enum DATA_CLIP_ERROR_TYPE{
+    ACTION_ON_NON_EXISTENT_ENTRY = 'ACTION_ON_NON_EXISTENT_ENTRY',
+    MALFORMED_INPUT = 'MALFORMED_INPUT'
+}
+
+export interface IDataClipError {
+    code:DATA_CLIP_ERROR_TYPE
+    description?: string
+}
+
+export interface ISubjectDataRecordSummary {
+    subjectId: string,
+    visitId?: string,
+    missingFields: string[]
 }

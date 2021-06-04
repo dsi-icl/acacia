@@ -1,6 +1,6 @@
 export interface IQueryEntry {
     id: string;
-    queryString: string;
+    queryString: any;
     studyId: string;
     projectId?: string;
     requester: string;

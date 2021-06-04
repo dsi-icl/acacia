@@ -14,7 +14,8 @@
         "module": "esnext",
         "target": "es5",
         "sourceMap": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "jsx": "react-jsx"
     },
     "exclude": [
         "node_modules",

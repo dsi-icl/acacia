@@ -17,6 +17,7 @@ import * as itmatCommons from 'itmat-commons';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
+import { studyType } from 'itmat-commons';
 const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } = itmatCommons.GQLRequests;
 const { permissions } = itmatCommons;
 
@@ -78,6 +79,8 @@ if (global.hasMinio) {
             describe('UPLOAD FILE', () => {
                 /* note: a new study is created and a special authorised user for study permissions */
                 let createdStudy;
+                let createdStudyClinical;
+                let createdStudyAny;
                 let authorisedUser;
                 let authorisedUserProfile;
                 beforeEach(async () => {
@@ -85,16 +88,51 @@ if (global.hasMinio) {
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({
                         query: print(CREATE_STUDY),
-                        variables: { name: studyname }
+                        variables: { name: studyname, description: 'test description', type: studyType.SENSOR }
                     });
                     expect(createStudyRes.status).toBe(200);
                     expect(createStudyRes.body.errors).toBeUndefined();
+
+                    const studynameCLINICAL = uuid();
+                    const createCLINICALStudyRes = await admin.post('/graphql').send({
+                        query: print(CREATE_STUDY),
+                        variables: { name: studynameCLINICAL, description: 'test description', type: studyType.CLINICAL }
+                    });
+                    expect(createCLINICALStudyRes.status).toBe(200);
+                    expect(createCLINICALStudyRes.body.errors).toBeUndefined();
+
+                    const studynameANY = uuid();
+                    const createANYStudyRes = await admin.post('/graphql').send({
+                        query: print(CREATE_STUDY),
+                        variables: { name: studynameANY, description: 'test description', type: studyType.ANY }
+                    });
+                    expect(createANYStudyRes.status).toBe(200);
+                    expect(createANYStudyRes.body.errors).toBeUndefined();
+
 
                     /* setup: getting the created study Id */
                     createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
-                        name: studyname
+                        name: studyname,
+                        description: 'test description',
+                        type: studyType.SENSOR
+                    });
+
+                    createdStudyClinical = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studynameCLINICAL });
+                    expect(createCLINICALStudyRes.body.data.createStudy).toEqual({
+                        id: createdStudyClinical.id,
+                        name: studynameCLINICAL,
+                        description: 'test description',
+                        type: studyType.CLINICAL
+                    });
+
+                    createdStudyAny = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studynameANY });
+                    expect(createANYStudyRes.body.data.createStudy).toEqual({
+                        id: createdStudyAny.id,
+                        name: studynameANY,
+                        description: 'test description',
+                        type: studyType.ANY
                     });
 
                     /* setup: creating a privileged user */
@@ -133,7 +171,7 @@ if (global.hasMinio) {
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
                 });
 
-                test('Upload file to study (admin)', async () => {
+                test('Upload file to SENSOR study (admin)', async () => {
                     /* test: upload file */
                     const res = await admin.post('/graphql')
                         .field('operations', JSON.stringify({
@@ -141,25 +179,91 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: 'just a file 1.',
-                                fileLength: 10000
+                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
 
                     /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.uploadFile).toEqual({
                         id: createdFile.id,
-                        fileName: 'just_a_test_file.txt',
+                        fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt',
                         studyId: createdStudy.id,
                         projectId: null,
-                        fileSize: 10000,
-                        description: 'just a file 1.',
-                        uploadedBy: adminId
+                        fileSize: '13',
+                        description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                        uploadedBy: adminId,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
+                    });
+                });
+
+                test('Upload file to CLINICAL study (admin)', async () => {
+                    /* test: upload file */
+                    const res = await admin.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudyClinical.id,
+                                file: null,
+                                description: JSON.stringify({}),
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/prolific_test.txt'));
+
+                    /* setup: geting the created file Id */
+                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'prolific_test.txt', studyId: createdStudyClinical.id });
+                    expect(res.status).toBe(200);
+                    expect(res.body.errors).toBeUndefined();
+                    expect(res.body.data.uploadFile).toEqual({
+                        id: createdFile.id,
+                        fileName: 'prolific_test.txt',
+                        studyId: createdStudyClinical.id,
+                        projectId: null,
+                        fileSize: '13',
+                        description: JSON.stringify({}),
+                        uploadedBy: adminId,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
+                    });
+                });
+
+                test('Upload file to study ANY (admin)', async () => {
+                    /* test: upload file */
+                    const res = await admin.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudyAny.id,
+                                file: null,
+                                description: JSON.stringify({}),
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/RandomFile.txt'));
+
+                    /* setup: geting the created file Id */
+                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'RandomFile.txt', studyId: createdStudyAny.id });
+                    expect(res.status).toBe(200);
+                    expect(res.body.errors).toBeUndefined();
+                    expect(res.body.data.uploadFile).toEqual({
+                        id: createdFile.id,
+                        fileName: 'RandomFile.txt',
+                        studyId: createdStudyAny.id,
+                        projectId: null,
+                        fileSize: '13',
+                        description: JSON.stringify({}),
+                        uploadedBy: adminId,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                     });
                 });
 
@@ -171,12 +275,13 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: 'just a file 1.',
-                                fileLength: 10000
+                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
 
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toHaveLength(1);
@@ -192,25 +297,27 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: 'just a file 2.',
-                                fileLength: 10000
+                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
 
                     /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.uploadFile).toEqual({
                         id: createdFile.id,
-                        fileName: 'just_a_test_file.txt',
+                        fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt',
                         studyId: createdStudy.id,
                         projectId: null,
-                        fileSize: 10000,
-                        description: 'just a file 2.',
-                        uploadedBy: authorisedUserProfile.id
+                        fileSize: '13',
+                        description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                        uploadedBy: authorisedUserProfile.id,
+                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                     });
                 });
 
@@ -222,26 +329,94 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: 'just a file 3.',
-                                fileLength: 0
+                                description: JSON.stringify({participantId:'IR6R4AR',deviceId:'AX6VJH6F6',startDate:1590966000000,endDate:1593730800000}),
+                                fileLength: 0,
+                                hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/just_a_empty_file.txt'));
+                        .attach('1', path.join(__dirname, '../filesForTests/IR6R4AR-AX6VJH6F6-20200601-20200703.txt'));
 
                     /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_empty_file.txt', studyId: createdStudy.id });
+                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'IR6R4AR-AX6VJH6F6-20200601-20200703.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     expect(res.body.data.uploadFile).toEqual({
                         id: createdFile.id,
-                        fileName: 'just_a_empty_file.txt',
+                        fileName: 'IR6R4AR-AX6VJH6F6-20200601-20200703.txt',
                         studyId: createdStudy.id,
                         projectId: null,
-                        fileSize: 0,
-                        description: 'just a file 3.',
-                        uploadedBy: adminId
+                        fileSize: '0',
+                        description: JSON.stringify({participantId:'IR6R4AR',deviceId:'AX6VJH6F6',startDate:1590966000000,endDate:1593730800000}),
+                        uploadedBy: adminId,
+                        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                     });
+                });
+
+                test('Upload a file with incorrect hash', async () => {
+                    /* test: upload file */
+                    const res = await admin.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: 'just a file 3.',
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a4'
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
+
+                    /* setup: geting the created file Id */
+                    expect(res.status).toBe(200);
+
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0].message).toBe('File hash not match');
+                    expect(res.body.data.uploadFile).toEqual(null);
+                });
+
+                test('File size mismatch with actual read bytes', async () => {
+                    /* test: upload file */
+                    const res = await admin.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                fileLength: 10
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
+
+                    expect(res.status).toBe(200);
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0].message).toBe('File size mismatch');
+                    expect(res.body.data.uploadFile).toEqual(null);
+                });
+
+                test('File description mismatch with file name', async () => {
+                    /* test: upload file */
+                    const res = await admin.post('/graphql')
+                        .field('operations', JSON.stringify({
+                            query: print(UPLOAD_FILE),
+                            variables: {
+                                studyId: createdStudy.id,
+                                file: null,
+                                description: JSON.stringify({participantId:'27N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                fileLength: 13
+                            }
+                        }))
+                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
+
+                    expect(res.status).toBe(200);
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0].message).toBe('File description is invalid');
+                    expect(res.body.data.uploadFile).toEqual(null);
                 });
             });
 
@@ -253,11 +428,11 @@ if (global.hasMinio) {
                 let authorisedUserProfile;
 
                 beforeEach(async () => {
-                    /* setup: create a study to upload file to */
+                    /* setup: create studies to upload file to */
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({
                         query: print(CREATE_STUDY),
-                        variables: { name: studyname }
+                        variables: { name: studyname, description: 'test description', type: studyType.SENSOR }
                     });
                     expect(createStudyRes.status).toBe(200);
                     expect(createStudyRes.body.errors).toBeUndefined();
@@ -266,7 +441,9 @@ if (global.hasMinio) {
                     createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
-                        name: studyname
+                        name: studyname,
+                        description: 'test description',
+                        type: studyType.SENSOR
                     });
 
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
@@ -276,15 +453,16 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: 'just a file 1.',
-                                fileLength: 10000
+                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
 
                     /* setup: geting the created file Id */
-                    createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id });
+                    createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
 
                     /* setup: creating a privileged user */
                     const username = uuid();
@@ -326,7 +504,7 @@ if (global.hasMinio) {
                     const res = await admin.get(`/file/${createdFile.id}`);
                     expect(res.status).toBe(200);
                     expect(res.headers['content-type']).toBe('application/download');
-                    expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
+                    expect(res.headers['content-disposition']).toBe('attachment; filename="I7N3G6G-MMM7N3G6G-20200704-20200721.txt"');
                     expect(res.text).toBe('just testing.');
                 });
 
@@ -334,7 +512,7 @@ if (global.hasMinio) {
                     const res = await authorisedUser.get(`/file/${createdFile.id}`);
                     expect(res.status).toBe(200);
                     expect(res.headers['content-type']).toBe('application/download');
-                    expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
+                    expect(res.headers['content-disposition']).toBe('attachment; filename="I7N3G6G-MMM7N3G6G-20200704-20200721.txt"');
                     expect(res.text).toBe('just testing.');
                 });
 
@@ -387,7 +565,7 @@ if (global.hasMinio) {
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({
                         query: print(CREATE_STUDY),
-                        variables: { name: studyname }
+                        variables: { name: studyname, description: 'test description', type: studyType.SENSOR }
                     });
                     expect(createStudyRes.status).toBe(200);
                     expect(createStudyRes.body.errors).toBeUndefined();
@@ -396,7 +574,9 @@ if (global.hasMinio) {
                     createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyname });
                     expect(createStudyRes.body.data.createStudy).toEqual({
                         id: createdStudy.id,
-                        name: studyname
+                        name: studyname,
+                        description: 'test description',
+                        type: studyType.SENSOR
                     });
 
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
@@ -406,15 +586,16 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: 'just a file 1.',
-                                fileLength: 10000
+                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                fileLength: 13,
+                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/just_a_test_file.txt'));
+                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
 
                     /* setup: geting the created file Id */
-                    createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'just_a_test_file.txt', studyId: createdStudy.id, deleted: null });
+                    createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id, deleted: null });
 
                     /* before test: can download file */
                     const res = await admin.get(`/file/${createdFile.id}`);
@@ -423,7 +604,7 @@ if (global.hasMinio) {
                     }
                     expect(res.status).toBe(200);
                     expect(res.headers['content-type']).toBe('application/download');
-                    expect(res.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
+                    expect(res.headers['content-disposition']).toBe('attachment; filename="I7N3G6G-MMM7N3G6G-20200704-20200721.txt"');
                     expect(res.text).toBe('just testing.');
 
                     /* setup: creating a privileged user */
@@ -503,7 +684,7 @@ if (global.hasMinio) {
                     const downloadFileRes = await admin.get(`/file/${createdFile.id}`);
                     expect(downloadFileRes.status).toBe(200);
                     expect(downloadFileRes.headers['content-type']).toBe('application/download');
-                    expect(downloadFileRes.headers['content-disposition']).toBe('attachment; filename="just_a_test_file.txt"');
+                    expect(downloadFileRes.headers['content-disposition']).toBe('attachment; filename="I7N3G6G-MMM7N3G6G-20200704-20200721.txt"');
                     expect(downloadFileRes.text).toBe('just testing.');
                 });
 

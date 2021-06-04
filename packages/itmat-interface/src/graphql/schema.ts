@@ -2,6 +2,7 @@ import { gql } from 'apollo-server-express';
 
 export const schema = gql`
 scalar JSON
+scalar BigInt
 
 enum USERTYPE {
     ADMIN
@@ -15,28 +16,61 @@ enum FIELD_ITEM_TYPE {
 }
 
 enum FIELD_VALUE_TYPE {
-    i # integer
-    c # categorical
-    d # decimal
-    b # boolean
-    t # free text
+    int # integer
+    dec # decimal
+    str # characters/string
+    bool # boolean
+    date # datetime, temporaily save as string
+    file # file id
+    json # JSON: array & object
+    cat # CATEGORICAL
+}
 
+enum STUDYTYPE {
+    SENSOR
+    CLINICAL
+    ANY
+}
+
+type ValueCategory {
+    code: String!,
+    description: String
 }
 
 type Field {
     id: String!
     studyId: String!
-    path: String!
-    fieldId: Int!
+    fieldId: String! # start
     fieldName: String!
-    valueType: FIELD_VALUE_TYPE!,
-    possibleValues: [String],
-    unit: String,
-    itemType: FIELD_ITEM_TYPE!,
-    numOfTimePoints: Int!,
-    numOfMeasurements: Int!,
-    notes: String
-    fieldTreeId: String!
+    tableName: String
+    dataType: FIELD_VALUE_TYPE!
+    possibleValues: [ValueCategory]
+    unit: String
+    comments: String
+    dateAdded: String!
+    dateDeleted: String
+}
+
+input DataClip {
+    fieldId: String!,
+    value: String!,
+    subjectId: String!,
+    visitId: String!,
+}
+
+enum DATA_CLIP_ERROR_TYPE{
+    ACTION_ON_NON_EXISTENT_ENTRY
+    MALFORMED_INPUT
+}
+
+type DataClipError {
+    code: DATA_CLIP_ERROR_TYPE!,
+    description: String
+}
+
+type FieldClipError {
+    code: DATA_CLIP_ERROR_TYPE!,
+    description: String
 }
 
 type UserAccess {
@@ -67,6 +101,30 @@ type User {
     access: UserAccess # admin or self only
 }
 
+type Pubkey {
+    id: String!
+    pubkey: String!
+    associatedUserId: String
+    jwtPubkey: String!
+    jwtSeckey: String!
+    refreshCounter: Int!
+    deleted: String
+}
+
+type KeyPairwSignature {
+    privateKey: String!
+    publicKey: String!
+    signature: String
+}
+
+type Signature {
+    signature: String
+}
+
+type AccessToken {
+    accessToken: String
+}
+
 type OrganisationMetadata {
     siteIDMarker: String
 }
@@ -94,10 +152,11 @@ type File {
     fileName: String!
     studyId: String!
     projectId: String
-    fileSize: Int
+    fileSize: BigInt
     description: String!
     uploadTime: String!
     uploadedBy: String!
+    hash: String!
 }
 
 type DataVersion {
@@ -105,11 +164,7 @@ type DataVersion {
     version: String!
     contentId: String!
     tag: String
-    uploadDate: String!
-    jobId: String!
-    extractedFrom: String!
-    fileSize: String!
-    fieldTrees: [String]!
+    updateDate: String!
 }
 
 type Study {
@@ -119,7 +174,9 @@ type Study {
     lastModified: Int!
     currentDataVersion: Int
     dataVersions: [DataVersion]!
-
+    description: String
+    type: STUDYTYPE,
+    ontologyTree: [OntologyField]
     # external to mongo documents:
     jobs: [Job]!
     projects: [Project]!
@@ -127,11 +184,6 @@ type Study {
     # fields: [Field]!
     files: [File]!
     numOfSubjects: Int!
-}
-
-type ProjectFields {
-    fieldTreeId: String!
-    fieldsInFieldTree: [Field]!
 }
 
 type Project {
@@ -148,7 +200,7 @@ type Project {
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
-    fields: [ProjectFields]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
+    fields: [Field]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
     files: [File]!
 }
 
@@ -172,6 +224,11 @@ enum LOG_TYPE {
    REQUEST_LOG
 }
 
+enum USER_AGENT {
+    MOZILLA,
+    OTHER
+}
+
 enum LOG_STATUS {
     SUCCESS
     FAIL
@@ -193,9 +250,19 @@ enum LOG_ACTION {
     REQUEST_USERNAME_OR_RESET_PASSWORD
     RESET_PASSWORD
 
+    # KEY
+    REGISTER_PUBKEY
+    ISSUE_ACCESS_TOKEN
+    KEYPAIRGEN_SIGNATURE
+    RSA_SIGNER
+    LINK_USER_PUBKEY
+
+    # ORGANIZATION
+    CREATE_ORGANISATION
+
     # PROJECT
     GET_PROJECT
-    # GET_PROJECT_PATIENT_MAPPING
+    # GET_PROJECT_PATIENT_MAPPING = 'GET_PROJECT_PATIENT_MAPPING',
     EDIT_PROJECT_APPROVED_FIELDS
     EDIT_PROJECT_APPROVED_FILES
     CREATE_PROJECT
@@ -208,8 +275,20 @@ enum LOG_ACTION {
     GET_STUDY
     GET_STUDY_FIELDS
     CREATE_STUDY
+    EDIT_STUDY
     CREATE_DATA_CREATION_JOB
-    #CREATE_FIELD_CURATION_JOB
+    CREATE_FIELD_CURATION_JOB
+    GET_DATA_RECORDS
+    GET_ONTOLOGY_TREE
+    CHECK_DATA_COMPLETE
+    CREATE_NEW_DATA_VERSION
+    UPLOAD_DATA_IN_ARRAY
+    DELETE_DATA_RECORDS
+    CREATE_NEW_FIELD
+    EDIT_FIELD
+    DELETE_FIELD
+    ADD_ONTOLOGY_FIELD
+    DELETE_ONTOLOGY_FIELD
 
     # STUDY & PROJECT
     EDIT_ROLE
@@ -221,16 +300,18 @@ enum LOG_ACTION {
     DOWNLOAD_FILE
     DELETE_FILE
 
-    #QUERY
+    # QUERY
     GET_QUERY
     CREATE_QUERY
-    #GET_QUERY_RESULT
+    GET_QUERY_BY_ID
+    CREATE_QUERY_CURATION_JOB
 }
 
 type Log {
     id: String!,
     requesterName: String,
     requesterType: USERTYPE,
+    userAgent: USER_AGENT,
     logType: LOG_TYPE,
     actionType: LOG_ACTION,
     actionData: JSON,
@@ -241,7 +322,7 @@ type Log {
 
 type QueryEntry {
     id: String!,
-    queryString: String!,
+    queryString: JSON!,
     studyId: String!,
     projectId: String,
     requester: String!,
@@ -276,10 +357,10 @@ type JobStatusChange_Subscription {
 }
 
 input QueryObjInput {
-    queryString: String!
-    returnFieldSelection: [String]
-    study: String!
-    project: String
+    queryString: JSON!
+    userId: String!
+    studyId: String!
+    projectId: String
 }
 
 input CreateUserInput {
@@ -318,22 +399,60 @@ input StringArrayChangesInput {
     remove: [String]!
 }
 
+input ValueCategoryInput {
+    code: String!,
+    description: String
+}
+
+input FieldInput {
+    fieldId: String! # start
+    fieldName: String!
+    tableName: String
+    dataType: FIELD_VALUE_TYPE!
+    possibleValues: [ValueCategoryInput]
+    unit: String
+    comments: String
+}
+
+input OntologyFieldInput {
+    fieldId: String!
+    path: [String]!
+}
+
+type OntologyField {
+    fieldId: String!
+    path: [String]!
+}
+
+type SubjectDataRecordSummary {
+    subjectId: String!
+    visitId: String
+    missingFields: [String]
+}
+
 type Query {
     # USER
     whoAmI: User
     getUsers(userId: String): [User]
     validateResetPassword(encryptedEmail: String!, token: String!): GenericResponse
+    recoverSessionExpireTime: GenericResponse
 
     # ORGANISATION
     getOrganisations(organisationId: String): [Organisation]
 
+    # PUBLIC KEY AUTHENTICATION
+    getPubkeys(pubkeyId: String, associatedUserId: String): [Pubkey]
+
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
-    getStudyFields(fieldTreeId: String!, studyId: String!): [Field]
-
+    getStudyFields(studyId: String!, projectId: String): [Field]
+    getDataRecords(studyId: String!, queryString: JSON, versionId: [String], projectId: String): JSON
+    getOntologyTree(studyId: String!, projectId: String): [OntologyField]
+    checkDataComplete(studyId: String!): [SubjectDataRecordSummary]
+    
     # QUERY
-    getQueries(studyId: String!, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
+    getQueries(studyId: String, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
     getQueryById(queryId: String!): QueryEntry
 
     # PERMISSION
@@ -355,6 +474,12 @@ type Mutation {
     ): GenericResponse
     resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
     createUser(user: CreateUserInput!): GenericResponse
+    
+    # PUBLIC KEY AUTHENTICATION
+    registerPubkey(pubkey: String!, signature: String!, associatedUserId: String): Pubkey    
+    issueAccessToken(pubkey: String!, signature: String!): AccessToken
+    keyPairGenwSignature: KeyPairwSignature
+    rsaSigner(privateKey: String!, message: String): Signature
 
     # ORGANISATION
     createOrganisation(name: String!, containOrg: String): Organisation
@@ -364,13 +489,22 @@ type Mutation {
     deleteUser(userId: String!): GenericResponse
 
     # STUDY
-    createStudy(name: String!): Study
+    createStudy(name: String!, description: String, type: STUDYTYPE!): Study
     deleteStudy(studyId: String!): GenericResponse
+    editStudy(studyId: String!, description: String): Study
+    createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
+    uploadDataInArray(studyId: String!, data: [DataClip]): [DataClipError]
+    deleteDataRecords(studyId: String!, subjectId: String, visitId: String, fieldIds: [String]): [DataClipError]
+    createNewField(studyId: String!, fieldInput: [FieldInput]!): [FieldClipError]
+    editField(studyId: String!, fieldInput: FieldInput!): Field
+    deleteField(studyId: String!, fieldId: String!): Field
+    addOntologyField(studyId: String!, ontologyInput: [OntologyFieldInput]!): [OntologyField]
+    deleteOntologyField(studyId: String!, fieldId: [String]!): [OntologyField]
 
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
     deleteProject(projectId: String!): GenericResponse
-    editProjectApprovedFields(projectId: String!, fieldTreeId: String!, approvedFields: [String]!): Project
+    editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
     editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project
 
     # ACCESS MANAGEMENT
@@ -379,15 +513,16 @@ type Mutation {
     removeRole(roleId: String!): GenericResponse
 
     # FILES
-    uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: Int): File
+    uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: BigInt, hash: String): File
     deleteFile(fileId: String!): GenericResponse
 
     # QUERY
     createQuery(query: QueryObjInput!): QueryEntry
 
     # CURATION
-    createDataCurationJob(file: String!, studyId: String!, tag: String, version: String!): Job
-    createFieldCurationJob(file: String!, studyId: String!, dataVersionId: String!, tag: String!): Job
+    createDataCurationJob(file: [String]!, studyId: String!): [Job]
+    createFieldCurationJob(file: String!, studyId: String!, tag: String!): Job
+    createQueryCurationJob(queryId: [String], studyId: String, projectId: String): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
 
 }

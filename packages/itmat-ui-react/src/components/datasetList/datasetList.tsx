@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useHistory } from 'react-router-dom';
 import { Models, WHO_AM_I } from 'itmat-commons';
-import { Button } from 'antd';
+import { Button, Table } from 'antd';
 import { ContainerOutlined } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';
 
@@ -29,17 +29,39 @@ export const DatasetList: React.FunctionComponent = () => {
 const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => {
 
     const history = useHistory();
-
+    const columns = [
+        {
+            title: 'Dataset name',
+            dataIndex: 'name',
+            key: 'name',
+            render: (__unused__value, record) => {
+                return (<Button icon={<ContainerOutlined />} key={record.id} style={{
+                    width: '100%',
+                    display: 'block',
+                    overflow: 'hidden'
+                }} title={record.name} onClick={() => { history.push(`/datasets/${record.id}/files`); }}>
+                    {record.name}
+                </Button>);
+            }
+        },
+        {
+            title: 'Dataset Type',
+            dataIndex: 'type',
+            key: 'type',
+            render: (__unused__value, record) => {
+                return record.type ?? 'GENERIC';
+            }
+        }
+    ];
     return <>
         Available datasets: <br /> <br />
-        {datasets.map((el) =>
-            <Button icon={<ContainerOutlined />} key={el.id} style={{
-                width: '100%',
-                marginBottom: '1rem'
-            }} onClick={() => { history.push(`/datasets/${el.id}/files`); }}>
-                {el.name}
-            </Button>
-        )}
+        <Table
+            rowKey={(rec) => rec.id}
+            pagination={false}
+            columns={columns}
+            dataSource={datasets}
+            size='small'
+        />
         <br /><br />
     </>;
 };

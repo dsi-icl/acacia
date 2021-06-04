@@ -13,7 +13,7 @@
 
 .data_management_section {
     display: grid;
-    grid-template-columns: 60% 40%;
+    grid-template-columns: 50% 50%;
     grid-template-rows: 0.1fr 6fr;
     grid-template-areas: 
     "versions versions"

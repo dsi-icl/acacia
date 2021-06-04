@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react/hooks';
-import { Table, Button, notification, Input } from 'antd';
-import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS } from 'itmat-commons';
-import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined } from '@ant-design/icons';
+import { Table, Button, notification, Tooltip } from 'antd';
+import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS, GET_USERS, studyType } from 'itmat-commons';
+import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined, NumberOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
 import moment from 'moment';
 import { deviceTypes } from '../../datasetDetail/tabContent/files/fileTab';
@@ -19,9 +19,7 @@ export function formatBytes(size: number, decimal = 2): string {
     return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + ' ' + units[order];
 }
 
-export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files }) => {
-
-    const [searchTerm, setSearchTerm] = useState<string | undefined>();
+export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[], searchTerm: string | undefined }> = ({ type, files, searchTerm }) => {
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
     const { data: dataWhoAmI, loading: loadingWhoAmI } = useQuery(WHO_AM_I);
     const [deleteFile] = useMutation(DELETE_FILE, {
@@ -36,6 +34,7 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         }
     });
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
+    const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
 
     const deletionHandler = (fileId: string) => {
         setIsDeleting({
@@ -50,18 +49,20 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         });
     };
 
-    if (getOrgsLoading)
+    if (getOrgsLoading || getUsersLoading)
         return <LoadSpinner />;
 
-    if (getOrgsError)
-        return <>A error occured, please contact your administrator: {getOrgsError.message}</>;
+    if (getOrgsError || getUsersError)
+        return <>A error occured, please contact your administrator: {(getOrgsError as any).message} {(getUsersError as any).message}</>;
+
+    const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
 
     const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
         ...prev,
         [current.metadata.siteIDMarker]: current.shortname ?? current.name
     }), {});
 
-    const columns = [
+    const sensorColumns = [
         {
             title: 'Participant ID',
             dataIndex: 'participantId',
@@ -80,7 +81,16 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         {
             title: 'Site',
             key: 'site',
-            render: (__unused__value, record) => sites[JSON.parse(record.description).participantId[0]],
+            render: (__unused__value, record) => {
+                const site = sites[JSON.parse(record.description).participantId[0]];
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={site} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return site;
+            },
             sorter: (a, b) => JSON.parse(a.description).participantId.localeCompare(JSON.parse(b.description).participantId)
         },
         {
@@ -101,7 +111,16 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
         {
             title: 'Device Type',
             key: 'deviceType',
-            render: (__unused__value, record) => deviceTypes[JSON.parse(record.description).deviceId.substr(0, 3)],
+            render: (__unused__value, record) => {
+                const deviceType = deviceTypes[JSON.parse(record.description).deviceId.substr(0, 3)];
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={deviceType} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return deviceType;
+            },
             sorter: (a, b) => JSON.parse(a.description).deviceId.localeCompare(JSON.parse(b.description).deviceId)
         },
         {
@@ -119,6 +138,22 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
             key: 'uploadTime',
             render: (value) => moment(parseInt(value)).format('YYYY-MM-DD'),
             sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
+        },
+        {
+            title: 'Uploaded By',
+            dataIndex: 'uploadBy',
+            key: 'uploadBy',
+            render: (__unused__value, record) => {
+                const uploadedBy = record.uploadedBy === undefined ? 'NA' : userIdNameMapping[record.uploadedBy];
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={uploadedBy} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return uploadedBy;
+            },
+            sorter: (a, b) => userIdNameMapping[a.uploadedBy].localeCompare(userIdNameMapping[b.uploadedBy])
         },
         {
             title: 'Size',
@@ -150,18 +185,147 @@ export const FileList: React.FunctionComponent<{ files: IFile[] }> = ({ files })
                 width: '8rem',
                 key: 'delete'
             }
-        ] : []);
+        ] : [])
+        .concat([
+            {
+                render: (__unused__value, record) => (
+                    <Tooltip title={record.hash} placement='bottomRight' >
+                        <Button type='link' icon={<NumberOutlined />} loading={isDeleting[record.id]}></Button>
+                    </Tooltip>
+                ),
+                width: '8rem',
+                key: 'delete'
+            }
+        ]);
 
-    return <>
-        <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
-        <br />
-        <br />
+
+    const notVariablesListFiles = files.filter(el => !(el.fileName.indexOf('VariablesList') >= 0));
+    const variablesListFiles = files.filter(el => (
+        el.fileName.indexOf('VariablesList') >= 0
+        || el.fileName.indexOf('Site') >= 0
+        || el.fileName.indexOf('Codes') >= 0
+        || el.fileName.indexOf('SubjectGroup') >= 0
+        || el.fileName.indexOf('Tables') >= 0
+        || el.fileName.indexOf('Visits') >= 0
+    ));
+
+    const fileNameColumns = [
+        {
+            title: 'File Name',
+            dataIndex: 'fileName',
+            key: 'fileName',
+            render: (__unused__value, record) => {
+                return record.fileName;
+            },
+            sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
+        },
+        {
+            title: 'Updated',
+            dataIndex: 'uploadTime',
+            key: 'uploadTime',
+            render: (value) => moment(parseInt(value)).format('YYYY-MM-DD'),
+            sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
+        },
+        {
+            title: 'Uploaded By',
+            dataIndex: 'uploadBy',
+            key: 'uploadBy',
+            render: (__unused__value, record) => {
+                const uploadedBy = record.uploadedBy === undefined ? 'NA' : userIdNameMapping[record.uploadedBy];
+                if (searchTerm)
+                    return <Highlighter searchWords={[searchTerm]} textToHighlight={uploadedBy} highlightStyle={{
+                        backgroundColor: '#FFC733',
+                        padding: 0
+                    }} />;
+                else
+                    return uploadedBy;
+            },
+            sorter: (a, b) => userIdNameMapping[a.uploadedBy].localeCompare(userIdNameMapping[b.uploadedBy])
+        },
+        {
+            title: 'Size',
+            dataIndex: 'fileSize',
+            render: (size) => formatBytes(size),
+            width: '8rem',
+            key: 'size'
+        },
+        {
+            render: (__unused__value, record) => {
+                const ext = record.fileName.substr(record.fileName.lastIndexOf('.')).toLowerCase();
+                const file = JSON.parse(record.description);
+                const startDate = moment(file.startDate).format('YYYYMMDD');
+                const endDate = moment(file.endDate).format('YYYYMMDD');
+                return <Button icon={<CloudDownloadOutlined />} download={`${file.participantId}-${file.deviceId}-${startDate}-${endDate}.${ext}`} href={`/file/${record.id}`}>
+                        Download
+                </Button>;
+            },
+            width: '10rem',
+            key: 'download'
+        }]
+        .concat(!loadingWhoAmI && dataWhoAmI?.whoAmI?.type === userTypes.ADMIN ? [
+            {
+                render: (__unused__value, record) => (
+                    <Button icon={<DeleteOutlined />} loading={isDeleting[record.id]} danger onClick={() => deletionHandler(record.id)}>
+                        Delete
+                    </Button>
+                ),
+                width: '8rem',
+                key: 'delete'
+            }
+        ] : [])
+        .concat([
+            {
+                render: (__unused__value, record) => (
+                    <Tooltip title={record.hash} placement='bottomRight' >
+                        <Button type='link' icon={<NumberOutlined />} loading={isDeleting[record.id]}></Button>
+                    </Tooltip>
+                ),
+                width: '8rem',
+                key: 'delete'
+            }
+        ]);
+
+    // const usedColumns = (type === studyType.SENSOR) ? sensorColumns : (type === studyType.CLINICAL ? clinicalColumns : sensorColumns);
+    return type === studyType.ANY ?
         <Table
             rowKey={(rec) => rec.id}
-            pagination={false}
-            columns={columns}
-            dataSource={files.filter(file => !searchTerm || file.description.search(searchTerm) > -1).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime))}
-            size='small' />
-    </>;
+            pagination={
+                {
+                    defaultPageSize: 50,
+                    showSizeChanger: true,
+                    pageSizeOptions: ['20', '50', '100', '200'],
+                    defaultCurrent: 1,
+                    showQuickJumper: true
+                }
+            }
+            columns={fileNameColumns}
+            dataSource={files}
+            size='small' /> :
+        <>
+            <br />
+            <br />
+            <Table
+                rowKey={(rec) => rec.id}
+                pagination={
+                    {
+                        defaultPageSize: 50,
+                        showSizeChanger: true,
+                        pageSizeOptions: ['20', '50', '100', '200'],
+                        defaultCurrent: 1,
+                        showQuickJumper: true
+                    }
+                }
+                columns={(type === studyType.SENSOR) ? sensorColumns : fileNameColumns}
+                dataSource={notVariablesListFiles}
+                size='small' />
+            {variablesListFiles.length ===0 ? null :
+                <Table
+                    rowKey={(rec) => rec.id}
+                    columns={fileNameColumns}
+                    dataSource={variablesListFiles}
+                    size='small' />
+            }
+        </>
+    ;
 
 };

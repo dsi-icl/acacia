@@ -9,3 +9,12 @@ export const Subsection: React.FunctionComponent<{ title: string; children: any 
         </div>
     </div>;
 };
+
+export const SubsectionWithComment: React.FunctionComponent<{ title: string; comment: any; children: any }> = ({ title, comment, children }) => {
+    return <div className={css.content_section}>
+        <h5>{title} <span style={{float: 'right', whiteSpace: 'pre'}}>{comment}</span></h5>
+        <div>
+            {children}
+        </div>
+    </div>;
+};

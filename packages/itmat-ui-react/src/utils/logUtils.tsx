@@ -1,7 +1,7 @@
 import { LOG_ACTION, LOG_STATUS, userTypes } from 'itmat-commons';
 import { FetchResult } from '@apollo/client';
 
-export function logFun(mutationFunc: (data: { variables: any }) => Promise<FetchResult<any>>, whoamidata: any, type: LOG_ACTION, actionData: any, status: LOG_STATUS) {
+export function logFun(mutationFunc: (__unused__data: { variables: any }) => Promise<FetchResult<any>>, whoamidata: any, type: LOG_ACTION, actionData: any, status: LOG_STATUS) {
     if ('ERROR' in actionData) {
         actionData.ERROR = actionData.ERROR.graphQLErrors[0].message;
     }

@@ -20,6 +20,7 @@ export const user_fragment = gql`
             studies {
                 id
                 name
+                type
             }
         },
         createdAt,
@@ -125,6 +126,14 @@ export const CREATE_USER = gql`
             email: $email
             type: $type
         }) {
+            successful
+        }
+    }
+`;
+
+export const RECOVER_SESSION_EXPIRE_TIME = gql`
+    query recoverSessionExpireTime {
+        recoverSessionExpireTime {
             successful
         }
     }

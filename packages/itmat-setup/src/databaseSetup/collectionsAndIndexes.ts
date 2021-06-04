@@ -46,7 +46,7 @@ const collections = {
     data_collection: {
         name: 'DATA_COLLECTION',
         indexes: [
-            { key: { m_eid: 1, m_versionId: 1, m_study: 1 }, unique: true },
+            { key: { m_subjectId: 1, m_versionId: 1, m_studyId: 1, m_visitId: 1 }, unique: true },
         ]
     },
     roles_collection: {
@@ -73,6 +73,13 @@ const collections = {
         indexes: [
             { key: { id: 1 }, unique: true },
             { key: { name: 1 }, unique: true },
+        ]
+    },
+    pubkeys_collection: {
+        name: 'PUBKEY_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true },
+            { key: { pubkey: 1 }, unique: true },
         ]
     }
 };

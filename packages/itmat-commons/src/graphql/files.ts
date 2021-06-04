@@ -1,8 +1,8 @@
 import gql from 'graphql-tag';
 
 export const UPLOAD_FILE = gql`
-    mutation uploadFile($studyId: String!, $file: Upload!, $description: String!, $fileLength: Int) {
-        uploadFile(studyId: $studyId, description: $description, file: $file, fileLength: $fileLength) {
+    mutation uploadFile($studyId: String!, $file: Upload!, $description: String!, $fileLength: BigInt, $hash: String) {
+        uploadFile(studyId: $studyId, description: $description, file: $file, fileLength: $fileLength, hash: $hash) {
             id
             fileName
             studyId
@@ -10,6 +10,7 @@ export const UPLOAD_FILE = gql`
             fileSize
             description
             uploadedBy
+            hash
         }
     }
 `;

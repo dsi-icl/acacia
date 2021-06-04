@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useMutation } from '@apollo/client/react/hooks';
-import { userTypes, WHO_AM_I, CREATE_STUDY } from 'itmat-commons';
-import { Button, Form, Input, Alert } from 'antd';
+import { userTypes, WHO_AM_I, CREATE_STUDY, studyType } from 'itmat-commons';
+import { Button, Form, Input, Alert, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { Subsection } from '../reusable';
+const { Option } = Select;
 
 export const AddNewDataSet: React.FunctionComponent = () => {
 
@@ -34,6 +35,19 @@ export const AddNewDataSet: React.FunctionComponent = () => {
                                     <Form onFinish={(variables) => createStudy({ variables })}>
                                         <Form.Item name='name' >
                                             <Input placeholder='Dataset name' />
+                                        </Form.Item>
+                                        <Form.Item name='description' >
+                                            <Input placeholder='Dataset Description' />
+                                        </Form.Item>
+                                        <Form.Item name='type' >
+                                            <Select
+                                                placeholder='Dataset Type'
+                                                allowClear
+                                            >
+                                                <Option value={studyType.SENSOR}>SENSOR</Option>
+                                                <Option value={studyType.CLINICAL}>CLINICAL</Option>
+                                                <Option value={studyType.ANY}>ANY</Option>
+                                            </Select>
                                         </Form.Item>
                                         {createStudyError ? (
                                             <>

@@ -40,7 +40,6 @@ module.exports = {
     },
     plugins: (NODE_ENV === 'development' ? [
         new StartServerPlugin('executor.js'),
-        new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
         new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../src/utils/noop`),

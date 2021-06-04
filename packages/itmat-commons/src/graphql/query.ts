@@ -1,19 +1,21 @@
 import gql from 'graphql-tag';
 
 export const GET_QUERY = gql`
-    query getQueries($study: String, $application: String, $id: String) {
-        getQueries(study: $study, application: $application, id: $id) {
+    query getQueries($studyId: String, $projectId: String) {
+        getQueries(studyId: $studyId, projectId: $projectId) {
             id
             queryString
-            study
-            application
+            studyId
+            projectId
             requester
-            claimedBy
-            lastClaimed
             status
             error
             cancelled
             cancelledTime
+            queryResult
+            data_requested
+            cohort
+            new_fields
         }
     }
 `;
@@ -24,25 +26,25 @@ export const CREATE_QUERY = gql`
         createQuery(query: $query) {
             id
             queryString
-            study
-            application
+            studyId
+            projectId
             requester
-            claimedBy
-            lastClaimed
             status
             error
             cancelled
             cancelledTime
+            queryResult
+            data_requested
+            cohort
+            new_fields
         }
     }
 `;
 
-export const GET_QUERY_RESULT = gql`
-    query getQueries($id: String) {
-        getQueries(id: $id) {
-            id
+export const GET_QUERY_BY_ID = gql`
+    query getQueryById($queryId: String!) {
+        getQueryById(queryId: $queryId) {
             queryResult
         }
     }
 `;
-

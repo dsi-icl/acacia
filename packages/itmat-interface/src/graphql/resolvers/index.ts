@@ -6,6 +6,7 @@ import { queryResolvers } from './queryResolvers';
 import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
 import { organisationResolvers } from './organisationResolvers';
+import { pubkeyResolvers } from './pubkeyResolvers';
 import { ApolloError } from 'apollo-server-core';
 import { errorCodes } from '../errors';
 import { IUser } from 'itmat-commons';
@@ -19,6 +20,7 @@ const modules = [
     jobResolvers,
     fileResolvers,
     organisationResolvers,
+    pubkeyResolvers,
     logResolvers
 ];
 
@@ -31,8 +33,9 @@ const modules = [
 
 const bounceNotLoggedInDecorator = (reducerFunction: any) => {
     return async (parent: any, args: any, context: any, info: any) => {
-        const uncheckedFunctionWhitelist = ['login', 'whoAmI', 'getOrganisations', 'requestUsernameOrResetPassword', 'resetPassword', 'createUser', 'writeLog', 'validateResetPassword'];
+        const uncheckedFunctionWhitelist = ['login', 'rsaSigner', 'keyPairGenwSignature', 'issueAccessToken', 'whoAmI', 'getOrganisations', 'requestUsernameOrResetPassword', 'resetPassword', 'createUser', 'writeLog', 'validateResetPassword'];
         const requester: IUser = context.req.user;
+
         if (!requester) {
             if (!(uncheckedFunctionWhitelist as any).includes(reducerFunction.name)) {
                 throw new ApolloError(errorCodes.NOT_LOGGED_IN);

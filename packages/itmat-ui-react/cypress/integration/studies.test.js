@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 const { LOGIN_BODY_ADMIN } = require('../fixtures/loginstring');
 const { CREATE_PROJECT, CREATE_STUDY, DELETE_PROJECT } = require('itmat-commons').GQLRequests;
+const { studyType } = require('itmat-commons');
 const { print } = require('graphql');
 const { v4: uuid } = require('uuid');
 
@@ -32,7 +33,7 @@ describe('Studies page', function () {
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description', type: studyType.SENSOR } }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
@@ -62,7 +63,7 @@ describe('Studies page', function () {
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description', type: studyType.SENSOR } }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
@@ -106,7 +107,7 @@ describe('Studies page', function () {
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description', type: studyType.SENSOR } }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');
@@ -130,7 +131,7 @@ describe('Studies page', function () {
         /* setup: create a study via API */
         const createdStudyName = uuid();
         cy.request('POST', 'http://localhost:3003/graphql',
-            { query: print(CREATE_STUDY), variables: { name: createdStudyName } }
+            { query: print(CREATE_STUDY), variables: { name: createdStudyName, description: 'test description', type: studyType.SENSOR } }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;
             expect(createdStudyId).to.be.a('string');

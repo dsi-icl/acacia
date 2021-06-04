@@ -40,7 +40,6 @@ export class PermissionCore {
         if (result.length === 0) {
             return false;
         }
-
         const hisPrivileges = result[0].arrPrivileges;   // example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
 
         /* checking privileges */
