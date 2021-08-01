@@ -4165,10 +4165,10 @@
   resolved "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==
 
-"@types/connect-timeout@0.0.34":
-  version "0.0.34"
-  resolved "https://registry.yarnpkg.com/@types/connect-timeout/-/connect-timeout-0.0.34.tgz#16639efcc65b5b887f3b6738f8d9ee4acf556f04"
-  integrity sha512-ZadN0ttd64Wg5suotSRqJTn/QSw6gO1OqFY3GVgzY9WC5Efo2fxsSt5Scd5IOC6eXPbA7N4VlK17/oRpGSmOzA==
+"@types/connect-timeout@0.0.35":
+  version "0.0.35"
+  resolved "https://registry.yarnpkg.com/@types/connect-timeout/-/connect-timeout-0.0.35.tgz#149a07ed2c91acab2f64d154153dc90d6828e89d"
+  integrity sha512-4lAuYoMcQ+GmbXPKORl/fvPKRr+aDkBKaxhmWTi1VoBP9LWm6dgBxLg1Am3/GNLTaLH834N8Vi5xyvkk5/H+Ow==
   dependencies:
     "@types/express" "*"
 
