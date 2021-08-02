@@ -192,7 +192,8 @@ export class StudyCore {
             m_studyId: studyId,
             m_subjectId: dataClip.subjectId,
             m_versionId: null,
-            m_visitId: dataClip.visitId
+            m_visitId: dataClip.visitId,
+            deleted: null
         };
         const objWithData = {
             ...obj,

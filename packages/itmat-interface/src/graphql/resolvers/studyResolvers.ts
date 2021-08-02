@@ -352,7 +352,7 @@ export const studyResolvers = {
             // check fieldId duplicate
             for (const oneFieldInput of fieldInput) {
                 isError = false;
-                const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: oneFieldInput.fieldId });
+                const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: oneFieldInput.fieldId, dateDeleted: null });
                 if (searchField) {
                     // throw new ApolloError('Field already exists, please select another ID.', errorCodes.CLIENT_MALFORMED_INPUT);
                     error.push({code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId} already exists, please select another ID.`});
@@ -420,7 +420,7 @@ export const studyResolvers = {
             if (!searchField) {
                 throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-            await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: fieldId }, {$set: {deleted: (new Date()).valueOf()} });
+            await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: fieldId }, {$set: {dateDeleted: (new Date()).valueOf()} });
 
             return searchField;
 
@@ -490,7 +490,7 @@ export const studyResolvers = {
             } else {
                 // direct set satisfied records as deleted
                 await db.collections!.data_collection.updateMany(queryObj, {
-                    $set: { dateDeleted: (new Date()).toISOString() }
+                    $set: { deleted: (new Date()).valueOf() }
                 });
             }
 
