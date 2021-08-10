@@ -11,7 +11,8 @@ import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import css from './tabContent.module.css';
 import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
-import { Button, Form, Input, Switch, Modal, Table } from 'antd';
+import { Button, Form, Input, Switch, Modal, Table, Select } from 'antd';
+const Option = Select;
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
@@ -57,6 +58,10 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
             }
         }
     ];
+    const versions: any = [];
+    for (const item of getStudyData.getStudy.dataVersions) {
+        versions[item['version']] =  item['id'];
+    }
 
     return <div className={css.data_management_section}>
         {getStudyData.getStudy.currentDataVersion !== -1 ?
@@ -71,7 +76,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                                     <React.Fragment key={el.id}>
                                         <div
                                             key={el.id}
-                                            onClick={() => { setSelectedVersion(ind); }}
+                                            onClick={() => { setSelectedVersion(ind); console.log('ind', ind);}}
                                             className={css.data_version_cube + (ind === selectedVersion ? (ind === getStudyData.getStudy.currentDataVersion ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '')}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
                                         </div>
                                         {ind === getStudyData.getStudy.dataVersions.length - 1 ? null : <span className={css.arrow}>⟶</span>}
@@ -130,65 +135,106 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                             }
                         }}>Check Data Complete</Button>
                         <br/><br/>
-                        <Modal
-                            width='80%'
-                            visible={isModalOn}
-                            title='Unversioned Data'
-                            onOk={() => setIsModalOn(false)}
-                            onCancel={() => setIsModalOn(false)}
-                        >
-                            <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, versionId: [null] }}>
-                                {({ data, loading, error }) => {
-                                    if (loading) { return <LoadSpinner />; }
-                                    if (error) { return <p>{JSON.stringify(error)}</p>; }
-                                    if (!data) { return <p>Not executed.</p>; }
-                                    const parsedData = getDataRecordsData.getDataRecords.data;
-                                    const groupedData: any = {};
-                                    for (let i=0; i<parsedData.length; i++) {
-                                        if (!Object.keys(groupedData).includes(parsedData[i].m_subjectId)) {
-                                            groupedData[parsedData[i].m_subjectId] = [];
-                                        }
-                                        groupedData[parsedData[i].m_subjectId].push(parsedData[i].m_visitId);
-                                    }
-                                    return (<Table
-                                        scroll={{ x: 'max-content' }}
-                                        rowKey={(rec) => rec.id}
-                                        pagination={false}
-                                        columns={columns}
-                                        dataSource={Object.keys(groupedData).map((el) => {
-                                            return {
-                                                id: el,
-                                                subjectId: el,
-                                                visitId: groupedData[el]
-                                            };
-                                        })}
-                                        size='middle'
-                                    ></Table>);
-                                }}
-                            </Query>
-                        </Modal>
-                        {whoAmIData.whoAmI.type === userTypes.ADMIN ?
-                            <Form onFinish={(variables) => {
-                                createNewDataVersion({
-                                    variables: {
-                                        ...variables,
-                                        studyId: studyId
-                                    }
-                                });}}>
-                                <Form.Item name='dataVersion' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                    <Input placeholder='Data Version' />
-                                </Form.Item>
-                                <Form.Item name='tag' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                                    <Input placeholder='Tag' />
-                                </Form.Item>
-                                <Form.Item>
-                                    <Button type='primary' htmlType='submit'>
-                            Submit
-                                    </Button>
-                                </Form.Item>
-                            </Form> : null}
                     </div> :
                     <p>No unsettled data found.</p>}
+            </Subsection>
+            <Subsection title='Create New Data Version'>
+                <Modal
+                    width='80%'
+                    visible={isModalOn}
+                    title='Unversioned Data'
+                    onOk={() => setIsModalOn(false)}
+                    onCancel={() => setIsModalOn(false)}
+                >
+                    <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, versionId: [null] }}>
+                        {({ data, loading, error }) => {
+                            if (loading) { return <LoadSpinner />; }
+                            if (error) { return <p>{JSON.stringify(error)}</p>; }
+                            if (!data) { return <p>Not executed.</p>; }
+                            const parsedData = getDataRecordsData.getDataRecords.data;
+                            const groupedData: any = {};
+                            for (let i=0; i<parsedData.length; i++) {
+                                if (!Object.keys(groupedData).includes(parsedData[i].m_subjectId)) {
+                                    groupedData[parsedData[i].m_subjectId] = [];
+                                }
+                                groupedData[parsedData[i].m_subjectId].push(parsedData[i].m_visitId);
+                            }
+                            return (<Table
+                                scroll={{ x: 'max-content' }}
+                                rowKey={(rec) => rec.id}
+                                pagination={false}
+                                columns={columns}
+                                dataSource={Object.keys(groupedData).map((el) => {
+                                    return {
+                                        id: el,
+                                        subjectId: el,
+                                        visitId: groupedData[el]
+                                    };
+                                })}
+                                size='middle'
+                            ></Table>);
+                        }}
+                    </Query>
+                </Modal>
+                {whoAmIData.whoAmI.type === userTypes.ADMIN ?
+                    <Form onFinish={(variables) => {
+                        createNewDataVersion({
+                            variables: {
+                                ...variables,
+                                withUnversionedData: variables.withUnversionedData === 'true' ? true : false,
+                                studyId: studyId
+                            }
+                        });}}>
+                        <Form.Item name='dataVersion' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                            <Input placeholder='Data Version' />
+                        </Form.Item>
+                        <Form.Item name='tag' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                            <Input placeholder='Tag' />
+                        </Form.Item>
+                        <Form.Item name='baseVersions' hasFeedback rules={[{ required: false, message: ' ' }]}>
+                            <Select
+                                placeholder='Select base data versions'
+                                mode='multiple'
+                            >
+                                {(getStudyData.getStudy.dataVersions.map(el => el.version)).map(es => {
+                                    return <Option value={versions[es]}>{es}</Option>;
+                                })}
+                            </Select>
+                        </Form.Item>
+                        <Form.Item name='subjectIds' hasFeedback rules={[{ required: false, message: ' ' }]}>
+                            <Select
+                                placeholder='Select specified subjects'
+                                mode='multiple'
+                            >
+                                {getStudyData.getStudy.subjects.map(es => {
+                                    return <Option value={es}>{es.toString()}</Option>;
+                                })}
+                            </Select>
+                        </Form.Item>
+                        <Form.Item name='visitIds' hasFeedback rules={[{ required: false, message: ' ' }]}>
+                            <Select
+                                placeholder='Select specified visits'
+                                mode='multiple'
+                            >
+                                {[...getStudyData.getStudy.visits].sort((a, b) => {return a - b;}).map(es => {
+                                    return <Option value={es}>{es}</Option>;
+                                })}
+                            </Select>
+                        </Form.Item>
+                        <Form.Item name='withUnversionedData' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                            <Select
+                                placeholder='Use unversioned data'
+                            >
+                                <Option value='true'>Yes</Option>
+                                <Option value='false'>No</Option>
+                            </Select>
+                        </Form.Item>
+                        <Form.Item>
+                            <Button type='primary' htmlType='submit'>
+                            Submit
+                            </Button>
+                        </Form.Item>
+                    </Form> : null}
             </Subsection>
             <Subsection title='Data Summary'>
                 <DataSummaryVisual

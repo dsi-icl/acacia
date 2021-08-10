@@ -10,6 +10,8 @@ import { CSVLink } from 'react-csv';
 import { List, Card, Button, Table, Modal } from 'antd';
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string; projectId: string }> = ({ studyId, projectId }) => {
+
+    // const { data: getStudyData, loading: getStudyLoading, error: getStudyError } = useQuery(GET_STUDY, { variables: { studyId } });
     const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
     const { loading: getQueryLoading, error: getQueryError, data: getQueryData } = useQuery(GET_QUERY, { variables: { projectId: projectId, studyId: studyId } });
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
@@ -128,7 +130,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
             }
         },
     ];
-
+    console.log(getProjectData);
     return <div className={css.scaffold_wrapper}>
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title='Fileds & Variables'>
@@ -137,13 +139,13 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
             <Subsection title='Filters'>
                 {queryOptions.filters.length === 0 ? <p>No filters added.</p>:
                     <List
-                        grid={{ gutter: 8, column: 4 }}
+                        grid={{ gutter: 8, column: 2 }}
                         dataSource={queryOptions.filters}
                         renderItem={item => (
                             <List.Item>
                                 <Card title={(item as any).name}>
-                                    <p>{(item as any).op}</p>
-                                    <p>{(item as any).value}</p>
+                                    <p>{(item as any).op} {(item as any).value}</p>
+                                    {/* <p></p> */}
                                 </Card>
                             </List.Item>
                         )}
@@ -152,12 +154,15 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
             <Subsection title='any'>
-                <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, projectId: projectId, queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']) }}>
+                <Query<any, any> query={GET_DATA_RECORDS} variables={{
+                    studyId: studyId,
+                    projectId: projectId,
+                    versionId: [getProjectData.getProject.dataVersion],
+                    queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']) }}>
                     {({ data, loading, error }) => {
                         if (loading) { return <LoadSpinner />; }
                         if (error) { return <p>No results found.</p>; }
                         if (!data || data.getDataRecords === null) { return <p>Not available.</p>; }
-
                         const columns: any[] = [];
                         const fieldsList = getProjectData.getProject.fields;
                         const queryResult = data.getDataRecords.data;
@@ -177,6 +182,15 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                                 title: name,
                                 dataIndex: key,
                                 key: key,
+                                sorter: (a, b) => {
+                                    if (a[key].toString() === '99999') {
+                                        return true;
+                                    } else if (b[key].toString() === '99999') {
+                                        return false;
+                                    } else {
+                                        return a[key].toString() > b[key].toString();
+                                    }
+                                },
                                 render: (__unused__value, record) => {
                                     if (!(key in record)) {
                                         return '';
@@ -227,7 +241,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                                             if (error) { return <p>{JSON.stringify(error)}</p>; }
                                             if (!data) { return <p>Not executed.</p>; }
                                             const queryResult = JSON.parse(data.getQueryById.queryResult);
-                                            if (queryResult === null || queryResult === undefined || queryResult === []) {
+                                            if (queryResult === null || queryResult === undefined || queryResult.length === 0) {
                                                 return <p>No Results Found</p>;
                                             }
                                             const columns: any[] = [];

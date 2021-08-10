@@ -71,17 +71,44 @@ export class StudyCore {
         }
     }
 
-    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion> {
-        const res = (await db.collections!.data_collection.find({ m_versionId: null })).toArray();
-        if ((res as any).length <= 0) {
-            throw new ApolloError('No records uploaded since last operation.');
+    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string, baseVersions: string[], subjectIds: any[], visitIds: any[], withUnversionedData: boolean): Promise<IStudyDataVersion> {
+        // generate the query
+        const studyQuery: any[] = [{ m_versionId: null }];
+        if (baseVersions !== undefined) {
+            for (const item of baseVersions) {
+                studyQuery.push({ m_versionId: item });
+            }
         }
         const newDataVersionId = uuid();
         const contentId = uuid();
+
         // update record version
-        const updateVersion = await db.collections!.data_collection.updateMany({ m_versionId: null }, { $set: { m_versionId: contentId } });
-        if (updateVersion.result.ok !== 1) {
-            throw new ApolloError('Create new adta version failed: cannot add data version to new records.');
+        studyQuery.splice(0, 1);
+        if (studyQuery.length > 0) {
+            const updateVersionOld = await db.collections!.data_collection.updateMany({
+                m_studyId: studyId,
+                $or: studyQuery,
+                $and: [
+                    { $or: subjectIds },
+                    { $or: visitIds }
+                ]
+            }, { $push: { m_versionId: newDataVersionId } });
+            if (updateVersionOld.result.ok !== 1) {
+                throw new ApolloError('Create new data version failed: cannot add data version to old records.');
+            }
+        }
+        if (withUnversionedData) {
+            const updateVersionNew = await db.collections!.data_collection.updateMany({
+                m_studyId: studyId,
+                m_versionId: null,
+                $and: [
+                    { $or: subjectIds },
+                    { $or: visitIds }
+                ]
+            }, { $set: { m_versionId: [newDataVersionId] } });
+            if (updateVersionNew.result.ok !== 1) {
+                throw new ApolloError('Create new data version failed: cannot add data version to new records.');
+            }
         }
         // insert a new version into study
         const newDataVersion: IStudyDataVersion = {
@@ -115,6 +142,8 @@ export class StudyCore {
         let parsedValue;
         if (fieldInDb.length === 0) {
             error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Field Not found`;
+        } else if (dataClip.value.toString() === '99999') {
+            parsedValue = '99999';
         } else {
             switch (fieldInDb[0].dataType) {
                 case 'dec': {// decimal
@@ -205,10 +234,11 @@ export class StudyCore {
         return null;
     }
 
-    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
+    public async createProjectForStudy(studyId: string, projectName: string, dataVersion: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuid(),
             studyId,
+            dataVersion: dataVersion,
             createdBy: requestedBy,
             name: projectName,
             patientMapping: {},

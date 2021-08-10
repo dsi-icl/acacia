@@ -1,7 +1,9 @@
 import React from 'react';
-import { Query } from '@apollo/client/react/components';
+// import { Query } from '@apollo/client/react/components';
 import { GET_STUDY, IStudyDataVersion } from 'itmat-commons';
 import css from './tabContent.module.css';
+import { useQuery } from '@apollo/client/react/hooks';
+import LoadSpinner from '../../../reusable/loadSpinner';
 // number of patients
 // newest version of data - date / tag
 // download data
@@ -9,6 +11,8 @@ import css from './tabContent.module.css';
 // upload new sets of data
 
 export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+    const { data: getStudyData, loading: getStudyLoading } = useQuery(GET_STUDY, { variables: { studyId } });
+    if (getStudyLoading) { return <LoadSpinner />; }
     if (selectedVersion === null || selectedVersion === -1) {
         return null;
     }
@@ -17,7 +21,8 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selec
     return <>
         {selectedVersion === currentVersion ? null : <><span className='warning_banner'>Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
         <div className={css.data_summary_section}>
-            <NumberOfPatients studyId={studyId} key={id} />
+            <NumberOfPatients data={getStudyData} key={id} />
+            <NumberOfRecords data={getStudyData} key={id} />
             <NewestVersionOfData version={version || 'n/a'} />
             <VersionTag tag={tag || 'n/a'} />
             <DateOfUpload date={updateDate} />
@@ -26,22 +31,24 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selec
     </>;
 };
 
-
-
-
 ////////////////////////// COMPONENTS WITHIN THE PAGE//////////////////////////////////////
-const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+const NumberOfPatients: React.FunctionComponent<{ data: any }> = ({ data }) => {
     return <div style={{ gridArea: 'patients' }}>
         <div>
             <p>Number of subjects</p>
             <span className={css.number_highlight}>
-                <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
-                    {({ loading, data, error }) => {
-                        if (loading) { return '...'; }
-                        if (error || !data || !data.getStudy || data.getStudy.numOfSubjects === undefined) { return 'n/a'; }
-                        return data.getStudy.numOfSubjects;
-                    }}
-                </Query>
+                {data.getStudy.subjects.length}
+            </span>
+        </div>
+    </div>;
+};
+
+const NumberOfRecords: React.FunctionComponent<{ data: any }> = ({ data }) => {
+    return <div style={{ gridArea: 'records' }}>
+        <div>
+            <p>Number of records</p>
+            <span className={css.number_highlight}>
+                {data.getStudy.numOfRecords}
             </span>
         </div>
     </div>;
@@ -49,7 +56,7 @@ const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyI
 
 const NewestVersionOfData: React.FunctionComponent<{ version: string }> = ({ version }) => {
     return <div style={{ gridArea: 'version' }}><div>
-        <p>Current Dataset version</p>
+        <p>Current Data version</p>
         <span className={css.number_highlight}>{version}</span>
     </div>
     </div>;

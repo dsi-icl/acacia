@@ -9,6 +9,7 @@ export const GET_PROJECT = gql`
             id
             studyId
             name
+            dataVersion
             approvedFields @include(if: $admin)
             approvedFiles @include(if: $admin)
             jobs {

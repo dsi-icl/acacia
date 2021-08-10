@@ -47,6 +47,7 @@ export interface IRole {
 export interface IProject {
     id: string;
     studyId: string;
+    dataVersion: string;
     createdBy: string;
     name: string;
     patientMapping: { [originalId: string]: string };

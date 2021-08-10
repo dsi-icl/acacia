@@ -1,5 +1,28 @@
 
-export function buildPipeline(query: any, studyId: string, availableDataVersions: string[]) {
+export function buildPipeline(query: any, studyId: string, availableDataVersions: any) {
+    // parse the input data versions first
+    let dataVersionsFilter: any;
+    if (availableDataVersions == null) {
+        dataVersionsFilter = null;
+    } else {
+        dataVersionsFilter = { $in: availableDataVersions };
+    }
+
+    // if query is undefined, return all data with specified data versions
+    if (query === undefined) {
+        return [
+            { $match: { m_studyId: studyId } },
+            { $match: { m_versionId: dataVersionsFilter } },
+        ];
+    }
+
+    // check query, then decide whether to parse the query
+    if (query['data_requested'] === undefined || query['cohort'] === undefined || query['new_fields'] === undefined) {
+        return null;
+    }
+    if (Array.isArray(query['data_requested']) === false || Array.isArray(query['cohort']) === false || Array.isArray(query['new_fields']) === false) {
+        return null;
+    }
     const fields = { _id: 0, m_eid: 1 };
     // We send back the requested fields
     query.data_requested.forEach((field: any) => {
@@ -28,19 +51,22 @@ export function buildPipeline(query: any, studyId: string, availableDataVersions
     } else {
         match = translateCohort(query.cohort[0]);
     }
+
     if (isEmptyObject(addFields)) {
         return [
             { $match: { m_studyId: studyId } },
+            { $match: { deleted: null } },
             { $match: match },
-            { $match: { m_versionId: { $in: availableDataVersions } } },
+            { $match: { m_versionId: dataVersionsFilter } },
             { $project: fields }
         ];
     } else {
         return [
             { $match: { m_studyId: studyId } },
+            { $match: { deleted: null } },
             { $addFields: addFields },
             { $match: match },
-            { $match: { m_versionId: { $in: availableDataVersions } } },
+            { $match: { m_versionId: dataVersionsFilter } },
             { $project: fields }
         ];
     }
@@ -108,11 +134,11 @@ function translateCohort(cohort: any) {
                 // select.value must be an array
                 (match as any)[select.field] = { $ne: [select.value] };
                 break;
-            case '>':
+            case '<':
                 // select.value must be a float
                 (match as any)[select.field] = { $lt: parseFloat(select.value) };
                 break;
-            case '<':
+            case '>':
                 // select.value must be a float
                 (match as any)[select.field] = { $gt: parseFloat(select.value) };
                 break;

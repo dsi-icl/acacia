@@ -55,7 +55,9 @@ export const GET_STUDY = gql`
                 uploadedBy
                 hash
             }
-            numOfSubjects
+            subjects
+            visits
+            numOfRecords
             currentDataVersion
             dataVersions {
                 id
@@ -117,8 +119,8 @@ export const EDIT_STUDY = gql`
 `;
 
 export const CREATE_NEW_DATA_VERSION = gql`
-    mutation createNewDataVersion($studyId: String!, $dataVersion: String!, $tag: String){
-        createNewDataVersion(studyId: $studyId, dataVersion: $dataVersion, tag: $tag) {
+    mutation createNewDataVersion($studyId: String!, $dataVersion: String!, $tag: String, $baseVersions: [String], $subjectIds: [String], $visitIds: [String], $withUnversionedData: Boolean!){
+        createNewDataVersion(studyId: $studyId, dataVersion: $dataVersion, tag: $tag, baseVersions: $baseVersions, subjectIds: $subjectIds, visitIds: $visitIds, withUnversionedData: $withUnversionedData) {
             id
             version
             tag
@@ -165,10 +167,11 @@ export const DELETE_ONTOLOGY_FIELD = gql`
 `;
 
 export const CREATE_PROJECT = gql`
-    mutation createProject($studyId: String!, $projectName: String!, $approvedFields: [String]) {
-        createProject(studyId: $studyId, projectName: $projectName, approvedFields: $approvedFields) {
+    mutation createProject($studyId: String!, $projectName: String!, $approvedFields: [String], $dataVersion: String!) {
+        createProject(studyId: $studyId, projectName: $projectName, approvedFields: $approvedFields, dataVersion: $dataVersion) {
             id
             studyId
+            dataVersion
             name
             approvedFields
         }

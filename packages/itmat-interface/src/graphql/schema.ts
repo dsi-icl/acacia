@@ -183,13 +183,16 @@ type Study {
     roles: [StudyOrProjectUserRole]!
     # fields: [Field]!
     files: [File]!
-    numOfSubjects: Int!
+    subjects: [String]!
+    visits: [String]!
+    numOfRecords: Int!
 }
 
 type Project {
     id: String!
     studyId: String!
     name: String!
+    dataVersion: String!
 
     #only admin
     patientMapping: JSON!
@@ -492,7 +495,7 @@ type Mutation {
     createStudy(name: String!, description: String, type: STUDYTYPE!): Study
     deleteStudy(studyId: String!): GenericResponse
     editStudy(studyId: String!, description: String): Study
-    createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
+    createNewDataVersion(studyId: String!, dataVersion: String!, tag: String, baseVersions: [String], subjectIds: [String], visitIds: [String], withUnversionedData: Boolean!): DataVersion
     uploadDataInArray(studyId: String!, data: [DataClip]): [DataClipError]
     deleteDataRecords(studyId: String!, subjectId: String, visitId: String, fieldIds: [String]): [DataClipError]
     createNewField(studyId: String!, fieldInput: [FieldInput]!): [FieldClipError]
@@ -502,7 +505,7 @@ type Mutation {
     deleteOntologyField(studyId: String!, fieldId: [String]!): [OntologyField]
 
     # PROJECT
-    createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
+    createProject(studyId: String!, projectName: String!, approvedFields: [String], dataVersion: String!): Project
     deleteProject(projectId: String!): GenericResponse
     editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
     editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project
