@@ -71,7 +71,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
             dataIndex: 'id',
             key: 'id',
             render: (__unused__value, record) => {
-                return JSON.stringify(record.id);
+                return record.id;
             }
         },
         {
@@ -79,7 +79,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
             dataIndex: 'status',
             key: 'status',
             render: (__unused__value, record) => {
-                return JSON.stringify(record.status);
+                return record.status;
             }
         },
         {
@@ -153,131 +153,129 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
             </Subsection>
         </div>
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title='any'>
-                <Query<any, any> query={GET_DATA_RECORDS} variables={{
-                    studyId: studyId,
-                    projectId: projectId,
-                    versionId: [getProjectData.getProject.dataVersion],
-                    queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']) }}>
-                    {({ data, loading, error }) => {
-                        if (loading) { return <LoadSpinner />; }
-                        if (error) { return <p>No results found.</p>; }
-                        if (!data || data.getDataRecords === null) { return <p>Not available.</p>; }
-                        const columns: any[] = [];
-                        const fieldsList = getProjectData.getProject.fields;
-                        const queryResult = data.getDataRecords.data;
-                        const fieldKeysInQueryResult = Object.keys(queryResult.reduce(function(result, obj) {
-                            return Object.assign(result, obj);
-                        }, {}));
+            <Query<any, any> query={GET_DATA_RECORDS} variables={{
+                studyId: studyId,
+                projectId: projectId,
+                versionId: [getProjectData.getProject.dataVersion],
+                queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']) }}>
+                {({ data, loading, error }) => {
+                    if (loading) { return <LoadSpinner />; }
+                    if (error) { return <p>No results found.</p>; }
+                    if (!data || data.getDataRecords === null) { return <p>Not available.</p>; }
+                    const columns: any[] = [];
+                    const fieldsList = getProjectData.getProject.fields;
+                    const queryResult = data.getDataRecords.data;
+                    const fieldKeysInQueryResult = Object.keys(queryResult.reduce(function(result, obj) {
+                        return Object.assign(result, obj);
+                    }, {}));
 
-                        for (const key of fieldKeysInQueryResult) {
-                            let fieldName = '';
-                            for (let i=0; i<fieldsList.length; i++) {
-                                if (key.toString() === fieldsList[i].fieldId.toString()) {
-                                    fieldName = fieldsList[i].fieldName;
+                    for (const key of fieldKeysInQueryResult) {
+                        let fieldName = '';
+                        for (let i=0; i<fieldsList.length; i++) {
+                            if (key.toString() === fieldsList[i].fieldId.toString()) {
+                                fieldName = fieldsList[i].fieldName;
+                            }
+                        }
+                        const name = fieldName === '' ? key : fieldName;
+                        columns.push({
+                            title: name,
+                            dataIndex: key,
+                            key: key,
+                            sorter: (a, b) => {
+                                if (a[key].toString() === '99999') {
+                                    return true;
+                                } else if (b[key].toString() === '99999') {
+                                    return false;
+                                } else {
+                                    return a[key].toString() > b[key].toString();
+                                }
+                            },
+                            render: (__unused__value, record) => {
+                                if (!(key in record)) {
+                                    return '';
+                                }
+                                if (Object.keys(fieldsList).map((el) => fieldsList[el].fieldId.toString()).includes(key)) {
+                                    return record[key];
+                                } else {
+                                    return record[key];
                                 }
                             }
-                            const name = fieldName === '' ? key : fieldName;
-                            columns.push({
-                                title: name,
-                                dataIndex: key,
-                                key: key,
-                                sorter: (a, b) => {
-                                    if (a[key].toString() === '99999') {
-                                        return true;
-                                    } else if (b[key].toString() === '99999') {
-                                        return false;
-                                    } else {
-                                        return a[key].toString() > b[key].toString();
-                                    }
-                                },
-                                render: (__unused__value, record) => {
-                                    if (!(key in record)) {
-                                        return '';
-                                    }
-                                    if (Object.keys(fieldsList).map((el) => fieldsList[el].fieldId.toString()).includes(key)) {
-                                        return record[key];
-                                    } else {
-                                        return record[key];
+                        });
+                    }
+                    return <>
+                        <SubsectionWithComment title='Results' comment={queryResult.length.toString().concat(' records found')} >
+                            <Table
+                                scroll={{ x: 'max-content' }}
+                                rowKey={(rec) => rec.id}
+                                pagination={
+                                    {
+                                        defaultPageSize: 10,
+                                        showSizeChanger: true,
+                                        // pageSizeOptions: ['10', '20', '50', '100'],
+                                        defaultCurrent: 1,
+                                        showQuickJumper: true
                                     }
                                 }
-                            });
-                        }
-                        return <>
-                            <SubsectionWithComment title='Visualization' comment={queryResult.length.toString().concat(' records found')} >
-                                <Table
-                                    scroll={{ x: 'max-content' }}
-                                    rowKey={(rec) => rec.id}
-                                    pagination={
-                                        {
-                                            defaultPageSize: 10,
-                                            showSizeChanger: true,
-                                            // pageSizeOptions: ['10', '20', '50', '100'],
-                                            defaultCurrent: 1,
-                                            showQuickJumper: true
+                                columns={columns}
+                                dataSource={queryResult}
+                                size='middle'
+                            ></Table>
+                            <Button type='primary' htmlType='submit' onClick={() => {
+                                createQuery({variables: {query: {queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']), studyId: studyId, projectId: projectId, userId: whoAmIData.whoAmI.id}}});
+                            }}>
+                                        Save this query
+                            </Button>
+                        </SubsectionWithComment><br/>
+                        <Subsection title='Query List'>
+                            <Modal
+                                width='80%'
+                                visible={isQueryResultShown}
+                                title='Query Result Viewer'
+                                onOk={() => setIsQueryResultShown(false)}
+                                onCancel={() => setIsQueryResultShown(false)}
+                            >
+                                <Query<any, any> query={GET_QUERY_BY_ID} variables={{ queryId: viewQueryId }}>
+                                    {({ data, loading, error }) => {
+                                        if (loading) { return <LoadSpinner />; }
+                                        if (error) { return <p>{JSON.stringify(error)}</p>; }
+                                        if (!data) { return <p>Not executed.</p>; }
+                                        const queryResult = JSON.parse(data.getQueryById.queryResult);
+                                        if (queryResult === null || queryResult === undefined || queryResult.length === 0) {
+                                            return <p>No Results Found</p>;
                                         }
-                                    }
-                                    columns={columns}
-                                    dataSource={queryResult}
-                                    size='middle'
-                                ></Table>
-                                <Button type='primary' htmlType='submit' onClick={() => {
-                                    createQuery({variables: {query: {queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']), studyId: studyId, projectId: projectId, userId: whoAmIData.whoAmI.id}}});
-                                }}>
-                                            Save this query
-                                </Button>
-                            </SubsectionWithComment><br/>
-                            <Subsection title='Query List'>
-                                <Modal
-                                    width='80%'
-                                    visible={isQueryResultShown}
-                                    title='Query Result Viewer'
-                                    onOk={() => setIsQueryResultShown(false)}
-                                    onCancel={() => setIsQueryResultShown(false)}
-                                >
-                                    <Query<any, any> query={GET_QUERY_BY_ID} variables={{ queryId: viewQueryId }}>
-                                        {({ data, loading, error }) => {
-                                            if (loading) { return <LoadSpinner />; }
-                                            if (error) { return <p>{JSON.stringify(error)}</p>; }
-                                            if (!data) { return <p>Not executed.</p>; }
-                                            const queryResult = JSON.parse(data.getQueryById.queryResult);
-                                            if (queryResult === null || queryResult === undefined || queryResult.length === 0) {
-                                                return <p>No Results Found</p>;
-                                            }
-                                            const columns: any[] = [];
-                                            for (const key of Object.keys(queryResult[0])) {
-                                                columns.push({
-                                                    title: key,
-                                                    dataIndex: key,
-                                                    key: key,
-                                                    render: (__unused__value, record) => {
-                                                        return record[key];
-                                                    }
-                                                });
-                                            }
-                                            return (<Table
-                                                scroll={{ x: 'max-content' }}
-                                                rowKey={(rec) => rec.id}
-                                                pagination={false}
-                                                columns={columns}
-                                                dataSource={queryResult}
-                                                size='middle'
-                                            ></Table>);
-                                        }}
-                                    </Query>
-                                </Modal>
-                                <Table
-                                    rowKey={(rec) => rec.id}
-                                    pagination={false}
-                                    columns={queryColumns}
-                                    dataSource={getQueryData.getQueries}
-                                    size='small'
-                                ></Table>
-                            </Subsection>
-                        </>;
-                    }}
-                </Query>
-            </Subsection>
+                                        const columns: any[] = [];
+                                        for (const key of Object.keys(queryResult[0])) {
+                                            columns.push({
+                                                title: key,
+                                                dataIndex: key,
+                                                key: key,
+                                                render: (__unused__value, record) => {
+                                                    return record[key];
+                                                }
+                                            });
+                                        }
+                                        return (<Table
+                                            scroll={{ x: 'max-content' }}
+                                            rowKey={(rec) => rec.id}
+                                            pagination={false}
+                                            columns={columns}
+                                            dataSource={queryResult}
+                                            size='middle'
+                                        ></Table>);
+                                    }}
+                                </Query>
+                            </Modal>
+                            <Table
+                                rowKey={(rec) => rec.id}
+                                pagination={false}
+                                columns={queryColumns}
+                                dataSource={getQueryData.getQueries}
+                                size='small'
+                            ></Table>
+                        </Subsection>
+                    </>;
+                }}
+            </Query>
         </div>
     </div>;
 };
