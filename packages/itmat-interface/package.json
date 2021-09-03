@@ -39,7 +39,7 @@
         "uuid": "8.3.2"
     },
     "devDependencies": {
-        "@types/bcrypt": "3.0.0",
+        "@types/bcrypt": "3.0.1",
         "@types/express": "4.17.12",
         "@types/express-session": "1.17.3",
         "@types/jest": "26.0.23",
