@@ -9,7 +9,7 @@
 }
 
 .ant-select-selection {
-    background-color: var(--color-input);
+    background-color: var(--input-background);
     border: none;
     border-radius: 0px;
 }
@@ -47,7 +47,7 @@
 }
 
 .ant-tree {
-    color: white;
+    background: transparent !important;
 }
 
 .ant-tree li .ant-tree-node-content-wrapper {
@@ -55,13 +55,13 @@
 }
 
 .ant-tree-title {
-    color: white;
+    color: var(--color-font-color);
 }
 
 .anticon > svg {
-    fill: var(--color-that-orange);
+    fill: var(--color-primary-color);
 }
 
 .ant-switch-checked {
-    background-color: var(--color-that-orange) !important;
+    background-color: var(--color-primary-color) !important;
 }

@@ -1,21 +1,69 @@
 {
     "name": "itmat-broker",
     "private": true,
+    "license": "MIT",
     "scripts": {
-        "postinstall": "npm run bootstrap",
-        "bootstrap": "lerna bootstrap --hoist",
+        "preinstall": "node ./scripts/hintYarn.js",
+        "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
+        "start:ui": "lerna run --stream --scope itmat-ui-react start",
+        "start:interface": "lerna run --stream --scope itmat-interface start",
+        "start:executor": "lerna run --stream --scope itmat-job-executor start",
+        "build": "lerna run --stream build",
+        "setupDatabase": "lerna run --scope itmat-setup setup",
+        "test": "lerna run --no-bail --concurrency 1 --stream --scope itmat-interface --scope itmat-job-executor --scope itmat-commons test",
+        "lint": "lerna run --no-bail --stream lint",
+        "lint:fix": "lerna run --no-bail --stream lint:fix",
         "clean": "lerna run clean",
-        "prestart": "lerna run --stream --scope itmat-commons --scope itmat-utils build",
-        "start": "lerna run --stream --scope itmat-interface --scope itmat-ui-react start",
-        "build": "lerna run --stream --ignore itmat-query-language --ignore itmat-job-executor --ignore ukb-curator build",
         "publish": "lerna run tsc && lerna publish",
-        "test": "echo There is no test at this point !"
+        "test:unit": "lerna run --no-bail --concurrency 1 --stream --scope itmat-interface test"
     },
-    "optionalDependencies": {
-        "mongodb-client-encryption": "0.3.1"
+    "workspaces": {
+        "packages": [
+            "packages/*"
+        ],
+        "nohoist": [
+            "mongodb-memory-server",
+            "mongodb-memory-server/**",
+            "**/mongodb-memory-server",
+            "**/mongodb-memory-server/**",
+            "packages/**/webpack-dev-server",
+            "**/babel-loader",
+            "**/babel-jest",
+            "**/mongodb",
+            "**/mongodb/**"
+        ]
     },
     "devDependencies": {
-        "lerna": "3.18.2",
-        "tslint": "5.20.0"
+        "@types/jest": "26.0.23",
+        "@typescript-eslint/eslint-plugin": "4.0.1",
+        "@typescript-eslint/parser": "4.0.1",
+        "babel-eslint": "10.1.0",
+        "eslint": "7.26.0",
+        "eslint-config-react-app": "5.2.1",
+        "eslint-plugin-cypress": "2.11.3",
+        "eslint-plugin-flowtype": "5.7.2",
+        "eslint-plugin-import": "2.23.3",
+        "eslint-plugin-jest": "24.3.2",
+        "eslint-plugin-jsx-a11y": "6.4.1",
+        "eslint-plugin-react": "7.23.2",
+        "eslint-plugin-react-hooks": "4.1.2",
+        "husky": "4.3.8",
+        "jest-environment-node": "26.6.2",
+        "lerna": "3.22.1",
+        "typescript": "4.0.5"
+    },
+    "resolutions": {
+        "**/**/fs-capacitor": "^6.0.0",
+        "**/graphql-upload": "^11.0.0",
+        "**/graphql": "15.5.0",
+        "**/moment": "2.29.1"
+    },
+    "eslintConfig": {
+        "extends": "./config/eslint.config.js"
+    },
+    "husky": {
+        "hooks": {
+            "pre-push": "npm run lint"
+        }
     }
 }

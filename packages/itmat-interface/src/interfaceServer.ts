@@ -2,16 +2,14 @@
 import { Server as HTTPServer } from 'http';
 import { db } from './database/database';
 import { objStore } from './objStore/objStore';
+import { MongoClient } from 'mongodb';
 import { Router } from './server/router';
 import { Server } from './server/server';
+import { pubsub, subscriptionEvents } from './graphql/pubsub';
 
 class ITMATInterfaceServer extends Server {
 
     private router;
-
-    constructor(config) {
-        super(config);
-    }
 
     /**
      * @fn start
@@ -25,11 +23,31 @@ class ITMATInterfaceServer extends Server {
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect(this.config.database)
-                .then(() => objStore.connect())
+            db.connect(this.config.database, MongoClient.connect as any)
+                .then(() => objStore.connect(this.config.objectStore))
                 .then(() => {
 
-                    _this.router = new Router();
+                    const jobChangestream = db.collections!.jobs_collection.watch([
+                        { $match: { operationType: { $in: ['update', 'insert'] } } }
+                    ], { fullDocument: 'updateLookup' });
+                    jobChangestream.on('change', data => {
+                        if (data.operationType === 'update' &&
+                            data.updateDescription &&
+                            data.updateDescription.updatedFields &&
+                            data.updateDescription.updatedFields.status
+                        ) {
+                            pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, {
+                                subscribeToJobStatusChange: {
+                                    jobId: data.fullDocument.id,
+                                    studyId: data.fullDocument.studyId,
+                                    newStatus: data.fullDocument.status,
+                                    errors: data.fullDocument.status === 'error' ? data.fullDocument.error : null
+                                }
+                            });
+                        }
+                    });
+
+                    _this.router = new Router(this.config);
 
                     // Return the Express application
                     return resolve(_this.router.getApp());
@@ -44,7 +62,7 @@ class ITMATInterfaceServer extends Server {
      * express router MUST be released and this service endpoints are expected to fail.
      * @return {Promise} Resolve to true on success, ErrorStack otherwise
      */
-    public stop() {
+    public stop(): Promise<void> {
         return Promise.resolve();
     }
 }

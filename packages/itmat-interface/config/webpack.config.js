@@ -22,11 +22,14 @@ module.exports = {
         extensions: ['.ts', '.mjs', '.js'],
     },
     externals: [{
-        bcrypt: 'commonjs bcrypt',
-        express: 'commonjs express',
-        mongodb: 'commonjs mongodb',
-        "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
-        "require_optional": 'commonjs require_optional'
+        'bcrypt': 'commonjs bcrypt',
+        'express': 'commonjs express',
+        'mongodb': 'commonjs mongodb',
+        // "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
+        'isobject': 'commonjs isobject',
+        'bufferutil': 'commonjs bufferutil',
+        'utf-8-validate': 'commonjs utf-8-validate',
+        'require_optional': 'commonjs require_optional'
     }],
     module: {
         rules: [
@@ -48,7 +51,7 @@ module.exports = {
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {
-                'BUILD_TARGET': JSON.stringify('server')
+                BUILD_TARGET: JSON.stringify('server')
             }
         }),
     ]),
@@ -59,4 +62,4 @@ module.exports = {
         libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
         umdNamedDefine: NODE_ENV === 'development' ? undefined : true
     }
-}
+};

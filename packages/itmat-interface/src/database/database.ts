@@ -1,4 +1,4 @@
-import { Database, IDatabaseBaseConfig } from 'itmat-utils';
+import { Database, IDatabaseBaseConfig } from 'itmat-commons';
 
 export interface IDatabaseConfig extends IDatabaseBaseConfig {
     collections: {
@@ -14,5 +14,4 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
     };
 }
 
-export type Database = Database<IDatabaseBaseConfig>;
 export const db = new Database();

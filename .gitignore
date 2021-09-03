@@ -4,14 +4,6 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-# dependencies
-/node_modules
-
-# testing
-/coverage
-
-# production
-/build
 
 # misc
 .DS_Store
@@ -87,10 +79,10 @@ config.test.json
 .DS_Store
 
 notes/
+coverage/
 
 dist/
-
-config/
+build/
 
 .vscode/
 
@@ -100,3 +92,5 @@ kubernetes/*.yaml
 
 itmat-client-old/
 .idea/
+
+target

@@ -1,7 +1,7 @@
 {
     "database": {
-        "mongo_url": "mongodb://user:password@localhost:27017/test",
-        "database": "test",
+        "mongo_url": "mongodb://localhost:27017",
+        "database": "itmat",
         "collections": {
             "jobs_collection": "JOB_COLLECTION",
             "users_collection": "USER_COLLECTION",
@@ -21,9 +21,22 @@
     "bcrypt": {
         "saltround": 2
     },
-    "swift": {
-        "uri": "https://localhost:8080/auth/v1.0",
-        "username": "test:tester",
-        "password": "testing"
+    "objectStore": {
+        "host": "localhost",
+        "port": 8080,
+        "accessKey": "minioadmin",
+        "secretKey": "minioadmin",
+        "bucketRegion": "region",
+        "useSSL": false
+    },
+    "sessionsSecret": "Change_Me",
+    "aesSecret": "change_this",
+    "useSSL": false,
+    "nodemailer": {
+        "service": "Outlook365",
+        "auth": {
+            "user": "user",
+            "pass": "password" 
+        }
     }
 }

@@ -1,24 +1,26 @@
+
+// eslint:disable: no-console
 import { Server } from 'http';
 import { Socket } from 'net';
 import os from 'os';
 import ITMATInterfaceServer from './interfaceServer';
 import config from './utils/configManager';
 
-let interface_iteration = 0;
-let interface_server = new ITMATInterfaceServer(config);
-let interface_sockets: Socket[] = [];
-let interface_router;
+let interfaceIteration = 0;
+let interfaceServer = new ITMATInterfaceServer(config);
+let interfaceSockets: Socket[] = [];
+let interfaceRouter;
 
 function serverStart() {
-    console.log(`Starting server ${interface_iteration++} ...`);
-    interface_server.start().then((itmat_router: Server) => {
+    console.info(`Starting server ${interfaceIteration++} ...`);
+    interfaceServer.start().then((itmatRouter: Server) => {
 
-        interface_router = itmat_router;
-        itmat_router.listen(config.server.port, () => {
-            console.log(`Listening at http://${os.hostname()}:${config.server.port}/`);
+        interfaceRouter = itmatRouter;
+        itmatRouter.listen(config.server.port, () => {
+            console.info(`Listening at http://${os.hostname()}:${config.server.port}/`);
         })
             .on('connection', (socket) => {
-                interface_sockets.push(socket);
+                interfaceSockets.push(socket);
             })
             .on('error', (error) => {
                 if (error) {
@@ -36,16 +38,16 @@ function serverStart() {
 
 function serverSpinning() {
 
-    if (interface_router !== undefined) {
-        console.log('Renewing server ...');
-        interface_server = new ITMATInterfaceServer(config);
-        console.log(`Destroying ${interface_sockets.length} sockets ...`);
-        interface_sockets.forEach((socket) => {
+    if (interfaceRouter !== undefined) {
+        console.info('Renewing server ...');
+        interfaceServer = new ITMATInterfaceServer(config);
+        console.info(`Destroying ${interfaceSockets.length} sockets ...`);
+        interfaceSockets.forEach((socket) => {
             socket.destroy();
         });
-        interface_sockets = [];
-        console.log(`Shuting down server ${interface_iteration} ...`);
-        interface_router.close(() => {
+        interfaceSockets = [];
+        console.info(`Shuting down server ${interfaceIteration} ...`);
+        interfaceRouter.close(() => {
             serverStart();
         });
     } else {
@@ -56,5 +58,6 @@ function serverSpinning() {
 serverSpinning();
 
 if (module.hot) {
+    module.hot.accept('./index', serverSpinning);
     module.hot.accept('./interfaceServer', serverSpinning);
 }

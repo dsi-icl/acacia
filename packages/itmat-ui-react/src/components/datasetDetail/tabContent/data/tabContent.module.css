@@ -1,20 +1,20 @@
 .tab_page_wrapper {
     padding: 2rem;
-    /* overflow: auto; */
 }
 
 .scaffold_wrapper {
     height: 100%;
-    padding-top: 0.5rem;
 }
 
 .scaffold_wrapper > div {
-    padding: 0 2rem 2rem 2rem;
+    height: 100%;
+    overflow: auto;
+}
+
+.data_management_section {
     display: grid;
     grid-template-columns: 60% 40%;
     grid-template-rows: 0.1fr 6fr;
-    height: 100%;
-    overflow: auto;
     grid-template-areas: 
     "versions versions"
     "leftPanel rightPanel"
@@ -22,47 +22,36 @@
 
 .left_panel {
     grid-area: leftPanel;
-    border-right: 1px solid rgb(77, 77, 77);
-    padding-right: 1rem;
-    padding-left: 0;
 }
 
 .top_panel {
     grid-area: versions;
-    border-bottom: 2px solid rgb(77, 77, 77); 
-    padding: 0.5rem 1.5rem 0rem 1.5rem;
-    /* padding: 0; */
+    background: var(--color-dataversions-background);
+    padding: 1rem 1.5rem 0rem 1.5rem;
 }
 
 .right_panel {
     grid-area: rightPanel;
-    padding-right: 0;
+    background: var(--color-data-background);
 }
 
 .add_new_fields_section {
-    background: repeating-linear-gradient(
-        -40deg,
-        rgb(37, 37, 37),
-        rgb(37, 37, 37) 10px,
-        rgba(255, 96, 61, 0) 10px,
-        rgba(255, 96, 61, 0) 20px
-    );
-    border-radius: 0.6rem;
-    padding: 0.8rem;
-    width: 100%;
+    background: var(--color-pop-up);
+    border-radius: 0.2rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
 }
 
 .add_new_fields_section h5 {
     display: inline-block;
     cursor: pointer;
-    color: white;
     font-size: 1rem;
     padding: 0.5rem;
-    border-bottom: 1px solid var(--color-that-orange)
+    border-bottom: 1px solid var(--color-primary-color)
 }
 
 .add_new_fields_section .selected_tab {
-    background-color: var(--color-that-orange);
+    background-color: var(--color-primary-color);
 }
 
 .data_summary_section {
@@ -76,7 +65,7 @@
 }
 
 .data_summary_section > div {
-    background-color: rgba(156,156,156,0.1);
+    background-color: var(--color-ariane-tab-active-background);
     padding: 1rem;
     margin-bottom: 2rem;
     overflow: hidden;
@@ -88,41 +77,37 @@
     overflow: hidden;
 }
 
+
 .top_panel  h5 {
     font-size: 1rem;
-    color: #b6b6b6;
-    display: inline-block;
-}
-
-.top_panel  h5:first-child {
     margin-right: 25rem;
+    display: inline-block;
 }
 
 .number_highlight{
     font-size: 1.7rem;
-    color: var(--color-that-orange);
+    color: var(--color-primary-color);
     font-weight: bold;
 }
 
 .data_version_cube {
     display: inline-block;
-    margin-bottom: 1.3rem;
+    margin-bottom: 1rem;
     padding: 0.7rem;
     background-color: rgba(228, 228, 228, 0.1);
-    color: #b9b9b9;
     cursor: pointer;
     /* box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3); */
 }
 
 .data_version_cube:hover {
-    -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-that-orange);
-    -moz-box-shadow:inset 0px -2px 0px 0px var(--color-that-orange);
-    box-shadow:inset 0px -2px 0px 0px var(--color-that-orange);
+    -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-primary-color);
+    -moz-box-shadow:inset 0px -2px 0px 0px var(--color-primary-color);
+    box-shadow:inset 0px -2px 0px 0px var(--color-primary-color);
 }
 
 .data_version_cube_current {
-    background-color: var(--color-that-orange);
-    color: white;
+    background-color: var(--color-status-finish);
+    /* color: white; */
 }
 
 .data_version_cube_selected_not_current {
@@ -136,20 +121,11 @@
 }
 
 .versioning_section_button {
-    background-color: var(--color-that-orange);
-    /* background-image: linear-gradient(to bottom right, var(--color-that-orange), hsl(266, 46%, 53%)); */
-    color: white;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
     margin-left: 3rem;
-    border-radius: 0.3rem;
-}
+    width: unset;
+    display: inline-block;
+    font-weight: normal;
 
-.versioning_section_button:hover {
-    /* background-image: linear-gradient(to bottom right, var(--color-that-orange), hsl(266, 46%, 60%)); */
-    background-image: linear-gradient(to bottom right, var(--color-royal-blue), var(--color-purple));
-    -webkit-box-shadow:0px 4px 4px rgba(0, 0, 0, 0.3);
-    -moz-box-shadow:0px 4px 4px rgba(0, 0, 0, 0.3);
-    box-shadow:0px 4px 4px rgba(0, 0, 0, 0.3);
 }
 
 

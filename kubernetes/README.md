@@ -20,7 +20,6 @@ kubectl create secret generic {{packageName}}-config --from-file=./{{packagePath
 Example:
 ```Bash
 kubectl create secret generic itmat-api-config --from-file=./itmat-api/config.json --namespace=itmat
-kubectl create secret generic itmat-ukb-curator-config --from-file=./itmat-ukb-curator/config.json --namespace=itmat
 ```
 
 ```Bash

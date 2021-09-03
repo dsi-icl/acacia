@@ -13,12 +13,12 @@
     overflow: auto;
     padding: 1.2rem;
     grid-area: leftpanel;
-    border-right: 1px solid rgb(77, 77, 77);
 }
 
 .project_detail_right {
     height: 100%;
     overflow: auto;
+    background: var(--color-data-background);
     padding: 1.2rem;
     grid-area: rightpanel;
 }
@@ -26,10 +26,21 @@
 .project_detail_title {
     height: 100%;
     overflow: hidden;
-    padding-left: 1.2rem;
     grid-area: ariane;
-    border-bottom: 1px solid rgb(77, 77, 77);
     line-height: 50px;
     font-size: 1.5rem;
-    color: white;
+    background: var(--color-dataversions-background);
+}
+
+/* backbutton to project list */ .project_detail_title > a > div {
+    display: inline-block;
+    background: var(--color-ariane-tab-active-background);
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    margin-right: 1rem;
+}
+
+/* backbutton to project list */ .project_detail_title > a > div:hover {
+    background: var(--color-scroll-bar-active);
 }

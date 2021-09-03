@@ -1,27 +1,26 @@
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
 import React from 'react';
-import { Query } from 'react-apollo';
-import { GET_STUDY } from '../../../../graphql/study';
-import { formatBytes } from '../../../reusable/fileList';
-import * as css from './tabContent.module.css';
+import { Query } from '@apollo/client/react/components';
+import { GET_STUDY, IStudyDataVersion } from 'itmat-commons';
+import { formatBytes } from '../../../reusable/fileList/fileList';
+import css from './tabContent.module.css';
 // number of patients
 // newest version of data - date / tag
 // download data
 // data curation pipeline
 // upload new sets of data
 
-export const DataSummaryVisual: React.FunctionComponent<{ studyId: string, selectedVersion: number, currentVersion: number, versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
 
     const { id, version, tag, uploadDate, fileSize, extractedFrom } = versions[selectedVersion];
 
     return <>
-        {selectedVersion === currentVersion ? null : <><span className="warning_banner">Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
+        {selectedVersion === currentVersion ? null : <><span className='warning_banner'>Warning: You are not looking at the current version of the data.</span><br /><br /><br /></>}
         <div className={css.data_summary_section}>
             <NumberOfPatients studyId={studyId} key={id} />
             <NewestVersionOfData version={version || 'n/a'} />
             <VersionTag tag={tag || 'n/a'} />
             <DateOfUpload date={uploadDate} />
-            <FileSize size={(fileSize && formatBytes(fileSize)) || 'n/a'} />
+            <FileSize size={(fileSize && formatBytes(parseInt(fileSize, 10))) || 'n/a'} />
             <OriginalFile fileName={extractedFrom || 'n/a'} />
         </div>
 
@@ -37,7 +36,7 @@ const NumberOfPatients: React.FunctionComponent<{ studyId: string }> = ({ studyI
         <div>
             <p>Number of subjects</p>
             <span className={css.number_highlight}>
-                <Query query={GET_STUDY} variables={{ studyId }}>
+                <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
                     {({ loading, data, error }) => {
                         if (loading) { return '...'; }
                         if (error || !data || !data.getStudy || data.getStudy.numOfSubjects === undefined) { return 'n/a'; }

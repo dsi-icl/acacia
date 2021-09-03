@@ -7,6 +7,6 @@
     height: 100%;
 }
 
-.project_list {
-    border-right: 1px solid #444444;
+.project_list + div {
+    background: var(--color-additional-panel-background);
 }

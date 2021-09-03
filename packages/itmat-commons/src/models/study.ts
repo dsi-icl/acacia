@@ -3,7 +3,7 @@ export interface IStudy {
     name: string;
     createdBy: string;
     lastModified: number;
-    deleted: boolean;
+    deleted: number | null;
     currentDataVersion: number; // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
     dataVersions: IStudyDataVersion[];
 }
@@ -13,8 +13,8 @@ export interface IStudyDataVersion {
     contentId: string; // same contentId = same data
     version: string;
     tag?: string;
-    fileSize: number;
-    uploadDate: number;
+    fileSize: string;
+    uploadDate: string;
     jobId: string;
     extractedFrom: string;
     fieldTrees: string[];
@@ -28,7 +28,8 @@ export interface IRole {
     name: string;
     permissions: string[];
     users: string[];
-    deleted: boolean;
+    createdBy: string;
+    deleted: number | null;
 }
 
 export interface IProject {
@@ -37,8 +38,8 @@ export interface IProject {
     createdBy: string;
     name: string;
     patientMapping: { [originalId: string]: string };
-    approvedFields: string[];
+    approvedFields: { [fieldTreeId: string]: string[] };
     approvedFiles: string[];
     lastModified: number;
-    deleted: boolean;
+    deleted: number | null;
 }

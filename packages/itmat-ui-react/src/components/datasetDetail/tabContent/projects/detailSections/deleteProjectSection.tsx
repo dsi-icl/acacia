@@ -1,11 +1,9 @@
-import { IProject } from 'itmat-commons/dist/models/study';
 import React from 'react';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client/react/components';
 import { Redirect } from 'react-router';
-import { DELETE_PROJECT, GET_STUDY } from '../../../../../graphql/study';
-import { WHO_AM_I } from '../../../../../graphql/user';
+import { WHO_AM_I, DELETE_PROJECT, GET_STUDY, IProject } from 'itmat-commons';
 
-export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, projectId: string, projectName: string }> = ({ studyId, projectId, projectName }) => {
+export const DeleteProjectSection: React.FunctionComponent<{ studyId: string; projectId: string; projectName: string }> = ({ studyId, projectId, projectName }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [inputText, setInput] = React.useState('');
     const [error, setError] = React.useState('');
@@ -21,8 +19,8 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
 
     return <>
         <p style={{ color: 'red' }}>Warning! This is irreversible! If you really want to delete this project, please type the name of the project ({projectName}) below to confirm.</p>
-        <input type="text" placeholder={projectName} value={inputText} onChange={(e) => { setInput(e.target.value); setError(''); }} /> <br /><br />
-        <Mutation
+        <input type='text' placeholder={projectName} value={inputText} onChange={(e) => { setInput(e.target.value); setError(''); }} /> <br /><br />
+        <Mutation<any, any>
             mutation={DELETE_PROJECT}
             update={(store) => {
                 // Read the data from our cache for this query.
@@ -43,7 +41,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
             }}
             onCompleted={() => setDeleted(true)}
         >
-            {(deleteProject, { data, loading }) =>
+            {(deleteProject, { data: __unused__data, loading }) =>
                 loading ?
                     <button style={{ display: 'inline-block', width: '30%' }}>Loading...</button> :
                     <button onClick={() => {
@@ -52,12 +50,11 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string, pr
                         } else {
                             deleteProject({ variables: { projectId } });
                         }
-                    }}
-                        style={{ display: 'inline-block', width: '30%' }}>Really delete!
-            </button>
+                    }} style={{ display: 'inline-block', width: '30%' }}>Really delete!
+                    </button>
             }
-        </Mutation><button style={{ display: 'inline-block', width: '30%' }} className="button_grey" onClick={() => setIsExpanded(false)}>Cancel</button>
+        </Mutation><button style={{ display: 'inline-block', width: '30%' }} className='button_grey' onClick={() => setIsExpanded(false)}>Cancel</button>
         <br />
-        {error ? <div className="error_banner">{error}</div> : null}
+        {error ? <div className='error_banner'>{error}</div> : null}
     </>;
 };

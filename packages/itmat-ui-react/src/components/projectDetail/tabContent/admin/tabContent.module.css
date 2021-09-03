@@ -8,111 +8,19 @@
 
 .main_page {
     grid-area: main;
-    border-right: 1px solid rgb(77, 77, 77);
 }
 
 .sub_page {
     grid-area: sub;
+    background: var(--color-additional-panel-background);
+}
+
+.cover_page {
+    grid-area: main sub;
 }
 
 .tab_page_wrapper {
     padding: 2rem;
     overflow: auto;
     height: 100%;
-}
-
-.one_role {
-    margin-bottom: 3rem;
-}
-
-.role_name {
-    color: var(--color-that-orange);
-    text-transform: uppercase;
-    font-weight: bold;
-    font-size: 1.1rem;
-    display: block;
-    margin: 0 0 0.3rem 0;
-}
-
-.add_new_role_button {
-    text-decoration: underline;
-    cursor: pointer;
-    color: var(--color-that-orange);
-}
-
-.add_new_role_button:hover {
-    color: var(--color-that-red);
-}
-
-.add_new_role_section {
-    background: repeating-linear-gradient(
-        -40deg,
-        rgb(37, 37, 37),
-        rgb(37, 37, 37) 10px,
-        rgba(255, 96, 61, 0) 10px,
-        rgba(255, 96, 61, 0) 20px
-    );
-    border-radius: 0.6rem;
-    padding: 0.8rem;
-    width: 80%;
-}
-
-.add_new_role_section .add_new_role_buttons_wrapper {
-    display: flex;
-    width: 100%;
-    flex-direction: row;
-}
-
-.role_header {
-    position: relative;
-    width: 100%;
-}
-
-.role_header label {
-    display: inline-block;
-}
-
-.right_aligned {
-    display: inline-block;
-    position: absolute;
-    right: 1rem;
-}
-
-.delete_role_button {
-    width: 1.2rem;
-    text-align: center;
-    height: 1.2rem;
-    line-height: 1.2rem;
-    background-color: var(--color-that-orange);
-    border-radius: 52%;
-    font-size: 0.7rem;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.delete_role_button:hover {
-    background-color: var(--color-that-red);
-}
-
-.permissions_section {
-    width: 100%;
-}
-
-.permissions_section > div {
-    padding: 0.4rem;
-    display: inline-block;
-    margin: 0 1rem 1rem 0;
-    background-color: rgba(193, 193, 193, 0.1);
-    cursor: pointer;
-    box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.3);
-    color: #9c9c9c;
-}
-
-.permissions_section > div:not(.permission_selected):hover {
-    background-color: rgba(200, 200, 200, 0.15); 
-}
-
-.permissions_section > .permission_selected {
-    color: black;
-    background-color: rgba(255, 255, 255, 0.9);
 }

@@ -1,23 +1,17 @@
 .app {
+    color: var(--color-font-color);
+    background: var(--color-background);
     height: 100%;
     width: 100%;
+    font-weight: var(--font-weight);
     display: grid;
     grid-template-columns: 60px calc(100% - 60px);
-    grid-template-rows: calc(100% - 20px) 20px;
+    grid-template-rows: 100%;
     grid-template-areas:
         "mainMenuBar mainPanel"
-        "statusBar statusBar"
-}
-
-.status_bar {
-    background-color: var(--color-that-orange);
-    grid-area: statusBar;
-    padding-left: 1rem;
-    line-height: 20px;
 }
 
 .main_panel {
-    background: linear-gradient(180deg, #444444 0%, rgba(0, 0, 0, 0) 100%), #282828;
     grid-area: mainPanel;
     height: 100%;
 }
@@ -25,8 +19,9 @@
 .main_menubar {
     grid-area: mainMenuBar;
     height: 100%;
+    background: var(--color-main-menu);
     padding: 1rem 1.2rem 1rem 1.2rem;
-    border-right: 1px solid #444444;
+    border-right: 1px solid var(--color-main-menu-border);
 }
 
 .button {
@@ -42,7 +37,7 @@
 }
 
 .button:hover svg {
-    fill: var(--color-that-orange) 
+    fill: var(--color-main-menu-button-hover);
 }
 
 .clickedButton svg {

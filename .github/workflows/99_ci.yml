@@ -1,28 +1,53 @@
-name: Full Stack CI
+name: Test and Build CI
 
 on: [push]
     
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
         os: [macOS-latest, windows-latest, ubuntu-latest]
-        node: [10.x, 12.x]
+        node: [14.x, 15.x]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node }}
+    - uses: actions/checkout@v2
+    - name: Using Node.js ${{ matrix.node }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node }}
     - name: Installing dependencies
-      run: npm install
+      run: yarn install
+    - name: Checking for lint
+      run: yarn run lint
     - name: Building packages
-      run: npm run build --if-present
-    - name: Testing
-      run: npm test
+      run: yarn run build
+    - name: Running unit tests
+      run: yarn run test
       env:
         CI: true
+        SKIP_EMAIL_TEST: true
+  # email_test:
+  #   runs-on: itmat
+  #   strategy:
+  #     matrix:
+  #       node: [10.x, 12.x]
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - name: Using Node.js ${{ matrix.node }}
+  #     uses: actions/setup-node@v1
+  #     with:
+  #       node-version: ${{ matrix.node }}
+  #   - name: Installing dependencies
+  #     run: yarn install
+  #   - name: Checking for lint
+  #     run: yarn run lint
+  #   - name: Building packages
+  #     run: yarn run build
+  #   - name: Running unit tests
+  #     run: yarn run test
+  #     env:
+  #       CI: true
+  #       TEST_SMTP_CRED: ${{ secrets.TEST_SMTP_CRED }}
+  #       TEST_SMTP_USERNAME: ${{ secrets.TEST_SMTP_USERNAME }} 
+  #       TEST_RECEIVER_EMAIL_ADDR: ${{ secrets.TEST_RECEIVER_EMAIL_ADDR }}

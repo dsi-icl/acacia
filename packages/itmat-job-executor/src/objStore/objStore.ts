@@ -1,5 +1,4 @@
-import { OpenStackSwiftObjectStore } from 'itmat-utils';
-import config from '../utils/configManager';
+import { ObjectStore } from 'itmat-commons';
 
-export const objStore = new OpenStackSwiftObjectStore(config.swift);
+export const objStore = new ObjectStore();
 

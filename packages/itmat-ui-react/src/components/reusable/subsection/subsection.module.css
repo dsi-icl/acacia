@@ -1,0 +1,14 @@
+.content_section > h5 {
+    width: 100%;
+    font-size: 1.3rem;
+    border-left: 5px solid var(--color-primary-color);
+    box-sizing: border-box;
+    padding-left: 0.8rem;
+    font-weight: normal;
+    color: var(--color-font-color);
+    
+}
+
+.content_section > div {
+    padding: 1.2rem 1.2rem 2.4rem 1.2rem;
+}

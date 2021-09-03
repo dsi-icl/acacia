@@ -1,27 +1,30 @@
 {
     "database": {
-        "mongo_url": "mongodb://user:password@localhost:27017/test",
-        "database": "test",
+        "mongo_url": "mongodb://localhost:27017",
+        "database": "itmat",
         "collections": {
-            "jobs_collection": "JOB_COLLECTION",
-            "users_collection": "USER_COLLECTION",
-            "studies_collection": "STUDY_COLLECTION",
-            "projects_collection": "PROJECT_COLLECTION",
-            "queries_collection": "QUERY_COLLECTION",
-            "log_collection": "LOG_COLLECTION",
-            "data_collection": "DATA_COLLECTION",
-            "roles_collection": "ROLE_COLLECTION",
-            "field_dictionary_collection": "FIELD_COLLECTION",
-            "files_collection": "FILES_COLLECTION"
+            "jobs_collection": "1JOB_COLLECTION",
+            "users_collection": "1USER_COLLECTION",
+            "studies_collection": "1STUDY_COLLECTION",
+            "projects_collection": "1PROJECT_COLLECTION",
+            "queries_collection": "1QUERY_COLLECTION",
+            "log_collection": "1LOG_COLLECTION",
+            "data_collection": "1DATA_COLLECTION",
+            "roles_collection": "1ROLE_COLLECTION",
+            "field_dictionary_collection": "1FIELD_COLLECTION",
+            "files_collection": "1FILES_COLLECTION"
         }
     },
     "server": {
-        "port": 5000
+        "port": 3333
     },
-    "swift": {
-        "uri": "https://localhost:8080/auth/v1.0/",
-        "username": "test:tester",
-        "password": "testing"
+    "objectStore": {
+        "host": "localhost",
+        "port": 9000,
+        "accessKey": "minioadmin",
+        "secretKey": "minioadmin",
+        "bucketRegion": "region",
+        "useSSL": false
     },
     "pollingInterval": 10000
 }

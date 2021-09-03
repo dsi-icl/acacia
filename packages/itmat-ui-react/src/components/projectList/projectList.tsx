@@ -1,12 +1,11 @@
-import { Models } from 'itmat-commons';
 import * as React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client/react/components';
 import { NavLink, Redirect } from 'react-router-dom';
-import { WHO_AM_I } from '../../graphql/user';
+import { WHO_AM_I, Models } from 'itmat-commons';
 
-export const ProjectList: React.FunctionComponent = (props) => {
+export const ProjectList: React.FunctionComponent = () => {
     return (
-        <Query
+        <Query<any, any>
             query={WHO_AM_I}
             pollInterval={5000}
         >

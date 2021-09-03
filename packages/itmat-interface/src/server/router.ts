@@ -1,28 +1,27 @@
 import { ApolloServer } from 'apollo-server-express';
 import bodyParser from 'body-parser';
-import connectMongo from 'connect-mongo';
+// import connectMongo from 'connect-mongo';
 import cors from 'cors';
 import express from 'express';
-import { Express, NextFunction, Request, Response } from 'express';
+import { Express, Request, Response } from 'express';
 import session from 'express-session';
-import { GraphQLError } from 'graphql';
 import http from 'http';
-import { CustomError, Logger } from 'itmat-utils';
-import multer from 'multer';
+import { CustomError } from 'itmat-commons';
 import passport from 'passport';
-import { db } from '../database/database';
+// import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
 import { schema } from '../graphql/schema';
 import { fileDownloadController } from '../rest/fileDownload';
 import { userLoginUtils } from '../utils/userLoginUtils';
-const MongoStore = connectMongo(session);
-const upload = multer();
+import { IConfiguration } from '../utils/configManager';
+import { logPlugin } from '../log/logPlugin';
+// const MongoStore = connectMongo(session);
 
 export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
 
-    constructor() {
+    constructor(config: IConfiguration) {
         this.app = express();
 
         this.app.use(cors({ origin: 'http://localhost:3000', credentials: true }));  // TO_DO: remove in production
@@ -33,10 +32,10 @@ export class Router {
 
         /* save persistent sessions in mongo */
         this.app.use(session({
-            secret: 'IAmATeapot',
+            secret: config.sessionsSecret,
             resave: true,
             saveUninitialized: true,
-            store: new MongoStore({ client: db.client } as any)
+            // store: new MongoStore({ client: db.client })
         }));
 
 
@@ -51,17 +50,33 @@ export class Router {
         const gqlServer = new ApolloServer({
             typeDefs: schema,
             resolvers,
-            context: ({ req, res }: any) => {
+            plugins: [
+                {
+                    serverWillStart() {
+                        logPlugin.serverWillStartLogPlugin();
+                    }
+                },
+                {
+                    requestDidStart() {
+                        return {
+                            willSendResponse(requestContext) {
+                                logPlugin.requestDidStartLogPlugin(requestContext);
+                            }
+                        };
+                    },
+                }
+            ],
+            context: ({ req, res }) => {
                 /* Bounce all unauthenticated graphql requests */
                 // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
                 //     throw new ForbiddenError('not logged in');
                 // }
                 return ({ req, res });
             },
-            formatError: (error: GraphQLError) => {
+            formatError: (error) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
                 // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
-                Logger.error(error);
+                // Logger.error(error);
                 return error;
             }
         });
@@ -84,12 +99,12 @@ export class Router {
 
         this.app.get('/file/:fileId', fileDownloadController);
 
-        this.app.all('/', (err: Error, req: Request, res: Response, next: NextFunction) => {
+        this.app.all('/', (err: Error, req: Request, res: Response) => {
             res.status(500).json(new CustomError('Server error.'));
         });
     }
 
-    public getApp(): any {
+    public getApp(): http.Server {
         return this.server;
     }
 }

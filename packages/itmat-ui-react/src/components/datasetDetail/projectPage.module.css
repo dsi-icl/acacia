@@ -1,44 +1,61 @@
 .page_container {
     grid-template-columns: 100%;
-    grid-template-rows: 80px 30px calc(100% - 110px);
+    grid-template-rows: 60px calc(100% - 60px);
     grid-template-areas: 
         "ariane"
-        "tabs"
         "content";
     display: grid;
     height: 100%;
 }
 
+.ariane {
+    position: relative;
+    background: var(--color-ariane-background);
+    grid-area: ariane;
+    padding: 0 2rem;
+    line-height: 60px;
+    font-weight: lighter;
+    overflow: hidden;
+    height: 100%;
+}
+
+.ariane > h3 {
+    font-size: 1.7rem;
+}
+
 .tabs {
-    grid-area: tabs;
-    height: 100%;
-    padding-left: 2rem;
+    position: absolute;
+    right: 2rem;
+    top: 0;
+    width: 80%;
+    text-align: right;
     overflow: auto;
-}
-
-.tabs > div {
-    height: 100%;
-}
-
-.tabs > div > a > div {
     display: inline-block;
-    line-height: 30px;
-    padding: 0px 1rem 0px 1rem;
-    -webkit-box-shadow:inset 0px -1px 0px 0px var(--color-that-orange);
-    -moz-box-shadow:inset 0px -1px 0px 0px var(--color-that-orange);
-    box-shadow:inset 0px -1px 0px 0px var(--color-that-orange);
 }
 
-.tabs > div > a > div:hover {
-    -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-that-orange);
-    -moz-box-shadow:inset 0px -3px 0px 0px var(--color-that-orange);
-    box-shadow:inset 0px -3px 0px 0px var(--color-that-orange);
+.tabs > .active > div {
+    background: var(--color-ariane-tab-active-background);
 }
 
-.tabs > div > .active > div {
-    background-color: var(--color-that-orange);
+.tabs div {
+    background: transparent;
+    display: inline-block;
+    text-align: center;
+    width: 170px;
+    box-shadow: none;
+    font-size: 1rem;
+    padding: 0rem;
+    transition: 0.3s background;
+}
+
+.tabs div:hover {
+    -webkit-box-shadow:inset 0px -2px 0px 0px var(--color-primary-color);
+    -moz-box-shadow:inset 0px -3px 0px 0px var(--color-primary-color);
+    box-shadow:inset 0px -3px 0px 0px var(--color-primary-color);
 }
 
 .content {
     overflow: auto;
+    grid-area: content;
+    position: relative;
 }

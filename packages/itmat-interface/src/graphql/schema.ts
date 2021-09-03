@@ -6,6 +6,7 @@ scalar JSON
 enum USERTYPE {
     ADMIN
     STANDARD
+    SYSTEM
 }
 
 enum FIELD_ITEM_TYPE {
@@ -14,15 +15,15 @@ enum FIELD_ITEM_TYPE {
 }
 
 enum FIELD_VALUE_TYPE {
-    N # numeric
-    SC  # categorical single
-    MC  # categorical multiple
-    D # date-time
-    T # free text
+    i # integer
+    c # categorical
+    d # decimal
+    b # boolean
+    t # free text
 
 }
 
-type FieldInfo {
+type Field {
     id: String!
     studyId: String!
     path: String!
@@ -47,6 +48,7 @@ type UserAccess {
 type User {
     id: String!
     username: String! # admin only
+    otpSecret: String!
     type: USERTYPE!
     realName: String
     organisation: String
@@ -54,17 +56,11 @@ type User {
     description: String # admin only
     emailNotificationsActivated: Boolean!
     createdBy: String
-
+    createdAt: Float!
+    expiredAt: Float!
     # external to mongo documents:
     access: UserAccess # admin or self only
 }
-
-type ShortCut {
-    id: String!
-    study: String!
-    project: String
-}
-
 
 type StudyOrProjectUserRole {
     id: String!
@@ -109,9 +105,14 @@ type Study {
     jobs: [Job]!
     projects: [Project]!
     roles: [StudyOrProjectUserRole]!
-    # fields: [FieldInfo]!
+    # fields: [Field]!
     files: [File]!
     numOfSubjects: Int!
+}
+
+type ProjectFields {
+    fieldTreeId: String!
+    fieldsInFieldTree: [Field]!
 }
 
 type Project {
@@ -121,14 +122,14 @@ type Project {
 
     #only admin
     patientMapping: JSON!
-    approvedFields: [String]!
+    approvedFields: JSON!
     approvedFiles: [String]!
 
     #external to mongo documents:
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
-    fields: [FieldInfo]! # fields of the study but filtered to be only those in Project.approvedFields
+    fields: [ProjectFields]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
     files: [File]!
 }
 
@@ -141,10 +142,82 @@ type Job {
     receivedFiles: [String]!
     requestTime: Float!
     status: String!
-    error: String
+    error: [String]
     cancelled: Boolean
     cancelledTime: Int
     data: JSON
+}
+
+enum LOG_TYPE {
+   SYSTEM_LOG
+   REQUEST_LOG
+}
+
+enum LOG_STATUS {
+    SUCCESS
+    FAIL
+}
+
+enum LOG_ACTION {
+    # SYSTEM
+    START_SERVER
+    STOP_SERVER
+
+    # USER
+    GET_USERS
+    EDIT_USER
+    DELETE_USER
+    CREATE_USER
+    LOGIN_USER
+    WHO_AM_I
+    LOGOUT
+    REQUEST_USERNAME_OR_RESET_PASSWORD
+    RESET_PASSWORD
+
+    # PROJECT
+    GET_PROJECT
+    # GET_PROJECT_PATIENT_MAPPING
+    EDIT_PROJECT_APPROVED_FIELDS
+    EDIT_PROJECT_APPROVED_FILES
+    CREATE_PROJECT
+    DELETE_PROJECT
+    SET_DATAVERSION_AS_CURRENT
+    SUBSCRIBE_TO_JOB_STATUS
+
+    # STUDY | DATASET
+    DELETE_STUDY
+    GET_STUDY
+    GET_STUDY_FIELDS
+    CREATE_STUDY
+    CREATE_DATA_CREATION_JOB
+    #CREATE_FIELD_CURATION_JOB
+
+    # STUDY & PROJECT
+    EDIT_ROLE
+    ADD_NEW_ROLE
+    REMOVE_ROLE
+
+    # FILE
+    UPLOAD_FILE
+    DOWNLOAD_FILE
+    DELETE_FILE
+
+    #QUERY
+    GET_QUERY
+    CREATE_QUERY
+    #GET_QUERY_RESULT
+}
+
+type Log {
+    id: String!,
+    requesterName: String,
+    requesterType: USERTYPE,
+    logType: LOG_TYPE,
+    actionType: LOG_ACTION,
+    actionData: JSON,
+    time: Float!,
+    status: LOG_STATUS,
+    error: String
 }
 
 type QueryEntry {
@@ -166,6 +239,21 @@ type QueryEntry {
 type GenericResponse {
     successful: Boolean!
     id: String
+}
+
+enum JOB_STATUS {
+    finished
+    error
+    QUEUED
+    PROCESSING
+    CANCELLED
+}
+
+type JobStatusChange_Subscription {
+    jobId: String!
+    studyId: String!
+    newStatus: JOB_STATUS!
+    errors: [String]
 }
 
 input QueryObjInput {
@@ -196,6 +284,7 @@ input EditUserInput {
     organisation: String
     emailNotificationsActivated: Boolean
     password: String
+    expiredAt: Float
 }
 
 input IntArrayChangesInput {
@@ -216,7 +305,7 @@ type Query {
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
-    getStudyFields(fieldTreeId: String!, studyId: String!): [FieldInfo]
+    getStudyFields(fieldTreeId: String!, studyId: String!): [Field]
 
     # QUERY
     getQueries(studyId: String!, projectId: String): [QueryEntry]  # only returns the queries that the user has access to.
@@ -224,26 +313,36 @@ type Query {
 
     # PERMISSION
     getMyPermissions: [String]
+
+    # LOG
+    getLogs(requesterName: String, requesterType: USERTYPE, logType: LOG_TYPE, actionType: LOG_ACTION, status: LOG_STATUS): [Log]
 }
 
 type Mutation {
     # USER
-    login(username: String!, password: String!): User
+    login(username: String!, password: String!, totp: String!): User
     logout: GenericResponse
+    requestUsernameOrResetPassword(
+        forgotUsername: Boolean!,
+        forgotPassword: Boolean!,
+        email: String, # only provide email if forgotUsername
+        username: String
+    ): GenericResponse
+    resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
+    createUser(user: CreateUserInput!): GenericResponse
 
     # APP USERS
-    createUser(user: CreateUserInput!): User
     editUser(user: EditUserInput!): User
     deleteUser(userId: String!): GenericResponse
 
     # STUDY
-    createStudy(name: String!, isUkbiobank: Boolean!): Study
+    createStudy(name: String!): Study
     deleteStudy(studyId: String!): GenericResponse
 
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
     deleteProject(projectId: String!): GenericResponse
-    editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
+    editProjectApprovedFields(projectId: String!, fieldTreeId: String!, approvedFields: [String]!): Project
     editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project
 
     # ACCESS MANAGEMENT
@@ -253,8 +352,7 @@ type Mutation {
 
     # FILES
     uploadFile(studyId: String!, description: String!, file: Upload!, fileLength: Int): File
-    deleteFile(studyId: String!, fileId: String!): GenericResponse
-
+    deleteFile(fileId: String!): GenericResponse
 
     # QUERY
     createQuery(query: QueryObjInput!): QueryEntry
@@ -262,11 +360,11 @@ type Mutation {
     # CURATION
     createDataCurationJob(file: String!, studyId: String!, tag: String, version: String!): Job
     createFieldCurationJob(file: String!, studyId: String!, dataVersionId: String!, tag: String!): Job
-    createDataExportJob(studyId: String!, projectId: String): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
+
 }
 
 type Subscription {
-    stub: GenericResponse
+    subscribeToJobStatusChange(studyId: String!): JobStatusChange_Subscription
 }
 `;

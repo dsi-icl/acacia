@@ -14,12 +14,12 @@
 
 .left_panel {
     grid-area: leftPanel;
-    border-right: 1px solid rgb(77, 77, 77);
     padding-right: 1rem;
 }
 
 .right_panel {
     grid-area: rightPanel;
+    background: var(--color-additional-panel-background);
 }
 
 .add_new_fields_section {
@@ -41,9 +41,9 @@
     color: white;
     font-size: 1rem;
     padding: 0.5rem;
-    border-bottom: 1px solid var(--color-that-orange)
+    border-bottom: 1px solid var(--color-primary-color)
 }
 
 .add_new_fields_section .selected_tab {
-    background-color: var(--color-that-orange);
+    background-color: var(--color-primary-color);
 }
