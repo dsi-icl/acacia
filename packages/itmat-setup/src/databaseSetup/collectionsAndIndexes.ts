@@ -46,7 +46,7 @@ const collections = {
     data_collection: {
         name: 'DATA_COLLECTION',
         indexes: [
-            { key: { m_subjectId: 1, m_versionId: 1, m_studyId: 1, m_visitId: 1 }, unique: true },
+            { key: { id: 1, m_subjectId: 1, m_versionId: 1, m_studyId: 1, m_visitId: 1, uploadedAt: 1 }, unique: true },
         ]
     },
     roles_collection: {

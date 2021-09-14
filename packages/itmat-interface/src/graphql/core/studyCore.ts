@@ -71,49 +71,33 @@ export class StudyCore {
         }
     }
 
-    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string, baseVersions: string[], subjectIds: any[], visitIds: any[], withUnversionedData: boolean): Promise<IStudyDataVersion> {
-        // generate the query
-        const studyQuery: any[] = [{ m_versionId: null }];
-        if (baseVersions !== undefined) {
-            for (const item of baseVersions) {
-                studyQuery.push({ m_versionId: item });
-            }
-        }
+    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion | null> {
         const newDataVersionId = uuid();
-        const contentId = uuid();
+        const newContentId = uuid();
+        const resData = await db.collections!.data_collection.updateMany({
+            m_studyId: studyId,
+            m_versionId: null
+        }, {
+            $set: {
+                m_versionId: newDataVersionId
+            }
+        });
+        const resField = await db.collections!.field_dictionary_collection.updateMany({
+            studyId: studyId,
+            dataVersion: null
+        }, {
+            $set: {
+                dataVersion: newDataVersionId
+            }
+        });
+        if (resData.modifiedCount === 0 && resField.modifiedCount === 0) {
+            return null;
+        }
 
-        // update record version
-        studyQuery.splice(0, 1);
-        if (studyQuery.length > 0) {
-            const updateVersionOld = await db.collections!.data_collection.updateMany({
-                m_studyId: studyId,
-                $or: studyQuery,
-                $and: [
-                    { $or: subjectIds },
-                    { $or: visitIds }
-                ]
-            }, { $push: { m_versionId: newDataVersionId } });
-            if (updateVersionOld.result.ok !== 1) {
-                throw new ApolloError('Create new data version failed: cannot add data version to old records.');
-            }
-        }
-        if (withUnversionedData) {
-            const updateVersionNew = await db.collections!.data_collection.updateMany({
-                m_studyId: studyId,
-                m_versionId: null,
-                $and: [
-                    { $or: subjectIds },
-                    { $or: visitIds }
-                ]
-            }, { $set: { m_versionId: [newDataVersionId] } });
-            if (updateVersionNew.result.ok !== 1) {
-                throw new ApolloError('Create new data version failed: cannot add data version to new records.');
-            }
-        }
         // insert a new version into study
         const newDataVersion: IStudyDataVersion = {
             id: newDataVersionId,
-            contentId: contentId, // same content = same id - used in reverting data, version control
+            contentId: newContentId, // same content = same id - used in reverting data, version control
             version: dataVersion,
             tag: tag,
             updateDate: (new Date().valueOf()).toString(),
@@ -130,7 +114,7 @@ export class StudyCore {
     public async uploadOneDataClip(studyId: string, fieldList: any[], dataClip: any): Promise<any> {
         const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId);
         if (!fieldInDb) {
-            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} is not registered. Please update the annotations first.` };
+            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: FieldId is not registered. Please define this fieldId first.` };
         }
         // check subjectId
         if(!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
@@ -141,14 +125,14 @@ export class StudyCore {
         let error;
         let parsedValue;
         if (fieldInDb.length === 0) {
-            error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Field Not found`;
-        } else if (dataClip.value.toString() === '99999') {
+            error = `Field ${dataClip.fieldId}: Field Not found`;
+        } else if (dataClip.value.toString() === '99999') { // agreement with other WPs, 99999 refers to missing
             parsedValue = '99999';
         } else {
             switch (fieldInDb[0].dataType) {
                 case 'dec': {// decimal
                     if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as decimal.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as decimal.`;
                         break;
                     }
                     parsedValue = parseFloat(dataClip.value);
@@ -156,7 +140,7 @@ export class StudyCore {
                 }
                 case 'int': {// integer
                     if (!/^-?\d+$/.test(dataClip.value)) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as integer.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as integer.`;
                         break;
                     }
                     parsedValue = parseInt(dataClip.value, 10);
@@ -166,7 +150,7 @@ export class StudyCore {
                     if (dataClip.value.toLowerCase() === 'true' || dataClip.value.toLowerCase() === 'false') {
                         parsedValue = dataClip.value.toLowerCase() === 'true';
                     } else {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as boolean.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as boolean.`;
                         break;
                     }
                     break;
@@ -179,7 +163,7 @@ export class StudyCore {
                 case 'date': {
                     const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
                     if (!dataClip.value.match(matcher)) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName}: value for date type must be in ISO format.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
                         break;
                     }
                     parsedValue = dataClip.value.toString();
@@ -192,7 +176,7 @@ export class StudyCore {
                 case 'file': {
                     const file = await db.collections!.files_collection.findOne({ id: parseValue });
                     if (!file) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as file or file does not exist.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as file or file does not exist.`;
                         break;
                     } else {
                         parsedValue = dataClip.value.toString();
@@ -201,7 +185,7 @@ export class StudyCore {
                 }
                 case 'cat': {
                     if (!fieldInDb[0].possibleValues.map(el => el.code).includes(dataClip.value.toString())) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as categorical, value not in value list.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
                         break;
                     } else {
                         parsedValue = dataClip.value.toString();
@@ -209,7 +193,7 @@ export class StudyCore {
                     break;
                 }
                 default: {
-                    error = (`Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Invalid data Type.`);
+                    error = (`Field ${dataClip.fieldId}: Invalid data Type.`);
                     break;
                 }
             }
@@ -222,10 +206,11 @@ export class StudyCore {
             m_subjectId: dataClip.subjectId,
             m_versionId: null,
             m_visitId: dataClip.visitId,
-            deleted: null
         };
         const objWithData = {
             ...obj,
+            id: uuid(),
+            uploadedAt: (new Date()).valueOf()
         };
         objWithData[dataClip.fieldId] = parsedValue;
         await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, {
@@ -234,11 +219,10 @@ export class StudyCore {
         return null;
     }
 
-    public async createProjectForStudy(studyId: string, projectName: string, dataVersion: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
+    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuid(),
             studyId,
-            dataVersion: dataVersion,
             createdBy: requestedBy,
             name: projectName,
             patientMapping: {},

@@ -33,6 +33,7 @@ enum STUDYTYPE {
 }
 
 type ValueCategory {
+    id: String!,
     code: String!,
     description: String
 }
@@ -47,6 +48,7 @@ type Field {
     possibleValues: [ValueCategory]
     unit: String
     comments: String
+    dataVersion: String
     dateAdded: String!
     dateDeleted: String
 }
@@ -192,7 +194,6 @@ type Project {
     id: String!
     studyId: String!
     name: String!
-    dataVersion: String!
 
     #only admin
     patientMapping: JSON!
@@ -430,7 +431,7 @@ type OntologyField {
 type SubjectDataRecordSummary {
     subjectId: String!
     visitId: String
-    missingFields: [String]
+    errorFields: [String]
 }
 
 type Query {
@@ -450,7 +451,7 @@ type Query {
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
     getStudyFields(studyId: String!, projectId: String): [Field]
-    getDataRecords(studyId: String!, queryString: JSON, versionId: [String], projectId: String): JSON
+    getDataRecords(studyId: String!, queryString: JSON, versionId: String, projectId: String): JSON
     getOntologyTree(studyId: String!, projectId: String): [OntologyField]
     checkDataComplete(studyId: String!): [SubjectDataRecordSummary]
     
@@ -495,9 +496,9 @@ type Mutation {
     createStudy(name: String!, description: String, type: STUDYTYPE!): Study
     deleteStudy(studyId: String!): GenericResponse
     editStudy(studyId: String!, description: String): Study
-    createNewDataVersion(studyId: String!, dataVersion: String!, tag: String, baseVersions: [String], subjectIds: [String], visitIds: [String], withUnversionedData: Boolean!): DataVersion
+    createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
     uploadDataInArray(studyId: String!, data: [DataClip]): [DataClipError]
-    deleteDataRecords(studyId: String!, subjectId: String, visitId: String, fieldIds: [String]): [DataClipError]
+    deleteDataRecords(studyId: String!, subjectIds: [String], visitIds: [String], fieldIds: [String]): [DataClipError]
     createNewField(studyId: String!, fieldInput: [FieldInput]!): [FieldClipError]
     editField(studyId: String!, fieldInput: FieldInput!): Field
     deleteField(studyId: String!, fieldId: String!): Field
@@ -505,7 +506,7 @@ type Mutation {
     deleteOntologyField(studyId: String!, fieldId: [String]!): [OntologyField]
 
     # PROJECT
-    createProject(studyId: String!, projectName: String!, approvedFields: [String], dataVersion: String!): Project
+    createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
     deleteProject(projectId: String!): GenericResponse
     editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
     editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project

@@ -86,9 +86,35 @@ export const studyResolvers = {
                 projectId
             );
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
-            const result = await db.collections!.field_dictionary_collection.find({ studyId: studyId, dateDeleted: null }).toArray();
-
-            return result;
+            // get all dataVersions that are valid (before the current version)
+            const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+            const availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const fieldRecords = hasPermission ? await db.collections!.field_dictionary_collection.aggregate([{
+                $sort: { dateAdded: -1 }
+            }, {
+                $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
+            }, {
+                $match: { studyId: studyId }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
+            }
+            ]).toArray() : await db.collections!.field_dictionary_collection.aggregate([{
+                $sort: { dateAdded: -1 }
+            }, {
+                $match: { dataVersion: { $in: availableDataVersions } }
+            }, {
+                $match: { studyId: studyId }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
+            }
+            ]).toArray();
+            return fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
         },
         getOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, projectId }: { studyId: string, projectId: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
@@ -120,27 +146,98 @@ export const studyResolvers = {
             if (!hasPermission) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
-            // console.log(await db.collections!.field_dictionary_collection.find({ }).toArray());
-            const fieldsList = await db.collections!.field_dictionary_collection.find({ studyId: studyId, dateDeleted: null }).toArray();
-            const summary: ISubjectDataRecordSummary[] = [];
+            const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+            const availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             // we only check data that hasnt been pushed to a new data version
-            const data: any[] = await db.collections!.data_collection.find({ m_studyId: studyId, m_versionId: null, deleted: null }).toArray();
-            for (let i=0; i<data.length; i++) {
-                const record: ISubjectDataRecordSummary = {
-                    subjectId: data[i].m_subjectId,
-                    visitId: data[i].m_visitId,
-                    missingFields: []
-                };
-                for (let j=0; j<fieldsList.length; j++) {
-                    if (data[i][fieldsList[j].fieldId] === undefined || data[i][fieldsList[j].fieldId] === null) {
-                        record.missingFields.push(fieldsList[j].fieldId);
+            const data: any[] = await db.collections!.data_collection.find({ m_studyId: studyId, m_versionId: null }).toArray();
+            const fieldRecords = (await db.collections!.field_dictionary_collection.aggregate([{
+                $sort: { dateAdded: -1 }
+            }, {
+                $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
+            }, {
+                $match: { studyId: studyId }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
+            }
+            ]).toArray()).map(el => el.doc);
+            const summary: ISubjectDataRecordSummary[] = [];
+            // we will not check data whose fields are not defined, because data that the associated fields are undefined will not be returned while querying data
+            for (const record of data) {
+                const errors: any[] = [];
+                for (const field of fieldRecords) {
+                    if (record[field.fieldId] !== undefined && record[field.fieldId] !== null) {
+                        switch (field.dataType) {
+                            case 'dec': {// decimal
+                                if (!/^\d+(.\d+)?$/.test(record[field])) {
+                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as decimal.`);
+                                    break;
+                                }
+                                break;
+                            }
+                            case 'int': {// integer
+                                if (!/^-?\d+$/.test(record[field.fieldId])) {
+                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as integer.`);
+                                    break;
+                                }
+                                break;
+                            }
+                            case 'bool': {// boolean
+                                if (record[field.fieldId].value.toLowerCase() !== 'true' && record[field.fieldId].value.toLowerCase() !== 'false') {
+                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as boolean.`);
+                                    break;
+                                }
+                                break;
+                            }
+                            case 'str': {
+                                break;
+                            }
+                            // 01/02/2021 00:00:00
+                            case 'date': {
+                                const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
+                                if (!record[field.fieldId].value.match(matcher)) {
+                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as data. Value for date type must be in ISO format.`);
+                                    break;
+                                }
+                                break;
+                            }
+                            case 'json': {
+                                break;
+                            }
+                            case 'file': {
+                                const file = await db.collections!.files_collection.findOne({ id: record[field.fieldId] });
+                                if (!file) {
+                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as file or file does not exist.`);
+                                    break;
+                                }
+                                break;
+                            }
+                            case 'cat': {
+                                if (!field.possibleValues.map(el => el.code).includes(record[field.fieldId].toString())) {
+                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as categorical, value not in value list.`);
+                                    break;
+                                }
+                                break;
+                            }
+                            default: {
+                                errors.push(`Field ${field.fieldId}-${field.fieldName}: Invalid data Type.`);
+                                break;
+                            }
+                        }
                     }
                 }
-                summary.push(record);
+                summary.push({
+                    subjectId: record.m_subjectId,
+                    visitId: record.m_visitId,
+                    errorFields: errors
+                });
             }
+
             return summary;
         },
-        getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: any, studyId: string, versionId: string[], projectId?: string }, context: any): Promise<any> => {
+        getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: any, studyId: string, versionId: string, projectId?: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
 
             /* user can get study if he has readonly permission */
@@ -156,28 +253,67 @@ export const studyResolvers = {
                 projectId
             );
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+
+            // if the user has necessary permission, the latest field and data (including unversioned) will both be used to validate and returned;
+            // else only the latest versioned field and data will be used
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             let availableDataVersions: any;
-            const thisStudy = await db.collections!.studies_collection.findOne({ id: studyId });
             // standard users can only access the data of the current version (in this case they shouldn't specify the versionids)
             if (versionId === null || versionId === undefined) {
-                if (hasPermission) {
-                    availableDataVersions = null;
-                } else {
-                    availableDataVersions = [thisStudy.dataVersions[thisStudy.currentDataVersion].contentId];
-                }
+                availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             } else {
                 if (hasPermission) {
-                    availableDataVersions = versionId;
+                    availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.dataVersions.map(el => el.id).indexOf(versionId))).map(el => el.id);
                 } else {
                     throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
                 }
             }
-            const pipeline = buildPipeline(queryString, studyId, availableDataVersions);
+            // get the fields list, this is to make sure that only data with valid fields are returned, method same as getStudyFields
+            const fieldRecords = hasPermission ? await db.collections!.field_dictionary_collection.aggregate([{
+                $sort: { dateAdded: -1 }
+            }, {
+                $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
+            }, {
+                $match: { studyId: studyId }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
+            }
+            ]).toArray() : await db.collections!.field_dictionary_collection.aggregate([{
+                $sort: { dateAdded: -1 }
+            }, {
+                $match: { dataVersion: { $in: availableDataVersions } }
+            }, {
+                $match: { studyId: studyId }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
+            }
+            ]).toArray();
+            const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null).map(es => es.fieldId);
+
+            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission, fieldsList);
             if (pipeline == null) {
                 return { data: null };
             }
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
-            return { data: result };
+            // post processing the data
+            const groupedResult = result.reduce((acc,curr) => {
+                if (acc[curr['m_subjectId']] === undefined) {
+                    acc[curr['m_subjectId']] = {};
+                }
+                if (acc[curr['m_subjectId']][curr['m_visitId']] === undefined) {
+                    acc[curr['m_subjectId']][curr['m_visitId']] = {};
+                }
+                acc[curr['m_subjectId']][curr['m_visitId']] = {...acc[curr['m_subjectId']][curr['m_visitId']], ...curr};
+                return acc;
+            }, {});
+
+            return { data: groupedResult };
         }
     },
     Study: {
@@ -331,18 +467,11 @@ export const studyResolvers = {
             // check fieldId duplicate
             for (const oneFieldInput of fieldInput) {
                 isError = false;
-                const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: oneFieldInput.fieldId, dateDeleted: null });
-                if (searchField) {
-                    // throw new ApolloError('Field already exists, please select another ID.', errorCodes.CLIENT_MALFORMED_INPUT);
-                    error.push({code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId} already exists, please select another ID.`});
-                    isError = true;
-                }
-
                 // check data valid
                 if (!isError) {
                     const {fieldEntry, error: thisError} = validateAndGenerateFieldEntry(oneFieldInput);
                     if (thisError.length !== 0) {
-                        error.push({code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId}: ${JSON.stringify(thisError)}`});
+                        error.push({code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}`});
                         isError = true;
                     }
 
@@ -350,9 +479,18 @@ export const studyResolvers = {
                     if (!isError) {
                         fieldEntry.id = uuid();
                         fieldEntry.studyId = studyId;
+                        fieldEntry.dataVersion = null;
                         fieldEntry.dateAdded = (new Date()).valueOf();
                         fieldEntry.dateDeleted = null;
-                        await db.collections!.field_dictionary_collection.insertOne(fieldEntry);
+                        await db.collections!.field_dictionary_collection.findOneAndUpdate({
+                            fieldId: fieldEntry.fieldId,
+                            studyId: studyId,
+                            dataVersion: null
+                        }, {
+                            $set: fieldEntry
+                        }, {
+                            upsert: true
+                        });
                     }
                 }
             }
@@ -383,7 +521,7 @@ export const studyResolvers = {
             return newFieldEntry;
 
         },
-        deleteField: async (__unused__parent: Record<string, unknown>, { studyId, fieldId }: { studyId: string, fieldId: number }, context: any): Promise<IFieldEntry> => {
+        deleteField: async (__unused__parent: Record<string, unknown>, { studyId, fieldId }: { studyId: string, fieldId: string }, context: any): Promise<IFieldEntry> => {
             const requester: IUser = context.req.user;
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
@@ -395,18 +533,41 @@ export const studyResolvers = {
             }
 
             // check fieldId exist
-            const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldId });
-            if (!searchField) {
+            const searchField = await db.collections!.field_dictionary_collection.find({ studyId: studyId, fieldId: fieldId }).limit(1).sort({ dateAdded: -1 }).toArray();
+            if (searchField.length === 0 || searchField[0].dateDeleted !== null) {
                 throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-            await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: fieldId }, {$set: {dateDeleted: (new Date()).valueOf()} });
 
-            return searchField;
+            const fieldEntry: any = {
+                id: uuid(),
+                studyId: studyId,
+                fieldId: searchField[0].fieldId,
+                fieldName: searchField[0].fieldName,
+                tableName: searchField[0].tableName,
+                dataType: searchField[0].dataType,
+                possibleValues: searchField[0].possibleValues,
+                unit: searchField[0].unit,
+                connments: searchField[0].comments,
+                dataVersion: null,
+                dateAdded: (new Date()).valueOf(),
+                dateDeleted: (new Date()).valueOf()
+            };
+            await db.collections!.field_dictionary_collection.findOneAndUpdate({
+                fieldId: searchField[0].fieldId,
+                studyId: studyId,
+                dataVersion: null,
+            }, {
+                $set: fieldEntry
+            }, {
+                upsert: true
+            });
+
+            return searchField[0];
 
         },
         uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, data }: { studyId: string, data: IDataClip[] }, context: any): Promise<any> => {
             // check study exists
-            await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+            const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             const requester: IUser = context.req.user;
             /* check privileges */
@@ -420,12 +581,24 @@ export const studyResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            // find the fieldsList
-            const fieldsList = await db.collections!.field_dictionary_collection.find({ studyId: studyId, dateDeleted: null }).toArray();
-            if (!fieldsList) {
-                throw new ApolloError('FieldTree is not valid', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            // find the fieldsList, including those that have not been versioned, same method as getStudyFields
+            // get all dataVersions that are valid (before/equal the current version)
+            const availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
+                $sort: { dateAdded: -1 }
+            }, {
+                $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
+            }, {
+                $match: { studyId: studyId }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
             }
-
+            ]).toArray();
+            // filter those that have been deleted
+            const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
             const errors: string[] = [];
             for (const each of data) {
                 const error = (await studyCore.uploadOneDataClip(studyId, fieldsList, each));
@@ -435,42 +608,60 @@ export const studyResolvers = {
             }
             return errors;
         },
-        deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectId, visitId, fieldIds }: { studyId: string, subjectId: string, visitId: string, fieldIds: string[] }, context: any): Promise<any> => {
+        deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectIds, visitIds, fieldIds }: { studyId: string, subjectIds: string[], visitIds: string[], fieldIds: string[] }, context: any): Promise<any> => {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             const requester: IUser = context.req.user;
             /* check privileges */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_data_management],
+                requester,
+                studyId
+            );
+            if (!hasPermission) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            // construct query object
-            const queryObj: any = {
-            };
-            if (subjectId) {
-                queryObj.m_subjectId = subjectId;
-            }
-            if (visitId) {
-                queryObj.m_visitId = visitId;
-            }
-            // delete records
-            if (fieldIds){
-                // remove certain value, but not set record as deleted
-                const fields = fieldIds.reduce((acc,curr)=> (acc[curr] = undefined,acc), {});
-                await db.collections!.data_collection.updateMany(queryObj, {
-                    $set: fields
-                });
+            let validSubjects: any;
+            let validVisits: any;
+            let validFields: any;
+            // filter
+            if (subjectIds === undefined || subjectIds === null || subjectIds.length === 0) {
+                validSubjects = (await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: studyId}));
             } else {
-                // direct set satisfied records as deleted
-                await db.collections!.data_collection.updateMany(queryObj, {
-                    $set: { deleted: (new Date()).valueOf() }
-                });
+                validSubjects = subjectIds;
             }
-
+            if (visitIds === undefined || visitIds === null || visitIds.length === 0) {
+                validVisits = (await db.collections!.data_collection.distinct('m_visitId', { m_studyId: studyId}));
+            } else {
+                validVisits = visitIds;
+            }
+            if (fieldIds === undefined || fieldIds === null || fieldIds.length === 0) {
+                validFields = (await db.collections!.field_dictionary_collection.distinct('fieldId', { studyId: studyId})).reduce((acc,curr) => (acc[curr] = null, acc), {});
+            } else {
+                validFields = fieldIds.reduce((acc,curr) => (acc[curr] = null, acc), {});
+            }
+            const insertedDocuments: any[] = [];
+            for (const subject of validSubjects) {
+                for (const visit of validVisits) {
+                    insertedDocuments.push({
+                        id: uuid(),
+                        m_studyId: studyId,
+                        m_subjectId: subject,
+                        m_visitId: visit,
+                        m_versionId: null,
+                        ...validFields,
+                        uploadedAt: (new Date()).valueOf()
+                    });
+                }
+            }
+            if (insertedDocuments.length >= 0) {
+                await db.collections!.data_collection.insertMany(insertedDocuments);
+            }
             return [];
         },
-        createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag, baseVersions, subjectIds, visitIds, withUnversionedData }: { studyId: string, dataVersion: string, tag: string, baseVersions:string[], subjectIds: string[], visitIds: string[], withUnversionedData: boolean }, context: any): Promise<IStudyDataVersion> => {
+        createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
             // If base versions are specified, the new data version will conbine the data that either belongs to the dataVersion or null;
             // All the data will be filtered by subjectIds and visitIds then if they are specified;
             // e.g.
@@ -493,35 +684,10 @@ export const studyResolvers = {
                 throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
 
-            let modifiedSubjectIds: any;
-            let modifiedVisitIds: any;
-            let modifiedBaseVersions: any;
-            // check baseVersion exists
-            const study = await db.collections!.studies_collection.findOne({ id: studyId });
-            const validIds = study.dataVersions!.map((el) => el.id);
-            if (baseVersions === undefined || baseVersions === null || baseVersions.length === 0) {
-                modifiedBaseVersions = [];
-            } else {
-                for (const baseVersion of baseVersions) {
-                    if (!validIds.includes(baseVersion)) {
-                        throw new ApolloError('Base version does not exists.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-                    }
-                }
-                modifiedBaseVersions = baseVersions;
+            const created = await studyCore.createNewDataVersion(studyId, tag, dataVersion);
+            if (created === null) {
+                throw new ApolloError('No matched or modified records', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-            // if subjectIds or visitIds are null, fill then with all possible Values for convenience for calling the next function
-
-            if (subjectIds === null || subjectIds === undefined || subjectIds.length === 0) {
-                modifiedSubjectIds =  (await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: studyId})).reduce((acc,curr)=> (acc.push({ m_subjectId: curr }),acc), []);
-            } else {
-                modifiedSubjectIds = (subjectIds as any).reduce((acc,curr)=> (acc.push({ m_subjectId: curr }),acc), []);
-            }
-            if (visitIds === null || visitIds === undefined || visitIds.length === 0) {
-                modifiedVisitIds = (await db.collections!.data_collection.distinct('m_visitId', { m_studyId: studyId})).reduce((acc,curr)=> (acc.push({ m_visitId: curr }),acc), []);
-            } else {
-                modifiedVisitIds = (visitIds as any).reduce((acc,curr)=> (acc.push({ m_visitId: curr }),acc), []);
-            }
-            const created = await studyCore.createNewDataVersion(studyId, tag, dataVersion, modifiedBaseVersions, modifiedSubjectIds, modifiedVisitIds, withUnversionedData);
             return created;
         },
         addOntologyField: async (__unused__parent: Record<string, unknown>, { studyId, ontologyInput }: { studyId: string, ontologyInput: IOntologyField[] }, context: any): Promise<any> => {
@@ -590,7 +756,7 @@ export const studyResolvers = {
             await db.collections!.studies_collection.findOneAndUpdate({id: studyId}, {$set: {ontologyTree: ontologyFields}});
             return returnResult;
         },
-        createProject: async (__unused__parent: Record<string, unknown>, { studyId, projectName, dataVersion }: { studyId: string, projectName: string, dataVersion: string }, context: any): Promise<IProject> => {
+        createProject: async (__unused__parent: Record<string, unknown>, { studyId, projectName }: { studyId: string, projectName: string }, context: any): Promise<IProject> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -603,15 +769,10 @@ export const studyResolvers = {
             }
 
             /* making sure that the study exists first */
-            const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-
-            /* Check if data version exists */
-            if (!study.dataVersions.map(el => el.id).includes(dataVersion)) {
-                throw new ApolloError('Data Version does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-            }
+            await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             /* create project */
-            const project = await studyCore.createProjectForStudy(studyId, projectName, dataVersion, requester.id);
+            const project = await studyCore.createProjectForStudy(studyId, projectName, requester.id);
             return project;
         },
         deleteProject: async (__unused__parent: Record<string, unknown>, { projectId }: { projectId: string }, context: any): Promise<IGenericResponse> => {

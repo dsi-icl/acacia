@@ -43,7 +43,8 @@ import {
     DELETE_ONTOLOGY_FIELD,
     CREATE_NEW_DATA_VERSION,
     CHECK_DATA_COMPLETE,
-    CREATE_NEW_FIELD
+    CREATE_NEW_FIELD,
+    DELETE_FIELD
 } from 'itmat-commons';
 
 
@@ -486,8 +487,7 @@ describe('STUDY API', () => {
                 query: print(CREATE_PROJECT),
                 variables: {
                     studyId: setupStudy.id,
-                    projectName: projectName,
-                    dataVersion: 'dataVersionId'
+                    projectName: projectName
                 }
             });
             expect(res.status).toBe(200);
@@ -498,7 +498,6 @@ describe('STUDY API', () => {
                 _id: createdProject._id,
                 id: createdProject.id,
                 studyId: setupStudy.id,
-                dataVersion: 'dataVersionId',
                 createdBy: adminId,
                 name: projectName,
                 patientMapping: {},
@@ -511,7 +510,6 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 name: projectName,
-                dataVersion: 'dataVersionId',
                 approvedFields: {}
             });
 
@@ -519,28 +517,12 @@ describe('STUDY API', () => {
             await mongoClient.collection(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { deleted: 10000 } });
         });
 
-        test('Create project with non-existing data version Id (should fail)', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(CREATE_PROJECT),
-                variables: {
-                    studyId: setupStudy.id,
-                    projectName: 'new_project_4',
-                    dataVersion: 'fakedataVersionId'
-                }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('Data Version does not exist.');
-            expect(res.body.data.createProject).toBe(null);
-        });
-
         test('Create project (user with no privilege) (should fail)', async () => {
             const res = await user.post('/graphql').send({
                 query: print(CREATE_PROJECT),
                 variables: {
                     studyId: setupStudy.id,
-                    projectName: 'new_project_4',
-                    dataVersion: 'dataVersionId'
+                    projectName: 'new_project_4'
                 }
             });
             expect(res.status).toBe(200);
@@ -594,8 +576,7 @@ describe('STUDY API', () => {
                 query: print(CREATE_PROJECT),
                 variables: {
                     studyId: setupStudy.id,
-                    projectName: projectName,
-                    dataVersion: 'dataVersionId',
+                    projectName: projectName
                 }
             });
             expect(res.status).toBe(200);
@@ -605,7 +586,6 @@ describe('STUDY API', () => {
                 _id: createdProject._id,
                 id: createdProject.id,
                 studyId: setupStudy.id,
-                dataVersion: 'dataVersionId',
                 createdBy: authorisedUserProfile.id,
                 patientMapping: {},
                 name: projectName,
@@ -618,7 +598,6 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 name: projectName,
-                dataVersion: 'dataVersionId',
                 approvedFields: {}
             });
 
@@ -778,19 +757,21 @@ describe('STUDY API', () => {
                 };
                 const mockData: IDataEntry[] = [
                     {
+                        id: 'mockData1',
                         m_subjectId: 'mock_patient1',
                         m_visitId: 'mockvisitId',
                         m_studyId: createdStudy.id,
-                        m_versionId: [mockDataVersion.id],
+                        m_versionId: mockDataVersion.id,
                         31: 'male',
                         49: 'England',
                         deleted: null
                     },
                     {
+                        id: 'mockData2',
                         m_subjectId: 'mock_patient2',
                         m_visitId: 'mockvisitId',
                         m_studyId: createdStudy.id,
-                        m_versionId: [mockDataVersion.id],
+                        m_versionId: mockDataVersion.id,
                         31: 'female',
                         49: 'France',
                         deleted: null
@@ -808,6 +789,7 @@ describe('STUDY API', () => {
                         comments: 'mockComments1',
                         dateAdded: '2021-05-16T16:32:10.226Z',
                         dateDeleted: null,
+                        dataVersion: 'mockDataVersionId'
                     },
                     {
                         id: 'mockfield2',
@@ -820,6 +802,7 @@ describe('STUDY API', () => {
                         comments: 'mockComments1',
                         dateAdded: '2021-05-16T16:32:10.226Z',
                         dateDeleted: null,
+                        dataVersion: 'mockDataVersionId'
                     }
                 ];
 
@@ -872,7 +855,6 @@ describe('STUDY API', () => {
                 expect(res.body.data.createProject).toEqual({
                     id: createdProject.id,
                     studyId: createdStudy.id,
-                    dataVersion: mockDataVersion.id,
                     name: projectName,
                     approvedFields: {}
                 });
@@ -1488,7 +1470,6 @@ describe('STUDY API', () => {
                     id: createdProject.id,
                     studyId: createdStudy.id,
                     name: createdProject.name,
-                    dataVersion: 'mockDataVersionId',
                     approvedFields: {},
                     approvedFiles: [],
                     jobs: [],
@@ -1612,7 +1593,6 @@ describe('STUDY API', () => {
                 expect(res.body.data.getProject).toEqual({
                     id: createdProject.id,
                     studyId: createdStudy.id,
-                    dataVersion: 'mockDataVersionId',
                     name: createdProject.name,
                     jobs: [],
                     iCanEdit: true,
@@ -1631,20 +1611,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.getStudyFields).toEqual([
-                {
-                    id: 'mockfield1',
-                    studyId: createdStudy.id,
-                    fieldId: '31',
-                    fieldName: 'Sex',
-                    tableName: null,
-                    dataType: enumValueType.STRING,
-                    possibleValues: [],
-                    unit: 'person',
-                    comments: 'mockComments1',
-                    dateAdded: '2021-05-16T16:32:10.226Z',
-                    dateDeleted: null,
-                },
+            expect(res.body.data.getStudyFields).toEqual([ // as the api will sort the results, the order is changed
                 {
                     id: 'mockfield2',
                     studyId: createdStudy.id,
@@ -1657,21 +1624,193 @@ describe('STUDY API', () => {
                     comments: 'mockComments1',
                     dateAdded: '2021-05-16T16:32:10.226Z',
                     dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                },
+                {
+                    id: 'mockfield1',
+                    studyId: createdStudy.id,
+                    fieldId: '31',
+                    fieldName: 'Sex',
+                    tableName: null,
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments1',
+                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
                 }
             ]);
         });
 
-        test('Get study fields (user with project privilege) (should fail)', async () => {
+        test('Get study fields (user project privilege)', async () => {
             const res = await authorisedUser.post('/graphql').send({
                 query: print(GET_STUDY_FIELDS),
                 variables: {
-                    studyId: createdStudy.id
+                    studyId: createdStudy.id,
+                    projectId: createdProject.id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.getStudyFields).toEqual([ // as the api will sort the results, the order is changed
+                {
+                    id: 'mockfield2',
+                    studyId: createdStudy.id,
+                    fieldId: '32',
+                    fieldName: 'Sex',
+                    tableName: null,
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments1',
+                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                },
+                {
+                    id: 'mockfield1',
+                    studyId: createdStudy.id,
+                    fieldId: '31',
+                    fieldName: 'Sex',
+                    tableName: null,
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments1',
+                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                }
+            ]);
+        });
+
+        test('Get study fields (user without project privilege nor study privilege) (should fail)', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(GET_STUDY_FIELDS),
+                variables: {
+                    studyId: createdStudy.id,
+                    projectId: createdProject.id
                 }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
             expect(res.body.data.getStudyFields).toBe(null);
+        });
+
+        test('Get study fields, with unversioned fields', async () => {
+            // delete an exisiting field and add a new field
+            await db.collections!.field_dictionary_collection.insertOne({
+                id: 'mockfield2_deleted',
+                studyId: createdStudy.id,
+                fieldId: '32',
+                fieldName: 'Sex',
+                tableName: null,
+                dataType: enumValueType.STRING,
+                possibleValues: [],
+                unit: 'person',
+                comments: 'mockComments1',
+                dateAdded: '2021-05-18T16:32:10.226Z',
+                dateDeleted: '2021-05-18T16:32:10.226Z',
+                dataVersion: null,
+            });
+
+            await db.collections!.field_dictionary_collection.insertOne({
+                id: 'mockfield3',
+                studyId: createdStudy.id,
+                fieldId: '33',
+                fieldName: 'Weight',
+                tableName: null,
+                dataType: enumValueType.DECIMAL,
+                possibleValues: [],
+                unit: 'kg',
+                comments: 'mockComments3',
+                dateAdded: '2021-05-18T16:32:10.226Z',
+                dateDeleted: null,
+                dataVersion: null,
+            });
+
+            // user with study privilege can access all latest field, including unversioned
+            const res = await authorisedUserStudy.post('/graphql').send({
+                query: print(GET_STUDY_FIELDS),
+                variables: {
+                    studyId: createdStudy.id,
+                    projectId: createdProject.id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.getStudyFields).toEqual([ // as the api will sort the results, the order is changed
+                {
+                    id: 'mockfield1',
+                    studyId: createdStudy.id,
+                    fieldId: '31',
+                    fieldName: 'Sex',
+                    tableName: null,
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments1',
+                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                },
+                {
+                    id: 'mockfield3',
+                    studyId: createdStudy.id,
+                    fieldId: '33',
+                    fieldName: 'Weight',
+                    tableName: null,
+                    dataType: enumValueType.DECIMAL,
+                    possibleValues: [],
+                    unit: 'kg',
+                    comments: 'mockComments3',
+                    dateAdded: '2021-05-18T16:32:10.226Z',
+                    dateDeleted: null,
+                    dataVersion: null,
+                }
+            ]);
+            // user with project privilege can only access the latest fields that are versioned
+            const res2 = await authorisedUser.post('/graphql').send({
+                query: print(GET_STUDY_FIELDS),
+                variables: {
+                    studyId: createdStudy.id,
+                    projectId: createdProject.id
+                }
+            });
+            expect(res2.status).toBe(200);
+            expect(res2.body.errors).toBeUndefined();
+            expect(res2.body.data.getStudyFields).toEqual([ // as the api will sort the results, the order is changed
+                {
+                    id: 'mockfield2',
+                    studyId: createdStudy.id,
+                    fieldId: '32',
+                    fieldName: 'Sex',
+                    tableName: null,
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments1',
+                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                },
+                {
+                    id: 'mockfield1',
+                    studyId: createdStudy.id,
+                    fieldId: '31',
+                    fieldName: 'Sex',
+                    tableName: null,
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments1',
+                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                }
+            ]);
         });
 
         test('Edit project approved fields with fields that are not in the field tree (admin) (should fail)', async () => {
@@ -1716,6 +1855,7 @@ describe('STUDY API', () => {
                         comments: 'mockComments1',
                         dateAdded: '2021-05-16T16:32:10.226Z',
                         dateDeleted: null,
+                        dataVersion: 'mockDataVersionId'
                     },
                     {
                         id: 'mockfield2',
@@ -1729,6 +1869,7 @@ describe('STUDY API', () => {
                         comments: 'mockComments1',
                         dateAdded: '2021-05-16T16:32:10.226Z',
                         dateDeleted: null,
+                        dataVersion: 'mockDataVersionId'
                     }
                 ]
             });
@@ -1793,6 +1934,7 @@ describe('STUDY API', () => {
                         comments: 'mockComments1',
                         dateAdded: '2021-05-16T16:32:10.226Z',
                         dateDeleted: null,
+                        dataVersion: 'mockDataVersionId'
                     },
                     {
                         id: 'mockfield2',
@@ -1806,6 +1948,7 @@ describe('STUDY API', () => {
                         comments: 'mockComments1',
                         dateAdded: '2021-05-16T16:32:10.226Z',
                         dateDeleted: null,
+                        dataVersion: 'mockDataVersionId'
                     }
                 ]
             });
@@ -2347,16 +2490,155 @@ describe('STUDY API', () => {
             const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id }).toArray();
             expect(fieldsInDb).toHaveLength(2);
         });
+
+        test('Create New fields (user, should fail)', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(CREATE_NEW_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    fieldInput: [
+                        {
+                            fieldId: '8',
+                            fieldName: 'newField8',
+                            tableName: 'test',
+                            dataType: 'int',
+                            comments: 'test',
+                            possibleValues: [
+                                {code: '1', description: 'NOW'},
+                                {code: '2', description: 'OLD'}
+                            ]
+                        },
+                        {
+                            fieldId: '9',
+                            fieldName: 'newField9',
+                            tableName: 'test',
+                            dataType: 'cat',
+                            comments: 'test',
+                            possibleValues: [
+                                {code: '1', description: 'TRUE'},
+                                {code: '2', description: 'FALSE'}
+                            ]
+                        }
+                    ]
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+        });
+
+        test('Delete an unversioned field (admin)', async () => {
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    fieldInput: [
+                        {
+                            fieldId: '8',
+                            fieldName: 'newField8',
+                            tableName: 'test',
+                            dataType: 'int',
+                            comments: 'test',
+                            possibleValues: [
+                                {code: '1', description: 'NOW'},
+                                {code: '2', description: 'OLD'}
+                            ]
+                        },
+                        {
+                            fieldId: '9',
+                            fieldName: 'newField9',
+                            tableName: 'test',
+                            dataType: 'cat',
+                            comments: 'test',
+                            possibleValues: [
+                                {code: '1', description: 'TRUE'},
+                                {code: '2', description: 'FALSE'}
+                            ]
+                        }
+                    ]
+                }
+            });
+            const res = await admin.post('/graphql').send({
+                query: print(DELETE_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    fieldId: '8'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.deleteField.fieldId).toBe('8');
+            const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dateDeleted: { $ne: null } }).toArray();
+            expect(fieldsInDb).toHaveLength(1);
+            expect(fieldsInDb[0].fieldId).toBe('8');
+        });
+
+        test('Delete a versioned field (admin)', async () => {
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    fieldInput: [
+                        {
+                            fieldId: '8',
+                            fieldName: 'newField8',
+                            tableName: 'test',
+                            dataType: 'int',
+                            comments: 'test',
+                            possibleValues: [
+                                {code: '1', description: 'NOW'},
+                                {code: '2', description: 'OLD'}
+                            ]
+                        },
+                        {
+                            fieldId: '9',
+                            fieldName: 'newField9',
+                            tableName: 'test',
+                            dataType: 'cat',
+                            comments: 'test',
+                            possibleValues: [
+                                {code: '1', description: 'TRUE'},
+                                {code: '2', description: 'FALSE'}
+                            ]
+                        }
+                    ]
+                }
+            });
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_DATA_VERSION),
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            });
+            const res = await admin.post('/graphql').send({
+                query: print(DELETE_FIELD),
+                variables: {
+                    studyId: createdStudy.id,
+                    fieldId: '8'
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.deleteField.fieldId).toBe('8');
+            const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, fieldId: '8' }).toArray();
+            expect(fieldsInDb).toHaveLength(2);
+            expect(fieldsInDb[0].fieldId).toBe('8');
+            expect(fieldsInDb[1].fieldId).toBe('8');
+            expect(fieldsInDb[1].dateDeleted).not.toBe(null);
+        });
     });
 
     describe('UPLOAD/DELETE DATA RECORDS DIRECTLY VIA API', () => {
         let createdStudy;
+        let createdProject;
         let createdRole_study_accessData;
+        let createdRole_project;
+        let createdUserAuthorisedProject;  // profile
         let createdUserNoAuthorisedProfile;
         let createdUserAuthorisedProfile;
         let authorisedUser;
+        let authorisedProjectUser;
         let unauthorisedUser;
         let mockFields: any[];
+        let mockDataVersion: IStudyDataVersion;
         const fieldTreeId = uuid();
         const oneRecord = [{
             fieldId: '31',
@@ -2570,6 +2852,12 @@ describe('STUDY API', () => {
 
             /* 5. Insert field for data uploading later */
             {
+                mockDataVersion = {
+                    id: 'mockDataVersionId',
+                    contentId: 'mockContentId',
+                    version: '0.0.1',
+                    updateDate: '5000000',
+                };
                 mockFields = [
                     {
                         id: 'mockfield1',
@@ -2581,7 +2869,8 @@ describe('STUDY API', () => {
                         unit: 'person',
                         comments: 'mockComments1',
                         dateAdded: 100000000,
-                        deleted: null,
+                        dateDeleted: null,
+                        dataVersion: 'mockDataVersionId'
                     },
                     {
                         id: 'mockfield2',
@@ -2593,10 +2882,153 @@ describe('STUDY API', () => {
                         unit: 'person',
                         comments: 'mockComments1',
                         dateAdded: 100000000,
-                        deleted: null,
+                        dateDeleted: null,
+                        dataVersion: 'mockDataVersionId'
                     }
                 ];
                 await db.collections!.field_dictionary_collection.insertMany(mockFields);
+                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
+            }
+
+            /* 2. create projects for the study */
+            {
+                const projectName = uuid();
+                const res = await admin.post('/graphql').send({
+                    query: print(CREATE_PROJECT),
+                    variables: {
+                        studyId: createdStudy.id,
+                        projectName: projectName,
+                        dataVersion: mockDataVersion.id,
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                createdProject = await mongoClient.collection(config.database.collections.projects_collection).findOne({ name: projectName });
+                expect(res.body.data.createProject).toEqual({
+                    id: createdProject.id,
+                    studyId: createdStudy.id,
+                    name: projectName,
+                    approvedFields: {}
+                });
+            }
+
+            /* 5. create an authorised project user (no role yet) */
+            {
+                const username = uuid();
+                const newUser: IUser = {
+                    username: username,
+                    type: userTypes.STANDARD,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    email: `${username}@user.io`,
+                    resetPasswordRequests: [],
+                    description: 'I am an authorised project user.',
+                    emailNotificationsActivated: true,
+                    organisation: 'organisation_system',
+                    deleted: null,
+                    id: `AuthorisedProjectUser_${username}`,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
+                };
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+                createdUserAuthorisedProject = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
+            }
+
+            /* 4. create roles for project */
+            {
+                const roleName = uuid();
+                const res = await admin.post('/graphql').send({
+                    query: print(ADD_NEW_ROLE),
+                    variables: {
+                        roleName,
+                        studyId: createdStudy.id,
+                        projectId: createdProject.id
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                createdRole_project = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+                expect(createdRole_project).toEqual({
+                    _id: createdRole_project._id,
+                    id: createdRole_project.id,
+                    projectId: createdProject.id,
+                    studyId: createdStudy.id,
+                    name: roleName,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+                expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                    id: createdRole_project.id,
+                    name: roleName,
+                    permissions: [],
+                    studyId: createdStudy.id,
+                    projectId: createdProject.id,
+                    users: []
+                });
+            }
+
+            /* 6. add authorised user to role */
+            {
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: createdRole_project.id,
+                        userChanges: {
+                            add: [createdUserAuthorisedProject.id],
+                            remove: []
+                        },
+                        permissionChanges: {
+                            add: [permissions.specific_project.specific_project_readonly_access],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: createdRole_project.id,
+                    name: createdRole_project.name,
+                    studyId: createdStudy.id,
+                    projectId: createdProject.id,
+                    permissions: [permissions.specific_project.specific_project_readonly_access],
+                    users: [{
+                        id: createdUserAuthorisedProject.id,
+                        organisation: 'organisation_system',
+                        firstname: createdUserAuthorisedProject.firstname,
+                        lastname: createdUserAuthorisedProject.lastname
+                    }]
+                });
+                const resUser = await admin.post('/graphql').send({
+                    query: print(GET_USERS),
+                    variables: {
+                        fetchDetailsAdminOnly: false,
+                        userId: createdUserAuthorisedProject.id,
+                        fetchAccessPrivileges: true
+                    }
+                });
+                expect(resUser.status).toBe(200);
+                expect(resUser.body.errors).toBeUndefined();
+                expect(resUser.body.data.getUsers).toHaveLength(1);
+                expect(resUser.body.data.getUsers[0]).toEqual({
+                    id: createdUserAuthorisedProject.id,
+                    type: userTypes.STANDARD,
+                    firstname: `${createdUserAuthorisedProject.username}_firstname`,
+                    lastname: `${createdUserAuthorisedProject.username}_lastname`,
+                    organisation: 'organisation_system',
+                    access: {
+                        id: `user_access_obj_user_id_${createdUserAuthorisedProject.id}`,
+                        projects: [{
+                            id: createdProject.id,
+                            name: createdProject.name,
+                            studyId: createdStudy.id
+                        }],
+                        studies: []
+                    }
+                });
             }
 
             /* Connect users */
@@ -2605,7 +3037,8 @@ describe('STUDY API', () => {
                 await connectAgent(authorisedUser, createdUserAuthorisedProfile.username, 'admin', createdUserAuthorisedProfile.otpSecret);
                 unauthorisedUser = request.agent(app);
                 await connectAgent(unauthorisedUser, createdUserNoAuthorisedProfile.username, 'admin', createdUserNoAuthorisedProfile.otpSecret);
-
+                authorisedProjectUser = request.agent(app);
+                await connectAgent(authorisedProjectUser, createdUserAuthorisedProject.username, 'admin', createdUserAuthorisedProject.otpSecret);
             }
 
 
@@ -2669,7 +3102,12 @@ describe('STUDY API', () => {
         afterEach(async () => {
             await db.collections!.data_collection.deleteMany({});
             await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
-                $set: { dataVersions: [], currentDataVersion: -1 }
+                $set: { dataVersions: [{
+                    id: 'mockDataVersionId',
+                    contentId: 'mockContentId',
+                    version: '0.0.1',
+                    updateDate: '5000000',
+                }], currentDataVersion: 0 }
             });
         });
 
@@ -2715,7 +3153,6 @@ describe('STUDY API', () => {
                     visitId: '1'
                 }
             ];
-
             const res = await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: { studyId: createdStudy.id, data: recordList }
@@ -2723,8 +3160,8 @@ describe('STUDY API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.uploadDataInArray).toEqual([
-                {code: 'MALFORMED_INPUT', description: 'Field 33-undefined-undefined : Field Not found'},
-                {code: 'MALFORMED_INPUT', description: 'Field 31-undefined-undefined : Cannot parse as integer.'},
+                {code: 'MALFORMED_INPUT', description: 'Field 33: Field Not found'},
+                {code: 'MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.'},
                 {code: 'ACTION_ON_NON_EXISTENT_ENTRY', description: 'Subject ID I777770 is illegal.'}
             ]);
 
@@ -2752,7 +3189,7 @@ describe('STUDY API', () => {
             expect(res.body.errors[0].message).toBe('Study does not exist.');
         });
 
-        test('Create New data version (admin user), with only unversioned data', async () => {
+        test('Create New data version with data only (user with study privilege)', async () => {
             const res = await admin.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: { studyId: createdStudy.id, data: multipleRecords }
@@ -2761,270 +3198,86 @@ describe('STUDY API', () => {
             expect(res.body.errors).toBeUndefined();
             const createRes = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: [], visitIds: [], withUnversionedData: true }
-                // variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectsIds: [], visitsIds: [], withUnversionedData: true }
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
             });
             expect(createRes.status).toBe(200);
             expect(createRes.body.errors).toBeUndefined();
             expect(createRes.body.data.createNewDataVersion.version).toBe('1');
             expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
             const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb.dataVersions).toHaveLength(1);
-            expect(studyInDb.dataVersions[0].version).toBe('1');
-            expect(studyInDb.dataVersions[0].tag).toBe('testTag');
-            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: [createRes.body.data.createNewDataVersion.id] }).toArray();
+            expect(studyInDb.dataVersions).toHaveLength(2);
+            expect(studyInDb.dataVersions[1].version).toBe('1');
+            expect(studyInDb.dataVersions[1].tag).toBe('testTag');
+            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
             expect(dataInDb).toHaveLength(3);
         });
 
-        test('Create New data version (admin user), with base version and unversioned data', async () => {
+        test('Create New data version with field only (user with study privilege)', async () => {
             const res = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords.slice(0, 4) }
+                query: print(CREATE_NEW_FIELD),
+                variables: { studyId: createdStudy.id, fieldInput: {
+                    fieldId: '34',
+                    fieldName:  'Height',
+                    dataType: enumValueType.DECIMAL,
+                    unit: 'cm'
+                } }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-
             const createRes = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: [], visitIds: [], withUnversionedData: true }
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
             });
             expect(createRes.status).toBe(200);
             expect(createRes.body.errors).toBeUndefined();
             expect(createRes.body.data.createNewDataVersion.version).toBe('1');
             expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
             const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb.dataVersions).toHaveLength(1);
-            expect(studyInDb.dataVersions[0].version).toBe('1');
-            expect(studyInDb.dataVersions[0].tag).toBe('testTag');
-            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: [createRes.body.data.createNewDataVersion.id] }).toArray();
-            expect(dataInDb).toHaveLength(2);
-
-            const res2 = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords.slice(4, 6) }
-            });
-            expect(res2.status).toBe(200);
-            expect(res2.body.errors).toBeUndefined();
-            const createRes2 = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [createRes.body.data.createNewDataVersion.id], subjectIds: [], visitIds: [], withUnversionedData: true }
-            });
-            expect(createRes2.status).toBe(200);
-            expect(createRes2.body.errors).toBeUndefined();
-            expect(createRes2.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes2.body.data.createNewDataVersion.tag).toBe('testTag');
-            const studyInDb2= await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb2.dataVersions).toHaveLength(2);
-            expect(studyInDb2.dataVersions[0].version).toBe('1');
-            expect(studyInDb2.dataVersions[0].tag).toBe('testTag');
-            const dataInDb2 = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: { $in: [createRes2.body.data.createNewDataVersion.id] } }).toArray();
-            expect(dataInDb2).toHaveLength(3);
+            expect(studyInDb.dataVersions).toHaveLength(2);
+            expect(studyInDb.dataVersions[1].version).toBe('1');
+            expect(studyInDb.dataVersions[1].tag).toBe('testTag');
+            const fieldIndb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
+            expect(fieldIndb).toHaveLength(3);
         });
 
-        test('Create New data version (admin user), limit subjects from unversioned data', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords }
+        test('Create New data version with field and data (user with study privilege)', async () => {
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_FIELD),
+                variables: { studyId: createdStudy.id, fieldInput: {
+                    fieldId: '34',
+                    fieldName:  'Height',
+                    dataType: enumValueType.DECIMAL,
+                    unit: 'cm'
+                } }
             });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-
+            await admin.post('/graphql').send({
+                query: print(UPLOAD_DATA_IN_ARRAY),
+                variables: {
+                    studyId: createdStudy.id,
+                    data: [{
+                        fieldId: '34',
+                        value: '163.4',
+                        subjectId: 'I7N3G6G',
+                        visitId: '1'
+                    }, ...multipleRecords]
+                }
+            });
             const createRes = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: ['I7N3G6G'], visitIds: [], withUnversionedData: true }
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
             });
             expect(createRes.status).toBe(200);
             expect(createRes.body.errors).toBeUndefined();
             expect(createRes.body.data.createNewDataVersion.version).toBe('1');
             expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
             const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb.dataVersions).toHaveLength(1);
-            expect(studyInDb.dataVersions[0].version).toBe('1');
-            expect(studyInDb.dataVersions[0].tag).toBe('testTag');
-            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: [createRes.body.data.createNewDataVersion.id] }).toArray();
-            expect(dataInDb).toHaveLength(2);
-        });
-
-        test('Create New data version (admin user), limit visitIds from unversioned data', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-
-            const createRes = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: [], visitIds: ['1'], withUnversionedData: true }
-            });
-            expect(createRes.status).toBe(200);
-            expect(createRes.body.errors).toBeUndefined();
-            expect(createRes.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
-            const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb.dataVersions).toHaveLength(1);
-            expect(studyInDb.dataVersions[0].version).toBe('1');
-            expect(studyInDb.dataVersions[0].tag).toBe('testTag');
-            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: [createRes.body.data.createNewDataVersion.id] }).toArray();
-            expect(dataInDb).toHaveLength(1);
-        });
-
-        test('Create New data version (admin user), with base version and unversioned data, limit subjectIds', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords.slice(0, 4) }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-
-            const createRes = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: [], visitIds: [], withUnversionedData: true }
-            });
-            expect(createRes.status).toBe(200);
-            expect(createRes.body.errors).toBeUndefined();
-            expect(createRes.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
-            const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb.dataVersions).toHaveLength(1);
-            expect(studyInDb.dataVersions[0].version).toBe('1');
-            expect(studyInDb.dataVersions[0].tag).toBe('testTag');
-            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: [createRes.body.data.createNewDataVersion.id] }).toArray();
-            expect(dataInDb).toHaveLength(2);
-
-            const res2 = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords.slice(4, 6) }
-            });
-            expect(res2.status).toBe(200);
-            expect(res2.body.errors).toBeUndefined();
-            const createRes2 = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [createRes.body.data.createNewDataVersion.id], subjectIds: ['I7N3G6G'], visitIds: [], withUnversionedData: true }
-            });
-            expect(createRes2.status).toBe(200);
-            expect(createRes2.body.errors).toBeUndefined();
-            expect(createRes2.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes2.body.data.createNewDataVersion.tag).toBe('testTag');
-            const studyInDb2= await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb2.dataVersions).toHaveLength(2);
-            expect(studyInDb2.dataVersions[0].version).toBe('1');
-            expect(studyInDb2.dataVersions[0].tag).toBe('testTag');
-            const dataInDb2 = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: { $in: [createRes2.body.data.createNewDataVersion.id] } }).toArray();
-            expect(dataInDb2).toHaveLength(2);
-        });
-
-        test('Create New data version (admin user), with base version and unversioned data, limit visitIds', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords.slice(0, 4) }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-
-            const createRes = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: [], visitIds: [], withUnversionedData: true }
-            });
-            expect(createRes.status).toBe(200);
-            expect(createRes.body.errors).toBeUndefined();
-            expect(createRes.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
-            const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb.dataVersions).toHaveLength(1);
-            expect(studyInDb.dataVersions[0].version).toBe('1');
-            expect(studyInDb.dataVersions[0].tag).toBe('testTag');
-            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: [createRes.body.data.createNewDataVersion.id] }).toArray();
-            expect(dataInDb).toHaveLength(2);
-
-            const res2 = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords.slice(4, 6) }
-            });
-            expect(res2.status).toBe(200);
-            expect(res2.body.errors).toBeUndefined();
-            const createRes2 = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [createRes.body.data.createNewDataVersion.id], subjectIds: [], visitIds: ['1'], withUnversionedData: true }
-            });
-            expect(createRes2.status).toBe(200);
-            expect(createRes2.body.errors).toBeUndefined();
-            expect(createRes2.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes2.body.data.createNewDataVersion.tag).toBe('testTag');
-            const studyInDb2= await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb2.dataVersions).toHaveLength(2);
-            expect(studyInDb2.dataVersions[0].version).toBe('1');
-            expect(studyInDb2.dataVersions[0].tag).toBe('testTag');
-            const dataInDb2 = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: { $in: [createRes2.body.data.createNewDataVersion.id] } }).toArray();
-            expect(dataInDb2).toHaveLength(1);
-        });
-
-        test('Create New data version (admin user),combine 2 base versions', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords.slice(0, 4) }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-
-            const createRes = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: [], visitIds: [], withUnversionedData: true }
-            });
-            expect(createRes.status).toBe(200);
-            expect(createRes.body.errors).toBeUndefined();
-            expect(createRes.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
-            const studyInDb = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb.dataVersions).toHaveLength(1);
-            expect(studyInDb.dataVersions[0].version).toBe('1');
-            expect(studyInDb.dataVersions[0].tag).toBe('testTag');
-            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: [createRes.body.data.createNewDataVersion.id] }).toArray();
-            expect(dataInDb).toHaveLength(2);
-
-            const res2 = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords.slice(4, 6) }
-            });
-            expect(res2.status).toBe(200);
-            expect(res2.body.errors).toBeUndefined();
-            const createRes2 = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: [], visitIds: [], withUnversionedData: true }
-            });
-            expect(createRes2.status).toBe(200);
-            expect(createRes2.body.errors).toBeUndefined();
-            expect(createRes2.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes2.body.data.createNewDataVersion.tag).toBe('testTag');
-            const studyInDb2= await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb2.dataVersions).toHaveLength(2);
-            expect(studyInDb2.dataVersions[0].version).toBe('1');
-            expect(studyInDb2.dataVersions[0].tag).toBe('testTag');
-            const dataInDb2 = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: { $in: [createRes2.body.data.createNewDataVersion.id] } }).toArray();
-            expect(dataInDb2).toHaveLength(1);
-
-            const res3 = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords.slice(4, 6) }
-            });
-            expect(res3.status).toBe(200);
-            expect(res3.body.errors).toBeUndefined();
-            const createRes3 = await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [
-                    createRes.body.data.createNewDataVersion.id, createRes2.body.data.createNewDataVersion.id
-                ], subjectIds: [], visitIds: [], withUnversionedData: false }
-            });
-            expect(createRes3.status).toBe(200);
-            expect(createRes3.body.errors).toBeUndefined();
-            expect(createRes3.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes3.body.data.createNewDataVersion.tag).toBe('testTag');
-            const studyInDb3= await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(studyInDb3.dataVersions).toHaveLength(3);
-            expect(studyInDb3.dataVersions[0].version).toBe('1');
-            expect(studyInDb3.dataVersions[0].tag).toBe('testTag');
-            const dataInDb3 = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: { $in: [createRes3.body.data.createNewDataVersion.id] } }).toArray();
-            expect(dataInDb3).toHaveLength(3);
+            expect(studyInDb.dataVersions).toHaveLength(2);
+            expect(studyInDb.dataVersions[1].version).toBe('1');
+            expect(studyInDb.dataVersions[1].tag).toBe('testTag');
+            const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
+            expect(dataInDb).toHaveLength(3);
+            const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
+            expect(fieldsInDb).toHaveLength(3);
         });
 
         test('Create New data version (authorised user) should fail', async () => {
@@ -3044,8 +3297,25 @@ describe('STUDY API', () => {
             expect(createRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
         });
 
-        test('Delete data reocrds: (authorised user) should fail', async () => {
-            const res = await admin.post('/graphql').send({
+        test('Delete data reocrds: (unauthorised user) should fail', async () => {
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(UPLOAD_DATA_IN_ARRAY),
+                variables: { studyId: createdStudy.id, data: multipleRecords }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+
+            const deleteRes = await user.post('/graphql').send({
+                query: print(DELETE_DATA_RECORDS),
+                variables: { studyId: createdStudy.id, subjectId: 'I7N3G6G' }
+            });
+            expect(deleteRes.status).toBe(200);
+            expect(deleteRes.body.errors).toHaveLength(1);
+            expect(deleteRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+        });
+
+        test('Delete data reocrds: subjectId (user with study privilege)', async () => {
+            const res = await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: { studyId: createdStudy.id, data: multipleRecords }
             });
@@ -3054,33 +3324,20 @@ describe('STUDY API', () => {
 
             const deleteRes = await authorisedUser.post('/graphql').send({
                 query: print(DELETE_DATA_RECORDS),
-                variables: { studyId: createdStudy.id, subjectId: 'I7N3G6G' }
+                variables: { studyId: createdStudy.id, subjectIds: ['I7N3G6G'] }
             });
             expect(deleteRes.status).toBe(200);
-            expect(deleteRes.body.errors).toHaveLength(1);
-            expect(deleteRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-
-            const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
-            expect(dataInDb).toHaveLength(3);
-        });
-
-        test('Delete data reocrds: (admin)', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-
-            const deleteRes = await admin.post('/graphql').send({
-                query: print(DELETE_DATA_RECORDS),
-                variables: { studyId: createdStudy.id, subjectId: 'I7N3G6G' }
-            });
-            expect(deleteRes.status).toBe(200);
+            expect(deleteRes.body.errors).toBeUndefined();
             expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-
-            const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
-            expect(dataInDb).toHaveLength(1);
+            const dataInDb = await db.collections!.data_collection.find({}).sort({ uploadedAt: -1 }).limit(2).toArray();
+            expect(dataInDb[0]['31']).toBe(null);
+            expect(dataInDb[0]['32']).toBe(null);
+            expect(dataInDb[0]['m_subjectId']).toBe('I7N3G6G');
+            expect(dataInDb[0]['m_visitId']).toBe('1');
+            expect(dataInDb[1]['31']).toBe(null);
+            expect(dataInDb[1]['32']).toBe(null);
+            expect(dataInDb[1]['m_subjectId']).toBe('I7N3G6G');
+            expect(dataInDb[1]['m_visitId']).toBe('2');
         });
 
         test('Delete data reocrds: visitId (admin)', async () => {
@@ -3091,16 +3348,22 @@ describe('STUDY API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
 
-            const deleteRes = await admin.post('/graphql').send({
+            const deleteRes = await authorisedUser.post('/graphql').send({
                 query: print(DELETE_DATA_RECORDS),
-                variables: { studyId: createdStudy.id, visitId: '1' }
+                variables: { studyId: createdStudy.id, visitIds: ['2'] }
             });
             expect(deleteRes.status).toBe(200);
             expect(deleteRes.body.errors).toBeUndefined();
             expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-
-            const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
-            expect(dataInDb).toHaveLength(2);
+            const dataInDb = await db.collections!.data_collection.find({}).sort({ uploadedAt: -1 }).limit(2).toArray();
+            expect(dataInDb[0]['31']).toBe(null);
+            expect(dataInDb[0]['32']).toBe(null);
+            expect(dataInDb[0]['m_subjectId']).toBe('GR6R4AR');
+            expect(dataInDb[0]['m_visitId']).toBe('2');
+            expect(dataInDb[1]['31']).toBe(null);
+            expect(dataInDb[1]['32']).toBe(null);
+            expect(dataInDb[1]['m_subjectId']).toBe('I7N3G6G');
+            expect(dataInDb[1]['m_visitId']).toBe('2');
         });
 
         test('Delete data reocrds: studyId (admin)', async () => {
@@ -3119,48 +3382,20 @@ describe('STUDY API', () => {
             expect(deleteRes.status).toBe(200);
             expect(deleteRes.body.errors).toBeUndefined();
             expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-
-            const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
-            expect(dataInDb).toHaveLength(0);
+            const dataInDb = await db.collections!.data_collection.find({ 31: null }).sort({ uploadedAt: -1 }).toArray();
+            expect(dataInDb).toHaveLength(4); // although there is no data related to (GR6R4AR-2), we still add a document to delete that
         });
 
-        test('Get data records (authorised user)', async () => {
-            const res = await authorisedUser.post('/graphql').send({
+        test('Get data records (user with study privilege)', async () => {
+            await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: { studyId: createdStudy.id, data: multipleRecords }
             });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.uploadDataInArray).toEqual([]);
-            const createRes = await admin.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag', baseVersions: [], subjectIds: [], visitsIds: [], withUnversionedData: true }
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
             });
-            expect(createRes.status).toBe(200);
-            expect(createRes.body.errors).toBeUndefined();
-            expect(createRes.body.data.createNewDataVersion.version).toBe('1');
-            expect(createRes.body.data.createNewDataVersion.tag).toBe('testTag');
-            const getRes = await authorisedUser.post('/graphql').send({
-                query: print(GET_DATA_RECORDS),
-                variables: {
-                    studyId: createdStudy.id,
-                    queryString: undefined
-                }
-            });
-            expect(getRes.status).toBe(200);
-            expect(getRes.body.errors).toBeUndefined();
-            expect(getRes.body.data.getDataRecords.data).toHaveLength(0);
-        });
-
-        test('Check data complete (admin)', async () => {
-            const res = await admin.post('/graphql').send({
-                query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: multipleRecords }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.uploadDataInArray).toEqual([]);
-            const res2 = await admin.post('/graphql').send({
+            await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: { studyId: createdStudy.id, data: [
                     {
@@ -3168,12 +3403,77 @@ describe('STUDY API', () => {
                         value: '10',
                         subjectId: 'I7N3G6G',
                         visitId: '3'
-                    },
+                    }
                 ] }
             });
-            expect(res2.status).toBe(200);
-            expect(res2.body.errors).toBeUndefined();
-            expect(res2.body.data.uploadDataInArray).toEqual([]);
+            const getRes = await authorisedUser.post('/graphql').send({
+                query: print(GET_DATA_RECORDS),
+                variables: {
+                    studyId: createdStudy.id,
+                    queryString: {
+                        data_requested: ['31', '32'],
+                        cohort: [[]],
+                        new_fields: []
+                    }
+                }
+            });
+            expect(getRes.status).toBe(200);
+            expect(getRes.body.errors).toBeUndefined();
+            expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
+        });
+
+        test('Get data records (user with project privilege)', async () => {
+            await authorisedUser.post('/graphql').send({
+                query: print(UPLOAD_DATA_IN_ARRAY),
+                variables: { studyId: createdStudy.id, data: multipleRecords }
+            });
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_DATA_VERSION),
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            });
+            await authorisedUser.post('/graphql').send({
+                query: print(UPLOAD_DATA_IN_ARRAY),
+                variables: { studyId: createdStudy.id, data: [
+                    {
+                        fieldId: '31',
+                        value: '10',
+                        subjectId: 'I7N3G6G',
+                        visitId: '3'
+                    }
+                ] }
+            });
+            const getRes = await authorisedProjectUser.post('/graphql').send({
+                query: print(GET_DATA_RECORDS),
+                variables: {
+                    studyId: createdStudy.id,
+                    projectId: createdProject.id,
+                    queryString: {
+                        data_requested: ['31', '32'],
+                        cohort: [[]],
+                        new_fields: []
+                    }
+                }
+            });
+            expect(getRes.status).toBe(200);
+            expect(getRes.body.errors).toBeUndefined();
+            expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2); // unversioned data/field is invisible to project users
+        });
+
+        test('Check data complete (admin)', async () => {
+            await admin.post('/graphql').send({
+                query: print(UPLOAD_DATA_IN_ARRAY),
+                variables: { studyId: createdStudy.id, data: multipleRecords }
+            });
+            // edit a field so that the datatype mismatched with the exisiting value
+            // this happens when a field is deleted first and then modified and added, while some data has been uploaded before deleting, causing conflicts
+            await db.collections!.field_dictionary_collection.findOneAndUpdate({
+                studyId: createdStudy.id,
+                fieldId: '32'
+            }, {
+                $set: {
+                    dataType: enumValueType.DECIMAL
+                }
+            });
 
             const checkRes = await admin.post('/graphql').send({
                 query: print(CHECK_DATA_COMPLETE),
@@ -3185,22 +3485,17 @@ describe('STUDY API', () => {
                 {
                     subjectId: 'I7N3G6G',
                     visitId: '1',
-                    missingFields: []
+                    errorFields: ['Field 32-Sex: Cannot parse as decimal.']
                 },
                 {
                     subjectId: 'I7N3G6G',
                     visitId: '2',
-                    missingFields: []
+                    errorFields: ['Field 32-Sex: Cannot parse as decimal.']
                 },
                 {
                     subjectId: 'GR6R4AR',
                     visitId: '2',
-                    missingFields: []
-                },
-                {
-                    subjectId: 'I7N3G6G',
-                    visitId: '3',
-                    missingFields: ['32']
+                    errorFields: ['Field 32-Sex: Cannot parse as decimal.']
                 }
             ]);
         });

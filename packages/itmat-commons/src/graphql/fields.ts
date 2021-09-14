@@ -8,7 +8,9 @@ export const field_fragment = gql`
         fieldName
         tableName
         dataType
+        dataVersion
         possibleValues {
+            id
             code
             description
         }

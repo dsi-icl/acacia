@@ -198,7 +198,8 @@ export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number,
         unit: '',
         comments: row[32],
         dateAdded: (new Date()).toISOString(),
-        dateDeleted: null
+        dateDeleted: null,
+        dataVersion: null
     };
 
     return ({ error: undefined, dataEntry });

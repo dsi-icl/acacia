@@ -11,13 +11,12 @@ import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import css from './tabContent.module.css';
 import { UploadNewData } from './uploadNewData';
 import { UploadNewFields } from './uploadNewFields';
-import { Button, Form, Input, Switch, Modal, Table, Select } from 'antd';
-const Option = Select;
+import { Button, Form, Input, Switch, Modal, Table } from 'antd';
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
-    const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, { variables: { studyId: studyId, versionId: [null] } });
+    const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, { variables: { studyId: studyId, versionId: null } });
     const [createNewDataVersion] = useMutation(CREATE_NEW_DATA_VERSION);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
@@ -125,7 +124,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
             <Subsection title='Unsettled Data'>
                 {getDataRecordsData.getDataRecords.data.length !== 0 ?
                     <div>
-                        <p>Number Of Records: {getDataRecordsData.getDataRecords.data.length}</p>
+                        <p>Number Of Subjects: {Object.keys(getDataRecordsData.getDataRecords.data).length}</p>
                         <Button onClick={() => setIsModalOn(true)}>View</Button>
                         <Button onClick={() => {
                             if (checkDataCompleteData.checkDataComplete.map(el => el.missingFields).some((es) => es.length !== 0)) {
@@ -146,18 +145,19 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                     onOk={() => setIsModalOn(false)}
                     onCancel={() => setIsModalOn(false)}
                 >
-                    <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, versionId: [null] }}>
+                    <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, versionId: null }}>
                         {({ data, loading, error }) => {
                             if (loading) { return <LoadSpinner />; }
                             if (error) { return <p>{JSON.stringify(error)}</p>; }
                             if (!data) { return <p>Not executed.</p>; }
                             const parsedData = getDataRecordsData.getDataRecords.data;
                             const groupedData: any = {};
-                            for (let i=0; i<parsedData.length; i++) {
-                                if (!Object.keys(groupedData).includes(parsedData[i].m_subjectId)) {
-                                    groupedData[parsedData[i].m_subjectId] = [];
+                            for (const key in parsedData) {
+                                console.log(key);
+                                if (!(key in groupedData)) {
+                                    groupedData[key] = [];
                                 }
-                                groupedData[parsedData[i].m_subjectId].push(parsedData[i].m_visitId);
+                                groupedData[key].push(Object.keys(parsedData[key]));
                             }
                             return (<Table
                                 scroll={{ x: 'max-content' }}
@@ -190,44 +190,6 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                         </Form.Item>
                         <Form.Item name='tag' hasFeedback rules={[{ required: true, message: ' ' }]}>
                             <Input placeholder='Tag' />
-                        </Form.Item>
-                        <Form.Item name='baseVersions' hasFeedback rules={[{ required: false, message: ' ' }]}>
-                            <Select
-                                placeholder='Select base data versions'
-                                mode='multiple'
-                            >
-                                {(getStudyData.getStudy.dataVersions.map(el => el.version)).map(es => {
-                                    return <Option value={versions[es]}>{es}</Option>;
-                                })}
-                            </Select>
-                        </Form.Item>
-                        <Form.Item name='subjectIds' hasFeedback rules={[{ required: false, message: ' ' }]}>
-                            <Select
-                                placeholder='Select specified subjects'
-                                mode='multiple'
-                            >
-                                {getStudyData.getStudy.subjects.map(es => {
-                                    return <Option value={es}>{es.toString()}</Option>;
-                                })}
-                            </Select>
-                        </Form.Item>
-                        <Form.Item name='visitIds' hasFeedback rules={[{ required: false, message: ' ' }]}>
-                            <Select
-                                placeholder='Select specified visits'
-                                mode='multiple'
-                            >
-                                {[...getStudyData.getStudy.visits].sort((a, b) => {return a - b;}).map(es => {
-                                    return <Option value={es}>{es}</Option>;
-                                })}
-                            </Select>
-                        </Form.Item>
-                        <Form.Item name='withUnversionedData' hasFeedback rules={[{ required: true, message: ' ' }]}>
-                            <Select
-                                placeholder='Use unversioned data'
-                            >
-                                <Option value='true'>Yes</Option>
-                                <Option value='false'>No</Option>
-                            </Select>
                         </Form.Item>
                         <Form.Item>
                             <Button type='primary' htmlType='submit'>

@@ -1,72 +1,73 @@
-
-export function buildPipeline(query: any, studyId: string, availableDataVersions: any) {
-    // parse the input data versions first
+// if has study-level permission, non versioned data will also be returned
+export function buildPipeline(query: any, studyId: string, validDataVersion: string, hasPermission: boolean, fieldsList: any[]) {
+    // // parse the input data versions first
     let dataVersionsFilter: any;
-    if (availableDataVersions == null) {
-        dataVersionsFilter = null;
+    // dataVersionsFilter = { $in: availableDataVersions };
+    if (hasPermission) {
+        dataVersionsFilter = { $match: { $or: [ { m_versionId: null }, { m_versionId: { $in: validDataVersion } } ] } };
     } else {
-        dataVersionsFilter = { $in: availableDataVersions };
+        dataVersionsFilter = { $match: { m_versionId: { $in: validDataVersion } } };
     }
+    const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
 
-    // if query is undefined, return all data with specified data versions
-    if (query === undefined) {
+    if (query === undefined || query === null) {
         return [
             { $match: { m_studyId: studyId } },
-            { $match: { m_versionId: dataVersionsFilter } },
+            dataVersionsFilter,
+            { $sort: { m_subjectId: -1, m_visitId: -1 } }
         ];
     }
 
-    // check query, then decide whether to parse the query
-    if (query['data_requested'] === undefined || query['cohort'] === undefined || query['new_fields'] === undefined) {
-        return null;
-    }
-    if (Array.isArray(query['data_requested']) === false || Array.isArray(query['cohort']) === false || Array.isArray(query['new_fields']) === false) {
-        return null;
-    }
-    const fields = { _id: 0, m_eid: 1 };
     // We send back the requested fields
-    query.data_requested.forEach((field: any) => {
-        (fields as any)[field] = 1;
-    });
-    const addFields = {};
-    // We send back the newly created derived fields by default
-    if (query.new_fields.length > 0) {
-        query.new_fields.forEach((field: any) => {
-            if (field.op === 'derived') {
-                (fields as any)[field.name] = 1;
-                (addFields as any)[field.name] = createNewField(field.value);
-            } else {
-                return 'Error';
+    if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
+        query.data_requested.forEach((field: any) => {
+            if (fieldsList.includes(field)) {
+                (fields as any)[field] = 1;
             }
         });
     }
-    let match = {};
-    if (query.cohort.length > 1) {
-        const subqueries: any = [];
-        query.cohort.forEach((subcohort: any) => {
-            // addFields.
-            subqueries.push(translateCohort(subcohort));
-        });
-        match = { $or: subqueries };
-    } else {
-        match = translateCohort(query.cohort[0]);
+    const addFields = {};
+    // We send back the newly created derived fields by default
+    if (query['new_fields'] !== undefined && query['new_fields'] !== null) {
+        if (query.new_fields.length > 0) {
+            query.new_fields.forEach((field: any) => {
+                if (field.op === 'derived') {
+                    (fields as any)[field.name] = 1;
+                    (addFields as any)[field.name] = createNewField(field.value);
+                } else {
+                    return 'Error';
+                }
+            });
+        }
     }
-
+    let match = {};
+    if (query['cohort'] !== undefined && query['cohort'] !== null) {
+        if (query.cohort.length > 1) {
+            const subqueries: any = [];
+            query.cohort.forEach((subcohort: any) => {
+                // addFields.
+                subqueries.push(translateCohort(subcohort));
+            });
+            match = { $or: subqueries };
+        } else {
+            match = translateCohort(query.cohort[0]);
+        }
+    }
     if (isEmptyObject(addFields)) {
         return [
             { $match: { m_studyId: studyId } },
-            { $match: { deleted: null } },
             { $match: match },
-            { $match: { m_versionId: dataVersionsFilter } },
+            dataVersionsFilter,
+            { $sort: { m_subjectId: -1, m_visitId: -1 } },
             { $project: fields }
         ];
     } else {
         return [
             { $match: { m_studyId: studyId } },
-            { $match: { deleted: null } },
             { $addFields: addFields },
             { $match: match },
-            { $match: { m_versionId: dataVersionsFilter } },
+            dataVersionsFilter,
+            { $sort: { m_subjectId: -1, m_visitId: -1 } },
             { $project: fields }
         ];
     }

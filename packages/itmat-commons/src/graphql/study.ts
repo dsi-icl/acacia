@@ -72,7 +72,7 @@ export const GET_STUDY = gql`
 `;
 
 export const GET_DATA_RECORDS = gql`
-    query getDataRecords($studyId: String!, $queryString: JSON, $versionId: [String], $projectId: String) {
+    query getDataRecords($studyId: String!, $queryString: JSON, $versionId: String, $projectId: String) {
         getDataRecords(studyId: $studyId, queryString: $queryString, versionId: $versionId, projectId: $projectId)
     }
 `;
@@ -91,7 +91,7 @@ export const CHECK_DATA_COMPLETE = gql`
         checkDataComplete(studyId: $studyId) {
             subjectId
             visitId
-            missingFields
+            errorFields
         }
     }
 `;
@@ -119,8 +119,8 @@ export const EDIT_STUDY = gql`
 `;
 
 export const CREATE_NEW_DATA_VERSION = gql`
-    mutation createNewDataVersion($studyId: String!, $dataVersion: String!, $tag: String, $baseVersions: [String], $subjectIds: [String], $visitIds: [String], $withUnversionedData: Boolean!){
-        createNewDataVersion(studyId: $studyId, dataVersion: $dataVersion, tag: $tag, baseVersions: $baseVersions, subjectIds: $subjectIds, visitIds: $visitIds, withUnversionedData: $withUnversionedData) {
+    mutation createNewDataVersion($studyId: String!, $dataVersion: String!, $tag: String){
+        createNewDataVersion(studyId: $studyId, dataVersion: $dataVersion, tag: $tag) {
             id
             version
             tag
@@ -140,8 +140,8 @@ export const UPLOAD_DATA_IN_ARRAY = gql`
 `;
 
 export const DELETE_DATA_RECORDS = gql`
-    mutation deleteDataRecords($studyId: String!, $subjectId: String, $visitId: String, $fieldIds: [String]) {
-        deleteDataRecords(studyId: $studyId, subjectId: $subjectId, visitId: $visitId, fieldIds: $fieldIds) {
+    mutation deleteDataRecords($studyId: String!, $subjectIds: [String], $visitIds: [String], $fieldIds: [String]) {
+        deleteDataRecords(studyId: $studyId, subjectIds: $subjectIds, visitIds: $visitIds, fieldIds: $fieldIds) {
             code
             description
         }
@@ -167,11 +167,10 @@ export const DELETE_ONTOLOGY_FIELD = gql`
 `;
 
 export const CREATE_PROJECT = gql`
-    mutation createProject($studyId: String!, $projectName: String!, $approvedFields: [String], $dataVersion: String!) {
-        createProject(studyId: $studyId, projectName: $projectName, approvedFields: $approvedFields, dataVersion: $dataVersion) {
+    mutation createProject($studyId: String!, $projectName: String!, $approvedFields: [String]) {
+        createProject(studyId: $studyId, projectName: $projectName, approvedFields: $approvedFields) {
             id
             studyId
-            dataVersion
             name
             approvedFields
         }

@@ -4,6 +4,7 @@ import { GET_STUDY, IStudyDataVersion } from 'itmat-commons';
 import css from './tabContent.module.css';
 import { useQuery } from '@apollo/client/react/hooks';
 import LoadSpinner from '../../../reusable/loadSpinner';
+import { Button, Modal, Card, Row, Col, Space } from 'antd';
 // number of patients
 // newest version of data - date / tag
 // download data
@@ -44,12 +45,35 @@ const NumberOfPatients: React.FunctionComponent<{ data: any }> = ({ data }) => {
 };
 
 const NumberOfRecords: React.FunctionComponent<{ data: any }> = ({ data }) => {
+    const [ showDetails, setShowDetails ] = React.useState(false);
     return <div style={{ gridArea: 'records' }}>
         <div>
             <p>Number of records</p>
             <span className={css.number_highlight}>
-                {data.getStudy.numOfRecords}
+                <Space size={10}>
+                    {data.getStudy.numOfRecords}
+                    <Button onClick={() => { setShowDetails(true); }} >View</Button>
+                </Space>
             </span>
+            <Modal
+                title='Details'
+                visible={showDetails}
+                onOk={() => { setShowDetails(false); }}
+                onCancel={() => { setShowDetails(false); }}
+            >
+                <Row gutter={16}>
+                    <Col span={8}>
+                        <Card title='Subjects' bordered={false}>
+                            {data.getStudy.subjects.map((el) => { return <><span>{el}</span><br/></>; })}
+                        </Card>
+                    </Col>
+                    <Col span={8}>
+                        <Card title='Visits' bordered={false}>
+                            {data.getStudy.visits.map((el) => { return <><span>{el}</span><br/></>; })}
+                        </Card>
+                    </Col>
+                </Row>
+            </Modal>
         </div>
     </div>;
 };
