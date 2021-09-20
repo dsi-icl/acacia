@@ -62,7 +62,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
         [current.metadata.siteIDMarker]: current.shortname ?? current.name
     }), {});
 
-    const sensorColumns = [
+    const fileDetailsColumns = [
         {
             title: 'Participant ID',
             dataIndex: 'participantId',
@@ -285,22 +285,30 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
             }
         ]);
 
-    // const usedColumns = (type === studyType.SENSOR) ? sensorColumns : (type === studyType.CLINICAL ? clinicalColumns : sensorColumns);
-    return type === studyType.ANY ?
-        <Table
-            rowKey={(rec) => rec.id}
-            pagination={
-                {
-                    defaultPageSize: 50,
-                    showSizeChanger: true,
-                    pageSizeOptions: ['20', '50', '100', '200'],
-                    defaultCurrent: 1,
-                    showQuickJumper: true
+    return (type === studyType.ANY || type === studyType.CLINICAL) ?
+        <>
+            <Table
+                rowKey={(rec) => rec.id}
+                pagination={
+                    {
+                        defaultPageSize: 50,
+                        showSizeChanger: true,
+                        pageSizeOptions: ['20', '50', '100', '200'],
+                        defaultCurrent: 1,
+                        showQuickJumper: true
+                    }
                 }
+                columns={fileNameColumns}
+                dataSource={files}
+                size='small' />
+            {variablesListFiles.length ===0 ? null :
+                <Table
+                    rowKey={(rec) => rec.id}
+                    columns={fileNameColumns}
+                    dataSource={variablesListFiles}
+                    size='small' />
             }
-            columns={fileNameColumns}
-            dataSource={files}
-            size='small' /> :
+        </> :
         <>
             <br />
             <br />
@@ -315,16 +323,10 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
                         showQuickJumper: true
                     }
                 }
-                columns={(type === studyType.SENSOR) ? sensorColumns : fileNameColumns}
+                columns={fileDetailsColumns}
                 dataSource={notVariablesListFiles}
                 size='small' />
-            {variablesListFiles.length ===0 ? null :
-                <Table
-                    rowKey={(rec) => rec.id}
-                    columns={fileNameColumns}
-                    dataSource={variablesListFiles}
-                    size='small' />
-            }
+
         </>
     ;
 
