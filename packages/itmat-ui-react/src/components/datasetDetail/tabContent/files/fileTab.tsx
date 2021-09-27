@@ -262,7 +262,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         });
     };
 
-    const sensorColumns = [
+    const fileDetailsColumns = [
         {
             title: 'File name',
             dataIndex: 'name',
@@ -333,7 +333,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             };
         });
 
-    const clinicalColumns = [
+    const fileNameColumns = [
         {
             title: 'File name',
             dataIndex: 'name',
@@ -366,18 +366,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             }),
         };
     });
-
-    const fileNameColumns = [
-        {
-            title: 'File Name',
-            dataIndex: 'fileName',
-            key: 'fileName',
-            render: (__unused__value, record) => {
-                return record.name;
-            },
-            sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
-        }
-    ];
 
     if (getOrgsLoading || getStudyLoading || getUsersLoading || whoAmILoading)
         return <LoadSpinner />;
@@ -448,7 +436,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                         rowKey={(rec) => rec.uuid}
                         rowClassName={() => css.editable_row}
                         pagination={false}
-                        columns={(getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) ? sensorColumns : (getStudyData.getStudy.type === studyType.CLINICAL ? clinicalColumns : fileNameColumns)}
+                        columns={(getStudyData.getStudy.type === studyType.ANY || getStudyData.getStudy.type === studyType.CLINICAL) ? fileNameColumns : fileDetailsColumns}
                         dataSource={fileList}
                         size='small'
                         components={{ body: { row: EditableRow, cell: EditableCell } }} />
