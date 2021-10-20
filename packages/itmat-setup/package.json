@@ -19,10 +19,10 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "mongodb": "3.6.5"
+        "mongodb": "3.7.3"
     },
     "devDependencies": {
-        "@types/mongodb": "3.6.10",
+        "@types/mongodb": "3.6.20",
         "chalk": "4.1.1",
         "eslint": "7.26.0",
         "typescript": "4.0.5"
