@@ -1,5 +1,5 @@
 {
-    "appName": "NAME",
+    "appName": "IDEA-FAST DMP",
     "database": {
         "mongo_url": "mongodb://localhost:27017",
         "database": "itmat",
@@ -20,7 +20,7 @@
     },
     "server": {
         "port": 3003
-    },
+    },    
     "bcrypt": {
         "saltround": 2
     },
@@ -34,5 +34,6 @@
     },
     "sessionsSecret": "Change_Me",
     "aesSecret": "change_this",
-    "nodemailer": {}
+    "nodemailer": {},
+    "adminEmail": "admin_wp5@ideafast.eu"
 }

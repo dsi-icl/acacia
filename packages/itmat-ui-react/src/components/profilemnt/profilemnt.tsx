@@ -17,11 +17,14 @@ const {
     REGISTER_PUBKEY,
     GET_PUBKEYS,
     ISSUE_ACCESS_TOKEN,
-    GET_ORGANISATIONS
+    GET_ORGANISATIONS,
+    REQUEST_EXPIRY_DATE
 } = GQLRequests;
 
 export const ProfileManagementSection: React.FunctionComponent = () => {
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
+    const [requestExpiryDate] = useMutation(REQUEST_EXPIRY_DATE, { onCompleted: () => { setRequestExpiryDateSent(true); } });
+    const [requestExpiryDateSent, setRequestExpiryDateSent] = React.useState(false);
 
     if (whoamiloading) {
         return <>
@@ -60,12 +63,30 @@ export const ProfileManagementSection: React.FunctionComponent = () => {
                                 <WarningOutlined style={{
                                     color: '#ffaa33',
                                     fontSize: '1.5rem'
-                                }} /> Your account is close to expiring !
+                                }} /> Your account is close to expiring!
                                 <br />
+                                <br />
+                                <Button disabled={whoamiloading || requestExpiryDateSent} onClick={() => {
+                                    requestExpiryDate({
+                                        variables: {
+                                            username: user.username,
+                                            email: user.email
+                                        }
+                                    });
+                                }}>
+                                    Request new expiry date!
+                                </Button>
                                 <br />
                                 <br /></>
                         : null
                 }
+                {requestExpiryDateSent ? (
+                    <>
+                        <Alert type='success' message={'New expiry date has been requested! Please wait for ADMIN to approve.'} />
+                        <br />
+                    </>
+                ) : null}
+
                 <Subsection title='Account Information'>
                     <EditUserForm user={user} key={user.id} />
                     <br />
