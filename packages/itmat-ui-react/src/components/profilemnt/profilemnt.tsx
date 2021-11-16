@@ -66,7 +66,7 @@ export const ProfileManagementSection: React.FunctionComponent = () => {
                                 }} /> Your account is close to expiring!
                                 <br />
                                 <br />
-                                <Button disabled={whoamiloading || requestExpiryDateSent} onClick={() => {
+                                <Button disabled={requestExpiryDateSent} onClick={() => {
                                     requestExpiryDate({
                                         variables: {
                                             username: user.username,
