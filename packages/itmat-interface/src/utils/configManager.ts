@@ -12,6 +12,7 @@ export interface IConfiguration extends IServerConfig {
     nodemailer: any;
     aesSecret: string;
     sessionsSecret: string;
+    adminEmail: string;
 }
 
 class ConfigurationManager {

@@ -139,6 +139,29 @@ export const userResolvers = {
         }
     },
     Mutation: {
+        requestExpiryDate: async (__unused__parent: Record<string, unknown>, { username, email }: { username?: string, email?: string }): Promise<IGenericResponse> => {
+            /* double-check user existence */
+            const queryObj = email ? { deleted: null, email } : { deleted: null, username };
+            const user: IUser | null = await db.collections!.users_collection.findOne(queryObj);
+            if (!user) {
+                /* even user is null. send successful response: they should know that a user doesn't exist */
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
+                return makeGenericReponse();
+            }
+            /* send email to the DMP admin mailing-list */
+            await mailer.sendMail(formatEmailRequestExpiryDatetoAdmin({
+                userEmail: user.email,
+                username: user.username
+            }));
+
+            /* send email to client */
+            await mailer.sendMail(formatEmailRequestExpiryDatetoClient({
+                to: user.email,
+                username: user.username
+            }));
+
+            return makeGenericReponse();
+        },
         requestUsernameOrResetPassword: async (__unused__parent: Record<string, unknown>, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any): Promise<IGenericResponse> => {
             /* checking the args are right */
             if ((forgotUsername && !email) // should provide email if no username
@@ -155,7 +178,7 @@ export const userResolvers = {
             const queryObj = email ? { deleted: null, email } : { deleted: null, username };
             const user: IUser | null = await db.collections!.users_collection.findOne(queryObj);
             if (!user) {
-                /* even user is null. send successful response: they should know that a user dosen't exist */
+                /* even user is null. send successful response: they should know that a user doesn't exist */
                 await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
                 return makeGenericReponse();
             }
@@ -215,11 +238,6 @@ export const userResolvers = {
                 throw new UserInputError('User does not exist.');
             }
 
-            /* validate if account expired */
-            if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
-                throw new UserInputError('Account Expired.');
-            }
-
             const passwordMatched = await bcrypt.compare(args.password, result.password);
             if (!passwordMatched) {
                 throw new UserInputError('Incorrect password.');
@@ -231,6 +249,25 @@ export const userResolvers = {
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
             if (!totpValidated && process.env.NODE_ENV === 'production') {
                 throw new UserInputError('Incorrect One-Time password.');
+            }
+
+            /* validate if account expired */
+            if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
+                if (args.requestexpirydate) {
+                    /* send email to the DMP admin mailing-list */
+                    await mailer.sendMail(formatEmailRequestExpiryDatetoAdmin({
+                        userEmail: result.email,
+                        username: result.username
+                    }));
+                    /* send email to client */
+                    await mailer.sendMail(formatEmailRequestExpiryDatetoClient({
+                        to: result.email,
+                        username: result.username
+                    }));
+                    throw new UserInputError('New expiry date has been requested! Wait for ADMIN to approve.');
+                }
+
+                throw new UserInputError('Account Expired. Please request a new expiry date!');
             }
 
             return new Promise((resolve) => {
@@ -480,8 +517,9 @@ export const userResolvers = {
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
+            let result;
             if (requester.type === Models.UserModels.userTypes.ADMIN) {
-                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                result = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     throw new ApolloError('User not found');
                 }
@@ -519,6 +557,14 @@ export const userResolvers = {
             }
             const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
             if (updateResult.ok === 1) {
+                // New expiry date has been updated successfully.
+                if (expiredAt) {
+                    /* send email to client */
+                    await mailer.sendMail(formatEmailRequestExpiryDateNotification({
+                        to: result.email,
+                        username: result.username
+                    }));
+                }
                 return updateResult.value;
             } else {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
@@ -628,6 +674,69 @@ function formatEmailForFogettenUsername({ username, to }: { username: string, to
             <p>
             <p>
                 Your username is <b>${username}</b>.
+            </p>
+            <br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
+        `
+    });
+}
+
+function formatEmailRequestExpiryDatetoClient({ username, to }: { username: string, to: string }) {
+    return ({
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        to,
+        subject: `[${config.appName}] New expiry date has been requested!`,
+        html: `
+            <p>
+                Dear user,
+            <p>
+            <p>
+                New expiry date for your <b>${username}</b> account has been requested.
+                You will get a notification email once the request is approved.                
+            </p>
+            <br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
+        `
+    });
+}
+
+function formatEmailRequestExpiryDatetoAdmin({ username, userEmail }: { username: string, userEmail: string }) {
+    return ({
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        to: `${config.adminEmail}`,
+        subject: `[${config.appName}] New expiry date has been requested from ${username} account!`,
+        html: `
+            <p>
+                Dear ADMINs,
+            <p>
+            <p>
+                A expiry date request from the <b>${username}</b> account (whose email address is <b>${userEmail}</b>) has been submitted.
+                Please approve or deny the request ASAP.
+            </p>
+            <br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
+        `
+    });
+}
+
+function formatEmailRequestExpiryDateNotification({ username, to }: { username: string, to: string }) {
+    return ({
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        to,
+        subject: `[${config.appName}] New expiry date has been updated!`,
+        html: `
+            <p>
+                Dear user,
+            <p>
+            <p>
+                New expiry date for your <b>${username}</b> account has been updated.
+                You now can log in as normal.
             </p>
             <br/>
             <p>

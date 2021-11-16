@@ -249,6 +249,7 @@ enum LOG_ACTION {
     LOGOUT
     REQUEST_USERNAME_OR_RESET_PASSWORD
     RESET_PASSWORD
+    REQUEST_EXPIRY_DATE
 
     # KEY
     REGISTER_PUBKEY
@@ -464,7 +465,7 @@ type Query {
 
 type Mutation {
     # USER
-    login(username: String!, password: String!, totp: String!): User
+    login(username: String!, password: String!, totp: String!, requestexpirydate: Boolean): User
     logout: GenericResponse
     requestUsernameOrResetPassword(
         forgotUsername: Boolean!,
@@ -474,6 +475,7 @@ type Mutation {
     ): GenericResponse
     resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
     createUser(user: CreateUserInput!): GenericResponse
+    requestExpiryDate(username: String, email: String): GenericResponse
     
     # PUBLIC KEY AUTHENTICATION
     registerPubkey(pubkey: String!, signature: String!, associatedUserId: String): Pubkey    

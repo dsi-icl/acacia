@@ -694,7 +694,7 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.data.login).toBeNull();
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('Account Expired.');
+            expect(res.body.errors[0].message).toBe('Account Expired. Please request a new expiry date!');
             await admin.post('/graphql').send(
                 {
                     query: print(DELETE_USER),
