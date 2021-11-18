@@ -86,8 +86,8 @@ export class StudyCore {
         // if the field is updated: update the approved field Id
         // if the field is deleted: remove the original field Id
         const newApprovedFieldsInfo = await db.collections!.field_dictionary_collection.find({ studyId: studyId, dataVersion: null }).toArray();
-        let fieldsToDelete: string[] = [];
-        let fieldsToAdd: string[] = [];
+        const fieldsToDelete: string[] = [];
+        const fieldsToAdd: string[] = [];
         // delete all influenced fields and then add the new one
         const projects = await db.collections!.projects_collection.find({ studyId: studyId, deleted: null }).toArray();
         for (const project of projects) {
@@ -117,7 +117,7 @@ export class StudyCore {
                         $each: fieldsToAdd
                     }
                 }
-            })
+            });
         }
 
         const resField = await db.collections!.field_dictionary_collection.updateMany({

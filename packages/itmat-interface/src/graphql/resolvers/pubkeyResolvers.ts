@@ -109,7 +109,7 @@ export const pubkeyResolvers = {
 
         registerPubkey: async (__unused__parent: Record<string, unknown>, { pubkey, signature, associatedUserId }: { pubkey: string, signature: string, associatedUserId: string }, context: any): Promise<IPubkey> => {
             // refine the public-key parameter from browser
-            pubkey = pubkey.replace(/\\n/g, '\n'); 
+            pubkey = pubkey.replace(/\\n/g, '\n');
             const alreadyExist = await db.collections!.pubkeys_collection.findOne({ pubkey, deleted: null });
             if (alreadyExist !== null && alreadyExist !== undefined) {
                 throw new UserInputError('This public-key has already been registered.');

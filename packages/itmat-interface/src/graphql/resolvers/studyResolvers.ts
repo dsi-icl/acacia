@@ -921,9 +921,9 @@ export const studyResolvers = {
             ]).toArray();
             const validFields = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
             const validFieldsIds = validFields.map(el => el.fieldId);
-                
-            
-            let fieldsToReplace: string[] = [];
+
+
+            const fieldsToReplace: string[] = [];
             // Replace fields whose fieldId exists in both original approved fields and valid fields of the current version
             const projects = await db.collections!.projects_collection.find({ studyId: studyId, deleted: null }).toArray();
             for (const project of projects) {
@@ -931,7 +931,7 @@ export const studyResolvers = {
                 for (const each of originalApprovedFieldsInfo) {
                     if (validFieldsIds.includes(each.fieldId)) {
                         fieldsToReplace.push(validFields.filter(el => el.fieldId === each.fieldId)[0].id);
-                    } 
+                    }
                 }
                 console.log(fieldsToReplace);
                 await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id, deleted: null }, {
@@ -956,8 +956,8 @@ export const studyResolvers = {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
 
-            
-            
+
+
         }
     },
     Subscription: {}
