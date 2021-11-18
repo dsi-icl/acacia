@@ -250,7 +250,10 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                             } else {
                                 categoricalData[element['fieldId']].push({
                                     name: elementIn,
-                                    ...element.possibleValues.reduce((acc, curr) => (acc[curr.code] = 0, acc), {})
+                                    ...element.possibleValues.reduce((acc, curr) => {
+                                        acc[curr.code] = 0;
+                                        return acc;
+                                    }, {})
                                 });
                             }
                         });
