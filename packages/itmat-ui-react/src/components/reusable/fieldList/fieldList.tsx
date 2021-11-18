@@ -114,15 +114,16 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
     const transformedList = fieldList.map((el) => {
         // const findPath = getstudyd
         if (ontologyTree === undefined || ontologyTree === null || ontologyTree.length === 0) {
-            return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
+            return `${'Others'}>${el.id}|${el.fieldName}`;
         } else {
             const ontologyField = ontologyTree.filter(es => es.fieldId === el.fieldId);
             if (ontologyField.length === 0) {
-                return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
+                return `${'Others'}>${el.id}|${el.fieldName}`;
             } else {
                 return `${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`;
             }
         }
+
     });
     transformedList.sort((a, b) => {
         if (a.split('>')[0] < b.split('>')[0]) {
@@ -214,7 +215,6 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
 
 const ValueEditForm: React.FunctionComponent<{ visible: boolean; onCreate: any; onCancel: any; fieldList: any; selectedNode: any }> = ({ visible, onCreate, onCancel, fieldList, selectedNode }) => {
     const [form] = Form.useForm();
-
 
     const newFieldOperations = [
         {label: '=', value: '='},

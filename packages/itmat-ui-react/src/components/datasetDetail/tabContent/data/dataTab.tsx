@@ -2,7 +2,7 @@ import 'antd/lib/switch/style/css';
 import * as React from 'react';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { Query } from '@apollo/client/react/components';
-import { GET_STUDY, GET_STUDY_FIELDS, GET_DATA_RECORDS, CREATE_NEW_DATA_VERSION, SET_DATAVERSION_AS_CURRENT, IStudyDataVersion, CHECK_DATA_COMPLETE, WHO_AM_I, userTypes } from 'itmat-commons';
+import { GET_STUDY, GET_STUDY_FIELDS, GET_DATA_RECORDS, CREATE_NEW_DATA_VERSION, SET_DATAVERSION_AS_CURRENT, IStudyDataVersion, WHO_AM_I, userTypes } from 'itmat-commons';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
@@ -17,20 +17,17 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
     const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, { variables: { studyId: studyId, versionId: null } });
+    const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     const [createNewDataVersion] = useMutation(CREATE_NEW_DATA_VERSION);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
-    const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
-    const { error: checkDataCompleteError, loading: checkDataCompleteLoading, data: checkDataCompleteData } = useQuery(
-        CHECK_DATA_COMPLETE,
-        { variables: { studyId: studyId } }
-    );
+
     const [selectedVersion, setSelectedVersion] = React.useState(getStudyData.getStudy.currentDataVersion);
     const [useLinearHistory, setUseLinearHistory] = React.useState(false);
     const [isModalOn, setIsModalOn] = React.useState(false);
-    if (getStudyLoading || getStudyFieldsLoading || getDataRecordsLoading || whoAmILoading || checkDataCompleteLoading) {
+    if (getStudyLoading || getStudyFieldsLoading || getDataRecordsLoading || whoAmILoading) {
         return <LoadSpinner />;
     }
-    if (getStudyError || getStudyFieldsError || getDataRecordsError || whoAmIError || checkDataCompleteError) {
+    if (getStudyError || getStudyFieldsError || getDataRecordsError || whoAmIError) {
         return <p>
             A error occured, please contact your administrator
         </p>;
@@ -121,22 +118,6 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
             <Subsection title='Upload New Data'>
                 <UploadNewData studyId={studyId} ></UploadNewData>
             </Subsection><br/>
-            <Subsection title='Unsettled Data'>
-                {getDataRecordsData.getDataRecords.data.length !== 0 ?
-                    <div>
-                        <p>Number Of Subjects: {Object.keys(getDataRecordsData.getDataRecords.data).length}</p>
-                        <Button onClick={() => setIsModalOn(true)}>View</Button>
-                        <Button onClick={() => {
-                            if (checkDataCompleteData.checkDataComplete.map(el => el.missingFields).some((es) => es.length !== 0)) {
-                                alert('Some fields are missing.');
-                            } else {
-                                alert('All the fields are complete.');
-                            }
-                        }}>Check Data Complete</Button>
-                        <br/><br/>
-                    </div> :
-                    <p>No unsettled data found.</p>}
-            </Subsection>
             <Subsection title='Create New Data Version'>
                 <Modal
                     width='80%'

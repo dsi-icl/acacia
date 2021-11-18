@@ -71,7 +71,7 @@ export const studyResolvers = {
 
             return project;
         },
-        getStudyFields: async (__unused__parent: Record<string, unknown>, { studyId, projectId }: { studyId: string, projectId?: string }, context: any): Promise<IFieldEntry[]> => {
+        getStudyFields: async (__unused__parent: Record<string, unknown>, { studyId, projectId, versionId }: { studyId: string, projectId?: string, versionId?: string }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -89,7 +89,7 @@ export const studyResolvers = {
             // get all dataVersions that are valid (before the current version)
             const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             const availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            const fieldRecords = hasPermission ? await db.collections!.field_dictionary_collection.aggregate([{
+            const fieldRecords = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
                 $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
@@ -269,7 +269,7 @@ export const studyResolvers = {
                 }
             }
             // get the fields list, this is to make sure that only data with valid fields are returned, method same as getStudyFields
-            const fieldRecords = hasPermission ? await db.collections!.field_dictionary_collection.aggregate([{
+            const fieldRecords = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
                 $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
@@ -295,8 +295,7 @@ export const studyResolvers = {
             }
             ]).toArray();
             const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null).map(es => es.fieldId);
-
-            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission, fieldsList);
+            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission && versionId === null, fieldsList);
             if (pipeline == null) {
                 return { data: null };
             }
@@ -310,6 +309,9 @@ export const studyResolvers = {
                     acc[curr['m_subjectId']][curr['m_visitId']] = {};
                 }
                 acc[curr['m_subjectId']][curr['m_visitId']] = {...acc[curr['m_subjectId']][curr['m_visitId']], ...curr};
+                if (curr['m_subjectId'] === 'NRCASP3') {
+                    console.log(acc['NRCASP3']);
+                }
                 return acc;
             }, {});
 
@@ -348,7 +350,7 @@ export const studyResolvers = {
     Project: {
         fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Record<string, any>> => {
             const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields));
-            const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, deleted: null }).toArray();
+            const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, dateDeleted: null }).toArray();
             return result;
         },
         jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
@@ -380,7 +382,7 @@ export const studyResolvers = {
                 return null;
             }
         },
-        approvedFields: async (project: IProject, __unused__args: never, context: any): Promise<Record<string, string[]>> => {
+        approvedFields: async (project: IProject, __unused__args: never, context: any): Promise<Record<string, any>> => {
             const requester: IUser = context.req.user;
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
@@ -547,7 +549,7 @@ export const studyResolvers = {
                 dataType: searchField[0].dataType,
                 possibleValues: searchField[0].possibleValues,
                 unit: searchField[0].unit,
-                connments: searchField[0].comments,
+                comments: searchField[0].comments,
                 dataVersion: null,
                 dateAdded: (new Date()).valueOf(),
                 dateDeleted: (new Date()).valueOf()
@@ -835,7 +837,7 @@ export const studyResolvers = {
             }
 
             /* check all the fields are valid */
-            const activefields = await db.collections!.field_dictionary_collection.find({ id: { $in: approvedFields }, deleted: null }).toArray();
+            const activefields = await db.collections!.field_dictionary_collection.find({ id: { $in: approvedFields }, dateDeleted: null }).toArray();
             if (activefields.length !== approvedFields.length) {
                 throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
             }
@@ -901,6 +903,45 @@ export const studyResolvers = {
             //     $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 }
             // }, { returnOriginal: false });
 
+            // update the field Id of the approved fields of each project
+            // get fields that are valid of the curretn data version
+            const availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
+                $sort: { dateAdded: -1 }
+            }, {
+                $match: { dataVersion: { $in: availableDataVersions } }
+            }, {
+                $match: { studyId: studyId }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
+                }
+            }
+            ]).toArray();
+            const validFields = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
+            const validFieldsIds = validFields.map(el => el.fieldId);
+                
+            
+            let fieldsToReplace: string[] = [];
+            // Replace fields whose fieldId exists in both original approved fields and valid fields of the current version
+            const projects = await db.collections!.projects_collection.find({ studyId: studyId, deleted: null }).toArray();
+            for (const project of projects) {
+                const originalApprovedFieldsInfo = await db.collections!.field_dictionary_collection.find({ id: { $in: project.approvedFields } }).toArray();
+                for (const each of originalApprovedFieldsInfo) {
+                    if (validFieldsIds.includes(each.fieldId)) {
+                        fieldsToReplace.push(validFields.filter(el => el.fieldId === each.fieldId)[0].id);
+                    } 
+                }
+                console.log(fieldsToReplace);
+                await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id, deleted: null }, {
+                    $set: {
+                        approvedFields: fieldsToReplace
+                    }
+                });
+            }
+
+
             /* update the currentversion field in database */
             const versionIdsList = study.dataVersions.map((el) => el.id);
             const result = await db.collections!.studies_collection.findOneAndUpdate( { id: studyId, deleted: null }, {
@@ -914,6 +955,9 @@ export const studyResolvers = {
             } else {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
+
+            
+            
         }
     },
     Subscription: {}

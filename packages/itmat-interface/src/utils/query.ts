@@ -2,7 +2,7 @@
 export function buildPipeline(query: any, studyId: string, validDataVersion: string, hasPermission: boolean, fieldsList: any[]) {
     // // parse the input data versions first
     let dataVersionsFilter: any;
-    // dataVersionsFilter = { $in: availableDataVersions };
+    // for data managers; by default will return unversioned data; to return only versioned data, specify a data version
     if (hasPermission) {
         dataVersionsFilter = { $match: { $or: [ { m_versionId: null }, { m_versionId: { $in: validDataVersion } } ] } };
     } else {
@@ -18,12 +18,16 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
         ];
     }
 
-    // We send back the requested fields
+    // We send back the requested fields, by default send all fields
     if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
         query.data_requested.forEach((field: any) => {
             if (fieldsList.includes(field)) {
                 (fields as any)[field] = 1;
             }
+        });
+    } else {
+        fieldsList.forEach((field: any) => {
+            (fields as any)[field] = 1;
         });
     }
     const addFields = {};
@@ -56,7 +60,7 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
     if (isEmptyObject(addFields)) {
         return [
             { $match: { m_studyId: studyId } },
-            { $match: match },
+            { $match: { $or: [ match, { m_versionId: '0' } ] } },
             dataVersionsFilter,
             { $sort: { m_subjectId: -1, m_visitId: -1 } },
             { $project: fields }
@@ -65,7 +69,7 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
         return [
             { $match: { m_studyId: studyId } },
             { $addFields: addFields },
-            { $match: match },
+            { $match: { $or: [ match, { m_versionId: '0' } ] } },
             dataVersionsFilter,
             { $sort: { m_subjectId: -1, m_visitId: -1 } },
             { $project: fields }

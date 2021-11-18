@@ -22,8 +22,8 @@ export const field_fragment = gql`
 `;
 
 export const GET_STUDY_FIELDS = gql`
-    query getStudyFields($studyId: String!, $projectId: String) {
-        getStudyFields(studyId: $studyId, projectId: $projectId) {
+    query getStudyFields($studyId: String!, $projectId: String, $versionId: String) {
+        getStudyFields(studyId: $studyId, projectId: $projectId, versionId: $versionId) {
             ...ALL_FOR_FIELD
         }
     }

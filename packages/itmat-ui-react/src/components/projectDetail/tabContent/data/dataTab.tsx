@@ -1,83 +1,47 @@
 import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
-import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { GET_PROJECT, IFieldEntry, CREATE_QUERY, CREATE_QUERY_CURATION_JOB, WHO_AM_I, GET_DATA_RECORDS, GET_QUERY, GET_QUERY_BY_ID, GET_STUDY_FIELDS, GET_ONTOLOGY_TREE, enumValueType } from 'itmat-commons';
+import { useQuery } from '@apollo/client/react/hooks';
+import { GET_PROJECT, IFieldEntry, GET_DATA_RECORDS, GET_STUDY_FIELDS, GET_ONTOLOGY_TREE, enumValueType } from 'itmat-commons';
 import { FieldListSectionWithFilter } from '../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../reusable/loadSpinner';
+import { DeleteOutlined } from '@ant-design/icons';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
-import { CSVLink } from 'react-csv';
 import {
-    XYPlot,
+    LineChart,
+    CartesianGrid,
     XAxis,
     YAxis,
-    VerticalGridLines,
-    HorizontalGridLines,
-    LineMarkSeries,
-    DiscreteColorLegend
-} from 'react-vis';
-import 'react-vis/dist/style.css';
-import { List, Card, Button, Table, Modal, Select } from 'antd';
-const Option = Select;
-
+    Tooltip,
+    Legend,
+    Line,
+    BarChart,
+    Bar,
+    LabelList
+} from 'recharts';
+import { Button, Table, Modal, Switch } from 'antd';
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string; projectId: string }> = ({ studyId, projectId }) => {
+
     const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
-    const { loading: getQueryLoading, error: getQueryError, data: getQueryData } = useQuery(GET_QUERY, { variables: { projectId: projectId, studyId: studyId } });
-    const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
-    const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId, projectId: projectId } });
     const { loading: getOntologyTreeLoading, error: getOntologyTreeError, data: getOntologyTreeData } = useQuery(GET_ONTOLOGY_TREE, { variables: { studyId: studyId, projectId: projectId } });
+    const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId, projectId: projectId } });
 
+    const [ isDataSelectorShown, setIsDataSelectorShown ] = React.useState(false);
     const [ checkedFields, setCheckedFields ] = React.useState<any[]>([]);
-    const [ isFilterShown, setIsFilterShown ] = React.useState(false);
     const [ queryOptions, setQueryOptions ] = React.useState<any>({filters: [], returned_fields: [], derivedFields: []});
+    const [ viewMode, setViewMode ] = React.useState(true); // dataMode (true): show data in tables; visualMode (false): show data in charts
 
-    // visualization
-    const [ visualizedData, setVisualizedData ] = React.useState<any[]>([]);
-    const [ listOfNumberFieldsVis, setListOfNumberFieldsVis ] = React.useState<any[]>([]); // including int and float
-    const [ listOfCategoricalFieldsVis, setListOfCategoricalFieldsVis ] = React.useState<any[]>([]); // include categorical and boolean
-    const [ visuzlizedNumericalSubject, setVisualizedNumericalSubject ] = React.useState(''); // while visualizaing numerical data, a subjectId must be selected
-
-    // if select view by visit, show the percentage of each possible values among all subjects; if by subject, show the trend of this subject him/herself;
-    // visuzlizedCategoricalSubject works only if visuzlizedCategoricalType is bysubject
-    // const [ visuzlizedCategoricalSubject, setVisualizedCategoricalSubject ] = React.useState(''); // while visualizaing categorical data, a subjectId must be selected
-    const [ visuzlizedCategoricalType, setVisualizedCategoricalType ] = React.useState(''); // while visualizaing categorical data, specify type
-
-    const [ isQueryResultShown, setIsQueryResultShown ] = React.useState(false);
-    const [ viewQueryId, setViewQueryId ] = React.useState('');
-
-
-    const [createQueryCurationJob] = useMutation(CREATE_QUERY_CURATION_JOB, {
-        onError: (error: any) => {
-            throw new Error(JSON.stringify(error));
-        }
-    });
-
-    const [createQuery] = useMutation(CREATE_QUERY, {
-        onError: (error: any) => {
-            throw new Error(JSON.stringify(error));
-        },
-        onCompleted: (data) => {
-            const queryId = data.createQuery.id;
-            createQueryCurationJob({variables: {
-                queryId: queryId,
-                studyId: studyId,
-                projectId: projectId
-                // dataVersionId: getStudyData.getStudy.dataVersions[getStudyData.getStudy.currentDataVersion].version
-            }});
-        }
-    });
-
-    if (getProjectLoading || whoAmILoading || getQueryLoading || getStudyFieldsLoading || getOntologyTreeLoading) {
+    if (getProjectLoading || getOntologyTreeLoading || getStudyFieldsLoading) {
         return <LoadSpinner />;
     }
 
-    if (getProjectError || whoAmIError || getQueryError || getStudyFieldsError || getOntologyTreeError) {
+    if (getProjectError || getOntologyTreeError || getStudyFieldsError) {
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
             A error occured, please contact your administrator
         </div>;
     }
-    if (Object.keys(getProjectData.getProject.fields).length === 0) { return <p>No fields uploaded or available to you. If this should not be the case, check your permission with admin.</p>; }
+
 
     const headers = getStudyFieldsData.getStudyFields.map((el) => {
         return {
@@ -88,188 +52,102 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
     headers.push({label: 'm_subjectId', key: 'm_subjectId'});
     headers.push({label: 'm_visitId', key: 'm_visitId'});
 
-    const queryColumns = [
-        {
-            title: 'Id',
-            dataIndex: 'id',
-            key: 'id',
-            render: (__unused__value, record) => {
-                return JSON.stringify(record.id);
-            }
-        },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            render: (__unused__value, record) => {
-                return JSON.stringify(record.status);
-            }
-        },
-        {
-            title: '',
-            dataIndex: 'queryResult',
-            key: 'queryResult',
-            render: (__unused__value, record) => {
-                return (<Button type='primary' htmlType='submit'
-                    onClick={() => {
-                        setViewQueryId(record.id);
-                        setIsQueryResultShown(true);
-                    }}
-                >
-                  Results
-                </Button>);
-            }
-        },
-        {
-            title: '',
-            dataIndex: 'execute',
-            key: 'execute',
-            render: (__unused__value, record) => {
-                return (<Button type='primary' htmlType='submit'
-                    onClick={() => {createQueryCurationJob({variables: {
-                        queryId: record.id,
-                        studyId: studyId,
-                        projectId: projectId
-                        // dataVersionId: getStudyData.getStudy.dataVersions[getStudyData.getStudy.currentDataVersion].version
-                    }});}}
-                >
-                  Execute
-                </Button>);
-            }
-        },
-        {
-            title: 'Export',
-            dataIndex: 'download',
-            key: 'download',
-            render: (__unused__value, record) => {
-                const queryResult = JSON.parse(record.queryResult);
-                const uniqueFields = queryResult.map(el => Object.keys(el)).reduce((function (total, arr) {
-                    return Array.from(new Set(total.concat(arr)));
-                }), []);
-                const filteredHeaders = headers.filter(el => uniqueFields.includes(el.key.toString()));
-                return (<CSVLink data={queryResult} headers={filteredHeaders}>
-                    Download me
-                </CSVLink>);
-            }
-        },
-    ];
-    // pre processing of data that are to visualized
-    const fieldKeysInQueryResult = Object.keys(visualizedData.reduce(function(result, obj) {
-        return Object.assign(result, obj);
-    }, {}));
-    const idsOfNumbericalFields = getStudyFieldsData.getStudyFields.filter((el) => {
-        if (fieldKeysInQueryResult.filter((es) => es.toString() === el.fieldId).length === 0) {
-            return false;
-        }
-        if (el.dataType !== enumValueType.DECIMAL && el.dataType !== enumValueType.INTEGER) {
-            return false;
-        }
-        return true;
-    });
-    const idsOfCategoricalFields = getStudyFieldsData.getStudyFields.filter((el) => {
-        if (fieldKeysInQueryResult.filter((es) => es.toString() === el.fieldId).length === 0) {
-            return false;
-        }
-        if (el.dataType !== enumValueType.BOOLEAN && el.dataType !== enumValueType.CATEGORICAL) {
-            return false;
-        }
-        return true;
-    });
-    const numbericalData: any[] = [];
-    for (const field of idsOfNumbericalFields) {
-        if (!listOfNumberFieldsVis.includes(field.fieldId)) {
-            continue;
-        }
-        const data: any[] = [];
-        const dataToUse = visualizedData.filter(el => (el.m_subjectId === visuzlizedNumericalSubject));
-        for (const eachData of dataToUse) {
-            data.push({ x: parseInt(eachData.m_visitId), y: eachData[field.fieldId] });
-        }
-        numbericalData.push(data);
-    }
-    console.log(numbericalData);
-    const categoricalData: any[] = [];
-    for (const field of idsOfCategoricalFields) {
-        if (!listOfCategoricalFieldsVis.includes(field.fieldId)) {
-            continue;
-        }
-        // const data: any[] = [];
-        const possibleValues = getStudyFieldsData.getStudyFields.filter(el => el.fieldId === field.fieldId)[0].possibleValues;
-        const visitIds = Array.from(new Set(visualizedData.map(el => el.m_visitId)));
-        // const subjectIds = Array.from(new Set(visualizedData.map(el => el.m_subjectId)));
-        if (visuzlizedCategoricalType === 'byVisit') {
-            const data: any = {};
-            for (const posValue of possibleValues) {
-                const subData: any[] = [];
-                for (const eachVisit of visitIds) {
-                    subData.push({
-                        x: parseInt(eachVisit),
-                        y: visualizedData.filter(el => (el[field.fieldId].toString() === posValue.code.toString()) && el.m_visitId === eachVisit).length / visualizedData.filter(el => el.m_visitId === eachVisit).length
-                    });
-                }
-                data[posValue.code.toString()] = subData;
-            }
-            categoricalData.push(data);
-        }
-    }
-    console.log(categoricalData);
-    console.log(idsOfCategoricalFields);
-    return <div className={css.scaffold_wrapper}>
-        <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title='Data Selection'>
-                <Button type='primary' htmlType='submit' onClick={() => setIsFilterShown(true)}>Select Data</Button>
-                <Modal
-                    width='80%'
-                    visible={isFilterShown}
-                    title='Query Result Viewer'
-                    onOk={() => setIsFilterShown(false)}
-                    onCancel={() => setIsFilterShown(false)}
-                >
-                    <Subsection title='Fields & Variables'>
-                        <FieldListSelectionStateProject ontologyTree={getOntologyTreeData.getOntologyTree} fields={getProjectData.getProject.fields} checkedFields={checkedFields} onCheck={setCheckedFields} queryOptions={[queryOptions, setQueryOptions]} />
-                    </Subsection>
+    return <div className={css.tab_page_wrapper}>
+        <Button type='primary' htmlType='submit' onClick={() => setIsDataSelectorShown(true)}>
+                Select Data
+        </Button>
+        <Switch checkedChildren='Data Mode' unCheckedChildren='Visual Mode' checked={viewMode} onChange={() => setViewMode(!viewMode)}/>
+        <br /><br/><br/>
+        <Modal
+            width='80%'
+            visible={isDataSelectorShown}
+            title='Data Selector'
+            onOk={() => setIsDataSelectorShown(false)}
+            onCancel={() => setIsDataSelectorShown(false)}
+        >
+            <div style={{ width: '100%', display: 'flex' }}>
+                <Subsection title='Fields & Variables'>
+                    <FieldListSelectionStateProject ontologyTree={getOntologyTreeData.getOntologyTree} fields={getProjectData.getProject.fields} checkedFields={checkedFields} onCheck={setCheckedFields} queryOptions={[queryOptions, setQueryOptions]} />
+                </Subsection>
+                <div style={{ width: '50%', marginLeft: 'auto' }}>
                     <Subsection title='Filters'>
                         {queryOptions.filters.length === 0 ? <p>No filters added.</p>:
-                            <List
-                                grid={{ gutter: 8, column: 4 }}
+                            <Table
+                                rowKey={(rec) => rec.name.toString().concat(rec.op.toString()).concat(rec.value.toString())}
+                                columns={[
+                                    {
+                                        title: 'Field Name',
+                                        dataIndex: 'name',
+                                        key: 'name',
+                                        sorter: (a, b) => a.name.localeCompare(b.name),
+                                        render: (__unused__value, record) => {
+                                            return record.name;
+                                        }
+                                    },
+                                    {
+                                        title: 'Operator',
+                                        dataIndex: 'op',
+                                        key: 'op',
+                                        render: (__unused__value, record) => {
+                                            return record.op;
+                                        }
+                                    },
+                                    {
+                                        title: 'Value',
+                                        dataIndex: 'value',
+                                        key: 'value',
+                                        render: (__unused__value, record) => {
+                                            return record.value;
+                                        }
+                                    },
+                                    {
+                                        render: (__unused__value, record) => (
+                                            <Button icon={<DeleteOutlined />} onClick={() => {
+                                                setQueryOptions({
+                                                    ...queryOptions,
+                                                    filters: queryOptions.filters.filter((el) => {
+                                                        if (el.field === record.field && el.op === record.op && el.value === record.value) {
+                                                            return false;
+                                                        }
+                                                        return true;
+                                                    })
+                                                });
+                                            }} >
+                                                    Delete
+                                            </Button>
+                                        ),
+                                        width: '8rem',
+                                        key: 'delete'
+                                    }
+                                ]}
                                 dataSource={queryOptions.filters}
-                                renderItem={item => (
-                                    <List.Item>
-                                        <Card title={(item as any).name}>
-                                            <p>{(item as any).op}</p>
-                                            <p>{(item as any).value}</p>
-                                        </Card>
-                                    </List.Item>
-                                )}
-                            />}
+                                size='small'
+                                pagination={false}
+                            >
+                            </Table>
+                        }
                     </Subsection>
-                </Modal>
-            </Subsection><br/>
-            <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, projectId: projectId, queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']) }} onCompleted={(data) => {
+                </div>
+            </div>
+        </Modal>
+        <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, projectId: projectId, queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']) }} >
+            {({ data, loading, error }) => {
+                if (loading) { return <LoadSpinner />; }
+                if (error) { return <p>No results found.</p>; }
+                if (!data || data.getDataRecords === null) { return <p>Not available.</p>; }
+                const columns: any[] = [];
+                const fieldsList = getProjectData.getProject.fields;
+                const queryResult = data.getDataRecords.data;
+                // convert data source format to arrays
                 const dataInArray: any[] = [];
-                for (const subject in data.getDataRecords.data) {
-                    for (const visit in data.getDataRecords.data[subject]) {
-                        dataInArray.push(data.getDataRecords.data[subject][visit]);
+                let fieldKeysInQueryResult: any = {};
+                for (const subject in queryResult) {
+                    for (const visit in queryResult[subject]) {
+                        fieldKeysInQueryResult = {...fieldKeysInQueryResult, ...queryResult[subject][visit]};
+                        dataInArray.push(queryResult[subject][visit]);
                     }
                 }
-                setVisualizedData(dataInArray);
-            }}>
-                {({ data, loading, error }) => {
-                    if (loading) { return <LoadSpinner />; }
-                    if (error) { return <p>No results found.</p>; }
-                    if (!data || data.getDataRecords === null) { return <p>Not available.</p>; }
-                    const columns: any[] = [];
-                    const fieldsList = getProjectData.getProject.fields;
-                    const queryResult = data.getDataRecords.data;
-                    // convert data source format to arrays
-                    const dataInArray: any[] = [];
-                    let fieldKeysInQueryResult: any = {};
-                    for (const subject in queryResult) {
-                        for (const visit in queryResult[subject]) {
-                            fieldKeysInQueryResult = {...fieldKeysInQueryResult, ...queryResult[subject][visit]};
-                            dataInArray.push(queryResult[subject][visit]);
-                        }
-                    }
+                if (viewMode) {
                     for (const key in fieldKeysInQueryResult) {
                         let fieldName = '';
                         for (let i=0; i<fieldsList.length; i++) {
@@ -278,6 +156,9 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                             }
                         }
                         const name = fieldName === '' ? key : fieldName;
+                        if (['Demographics', 'Medical History', 'Concomitant Medications'].includes(name)) {
+                            continue;
+                        }
                         columns.push({
                             title: name,
                             dataIndex: key,
@@ -303,198 +184,141 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                                     {
                                         defaultPageSize: 10,
                                         showSizeChanger: true,
-                                        // pageSizeOptions: ['10', '20', '50', '100'],
                                         defaultCurrent: 1,
                                         showQuickJumper: true
                                     }
                                 }
                                 columns={columns}
-                                dataSource={dataInArray}
+                                dataSource={dataInArray.filter(el => el.m_visitId !== '0')}
                                 size='middle'
                             ></Table>
-                            <Button type='primary' htmlType='submit' onClick={() => {
-                                createQuery({variables: {query: {queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']), studyId: studyId, projectId: projectId, userId: whoAmIData.whoAmI.id}}});
-                            }}>
-                                            Save this query
-                            </Button>
                         </SubsectionWithComment><br/>
-                        <Subsection title='Query List'>
-                            <Modal
-                                width='80%'
-                                visible={isQueryResultShown}
-                                title='Query Result Viewer'
-                                onOk={() => setIsQueryResultShown(false)}
-                                onCancel={() => setIsQueryResultShown(false)}
-                            >
-                                <Query<any, any> query={GET_QUERY_BY_ID} variables={{ queryId: viewQueryId }}>
-                                    {({ data, loading, error }) => {
-                                        if (loading) { return <LoadSpinner />; }
-                                        if (error) { return <p>{JSON.stringify(error)}</p>; }
-                                        if (!data) { return <p>Not executed.</p>; }
-                                        const queryResult = JSON.parse(data.getQueryById.queryResult);
-                                        if (queryResult === null || queryResult === undefined || queryResult === []) {
-                                            return <p>No Results Found</p>;
-                                        }
-                                        const columns: any[] = [];
-                                        for (const key of Object.keys(queryResult[0])) {
-                                            columns.push({
-                                                title: key,
-                                                dataIndex: key,
-                                                key: key,
-                                                render: (__unused__value, record) => {
-                                                    return record[key];
-                                                }
-                                            });
-                                        }
-                                        return (<Table
-                                            scroll={{ x: 'max-content' }}
-                                            rowKey={(rec) => rec.id}
-                                            pagination={false}
-                                            columns={columns}
-                                            dataSource={queryResult}
-                                            size='middle'
-                                        ></Table>);
-                                    }}
-                                </Query>
-                            </Modal>
-                            <Table
-                                rowKey={(rec) => rec.id}
-                                pagination={false}
-                                columns={queryColumns}
-                                dataSource={getQueryData.getQueries}
-                                size='small'
-                            ></Table>
+                    </>;
+                } else {
+                    // processing numberical data
+                    const fieldKeysInQueryResult = Object.keys(dataInArray.reduce(function(result, obj) {
+                        return Object.assign(result, obj);
+                    }, {}));
+                    const idsOfNumbericalFields = getStudyFieldsData.getStudyFields.filter((el) => {
+                        if (fieldKeysInQueryResult.filter((es) => es.toString() === el.fieldId).length === 0) {
+                            return false;
+                        }
+                        if (el.dataType !== enumValueType.DECIMAL && el.dataType !== enumValueType.INTEGER) {
+                            return false;
+                        }
+                        return true;
+                    });
+                    const uniqueVisitIds = Array.from(new Set(dataInArray.map(el => el.m_visitId)));
+                    const uniqueSubjectIds = Array.from(new Set(dataInArray.map(el => el.m_subjectId)));
+                    const numbericalData: any = {};
+                    idsOfNumbericalFields.forEach(element => {
+                        numbericalData[element['fieldId']] = [];
+                        uniqueVisitIds.forEach(elementIn => {
+                            numbericalData[element['fieldId']].push({
+                                name: elementIn
+                            });
+                        });
+                    });
+                    dataInArray.forEach(element => {
+                        idsOfNumbericalFields.forEach(eleField => {
+                            if (element[eleField['fieldId']] !== undefined && element[eleField['fieldId']] !== null) {
+                                numbericalData[eleField['fieldId']][numbericalData[eleField['fieldId']].map(el => el.name).indexOf(element['m_visitId'])][element['m_subjectId']] = element[eleField['fieldId']];
+                            }
+                        });
+                    });
+
+                    // processing categorical data, shown as percentage
+                    const idsOfCategoricalFields = getStudyFieldsData.getStudyFields.filter((el) => {
+                        if (fieldKeysInQueryResult.filter((es) => es.toString() === el.fieldId).length === 0) {
+                            return false;
+                        }
+                        if (el.dataType !== enumValueType.BOOLEAN && el.dataType !== enumValueType.CATEGORICAL) {
+                            return false;
+                        }
+                        return true;
+                    });
+                    const categoricalData: any = {};
+                    idsOfCategoricalFields.forEach(element => {
+                        categoricalData[element['fieldId']] = [];
+                        uniqueVisitIds.forEach(elementIn => {
+                            if (element.dataType === enumValueType.BOOLEAN) {
+                                categoricalData[element['fieldId']].push({
+                                    name: elementIn,
+                                    True: 0,
+                                    False: 0
+                                });
+                            } else {
+                                categoricalData[element['fieldId']].push({
+                                    name: elementIn,
+                                    ...element.possibleValues.reduce((acc, curr) => (acc[curr.code] = 0, acc), {})
+                                });
+                            }
+                        });
+                    });
+                    for (const fieldId in categoricalData) {
+                        for (let i=0; i<uniqueVisitIds.length; i++) {
+                            for (const cat in categoricalData[fieldId][i]) {
+                                if (cat === 'name') {
+                                    continue;
+                                } else {
+                                    categoricalData[fieldId][i][cat] = dataInArray.filter(el => el.m_visitId === uniqueVisitIds[i] && el[fieldId] === cat).length /
+                                        dataInArray.filter(el => el.m_visitId === uniqueVisitIds[i]).length;
+                                }
+                            }
+                        }
+                    }
+                    return <>
+                        <Subsection title='Numerical Data'>
+                            {
+                                Object.keys(numbericalData).map(el =>
+                                    <>
+                                        <LineChart width={730} height={250} data={numbericalData[el]}
+                                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray='3 3' />
+                                            <XAxis dataKey='name' label={idsOfNumbericalFields.filter(es => es.fieldId === el)[0].fieldName} />
+                                            <YAxis domain={['auto', 'auto']} label={idsOfNumbericalFields.filter(es => es.fieldId === el)[0].unit}/>
+                                            <Tooltip />
+                                            <Legend />
+                                            {
+                                                uniqueSubjectIds.map(es => <Line type='monotone' dataKey={es} stroke={randomStringToColor(es)} />)
+                                            }
+                                        </LineChart>
+                                        <br/><br/>
+                                    </>
+                                )
+                            }
+                        </Subsection>
+                        <Subsection title='Categorical Data'>
+                            {
+                                Object.keys(categoricalData).map(el =>
+                                    <>
+                                        <BarChart width={730} height={250} data={numbericalData[el]}
+                                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray='3 3' />
+                                            <XAxis />
+                                            <YAxis />
+                                            <Tooltip />
+                                            <Legend />
+                                            {
+                                                Object.keys(el).map(es => {
+                                                    if (es === 'name') {
+                                                        return null;
+                                                    } else {
+                                                        return <Bar dataKey={es} >
+                                                            <LabelList dataKey={es} />
+                                                        </Bar>;
+                                                    }
+                                                })
+                                            }
+                                        </BarChart>
+                                    </>
+                                )
+                            }
                         </Subsection>
                     </>;
-                }}
-            </Query>
-        </div>
-        <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title=''>
-                <div style={{display: 'inline-block', width: '60%'}}>
-                    <Select
-                        mode='multiple'
-                        onChange={(value) => {
-                            if (value.length > 3) {
-                                alert('Max Number of Selection: 3');
-                                return;
-                            }
-                            setListOfNumberFieldsVis(value);
-                        }}
-                        value={listOfNumberFieldsVis}
-                        style={{width: '100%'}}
-                        placeholder='Select Numerical Fields To Show'
-                    >
-                        {idsOfNumbericalFields.map((eh) => {
-                            return <Option value={eh.fieldId}>{eh.fieldName}</Option>;
-                        })}
-                    </Select>
-                </div>
-                <div style={{display: 'inline-block', width: '40%'}}>
-                    <Select
-                        onChange={(value) => {
-                            setVisualizedNumericalSubject(value);
-                        }}
-                        value={visuzlizedNumericalSubject || undefined}
-                        style={{width: '100%'}}
-                        placeholder='Select Subject'
-                    >
-                        {Array.from(new Set(visualizedData.map(el => el.m_subjectId))).map((eh) => {
-                            return <Option value={eh}>{eh}</Option>;
-                        })}
-                    </Select>
-                </div><br/><br/>
-                {
-                    numbericalData.map((el, indexEl) => {
-                        return (<div style={{display: 'inline-block', width: '30%'}}>
-                            <XYPlot width={300} height={300}>
-                                <VerticalGridLines />
-                                <HorizontalGridLines />
-                                <XAxis title='Visit'/>
-                                <YAxis title={idsOfNumbericalFields[indexEl].unit}/>
-                                <LineMarkSeries
-                                    className='linemark-series-example'
-                                    style={{
-                                        strokeWidth: '3px'
-                                    }}
-                                    lineStyle={{stroke: 'red'}}
-                                    markStyle={{stroke: 'blue'}}
-                                    data={el}
-                                />
-                                <h1 style={{ textAlign:'center' }} >{idsOfNumbericalFields.filter(el => el.fieldId.toString() === listOfNumberFieldsVis[indexEl])[0].fieldName}</h1>
-                            </XYPlot>
-                        </div>);
-                    })
                 }
-                <br/>
-                <div style={{display: 'inline-block', width: '60%'}}>
-                    <Select
-                        mode='multiple'
-                        onChange={(value) => {
-                            if (value.length > 2) {
-                                alert('Max Number of Selection: 2');
-                                return;
-                            }
-                            setListOfCategoricalFieldsVis(value);
-                        }}
-                        value={listOfCategoricalFieldsVis}
-                        style={{width: '80%'}}
-                        placeholder='Select Categorical Fields To Show'
-                    >
-                        {idsOfCategoricalFields.map((eh) => {
-                            return <Option value={eh.fieldId}>{eh.fieldName}</Option>;
-                        })}
-                    </Select>
-                </div>
-                <div style={{display: 'inline-block', width: '20%'}}>
-                    <Select
-                        onChange={(value) => {
-                            setVisualizedCategoricalType(value);
-                        }}
-                        value={visuzlizedCategoricalType}
-                        style={{width: '100%'}}
-                        placeholder='Select Numerical Fields To Show'
-                    >
-                        <Option value='bySubject'>{'By Subject'}</Option>
-                        <Option value='byVisit'>{'By Visit'}</Option>
-                    </Select>
-                </div>
-                <div style={{display: 'inline-block', width: '20%'}}>
-                </div><br/><br/>
-                {
-                    categoricalData.map((el, indexEl) => {
-                        return (<div style={{display: 'inline-block', width: '40%'}}>
-                            <div style={{display: 'inline-block', width: '80%'}}>
-                                <XYPlot width={300} height={300} style={{display: 'inline-block' }}>
-                                    <VerticalGridLines />
-                                    <HorizontalGridLines />
-                                    <XAxis title={'Visit'}/>
-                                    <YAxis title={'Percent'}/>
-                                    <h1 style={{ textAlign:'center' }} >{idsOfCategoricalFields[indexEl].fieldName}</h1>
-                                    {
-                                        Object.keys(el).map((eh) => {
-                                            return (
-                                                <LineMarkSeries
-                                                    className='linemark-series-example'
-                                                    data={el[eh]}
-                                                />
-                                            );
-                                        })
-                                    }
-                                </XYPlot>
-                            </div>
-                            <div style={{display: 'inline-block', width: '20%'}}>
-                                <DiscreteColorLegend
-                                    height={300}
-                                    style={{display: 'inline-block' }}
-                                    items={idsOfCategoricalFields[indexEl].possibleValues.map((el) => { return { title: el.code }; })}
-                                />
-                            </div>
-                        </div>);
-                    })
-                }
-            </Subsection>
-        </div>
+            }}
+        </Query>
     </div>;
 };
 
@@ -534,4 +358,17 @@ function constructQueryString(checkedList: any, fieldsList: any, filters: any, d
     queryString.cohort = [cohort];
     queryString.new_fields = derivedFields;
     return queryString;
+}
+
+function randomStringToColor (str: string) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    let colour = '#';
+    for (let i = 0; i < 3; i++) {
+        const value = (hash >> (i * 8)) & 0xFF;
+        colour += ('00' + value.toString(16)).substr(-2);
+    }
+    return colour;
 }

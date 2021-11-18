@@ -501,7 +501,7 @@ describe('STUDY API', () => {
                 createdBy: adminId,
                 name: projectName,
                 patientMapping: {},
-                approvedFields: {},
+                approvedFields: [],
                 approvedFiles: [],
                 lastModified: createdProject.lastModified,
                 deleted: null
@@ -510,7 +510,7 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 name: projectName,
-                approvedFields: {}
+                approvedFields: []
             });
 
             /* cleanup: delete project */
@@ -589,7 +589,7 @@ describe('STUDY API', () => {
                 createdBy: authorisedUserProfile.id,
                 patientMapping: {},
                 name: projectName,
-                approvedFields: {},
+                approvedFields: [],
                 approvedFiles: [],
                 lastModified: createdProject.lastModified,
                 deleted: null
@@ -598,7 +598,7 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 name: projectName,
-                approvedFields: {}
+                approvedFields: []
             });
 
             /* cleanup: delete project */
@@ -856,7 +856,7 @@ describe('STUDY API', () => {
                     id: createdProject.id,
                     studyId: createdStudy.id,
                     name: projectName,
-                    approvedFields: {}
+                    approvedFields: []
                 });
             }
 
@@ -1470,7 +1470,7 @@ describe('STUDY API', () => {
                     id: createdProject.id,
                     studyId: createdStudy.id,
                     name: createdProject.name,
-                    approvedFields: {},
+                    approvedFields: [],
                     approvedFiles: [],
                     jobs: [],
                     roles: [
@@ -1736,7 +1736,8 @@ describe('STUDY API', () => {
                 query: print(GET_STUDY_FIELDS),
                 variables: {
                     studyId: createdStudy.id,
-                    projectId: createdProject.id
+                    projectId: createdProject.id,
+                    versionId: null
                 }
             });
             expect(res.status).toBe(200);
@@ -1874,7 +1875,7 @@ describe('STUDY API', () => {
                 ]
             });
             /* cleanup: revert the adding of fields */
-            await db.collections!.projects_collection.updateOne({ id: createdProject.id }, { $set: { approvedFields: {} } });
+            await db.collections!.projects_collection.updateOne({ id: createdProject.id }, { $set: { approvedFields: [] } });
         });
 
         test('Edit project approved fields (user without privilege) (should fail)', async () => {
@@ -1953,7 +1954,7 @@ describe('STUDY API', () => {
                 ]
             });
             /* cleanup: revert the adding of fields */
-            await db.collections!.projects_collection.updateOne({ id: createdProject.id }, { $set: { approvedFields: {} } });
+            await db.collections!.projects_collection.updateOne({ id: createdProject.id }, { $set: { approvedFields: [] } });
         });
 
         test('Edit project approved fields (user with project privilege) (should fail)', async () => {
@@ -2114,7 +2115,6 @@ describe('STUDY API', () => {
         test('Set a previous study dataversion as current (admin)', async () => {
             /* setup: add an extra dataversion */
             await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
-
             const res = await admin.post('/graphql').send({
                 query: print(SET_DATAVERSION_AS_CURRENT),
                 variables: {
@@ -2908,7 +2908,7 @@ describe('STUDY API', () => {
                     id: createdProject.id,
                     studyId: createdStudy.id,
                     name: projectName,
-                    approvedFields: {}
+                    approvedFields: []
                 });
             }
 

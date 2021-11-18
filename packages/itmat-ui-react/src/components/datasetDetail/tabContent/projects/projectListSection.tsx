@@ -1,12 +1,9 @@
 import * as React from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { NavLink, Redirect } from 'react-router-dom';
-import { CREATE_PROJECT, GET_STUDY } from 'itmat-commons';
-import { useQuery } from '@apollo/client/react/hooks';
+import { CREATE_PROJECT } from 'itmat-commons';
 import css from './tabContent.module.css';
-import LoadSpinner from '../../../reusable/loadSpinner';
-import { Button, Input, Select } from 'antd';
-const Option = Select;
+import { Button, Input } from 'antd';
 
 export const ProjectListSection: React.FunctionComponent<{ studyId: string; projectList: Array<{ id: string; name: string }> }> = ({ studyId, projectList }) => {
     return <div>
@@ -23,24 +20,12 @@ const OneProject: React.FunctionComponent<{ studyId: string; id: string; name: s
 
 
 export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    const { data: getStudyData, loading: getStudyLoading, error: getStudyError } = useQuery(GET_STUDY, { variables: { studyId } });
     const [projectName, setProjectName] = React.useState('');
-    const [selectedDataVersion, setSelectedDataVersion] = React.useState('');
     const [error, setError] = React.useState('');
-    if (getStudyLoading) { return <LoadSpinner />; }
-    if (getStudyError) {
-        return <p>
-            A error occured, please contact your administrator
-        </p>;
-    }
-    const availableDataVersions: any[] = getStudyData.getStudy.dataVersions.map(el => el);
-    console.log(availableDataVersions);
 
     return <div>
         <span>Project Name: </span>
         <Input value={projectName} style={{width: '50%'}} onChange={(e) => { setError(''); setProjectName(e.target.value); }} type='text' placeholder='Enter name' /> <br/><br/>
-        <span>Data Version: </span>
-        <Select style={{width: '50%'}} value={selectedDataVersion} onChange={(value) => { setSelectedDataVersion(value); }} placeholder='Select base data versions'>{availableDataVersions.map((el: any) => <Option key={el.id} value={el.id}>{el.version + '(' + el.tag + ')'}</Option>)}</Select><br /><br />
         <Mutation<any, any>
             mutation={CREATE_PROJECT}
             // update={(store, { data: { createProject } }) => {
@@ -72,11 +57,7 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
                                     setError('Please enter project name.');
                                     return;
                                 }
-                                if (selectedDataVersion === '') {
-                                    setError('You have to choose one data version.');
-                                    return;
-                                }
-                                addNewProject({ variables: { studyId, projectName: projectName, dataVersion: selectedDataVersion, approvedFields: [] } });
+                                addNewProject({ variables: { studyId, projectName: projectName, approvedFields: [] } });
                             }}>Add new project</Button>
                     }
                 </>

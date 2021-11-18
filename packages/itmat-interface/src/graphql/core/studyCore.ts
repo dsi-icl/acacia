@@ -82,6 +82,44 @@ export class StudyCore {
                 m_versionId: newDataVersionId
             }
         });
+        // if field is modified, need to modified the approved fields of each related project
+        // if the field is updated: update the approved field Id
+        // if the field is deleted: remove the original field Id
+        const newApprovedFieldsInfo = await db.collections!.field_dictionary_collection.find({ studyId: studyId, dataVersion: null }).toArray();
+        let fieldsToDelete: string[] = [];
+        let fieldsToAdd: string[] = [];
+        // delete all influenced fields and then add the new one
+        const projects = await db.collections!.projects_collection.find({ studyId: studyId, deleted: null }).toArray();
+        for (const project of projects) {
+            const originalApprovedFieldsInfo = await db.collections!.field_dictionary_collection.find({ id: { $in: project.approvedFields } }).toArray();
+            const originalApprovedFieldsIds = originalApprovedFieldsInfo.map(el => el.fieldId);
+            for (const each of newApprovedFieldsInfo) {
+                if (originalApprovedFieldsIds.includes(each.fieldId)) {
+                    if (each.dateDeleted === null) {
+                        // delete original and add new one
+                        fieldsToDelete.push(originalApprovedFieldsInfo.filter(el => el.fieldId === each.fieldId)[0].id);
+                        fieldsToAdd.push(each.id);
+                    } else {
+                        fieldsToDelete.push(originalApprovedFieldsInfo.filter(el => el.fieldId === each.fieldId)[0].id);
+                    }
+                }
+            }
+            await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id }, {
+                $pull: {
+                    approvedFields: {
+                        $in: fieldsToDelete
+                    }
+                }
+            });
+            await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id }, {
+                $push: {
+                    approvedFields: {
+                        $each: fieldsToAdd
+                    }
+                }
+            })
+        }
+
         const resField = await db.collections!.field_dictionary_collection.updateMany({
             studyId: studyId,
             dataVersion: null
@@ -219,14 +257,14 @@ export class StudyCore {
         return null;
     }
 
-    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
+    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuid(),
             studyId,
             createdBy: requestedBy,
             name: projectName,
             patientMapping: {},
-            approvedFields: approvedFields ? approvedFields : {},
+            approvedFields: approvedFields ? approvedFields : [],
             approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
             deleted: null
