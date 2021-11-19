@@ -5,6 +5,7 @@ import { LOGIN, WHO_AM_I } from 'itmat-commons';
 import { NavLink } from 'react-router-dom';
 import css from './login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
+import Checkbox from 'antd/lib/checkbox/Checkbox';
 
 const gitInfo = GitInfo();
 
@@ -46,11 +47,27 @@ export const LoginBox: React.FunctionComponent = () => {
                                             <br />
                                         </>
                                     ) : null}
-                                    <Form.Item>
-                                        <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
-                                            Login
-                                        </Button>
-                                    </Form.Item>
+                                    {(error?.message === 'Account Expired. Please request a new expiry date!') ? (
+                                        <>
+                                            <Form.Item name='requestexpirydate' valuePropName='checked' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                                <Checkbox> Tick the box to request a new expiry date! </Checkbox>
+                                            </Form.Item>
+                                            <Form.Item>
+                                                <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                                                    Submit Request
+                                                </Button>
+                                            </Form.Item>
+                                        </>
+                                    ) :
+                                        <>
+                                            <Form.Item>
+                                                <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                                                    Login
+                                                </Button>
+                                            </Form.Item>
+                                        </>
+                                    }
+
                                 </Form>
                             </div>
                             <br />
