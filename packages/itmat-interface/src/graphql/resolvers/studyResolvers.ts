@@ -296,7 +296,7 @@ export const studyResolvers = {
             ]).toArray();
             const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null).map(es => es.fieldId);
             const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission && versionId === null, fieldsList);
-            if (pipeline == null) {
+            if (pipeline === null) {
                 return { data: null };
             }
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
@@ -309,9 +309,6 @@ export const studyResolvers = {
                     acc[curr['m_subjectId']][curr['m_visitId']] = {};
                 }
                 acc[curr['m_subjectId']][curr['m_visitId']] = {...acc[curr['m_subjectId']][curr['m_visitId']], ...curr};
-                if (curr['m_subjectId'] === 'NRCASP3') {
-                    console.log(acc['NRCASP3']);
-                }
                 return acc;
             }, {});
 
@@ -507,7 +504,7 @@ export const studyResolvers = {
 
             // check fieldId exist
             const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldInput.fieldId, dateDeleted: null });
-            if (!searchField) {
+            if (searchField.length !== 1) {
                 throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
             for (const each of Object.keys(fieldInput)) {
