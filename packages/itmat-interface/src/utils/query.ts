@@ -10,14 +10,6 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
     }
     const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
 
-    if (query === undefined || query === null) {
-        return [
-            { $match: { m_studyId: studyId } },
-            dataVersionsFilter,
-            { $sort: { m_subjectId: -1, m_visitId: -1 } }
-        ];
-    }
-
     // We send back the requested fields, by default send all fields
     if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
         query.data_requested.forEach((field: any) => {

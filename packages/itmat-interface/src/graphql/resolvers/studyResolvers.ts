@@ -162,7 +162,7 @@ export const studyResolvers = {
                     doc: { $first: '$$ROOT' }
                 }
             }
-            ]).toArray()).map(el => el.doc);
+            ]).toArray()).map(el => el.doc).filter(eh => eh.dateDeleted === null);
             const summary: ISubjectDataRecordSummary[] = [];
             // we will not check data whose fields are not defined, because data that the associated fields are undefined will not be returned while querying data
             for (const record of data) {
@@ -930,7 +930,6 @@ export const studyResolvers = {
                         fieldsToReplace.push(validFields.filter(el => el.fieldId === each.fieldId)[0].id);
                     }
                 }
-                console.log(fieldsToReplace);
                 await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id, deleted: null }, {
                     $set: {
                         approvedFields: fieldsToReplace
