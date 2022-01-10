@@ -641,23 +641,16 @@ export const studyResolvers = {
             } else {
                 validFields = fieldIds.reduce((acc,curr) => (acc[curr] = null, acc), {});
             }
-            const insertedDocuments: any[] = [];
-            for (const subject of validSubjects) {
-                for (const visit of validVisits) {
-                    insertedDocuments.push({
-                        id: uuid(),
-                        m_studyId: studyId,
-                        m_subjectId: subject,
-                        m_visitId: visit,
-                        m_versionId: null,
-                        ...validFields,
-                        uploadedAt: (new Date()).valueOf()
-                    });
-                }
-            }
-            if (insertedDocuments.length >= 0) {
-                await db.collections!.data_collection.insertMany(insertedDocuments);
-            }
+            await db.collections!.data_collection.updateMany({
+                m_studyId: studyId,
+                m_subjectId: { $in: validSubjects },
+                m_visitId: { $in: validVisits },
+                m_versionId: null
+            }, {
+                $set: {...validFields, uploadedAt: (new Date()).valueOf(), id: uuid()}
+            }, {
+                upsert: true
+            });
             return [];
         },
         createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {

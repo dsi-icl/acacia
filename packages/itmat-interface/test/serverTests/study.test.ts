@@ -3358,12 +3358,11 @@ describe('STUDY API', () => {
             const dataInDb = await db.collections!.data_collection.find({}).sort({ uploadedAt: -1 }).limit(2).toArray();
             expect(dataInDb[0]['31']).toBe(null);
             expect(dataInDb[0]['32']).toBe(null);
-            expect(dataInDb[0]['m_subjectId']).toBe('GR6R4AR');
             expect(dataInDb[0]['m_visitId']).toBe('2');
             expect(dataInDb[1]['31']).toBe(null);
             expect(dataInDb[1]['32']).toBe(null);
-            expect(dataInDb[1]['m_subjectId']).toBe('I7N3G6G');
             expect(dataInDb[1]['m_visitId']).toBe('2');
+            expect(Array.from(new Set(dataInDb.map(el => el.m_subjectId))).length).toBe(2);
         });
 
         test('Delete data reocrds: studyId (admin)', async () => {
@@ -3383,7 +3382,7 @@ describe('STUDY API', () => {
             expect(deleteRes.body.errors).toBeUndefined();
             expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
             const dataInDb = await db.collections!.data_collection.find({ 31: null }).sort({ uploadedAt: -1 }).toArray();
-            expect(dataInDb).toHaveLength(4); // although there is no data related to (GR6R4AR-2), we still add a document to delete that
+            expect(dataInDb).toHaveLength(3);
         });
 
         test('Get data records (user with study privilege)', async () => {

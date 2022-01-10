@@ -16,7 +16,11 @@ import { Button, Form, Input, Switch, Modal, Table } from 'antd';
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
-    const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, { variables: { studyId: studyId, versionId: null } });
+    const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, { variables: { studyId: studyId, versionId: null, queryString: {
+        data_requested: null,
+        new_fields: null,
+        cohort: null
+    } } });
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     const [createNewDataVersion] = useMutation(CREATE_NEW_DATA_VERSION);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
@@ -126,7 +130,11 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                     onOk={() => setIsModalOn(false)}
                     onCancel={() => setIsModalOn(false)}
                 >
-                    <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, versionId: null }}>
+                    <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, versionId: null, queryString: {
+                        data_requested: null,
+                        new_fields: null,
+                        cohort: null
+                    } }}>
                         {({ data, loading, error }) => {
                             if (loading) { return <LoadSpinner />; }
                             if (error) { return <p>{JSON.stringify(error)}</p>; }
