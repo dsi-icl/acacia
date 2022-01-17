@@ -88,11 +88,11 @@ export const studyResolvers = {
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
             // get all dataVersions that are valid (before the current version)
             const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-            const availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             const fieldRecords = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
-                $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
+                $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
             }, {
                 $match: { studyId: studyId }
             }, {
@@ -147,13 +147,13 @@ export const studyResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
             const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-            const availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             // we only check data that hasnt been pushed to a new data version
             const data: any[] = await db.collections!.data_collection.find({ m_studyId: studyId, m_versionId: null }).toArray();
             const fieldRecords = (await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
-                $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
+                $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
             }, {
                 $match: { studyId: studyId }
             }, {
@@ -260,7 +260,7 @@ export const studyResolvers = {
             let availableDataVersions: any;
             // standard users can only access the data of the current version (in this case they shouldn't specify the versionids)
             if (versionId === null || versionId === undefined) {
-                availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+                availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             } else {
                 if (hasPermission) {
                     availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.dataVersions.map(el => el.id).indexOf(versionId))).map(el => el.id);
@@ -272,7 +272,7 @@ export const studyResolvers = {
             const fieldRecords = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
-                $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
+                $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
             }, {
                 $match: { studyId: studyId }
             }, {
@@ -301,14 +301,14 @@ export const studyResolvers = {
             }
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             // post processing the data
-            const groupedResult = result.reduce((acc,curr) => {
+            const groupedResult = result.reduce((acc, curr) => {
                 if (acc[curr['m_subjectId']] === undefined) {
                     acc[curr['m_subjectId']] = {};
                 }
                 if (acc[curr['m_subjectId']][curr['m_visitId']] === undefined) {
                     acc[curr['m_subjectId']][curr['m_visitId']] = {};
                 }
-                acc[curr['m_subjectId']][curr['m_visitId']] = {...acc[curr['m_subjectId']][curr['m_visitId']], ...curr};
+                acc[curr['m_subjectId']][curr['m_visitId']] = { ...acc[curr['m_subjectId']][curr['m_visitId']], ...curr };
                 return acc;
             }, {});
 
@@ -329,16 +329,16 @@ export const studyResolvers = {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         subjects: async (study: IStudy): Promise<string[]> => {
-            return study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id});
+            return study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id });
         },
         visits: async (study: IStudy): Promise<string[]> => {
-            return study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_visitId', { m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id});
+            return study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_visitId', { m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id });
         },
         numOfRecords: async (study: IStudy): Promise<number> => {
             if (study.currentDataVersion === -1) {
                 return 0;
             }
-            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.find({ m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id}).toArray()).length;
+            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.find({ m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id }).toArray()).length;
         },
         currentDataVersion: async (study: IStudy): Promise<null | number> => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
@@ -346,7 +346,7 @@ export const studyResolvers = {
     },
     Project: {
         fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Record<string, any>> => {
-            const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields));
+            const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields) as string[]);
             const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, dateDeleted: null }).toArray();
             return result;
         },
@@ -468,9 +468,9 @@ export const studyResolvers = {
                 isError = false;
                 // check data valid
                 if (!isError) {
-                    const {fieldEntry, error: thisError} = validateAndGenerateFieldEntry(oneFieldInput);
+                    const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput);
                     if (thisError.length !== 0) {
-                        error.push({code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}`});
+                        error.push({ code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
                         isError = true;
                     }
 
@@ -510,12 +510,12 @@ export const studyResolvers = {
             for (const each of Object.keys(fieldInput)) {
                 searchField[each] = fieldInput[each];
             }
-            const {fieldEntry, error} = validateAndGenerateFieldEntry(searchField);
+            const { fieldEntry, error } = validateAndGenerateFieldEntry(searchField);
             if (error.length !== 0) {
                 throw new ApolloError(JSON.stringify(error), errorCodes.CLIENT_MALFORMED_INPUT);
             }
-            const newFieldEntry = {...fieldEntry, id: searchField.id, dateAdded: searchField.dateAdded, deleted: searchField.dateDeleted, studyId: searchField.studyId};
-            await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: newFieldEntry.fieldId }, {$set: newFieldEntry});
+            const newFieldEntry = { ...fieldEntry, id: searchField.id, dateAdded: searchField.dateAdded, deleted: searchField.dateDeleted, studyId: searchField.studyId };
+            await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: newFieldEntry.fieldId }, { $set: newFieldEntry });
 
             return newFieldEntry;
 
@@ -582,11 +582,11 @@ export const studyResolvers = {
 
             // find the fieldsList, including those that have not been versioned, same method as getStudyFields
             // get all dataVersions that are valid (before/equal the current version)
-            const availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             const fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
-                $match: { $or: [ { dataVersion: null }, { dataVersion: { $in: availableDataVersions } } ] }
+                $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
             }, {
                 $match: { studyId: studyId }
             }, {
@@ -627,19 +627,19 @@ export const studyResolvers = {
             let validFields: any;
             // filter
             if (subjectIds === undefined || subjectIds === null || subjectIds.length === 0) {
-                validSubjects = (await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: studyId}));
+                validSubjects = (await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: studyId }));
             } else {
                 validSubjects = subjectIds;
             }
             if (visitIds === undefined || visitIds === null || visitIds.length === 0) {
-                validVisits = (await db.collections!.data_collection.distinct('m_visitId', { m_studyId: studyId}));
+                validVisits = (await db.collections!.data_collection.distinct('m_visitId', { m_studyId: studyId }));
             } else {
                 validVisits = visitIds;
             }
             if (fieldIds === undefined || fieldIds === null || fieldIds.length === 0) {
-                validFields = (await db.collections!.field_dictionary_collection.distinct('fieldId', { studyId: studyId})).reduce((acc,curr) => (acc[curr] = null, acc), {});
+                validFields = (await db.collections!.field_dictionary_collection.distinct('fieldId', { studyId: studyId })).reduce((acc, curr) => { acc[curr] = null; return acc; }, {});
             } else {
-                validFields = fieldIds.reduce((acc,curr) => (acc[curr] = null, acc), {});
+                validFields = fieldIds.reduce((acc, curr) => { acc[curr] = null; return acc; }, {});
             }
             await db.collections!.data_collection.updateMany({
                 m_studyId: studyId,
@@ -647,7 +647,7 @@ export const studyResolvers = {
                 m_visitId: { $in: validVisits },
                 m_versionId: null
             }, {
-                $set: {...validFields, uploadedAt: (new Date()).valueOf(), id: uuid()}
+                $set: { ...validFields, uploadedAt: (new Date()).valueOf(), id: uuid() }
             }, {
                 upsert: true
             });
@@ -700,7 +700,7 @@ export const studyResolvers = {
             } else {
                 newOntologyFields = study.ontologyTree;
             }
-            for (let i=0; i<ontologyInput.length; i++) {
+            for (let i = 0; i < ontologyInput.length; i++) {
                 // check fieldId exists
                 const fieldExist = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: ontologyInput[i].fieldId });
                 // check path last item is the same fieldId
@@ -739,13 +739,13 @@ export const studyResolvers = {
             } else {
                 ontologyFields = study.ontologyTree;
             }
-            for (let i=ontologyFields.length-1; i>=0; i--) {
+            for (let i = ontologyFields.length - 1; i >= 0; i--) {
                 if (fieldId.includes(ontologyFields[i].fieldId)) {
                     returnResult.push(ontologyFields[i]);
                     ontologyFields.splice(i, 1);
                 }
             }
-            await db.collections!.studies_collection.findOneAndUpdate({id: studyId}, {$set: {ontologyTree: ontologyFields}});
+            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId }, { $set: { ontologyTree: ontologyFields } });
             return returnResult;
         },
         createProject: async (__unused__parent: Record<string, unknown>, { studyId, projectName }: { studyId: string, projectName: string }, context: any): Promise<IProject> => {
@@ -895,7 +895,7 @@ export const studyResolvers = {
 
             // update the field Id of the approved fields of each project
             // get fields that are valid of the curretn data version
-            const availableDataVersions =  (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             const fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
@@ -933,11 +933,11 @@ export const studyResolvers = {
 
             /* update the currentversion field in database */
             const versionIdsList = study.dataVersions.map((el) => el.id);
-            const result = await db.collections!.studies_collection.findOneAndUpdate( { id: studyId, deleted: null }, {
+            const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
                 $set: { currentDataVersion: versionIdsList.indexOf(dataVersionId) }
             }, {
                 returnOriginal: false
-            } );
+            });
 
             if (result.ok === 1) {
                 return result.value;

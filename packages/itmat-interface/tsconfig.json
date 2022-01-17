@@ -7,7 +7,8 @@
     ],
     "compilerOptions": {
         "lib": [
-            "esnext"
+            "esnext",
+            "dom"
         ],
         "allowJs": true,
         "module": "esnext",

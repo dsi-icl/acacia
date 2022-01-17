@@ -351,8 +351,8 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             render: (__unused__value, record) => <Button disabled={isUploading} type='primary' danger icon={<DeleteOutlined />} onClick={() => {
                 removeFile(record);
             }}></Button>
-        }].map(col => {
-        return {
+        }]
+        .map(col => ({
             ...col,
             onCell: record => ({
                 record: {
@@ -364,8 +364,8 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 title: col.title,
                 handleSave
             }),
-        };
-    });
+        }
+        ));
 
     if (getOrgsLoading || getStudyLoading || getUsersLoading || whoAmILoading)
         return <LoadSpinner />;
@@ -421,8 +421,8 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         return values;
     }, { set: {}, count: 0 }).count;
 
-    return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
-        <input {...getInputProps()} />
+    return <div {...getRootProps() as React.HTMLAttributes<HTMLDivElement>} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
+        <input title='fileTabDropZone' {...getInputProps()} />
         {fileList.length > 0
             ?
             <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>

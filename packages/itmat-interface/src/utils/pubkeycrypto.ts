@@ -15,7 +15,7 @@ export function rsasigner(privateKey: string, message: string, scheme = 'RSA-SHA
         signer.end();
         return signature;
     }
-    catch(err){
+    catch (err: any) {
         return err;
     }
 }
@@ -42,7 +42,7 @@ export function reGenPkfromSk(privateKey: string, passphrase = 'idea-fast'): str
         });
         return reGenPk.toString('base64');
     }
-    catch(err){
+    catch (err: any) {
         return err;
     }
 }
@@ -77,7 +77,7 @@ export async function rsaverifier(pubkey: string, signature: string, message = '
         );
         return result;
     }
-    catch(err){
+    catch (err) {
         console.log(err);
         throw err;
     }
@@ -112,7 +112,7 @@ export async function rsaSigner_test(privateKey: string, signature: string, mess
             }, 'base64');
             signer.end();
         }
-        catch(err){
+        catch (err) {
             return err;
         }
         console.log('Signature generated at client-side: ', signature);
@@ -120,14 +120,14 @@ export async function rsaSigner_test(privateKey: string, signature: string, mess
 
         return false;
     }
-    catch(err){
+    catch (err) {
         console.log(err);
         throw err;
     }
 }
 
 export function rsakeygen(passphrase = 'idea-fast', modulusLength = 4096) {
-    const { publicKey, privateKey }  = crypto.generateKeyPairSync('rsa', {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
         modulusLength: modulusLength,
         publicKeyEncoding: {
             type: 'spki',
