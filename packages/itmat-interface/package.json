@@ -78,7 +78,6 @@
         "webpack-cli": "4.7.0"
     },
     "resolutions": {
-        "**/**/fs-capacitor": "^6.2.0",
         "**/apollo-server-core": "2.20.0",
         "**/graphql-upload": "^11.0.0"
     },
