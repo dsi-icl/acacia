@@ -38,7 +38,6 @@ export class JSONCurator {
     /* return list of errors. [] if no error */
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         return new Promise((resolve) => {
-            console.log(`uploading for job ${this.job.id}`);
             let isHeader = true;
             let objectNum = 0;
             const subjectString: string[] = [];
@@ -85,7 +84,7 @@ export class JSONCurator {
                             m_versionId: dataEntry.m_versionId,
                             m_studyId: dataEntry.m_studyId
                         };
-                        bulkInsert.find(matchObj).upsert().updateOne({$set: dataEntry});
+                        bulkInsert.find(matchObj).upsert().updateOne({ $set: dataEntry });
                         this._numOfSubj++;
 
                     }
@@ -93,7 +92,8 @@ export class JSONCurator {
                         this._numOfSubj = 0;
                         await bulkInsert.execute((err, res) => {
                             if (err) {
-                                console.log(res.getWriteErrors()[1]);
+                                //TODO Handle error recording
+                                console.error(err, res.getWriteErrors());
                                 return;
                             }
                         });
@@ -106,12 +106,13 @@ export class JSONCurator {
             uploadWriteStream.on('finish', async () => {
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
-                        console.log('FINSIHED LOADING');
-                        if (err) { console.log(err); return; }
+                        if (err) {
+                            //TOTO Handle error recording
+                            console.error(err);
+                            return;
+                        }
                     });
                 }
-
-                console.log('end');
                 resolve(this._errors);
             });
             this.incomingWebStream.pipe(jsonstream);
@@ -148,7 +149,7 @@ export function processJSONHeader(header: string[], fieldsList: any[]): { error?
             if (fields.includes(each)) {
                 // if duplicates happens, we only extract data from the first one
                 error.push(`Object 1 column ${colNum + 1}: Duplicate field.`);
-                parsedHeader.push({fieldName: each, dataType: 'dul', fieldId: undefined});
+                parsedHeader.push({ fieldName: each, dataType: 'dul', fieldId: undefined });
                 colNum++;
                 continue;
             }
@@ -157,7 +158,7 @@ export function processJSONHeader(header: string[], fieldsList: any[]): { error?
                 parsedHeader.push(fieldsList.filter(el => el.fieldName === each)[0]);
             } else {
                 error.push(`Object 1 column ${colNum + 1}: Unknown field.`);
-                parsedHeader.push({fieldName: each, dataType: 'unk', fieldId: undefined});
+                parsedHeader.push({ fieldName: each, dataType: 'unk', fieldId: undefined });
             }
         }
         colNum++;
@@ -166,7 +167,7 @@ export function processJSONHeader(header: string[], fieldsList: any[]): { error?
     const filteredParsedHeader = parsedHeader.filter(el => el !== undefined);
     const subjectIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'SubjectID') + 1; // ID is the first
     const visitIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'VisitID') + 1;
-    return ({ parsedHeader: filteredParsedHeader, error: error.length === 0 ? undefined : error , subjectIdIndex, visitIdIndex});
+    return ({ parsedHeader: filteredParsedHeader, error: error.length === 0 ? undefined : error, subjectIdIndex, visitIdIndex });
 }
 
 export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, subject, parsedHeader, job }: { subjectIdIndex: number, visitIdIndex: number, objectNum: number, subject: string[], parsedHeader: any[], job: IJobEntry<never> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
