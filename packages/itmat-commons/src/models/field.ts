@@ -9,10 +9,12 @@ export interface IFieldEntry {
     unit?: string;
     comments?: string;
     dateAdded: string;
-    dateDeleted: string | null
+    dateDeleted: string | null;
+    dataVersion: string;
 }
 
 export interface IValueDescription {
+    id: string;
     code: string;
     description: string
 }

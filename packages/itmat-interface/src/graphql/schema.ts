@@ -33,6 +33,7 @@ enum STUDYTYPE {
 }
 
 type ValueCategory {
+    id: String!,
     code: String!,
     description: String
 }
@@ -47,6 +48,7 @@ type Field {
     possibleValues: [ValueCategory]
     unit: String
     comments: String
+    dataVersion: String
     dateAdded: String!
     dateDeleted: String
 }
@@ -183,7 +185,9 @@ type Study {
     roles: [StudyOrProjectUserRole]!
     # fields: [Field]!
     files: [File]!
-    numOfSubjects: Int!
+    subjects: [String]!
+    visits: [String]!
+    numOfRecords: Int!
 }
 
 type Project {
@@ -428,7 +432,7 @@ type OntologyField {
 type SubjectDataRecordSummary {
     subjectId: String!
     visitId: String
-    missingFields: [String]
+    errorFields: [String]
 }
 
 type Query {
@@ -447,8 +451,8 @@ type Query {
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
-    getStudyFields(studyId: String!, projectId: String): [Field]
-    getDataRecords(studyId: String!, queryString: JSON, versionId: [String], projectId: String): JSON
+    getStudyFields(studyId: String!, projectId: String, versionId: String): [Field]
+    getDataRecords(studyId: String!, queryString: JSON, versionId: String, projectId: String): JSON
     getOntologyTree(studyId: String!, projectId: String): [OntologyField]
     checkDataComplete(studyId: String!): [SubjectDataRecordSummary]
     
@@ -496,7 +500,7 @@ type Mutation {
     editStudy(studyId: String!, description: String): Study
     createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
     uploadDataInArray(studyId: String!, data: [DataClip]): [DataClipError]
-    deleteDataRecords(studyId: String!, subjectId: String, visitId: String, fieldIds: [String]): [DataClipError]
+    deleteDataRecords(studyId: String!, subjectIds: [String], visitIds: [String], fieldIds: [String]): [DataClipError]
     createNewField(studyId: String!, fieldInput: [FieldInput]!): [FieldClipError]
     editField(studyId: String!, fieldInput: FieldInput!): Field
     deleteField(studyId: String!, fieldId: String!): Field

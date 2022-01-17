@@ -30,7 +30,7 @@ export const ProjectDetailPage: React.FunctionComponent<{ projectId: string }> =
                     </div>
                     <div className={css_dataset.content}>
                         <Switch>
-                            <Route path='/projects/:projectId/dashboard' render={() => <DashboardTabContent studyId={data.getProject.studyId} jobs={data.getProject.jobs} />} />
+                            <Route path='/projects/:projectId/dashboard' render={() => <DashboardTabContent studyId={data.getProject.studyId} projectId={data.getProject.id} jobs={data.getProject.jobs} />} />
                             <Route path='/projects/:projectId/admin' render={({ match }) => <AdminTabContent studyId={data.getProject.studyId} projectId={match.params.projectId} roles={data.getProject.roles} />} />
                             {/* <Route path="/projects/:projectId/samples" render={() => <></>} /> */}
                             <Route path='/projects/:projectId/data' render={() => <DataTabContent studyId={data.getProject.studyId} projectId={projectId} />} />

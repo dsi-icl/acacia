@@ -230,70 +230,74 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
         /* adding value to dataEntry */
         let value: any;
         try {
-            switch (dataType) {
-                case 'cat': {// categorical
-                    const code = parseInt(each, 10).toString();
-                    if (!possibleValues.map(el => el.code).includes(code)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as categorical, value is illegal.`);
-                        colIndex++;
-                        continue;
+            if (each.toString() === '99999') {
+                value = '99999';
+            } else {
+                switch (dataType) {
+                    case 'cat': {// categorical
+                        const code = parseInt(each, 10).toString();
+                        if (!possibleValues.map(el => el.code).includes(code)) {
+                            error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as categorical, value is illegal.`);
+                            colIndex++;
+                            continue;
+                        }
+                        value = code;
+                        break;
                     }
-                    value = code;
-                    break;
-                }
-                case 'dec': {// decimal
-                    if (!/^\d+(.\d+)?$/.test(each)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
-                        colIndex++;
-                        continue;
+                    case 'dec': {// decimal
+                        if (!/^\d+(.\d+)?$/.test(each)) {
+                            error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as decimal.`);
+                            colIndex++;
+                            continue;
+                        }
+                        value = parseFloat(each);
+                        break;
                     }
-                    value = parseFloat(each);
-                    break;
-                }
-                case 'int': {// integer
-                    if (!/^-?\d+$/.test(each)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
-                        colIndex++;
-                        continue;
+                    case 'int': {// integer
+                        if (!/^-?\d+$/.test(each)) {
+                            error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as integer.`);
+                            colIndex++;
+                            continue;
+                        }
+                        value = parseInt(each, 10);
+                        break;
                     }
-                    value = parseInt(each, 10);
-                    break;
-                }
-                case 'bool': {// boolean
-                    if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
-                        value = each.toLowerCase() === 'true';
-                    } else {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
-                        colIndex++;
-                        continue;
+                    case 'bool': {// boolean
+                        if (each.toLowerCase() === 'true' || each.toLowerCase() === 'false') {
+                            value = each.toLowerCase() === 'true';
+                        } else {
+                            error.push(`Line ${lineNum} column ${colIndex + 1}: value for boolean type must be 'true' or 'false'.`);
+                            colIndex++;
+                            continue;
+                        }
+                        break;
                     }
-                    break;
-                }
-                case 'str': {
-                    value = each.toString();
-                    break;
-                }
-                case 'date': {
-                    const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
-                    if (!each.match(matcher)) {
-                        error.push(`Line ${lineNum} column ${colIndex + 1}: value for date type must be in ISO format.`);
-                        colIndex++;
-                        continue;
+                    case 'str': {
+                        value = each.toString();
+                        break;
                     }
-                    value = each.toString();
-                    break;
-                }
-                case 'json': {
-                    value = each;
-                    break;
-                }
-                case 'file': {
-                    value = each.toString();
-                    break;
-                }
-                default: {
-                    error.push(`Line ${lineNum} column ${colIndex + 1}: Invalid data Type.`);
-                    break;
+                    case 'date': {
+                        const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
+                        if (!each.match(matcher)) {
+                            error.push(`Line ${lineNum} column ${colIndex + 1}: value for date type must be in ISO format.`);
+                            colIndex++;
+                            continue;
+                        }
+                        value = each.toString();
+                        break;
+                    }
+                    case 'json': {
+                        value = each;
+                        break;
+                    }
+                    case 'file': {
+                        value = each.toString();
+                        break;
+                    }
+                    default: {
+                        error.push(`Line ${lineNum} column ${colIndex + 1}: Invalid data Type.`);
+                        break;
+                    }
                 }
             }
         } catch (e) {

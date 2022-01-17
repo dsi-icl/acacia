@@ -16,15 +16,8 @@ export class QueryHandler extends JobHandler {
 
     public async execute(job: IJobEntry<{ queryId: string[], projectId: string, studyId: string }>) {
         // get available data versions
-        const thisStudy = await db.collections!.studies_collection.findOne({ id: job.studyId });
-        const endContentId = thisStudy.dataVersions[thisStudy.currentDataVersion].contentId;
-        const availableDataVersions: any[] = [];
-        for (let i=0; i<thisStudy.dataVersions.length; i++) {
-            availableDataVersions.push(thisStudy.dataVersions[i].contentId);
-            if (thisStudy.dataVersions[i].contentId === endContentId) {
-                break;
-            }
-        }
+        const thisProject = await db.collections!.projects_collection.findOne({ id: job.data.projectId });
+        const availableDataVersions = [thisProject.dataVersion];
         const  queryId  = job.data.queryId[0];
         const queryString = await db.collections!.queries_collection.findOne({id: queryId})!;
         const pipeline = pipelineGenerator.buildPipeline(queryString.queryString, job.studyId, availableDataVersions);
@@ -32,7 +25,7 @@ export class QueryHandler extends JobHandler {
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             /* if the query is on a project, then we need to map the results m_eid */
             if (job.projectId) {
-                const project: IProject = await db.collections!.projects_collection.findOne({ id: job.projectId })!;
+                const project: IProject = await db.collections!.projects_collection.findOne({ id: job.data.projectId })!;
                 if (project === null || project === undefined) {
                     await db.collections!.queries_collection.findOneAndUpdate({ queryId }, { $set: {
                         error: 'Project does not exist or has been deleted.',

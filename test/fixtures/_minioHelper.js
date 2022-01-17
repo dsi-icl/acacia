@@ -4,8 +4,8 @@ const getPort = require('get-port');
 const { v4: uuid } = require('uuid');
 const chalk = require('chalk');
 
-const MINIO_DOCKER_VERSION = '@sha256:4a1bbd112c0c09fc3a07ae84f5e5a4501dbc7bf8d637a5ddd0df76a425630043';
-
+// const MINIO_DOCKER_VERSION = '@sha256:4a1bbd112c0c09fc3a07ae84f5e5a4501dbc7bf8d637a5ddd0df76a425630043';
+const MINIO_DOCKER_VERSION = ':latest';
 module.exports = {
     minioContainerSetup: (container, port) => {
         return new Promise((resolve, reject) => {

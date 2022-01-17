@@ -50,7 +50,7 @@ export interface IProject {
     createdBy: string;
     name: string;
     patientMapping: { [originalId: string]: string };
-    approvedFields: { [fieldTreeId: string]: string[] };
+    approvedFields: string[];
     approvedFiles: string[];
     lastModified: number;
     deleted: number | null;
@@ -76,5 +76,5 @@ export interface IDataClipError {
 export interface ISubjectDataRecordSummary {
     subjectId: string,
     visitId?: string,
-    missingFields: string[]
+    errorFields: string[]
 }

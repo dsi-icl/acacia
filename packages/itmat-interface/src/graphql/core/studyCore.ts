@@ -71,22 +71,71 @@ export class StudyCore {
         }
     }
 
-    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion> {
-        const res = (await db.collections!.data_collection.find({ m_versionId: null })).toArray();
-        if ((res as any).length <= 0) {
-            throw new ApolloError('No records uploaded since last operation.');
-        }
+    public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion | null> {
         const newDataVersionId = uuid();
-        const contentId = uuid();
-        // update record version
-        const updateVersion = await db.collections!.data_collection.updateMany({ m_versionId: null }, { $set: { m_versionId: contentId } });
-        if (updateVersion.result.ok !== 1) {
-            throw new ApolloError('Create new adta version failed: cannot add data version to new records.');
+        const newContentId = uuid();
+        const resData = await db.collections!.data_collection.updateMany({
+            m_studyId: studyId,
+            m_versionId: null
+        }, {
+            $set: {
+                m_versionId: newDataVersionId
+            }
+        });
+        // if field is modified, need to modified the approved fields of each related project
+        // if the field is updated: update the approved field Id
+        // if the field is deleted: remove the original field Id
+        const newApprovedFieldsInfo = await db.collections!.field_dictionary_collection.find({ studyId: studyId, dataVersion: null }).toArray();
+        const fieldsToDelete: string[] = [];
+        const fieldsToAdd: string[] = [];
+        // delete all influenced fields and then add the new one
+        const projects = await db.collections!.projects_collection.find({ studyId: studyId, deleted: null }).toArray();
+        for (const project of projects) {
+            const originalApprovedFieldsInfo = await db.collections!.field_dictionary_collection.find({ id: { $in: project.approvedFields } }).toArray();
+            const originalApprovedFieldsIds = originalApprovedFieldsInfo.map(el => el.fieldId);
+            for (const each of newApprovedFieldsInfo) {
+                if (originalApprovedFieldsIds.includes(each.fieldId)) {
+                    if (each.dateDeleted === null) {
+                        // delete original and add new one
+                        fieldsToDelete.push(originalApprovedFieldsInfo.filter(el => el.fieldId === each.fieldId)[0].id);
+                        fieldsToAdd.push(each.id);
+                    } else {
+                        fieldsToDelete.push(originalApprovedFieldsInfo.filter(el => el.fieldId === each.fieldId)[0].id);
+                    }
+                }
+            }
+            await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id }, {
+                $pull: {
+                    approvedFields: {
+                        $in: fieldsToDelete
+                    }
+                }
+            });
+            await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id }, {
+                $push: {
+                    approvedFields: {
+                        $each: fieldsToAdd
+                    }
+                }
+            });
         }
+
+        const resField = await db.collections!.field_dictionary_collection.updateMany({
+            studyId: studyId,
+            dataVersion: null
+        }, {
+            $set: {
+                dataVersion: newDataVersionId
+            }
+        });
+        if (resData.modifiedCount === 0 && resField.modifiedCount === 0) {
+            return null;
+        }
+
         // insert a new version into study
         const newDataVersion: IStudyDataVersion = {
             id: newDataVersionId,
-            contentId: contentId, // same content = same id - used in reverting data, version control
+            contentId: newContentId, // same content = same id - used in reverting data, version control
             version: dataVersion,
             tag: tag,
             updateDate: (new Date().valueOf()).toString(),
@@ -103,7 +152,7 @@ export class StudyCore {
     public async uploadOneDataClip(studyId: string, fieldList: any[], dataClip: any): Promise<any> {
         const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId);
         if (!fieldInDb) {
-            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} is not registered. Please update the annotations first.` };
+            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: FieldId is not registered. Please define this fieldId first.` };
         }
         // check subjectId
         if(!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
@@ -114,12 +163,14 @@ export class StudyCore {
         let error;
         let parsedValue;
         if (fieldInDb.length === 0) {
-            error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Field Not found`;
+            error = `Field ${dataClip.fieldId}: Field Not found`;
+        } else if (dataClip.value.toString() === '99999') { // agreement with other WPs, 99999 refers to missing
+            parsedValue = '99999';
         } else {
             switch (fieldInDb[0].dataType) {
                 case 'dec': {// decimal
                     if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as decimal.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as decimal.`;
                         break;
                     }
                     parsedValue = parseFloat(dataClip.value);
@@ -127,7 +178,7 @@ export class StudyCore {
                 }
                 case 'int': {// integer
                     if (!/^-?\d+$/.test(dataClip.value)) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as integer.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as integer.`;
                         break;
                     }
                     parsedValue = parseInt(dataClip.value, 10);
@@ -137,7 +188,7 @@ export class StudyCore {
                     if (dataClip.value.toLowerCase() === 'true' || dataClip.value.toLowerCase() === 'false') {
                         parsedValue = dataClip.value.toLowerCase() === 'true';
                     } else {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as boolean.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as boolean.`;
                         break;
                     }
                     break;
@@ -150,7 +201,7 @@ export class StudyCore {
                 case 'date': {
                     const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
                     if (!dataClip.value.match(matcher)) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName}: value for date type must be in ISO format.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
                         break;
                     }
                     parsedValue = dataClip.value.toString();
@@ -163,7 +214,7 @@ export class StudyCore {
                 case 'file': {
                     const file = await db.collections!.files_collection.findOne({ id: parseValue });
                     if (!file) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as file or file does not exist.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as file or file does not exist.`;
                         break;
                     } else {
                         parsedValue = dataClip.value.toString();
@@ -172,7 +223,7 @@ export class StudyCore {
                 }
                 case 'cat': {
                     if (!fieldInDb[0].possibleValues.map(el => el.code).includes(dataClip.value.toString())) {
-                        error = `Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Cannot parse as categorical, value not in value list.`;
+                        error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
                         break;
                     } else {
                         parsedValue = dataClip.value.toString();
@@ -180,7 +231,7 @@ export class StudyCore {
                     break;
                 }
                 default: {
-                    error = (`Field ${dataClip.fieldId}-${dataClip.fieldName}-${dataClip.tableName} : Invalid data Type.`);
+                    error = (`Field ${dataClip.fieldId}: Invalid data Type.`);
                     break;
                 }
             }
@@ -192,10 +243,12 @@ export class StudyCore {
             m_studyId: studyId,
             m_subjectId: dataClip.subjectId,
             m_versionId: null,
-            m_visitId: dataClip.visitId
+            m_visitId: dataClip.visitId,
         };
         const objWithData = {
             ...obj,
+            id: uuid(),
+            uploadedAt: (new Date()).valueOf()
         };
         objWithData[dataClip.fieldId] = parsedValue;
         await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, {
@@ -204,14 +257,14 @@ export class StudyCore {
         return null;
     }
 
-    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: { [fieldTreeId: string]: string[] }, approvedFiles?: string[]): Promise<IProject> {
+    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuid(),
             studyId,
             createdBy: requestedBy,
             name: projectName,
             patientMapping: {},
-            approvedFields: approvedFields ? approvedFields : {},
+            approvedFields: approvedFields ? approvedFields : [],
             approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
             deleted: null
