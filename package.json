@@ -61,8 +61,7 @@
     },
     "resolutions": {
         "**/apollo-server-core": "2.20.0",
-        "**/graphql-upload": "^11.0.0",
-        "**/moment": "2.29.1"
+        "**/graphql-upload": "^11.0.0"
     },
     "eslintConfig": {
         "extends": "./config/eslint.config.js"
