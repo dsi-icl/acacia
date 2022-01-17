@@ -55,7 +55,6 @@
         "cypress-react-unit-test": "4.17.2",
         "enzyme": "3.11.0",
         "enzyme-adapter-react-16": "1.15.6",
-        "react-git-info": "2.0.0",
         "http-proxy-middleware": "2.0.1",
         "jest": "26.6.3",
         "jest-enzyme": "7.1.2",

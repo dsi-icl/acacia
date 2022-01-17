@@ -170,7 +170,7 @@ describe('STUDY API', () => {
 
             const editStudy = await admin.post('/graphql').send({
                 query: print(EDIT_STUDY),
-                variables: {studyId: createdStudy.id, description: 'edited description'}
+                variables: { studyId: createdStudy.id, description: 'edited description' }
             });
             expect(editStudy.body.data.editStudy).toEqual({
                 id: createdStudy.id,
@@ -277,7 +277,7 @@ describe('STUDY API', () => {
 
             const editStudy = await user.post('/graphql').send({
                 query: print(EDIT_STUDY),
-                variables: {studyId: createdStudy.id, description: 'edited description'}
+                variables: { studyId: createdStudy.id, description: 'edited description' }
             });
             expect(editStudy.status).toBe(200);
             expect(editStudy.body.data.editStudy).toBe(null);
@@ -1276,11 +1276,9 @@ describe('STUDY API', () => {
             }
 
             /* delete values in db */
-            {
-                await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
-                await db.collections!.data_collection.deleteMany({ m_studyId: createdStudy.id });
-                await db.collections!.files_collection.deleteMany({ studyId: createdStudy.id });
-            }
+            await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
+            await db.collections!.data_collection.deleteMany({ m_studyId: createdStudy.id });
+            await db.collections!.files_collection.deleteMany({ studyId: createdStudy.id });
 
             /* study user cannot delete study */
             {
@@ -2430,7 +2428,7 @@ describe('STUDY API', () => {
             }]);
 
             // delete fields
-            await db.collections!.studies_collection.findOneAndUpdate({id: createdStudy.id}, { $set: {ontologyTree: []} });
+            await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id }, { $set: { ontologyTree: [] } });
             await db.collections!.field_dictionary_collection.deleteMany({});
         });
 
@@ -2466,8 +2464,8 @@ describe('STUDY API', () => {
                             dataType: 'int',
                             comments: 'test',
                             possibleValues: [
-                                {code: '1', description: 'NOW'},
-                                {code: '2', description: 'OLD'}
+                                { code: '1', description: 'NOW' },
+                                { code: '2', description: 'OLD' }
                             ]
                         },
                         {
@@ -2477,8 +2475,8 @@ describe('STUDY API', () => {
                             dataType: 'cat',
                             comments: 'test',
                             possibleValues: [
-                                {code: '1', description: 'TRUE'},
-                                {code: '2', description: 'FALSE'}
+                                { code: '1', description: 'TRUE' },
+                                { code: '2', description: 'FALSE' }
                             ]
                         }
                     ]
@@ -2504,8 +2502,8 @@ describe('STUDY API', () => {
                             dataType: 'int',
                             comments: 'test',
                             possibleValues: [
-                                {code: '1', description: 'NOW'},
-                                {code: '2', description: 'OLD'}
+                                { code: '1', description: 'NOW' },
+                                { code: '2', description: 'OLD' }
                             ]
                         },
                         {
@@ -2515,8 +2513,8 @@ describe('STUDY API', () => {
                             dataType: 'cat',
                             comments: 'test',
                             possibleValues: [
-                                {code: '1', description: 'TRUE'},
-                                {code: '2', description: 'FALSE'}
+                                { code: '1', description: 'TRUE' },
+                                { code: '2', description: 'FALSE' }
                             ]
                         }
                     ]
@@ -2540,8 +2538,8 @@ describe('STUDY API', () => {
                             dataType: 'int',
                             comments: 'test',
                             possibleValues: [
-                                {code: '1', description: 'NOW'},
-                                {code: '2', description: 'OLD'}
+                                { code: '1', description: 'NOW' },
+                                { code: '2', description: 'OLD' }
                             ]
                         },
                         {
@@ -2551,8 +2549,8 @@ describe('STUDY API', () => {
                             dataType: 'cat',
                             comments: 'test',
                             possibleValues: [
-                                {code: '1', description: 'TRUE'},
-                                {code: '2', description: 'FALSE'}
+                                { code: '1', description: 'TRUE' },
+                                { code: '2', description: 'FALSE' }
                             ]
                         }
                     ]
@@ -2586,8 +2584,8 @@ describe('STUDY API', () => {
                             dataType: 'int',
                             comments: 'test',
                             possibleValues: [
-                                {code: '1', description: 'NOW'},
-                                {code: '2', description: 'OLD'}
+                                { code: '1', description: 'NOW' },
+                                { code: '2', description: 'OLD' }
                             ]
                         },
                         {
@@ -2597,8 +2595,8 @@ describe('STUDY API', () => {
                             dataType: 'cat',
                             comments: 'test',
                             possibleValues: [
-                                {code: '1', description: 'TRUE'},
-                                {code: '2', description: 'FALSE'}
+                                { code: '1', description: 'TRUE' },
+                                { code: '2', description: 'FALSE' }
                             ]
                         }
                     ]
@@ -2851,44 +2849,42 @@ describe('STUDY API', () => {
             }
 
             /* 5. Insert field for data uploading later */
-            {
-                mockDataVersion = {
-                    id: 'mockDataVersionId',
-                    contentId: 'mockContentId',
-                    version: '0.0.1',
-                    updateDate: '5000000',
-                };
-                mockFields = [
-                    {
-                        id: 'mockfield1',
-                        studyId: createdStudy.id,
-                        fieldId: '31',
-                        fieldName: 'Age',
-                        dataType: enumValueType.INTEGER,
-                        possibleValues: [],
-                        unit: 'person',
-                        comments: 'mockComments1',
-                        dateAdded: 100000000,
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
-                    },
-                    {
-                        id: 'mockfield2',
-                        studyId: createdStudy.id,
-                        fieldId: '32',
-                        fieldName: 'Sex',
-                        dataType: enumValueType.STRING,
-                        possibleValues: [],
-                        unit: 'person',
-                        comments: 'mockComments1',
-                        dateAdded: 100000000,
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
-                    }
-                ];
-                await db.collections!.field_dictionary_collection.insertMany(mockFields);
-                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
-            }
+            mockDataVersion = {
+                id: 'mockDataVersionId',
+                contentId: 'mockContentId',
+                version: '0.0.1',
+                updateDate: '5000000',
+            };
+            mockFields = [
+                {
+                    id: 'mockfield1',
+                    studyId: createdStudy.id,
+                    fieldId: '31',
+                    fieldName: 'Age',
+                    dataType: enumValueType.INTEGER,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments1',
+                    dateAdded: 100000000,
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                },
+                {
+                    id: 'mockfield2',
+                    studyId: createdStudy.id,
+                    fieldId: '32',
+                    fieldName: 'Sex',
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments1',
+                    dateAdded: 100000000,
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                }
+            ];
+            await db.collections!.field_dictionary_collection.insertMany(mockFields);
+            await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
 
             /* 2. create projects for the study */
             {
@@ -3032,15 +3028,12 @@ describe('STUDY API', () => {
             }
 
             /* Connect users */
-            {
-                authorisedUser = request.agent(app);
-                await connectAgent(authorisedUser, createdUserAuthorisedProfile.username, 'admin', createdUserAuthorisedProfile.otpSecret);
-                unauthorisedUser = request.agent(app);
-                await connectAgent(unauthorisedUser, createdUserNoAuthorisedProfile.username, 'admin', createdUserNoAuthorisedProfile.otpSecret);
-                authorisedProjectUser = request.agent(app);
-                await connectAgent(authorisedProjectUser, createdUserAuthorisedProject.username, 'admin', createdUserAuthorisedProject.otpSecret);
-            }
-
+            authorisedUser = request.agent(app);
+            await connectAgent(authorisedUser, createdUserAuthorisedProfile.username, 'admin', createdUserAuthorisedProfile.otpSecret);
+            unauthorisedUser = request.agent(app);
+            await connectAgent(unauthorisedUser, createdUserNoAuthorisedProfile.username, 'admin', createdUserNoAuthorisedProfile.otpSecret);
+            authorisedProjectUser = request.agent(app);
+            await connectAgent(authorisedProjectUser, createdUserAuthorisedProject.username, 'admin', createdUserAuthorisedProject.otpSecret);
 
         });
 
@@ -3094,20 +3087,20 @@ describe('STUDY API', () => {
                 expect(res.body.data.getStudy).toBe(null);
             }
 
-            {
-                await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
-            }
+            await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id });
         });
 
         afterEach(async () => {
             await db.collections!.data_collection.deleteMany({});
             await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
-                $set: { dataVersions: [{
-                    id: 'mockDataVersionId',
-                    contentId: 'mockContentId',
-                    version: '0.0.1',
-                    updateDate: '5000000',
-                }], currentDataVersion: 0 }
+                $set: {
+                    dataVersions: [{
+                        id: 'mockDataVersionId',
+                        contentId: 'mockContentId',
+                        version: '0.0.1',
+                        updateDate: '5000000',
+                    }], currentDataVersion: 0
+                }
             });
         });
 
@@ -3160,9 +3153,9 @@ describe('STUDY API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.uploadDataInArray).toEqual([
-                {code: 'MALFORMED_INPUT', description: 'Field 33: Field Not found'},
-                {code: 'MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.'},
-                {code: 'ACTION_ON_NON_EXISTENT_ENTRY', description: 'Subject ID I777770 is illegal.'}
+                { code: 'MALFORMED_INPUT', description: 'Field 33: Field Not found' },
+                { code: 'MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.' },
+                { code: 'ACTION_ON_NON_EXISTENT_ENTRY', description: 'Subject ID I777770 is illegal.' }
             ]);
 
             const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
@@ -3215,12 +3208,14 @@ describe('STUDY API', () => {
         test('Create New data version with field only (user with study privilege)', async () => {
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: {
-                    fieldId: '34',
-                    fieldName:  'Height',
-                    dataType: enumValueType.DECIMAL,
-                    unit: 'cm'
-                } }
+                variables: {
+                    studyId: createdStudy.id, fieldInput: {
+                        fieldId: '34',
+                        fieldName: 'Height',
+                        dataType: enumValueType.DECIMAL,
+                        unit: 'cm'
+                    }
+                }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
@@ -3243,12 +3238,14 @@ describe('STUDY API', () => {
         test('Create New data version with field and data (user with study privilege)', async () => {
             await admin.post('/graphql').send({
                 query: print(CREATE_NEW_FIELD),
-                variables: { studyId: createdStudy.id, fieldInput: {
-                    fieldId: '34',
-                    fieldName:  'Height',
-                    dataType: enumValueType.DECIMAL,
-                    unit: 'cm'
-                } }
+                variables: {
+                    studyId: createdStudy.id, fieldInput: {
+                        fieldId: '34',
+                        fieldName: 'Height',
+                        dataType: enumValueType.DECIMAL,
+                        unit: 'cm'
+                    }
+                }
             });
             await admin.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
@@ -3396,14 +3393,16 @@ describe('STUDY API', () => {
             });
             await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: [
-                    {
-                        fieldId: '31',
-                        value: '10',
-                        subjectId: 'I7N3G6G',
-                        visitId: '3'
-                    }
-                ] }
+                variables: {
+                    studyId: createdStudy.id, data: [
+                        {
+                            fieldId: '31',
+                            value: '10',
+                            subjectId: 'I7N3G6G',
+                            visitId: '3'
+                        }
+                    ]
+                }
             });
             const getRes = await authorisedUser.post('/graphql').send({
                 query: print(GET_DATA_RECORDS),
@@ -3432,14 +3431,16 @@ describe('STUDY API', () => {
             });
             await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
-                variables: { studyId: createdStudy.id, data: [
-                    {
-                        fieldId: '31',
-                        value: '10',
-                        subjectId: 'I7N3G6G',
-                        visitId: '3'
-                    }
-                ] }
+                variables: {
+                    studyId: createdStudy.id, data: [
+                        {
+                            fieldId: '31',
+                            value: '10',
+                            subjectId: 'I7N3G6G',
+                            visitId: '3'
+                        }
+                    ]
+                }
             });
             const getRes = await authorisedProjectUser.post('/graphql').send({
                 query: print(GET_DATA_RECORDS),
@@ -3476,7 +3477,7 @@ describe('STUDY API', () => {
 
             const checkRes = await admin.post('/graphql').send({
                 query: print(CHECK_DATA_COMPLETE),
-                variables: { studyId: createdStudy.id}
+                variables: { studyId: createdStudy.id }
             });
             expect(checkRes.status).toBe(200);
             expect(checkRes.body.errors).toBeUndefined();
