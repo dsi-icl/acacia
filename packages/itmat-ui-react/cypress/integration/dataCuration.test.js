@@ -117,7 +117,7 @@ describe('File upload page', function () {
 
             /* jobs panels should be updated */
             // cy.contains('DASHBOARD').click();
-            cy.wait(20000);
+            cy.wait(60000);
             cy.visit(`/datasets/${createdStudyId}/dashboard`);
             cy.url().then(url => {
                 expect(url).to.equal(`${Cypress.config().baseUrl}/datasets/${createdStudyId}/dashboard`);

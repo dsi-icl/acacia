@@ -72,7 +72,7 @@
         "transform": {
             "^.+\\.(ts|js)?$": "ts-jest"
         },
-        "testTimeout": "60000",
+        "testTimeout": 60000,
         "transformIgnorePatterns": []
     }
 }
