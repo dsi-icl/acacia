@@ -53,7 +53,7 @@
         "eslint-plugin-jest": "25.7.0",
         "eslint-plugin-jsx-a11y": "6.4.1",
         "eslint-plugin-react": "7.24.0",
-        "eslint-plugin-react-hooks": "4.2.0",
+        "eslint-plugin-react-hooks": "4.3.0",
         "husky": "6.0.0",
         "jest-environment-node": "27.4.6",
         "lerna": "4.0.0",
