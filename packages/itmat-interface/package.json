@@ -35,7 +35,7 @@
         "jwt-decode": "^3.1.2",
         "mongodb": "3.6.9",
         "nodemailer": "6.6.1",
-        "passport": "0.4.1",
+        "passport": "0.5.2",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
         "uuid": "8.3.2"
@@ -49,7 +49,7 @@
         "@types/node": "17.0.9",
         "@types/node-fetch": "2.5.10",
         "@types/nodemailer": "6.4.2",
-        "@types/passport": "1.0.6",
+        "@types/passport": "1.0.7",
         "@types/passport-local": "1.0.33",
         "@types/supertest": "2.0.11",
         "@types/text-encoding": "0.0.36",
