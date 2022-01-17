@@ -99,6 +99,7 @@
         "transform": {
             "^.+\\.(ts|js)$": "ts-jest"
         },
+        "testTimeout": "60000",
         "testEnvironment": "<rootDir>/../../test/fixtures/_minioJestEnv"
     }
 }
