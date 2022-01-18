@@ -95,7 +95,7 @@ export const pubkeyResolvers = {
             const fieldsToUpdate = {
                 refreshCounter: (pubkeyrec.refreshCounter + 1)
             };
-            const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ pubkey, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            const updateResult = await db.collections!.pubkeys_collection.findOneAndUpdate({ pubkey, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
             if (updateResult.ok !== 1) {
                 throw new ApolloError('Server error; cannot fulfil the JWT request.');
             }
@@ -144,7 +144,7 @@ export const pubkeyResolvers = {
                         jwtPubkey: keypair.publicKey,
                         jwtSeckey: keypair.privateKey
                     };
-                    const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
+                    const updateResult: mongodb.ModifyResult<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
                     if (updateResult.ok === 1) {
                         await mailer.sendMail({
                             from: `${config.appName} <${config.nodemailer.auth.user}>`,

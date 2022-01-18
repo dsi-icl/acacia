@@ -48,7 +48,7 @@ export const studyResolvers = {
             const projectId: string = args.projectId;
 
             /* get project */ // defer patientMapping since it's costly and not available to all users
-            const project = await db.collections!.projects_collection.findOne<Omit<IProject, 'patientMapping'>>({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
+            const project = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
 
             if (project === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -116,7 +116,7 @@ export const studyResolvers = {
             ]).toArray();
             return fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
         },
-        getOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, projectId }: { studyId: string, projectId: string }, context: any): Promise<any> => {
+        getOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, projectId }: { studyId: string, projectId: string }, context: any): Promise<Models.IOntologyField[] | undefined> => {
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -132,7 +132,7 @@ export const studyResolvers = {
             );
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
             const result = await db.collections!.studies_collection.findOne({ id: studyId });
-            return result.ontologyTree;
+            return result?.ontologyTree;
         },
         checkDataComplete: async (__unused__parent: Record<string, unknown>, { studyId }: { studyId: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
@@ -320,7 +320,7 @@ export const studyResolvers = {
             return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
         },
         roles: async (study: IStudy): Promise<Array<unknown>> => {
-            return await db.collections!.roles_collection.find({ studyId: study.id, projectId: null, deleted: null }).toArray();
+            return await db.collections!.roles_collection.find({ studyId: study.id, projectId: undefined, deleted: null }).toArray();
         },
         files: async (study: IStudy): Promise<Array<unknown>> => {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
@@ -344,7 +344,7 @@ export const studyResolvers = {
     Project: {
         fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Record<string, any>> => {
             const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields) as string[]);
-            const result: IFieldEntry[] = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, dateDeleted: null }).toArray();
+            const result = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, dateDeleted: null }).toArray();
             return result;
         },
         jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
@@ -499,7 +499,7 @@ export const studyResolvers = {
 
             // check fieldId exist
             const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldInput.fieldId, dateDeleted: null });
-            if (searchField.length !== 1) {
+            if (!searchField) {
                 throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
             for (const each of Object.keys(fieldInput)) {
@@ -931,10 +931,10 @@ export const studyResolvers = {
             const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
                 $set: { currentDataVersion: versionIdsList.indexOf(dataVersionId) }
             }, {
-                returnOriginal: false
+                returnDocument: 'after'
             });
 
-            if (result.ok === 1) {
+            if (result.ok === 1 && result.value) {
                 return result.value;
             } else {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);

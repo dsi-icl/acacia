@@ -30,10 +30,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     await db.connect(config.database, MongoClient.connect);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
-    mongoConnection = await MongoClient.connect(connectionString, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    mongoConnection = await MongoClient.connect(connectionString);
     mongoClient = mongoConnection.db(database);
 });
 

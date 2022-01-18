@@ -85,10 +85,7 @@ const collections = {
 };
 
 export async function setupDatabase(mongostr: string, databaseName: string): Promise<void> {
-    const conn = await mongo.MongoClient.connect(mongostr, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    const conn = await mongo.MongoClient.connect(mongostr);
     const db = conn.db(databaseName);
     const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 

@@ -40,10 +40,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
-    mongoConnection = await MongoClient.connect(connectionString, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    mongoConnection = await MongoClient.connect(connectionString);
     mongoClient = mongoConnection.db(database);
 
     /* Connecting clients for testing later */
@@ -541,7 +538,7 @@ describe('JOB API', () => {
             createdQuery = {
                 id: `new_query_id_${queryId}`,
                 requester: 'admin',
-                queryString: {date_requested: 'test_query_string'},
+                queryString: { date_requested: 'test_query_string' },
                 studyId: createdStudy.id,
                 projectId: createdProject.id,
                 status: 'QUEUED',
@@ -640,7 +637,7 @@ describe('JOB API', () => {
             };
             await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
-            await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: roleId});
+            await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: roleId });
             const authorisedUser = request.agent(app);
             await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 

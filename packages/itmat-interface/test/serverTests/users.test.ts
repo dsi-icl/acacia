@@ -61,10 +61,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
-    mongoConnection = await MongoClient.connect(connectionString, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    mongoConnection = await MongoClient.connect(connectionString);
     mongoClient = mongoConnection.db(database);
 
     /* Connecting clients for testing later */

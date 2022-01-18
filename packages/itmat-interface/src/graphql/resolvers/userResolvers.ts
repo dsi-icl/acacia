@@ -6,7 +6,6 @@ import {
     Models,
     Logger,
     IProject,
-    IRole,
     IStudy,
     IUser,
     IUserWithoutToken,
@@ -88,7 +87,7 @@ export const userResolvers = {
             }
 
             /* if requested user is not admin, find all the roles a user has */
-            const roles: IRole[] = await db.collections!.roles_collection.find({ users: user.id, deleted: null }).toArray();
+            const roles = await db.collections!.roles_collection.find({ users: user.id, deleted: null }).toArray();
             const init: { projects: string[], studies: string[] } = { projects: [], studies: [] };
             const studiesAndProjectThatUserCanSee: { projects: string[], studies: string[] } = roles.reduce(
                 (a, e) => {
@@ -101,13 +100,13 @@ export const userResolvers = {
                 }, init
             );
 
-            const projects: IProject[] = await db.collections!.projects_collection.find({
+            const projects = await db.collections!.projects_collection.find({
                 $or: [
                     { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
                     { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
                 ]
             }).toArray();
-            const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
+            const studies = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
         username: async (user: IUser, __unused__arg: any, context: any): Promise<string | null> => {
@@ -242,8 +241,6 @@ export const userResolvers = {
             if (!passwordMatched) {
                 throw new UserInputError('Incorrect password.');
             }
-            delete result.password;
-            delete result.deleted;
 
             // validate the TOTP
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
@@ -270,13 +267,17 @@ export const userResolvers = {
                 throw new UserInputError('Account Expired. Please request a new expiry date!');
             }
 
+            const filteredResult: Partial<IUser> = { ...result };
+            delete filteredResult.password;
+            delete filteredResult.deleted;
+
             return new Promise((resolve) => {
-                req.login(result, (err: any) => {
+                req.login(filteredResult, (err: any) => {
                     if (err) {
                         Logger.error(err);
                         throw new ApolloError('Cannot log in. Please try again later.');
                     }
-                    resolve(result);
+                    resolve(filteredResult);
                 });
             });
         },
@@ -555,7 +556,7 @@ export const userResolvers = {
                     delete fieldsToUpdate[each];
                 }
             }
-            const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            const updateResult: mongodb.ModifyResult<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
             if (updateResult.ok === 1) {
                 // New expiry date has been updated successfully.
                 if (expiredAt) {
@@ -634,7 +635,7 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
     });
 }
 
-async function formatEmailForForgottenPassword({ username, firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, username:string, firstname: string, origin: any }) {
+async function formatEmailForForgottenPassword({ username, firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, username: string, firstname: string, origin: any }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
     const iv = makeAESIv(resetPasswordToken);
     const encryptedEmail = await encryptEmail(to, keySalt, iv);
