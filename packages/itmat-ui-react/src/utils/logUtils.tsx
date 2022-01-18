@@ -5,7 +5,6 @@ export function logFun(mutationFunc: (__unused__data: { variables: any }) => Pro
     if ('ERROR' in actionData) {
         actionData.ERROR = actionData.ERROR.graphQLErrors[0].message;
     }
-    console.log(actionData);
     const logData = JSON.stringify(actionData);
     mutationFunc({
         variables: {

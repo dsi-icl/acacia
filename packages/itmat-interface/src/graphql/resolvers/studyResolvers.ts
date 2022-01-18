@@ -464,30 +464,28 @@ export const studyResolvers = {
             for (const oneFieldInput of fieldInput) {
                 isError = false;
                 // check data valid
-                if (!isError) {
-                    const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput);
-                    if (thisError.length !== 0) {
-                        error.push({ code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
-                        isError = true;
-                    }
+                const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput);
+                if (thisError.length !== 0) {
+                    error.push({ code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
+                    isError = true;
+                }
 
-                    // // construct the rest of the fields
-                    if (!isError) {
-                        fieldEntry.id = uuid();
-                        fieldEntry.studyId = studyId;
-                        fieldEntry.dataVersion = null;
-                        fieldEntry.dateAdded = (new Date()).valueOf();
-                        fieldEntry.dateDeleted = null;
-                        await db.collections!.field_dictionary_collection.findOneAndUpdate({
-                            fieldId: fieldEntry.fieldId,
-                            studyId: studyId,
-                            dataVersion: null
-                        }, {
-                            $set: fieldEntry
-                        }, {
-                            upsert: true
-                        });
-                    }
+                // // construct the rest of the fields
+                if (!isError) {
+                    fieldEntry.id = uuid();
+                    fieldEntry.studyId = studyId;
+                    fieldEntry.dataVersion = null;
+                    fieldEntry.dateAdded = (new Date()).valueOf();
+                    fieldEntry.dateDeleted = null;
+                    await db.collections!.field_dictionary_collection.findOneAndUpdate({
+                        fieldId: fieldEntry.fieldId,
+                        studyId: studyId,
+                        dataVersion: null
+                    }, {
+                        $set: fieldEntry
+                    }, {
+                        upsert: true
+                    });
                 }
             }
             return error;

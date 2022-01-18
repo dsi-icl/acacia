@@ -24,7 +24,7 @@ describe('Unit tests for processJSONHeader function', () => {
         {
             fieldId: 31,
             fieldName: 'Sex',
-            possibleValues: [{code: '1', description: 'male'}, {code: '0', description: 'female'}],
+            possibleValues: [{ code: '1', description: 'male' }, { code: '0', description: 'female' }],
             unit: '',
             comments: '',
             dataType: enumValueType.CATEGORICAL
@@ -100,7 +100,7 @@ describe('Unit tests for processJSONHeader function', () => {
         expect(parsedHeader[2]).toEqual(fieldsList[2]);
         expect(parsedHeader[3]).toEqual(fieldsList[3]);
         expect(parsedHeader[4]).toEqual(fieldsList[4]);
-        expect(parsedHeader[5]).toEqual({fieldName: 'UNKNOWN', dataType: 'unk', fieldId: undefined});
+        expect(parsedHeader[5]).toEqual({ fieldName: 'UNKNOWN', dataType: 'unk', fieldId: undefined });
         expect(error).toBeDefined();
         expect(error[0]).toBe('Object 1 column 7: Unknown field.');
     });
@@ -127,7 +127,7 @@ describe('Unit tests for processEachSubject function', () => {
         {
             fieldId: 31,
             fieldName: 'Sex',
-            possibleValues: [{code: '1', description: 'male'}, {code: '0', description: 'female'}],
+            possibleValues: [{ code: '1', description: 'male' }, { code: '0', description: 'female' }],
             unit: '',
             comments: '',
             dataType: enumValueType.CATEGORICAL
@@ -258,7 +258,7 @@ describe('JSONCuratorClass', () => {
         {
             fieldId: 31,
             fieldName: 'Sex',
-            possibleValues: [{code: '1', description: 'male'}, {code: '0', description: 'female'}],
+            possibleValues: [{ code: '1', description: 'male' }, { code: '0', description: 'female' }],
             unit: '',
             comments: '',
             dataType: enumValueType.CATEGORICAL
@@ -314,7 +314,7 @@ describe('JSONCuratorClass', () => {
             if (this._foundobj === null) {
                 this._insertArray.push(object['$set']);
             }
-            for (let i=0; i<this._insertArray.length;i++) {
+            for (let i = 0; i < this._insertArray.length; i++) {
                 if (JSON.stringify(this._insertArray[i]) === JSON.stringify(this._foundobj)) {
                     for (const field of Object.keys(object['$set'])) {
                         this._insertArray[i][field] = object['$set'][field];
@@ -332,26 +332,26 @@ describe('JSONCuratorClass', () => {
 
     it('test mongostub update new', async () => {
         const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
-        bulkinsert.insert({a: 1});
-        bulkinsert.insert({b: 2});
+        bulkinsert.insert({ a: 1 });
+        bulkinsert.insert({ b: 2 });
         bulkinsert.execute().then(() => {
-            bulkinsert.find({c: 3}).upsert().updateOne({$set: {c:4}});
+            bulkinsert.find({ c: 3 }).upsert().updateOne({ $set: { c: 4 } });
             return bulkinsert.execute();
         }).then(() => {
-            expect(bulkinsert._insertArray).toEqual([{a: 1}, {b: 2}, {c: 4}]);
+            expect(bulkinsert._insertArray).toEqual([{ a: 1 }, { b: 2 }, { c: 4 }]);
             expect(bulkinsert._executeCalled).toEqual([2, 3]);
         });
     }, 10000);
 
     it('test mongostub update existing', async () => {
         const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
-        bulkinsert.insert({a: 1});
-        bulkinsert.insert({b: 2});
+        bulkinsert.insert({ a: 1 });
+        bulkinsert.insert({ b: 2 });
         bulkinsert.execute().then(() => {
-            bulkinsert.find({b: 2}).upsert().updateOne({$set: {d: 4}});
+            bulkinsert.find({ b: 2 }).upsert().updateOne({ $set: { d: 4 } });
             return bulkinsert.execute();
         }).then(() => {
-            expect(bulkinsert._insertArray).toEqual([{a: 1}, {b: 2, d: 4}]);
+            expect(bulkinsert._insertArray).toEqual([{ a: 1 }, { b: 2, d: 4 }]);
             expect(bulkinsert._executeCalled).toEqual([2, 2]);
         });
     }, 10000);
@@ -383,7 +383,7 @@ describe('JSONCuratorClass', () => {
             deleted: null
         });
 
-    }, 20000);
+    });
 
     it('jsoncurator catches non-esisting headers', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error1.json');
@@ -405,7 +405,7 @@ describe('JSONCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0); // nothing gets uploaded if errors are caught in header
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
 
-    }, 20000);
+    });
 
     it('jsoncurator catches duplicate header', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error2.json');
@@ -425,7 +425,7 @@ describe('JSONCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
 
-    }, 20000);
+    });
 
     it('jsoncurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error3.json');
@@ -458,7 +458,7 @@ describe('JSONCuratorClass', () => {
             deleted: null
         });
 
-    }, 20000);
+    });
 
     it('jsoncurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error4.json');
@@ -491,7 +491,7 @@ describe('JSONCuratorClass', () => {
             deleted: null
         });
 
-    }, 20000);
+    });
 
     it('jsoncurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error5.json');
@@ -518,5 +518,5 @@ describe('JSONCuratorClass', () => {
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(0);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
-    }, 20000);
+    });
 });

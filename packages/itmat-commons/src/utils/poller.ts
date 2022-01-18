@@ -53,8 +53,9 @@ export class JobPoller {
                     status: 'PROCESSING'
                 }
             });
-        } catch (e) {
-            console.log(e);
+        } catch (err) {
+            //TODO Handle error recording
+            console.error(err);
             return;
         }
 

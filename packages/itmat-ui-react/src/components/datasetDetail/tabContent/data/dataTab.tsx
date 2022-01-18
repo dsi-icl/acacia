@@ -16,11 +16,15 @@ import { Button, Form, Input, Switch, Modal, Table } from 'antd';
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
-    const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, { variables: { studyId: studyId, versionId: null, queryString: {
-        data_requested: null,
-        new_fields: null,
-        cohort: null
-    } } });
+    const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, {
+        variables: {
+            studyId: studyId, versionId: null, queryString: {
+                data_requested: null,
+                new_fields: null,
+                cohort: null
+            }
+        }
+    });
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     const [createNewDataVersion] = useMutation(CREATE_NEW_DATA_VERSION);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
@@ -60,7 +64,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
     ];
     const versions: any = [];
     for (const item of getStudyData.getStudy.dataVersions) {
-        versions[item['version']] =  item['id'];
+        versions[item['version']] = item['id'];
     }
 
     return <div className={css.data_management_section}>
@@ -76,7 +80,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                                     <React.Fragment key={el.id}>
                                         <div
                                             key={el.id}
-                                            onClick={() => { setSelectedVersion(ind); console.log('ind', ind);}}
+                                            onClick={() => { setSelectedVersion(ind); }}
                                             className={css.data_version_cube + (ind === selectedVersion ? (ind === getStudyData.getStudy.currentDataVersion ? ` ${css.data_version_cube_current}` : ` ${css.data_version_cube_selected_not_current}`) : '')}>{`${el.version}${el.tag ? ` (${el.tag})` : ''}`}
                                         </div>
                                         {ind === getStudyData.getStudy.dataVersions.length - 1 ? null : <span className={css.arrow}>⟶</span>}
@@ -101,11 +105,11 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                         : null
                     }<br />
                 </> : null}
-            </div> : null }
+            </div> : null}
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
             <Subsection title='Upload New Fields'>
                 <UploadNewFields studyId={studyId} />
-            </Subsection><br/>
+            </Subsection><br />
             <Subsection title='Fields & Variables'>
                 <FieldListSection
                     studyData={getStudyData.getStudy}
@@ -121,7 +125,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
             <Subsection title='Upload New Data'>
                 <UploadNewData studyId={studyId} ></UploadNewData>
-            </Subsection><br/>
+            </Subsection><br />
             <Subsection title='Create New Data Version'>
                 <Modal
                     width='80%'
@@ -130,11 +134,13 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                     onOk={() => setIsModalOn(false)}
                     onCancel={() => setIsModalOn(false)}
                 >
-                    <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, versionId: null, queryString: {
-                        data_requested: null,
-                        new_fields: null,
-                        cohort: null
-                    } }}>
+                    <Query<any, any> query={GET_DATA_RECORDS} variables={{
+                        studyId: studyId, versionId: null, queryString: {
+                            data_requested: null,
+                            new_fields: null,
+                            cohort: null
+                        }
+                    }}>
                         {({ data, loading, error }) => {
                             if (loading) { return <LoadSpinner />; }
                             if (error) { return <p>{JSON.stringify(error)}</p>; }
@@ -142,7 +148,6 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                             const parsedData = getDataRecordsData.getDataRecords.data;
                             const groupedData: any = {};
                             for (const key in parsedData) {
-                                console.log(key);
                                 if (!(key in groupedData)) {
                                     groupedData[key] = [];
                                 }
@@ -173,7 +178,8 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                                 withUnversionedData: variables.withUnversionedData === 'true' ? true : false,
                                 studyId: studyId
                             }
-                        });}}>
+                        });
+                    }}>
                         <Form.Item name='dataVersion' hasFeedback rules={[{ required: true, message: ' ' }]}>
                             <Input placeholder='Data Version' />
                         </Form.Item>
@@ -182,7 +188,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                         </Form.Item>
                         <Form.Item>
                             <Button type='primary' htmlType='submit'>
-                            Submit
+                                Submit
                             </Button>
                         </Form.Item>
                     </Form> : null}

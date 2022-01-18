@@ -22,7 +22,7 @@ describe('Unit tests for processFieldRow function', () => {
     it('processFieldRow function correctly parse data row', () => {
         const { error, dataEntry } = processFieldRow(stub<any>({
             ...templateParams, row: [
-                '564','IDEAFAST','Participants','','','','SubjectID','Subject ID','','','','','','','','','','nvarchar','','False','','9','','True','False','True','','False','','','','False',''
+                '564', 'IDEAFAST', 'Participants', '', '', '', 'SubjectID', 'Subject ID', '', '', '', '', '', '', '', '', '', 'nvarchar', '', 'False', '', '9', '', 'True', 'False', 'True', '', 'False', '', '', '', 'False', ''
             ]
         }));
         expect(error).toBeUndefined();
@@ -40,7 +40,7 @@ describe('Unit tests for processFieldRow function', () => {
     it('processFieldRow function detects necessary fields that are empty', () => {
         const { error, dataEntry } = processFieldRow(stub<any>({
             ...templateParams, row: [
-                '','IDEAFAST','Participants','','','','','Subject ID','','','','','','','','','','nvarchar','','False','','9','','True','False','True','','False','','','','False',''
+                '', 'IDEAFAST', 'Participants', '', '', '', '', 'Subject ID', '', '', '', '', '', '', '', '', '', 'nvarchar', '', 'False', '', '9', '', 'True', 'False', 'True', '', 'False', '', '', '', 'False', ''
             ]
         }));
         expect(error).toBeDefined();
@@ -53,7 +53,7 @@ describe('Unit tests for processFieldRow function', () => {
     it('processFieldRow function detects uneven fields', () => {
         const { error, dataEntry } = processFieldRow(stub<any>({
             ...templateParams, row: [
-                '564','IDEAFAST','Participants','','','','SubjectID','Subject ID','','','','','','','','','','nvarchar','','False','','9','','True','False','True','False','','','','False'
+                '564', 'IDEAFAST', 'Participants', '', '', '', 'SubjectID', 'Subject ID', '', '', '', '', '', '', '', '', '', 'nvarchar', '', 'False', '', '9', '', 'True', 'False', 'True', 'False', '', '', '', 'False'
             ]
         }));
         expect(error).toBeDefined();
@@ -77,7 +77,7 @@ describe('Unit tests for processFieldRow function', () => {
     it('processFieldRow function catches unparsable entries for supposed number', () => {
         const { error, dataEntry } = processFieldRow(stub<any>({
             ...templateParams, row: [
-                '564A','IDEAFAST','Participants','','','','SubjectID','Subject ID','','','','','','','','','','nvarchar','','False','','9A','','True','False','True','','False','','','','False',''
+                '564A', 'IDEAFAST', 'Participants', '', '', '', 'SubjectID', 'Subject ID', '', '', '', '', '', '', '', '', '', 'nvarchar', '', 'False', '', '9A', '', 'True', 'False', 'True', '', 'False', '', '', '', 'False', ''
             ]
         }));
         expect(error).toBeDefined();
@@ -90,7 +90,7 @@ describe('Unit tests for processFieldRow function', () => {
     it('processFieldRow function catches invalid value type', () => {
         const { error, dataEntry } = processFieldRow(stub<any>({
             ...templateParams, row: [
-                '564','IDEAFAST','Participants','','','','SubjectID','Subject ID','','','','','','','','','','str','','False','','9','','True','False','True','','False','','','','False',''
+                '564', 'IDEAFAST', 'Participants', '', '', '', 'SubjectID', 'Subject ID', '', '', '', '', '', '', '', '', '', 'str', '', 'False', '', '9', '', 'True', 'False', 'True', '', 'False', '', '', '', 'False', ''
             ]
         }));
         expect(error).toBeDefined();
@@ -162,7 +162,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 20000);
+    });
 
     it('fieldcurator uploads csv file > 1000 fields okay', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_1000.tsv');
@@ -194,7 +194,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 20000);
+    });
 
     it('fieldcurator catches duplicate fieldId before first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error1.tsv');
@@ -226,7 +226,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 20000);
+    });
 
     it('fieldcurator catches duplicate fieldId after first watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error2.tsv');
@@ -258,7 +258,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 20000);
+    });
 
     it('fieldcurator catches uneven field before watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error3.tsv');
@@ -290,7 +290,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 20000);
+    });
 
     it('fieldcurator catches uneven field after watermark', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error4.tsv');
@@ -322,7 +322,7 @@ describe('FieldCuratorClass', () => {
         expect(mongoStub._bulkinsert._insertArray[0].comments).toBe('');
         expect(mongoStub._bulkinsert._insertArray[0].dateDeleted).toBe(null);
         expect(typeof mongoStub._bulkinsert._insertArray[0].dateAdded).toBe('string');
-    }, 20000);
+    });
 
     it('fieldcurator catches mixed errors', async () => {
         const readStream = fs.createReadStream('./test/testFiles/FieldCurator_error5.tsv');
@@ -352,5 +352,5 @@ describe('FieldCuratorClass', () => {
         ]);
         expect(mongoStub._bulkinsert._insertArray).toHaveLength(8);
         expect(mongoStub._bulkinsert._executeCalled).toEqual([]);
-    }, 20000);
+    });
 });

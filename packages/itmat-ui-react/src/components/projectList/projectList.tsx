@@ -19,7 +19,6 @@ export const ProjectList: React.FunctionComponent = () => {
                         return <PickProjectSection projects={projects} />;
                     }
                 }
-                console.log('error: ', data);
                 return <p>There is no project or you have not been added to any. Please contact admin.</p>;
             }
             }

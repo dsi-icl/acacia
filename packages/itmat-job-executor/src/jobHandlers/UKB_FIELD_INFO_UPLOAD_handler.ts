@@ -62,9 +62,9 @@ function processCodesFileStreamAndReturnList(incomingStream: Readable): Promise<
     const csvparseStream = csvparse(parseOptions);
     const parseStream = incomingStream.pipe(csvparseStream);
 
-    csvparseStream.on('skip', () => {
-        console.log('skipping');
-    });
+    // csvparseStream.on('skip', () => {
+    // });
+
     let isHeader = true;
     const codes: any = {};
 
@@ -94,8 +94,8 @@ function processCodesFileStreamAndReturnList(incomingStream: Readable): Promise<
     });
 
     uploadWriteStream.on('finish', async () => {
+        //TODO
         /* check for subject Id duplicate */
-        console.log('Reading Codes finished.');
     });
 
     parseStream.pipe(uploadWriteStream);

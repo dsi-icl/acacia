@@ -39,7 +39,6 @@ export class CSVCurator {
     /* return list of errors. [] if no error */
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         return new Promise((resolve) => {
-            console.log(`uploading for job ${this.job.id}`);
             let lineNum = 0;
             let isHeader = true;
             const subjectString: string[] = [];
@@ -99,13 +98,16 @@ export class CSVCurator {
                             m_versionId: dataEntry.m_versionId,
                             m_studyId: dataEntry.m_studyId
                         };
-                        bulkInsert.find(matchObj).upsert().updateOne({$set: dataEntry});
+                        bulkInsert.find(matchObj).upsert().updateOne({ $set: dataEntry });
 
                         this._numOfSubj++;
                         if (this._numOfSubj > 999) {
                             this._numOfSubj = 0;
                             await bulkInsert.execute((err: Error) => {
-                                if (err) { console.log((err as any).writeErrors[1].err); return; }
+                                if (err) {
+                                    //TODO Handle error recording
+                                    console.error(err);
+                                }
                             });
                             bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
                         }
@@ -117,12 +119,13 @@ export class CSVCurator {
             uploadWriteStream.on('finish', async () => {
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
-                        console.log('FINSIHED LOADING');
-                        if (err) { console.log(err); return; }
+                        if (err) {
+                            //TODO Handle error recording
+                            console.error(err);
+                        }
                     });
                 }
 
-                console.log('end');
                 resolve(this._errors);
             });
 
@@ -159,7 +162,7 @@ export function processHeader(header: string[], fieldsList: any[]): { error?: st
             if (fields.includes(each)) {
                 // if duplicates happens, we only extract data from the first one
                 error.push(`Line 1 column ${colNum + 1}: Duplicate field.`);
-                parsedHeader.push({fieldName: each, dataType: 'dul', fieldId: undefined});
+                parsedHeader.push({ fieldName: each, dataType: 'dul', fieldId: undefined });
                 colNum++;
                 continue;
             }
@@ -168,7 +171,7 @@ export function processHeader(header: string[], fieldsList: any[]): { error?: st
                 parsedHeader.push(fieldsList.filter(el => el.fieldName === each)[0]);
             } else {
                 error.push(`Line 1 column ${colNum + 1}: Unknown field.`);
-                parsedHeader.push({fieldName: each, dataType: 'unk', fieldId: undefined});
+                parsedHeader.push({ fieldName: each, dataType: 'unk', fieldId: undefined });
             }
         }
         colNum++;
@@ -177,7 +180,7 @@ export function processHeader(header: string[], fieldsList: any[]): { error?: st
     const filteredParsedHeader = parsedHeader.filter(el => el !== undefined);
     const subjectIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'SubjectID') + 1; // ID is the first
     const visitIdIndex = filteredParsedHeader.findIndex(el => el.fieldName === 'VisitID') + 1;
-    return ({ parsedHeader: filteredParsedHeader, error: error.length === 0 ? undefined : error , subjectIdIndex, visitIdIndex});
+    return ({ parsedHeader: filteredParsedHeader, error: error.length === 0 ? undefined : error, subjectIdIndex, visitIdIndex });
 }
 
 export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, parsedHeader, job }: { subjectIdIndex: number, visitIdIndex: number, lineNum: number, row: string[], parsedHeader: any[], job: IJobEntry<never> }): { error?: string[], dataEntry: Partial<IDataEntry> } {

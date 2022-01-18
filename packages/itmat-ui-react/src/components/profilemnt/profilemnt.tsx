@@ -96,7 +96,7 @@ export const ProfileManagementSection: React.FunctionComponent = () => {
                     <br />
                 </Subsection>
                 <Subsection title='Datasets'>
-                    <ProjectSection study={true} projects={whoamidata.whoAmI.access.studies}/>
+                    <ProjectSection study={true} projects={whoamidata.whoAmI.access.studies} />
                     <br />
                 </Subsection>
                 <Subsection title='Public-key management'>
@@ -268,34 +268,33 @@ export const changeTimeFunc = {
 };
 
 export const cryptoInBrowser = {
-    keyGen: async function() {
+    keyGen: async function () {
         return Key.createRSAKey();
     },
-    signGen: async function(message: string, signKey: CryptoKey) {
+    signGen: async function (message: string, signKey: CryptoKey) {
         return Key.signwtRSAKey(message, signKey);
     }
 };
 
-export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( {userId} ) => {
+export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
     const [completedKeypairGen, setcompletedKeypairGen] = React.useState(false);
-    const [exportedKeyPair, setExportedKeyPair] = React.useState({privateKey: '', publicKey: ''});
+    const [exportedKeyPair, setExportedKeyPair] = React.useState({ privateKey: '', publicKey: '' });
     const [signature, setSignature] = React.useState('');
 
-    const keyGenInBrowser = async function() {
+    const keyGenInBrowser = async function () {
         const keyPair = await cryptoInBrowser.keyGen();
         const exportedKeyPair = await Key.exportRSAKey(keyPair);
         setExportedKeyPair(exportedKeyPair);
         const message = exportedKeyPair.publicKey;
-        const signature  = await cryptoInBrowser.signGen(message, keyPair.privateKey);
+        const signature = await cryptoInBrowser.signGen(message, keyPair.privateKey);
         setSignature(signature);
         setcompletedKeypairGen(true);
-        console.log('verifier RSA: (expected to be true) ', await Key.verifyRSA(exportedKeyPair.publicKey, signature));
     };
 
     const [downloadLink, setDownloadLink] = React.useState('');
     // function for generating file and set download link
     const makeTextFile = (filecontent: string) => {
-        const data = new Blob([filecontent], {type: 'text/plain'});
+        const data = new Blob([filecontent], { type: 'text/plain' });
         // this part avoids memory leaks
         if (downloadLink !== '') window.URL.revokeObjectURL(downloadLink);
         // update the download link state
@@ -349,7 +348,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                                 :
                                 <>
                                     <Form.Item name='currentPubkey' label='Current registered public key'>
-                                        <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')}/>
+                                        <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')} />
                                     </Form.Item>
                                     <br />
                                     <p>Register a new public-key. The current one will then be no longer valid.</p>
@@ -448,7 +447,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ( 
                             :
                             <>
                                 <Form.Item name='currentPubkey' label='Current registered public key'>
-                                    <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')}/>
+                                    <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')} />
                                 </Form.Item>
                                 <br />
                                 <p>Register a new public-key. The current one will then be no longer valid.</p>
@@ -513,9 +512,9 @@ export const RsaSigner: React.FunctionComponent = () => {
     const [signature, setSignature] = React.useState('');
     const [completedSignatureGen, setcompletedSignatureGen] = React.useState(false);
 
-    const signGen = async function() {
+    const signGen = async function () {
         const privateKeyFormatted = await Key.importRSAPrivateKey(privateKey);
-        const signature  = await cryptoInBrowser.signGen(publicKey, privateKeyFormatted);
+        const signature = await cryptoInBrowser.signGen(publicKey, privateKeyFormatted);
         //const signature  = await cryptoInBrowser.signGen('abc', privateKeyFormatted);
         setSignature(signature);
         setcompletedSignatureGen(true);
@@ -524,7 +523,7 @@ export const RsaSigner: React.FunctionComponent = () => {
     const [downloadLink, setDownloadLink] = React.useState('');
     // function for generating file and set download link
     const makeTextFile = (filecontent: string) => {
-        const data = new Blob([filecontent], {type: 'text/plain'});
+        const data = new Blob([filecontent], { type: 'text/plain' });
         // this part avoids memory leaks
         if (downloadLink !== '') window.URL.revokeObjectURL(downloadLink);
         // update the download link state
@@ -565,7 +564,7 @@ export const RsaSigner: React.FunctionComponent = () => {
 
 };
 
-export const TokenManagement: React.FunctionComponent<{ userId: string }> = ( {userId} ) => {
+export const TokenManagement: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
     const [completedTokenGen, setcompletedTokenGen] = React.useState(false);
     //const [accessTokenGen, setaccessTokenGen] = React.useState('');
     const [tokenGen, { data: tokendata, loading, error }] = useMutation(ISSUE_ACCESS_TOKEN, {
@@ -623,7 +622,7 @@ export const TokenManagement: React.FunctionComponent<{ userId: string }> = ( {u
             <p>To generate an access token, you need to enter the signature signed by your private-key</p>
             <p>Current refresh counter: <strong>{ipubkey?.refreshCounter}</strong></p>
             <Form.Item name='pubkey' label='Your registered public key'>
-                <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')}/>
+                <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')} />
             </Form.Item>
 
             <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
