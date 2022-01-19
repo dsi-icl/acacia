@@ -293,7 +293,7 @@ export class StudyCore {
 
     public async deleteStudy(studyId: string): Promise<void> {
         /* PRECONDITION: CHECKED THAT STUDY INDEED EXISTS */
-        const session = db.client.startSession();
+        const session = db.client!.startSession();
         session.startTransaction();
 
         const timestamp = new Date().valueOf();

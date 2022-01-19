@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
@@ -28,15 +31,15 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    mongodb = new MongoMemoryServer();
-    const connectionString = await mongodb.getUri();
-    const database = await mongodb.getDbName();
+    mongodb = await MongoMemoryServer.create();
+    const connectionString = mongodb.getUri();
+    const database = mongodb.instanceInfo.dbName;
     await setupDatabase(connectionString, database);
 
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database, MongoClient.connect);
+    await db.connect(config.database, MongoClient.connect as any);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
@@ -895,7 +898,7 @@ describe('ROLE API', () => {
                     $push: {
                         users: newUser.id
                     }
-                }, { returnOriginal: false });
+                }, { returnDocument: 'after' });
                 expect(updatedRole.value.users).toEqual([newUser.id]);
 
                 /* test */
@@ -1000,7 +1003,7 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnOriginal: false });
+                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
@@ -1217,7 +1220,7 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnOriginal: false });
+                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
@@ -1345,7 +1348,7 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access, users: newUser.id } }, { returnOriginal: false });
+                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access, users: newUser.id } }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,

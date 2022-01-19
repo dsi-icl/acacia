@@ -34,8 +34,9 @@ export const permissionResolvers = {
     },
     StudyOrProjectUserRole: {
         users: async (role: IRole): Promise<IUser[]> => {
-            const listOfUsers = role.users;
-            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers.map(user => user.id) } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
+            //TODO variable role.users here is not actually of type IRole.IUser
+            const listOfUsers = role.users as any as string[];
+            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
         }
     },
     Mutation: {

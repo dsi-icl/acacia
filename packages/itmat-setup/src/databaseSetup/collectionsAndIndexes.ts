@@ -1,4 +1,4 @@
-import mongo from 'mongodb';
+import * as mongo from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { seedUsers } from './seed/users';
 import { seedOrganisations } from './seed/organisations';

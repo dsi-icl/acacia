@@ -73,7 +73,7 @@ export class PermissionCore {
             queryObj = { projectId, deleted: null };
         }
         const updateResult = await db.collections!.roles_collection.updateMany(queryObj, { $set: { deleted: new Date().valueOf() } });
-        if (updateResult.upsertedCount >= 1 || updateResult.modifiedCount >= 1) {
+        if (updateResult.acknowledged) {
             return;
         } else {
             throw new ApolloError('Cannot delete role(s).', errorCodes.DATABASE_ERROR);
@@ -92,10 +92,17 @@ export class PermissionCore {
         }
         const result: BulkWriteResult = await bulkop.execute();
         const resultingRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null });
+        // const resultingRole = await db.collections!.roles_collection.find({ id: roleId, deleted: null });
+        // return {
+        //     ...resultingRole,
+        //     tutu
+        // } as any;
         if (result.ok === 1 && resultingRole) {
             return resultingRole;
         } else {
             throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
+            // throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole, null, 4));
+            // throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole.toArray(), null, 4));
         }
     }
 

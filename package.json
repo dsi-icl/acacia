@@ -29,9 +29,7 @@
             "mongodb-memory-server",
             "mongodb-memory-server/**",
             "**/mongodb-memory-server",
-            "**/mongodb-memory-server/**",
-            "**/mongodb",
-            "**/mongodb/**"
+            "**/mongodb-memory-server/**"
         ]
     },
     "devDependencies": {
@@ -39,7 +37,7 @@
         "@babel/preset-env": "7.16.8",
         "@babel/eslint-parser": "7.16.5",
         "@babel/eslint-plugin": "7.16.5",
-        "@types/jest": "27.4.0",
+        "@types/jest": "26.0.23",
         "eslint": "8.7.0",
         "eslint-config-react-app": "7.0.0",
         "eslint-plugin-cypress": "2.12.1",
@@ -58,7 +56,8 @@
     "resolutions": {
         "**/apollo-server-core": "2.20.0",
         "**/graphql-upload": "^11.0.0",
-        "**/@types/eslint": "^8.2.2"
+        "**/@types/eslint": "^8.2.2",
+        "**/mongodb": "4.3.1"
     },
     "eslintConfig": {
         "extends": "./config/eslint.config.js"

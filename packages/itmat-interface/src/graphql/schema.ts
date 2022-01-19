@@ -154,7 +154,7 @@ type File {
     fileName: String!
     studyId: String!
     projectId: String
-    fileSize: BigInt
+    fileSize: String
     description: String!
     uploadTime: String!
     uploadedBy: String!

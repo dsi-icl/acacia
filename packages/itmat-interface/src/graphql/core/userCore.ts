@@ -50,7 +50,7 @@ export class UserCore {
     }
 
     public async deleteUser(userId: string): Promise<void> {
-        const session = db.client.startSession();
+        const session = db.client!.startSession();
         session.startTransaction();
         try {
             /* delete the user */

@@ -12,7 +12,8 @@ import {
     IDataClip,
     IOntologyField,
     ISubjectDataRecordSummary,
-    DATA_CLIP_ERROR_TYPE
+    DATA_CLIP_ERROR_TYPE,
+    IRole
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -22,6 +23,8 @@ import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 import { buildPipeline } from '../../utils/query';
+import { IJobEntry } from '../../../../itmat-commons/dist/models/job';
+import { IFile } from '../../../../itmat-commons/dist/models/file';
 
 export const studyResolvers = {
     Query: {
@@ -41,6 +44,7 @@ export const studyResolvers = {
             if (study === null || study === undefined) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
+
             return study;
         },
         getProject: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Omit<IProject, 'patientMapping'> | null> => {
@@ -71,7 +75,7 @@ export const studyResolvers = {
 
             return project;
         },
-        getStudyFields: async (__unused__parent: Record<string, unknown>, { studyId, projectId, versionId }: { studyId: string, projectId?: string, versionId?: string }, context: any): Promise<IFieldEntry[]> => {
+        getStudyFields: async (__unused__parent: Record<string, unknown>, { studyId, projectId, versionId }: { studyId: string, projectId?: string, versionId?: string | null }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -313,16 +317,16 @@ export const studyResolvers = {
         }
     },
     Study: {
-        projects: async (study: IStudy): Promise<Array<unknown>> => {
+        projects: async (study: IStudy): Promise<Array<IProject>> => {
             return await db.collections!.projects_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
-        jobs: async (study: IStudy): Promise<Array<unknown>> => {
+        jobs: async (study: IStudy): Promise<Array<IJobEntry<any>>> => {
             return await db.collections!.jobs_collection.find({ studyId: study.id }).toArray();
         },
-        roles: async (study: IStudy): Promise<Array<unknown>> => {
+        roles: async (study: IStudy): Promise<Array<IRole>> => {
             return await db.collections!.roles_collection.find({ studyId: study.id, projectId: undefined, deleted: null }).toArray();
         },
-        files: async (study: IStudy): Promise<Array<unknown>> => {
+        files: async (study: IStudy): Promise<Array<IFile>> => {
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
         },
         subjects: async (study: IStudy): Promise<string[]> => {
@@ -342,15 +346,15 @@ export const studyResolvers = {
         }
     },
     Project: {
-        fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Record<string, any>> => {
+        fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IFieldEntry>> => {
             const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields) as string[]);
             const result = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, dateDeleted: null }).toArray();
             return result;
         },
-        jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
+        jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IJobEntry<any>>> => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
-        files: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<any>> => {
+        files: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IFile>> => {
             return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
         },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {
@@ -886,7 +890,7 @@ export const studyResolvers = {
             /* add this to the database */
             // const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
             //     $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 }
-            // }, { returnOriginal: false });
+            // }, { returnDocument: 'after' });
 
             // update the field Id of the approved fields of each project
             // get fields that are valid of the curretn data version

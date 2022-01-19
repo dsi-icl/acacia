@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
@@ -66,15 +69,15 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    mongodb = new MongoMemoryServer();
-    const connectionString = await mongodb.getUri();
-    const database = await mongodb.getDbName();
+    mongodb = await MongoMemoryServer.create();
+    const connectionString = mongodb.getUri();
+    const database = mongodb.instanceInfo.dbName;
     await setupDatabase(connectionString, database);
 
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database, MongoClient.connect);
+    await db.connect(config.database, MongoClient.connect as any);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
@@ -496,6 +499,7 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 createdBy: adminId,
+                dataVersion: null,
                 name: projectName,
                 patientMapping: {},
                 approvedFields: [],
@@ -584,6 +588,7 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 createdBy: authorisedUserProfile.id,
+                dataVersion: null,
                 patientMapping: {},
                 name: projectName,
                 approvedFields: [],
@@ -796,8 +801,8 @@ describe('STUDY API', () => {
                         dataType: enumValueType.STRING,
                         possibleValues: [],
                         unit: 'person',
-                        comments: 'mockComments1',
-                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        comments: 'mockComments2',
+                        dateAdded: '2022-06-18T17:35:15.226Z',
                         dateDeleted: null,
                         dataVersion: 'mockDataVersionId'
                     }
@@ -1606,7 +1611,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.getStudyFields).toEqual([ // as the api will sort the results, the order is changed
+            expect(res.body.data.getStudyFields.sort((a, b) => a.id.localeCompare(b.id))).toEqual([ // as the api will sort the results, the order is changed
                 {
                     id: 'mockfield2',
                     studyId: createdStudy.id,
@@ -1616,8 +1621,8 @@ describe('STUDY API', () => {
                     dataType: enumValueType.STRING,
                     possibleValues: [],
                     unit: 'person',
-                    comments: 'mockComments1',
-                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    comments: 'mockComments2',
+                    dateAdded: '2022-06-18T17:35:15.226Z',
                     dateDeleted: null,
                     dataVersion: 'mockDataVersionId'
                 },
@@ -1635,7 +1640,7 @@ describe('STUDY API', () => {
                     dateDeleted: null,
                     dataVersion: 'mockDataVersionId'
                 }
-            ]);
+            ].sort((a, b) => a.id.localeCompare(b.id)));
         });
 
         test('Get study fields (user project privilege)', async () => {
@@ -1648,21 +1653,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.getStudyFields).toEqual([ // as the api will sort the results, the order is changed
-                {
-                    id: 'mockfield2',
-                    studyId: createdStudy.id,
-                    fieldId: '32',
-                    fieldName: 'Sex',
-                    tableName: null,
-                    dataType: enumValueType.STRING,
-                    possibleValues: [],
-                    unit: 'person',
-                    comments: 'mockComments1',
-                    dateAdded: '2021-05-16T16:32:10.226Z',
-                    dateDeleted: null,
-                    dataVersion: 'mockDataVersionId'
-                },
+            expect(res.body.data.getStudyFields.sort((a, b) => a.id.localeCompare(b.id))).toEqual([ // as the api will sort the results, the order is changed
                 {
                     id: 'mockfield1',
                     studyId: createdStudy.id,
@@ -1676,8 +1667,22 @@ describe('STUDY API', () => {
                     dateAdded: '2021-05-16T16:32:10.226Z',
                     dateDeleted: null,
                     dataVersion: 'mockDataVersionId'
+                },
+                {
+                    id: 'mockfield2',
+                    studyId: createdStudy.id,
+                    fieldId: '32',
+                    fieldName: 'Sex',
+                    tableName: null,
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments2',
+                    dateAdded: '2022-06-18T17:35:15.226Z',
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
                 }
-            ]);
+            ].sort((a, b) => a.id.localeCompare(b.id)));
         });
 
         test('Get study fields (user without project privilege nor study privilege) (should fail)', async () => {
@@ -1737,21 +1742,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.getStudyFields).toEqual([ // as the api will sort the results, the order is changed
-                {
-                    id: 'mockfield1',
-                    studyId: createdStudy.id,
-                    fieldId: '31',
-                    fieldName: 'Sex',
-                    tableName: null,
-                    dataType: enumValueType.STRING,
-                    possibleValues: [],
-                    unit: 'person',
-                    comments: 'mockComments1',
-                    dateAdded: '2021-05-16T16:32:10.226Z',
-                    dateDeleted: null,
-                    dataVersion: 'mockDataVersionId'
-                },
+            expect(res.body.data.getStudyFields.sort((a, b) => a.id.localeCompare(b.id))).toEqual([ // as the api will sort the results, the order is changed
                 {
                     id: 'mockfield3',
                     studyId: createdStudy.id,
@@ -1765,19 +1756,7 @@ describe('STUDY API', () => {
                     dateAdded: '2021-05-18T16:32:10.226Z',
                     dateDeleted: null,
                     dataVersion: null,
-                }
-            ]);
-            // user with project privilege can only access the latest fields that are versioned
-            const res2 = await authorisedUser.post('/graphql').send({
-                query: print(GET_STUDY_FIELDS),
-                variables: {
-                    studyId: createdStudy.id,
-                    projectId: createdProject.id
-                }
-            });
-            expect(res2.status).toBe(200);
-            expect(res2.body.errors).toBeUndefined();
-            expect(res2.body.data.getStudyFields).toEqual([ // as the api will sort the results, the order is changed
+                },
                 {
                     id: 'mockfield2',
                     studyId: createdStudy.id,
@@ -1787,8 +1766,8 @@ describe('STUDY API', () => {
                     dataType: enumValueType.STRING,
                     possibleValues: [],
                     unit: 'person',
-                    comments: 'mockComments1',
-                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    comments: 'mockComments2',
+                    dateAdded: '2022-06-18T17:35:15.226Z',
                     dateDeleted: null,
                     dataVersion: 'mockDataVersionId'
                 },
@@ -1806,7 +1785,47 @@ describe('STUDY API', () => {
                     dateDeleted: null,
                     dataVersion: 'mockDataVersionId'
                 }
-            ]);
+            ].sort((a, b) => a.id.localeCompare(b.id)));
+            // user with project privilege can only access the latest fields that are versioned
+            const res2 = await authorisedUser.post('/graphql').send({
+                query: print(GET_STUDY_FIELDS),
+                variables: {
+                    studyId: createdStudy.id,
+                    projectId: createdProject.id
+                }
+            });
+            expect(res2.status).toBe(200);
+            expect(res2.body.errors).toBeUndefined();
+            expect(res2.body.data.getStudyFields.sort((a, b) => a.id.localeCompare(b.id))).toEqual([ // as the api will sort the results, the order is changed
+                {
+                    id: 'mockfield2',
+                    studyId: createdStudy.id,
+                    fieldId: '32',
+                    fieldName: 'Sex',
+                    tableName: null,
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments2',
+                    dateAdded: '2022-06-18T17:35:15.226Z',
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                },
+                {
+                    id: 'mockfield1',
+                    studyId: createdStudy.id,
+                    fieldId: '31',
+                    fieldName: 'Sex',
+                    tableName: null,
+                    dataType: enumValueType.STRING,
+                    possibleValues: [],
+                    unit: 'person',
+                    comments: 'mockComments1',
+                    dateAdded: '2021-05-16T16:32:10.226Z',
+                    dateDeleted: null,
+                    dataVersion: 'mockDataVersionId'
+                }
+            ].sort((a, b) => a.id.localeCompare(b.id)));
         });
 
         test('Edit project approved fields with fields that are not in the field tree (admin) (should fail)', async () => {
@@ -1862,8 +1881,8 @@ describe('STUDY API', () => {
                         dataType: enumValueType.STRING,
                         possibleValues: [],
                         unit: 'person',
-                        comments: 'mockComments1',
-                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        comments: 'mockComments2',
+                        dateAdded: '2022-06-18T17:35:15.226Z',
                         dateDeleted: null,
                         dataVersion: 'mockDataVersionId'
                     }
@@ -1941,8 +1960,8 @@ describe('STUDY API', () => {
                         dataType: enumValueType.STRING,
                         possibleValues: [],
                         unit: 'person',
-                        comments: 'mockComments1',
-                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        comments: 'mockComments2',
+                        dateAdded: '2022-06-18T17:35:15.226Z',
                         dateDeleted: null,
                         dataVersion: 'mockDataVersionId'
                     }
@@ -2874,7 +2893,7 @@ describe('STUDY API', () => {
                     dataType: enumValueType.STRING,
                     possibleValues: [],
                     unit: 'person',
-                    comments: 'mockComments1',
+                    comments: 'mockComments2',
                     dateAdded: 100000000,
                     dateDeleted: null,
                     dataVersion: 'mockDataVersionId'

@@ -43,7 +43,7 @@ export class ObjectStore {
         return await minioClient.listBuckets();
     }
 
-    public async uploadFile(fileStream: Readable, studyId: string, uri: string): Promise<Minio.UploadedObjectInfo> {
+    public async uploadFile(fileStream: Readable, studyId: string, uri: string): Promise<string> {
         const lowercasestudyid = studyId.toLowerCase();
         const bucketExists = await this.client!.bucketExists(lowercasestudyid);
 
@@ -65,7 +65,7 @@ export class ObjectStore {
         }
 
         const result = await this.client!.putObject(lowercasestudyid, uri, fileStream);
-        return result;
+        return result.etag;
     }
 
     public async downloadFile(studyId: string, uri: string): Promise<Readable> {
