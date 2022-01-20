@@ -43,7 +43,9 @@ module.exports = {
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
         new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../src/utils/noop`),
-        new webpack.IgnorePlugin(new RegExp('^(node-pre-gyp)$')),
+        new webpack.IgnorePlugin({
+            resourceRegExp: new RegExp('^(node-pre-gyp)$')
+        }),
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {
