@@ -62,7 +62,7 @@ module.exports = {
                     }, 1000);
                 });
             } catch (e) {
-                console.error(chalk.bgYellowBright(chalk.black(' WARNING ')), chalk.yellow('An error occurred while trying to execute docker.'));
+                console.error(chalk.bgYellowBright(chalk.black(' ERROR ')), chalk.yellow('An error occurred while trying to execute docker.'));
                 console.error(e.message);
                 return reject();
             }
