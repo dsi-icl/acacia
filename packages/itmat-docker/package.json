@@ -24,8 +24,8 @@
     "dependencies": {
         "bcrypt": "5.0.1",
         "compression": "1.7.4",
-        "express": "4.17.1",
-        "express-rate-limit": "5.2.6",
+        "express": "4.17.2",
+        "express-rate-limit": "6.1.0",
         "isobject": "4.0.0",
         "mongodb": "3.6.9"
     }
