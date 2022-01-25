@@ -9,8 +9,8 @@ import { Subsection } from '../../../reusable/subsection/subsection';
 import { DataSummaryVisual } from './dataSummary';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import css from './tabContent.module.css';
-import { UploadNewData } from './uploadNewData';
-import { UploadNewFields } from './uploadNewFields';
+// import { UploadNewData } from './uploadNewData';
+// import { UploadNewFields } from './uploadNewFields';
 import { Button, Form, Input, Switch, Modal, Table } from 'antd';
 
 export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
@@ -107,9 +107,9 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
                 </> : null}
             </div> : null}
         <div className={css.tab_page_wrapper + ' ' + css.left_panel}>
-            <Subsection title='Upload New Fields'>
+            {/* <Subsection title='Upload New Fields'>
                 <UploadNewFields studyId={studyId} />
-            </Subsection><br />
+            </Subsection><br /> */}
             <Subsection title='Fields & Variables'>
                 <FieldListSection
                     studyData={getStudyData.getStudy}
@@ -123,9 +123,9 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            <Subsection title='Upload New Data'>
+            {/* <Subsection title='Upload New Data'>
                 <UploadNewData studyId={studyId} ></UploadNewData>
-            </Subsection><br />
+            </Subsection><br /> */}
             <Subsection title='Create New Data Version'>
                 <Modal
                     width='80%'
