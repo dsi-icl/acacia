@@ -34,8 +34,9 @@ export const permissionResolvers = {
     },
     StudyOrProjectUserRole: {
         users: async (role: IRole): Promise<IUser[]> => {
-            const listOfUsers = role.users;
-            return await (db.collections!.users_collection.find<IUser>({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
+            //TODO variable role.users here is not actually of type IRole.IUser
+            const listOfUsers = role.users as any as string[];
+            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
         }
     },
     Mutation: {
@@ -76,7 +77,7 @@ export const permissionResolvers = {
             const requester: IUser = context.req.user;
             const { roleId, name, permissionChanges, userChanges } = args;
 
-            const role: IRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
+            const role = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
             if (role === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
@@ -128,7 +129,7 @@ export const permissionResolvers = {
             const requester: IUser = context.req.user;
             const { roleId } = args;
 
-            const role: IRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
+            const role = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
             if (role === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }

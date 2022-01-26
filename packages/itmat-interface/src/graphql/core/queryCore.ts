@@ -22,8 +22,9 @@ export class QueryCore {
     }
 
     public async getUsersQuery_NoResult(userId: string): Promise<IQueryEntry[]> {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
         return db.collections!.queries_collection.find<IQueryEntry>({ requester: userId }, { projection: { _id: 0, claimedBy: 0, queryResult: 0 } }).toArray();
-
     }
 
 }

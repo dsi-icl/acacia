@@ -17,8 +17,7 @@ export interface IDatabase {
         mongoClientConnect: (uri: string, options?: mongodb.MongoClientOptions) => Promise<mongodb.MongoClient>
     ) => Promise<void>;
     db: mongodb.Db;
-    client: mongodb.MongoClient;
-    isConnected: () => boolean;
+    client?: mongodb.MongoClient;
     closeConnection: () => Promise<void>;
 }
 
@@ -28,8 +27,8 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
         return this.localClient!.db(this.config!.database);
     }
 
-    get client(): mongodb.MongoClient {
-        return this.localClient!;
+    get client(): mongodb.MongoClient | undefined {
+        return this.localClient;
     }
     public collections?: C;
     private localClient?: mongodb.MongoClient;
@@ -40,38 +39,26 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
         mongoClientConnect: (uri: string, options?: mongodb.MongoClientOptions) => Promise<mongodb.MongoClient>
     ): Promise<void> {
         this.config = config;
-        if (!this.isConnected()) {
-            Logger.log('Connecting to the database..');
-            /* any error throw here will be caught by the server */
-            this.localClient = await mongoClientConnect(config.mongo_url, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true
-            });
-            Logger.log('Connected to database.');
+        const shouldOutput = process.env.JEST_WORKER_ID !== undefined;
+        shouldOutput && Logger.log('Connecting to the database..');
+        /* any error throw here will be caught by the server */
+        this.localClient = await mongoClientConnect(config.mongo_url);
+        shouldOutput && Logger.log('Connected to database.');
 
-            Logger.log('Performing basic checks..');
-            await this.checkAllCollectionsArePresent();
-            Logger.log('Done basic checks.');
+        shouldOutput && Logger.log('Performing basic checks..');
+        await this.checkAllCollectionsArePresent();
+        shouldOutput && Logger.log('Done basic checks.');
 
-            this.assignCollections();
+        this.assignCollections();
 
-            Logger.log('Finished with database initialisation.');
-        } else {
-            Logger.warn('Called connect function on an already connected database instance.');
-        }
-    }
-
-    public isConnected(): boolean {
-        if  (!this.localClient) {
-            return false;
-        }
-        return this.localClient.isConnected();
+        shouldOutput && Logger.log('Finished with database initialisation.');
     }
 
     public async closeConnection(): Promise<void> {
         try {
-            await this.localClient!.close();
-        } catch (e) {
+            if (this.localClient)
+                await this.localClient.close();
+        } catch (e: any) {
             Logger.error(new CustomError('Cannot close Mongo connection', e));
         }
     }

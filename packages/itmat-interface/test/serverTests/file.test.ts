@@ -1,6 +1,8 @@
 /**
  * @with Minio
  */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 
 import request from 'supertest';
 import { print } from 'graphql';
@@ -38,24 +40,21 @@ if (global.hasMinio) {
     beforeAll(async () => { // eslint-disable-line no-undef
 
         /* Creating a in-memory MongoDB instance for testing */
-        mongodb = new MongoMemoryServer();
-        const connectionString = await mongodb.getUri();
-        const database = await mongodb.getDbName();
+        mongodb = await MongoMemoryServer.create();
+        const connectionString = mongodb.getUri();
+        const database = mongodb.instanceInfo.dbName;
         await setupDatabase(connectionString, database);
 
         /* Wiring up the backend server */
         config.objectStore.port = global.minioContainerPort;
         config.database.mongo_url = connectionString;
         config.database.database = database;
-        await db.connect(config.database, MongoClient.connect);
+        await db.connect(config.database, MongoClient.connect as any);
         await objStore.connect(config.objectStore);
         const router = new Router(config);
 
         /* Connect mongo client (for test setup later / retrieve info later) */
-        mongoConnection = await MongoClient.connect(connectionString, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        mongoConnection = await MongoClient.connect(connectionString);
         mongoClient = mongoConnection.db(database);
 
         /* Connecting clients for testing later */

@@ -6,12 +6,14 @@ import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
 import { validate } from '@ideafast/idgen';
 import { parseValue } from 'graphql';
+import type { MatchKeysAndValues } from 'mongodb';
+import { IDataEntry } from '../../../../itmat-commons/dist/models/data';
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
 
     public async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
-        const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
+        const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
         if (studySearchResult === null || studySearchResult === undefined) {
             throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
@@ -19,7 +21,7 @@ export class StudyCore {
     }
 
     public async findOneProject_throwErrorIfNotExist(projectId: string): Promise<IProject> {
-        const projectSearchResult: IProject = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null })!;
+        const projectSearchResult = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null })!;
         if (projectSearchResult === null || projectSearchResult === undefined) {
             throw new ApolloError('Project does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
@@ -63,8 +65,8 @@ export class StudyCore {
     }
 
     public async editStudy(studyId: string, description: string): Promise<IStudy> {
-        const res = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId }, { $set: { description: description } }, { returnOriginal: false });
-        if (res.ok === 1) {
+        const res = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId }, { $set: { description: description } }, { returnDocument: 'after' });
+        if (res.ok === 1 && res.value) {
             return res.value;
         } else {
             throw new ApolloError('Edit study failed');
@@ -155,7 +157,7 @@ export class StudyCore {
             return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: FieldId is not registered. Please define this fieldId first.` };
         }
         // check subjectId
-        if(!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
+        if (!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
             return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Subject ID ${dataClip.subjectId} is illegal.` };
         }
 
@@ -242,10 +244,10 @@ export class StudyCore {
         const obj = {
             m_studyId: studyId,
             m_subjectId: dataClip.subjectId,
-            m_versionId: null,
+            m_versionId: undefined,
             m_visitId: dataClip.visitId,
         };
-        const objWithData = {
+        const objWithData: MatchKeysAndValues<IDataEntry> = {
             ...obj,
             id: uuid(),
             uploadedAt: (new Date()).valueOf()
@@ -260,6 +262,7 @@ export class StudyCore {
     public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuid(),
+            dataVersion: null,
             studyId,
             createdBy: requestedBy,
             name: projectName,
@@ -290,7 +293,7 @@ export class StudyCore {
 
     public async deleteStudy(studyId: string): Promise<void> {
         /* PRECONDITION: CHECKED THAT STUDY INDEED EXISTS */
-        const session = db.client.startSession();
+        const session = db.client!.startSession();
         session.startTransaction();
 
         const timestamp = new Date().valueOf();
@@ -321,11 +324,10 @@ export class StudyCore {
     }
 
     public async deleteProject(projectId: string): Promise<void> {
-        const opts = { returnOriginal: false };
         const timestamp = new Date().valueOf();
 
         /* delete all projects related to the study */
-        await db.collections!.projects_collection.findOneAndUpdate({ id: projectId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } }, opts);
+        await db.collections!.projects_collection.findOneAndUpdate({ id: projectId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } }, { returnDocument: 'after' });
 
         /* delete all roles related to the study */
         await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });
@@ -333,9 +335,9 @@ export class StudyCore {
 
     public async editProjectApprovedFields(projectId: string, approvedFields: string[]): Promise<IProject> {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields: approvedFields } }, { returnOriginal: false });
-        if (result.ok === 1) {
-            return result.value;
+        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields: approvedFields } }, { returnDocument: 'after' });
+        if (result.ok === 1 && result.value) {
+            return result.value as IProject;
         } else {
             throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
         }
@@ -343,9 +345,9 @@ export class StudyCore {
 
     public async editProjectApprovedFiles(projectId: string, approvedFiles: string[]): Promise<IProject> {
         /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFiles } }, { returnOriginal: false });
-        if (result.ok === 1) {
-            return result.value;
+        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFiles } }, { returnDocument: 'after' });
+        if (result.ok === 1 && result.value) {
+            return result.value as IProject;
         } else {
             throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
         }

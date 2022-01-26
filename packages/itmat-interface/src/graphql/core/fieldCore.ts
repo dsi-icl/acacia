@@ -19,7 +19,7 @@ export class FieldCore {
             aggregatePipeline.push({ $group: { _id: null, array: { $addToSet: '$fieldId' } } });
         }
 
-        const cursor = db.collections!.field_dictionary_collection.aggregate(aggregatePipeline);
+        const cursor = db.collections!.field_dictionary_collection.aggregate<IFieldEntry>(aggregatePipeline);
         return cursor.toArray();
     }
 
@@ -52,7 +52,7 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
             if (fieldEntry.possibleValues.length === 0) {
                 error.push(`${fieldEntry.fieldId}-${fieldEntry.fieldName}: possible values can't be empty if data type is categorical.`);
             }
-            for (let i=0; i<fieldEntry.possibleValues.length; i++) {
+            for (let i = 0; i < fieldEntry.possibleValues.length; i++) {
                 fieldEntry.possibleValues[i]['id'] = uuid();
             }
         } else {
@@ -75,7 +75,7 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
         comments: fieldEntry.comments,
     };
 
-    return {fieldEntry: newField, error: error};
+    return { fieldEntry: newField, error: error };
 }
 
 export const fieldCore = Object.freeze(new FieldCore());

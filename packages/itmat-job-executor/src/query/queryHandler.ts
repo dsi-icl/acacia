@@ -1,4 +1,4 @@
-import { IProject, Logger, IJobEntry } from 'itmat-commons';
+import { Logger, IJobEntry } from 'itmat-commons';
 import { db } from '../database/database';
 import { pipelineGenerator } from './pipeLineGenerator';
 import { JobHandler } from '../jobHandlers/jobHandlerInterface';
@@ -18,19 +18,21 @@ export class QueryHandler extends JobHandler {
         // get available data versions
         const thisProject = await db.collections!.projects_collection.findOne({ id: job.data.projectId });
         const availableDataVersions = [thisProject.dataVersion];
-        const  queryId  = job.data.queryId[0];
-        const queryString = await db.collections!.queries_collection.findOne({id: queryId})!;
+        const queryId = job.data.queryId[0];
+        const queryString = await db.collections!.queries_collection.findOne({ id: queryId })!;
         const pipeline = pipelineGenerator.buildPipeline(queryString.queryString, job.studyId, availableDataVersions);
         try {
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             /* if the query is on a project, then we need to map the results m_eid */
             if (job.projectId) {
-                const project: IProject = await db.collections!.projects_collection.findOne({ id: job.data.projectId })!;
+                const project = await db.collections!.projects_collection.findOne({ id: job.data.projectId })!;
                 if (project === null || project === undefined) {
-                    await db.collections!.queries_collection.findOneAndUpdate({ queryId }, { $set: {
-                        error: 'Project does not exist or has been deleted.',
-                        status: 'FINISHED WITH ERROR'
-                    }});
+                    await db.collections!.queries_collection.findOneAndUpdate({ queryId }, {
+                        $set: {
+                            error: 'Project does not exist or has been deleted.',
+                            status: 'FINISHED WITH ERROR'
+                        }
+                    });
                     return;
                 }
                 const mapping = project.patientMapping;
@@ -39,10 +41,12 @@ export class QueryHandler extends JobHandler {
                     el.m_eid = mapping[el.m_eid];
                 });
             }
-            await db.collections!.queries_collection.findOneAndUpdate({ id: queryId }, { $set: {
-                queryResult: JSON.stringify(result),
-                status: 'FINISHED'
-            }});
+            await db.collections!.queries_collection.findOneAndUpdate({ id: queryId }, {
+                $set: {
+                    queryResult: JSON.stringify(result),
+                    status: 'FINISHED'
+                }
+            });
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
             return;
         } catch (e) {
@@ -50,10 +54,12 @@ export class QueryHandler extends JobHandler {
             Logger.error(e.toString());
 
             /* update query status */
-            await db.collections!.queries_collection.findOneAndUpdate({ queryId }, { $set: {
-                error: e.toString(),
-                status: 'FINISHED WITH ERROR'
-            }});
+            await db.collections!.queries_collection.findOneAndUpdate({ queryId }, {
+                $set: {
+                    error: e.toString(),
+                    status: 'FINISHED WITH ERROR'
+                }
+            });
             return;
         }
     }

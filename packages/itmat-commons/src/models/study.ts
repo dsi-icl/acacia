@@ -54,6 +54,7 @@ export interface IProject {
     approvedFiles: string[];
     lastModified: number;
     deleted: number | null;
+    dataVersion: string | null;
 }
 
 export interface IDataClip {
@@ -63,13 +64,13 @@ export interface IDataClip {
     visitId: string
 }
 
-export enum DATA_CLIP_ERROR_TYPE{
+export enum DATA_CLIP_ERROR_TYPE {
     ACTION_ON_NON_EXISTENT_ENTRY = 'ACTION_ON_NON_EXISTENT_ENTRY',
     MALFORMED_INPUT = 'MALFORMED_INPUT'
 }
 
 export interface IDataClipError {
-    code:DATA_CLIP_ERROR_TYPE
+    code: DATA_CLIP_ERROR_TYPE
     description?: string
 }
 

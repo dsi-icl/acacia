@@ -10,7 +10,7 @@ export interface IFieldEntry {
     comments?: string;
     dateAdded: string;
     dateDeleted: string | null;
-    dataVersion: string;
+    dataVersion: string | null;
 }
 
 export interface IValueDescription {
