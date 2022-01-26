@@ -1,6 +1,8 @@
 /**
  * @with Minio
  */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 
 import request from 'supertest';
 import { print } from 'graphql';
@@ -38,24 +40,21 @@ if (global.hasMinio) {
     beforeAll(async () => { // eslint-disable-line no-undef
 
         /* Creating a in-memory MongoDB instance for testing */
-        mongodb = new MongoMemoryServer();
-        const connectionString = await mongodb.getUri();
-        const database = await mongodb.getDbName();
+        mongodb = await MongoMemoryServer.create();
+        const connectionString = mongodb.getUri();
+        const database = mongodb.instanceInfo.dbName;
         await setupDatabase(connectionString, database);
 
         /* Wiring up the backend server */
         config.objectStore.port = global.minioContainerPort;
         config.database.mongo_url = connectionString;
         config.database.database = database;
-        await db.connect(config.database, MongoClient.connect);
+        await db.connect(config.database, MongoClient.connect as any);
         await objStore.connect(config.objectStore);
         const router = new Router(config);
 
         /* Connect mongo client (for test setup later / retrieve info later) */
-        mongoConnection = await MongoClient.connect(connectionString, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        mongoConnection = await MongoClient.connect(connectionString);
         mongoClient = mongoConnection.db(database);
 
         /* Connecting clients for testing later */
@@ -179,7 +178,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                                 fileLength: 13,
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
@@ -197,7 +196,7 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         projectId: null,
                         fileSize: '13',
-                        description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                        description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                         uploadedBy: adminId,
                         hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                     });
@@ -275,7 +274,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                                 fileLength: 13,
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
@@ -297,7 +296,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                                 fileLength: 13,
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
@@ -315,7 +314,7 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         projectId: null,
                         fileSize: '13',
-                        description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                        description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                         uploadedBy: authorisedUserProfile.id,
                         hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                     });
@@ -329,7 +328,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'IR6R4AR',deviceId:'AX6VJH6F6',startDate:1590966000000,endDate:1593730800000}),
+                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
                                 fileLength: 0,
                                 hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                             }
@@ -347,7 +346,7 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         projectId: null,
                         fileSize: '0',
-                        description: JSON.stringify({participantId:'IR6R4AR',deviceId:'AX6VJH6F6',startDate:1590966000000,endDate:1593730800000}),
+                        description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
                         uploadedBy: adminId,
                         hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                     });
@@ -385,7 +384,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                                 fileLength: 10
                             }
                         }))
@@ -406,7 +405,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'27N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                description: JSON.stringify({ participantId: '27N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                                 fileLength: 13
                             }
                         }))
@@ -453,7 +452,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                                 fileLength: 13,
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }
@@ -586,7 +585,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({participantId:'I7N3G6G',deviceId:'MMM7N3G6G',startDate:1593817200000,endDate:1595286000000}),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                                 fileLength: 13,
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
                             }

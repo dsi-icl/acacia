@@ -1,4 +1,4 @@
-import csvparse from 'csv-parse';
+import * as csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import { v4 as uuid } from 'uuid';
@@ -17,7 +17,7 @@ export class FieldCurator {
     constructor(
         private readonly fieldCollection: Collection,
         private readonly incomingWebStream: Readable,
-        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_lines_with_error: true },
+        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_records_with_error: true },
         private readonly job: IJobEntryForFieldCuration,
         private readonly codesObj: any
     ) {
@@ -38,7 +38,7 @@ export class FieldCurator {
             let lineNum = 0;
             let isHeader = true;
             let bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
-            const csvparseStream = csvparse(this.parseOptions);
+            const csvparseStream = csvparse.parse(this.parseOptions);
             const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
 
             csvparseStream.on('skip', (error) => {

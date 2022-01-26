@@ -20,7 +20,7 @@
     },
     "server": {
         "port": 3003
-    },    
+    },
     "bcrypt": {
         "saltround": 2
     },
@@ -34,6 +34,8 @@
     },
     "sessionsSecret": "Change_Me",
     "aesSecret": "change_this",
-    "nodemailer": {},
+    "nodemailer": {
+        "auth": {}
+    },
     "adminEmail": "admin_wp5@ideafast.eu"
 }
