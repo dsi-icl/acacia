@@ -19,7 +19,7 @@
     },
     "dependencies": {
         "@ant-design/icons": "4.7.0",
-        "@apollo/client": "3.3.19",
+        "@apollo/client": "3.5.8",
         "@ideafast/idgen": "0.1.1",
         "antd": "4.16.3",
         "apollo-upload-client": "14.1.3",
