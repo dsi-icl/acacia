@@ -1302,7 +1302,10 @@ describe('STUDY API', () => {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getProject).toBe(null);
+                expect(res.body.data.deleteStudy).toEqual({
+                    id: createdStudy.id,
+                    successful: true
+                });
             }
 
             /* check projects and roles are also deleted */
@@ -1321,7 +1324,9 @@ describe('STUDY API', () => {
                         id: `user_access_obj_user_id_${adminId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 });
 
                 // study data is NOT deleted for audit purposes - unless explicitly requested separately
@@ -3061,7 +3066,10 @@ describe('STUDY API', () => {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getProject).toBe(null);
+                expect(res.body.data.deleteStudy).toEqual({
+                    id: createdStudy.id,
+                    successful: true
+                });
             }
 
             {
@@ -3079,7 +3087,9 @@ describe('STUDY API', () => {
                         id: `user_access_obj_user_id_${adminId}`,
                         projects: [],
                         studies: []
-                    }
+                    },
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
                 });
 
                 // study data is NOT deleted for audit purposes - unless explicitly requested separately

@@ -54,7 +54,7 @@ export const studyResolvers = {
             /* get project */ // defer patientMapping since it's costly and not available to all users
             const project = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
 
-            if (project === null) {
+            if (!project) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
