@@ -16020,6 +16020,11 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
+run-script-webpack-plugin@0.0.11:
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/run-script-webpack-plugin/-/run-script-webpack-plugin-0.0.11.tgz#04c510bed06b907fa2285e75feece71a25691171"
+  integrity sha512-QmuBhiqBPmhQLpO5vMBHVTAGyoPBnrCM5gQ3IzgieiImBXiBbXcIv4kysCT1gilFNFxQk22oKQfiIhWbT/zXCw==
+
 rxjs@^6.6.0:
   version "6.6.7"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.6.7.tgz#90ac018acabf491bf65044235d5863c4dab804c9"
@@ -16704,11 +16709,6 @@ stackframe@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.2.0.tgz#52429492d63c62eb989804c11552e3d22e779303"
   integrity sha512-GrdeshiRmS1YLMYgzF16olf2jJ/IzxXY9lhKOskuVziubpTYcYqyOwYeJKzQkwy7uN0fYSsbsC4RQaXf9LCrYA==
-
-start-server-webpack-plugin@2.2.5:
-  version "2.2.5"
-  resolved "https://registry.yarnpkg.com/start-server-webpack-plugin/-/start-server-webpack-plugin-2.2.5.tgz#4a2838759b0f36acd11b0b2f5f196f289ae29d31"
-  integrity sha512-DRCkciwCJoCFZ+wt3wWMkR1M2mpVhJbUKFXqhK3FWyIUKYb42NnocH5sMwqgo+nPNHupqNwK/v8lgfBbr2NKdg==
 
 static-extend@^0.1.1:
   version "0.1.2"
