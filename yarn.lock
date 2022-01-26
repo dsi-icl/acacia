@@ -3372,13 +3372,6 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node-fetch@3.0.2":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-3.0.2.tgz#899fb992d1349d2e34c287b70007a22c51acae79"
-  integrity sha512-3q5FyT6iuekUxXeL2qjcyIhtMJdfMF7RGhYXWKkYpdcW9k36A/+txXrjG0l+NMVkiC30jKNrcOqVlqBl7BcCHA==
-  dependencies:
-    node-fetch "*"
-
 "@types/node-fetch@3.0.3":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-3.0.3.tgz#9d969c9a748e841554a40ee435d26e53fa3ee899"
