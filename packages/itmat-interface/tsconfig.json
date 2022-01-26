@@ -3,7 +3,8 @@
     "include": [
         "src/**/*.ts*",
         "../../test/**/*.ts*",
-        "../../global.d.ts"
+        "../../global.d.ts",
+        "../../tools/noop.ts"
     ],
     "compilerOptions": {
         "lib": [
