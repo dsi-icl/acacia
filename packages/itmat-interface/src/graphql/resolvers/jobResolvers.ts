@@ -1,4 +1,5 @@
-import { ApolloError, withFilter } from 'apollo-server-express';
+import { ApolloError } from 'apollo-server-express';
+import { withFilter } from 'graphql-subscriptions';
 import { Models, task_required_permissions } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
