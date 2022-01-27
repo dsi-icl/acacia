@@ -15,7 +15,9 @@
         "target": "es5",
         "sourceMap": true,
         "moduleResolution": "node",
-        "jsx": "react-jsx"
+        "jsx": "react-jsx",
+        "importHelpers": true,
+        "forceConsistentCasingInFileNames": true
     },
     "exclude": [
         "node_modules",
