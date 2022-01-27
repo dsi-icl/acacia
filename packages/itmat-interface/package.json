@@ -73,7 +73,6 @@
         "typescript": "4.3.2"
     },
     "resolutions": {
-        "**/apollo-server-core": "2.20.0",
         "**/graphql-upload": "^11.0.0",
         "**/mongodb": "4.3.1"
     },
