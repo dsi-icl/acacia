@@ -20,7 +20,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "apollo-server-express": "2.20.0",
+        "apollo-server-express": "3.6.2",
         "bcrypt": "5.0.1",
         "body-parser": "1.19.1",
         "connect-mongo": "4.6.0",
@@ -28,8 +28,11 @@
         "express": "4.17.2",
         "express-session": "1.17.2",
         "fs-extra": "10.0.0",
+        "graphql": "16.3.0",
         "graphql-scalars": "1.14.1",
         "graphql-type-json": "0.3.2",
+        "graphql-subscriptions": "2.0.0",
+        "graphql-upload": "13.0.0",
         "hi-base32": "0.5.1",
         "itmat-commons": "1.0.0",
         "jwt-decode": "^3.1.2",
@@ -38,6 +41,7 @@
         "passport": "0.5.2",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
+        "subscriptions-transport-ws": "0.11.0",
         "uuid": "8.3.2"
     },
     "devDependencies": {
@@ -59,7 +63,6 @@
         "cross-env": "7.0.3",
         "cross-spawn": "7.0.3",
         "get-port": "6.0.0",
-        "graphql": "15.5.0",
         "itmat-setup": "1.0.0",
         "jest": "27.4.7",
         "jsonwebtoken": "8.5.1",

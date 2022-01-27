@@ -1,8 +1,9 @@
 import { gql } from 'apollo-server-express';
 
-export const schema = gql`
+export const typeDefs = gql`
 scalar JSON
 scalar BigInt
+scalar Upload
 
 enum USERTYPE {
     ADMIN
