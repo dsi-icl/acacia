@@ -190,7 +190,9 @@ if (global.hasMinio) {
                     const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.uploadFile).toEqual({
+                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
+                    expect(uploadTime).toBeDefined();
+                    expect(uploadFile).toEqual({
                         id: createdFile.id,
                         fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt',
                         studyId: createdStudy.id,
@@ -222,7 +224,9 @@ if (global.hasMinio) {
                     const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'prolific_test.txt', studyId: createdStudyClinical.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.uploadFile).toEqual({
+                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
+                    expect(uploadTime).toBeDefined();
+                    expect(uploadFile).toEqual({
                         id: createdFile.id,
                         fileName: 'prolific_test.txt',
                         studyId: createdStudyClinical.id,
@@ -254,7 +258,9 @@ if (global.hasMinio) {
                     const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'RandomFile.txt', studyId: createdStudyAny.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.uploadFile).toEqual({
+                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
+                    expect(uploadTime).toBeDefined();
+                    expect(uploadFile).toEqual({
                         id: createdFile.id,
                         fileName: 'RandomFile.txt',
                         studyId: createdStudyAny.id,
@@ -308,7 +314,9 @@ if (global.hasMinio) {
                     const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.uploadFile).toEqual({
+                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
+                    expect(uploadTime).toBeDefined();
+                    expect(uploadFile).toEqual({
                         id: createdFile.id,
                         fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt',
                         studyId: createdStudy.id,
@@ -340,7 +348,9 @@ if (global.hasMinio) {
                     const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'IR6R4AR-AX6VJH6F6-20200601-20200703.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.uploadFile).toEqual({
+                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
+                    expect(uploadTime).toBeDefined();
+                    expect(uploadFile).toEqual({
                         id: createdFile.id,
                         fileName: 'IR6R4AR-AX6VJH6F6-20200601-20200703.txt',
                         studyId: createdStudy.id,
