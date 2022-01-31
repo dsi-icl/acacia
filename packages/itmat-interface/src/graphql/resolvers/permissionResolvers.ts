@@ -114,7 +114,7 @@ export const permissionResolvers = {
             if (permissionChanges) {
                 const allRequestedPermissionChanges: string[] = [...permissionChanges.add, ...permissionChanges.remove];
 
-                const permittedPermissions: string[] = []; role.projectId ?
+                const permittedPermissions: string[] = role.projectId ?
                     flattenObjectToArray(permissions.project_specific)
                     :
                     flattenObjectToArray(permissions.dataset_specific);

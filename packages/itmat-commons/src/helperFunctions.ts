@@ -7,7 +7,7 @@ export function flattenObjectToArray(entry: any) {
         } else {
             el.forEach(helper);
         }
-    }
+    };
     nestedArray.forEach(helper);
     return arr;
 }

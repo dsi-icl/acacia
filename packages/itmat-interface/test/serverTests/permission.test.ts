@@ -55,7 +55,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
 });
 
 describe('ROLE API', () => {
-    let adminId;
+    let adminId: string;
 
     beforeAll(async () => {
         /* setup: first retrieve the generated user id */
@@ -183,7 +183,7 @@ describe('ROLE API', () => {
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
                 permissions: [
-                    permissions.specific_study.specific_study_role_management
+                    permissions.dataset_specific.roles.create_dataset_roles
                 ],
                 users: [authorisedUserProfile.id],
                 deleted: null
@@ -290,7 +290,7 @@ describe('ROLE API', () => {
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
                 permissions: [
-                    permissions.specific_project.specific_project_role_management
+                    permissions.project_specific.roles.create_project_roles
                 ],
                 users: [authorisedUserProfile.id],
                 deleted: null
@@ -325,7 +325,7 @@ describe('ROLE API', () => {
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
                 permissions: [
-                    permissions.specific_project.specific_project_role_management
+                    permissions.project_specific.roles.create_project_roles
                 ],
                 users: [authorisedUserProfile.id],
                 deleted: null
@@ -370,16 +370,16 @@ describe('ROLE API', () => {
             await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         });
 
-        test('Creating a new role for project (user with privilege for the study)', async () => {
+        test('Creating a new role for project (user with privilege for the study) (should fail)', async () => {
             /* setup: giving authorised user privilege */
             const roleId = uuid();
             const newRole = {
                 id: roleId,
-                projectId: null,
+                projectId: setupProject.id,
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
                 permissions: [
-                    permissions.specific_study.specific_study_role_management
+                    permissions.dataset_specific.roles.create_dataset_roles
                 ],
                 users: [authorisedUserProfile.id],
                 deleted: null
@@ -397,31 +397,8 @@ describe('ROLE API', () => {
                 }
             });
             expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-
-            const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
-            expect(createdRole).toEqual({
-                _id: createdRole._id,
-                id: createdRole.id,
-                projectId: setupProject.id,
-                studyId: setupStudy.id,
-                name: roleName,
-                permissions: [],
-                createdBy: authorisedUserProfile.id,
-                users: [],
-                deleted: null
-            });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
-                id: createdRole.id,
-                name: roleName,
-                permissions: [],
-                studyId: setupStudy.id,
-                projectId: setupProject.id,
-                users: []
-            });
-
-            /* cleanup */
-            await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({ name: roleName, deleted: null }, { $set: { deleted: new Date().valueOf() } });
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
         });
 
         test('Creating a new role for project (user without privilege) (should fail)', async () => {
@@ -492,7 +469,9 @@ describe('ROLE API', () => {
                     studyId: setupStudy.id,
                     name: `${roleId[0]}_rolename`,
                     permissions: [
-                        permissions.specific_study.specific_study_role_management
+                        permissions.dataset_specific.roles.edit_dataset_role_users,
+                        permissions.dataset_specific.roles.edit_dataset_role_permissions,
+                        permissions.dataset_specific.roles.edit_dataset_role_name
                     ],
                     createdBy: adminId,
                     users: [authorisedUserProfile.id],
@@ -961,8 +940,8 @@ describe('ROLE API', () => {
                         roleId: setupRole.id,
                         permissionChanges: {
                             add: [
-                                permissions.specific_study.specific_study_projects_management,
-                                permissions.specific_study.specific_study_readonly_access
+                                permissions.dataset_specific.projects.create_new_projects,
+                                permissions.dataset_specific.view_dataset
                             ],
                             remove: []
                         }
@@ -976,8 +955,8 @@ describe('ROLE API', () => {
                     studyId: setupRole.studyId,
                     projectId: null,
                     permissions: [
-                        permissions.specific_study.specific_study_projects_management,
-                        permissions.specific_study.specific_study_readonly_access
+                        permissions.dataset_specific.projects.create_new_projects,
+                        permissions.dataset_specific.view_dataset
                     ],
                     users: []
                 });
@@ -989,8 +968,8 @@ describe('ROLE API', () => {
                     studyId: setupStudy.id,
                     name: setupRole.name,
                     permissions: [
-                        permissions.specific_study.specific_study_projects_management,
-                        permissions.specific_study.specific_study_readonly_access
+                        permissions.dataset_specific.projects.create_new_projects,
+                        permissions.dataset_specific.view_dataset
                     ],
                     createdBy: adminId,
                     users: [],
@@ -1003,14 +982,14 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnDocument: 'after' });
+                }, { $push: { permissions: permissions.dataset_specific.view_dataset } }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [permissions.specific_study.specific_study_readonly_access],
+                    permissions: [ permissions.dataset_specific.view_dataset ],
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1023,7 +1002,7 @@ describe('ROLE API', () => {
                         roleId: setupRole.id,
                         permissionChanges: {
                             add: [
-                                permissions.specific_study.specific_study_readonly_access
+                                permissions.dataset_specific.view_dataset
                             ],
                             remove: []
                         }
@@ -1037,7 +1016,7 @@ describe('ROLE API', () => {
                     studyId: setupRole.studyId,
                     projectId: null,
                     permissions: [
-                        permissions.specific_study.specific_study_readonly_access
+                        permissions.dataset_specific.view_dataset
                     ],
                     users: []
                 });
@@ -1049,7 +1028,7 @@ describe('ROLE API', () => {
                     studyId: setupStudy.id,
                     name: setupRole.name,
                     permissions: [
-                        permissions.specific_study.specific_study_readonly_access
+                        permissions.dataset_specific.view_dataset
                     ],
                     createdBy: adminId,
                     users: [],
@@ -1082,8 +1061,8 @@ describe('ROLE API', () => {
                         roleId: setupRole.id,
                         permissionChanges: {
                             add: [
-                                permissions.specific_study.specific_study_readonly_access,
-                                permissions.specific_study.specific_study_readonly_access
+                                permissions.dataset_specific.view_dataset,
+                                permissions.dataset_specific.view_dataset
                             ],
                             remove: []
                         }
@@ -1097,7 +1076,7 @@ describe('ROLE API', () => {
                     studyId: setupRole.studyId,
                     projectId: null,
                     permissions: [
-                        permissions.specific_study.specific_study_readonly_access
+                        permissions.dataset_specific.view_dataset
                     ],
                     users: []
                 });
@@ -1109,7 +1088,7 @@ describe('ROLE API', () => {
                     studyId: setupStudy.id,
                     name: setupRole.name,
                     permissions: [
-                        permissions.specific_study.specific_study_readonly_access
+                        permissions.dataset_specific.view_dataset
                     ],
                     createdBy: adminId,
                     users: [],
@@ -1191,7 +1170,7 @@ describe('ROLE API', () => {
                         roleId: setupRole.id,
                         permissionChanges: {
                             add: [
-                                permissions.specific_project.specific_project_role_management
+                                permissions.project_specific.roles.edit_project_role_permissions
                             ],
                             remove: []
                         }
@@ -1220,14 +1199,14 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnDocument: 'after' });
+                }, { $push: { permissions: permissions.dataset_specific.view_dataset } }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [permissions.specific_study.specific_study_readonly_access],
+                    permissions: [permissions.dataset_specific.view_dataset],
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1241,7 +1220,7 @@ describe('ROLE API', () => {
                         permissionChanges: {
                             add: [],
                             remove: [
-                                permissions.specific_study.specific_study_readonly_access
+                                permissions.dataset_specific.view_dataset
                             ]
                         }
                     }
@@ -1296,7 +1275,7 @@ describe('ROLE API', () => {
                         permissionChanges: {
                             add: [],
                             remove: [
-                                permissions.specific_study.specific_study_readonly_access,
+                                permissions.dataset_specific.view_dataset
                             ]
                         }
                     }
@@ -1348,14 +1327,14 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access, users: newUser.id } }, { returnDocument: 'after' });
+                }, { $push: { permissions: permissions.dataset_specific.view_dataset, users: newUser.id } }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [permissions.specific_study.specific_study_readonly_access],
+                    permissions: [permissions.dataset_specific.view_dataset],
                     createdBy: adminId,
                     users: [newUser.id],
                     deleted: null
@@ -1368,11 +1347,11 @@ describe('ROLE API', () => {
                         roleId: setupRole.id,
                         permissionChanges: {
                             add: [
-                                permissions.specific_study.specific_study_projects_management,
-                                permissions.specific_study.specific_study_projects_management
+                                permissions.dataset_specific.projects.create_new_projects,
+                                permissions.dataset_specific.projects.create_new_projects
                             ],
                             remove: [
-                                permissions.specific_study.specific_study_readonly_access
+                                permissions.dataset_specific.view_dataset
                             ]
                         },
                         userChanges: {
@@ -1389,7 +1368,8 @@ describe('ROLE API', () => {
                     studyId: setupRole.studyId,
                     projectId: null,
                     permissions: [
-                        permissions.specific_study.specific_study_projects_management
+                        permissions.dataset_specific.projects.create_new_projects,
+
                     ],
                     users: [{
                         id: adminId,
@@ -1406,7 +1386,7 @@ describe('ROLE API', () => {
                     studyId: setupStudy.id,
                     name: setupRole.name,
                     permissions: [
-                        permissions.specific_study.specific_study_projects_management
+                        permissions.dataset_specific.projects.create_new_projects,
                     ],
                     users: [adminId],
                     createdBy: adminId,
@@ -1479,7 +1459,11 @@ describe('ROLE API', () => {
                     studyId: setupStudy.id,
                     name: `${roleId[0]}_rolename`,
                     permissions: [
-                        permissions.specific_project.specific_project_role_management
+                        permissions.project_specific.roles.create_project_roles,
+                        permissions.project_specific.roles.edit_project_role_name,
+                        permissions.project_specific.roles.edit_project_role_users,
+                        permissions.project_specific.roles.edit_project_role_permissions,
+                        permissions.project_specific.roles.delete_project_roles,
                     ],
                     createdBy: adminId,
                     users: [authorisedUserProfile.id],
@@ -1772,7 +1756,7 @@ describe('ROLE API', () => {
                         roleId: setupRole.id,
                         permissionChanges: {
                             add: [
-                                permissions.specific_study.specific_study_role_management
+                                permissions.dataset_specific.roles.create_dataset_roles
                             ],
                             remove: []
                         }
@@ -1846,7 +1830,12 @@ describe('ROLE API', () => {
                     studyId: setupStudy.id,
                     name: `${roleId[0]}_rolename`,
                     permissions: [
-                        permissions.specific_study.specific_study_role_management
+                        permissions.dataset_specific.roles.create_dataset_roles,
+                        permissions.dataset_specific.roles.delete_dataset_roles,
+                        permissions.dataset_specific.roles.edit_dataset_role_users,
+                        permissions.dataset_specific.roles.edit_dataset_role_name,
+                        permissions.dataset_specific.roles.edit_dataset_role_permissions,
+
                     ],
                     createdBy: adminId,
                     users: [authorisedUserProfile.id],
@@ -1989,7 +1978,11 @@ describe('ROLE API', () => {
                     studyId: setupStudy.id,
                     name: `${roleId[0]}_rolename`,
                     permissions: [
-                        permissions.specific_project.specific_project_role_management
+                        permissions.project_specific.roles.create_project_roles,
+                        permissions.project_specific.roles.edit_project_role_users,
+                        permissions.project_specific.roles.edit_project_role_permissions,
+                        permissions.project_specific.roles.edit_project_role_name,
+                        permissions.project_specific.roles.delete_project_roles,
                     ],
                     createdBy: adminId,
                     users: [authorisedUserProfile.id],

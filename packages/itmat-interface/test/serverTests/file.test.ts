@@ -159,7 +159,7 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         name: `${roleId}_rolename`,
                         permissions: [
-                            permissions.specific_study.specific_study_data_management
+                            permissions.dataset_specific.files.upload_files
                         ],
                         users: [authorisedUserProfile.id],
                         deleted: null
@@ -498,7 +498,7 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         name: `${roleId}_rolename`,
                         permissions: [
-                            permissions.specific_study.specific_study_data_management
+                            permissions.dataset_specific.files.download_files
                         ],
                         users: [authorisedUserProfile.id],
                         deleted: null
@@ -641,7 +641,7 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         name: `${roleId}_rolename`,
                         permissions: [
-                            permissions.specific_study.specific_study_data_management
+                            permissions.dataset_specific.files.delete_files
                         ],
                         users: [authorisedUserProfile.id],
                         deleted: null

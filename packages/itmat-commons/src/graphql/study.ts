@@ -172,7 +172,6 @@ export const CREATE_PROJECT = gql`
             id
             studyId
             name
-            approvedFields
         }
     }
 `;
