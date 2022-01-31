@@ -44,7 +44,7 @@ export class JobPoller {
 
     private async checkForJobs() {
         Logger.log(`${this.identity} polling for new jobs of type ${this.jobType || 'ALL'}.`);
-        let updateResult: mongodb.FindAndModifyWriteOpResultObject<any>;
+        let updateResult: mongodb.ModifyResult<any>;
         try {
             updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {
                 $set: {
@@ -53,8 +53,9 @@ export class JobPoller {
                     status: 'PROCESSING'
                 }
             });
-        } catch (e) {
-            console.log(e);
+        } catch (err) {
+            //TODO Handle error recording
+            console.error(err);
             return;
         }
 

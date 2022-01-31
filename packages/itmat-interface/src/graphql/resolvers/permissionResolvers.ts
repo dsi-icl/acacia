@@ -7,10 +7,35 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 import { permissions, flattenObjectToArray, IUser, IRole } from 'itmat-commons';
 
 export const permissionResolvers = {
+    Query: {
+        getGrantedPermissions: async (__unused__parent: Record<string, unknown>, { studyId, projectId }: { studyId?: string, projectId?: string }, context: any): Promise<{
+            studies: unknown[];
+            projects: unknown[];
+        }> => {
+            const requester: IUser = context.req.user;
+            const matchClause: Record<string, unknown> = { users: requester.id };
+            if (studyId)
+                matchClause.studyId = studyId;
+            if (projectId)
+                matchClause.projectId = { $in: [projectId, null] };
+            const aggregationPipeline = [
+                { $match: matchClause }
+                // { $group: { _id: requester.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
+                // { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
+            ];
+
+            const grantedPermissions = {
+                studies: await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray(),
+                projects: await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray()
+            };
+            return grantedPermissions;
+        }
+    },
     StudyOrProjectUserRole: {
         users: async (role: IRole): Promise<IUser[]> => {
-            const listOfUsers = role.users;
-            return await (db.collections!.users_collection.find<IUser>({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
+            //TODO variable role.users here is not actually of type IRole.IUser
+            const listOfUsers = role.users as any as string[];
+            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
         }
     },
     Mutation: {
@@ -51,7 +76,7 @@ export const permissionResolvers = {
             const requester: IUser = context.req.user;
             const { roleId, name, permissionChanges, userChanges } = args;
 
-            const role: IRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
+            const role = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
             if (role === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
@@ -124,7 +149,7 @@ export const permissionResolvers = {
             const requester: IUser = context.req.user;
             const { roleId } = args;
 
-            const role: IRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
+            const role = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
             if (role === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }

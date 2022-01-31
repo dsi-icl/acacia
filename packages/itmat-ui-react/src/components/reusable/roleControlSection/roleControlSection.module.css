@@ -22,10 +22,14 @@
 }
 
 .one_role {
-    margin-bottom: 3rem;
+    margin-bottom: 1rem;
     position: relative;
     background-color: var(--color-additional-panel-background);
     padding: 1rem;
+    transition: background-color ease-in 500ms;
+}
+.one_role:hover {
+    background-color: var(--color-additional-panel-background-hover);
 }
 
 .role_name {
@@ -48,7 +52,7 @@
 }
 
 .add_new_role_section {
-    background-color: var(--color-ariane-background);
+    background-color: var(--color-additional-panel-background);
     border-radius: 0.2rem;
     padding: 1rem;
     width: 100%;
@@ -72,26 +76,7 @@
 .right_aligned {
     display: inline-block;
     position: absolute;
-    right: 1rem;
-}
-
-.delete_role_button {
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 1.2rem;
-    text-align: center;
-    height: 35px;
-    line-height: 35px;
-    background-color: var(--color-primary-color);
-    font-size: 0.7rem;
-    color: var(--color-background);
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.delete_role_button:hover {
-    background-color: var(--color-status-error);
+    right: 0rem;
 }
 
 .permissions_section {

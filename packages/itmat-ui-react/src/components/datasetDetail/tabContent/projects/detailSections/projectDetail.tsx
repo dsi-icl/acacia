@@ -2,7 +2,7 @@ import React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { GET_PROJECT } from 'itmat-commons';
 import { Subsection } from '../../../../reusable';
-import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../../reusable/loadSpinner';
 import { RoleControlSection } from '../../../../reusable/roleControlSection/roleControlSection';
 import { DeleteProjectSection } from './deleteProjectSection';
 import { GrantedFieldListSection } from './fieldList';
@@ -17,7 +17,7 @@ export const ProjectDetail: React.FunctionComponent<{ projectId: string; studyId
         variables={{ projectId, admin: true }}
     >
         {({ data, loading, error }) => {
-            if (loading) { return <LoadingBalls />; }
+            if (loading) { return <LoadSpinner />; }
             if (error) { return <p>{error.toString()}</p>; }
             if (!data || !data.getProject) { return <p>Cannot find this project! Please contact admin.</p>; }
 

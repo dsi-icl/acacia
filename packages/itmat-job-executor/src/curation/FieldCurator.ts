@@ -1,13 +1,13 @@
-import csvparse from 'csv-parse';
+import * as csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import { v4 as uuid } from 'uuid';
-import { Models, IJobEntryForFieldCuration, IFieldEntry, enumValueType } from 'itmat-commons';
+import { IJobEntryForFieldCuration, IFieldEntry } from 'itmat-commons';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
 
-const CORRECT_NUMBER_OF_COLUMN = 11;
+const CORRECT_NUMBER_OF_COLUMN = 33;
 
 export class FieldCurator {
     private _errored: boolean;
@@ -17,9 +17,9 @@ export class FieldCurator {
     constructor(
         private readonly fieldCollection: Collection,
         private readonly incomingWebStream: Readable,
-        private readonly parseOptions: csvparse.Options = { delimiter: '\t', quote: '"', relax_column_count: true, skip_lines_with_error: true },
+        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_records_with_error: true },
         private readonly job: IJobEntryForFieldCuration,
-        private readonly fieldTreeId: string
+        private readonly codesObj: any
     ) {
         this._errored = false;
         this._errors = [];
@@ -29,15 +29,16 @@ export class FieldCurator {
     /* return list of errors. [] if no error */
     public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         /**
-         *     fieldId  fieldName   valueType   possibleValues  unit    path    numOfTimePoints numOfMeasurements   startingTimepoint   startingMeasurement notes
+         *     ID	Database	TableName	TableID	SequentialOrder	QuestionNumber	Fieldname	Label	Label_DE	Label_NL	Label_IT	Label_ES	Label_PL
+         *     Label_F	EligibleAnswer	IneligibleAnswer	Validation	DataType	ControlType	SystemGenerated	ValueList	Length	DisplayFormat	Nullable	Required
+         *     Mandatory	CollectIf	NotMapped	DefaultValue	RegEx	RegExErrorMsg	ShowOnIndexView	Comments
          */
         return new Promise((resolve) => {
-            console.log(`uploading for job ${this.job.id}`);
             const fieldIdString: string[] = [];
             let lineNum = 0;
             let isHeader = true;
             let bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
-            const csvparseStream = csvparse(this.parseOptions);
+            const csvparseStream = csvparse.parse(this.parseOptions);
             const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
 
             csvparseStream.on('skip', (error) => {
@@ -64,7 +65,7 @@ export class FieldCurator {
                             lineNum: currentLineNum,
                             row: line,
                             job: this.job,
-                            fieldTreeId: this.fieldTreeId
+                            codes: this.codesObj
                         });
 
                         if (error) {
@@ -86,7 +87,10 @@ export class FieldCurator {
                         if (this._numOfFields > 999) {
                             this._numOfFields = 0;
                             await bulkInsert.execute((err: Error) => {
-                                if (err) { console.log((err as any).writeErrors[1].err); return; }
+                                if (err) {
+                                    //TODO Handle error recording
+                                    console.error(err);
+                                }
                             });
                             bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
                         }
@@ -105,12 +109,13 @@ export class FieldCurator {
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
-                        console.log('FINSIHED LOADING');
-                        if (err) { console.log(err); return; }
+                        if (err) {
+                            //TODO Handle error recording
+                            console.error(err);
+                        }
                     });
                 }
 
-                console.log('end');
                 resolve(this._errors);
             });
 
@@ -119,21 +124,15 @@ export class FieldCurator {
     }
 }
 
-export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, fieldTreeId: string }): { error?: string[], dataEntry: IFieldEntry } {
+export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, codes: any }): { error?: string[], dataEntry: IFieldEntry } {
     /* pure function */
     const error: string[] = [];
     const dataEntry_nouse: any = {};
     const THESE_COL_CANT_BE_EMPTY = {
         0: 'FieldID',
-        1: 'Field Name',
-        2: 'Value Type',
-        5: 'Path',
-        6: 'Number of Time Points',
-        7: 'Number of Measurements',
-        8: 'Starting Time Point',
-        9: 'Starting Measurement'
+        6: 'Field Name',
+        17: 'Data Type',
     };
-
     if (row.length !== CORRECT_NUMBER_OF_COLUMN) {
         error.push(`Line ${lineNum}: Uneven field Number; expected ${CORRECT_NUMBER_OF_COLUMN} fields but got ${row.length}.`);
         return ({ error, dataEntry: dataEntry_nouse });
@@ -147,62 +146,63 @@ export function processFieldRow({ lineNum, row, job, fieldTreeId }: { lineNum: n
     }
 
     /* these fields has to be numbers */
-    if (!/^\d+$/.test(row[0]) && row[0] !== '') {
+    // fieldId should not be ''
+    if (!/^\d+$/.test(row[0]) && row[0]) {
         error.push(`Line ${lineNum} column 1: Cannot parse field ID as number.`);
     }
-    if (!/^\d+$/.test(row[6]) && row[6] !== '') {
-        error.push(`Line ${lineNum} column 7: Cannot parse number of time points as number.`);
+    if (!/^\d+$/.test(row[21]) && row[21] !== '') {
+        error.push(`Line ${lineNum} column 22: Cannot parse length of characters as number.`);
     }
-    if (!/^\d+$/.test(row[7]) && row[7] !== '') {
-        error.push(`Line ${lineNum} column 8: Cannot parse number of measurements as number.`);
-    }
-    if (!/^\d+$/.test(row[8]) && row[8] !== '') {
-        error.push(`Line ${lineNum} column 9: Cannot parse starting timepoint as number.`);
-    }
-    if (!/^\d+$/.test(row[9]) && row[9] !== '') {
-        error.push(`Line ${lineNum} column 10: Cannot parse starting measurement as number.`);
-    }
-
 
     /* check the value type */
-    if (!['c', 'd', 'i', 'b', 't'].includes(row[2])) {
-        error.push(`Line ${lineNum} column 3: Invalid value type "${row[2]}": use "c" for categorical, "i" for integer, "d" for decimal, "b" for boolean and "t" for free text.`);
+    const dataTypeNames = {
+        int: 'int',
+        decimal: 'dec',
+        nvarchar: 'str',
+        varchar: 'str',
+        datetime: 'date',
+        bit: 'bool',
+        json: 'json',
+        file: 'file',
+        categorical: 'cat'
+    };
+
+    // datatypes: if fieldid exist in codes, then convert datatype to categorical
+    let dataType;
+    let possibleValues: any[] = [];
+    if (codes[row[0].toString()] !== undefined) {
+        dataType = dataTypeNames.categorical;
+        possibleValues = codes[row[0].toString()];
+    } else {
+        dataType = dataTypeNames[Object.keys(dataTypeNames).filter(el => row[17].toUpperCase().indexOf(el.toUpperCase()) >= 0)[0]];
+    }
+    if (!(Object.keys(dataTypeNames).some(x => row[17].toUpperCase().indexOf(x.toUpperCase()) >= 0))) {
+        error.push(`Line ${lineNum} column 18: Invalid value type "${row[2]}": use "int" for integers, "decimal()" for decimals, "nvarchar/varchar" for characters/strings, "datetime" for date time, "bit" for bit.`);
     }
 
     /* if valueType = C, then possibleValues cant be empty */
-    if (row[2] === 'c' && row[3] === '') {
-        error.push(`Line ${lineNum} column 4: "Possible values" cannot be empty if value type is categorical.`);
-    }
+    // if (row[2] === 'c' && row[3] === '') {
+    //     error.push(`Line ${lineNum} column 4: "Possible values" cannot be empty if value type is categorical.`);
+    // }
 
     if (error.length !== 0) {
         return ({ error, dataEntry: dataEntry_nouse });
     }
 
-    const fieldId = parseInt(row[0], 10);
-    const numOfTimePoints = parseInt(row[6], 10);
-    const numOfMeasurements = parseInt(row[7], 10);
-    const startingTimePoint = parseInt(row[8], 10);
-    const startingMeasurement = parseInt(row[9], 10);
 
     const dataEntry: IFieldEntry = {
         id: uuid(),
         studyId: job.studyId,
-        path: row[5],
-        fieldId,
-        fieldName: row[1],
-        valueType: row[2] as enumValueType,
-        possibleValues: row[3] === '' ? undefined : row[3].split(','),
-        unit: row[4],
-        itemType: Models.Field.enumItemType.CLINICAL,
-        numOfTimePoints,
-        numOfMeasurements,
-        startingTimePoint,
-        startingMeasurement,
-        notes: row[10],
-        jobId: job.id,
-        deleted: null,
-        dateAdded: (new Date()).valueOf(),
-        fieldTreeId
+        fieldId: row[0],
+        fieldName: row[6],
+        tableName: row[2],
+        dataType: dataType,
+        possibleValues: possibleValues,
+        unit: '',
+        comments: row[32],
+        dateAdded: (new Date()).toISOString(),
+        dateDeleted: null,
+        dataVersion: null
     };
 
     return ({ error: undefined, dataEntry });

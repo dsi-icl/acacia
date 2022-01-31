@@ -1,13 +1,16 @@
 {
     "extends": "../../tsconfig.json",
     "include": [
-        "src/**/*"
+        "src/**/*.ts",
+        "../../global.d.ts"
     ],
     "compilerOptions": {
         "allowJs": true,
         "module": "esnext",
         "moduleResolution": "node",
         "declaration": false,
-        "noImplicitThis": false
+        "noImplicitThis": false,
+        "noImplicitAny": false,
+        "strictNullChecks": false
     }
 }

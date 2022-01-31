@@ -2,7 +2,8 @@ import { Tree } from 'antd';
 import React from 'react';
 import { Mutation, Query } from '@apollo/client/react/components';
 import { EDIT_PROJECT_APPROVED_FILES, IFile, GET_STUDY } from 'itmat-commons';
-import { LoadingBalls } from '../../../../reusable/icons/loadingBalls';
+import LoadSpinner from '../../../../reusable/loadSpinner';
+import { Button } from 'antd';
 
 export const GrantedFileListSelection: React.FunctionComponent<{ originalCheckedList: string[]; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);
@@ -21,7 +22,7 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
 
     return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data: fileData, error }) => {
-            if (loading) { return <LoadingBalls />; }
+            if (loading) { return <LoadSpinner />; }
             if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
 
             return <>
@@ -39,11 +40,11 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
                     {(editApprovedFiles, { loading, error }) =>
                         <>
                             {
-                                loading ? <button style={{ margin: '1rem 0 0 0' }}>Loading</button> :
-                                    <button style={{ margin: '1rem 0 0 0' }} onClick={() => {
+                                loading ? <Button style={{ margin: '1rem 0 0 0' }}>Loading</Button> :
+                                    <Button style={{ margin: '1rem 0 0 0' }} onClick={() => {
                                         editApprovedFiles({ variables: { projectId, approvedFiles: checkedList } });
                                         setSavedSuccessfully(false);
-                                    }}>Save</button>
+                                    }}>Save</Button>
                             }
                             {
                                 error ? <div className='error_banner'>{JSON.stringify(error)}</div> : null

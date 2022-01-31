@@ -14,7 +14,10 @@
         "module": "esnext",
         "target": "es5",
         "sourceMap": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "jsx": "react-jsx",
+        "importHelpers": true,
+        "forceConsistentCasingInFileNames": true
     },
     "exclude": [
         "node_modules",

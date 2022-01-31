@@ -33,14 +33,13 @@ export class PermissionCore {
             { $group: { _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
             { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
         ];
-        const result: Array<{ _id: string, arrPrivileges: string[] }> = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
+        const result = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
         if (result.length > 1) {
             throw new ApolloError('Internal error occurred when checking user privileges.', errorCodes.DATABASE_ERROR);
         }
         if (result.length === 0) {
             return false;
         }
-
         const hisPrivileges = result[0].arrPrivileges;   // example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
 
         /* checking privileges */
@@ -72,7 +71,7 @@ export class PermissionCore {
             queryObj = { projectId, deleted: null };
         }
         const updateResult = await db.collections!.roles_collection.updateMany(queryObj, { $set: { deleted: new Date().valueOf() } });
-        if (updateResult.result.ok === 1) {
+        if (updateResult.acknowledged) {
             return;
         } else {
             throw new ApolloError('Cannot delete role(s).', errorCodes.DATABASE_ERROR);
@@ -90,10 +89,18 @@ export class PermissionCore {
             bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { name } });
         }
         const result: BulkWriteResult = await bulkop.execute();
-        if (result.ok as any as number === 1) {
-            return await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
+        const resultingRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null });
+        // const resultingRole = await db.collections!.roles_collection.find({ id: roleId, deleted: null });
+        // return {
+        //     ...resultingRole,
+        //     tutu
+        // } as any;
+        if (result.ok === 1 && resultingRole) {
+            return resultingRole;
         } else {
             throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
+            // throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole, null, 4));
+            // throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole.toArray(), null, 4));
         }
     }
 
@@ -110,10 +117,10 @@ export class PermissionCore {
             deleted: null
         };
         const updateResult = await db.collections!.roles_collection.insertOne(role);
-        if (updateResult.result.ok === 1 && updateResult.insertedCount === 1) {
+        if (updateResult.acknowledged) {
             return role;
         } else {
-            throw new ApolloError(`Cannot create role. nInserted: ${updateResult.insertedCount}`, errorCodes.DATABASE_ERROR);
+            throw new ApolloError('Cannot create role.', errorCodes.DATABASE_ERROR);
         }
     }
 }

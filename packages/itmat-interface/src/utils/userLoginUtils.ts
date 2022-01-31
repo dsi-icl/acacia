@@ -7,11 +7,11 @@ export class UserLoginUtils {
         this.deserialiseUser = this.deserialiseUser.bind(this);
     }
 
-    public serialiseUser(user: IUser, done: (err: any, id?: any) => void): void {
-        done(null, user.username);
+    public serialiseUser(user: Express.User, done: (__unused__err: any, __unused__id?: any) => void): void {
+        done(null, (user as IUser).username);
     }
 
-    public async deserialiseUser(username: string, done: (err: any, id?: any) => void): Promise<void> {
+    public async deserialiseUser(username: string, done: (__unused__err: any, __unused__id?: any) => void): Promise<void> {
         const user = await this._getUser(username);
         done(null, user);
     }

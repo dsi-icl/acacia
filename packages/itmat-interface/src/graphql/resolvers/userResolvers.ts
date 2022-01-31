@@ -6,12 +6,12 @@ import {
     Models,
     Logger,
     IProject,
-    IRole,
     IStudy,
     IUser,
     IUserWithoutToken,
     IResetPasswordRequest,
-    userTypes
+    userTypes,
+    IOrganisation
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
@@ -34,6 +34,40 @@ export const userResolvers = {
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
             const cursor = db.collections!.users_collection.find<IUser>(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
+        },
+        validateResetPassword: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
+            /* decrypt email */
+            const salt = makeAESKeySalt(args.token);
+            const iv = makeAESIv(args.token);
+            let email;
+            try {
+                email = await decryptEmail(args.encryptedEmail, salt, iv);
+            } catch (e) {
+                throw new ApolloError('Token is not valid.');
+            }
+
+            /* check whether username and token is valid */
+            /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
+            const TIME_NOW = new Date().valueOf();
+            const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
+            const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
+                email,
+                resetPasswordRequests: {
+                    $elemMatch: {
+                        id: args.token,
+                        timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
+                        used: false
+                    }
+                },
+                deleted: null
+            });
+            if (!user) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+            return makeGenericReponse();
+        },
+        recoverSessionExpireTime: async (__unused__parent: Record<string, unknown>, __unused__context: any): Promise<IGenericResponse> => {
+            return makeGenericReponse();
         }
     },
     User: {
@@ -53,7 +87,7 @@ export const userResolvers = {
             }
 
             /* if requested user is not admin, find all the roles a user has */
-            const roles: IRole[] = await db.collections!.roles_collection.find({ users: user.id, deleted: null }).toArray();
+            const roles = await db.collections!.roles_collection.find({ users: user.id, deleted: null }).toArray();
             const init: { projects: string[], studies: string[] } = { projects: [], studies: [] };
             const studiesAndProjectThatUserCanSee: { projects: string[], studies: string[] } = roles.reduce(
                 (a, e) => {
@@ -66,13 +100,13 @@ export const userResolvers = {
                 }, init
             );
 
-            const projects: IProject[] = await db.collections!.projects_collection.find({
+            const projects = await db.collections!.projects_collection.find({
                 $or: [
                     { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
                     { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
                 ]
             }).toArray();
-            const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
+            const studies = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
         username: async (user: IUser, __unused__arg: any, context: any): Promise<string | null> => {
@@ -104,6 +138,29 @@ export const userResolvers = {
         }
     },
     Mutation: {
+        requestExpiryDate: async (__unused__parent: Record<string, unknown>, { username, email }: { username?: string, email?: string }): Promise<IGenericResponse> => {
+            /* double-check user existence */
+            const queryObj = email ? { deleted: null, email } : { deleted: null, username };
+            const user: IUser | null = await db.collections!.users_collection.findOne(queryObj);
+            if (!user) {
+                /* even user is null. send successful response: they should know that a user doesn't exist */
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
+                return makeGenericReponse();
+            }
+            /* send email to the DMP admin mailing-list */
+            await mailer.sendMail(formatEmailRequestExpiryDatetoAdmin({
+                userEmail: user.email,
+                username: user.username
+            }));
+
+            /* send email to client */
+            await mailer.sendMail(formatEmailRequestExpiryDatetoClient({
+                to: user.email,
+                username: user.username
+            }));
+
+            return makeGenericReponse();
+        },
         requestUsernameOrResetPassword: async (__unused__parent: Record<string, unknown>, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any): Promise<IGenericResponse> => {
             /* checking the args are right */
             if ((forgotUsername && !email) // should provide email if no username
@@ -118,9 +175,9 @@ export const userResolvers = {
 
             /* check user existence */
             const queryObj = email ? { deleted: null, email } : { deleted: null, username };
-            const user: IUser | null = await db.collections!.users_collection.findOne(queryObj);
+            const user = await db.collections!.users_collection.findOne(queryObj);
             if (!user) {
-                /* even user is null. send successful response: they should know that a user dosen't exist */
+                /* even user is null. send successful response: they should know that a user doesn't exist */
                 await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
                 return makeGenericReponse();
             }
@@ -161,15 +218,14 @@ export const userResolvers = {
                     to: user.email,
                     resetPasswordToken: passwordResetToken,
                     username: user.username,
-                    realname: user.realName,
-                    host: context.req.hostname
+                    firstname: user.firstname,
+                    origin: context.req.headers.origin
                 }));
             } else {
                 /* send email to client */
                 await mailer.sendMail(formatEmailForFogettenUsername({
                     to: user.email,
-                    username: user.username,
-                    realname: user.realName
+                    username: user.username
                 }));
             }
             return makeGenericReponse();
@@ -181,31 +237,47 @@ export const userResolvers = {
                 throw new UserInputError('User does not exist.');
             }
 
-            /* validate if account expired */
-            if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
-                throw new UserInputError('Account Expired.');
-            }
-
             const passwordMatched = await bcrypt.compare(args.password, result.password);
             if (!passwordMatched) {
                 throw new UserInputError('Incorrect password.');
             }
-            delete result.password;
-            delete result.deleted;
 
             // validate the TOTP
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
-            if (!totpValidated) {
-                throw new UserInputError('Incorrect TOTP. Obtain the TOTP using Google Authenticator app.');
+            if (!totpValidated && process.env.NODE_ENV === 'production') {
+                throw new UserInputError('Incorrect One-Time password.');
             }
 
+            /* validate if account expired */
+            if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
+                if (args.requestexpirydate) {
+                    /* send email to the DMP admin mailing-list */
+                    await mailer.sendMail(formatEmailRequestExpiryDatetoAdmin({
+                        userEmail: result.email,
+                        username: result.username
+                    }));
+                    /* send email to client */
+                    await mailer.sendMail(formatEmailRequestExpiryDatetoClient({
+                        to: result.email,
+                        username: result.username
+                    }));
+                    throw new UserInputError('New expiry date has been requested! Wait for ADMIN to approve.');
+                }
+
+                throw new UserInputError('Account Expired. Please request a new expiry date!');
+            }
+
+            const filteredResult: Partial<IUser> = { ...result };
+            delete filteredResult.password;
+            delete filteredResult.deleted;
+
             return new Promise((resolve) => {
-                req.login(result, (err: any) => {
+                req.login(filteredResult, (err: any) => {
                     if (err) {
                         Logger.error(err);
                         throw new ApolloError('Cannot log in. Please try again later.');
                     }
-                    resolve(result);
+                    resolve(filteredResult);
                 });
             });
         },
@@ -228,8 +300,8 @@ export const userResolvers = {
             });
         },
         createUser: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
-            const { username, realName, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, realName: string, email: string, emailNotificationsActivated: boolean, password: string, description: string, organisation: string
+            const { username, firstname, lastname, email, emailNotificationsActivated, password, description, organisation }: {
+                username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated?: boolean, password: string, description?: string, organisation: string
             } = args.user;
 
             /* check email is valid form */
@@ -237,9 +309,14 @@ export const userResolvers = {
                 throw new UserInputError('Email is not the right format.');
             }
 
+            /* check password validity */
+            if (password && !passwordIsGoodEnough(password)) {
+                throw new UserInputError('Password has to be at least 8 character long.');
+            }
+
             /* check that username and password dont have space */
             if (username.indexOf(' ') !== -1 || password.indexOf(' ') !== -1) {
-                throw new UserInputError('Username or password cannot have space.');
+                throw new UserInputError('Username or password cannot have spaces.');
             }
 
             const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: null }); // since bycrypt is CPU expensive let's check the username is not taken first
@@ -247,27 +324,31 @@ export const userResolvers = {
                 throw new UserInputError('User already exists.');
             }
 
-            /* if not specified, type of user is always STANDARD*/
-            const type = Models.UserModels.userTypes.STANDARD;
+            /* check if email has been used to register */
+            const emailExist = await db.collections!.users_collection.findOne({ email, deleted: null });
+            if (emailExist !== null && emailExist !== undefined) {
+                throw new UserInputError('This email has been registered. Please sign-in or register with another email!');
+            }
 
             /* randomly generate a secret for Time-based One Time Password*/
             const otpSecret = mfa.generateSecret();
 
-            const createdUser = await userCore.createUser({
+            await userCore.createUser({
                 password,
                 otpSecret,
                 username,
-                type,
-                description,
-                realName,
+                type: userTypes.STANDARD,
+                description: description ?? '',
+                firstname,
+                lastname,
                 email,
                 organisation,
-                emailNotificationsActivated
+                emailNotificationsActivated: !!emailNotificationsActivated
             });
 
             /* send email to the registered user */
-            // get QR Code for the otpSecret. Google Authenticator requires oauth_uri format for the QR code
-            const oauth_uri = `otpauth://totp/IDEAFAST:${username}?secret=${createdUser.otpSecret}&issuer=IDEAFAST`;
+            // get QR Code for the otpSecret.
+            const oauth_uri = `otpauth://totp/${config.appName}:${username}?secret=${otpSecret}&issuer=Data%20Science%20Institute`;
             const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
@@ -276,20 +357,27 @@ export const userResolvers = {
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
             await mailer.sendMail({
-                from: config.nodemailer.auth.user,
+                from: `${config.appName} <${config.nodemailer.auth.user}>`,
                 to: email,
-                subject: 'IDEA-FAST: Registration Successful',
-                html: `<p>Dear ${realName},<p>
-                    Welcome to the IDEA-FAST project!
+                subject: `[${config.appName}] Registration Successful`,
+                html: `
+                    <p>
+                        Dear ${firstname},
+                    <p>
+                    <p>
+                        Welcome to the ${config.appName} data portal!<br/>
+                        Your username is <b>${username}</b>.<br/>
+                    </p>
+                    <p>
+                        To login you will need to use a MFA authenticator app for one time passcode (TOTP).<br/>
+                        Scan the QRCode below in your MFA application of choice to configure it:<br/>
+                        <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /><br/>
+                        If you need to type the token in use <b>${otpSecret.toLowerCase()}</b>
+                    </p>
                     <br/>
-                    <p>Your username is <b>${username}</b>.</p><br/>
-                    <p>Your 2FA otpSecret is: ${createdUser.otpSecret.toLowerCase()}</p>
-                    <label> 2FA QR Code: </label> <img src="cid:qrcode_cid" alt="QR code for Google Authenticator" width="150" height="150" /> <br /><br />
-                    <p>Please use a MFA authenticator app for time-based one time password (TOTP) when logging in.</p>
-                    <br/><br/>
-                    
-                    Yours truly,
-                    NAME team.
+                    <p>
+                        The ${config.appName} Team.
+                    </p>
                 `,
                 attachments: attachments
             });
@@ -299,9 +387,16 @@ export const userResolvers = {
         deleteUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<IGenericResponse> => {
             /* only admin can delete users */
             const requester: Models.UserModels.IUser = context.req.user;
+
+            // user (admin type) cannot delete itself
+            if (requester.id === args.userId) {
+                throw new ApolloError('User cannot delete itself');
+            }
+
             if (requester.type !== Models.UserModels.userTypes.ADMIN) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
+
             await userCore.deleteUser(args.userId);
             return makeGenericReponse(args.userId);
         },
@@ -309,6 +404,11 @@ export const userResolvers = {
             /* check password validity */
             if (!passwordIsGoodEnough(newPassword)) {
                 throw new ApolloError('Password has to be at least 8 character long.');
+            }
+
+            /* check that username and password dont have space */
+            if (newPassword.indexOf(' ') !== -1) {
+                throw new ApolloError('Password cannot have spaces.');
             }
 
             /* decrypt email */
@@ -327,7 +427,7 @@ export const userResolvers = {
             /* check whether username and token is valid */
             /* not changing password too in one step (using findOneAndUpdate) because bcrypt is costly */
             const TIME_NOW = new Date().valueOf();
-            const ONE_HOUR_IN_MILLISEC = 60 /* minutes per hr */ * 60 /* sec per min */ * 1000 /* milli per unit */;
+            const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
             const user: IUserWithoutToken | null = await db.collections!.users_collection.findOne({
                 email,
                 resetPasswordRequests: {
@@ -343,6 +443,9 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
+            /* randomly generate a secret for Time-based One Time Password*/
+            const otpSecret = mfa.generateSecret();
+
             /* all ok; change the user's password */
             const hashedPw = await bcrypt.hash(newPassword, config.bcrypt.saltround);
             const updateResult = await db.collections!.users_collection.findOneAndUpdate(
@@ -356,7 +459,7 @@ export const userResolvers = {
                         }
                     }
                 },
-                { $set: { 'password': hashedPw, 'resetPasswordRequests.$.used': true } });
+                { $set: { 'password': hashedPw, 'otpSecret': otpSecret, 'resetPasswordRequests.$.used': true } });
             if (updateResult.ok !== 1) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
@@ -364,12 +467,47 @@ export const userResolvers = {
             /* need to log user out of all sessions */
             // TO_DO
 
+            /* send email to the registered user */
+            // get QR Code for the otpSecret.
+            const oauth_uri = `otpauth://totp/${config.appName}:${user.username}?secret=${otpSecret}&issuer=Data%20Science%20Institute`;
+            const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
+
+            QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
+                if (err) throw new ApolloError(err);
+            });
+
+            const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
+            await mailer.sendMail({
+                from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                to: email,
+                subject: `[${config.appName}] Password reset`,
+                html: `
+                    <p>
+                        Dear ${user.firstname},
+                    <p>
+                    <p>
+                        Your password on ${config.appName} is now reset!<br/>
+                        You will need to update your MFA application for one-time passcode.<br/>
+                    </p>
+                    <p>
+                        To update your MFA authenticator app you can scan the QRCode below to configure it:<br/>
+                        <img src="cid:qrcode_cid" alt="QR code" width="150" height="150" /><br/>
+                        If you need to type the token in use <b>${otpSecret.toLowerCase()}</b>
+                    </p>
+                    <br/>
+                    <p>
+                        The ${config.appName} Team.
+                    </p>
+                `,
+                attachments: attachments
+            });
+            tmpobj.removeCallback();
             return makeGenericReponse();
         },
         editUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Record<string, unknown>> => {
             const requester: Models.UserModels.IUser = context.req.user;
-            const { id, username, type, realName, email, emailNotificationsActivated, password, description, organisation, expiredAt }: {
-                id: string, username?: string, type?: Models.UserModels.userTypes, realName?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number
+            const { id, username, type, firstname, lastname, email, emailNotificationsActivated, password, description, organisation, expiredAt }: {
+                id: string, username?: string, type?: Models.UserModels.userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number
             } = args.user;
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
@@ -380,8 +518,9 @@ export const userResolvers = {
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
+            let result;
             if (requester.type === Models.UserModels.userTypes.ADMIN) {
-                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                result = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     throw new ApolloError('User not found');
                 }
@@ -389,7 +528,8 @@ export const userResolvers = {
 
             const fieldsToUpdate = {
                 type,
-                realName,
+                firstname,
+                lastname,
                 username,
                 email,
                 emailNotificationsActivated,
@@ -405,7 +545,7 @@ export const userResolvers = {
             }
 
             if (requester.type !== Models.UserModels.userTypes.ADMIN && (
-                type || realName || username || description || organisation
+                type || firstname || lastname || username || description || organisation
             )) {
                 throw new ApolloError('User not updated: Non-admin users are only authorised to change their password or email.');
             }
@@ -416,12 +556,40 @@ export const userResolvers = {
                     delete fieldsToUpdate[each];
                 }
             }
-            const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            const updateResult: mongodb.ModifyResult<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
             if (updateResult.ok === 1) {
+                // New expiry date has been updated successfully.
+                if (expiredAt) {
+                    /* send email to client */
+                    await mailer.sendMail(formatEmailRequestExpiryDateNotification({
+                        to: result.email,
+                        username: result.username
+                    }));
+                }
                 return updateResult.value;
             } else {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }
+        },
+        createOrganisation: async (__unused__parent: Record<string, unknown>, { name, containOrg }: { name: string, containOrg: string }, context: any): Promise<IOrganisation> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            const alreadyExist = await db.collections!.organisations_collection.findOne({ name, deleted: null });
+            if (alreadyExist !== null && alreadyExist !== undefined) {
+                throw new UserInputError('This organisation already exists.');
+            }
+
+            const createdOrganisation = await userCore.createOrganisation({
+                name,
+                containOrg: containOrg ?? null
+            });
+
+            return createdOrganisation;
         }
     },
     Subscription: {}
@@ -467,41 +635,114 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
     });
 }
 
-async function formatEmailForForgottenPassword({ realname, to, resetPasswordToken, username, host }: { host: string, username: string, resetPasswordToken: string, to: string, realname: string }) {
+async function formatEmailForForgottenPassword({ username, firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, username: string, firstname: string, origin: any }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
     const iv = makeAESIv(resetPasswordToken);
     const encryptedEmail = await encryptEmail(to, keySalt, iv);
 
-
-    const link = `${config.useSSL ? 'https' : 'http'}://${host}${process.env.NODE_ENV === 'development' ? `:${config.server.port}` : ''}/resetPassword/${encryptedEmail}/${resetPasswordToken}`;
+    const link = `${origin}/reset/${encryptedEmail}/${resetPasswordToken}`;
     return ({
-        from: '"NAME"',
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
-        subject: 'Reset your NAME password',
-        html: `<p>Dear ${realname},<p>
+        subject: `[${config.appName}] password reset`,
+        html: `
+            <p>
+                Dear ${firstname},
+            <p>
+            <p>
+                Your username is <b>${username}</b>.
+            </p>
+            <p>
+                You can reset you password by click the following link (active for 1 hour):<br/>
+                <a href=${link}>${link}</a>
+            </p>
             <br/>
-            <p>Your username is <b>${username}</b>.</p><br/>
-            <p>You can reset you password by click the following link (active for 1 hour):</p>
-            <p><a href=${link}>${link}</a></p>
-            <br/><br/>
-
-            Yours truly,
-            NAME team.
+            <p>
+                The ${config.appName} Team.
+            </p>
         `
     });
 }
 
-function formatEmailForFogettenUsername({ username, to, realname }: { username: string, to: string, realname: string }) {
+function formatEmailForFogettenUsername({ username, to }: { username: string, to: string }) {
     return ({
-        from: '"NAME" <name@name.io>',
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
-        subject: 'Your NAME username reminder',
-        html: `<p>Dear ${realname},<p>
+        subject: `[${config.appName}] password reset`,
+        html: `
+            <p>
+                Dear user,
+            <p>
+            <p>
+                Your username is <b>${username}</b>.
+            </p>
             <br/>
-            <p>Your username is <b>${username}</b>.</p><br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
+        `
+    });
+}
 
-            Yours truly,
-            NAME team.
+function formatEmailRequestExpiryDatetoClient({ username, to }: { username: string, to: string }) {
+    return ({
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        to,
+        subject: `[${config.appName}] New expiry date has been requested!`,
+        html: `
+            <p>
+                Dear user,
+            <p>
+            <p>
+                New expiry date for your <b>${username}</b> account has been requested.
+                You will get a notification email once the request is approved.                
+            </p>
+            <br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
+        `
+    });
+}
+
+function formatEmailRequestExpiryDatetoAdmin({ username, userEmail }: { username: string, userEmail: string }) {
+    return ({
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        to: `${config.adminEmail}`,
+        subject: `[${config.appName}] New expiry date has been requested from ${username} account!`,
+        html: `
+            <p>
+                Dear ADMINs,
+            <p>
+            <p>
+                A expiry date request from the <b>${username}</b> account (whose email address is <b>${userEmail}</b>) has been submitted.
+                Please approve or deny the request ASAP.
+            </p>
+            <br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
+        `
+    });
+}
+
+function formatEmailRequestExpiryDateNotification({ username, to }: { username: string, to: string }) {
+    return ({
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        to,
+        subject: `[${config.appName}] New expiry date has been updated!`,
+        html: `
+            <p>
+                Dear user,
+            <p>
+            <p>
+                New expiry date for your <b>${username}</b> account has been updated.
+                You now can log in as normal.
+            </p>
+            <br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
         `
     });
 }

@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
@@ -28,22 +31,19 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    mongodb = new MongoMemoryServer();
-    const connectionString = await mongodb.getUri();
-    const database = await mongodb.getDbName();
+    mongodb = await MongoMemoryServer.create();
+    const connectionString = mongodb.getUri();
+    const database = mongodb.instanceInfo.dbName;
     await setupDatabase(connectionString, database);
 
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database, MongoClient.connect);
+    await db.connect(config.database, MongoClient.connect as any);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
-    mongoConnection = await MongoClient.connect(connectionString, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    mongoConnection = await MongoClient.connect(connectionString);
     mongoClient = mongoConnection.db(database);
 
     /* Connecting clients for testing later */
@@ -100,13 +100,14 @@ describe('ROLE API', () => {
             authorisedUserProfile = {
                 username,
                 type: 'STANDARD',
-                realName: `${username}_realname`,
+                firstname: `${username}_firstname`,
+                lastname: `${username}_lastname`,
                 password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 email: `${username}@example.com`,
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
-                organisation: 'DSI',
+                organisation: 'organisation_system',
                 deleted: null,
                 id: `new_user_id_${username}`
             };
@@ -444,13 +445,14 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };
@@ -690,13 +692,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -724,7 +727,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
-                        realName: newUser.realName
+                        firstname: newUser.firstname,
+                        lastname: newUser.lastname
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -747,13 +751,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -781,7 +786,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
-                        realName: newUser.realName
+                        firstname: newUser.firstname,
+                        lastname: newUser.lastname
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -804,13 +810,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -851,13 +858,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -869,7 +877,7 @@ describe('ROLE API', () => {
                     $push: {
                         users: newUser.id
                     }
-                }, { returnOriginal: false });
+                }, { returnDocument: 'after' });
                 expect(updatedRole.value.users).toEqual([newUser.id]);
 
                 /* test */
@@ -974,7 +982,7 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.dataset_specific.view_dataset } }, { returnOriginal: false });
+                }, { $push: { permissions: permissions.dataset_specific.view_dataset } }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
@@ -1191,7 +1199,7 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.dataset_specific.view_dataset } }, { returnOriginal: false });
+                }, { $push: { permissions: permissions.dataset_specific.view_dataset } }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
@@ -1302,13 +1310,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1318,7 +1327,7 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.dataset_specific.view_dataset, users: newUser.id } }, { returnOriginal: false });
+                }, { $push: { permissions: permissions.dataset_specific.view_dataset, users: newUser.id } }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
@@ -1364,8 +1373,9 @@ describe('ROLE API', () => {
                     ],
                     users: [{
                         id: adminId,
-                        organisation: 'DSI',
-                        realName: 'admin',
+                        organisation: 'organisation_system',
+                        firstname: 'Fadmin',
+                        lastname: 'Ladmin',
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1425,13 +1435,14 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };
@@ -1619,13 +1630,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1653,7 +1665,8 @@ describe('ROLE API', () => {
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
-                        realName: newUser.realName
+                        firstname: newUser.firstname,
+                        lastname: newUser.lastname
                     }]
                 });
                 const createdRole = await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1676,13 +1689,14 @@ describe('ROLE API', () => {
                 const newUser = {
                     username: newUsername,
                     type: 'STANDARD',
-                    realName: `${newUsername}_realname`,
+                    firstname: `${newUsername}_firstname`,
+                    lastname: `${newUsername}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${newUsername}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${newUsername}`
                 };
@@ -1792,13 +1806,14 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };
@@ -1939,13 +1954,14 @@ describe('ROLE API', () => {
                 authorisedUserProfile = {
                     username,
                     type: 'STANDARD',
-                    realName: `${username}_realname`,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
                     password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
                     otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                     email: `${username}@example.com`,
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
-                    organisation: 'DSI',
+                    organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`
                 };

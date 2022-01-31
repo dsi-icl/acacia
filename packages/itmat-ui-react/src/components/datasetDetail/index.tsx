@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Route, Switch } from 'react-router-dom';
-import { GET_STUDY } from 'itmat-commons';
-import { LoadingBalls } from '../reusable/icons/loadingBalls';
+import { GET_STUDY, WHO_AM_I, userTypes, studyType } from 'itmat-commons';
+import LoadSpinner from '../reusable/loadSpinner';
 import css from './projectPage.module.css';
 import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent } from './tabContent';
 import { FileRepositoryTabContent } from './tabContent/files/fileTab';
 
 export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+    if (!studyId)
+        return <LoadSpinner />;
     return (
         <Query<any, any>
             query={GET_STUDY}
@@ -15,18 +17,39 @@ export const DatasetDetailPage: React.FunctionComponent<{ studyId: string }> = (
             errorPolicy='ignore' // quick fix ; TO_DO change to split graphql requests coupled with UI
         >
             {({ loading, error, data }) => {
-                if (loading) { return <LoadingBalls />; }
+                if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
                 if (!data || !data.getStudy) { return <div>Oops! Cannot find this dataset.</div>; }
+
                 return <div className={css.page_container}>
                     <div className={css.ariane}>
                         <h2>{data.getStudy.name.toUpperCase()}</h2>
                         <div className={css.tabs}>
-                            <NavLink to={`/datasets/${studyId}/dashboard`} activeClassName={css.active}><div>DASHBOARD</div></NavLink>
-                            <NavLink to={`/datasets/${studyId}/data_management`} activeClassName={css.active}><div>DATA MANAGEMENT</div></NavLink>
-                            <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}><div>FILES REPOSITORY</div></NavLink>
-                            <NavLink to={`/datasets/${studyId}/projects`} activeClassName={css.active}><div>PROJECTS</div></NavLink>
-                            <NavLink to={`/datasets/${studyId}/admin`} activeClassName={css.active}><div>ADMINISTRATION</div></NavLink>
+                            <Query<any, any> query={WHO_AM_I}>
+                                {({ loading, error, data: sessionData }) => {
+                                    if (loading) return <LoadSpinner />;
+                                    if (error) return <p>{error.toString()}</p>;
+                                    if (sessionData.whoAmI.type === userTypes.ADMIN) {
+                                        return (
+                                            <>
+                                                <NavLink to={`/datasets/${studyId}/dashboard`} activeClassName={css.active}>DASHBOARD</NavLink>
+                                                <NavLink to={`/datasets/${studyId}/data_management`} activeClassName={css.active}>DATA MANAGEMENT</NavLink>
+                                                <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}>FILES REPOSITORY</NavLink>
+                                                <NavLink to={`/datasets/${studyId}/admin`} activeClassName={css.active}>ADMINISTRATION</NavLink>
+                                                <NavLink to={`/datasets/${studyId}/projects`} activeClassName={css.active}>PROJECTS</NavLink>
+                                            </>
+                                        );
+                                    } else {
+                                        return (
+                                            <>
+                                                <NavLink to={`/datasets/${studyId}/files`} activeClassName={css.active}>FILES REPOSITORY</NavLink>
+                                                {data.getStudy.type === studyType.CLINICAL ?
+                                                    <NavLink to={`/datasets/${studyId}/data_management`} activeClassName={css.active}>DATA MANAGEMENT</NavLink> : null}
+                                            </>
+                                        );
+                                    }
+                                }}
+                            </Query>
                         </div>
                     </div>
                     <div className={css.content}>

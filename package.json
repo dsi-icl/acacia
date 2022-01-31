@@ -3,12 +3,16 @@
     "private": true,
     "license": "MIT",
     "scripts": {
+        "prepare": "husky install",
+        "postinstall": "husky install",
         "preinstall": "node ./scripts/hintYarn.js",
         "start": "lerna run --stream --parallel --scope itmat-commons --scope itmat-job-executor --scope itmat-interface --scope itmat-ui-react start",
         "start:ui": "lerna run --stream --scope itmat-ui-react start",
         "start:interface": "lerna run --stream --scope itmat-interface start",
         "start:executor": "lerna run --stream --scope itmat-job-executor start",
-        "build": "lerna run --stream build",
+        "build": "lerna run --stream --ignore itmat-docker build",
+        "build:noui": "lerna run --stream --ignore itmat-docker --ignore itmat-ui-react build",
+        "dockerise": "yarn run build:noui && lerna run --stream --scope itmat-docker build",
         "setupDatabase": "lerna run --scope itmat-setup setup",
         "test": "lerna run --no-bail --concurrency 1 --stream --scope itmat-interface --scope itmat-job-executor --scope itmat-commons test",
         "lint": "lerna run --no-bail --stream lint",
@@ -25,45 +29,31 @@
             "mongodb-memory-server",
             "mongodb-memory-server/**",
             "**/mongodb-memory-server",
-            "**/mongodb-memory-server/**",
-            "packages/**/webpack-dev-server",
-            "**/babel-loader",
-            "**/babel-jest",
-            "**/mongodb",
-            "**/mongodb/**"
+            "**/mongodb-memory-server/**"
         ]
     },
     "devDependencies": {
-        "@types/jest": "26.0.23",
-        "@typescript-eslint/eslint-plugin": "4.0.1",
-        "@typescript-eslint/parser": "4.0.1",
-        "babel-eslint": "10.1.0",
-        "eslint": "7.26.0",
-        "eslint-config-react-app": "5.2.1",
-        "eslint-plugin-cypress": "2.11.3",
-        "eslint-plugin-flowtype": "5.7.2",
-        "eslint-plugin-import": "2.23.3",
-        "eslint-plugin-jest": "24.3.2",
-        "eslint-plugin-jsx-a11y": "6.4.1",
-        "eslint-plugin-react": "7.23.2",
-        "eslint-plugin-react-hooks": "4.1.2",
-        "husky": "4.3.8",
-        "jest-environment-node": "26.6.2",
-        "lerna": "3.22.1",
-        "typescript": "4.0.5"
-    },
-    "resolutions": {
-        "**/**/fs-capacitor": "^6.0.0",
-        "**/graphql-upload": "^11.0.0",
-        "**/graphql": "15.5.0",
-        "**/moment": "2.29.1"
+        "@babel/core": "7.16.12",
+        "@babel/preset-env": "7.16.11",
+        "@babel/eslint-parser": "7.16.5",
+        "@babel/eslint-plugin": "7.16.5",
+        "@types/jest": "27.4.0",
+        "eslint-config-react-app": "7.0.0",
+        "eslint-plugin-cypress": "2.12.1",
+        "eslint-plugin-flowtype": "8.0.3",
+        "eslint-plugin-import": "2.25.4",
+        "eslint-plugin-jest": "26.0.0",
+        "eslint-plugin-jsx-a11y": "6.5.1",
+        "eslint-plugin-react": "7.28.0",
+        "eslint-plugin-react-hooks": "4.3.0",
+        "husky": "7.0.4",
+        "jest-environment-node": "27.4.6",
+        "lerna": "4.0.0",
+        "typescript": "4.3.2",
+        "webpack": "5.67.0",
+        "webpack-cli": "4.9.2"
     },
     "eslintConfig": {
         "extends": "./config/eslint.config.js"
-    },
-    "husky": {
-        "hooks": {
-            "pre-push": "npm run lint"
-        }
     }
 }
