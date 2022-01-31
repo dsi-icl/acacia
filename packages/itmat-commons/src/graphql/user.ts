@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 
-export const user_fragment = gql`
+export const USER_FRAGMENT = gql`
     fragment ALL_FOR_USER on User {
         id
         username
@@ -34,7 +34,7 @@ mutation login($username: String!, $password: String!, $totp: String!, $requeste
       ...ALL_FOR_USER
   }
 }
-${user_fragment}
+${USER_FRAGMENT}
 `;
 
 export const WHO_AM_I = gql`
@@ -43,7 +43,7 @@ export const WHO_AM_I = gql`
             ...ALL_FOR_USER
         }
     }
-    ${user_fragment}
+    ${USER_FRAGMENT}
 `;
 
 export const LOGOUT = gql`

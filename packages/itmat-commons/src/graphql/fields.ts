@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 
-export const field_fragment = gql`
+export const FIELD_FRAGMENT = gql`
     fragment ALL_FOR_FIELD on Field {
         id
         studyId
@@ -27,7 +27,7 @@ export const GET_STUDY_FIELDS = gql`
             ...ALL_FOR_FIELD
         }
     }
-    ${field_fragment}
+    ${FIELD_FRAGMENT}
 `;
 
 export const CREATE_NEW_FIELD = gql`
@@ -45,7 +45,7 @@ export const EDIT_FIELD = gql`
             ...ALL_FOR_FIELD
         }
     }
-    ${field_fragment}
+    ${FIELD_FRAGMENT}
 `;
 
 export const DELETE_FIELD = gql`
@@ -54,5 +54,5 @@ export const DELETE_FIELD = gql`
             ...ALL_FOR_FIELD
         }
     }
-    ${field_fragment}
+    ${FIELD_FRAGMENT}
 `;

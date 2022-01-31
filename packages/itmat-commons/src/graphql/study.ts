@@ -1,5 +1,5 @@
 import gql from 'graphql-tag';
-import { job_fragment } from './curation';
+import { JOB_FRAGMENT } from './curation';
 
 export const DELETE_STUDY = gql`
     mutation deleteStudy($studyId: String!) {
@@ -68,7 +68,7 @@ export const GET_STUDY = gql`
             }
         }
     }
-    ${job_fragment}
+    ${JOB_FRAGMENT}
 `;
 
 export const GET_DATA_RECORDS = gql`

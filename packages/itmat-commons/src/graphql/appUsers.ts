@@ -1,5 +1,5 @@
 import gql from 'graphql-tag';
-import { user_fragment } from './user';
+import { USER_FRAGMENT } from './user';
 
 export const GET_USERS = gql`
     query getUsers($fetchDetailsAdminOnly: Boolean!, $fetchAccessPrivileges: Boolean!, $userId: String) {
@@ -61,7 +61,7 @@ export const EDIT_USER = gql`
             ...ALL_FOR_USER
         }
     }
-    ${user_fragment}
+    ${USER_FRAGMENT}
 `;
 
 export const DELETE_USER = gql`
