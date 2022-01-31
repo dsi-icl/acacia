@@ -16,7 +16,7 @@
 }
 
 .cover_page {
-    grid-area: main sub;
+    grid-area: auto / main / auto / sub;
 }
 
 .tab_page_wrapper {

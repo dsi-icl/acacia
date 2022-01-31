@@ -1,5 +1,5 @@
 // External node module imports
-import { Server as HTTPServer } from 'http';
+import { Express } from 'express';
 import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { MongoClient } from 'mongodb';
@@ -18,7 +18,7 @@ class ITMATInterfaceServer extends Server {
      * @return {Promise} Resolve to a native Express.js router ready to use on success.
      * In case of error, an ErrorStack is rejected.
      */
-    public start(): Promise<HTTPServer> {
+    public start(): Promise<Express> {
         const _this = this;
         return new Promise((resolve, reject) => {
 
@@ -38,10 +38,10 @@ class ITMATInterfaceServer extends Server {
                         ) {
                             pubsub.publish(subscriptionEvents.JOB_STATUS_CHANGE, {
                                 subscribeToJobStatusChange: {
-                                    jobId: data.fullDocument.id,
-                                    studyId: data.fullDocument.studyId,
-                                    newStatus: data.fullDocument.status,
-                                    errors: data.fullDocument.status === 'error' ? data.fullDocument.error : null
+                                    jobId: data.fullDocument?.id,
+                                    studyId: data.fullDocument?.studyId,
+                                    newStatus: data.fullDocument?.status,
+                                    errors: data.fullDocument?.status === 'error' ? data.fullDocument.error : null
                                 }
                             });
                         }

@@ -1,22 +1,22 @@
 export interface IFieldEntry {
     id: string;
     studyId: string;
-    path: string;
-    fieldId: number;
+    fieldId: string;
     fieldName: string;
-    valueType: enumValueType;
-    possibleValues?: string[];
+    tableName?: string;
+    dataType: enumValueType;
+    possibleValues?: IValueDescription[];
     unit?: string;
-    itemType: enumItemType;
-    numOfTimePoints: number;
-    numOfMeasurements: number;
-    startingTimePoint: number;
-    startingMeasurement: number;
-    notes?: string;
-    jobId: string;
-    dateAdded: number;
-    deleted: number | null;
-    fieldTreeId: string;
+    comments?: string;
+    dateAdded: string;
+    dateDeleted: string | null;
+    dataVersion: string | null;
+}
+
+export interface IValueDescription {
+    id: string;
+    code: string;
+    description: string
 }
 
 export enum enumItemType {
@@ -25,9 +25,12 @@ export enum enumItemType {
 }
 
 export enum enumValueType {
-    INTEGER = 'i',
-    CATEGORICAL = 'c',
-    DECIMAL = 'd',
-    BOOLEAN = 'b',
-    FREETEXT = 't'
+    INTEGER = 'int',
+    DECIMAL = 'dec',
+    STRING = 'str',
+    BOOLEAN = 'bool',
+    DATETIME = 'date',
+    FILE = 'file',
+    JSON = 'json',
+    CATEGORICAL = 'cat'
 }

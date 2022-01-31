@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const StartServerPlugin = require('start-server-webpack-plugin');
+const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
 
 const {
     NODE_ENV = 'production',
@@ -25,7 +25,6 @@ module.exports = {
         bcrypt: 'commonjs bcrypt',
         express: 'commonjs express',
         mongodb: 'commonjs mongodb',
-        // subscriptions-transport-ws: 'commonjs subscriptions-transport-ws',
         isobject: 'commonjs isobject',
         require_optional: 'commonjs require_optional'
     }],
@@ -40,12 +39,13 @@ module.exports = {
         ]
     },
     plugins: (NODE_ENV === 'development' ? [
-        new StartServerPlugin('index.js'),
-        new webpack.NamedModulesPlugin(),
+        new RunScriptWebpackPlugin('executor.js'),
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
-        new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../src/utils/noop`),
-        new webpack.IgnorePlugin(new RegExp('^(node-pre-gyp)$')),
+        new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../../src/utils/noop`),
+        new webpack.IgnorePlugin({
+            resourceRegExp: new RegExp('^(node-pre-gyp)$')
+        }),
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {
@@ -55,8 +55,8 @@ module.exports = {
     ]),
     output: {
         path: path.join(__dirname, '../build'),
-        filename: 'index.js',
-        library: NODE_ENV === 'development' ? undefined : 'itmat-interface',
+        filename: 'executor.js',
+        library: NODE_ENV === 'development' ? undefined : 'itmat-job-executor',
         libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
         umdNamedDefine: NODE_ENV === 'development' ? undefined : true
     }

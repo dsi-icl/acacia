@@ -2,13 +2,11 @@ import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Redirect } from 'react-router-dom';
 import { WHO_AM_I, Models } from 'itmat-commons';
+import { Button } from 'antd';
 
 export const ProjectList: React.FunctionComponent = () => {
     return (
-        <Query<any, any>
-            query={WHO_AM_I}
-            pollInterval={5000}
-        >
+        <Query<any, any> query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <p>Loading...</p>; }
                 if (error) { return <p>Error :( {error}</p>; }
@@ -21,7 +19,6 @@ export const ProjectList: React.FunctionComponent = () => {
                         return <PickProjectSection projects={projects} />;
                     }
                 }
-                console.log('error: ', data);
                 return <p>There is no project or you have not been added to any. Please contact admin.</p>;
             }
             }
@@ -34,7 +31,7 @@ const PickProjectSection: React.FunctionComponent<{ projects: Models.Study.IProj
         You have access to two or more projects. Please pick the one you would like to access: <br /><br /><br />
         {projects.map((el) =>
             <NavLink key={el.id} to={`/projects/${el.id}/dashboard`}>
-                <button>{el.name}</button>
+                <Button>{el.name}</Button>
             </NavLink>
         )}
     </>;

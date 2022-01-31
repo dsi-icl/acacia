@@ -13,7 +13,7 @@
 
 .data_management_section {
     display: grid;
-    grid-template-columns: 60% 40%;
+    grid-template-columns: 50% 50%;
     grid-template-rows: 0.1fr 6fr;
     grid-template-areas: 
     "versions versions"
@@ -58,8 +58,9 @@
     display: grid;
     grid-template-columns: 30% 5% 30% 5% 30%;
     /* grid-template-rows: 150px 150px; */
-    grid-template-areas: "patients empty1 version empty2 tag"
-                        "date date date empty3 dummy"
+    grid-template-areas: "patients empty1 records empty2 empty3"                        
+                        "version empty1  tag empty2 empty3"
+                        "date date date empty5 dummy"
                         "filename filename filename filename filename";
     height: 100%;
 }

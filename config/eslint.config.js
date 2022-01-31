@@ -38,8 +38,7 @@ var defaultRules = {
     ],
     'no-trailing-spaces': 'error',
     'no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^__unused__' }
+        'off'
     ],
     'quotes': [
         'error',
@@ -126,8 +125,8 @@ module.exports = {
                 'jest/globals': true
             }),
             globals: {
-                hasMinio: true,
-                minioContainerPort: true
+                hasMinio: 'readonly',
+                minioContainerPort: 'readonly'
             },
             extends: javascriptExtensions,
             rules: defaultRules
@@ -144,8 +143,8 @@ module.exports = {
             globals: {
                 Atomics: 'readonly',
                 SharedArrayBuffer: 'readonly',
-                hasMinio: true,
-                minioContainerPort: true
+                hasMinio: 'readonly',
+                minioContainerPort: 'readonly'
             },
             extends: typescriptExtensions,
             rules: defaultRules

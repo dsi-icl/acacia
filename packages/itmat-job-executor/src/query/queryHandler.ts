@@ -1,22 +1,38 @@
-import { IQueryEntry, IProject, Logger } from 'itmat-commons';
+import { Logger, IJobEntry } from 'itmat-commons';
 import { db } from '../database/database';
 import { pipelineGenerator } from './pipeLineGenerator';
+import { JobHandler } from '../jobHandlers/jobHandlerInterface';
 
-class QueryHandler {
-    public async actOnDocument(document: IQueryEntry): Promise<void> {
-        const { id } = document;
-        const pipeline = pipelineGenerator.buildPipeline(document);
+export class QueryHandler extends JobHandler {
+    private _instance?: QueryHandler;
+    // private ukbCurator: UKBCurator;
+
+    public async getInstance() {
+        if (!this._instance) {
+            this._instance = new QueryHandler();
+        }
+        return this._instance;
+    }
+
+    public async execute(job: IJobEntry<{ queryId: string[], projectId: string, studyId: string }>) {
+        // get available data versions
+        const thisProject = await db.collections!.projects_collection.findOne({ id: job.data.projectId });
+        const availableDataVersions = [thisProject.dataVersion];
+        const queryId = job.data.queryId[0];
+        const queryString = await db.collections!.queries_collection.findOne({ id: queryId })!;
+        const pipeline = pipelineGenerator.buildPipeline(queryString.queryString, job.studyId, availableDataVersions);
         try {
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
-
             /* if the query is on a project, then we need to map the results m_eid */
-            if (document.projectId) {
-                const project: IProject = await db.collections!.projects_collection.findOne({ id: document.projectId })!;
+            if (job.projectId) {
+                const project = await db.collections!.projects_collection.findOne({ id: job.data.projectId })!;
                 if (project === null || project === undefined) {
-                    await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
-                        error: 'Project does not exist or has been deleted.',
-                        status: 'FINISHED WITH ERROR'
-                    }});
+                    await db.collections!.queries_collection.findOneAndUpdate({ queryId }, {
+                        $set: {
+                            error: 'Project does not exist or has been deleted.',
+                            status: 'FINISHED WITH ERROR'
+                        }
+                    });
                     return;
                 }
                 const mapping = project.patientMapping;
@@ -25,24 +41,28 @@ class QueryHandler {
                     el.m_eid = mapping[el.m_eid];
                 });
             }
-
-            await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
-                queryResult: JSON.stringify(result),
-                status: 'FINISHED'
-            }});
+            await db.collections!.queries_collection.findOneAndUpdate({ id: queryId }, {
+                $set: {
+                    queryResult: JSON.stringify(result),
+                    status: 'FINISHED'
+                }
+            });
+            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
             return;
         } catch (e) {
             /* log */
             Logger.error(e.toString());
 
             /* update query status */
-            await db.collections!.queries_collection.findOneAndUpdate({ id }, { $set: {
-                error: e.toString(),
-                status: 'FINISHED WITH ERROR'
-            }});
+            await db.collections!.queries_collection.findOneAndUpdate({ queryId }, {
+                $set: {
+                    error: e.toString(),
+                    status: 'FINISHED WITH ERROR'
+                }
+            });
             return;
         }
     }
-}
 
-export const queryHandler = new QueryHandler();
+
+}

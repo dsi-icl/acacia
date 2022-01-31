@@ -18,6 +18,7 @@ export const GET_LOGS = gql`
             id,
             requesterName,
             requesterType,
+            userAgent,
             logType,
             actionType,
             actionData,

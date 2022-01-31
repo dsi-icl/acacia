@@ -4,9 +4,9 @@ export const user_fragment = gql`
     fragment ALL_FOR_USER on User {
         id
         username
-        otpSecret
         type
-        realName
+        firstname
+        lastname
         email
         organisation
         description
@@ -20,6 +20,7 @@ export const user_fragment = gql`
             studies {
                 id
                 name
+                type
             }
         },
         createdAt,
@@ -28,8 +29,8 @@ export const user_fragment = gql`
 `;
 
 export const LOGIN = gql`
-mutation login($username: String!, $password: String!, $totp: String!) {
-  login(username: $username, password: $password, totp: $totp) {
+mutation login($username: String!, $password: String!, $totp: String!, $requestexpirydate: Boolean) {
+  login(username: $username, password: $password, totp: $totp, requestexpirydate: $requestexpirydate) {
       ...ALL_FOR_USER
   }
 }
@@ -88,27 +89,65 @@ export const RESET_PASSWORD = gql`
     }
 `;
 
+export const VALIDATE_RESET_PASSWORD = gql`
+    query validateResetPassword(
+        $encryptedEmail: String!,
+        $token: String!
+    ) {
+        validateResetPassword(
+            encryptedEmail: $encryptedEmail,
+            token: $token
+        ) {
+            successful
+        }
+    }
+`;
+
 export const CREATE_USER = gql`
     mutation CreateUser(
         $username: String!
         $password: String!
-        $realName: String!
-        $description: String!
+        $firstname: String!
+        $lastname: String!
+        $description: String
         $organisation: String!
-        $emailNotificationsActivated: Boolean!
+        $emailNotificationsActivated: Boolean
         $email: String!
-        $type: USERTYPE!
+        $type: USERTYPE
     ){
         createUser(user: {
             username: $username
             password: $password            
-            realName: $realName
+            firstname: $firstname
+            lastname: $lastname
             description: $description
             organisation: $organisation
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
             type: $type
         }) {
+            successful
+        }
+    }
+`;
+
+export const RECOVER_SESSION_EXPIRE_TIME = gql`
+    query recoverSessionExpireTime {
+        recoverSessionExpireTime {
+            successful
+        }
+    }
+`;
+
+export const REQUEST_EXPIRY_DATE = gql`
+    mutation requestExpiryDate(
+        $username: String,
+        $email: String        
+    ) {
+        requestExpiryDate(
+            username: $username,
+            email: $email
+        ) {
             successful
         }
     }
