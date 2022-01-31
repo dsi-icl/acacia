@@ -1,6 +1,6 @@
-export interface IQueryEntry {
+export type IQueryEntry = {
     id: string;
-    queryString: string;
+    queryString: any;
     studyId: string;
     projectId?: string;
     requester: string;
@@ -16,7 +16,7 @@ export interface IQueryEntry {
     new_fields: INewFieldSelection[];
 }
 
-export interface ICohortSelection {
+export type ICohortSelection = {
     field: string;
     value: string;
     op: enumCohortSelectionOp;
@@ -32,7 +32,7 @@ export enum enumCohortSelectionOp {
     'count' = 'count'
 }
 
-export interface IEquationDescription {
+export type IEquationDescription = {
     left: string | IEquationDescription;
     right: string | IEquationDescription;
     op: enumEquationOp;
@@ -48,7 +48,7 @@ export enum enumEquationOp {
     'val' = 'val'
 }
 
-export interface INewFieldSelection {
+export type INewFieldSelection = {
     name: string;
     value: IEquationDescription;
     op: 'derived';

@@ -7,7 +7,7 @@
 //  */
 
 class PipelineGenerator {
-    constructor(private readonly config = {}) {}
+    constructor(private readonly config = {}) { }
 
     /*
     * @fn buildPipeline
@@ -45,13 +45,20 @@ class PipelineGenerator {
         }
     }
     */
-    public buildPipeline(query: any) {
-        const fields = {_id: 0, m_eid: 1};
+    public buildPipeline(query: any, studyId: string, availableDataVersions: any) {
+        // check query, then decide whether to parse the query
+        if (query['data_requested'] === undefined || query['cohort'] === undefined || query['new_fields'] === undefined) {
+            return null;
+        }
+        if (Array.isArray(query['data_requested']) === false || Array.isArray(query['cohort']) === false || Array.isArray(query['new_fields']) === false) {
+            return null;
+        }
+
+        const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
         // We send back the requested fields
         query.data_requested.forEach((field: any) => {
             (fields as any)[field] = 1;
         });
-
         const addFields = {};
         // We send back the newly created derived fields by default
         if (query.new_fields.length > 0) {
@@ -64,7 +71,6 @@ class PipelineGenerator {
                 }
             });
         }
-
         let match = {};
         if (query.cohort.length > 1) {
             const subqueries: any = [];
@@ -76,18 +82,25 @@ class PipelineGenerator {
         } else {
             match = this._translateCohort(query.cohort[0]);
         }
-
+        let dataVersionsFilter: any;
+        if (availableDataVersions == null) {
+            dataVersionsFilter = null;
+        } else {
+            dataVersionsFilter = { $in: availableDataVersions };
+        }
         if (this._isEmptyObject(addFields)) {
             return [
-                { $match: { m_study: query.studyId } },
+                { $match: { m_studyId: studyId } },
                 { $match: match },
+                { $match: { m_versionId: dataVersionsFilter } },
                 { $project: fields }
             ];
         } else {
             return [
-                { $match: { m_study: query.studyId } },
+                { $match: { m_studyId: studyId } },
                 { $addFields: addFields },
                 { $match: match },
+                { $match: { m_versionId: dataVersionsFilter } },
                 { $project: fields }
             ];
         }
@@ -107,7 +120,6 @@ class PipelineGenerator {
      */
     private _createNewField(expression: any) {
         let newField = {};
-
         switch (expression.op) {
             case '*':
                 newField = {
@@ -168,7 +180,7 @@ class PipelineGenerator {
     private _translateCohort(cohort: any) {
         const match = {};
 
-        cohort.forEach(function(select: any) {
+        cohort.forEach(function (select: any) {
 
             switch (select.op) {
                 case '=':
@@ -179,15 +191,15 @@ class PipelineGenerator {
                     // select.value must be an array
                     (match as any)[select.field] = { $ne: [select.value] };
                     break;
-                case '>':
+                case '<':
                     // select.value must be a float
                     (match as any)[select.field] = { $lt: parseFloat(select.value) };
                     break;
-                case '<':
+                case '>':
                     // select.value must be a float
                     (match as any)[select.field] = { $gt: parseFloat(select.value) };
                     break;
-                case 'derived':
+                case 'derived': {
                     // equation must only have + - * /
                     const derivedOperation = select.value.split(' ');
                     if (derivedOperation[0] === '=') {
@@ -200,12 +212,13 @@ class PipelineGenerator {
                         (match as any)[select.field] = { $lt: parseFloat(select.value) };
                     }
                     break;
+                }
                 case 'exists':
                     // We check if the field exists. This is to be used for checking if a patient
                     // has an image
                     (match as any)[select.field] = { $exists: true };
                     break;
-                case 'count':
+                case 'count': {
                     // counts can only be positive. NB: > and < are inclusive e.g. < is <=
                     const countOperation = select.value.split(' ');
                     const countfield = select.field + '.count';
@@ -219,6 +232,7 @@ class PipelineGenerator {
                         (match as any)[countfield] = { $lt: parseInt(countOperation[1], 10) };
                     }
                     break;
+                }
                 default:
                     break;
             }

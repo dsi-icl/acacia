@@ -4,40 +4,30 @@
     overflow: auto;
 }
 
-.status_td > span {
-    width: 100%;
-    padding: 0.1rem 0.5rem 0.1rem 0.5rem;
-    color: white;
-}
-
-.finishedStatus_span {
-    background-color: #648601;
-}
-
-.errorStatus_span {
-    background-color: #d80000;
-}
-
-.processingStatus_span {
-    background-color: #f3e313;
+.finishedStatus_td {
+    background: var(--color-status-finish);
     color: black;
 }
 
-.queuedStatus_span {
-    background-color: #696969;
+.errorStatus_td {
+    background: var(--color-status-error);
 }
 
-.cancelledStatus_span {
-    background-color: black;
+.processingStatus_td {
+    background: var(--color-status-processing);
+    color: black;
 }
 
-.job_table {
-    font-size: 0.95rem;
+.queuedStatus_td {
+    background: var(--color-status-queued);
 }
 
-.job_table tr {
-    height: 1.6rem;
-    line-height: 1.6rem;
+.cancelledStatus_td {
+    background: var(--color-status-cancelled);
+}
+
+.job_table td:nth-child(3) {
+    text-align: center;
 }
 
 .cancelButton {
@@ -48,4 +38,36 @@
 
 .cancelButton:hover {
     color: white;
+}
+
+.error_wrapper {
+    position: relative;
+}
+
+.errorStatus_td > svg {
+    height: 1rem;
+    width: 1rem;
+    cursor: context-menu
+}
+
+.error_wrapper > div {
+    display: none;
+    width: 35rem;
+    max-height: 20rem;
+    top: -1rem;
+    overflow: auto;
+    padding: 1rem 0 0 1.7rem;
+    background: var(--color-popup);
+    box-shadow: 6px 6px 3px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--color-popup-border);
+    left: 5rem;
+    position: absolute;
+}
+
+.errorStatus_td > svg:hover + .error_wrapper > div {
+    display: unset;
+}
+
+.error_wrapper > div:hover {
+    display: unset;
 }

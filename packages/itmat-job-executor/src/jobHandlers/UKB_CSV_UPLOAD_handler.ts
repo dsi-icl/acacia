@@ -1,66 +1,59 @@
-// import { UKBCurator } from 'ukb-curator';
-import { IFile } from 'itmat-commons/dist/models/file';
-import { IJobEntry } from 'itmat-commons/dist/models/job';
-import { IStudyDataVersion } from 'itmat-commons/dist/models/study';
-import uuid from 'uuid/v4';
+import { IFile, IJobEntry } from 'itmat-commons';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
+import { CSVCurator } from '../curation/CSVCurator';
+import { Readable } from 'stream';
 
 export class UKB_CSV_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_CSV_UPLOAD_Handler;
     // private ukbCurator: UKBCurator;
 
-    private constructor() {
-        super();
-        // this.ukbCurator = new UKBCurator(
-        //     db.collections!.jobs_collection,
-        //     db.collections!.UKB_coding_collection,
-        //     db.collections!.field_dictionary_collection,
-        //     db.collections!.data_collection
-        // );
-    }
-
     public async getInstance() {
         if (!this._instance) {
             this._instance = new UKB_CSV_UPLOAD_Handler();
-            // await this.ukbCurator.updateUKBCodingAndFieldsMap();
         }
         return this._instance;
     }
 
-    public async execute(job: IJobEntry<{ dataVersion: string, versionTag?: string }>) {
-        const file: IFile = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: false })!;
-        if (!file) {
-            // throw error
-        }
-        const fileStream: NodeJS.ReadableStream = await objStore.downloadFile(job.studyId, file.uri);
-        const datasetId: string = uuid();
-        // await this.ukbCurator.uploadIncomingCSVStreamToMongo(
-        //     job.studyId,
-        //     job.id,
-        //     job.receivedFiles[0],
-        //     fileStream
-        // );
-        await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
-        const newDataVersion: IStudyDataVersion = {
-            id: datasetId,
-            contentId: uuid(),
-            jobId: job.id,
-            version: job.data!.dataVersion,
-            tag: job.data!.versionTag,
-            uploadDate: new Date().valueOf(),
-            fileSize: file.fileSize!,
-            extractedFrom: file.fileName,
-            fieldTrees: []
-        };
-        await db.collections!.studies_collection.updateOne({ id: job.studyId }, {
-            $push: { dataVersions: newDataVersion },
-            $inc: {
-                currentDataVersion: 1
+    public async execute(job: IJobEntry<never>) {
+        // check if study version exists: checked by resolvers
+        // check if fieldTreeId version exists: checked by resolvers
+
+
+        const errorsList = [];
+        // get fieldid info from database
+        const fieldsList = await db.collections!.field_dictionary_collection.find({ studyId: job.studyId }).toArray();
+
+        for (const fileId of job.receivedFiles) {
+            try {
+                const file: IFile = await db.collections!.files_collection.findOne({ id: fileId, deleted: null })!;
+                if (!file) {
+                    errorsList.push({fileId: fileId, error: 'file does not exist'});
+                    continue;
+                }
+                const components = file.fileName.split('.')[0].split('_');
+                components.shift();
+                const tableName = components.join('_');
+                const filteredFieldsList = fieldsList.filter(el => el.tableName === tableName);
+                const fileStream: Readable = await objStore.downloadFile(job.studyId, file.uri);
+                const csvcurator = new CSVCurator(
+                    db.collections!.data_collection,
+                    fileStream,
+                    undefined,
+                    job,
+                    filteredFieldsList
+                );
+                const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
+                if (errors.length !== 0) {
+                    errorsList.push({fileId: file.id, fileName: file.fileName, error: errors});
+                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errorsList } });
+                } else {
+                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
+                }
+            } catch (e) {
+                throw new Error();
             }
-
-        });
+        }
     }
-
 }

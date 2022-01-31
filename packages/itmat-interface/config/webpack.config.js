@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const StartServerPlugin = require('start-server-webpack-plugin');
+const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
 
 const {
     NODE_ENV = 'production',
@@ -22,11 +22,13 @@ module.exports = {
         extensions: ['.ts', '.mjs', '.js'],
     },
     externals: [{
-        bcrypt: 'commonjs bcrypt',
-        express: 'commonjs express',
-        mongodb: 'commonjs mongodb',
-        "subscriptions-transport-ws": "commonjs subscriptions-transport-ws",
-        "require_optional": 'commonjs require_optional'
+        'bcrypt': 'commonjs bcrypt',
+        'express': 'commonjs express',
+        'mongodb': 'commonjs mongodb',
+        'isobject': 'commonjs isobject',
+        'bufferutil': 'commonjs bufferutil',
+        'utf-8-validate': 'commonjs utf-8-validate',
+        'require_optional': 'commonjs require_optional'
     }],
     module: {
         rules: [
@@ -39,24 +41,25 @@ module.exports = {
         ]
     },
     plugins: (NODE_ENV === 'development' ? [
-        new StartServerPlugin('index.js'),
-        new webpack.NamedModulesPlugin(),
+        new RunScriptWebpackPlugin('interface.js'),
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
-        new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../src/utils/noop`),
-        new webpack.IgnorePlugin(new RegExp('^(node-pre-gyp)$')),
+        new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../../src/utils/noop`),
+        new webpack.IgnorePlugin({
+            resourceRegExp: new RegExp('^(node-pre-gyp)$')
+        }),
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {
-                'BUILD_TARGET': JSON.stringify('server')
+                BUILD_TARGET: JSON.stringify('server')
             }
         }),
     ]),
     output: {
         path: path.join(__dirname, '../build'),
-        filename: 'index.js',
+        filename: 'interface.js',
         library: NODE_ENV === 'development' ? undefined : 'itmat-interface',
         libraryTarget: NODE_ENV === 'development' ? undefined : 'umd',
         umdNamedDefine: NODE_ENV === 'development' ? undefined : true
     }
-}
+};

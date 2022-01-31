@@ -1,1 +1,0 @@
-export const content_section: string;

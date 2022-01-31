@@ -1,1 +1,0 @@
-export const one_project: string;

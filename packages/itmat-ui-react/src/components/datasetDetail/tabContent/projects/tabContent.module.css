@@ -1,26 +1,17 @@
 .tab_page_wrapper {
-    padding: 2rem;
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 100%;
     height: 100%;
     overflow: auto;
 }
 
-.scaffold_wrapper {
-    display: grid;
-    grid-template-columns: 15% 85%;
-    grid-template-rows: 100%;
+.tab_page_wrapper > div {
+    padding: 2rem;
     height: 100%;
-    grid-template-areas: "leftPanel rightPanel"
 }
-
-.left_panel {
-    grid-area: leftPanel;
-    border-right: 2px solid rgb(92, 92, 92);
-    /* box-shadow: 10px 10px 8px rgba(0,0,0,0.1); */
-    padding-right: 1rem;
-}
-
-.right_panel {
-    grid-area: rightPanel;
+/* right panel*/ .tab_page_wrapper > div:nth-child(2) {
+    background: var(--color-additional-panel-background);
 }
 
 .add_new_project_tr input {
@@ -30,12 +21,10 @@
 }
 
 .project_badge {
-    border-radius: 0px;
+    height: 3.5rem;
+    background: var(--color-pop-up);
+    color: unset;
+    font-size: 1.2rem;
     margin: 0 0 1rem 0;
     overflow: hidden;
-}
-
-.active_project button, .active_project button:hover {
-    background-color: #b5b5b5;
-    color: #464646
 }

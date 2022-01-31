@@ -1,11 +1,27 @@
+import { IUser } from './user';
+
+export enum studyType {
+    SENSOR = 'SENSOR',
+    CLINICAL = 'CLINICAL',
+    ANY = 'ANY'
+}
+
 export interface IStudy {
     id: string;
     name: string;
     createdBy: string;
     lastModified: number;
-    deleted: boolean;
+    deleted: number | null;
     currentDataVersion: number; // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
     dataVersions: IStudyDataVersion[];
+    description: string;
+    type: studyType;
+    ontologyTree?: IOntologyField[];
+}
+
+export interface IOntologyField {
+    fieldId: string;
+    path: string;
 }
 
 export interface IStudyDataVersion {
@@ -13,11 +29,7 @@ export interface IStudyDataVersion {
     contentId: string; // same contentId = same data
     version: string;
     tag?: string;
-    fileSize: number;
-    uploadDate: number;
-    jobId: string;
-    extractedFrom: string;
-    fieldTrees: string[];
+    updateDate: string;
 }
 
 
@@ -27,8 +39,9 @@ export interface IRole {
     studyId: string;
     name: string;
     permissions: string[];
-    users: string[];
-    deleted: boolean;
+    users: IUser[];
+    createdBy: string;
+    deleted: number | null;
 }
 
 export interface IProject {
@@ -40,5 +53,29 @@ export interface IProject {
     approvedFields: string[];
     approvedFiles: string[];
     lastModified: number;
-    deleted: boolean;
+    deleted: number | null;
+    dataVersion: string | null;
+}
+
+export interface IDataClip {
+    fieldId: string,
+    value: string,
+    subjectId: string,
+    visitId: string
+}
+
+export enum DATA_CLIP_ERROR_TYPE {
+    ACTION_ON_NON_EXISTENT_ENTRY = 'ACTION_ON_NON_EXISTENT_ENTRY',
+    MALFORMED_INPUT = 'MALFORMED_INPUT'
+}
+
+export interface IDataClipError {
+    code: DATA_CLIP_ERROR_TYPE
+    description?: string
+}
+
+export interface ISubjectDataRecordSummary {
+    subjectId: string,
+    visitId?: string,
+    errorFields: string[]
 }

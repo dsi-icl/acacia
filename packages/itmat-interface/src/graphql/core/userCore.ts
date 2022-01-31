@@ -1,59 +1,121 @@
 import bcrypt from 'bcrypt';
-import { Models } from 'itmat-commons';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
-
 import { ApolloError } from 'apollo-server-core';
-import { IUser, IUserWithoutToken, userTypes } from 'itmat-commons/dist/models/user';
-import uuidv4 from 'uuid/v4';
+import { IUser, IUserWithoutToken, userTypes, Models, IOrganisation, IPubkey } from 'itmat-commons';
+import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
 
 export class UserCore {
     public async getOneUser_throwErrorIfNotExists(username: string): Promise<IUser> {
-        const user = await db.collections!.users_collection.findOne({ deleted: false, username });
+        const user = await db.collections!.users_collection.findOne({ deleted: null, username });
         if (user === undefined || user === null) {
             throw new ApolloError('User does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         return user;
     }
 
-    public async createUser(requester: string, user: { password: string, username: string, organisation: string, type: userTypes, description: string, realName: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
-        const { password, organisation, username, type, description, realName, email, emailNotificationsActivated } = user;
+    public async createUser(user: { password: string, otpSecret: string, username: string, organisation: string, type: userTypes, description: string, firstname: string, lastname: string, email: string, emailNotificationsActivated: boolean }): Promise<IUserWithoutToken> {
+        const { password, otpSecret, organisation, username, type, description, firstname, lastname, email, emailNotificationsActivated } = user;
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
+        const createdAt = Date.now();
+        const expiredAt = Date.now() + 86400 * 1000 /* millisec per day */ * 90;
         const entry: Models.UserModels.IUser = {
-            id: uuidv4(),
+            id: uuid(),
             username,
+            otpSecret,
             type,
             description,
             organisation,
-            realName,
+            firstname,
+            lastname,
             password: hashedPassword,
-            createdBy: requester,
             email,
             emailNotificationsActivated,
-            deleted: false
+            createdAt,
+            expiredAt,
+            resetPasswordRequests: [],
+            deleted: null
         };
 
         const result = await db.collections!.users_collection.insertOne(entry);
-        if (result.result.ok === 1) {
-            delete entry.password;
+        if (result.acknowledged) {
+            const cleared: IUserWithoutToken = { ...entry };
+            delete cleared['password'];
+            delete cleared['otpSecret'];
+            return cleared;
+        } else {
+            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
+        }
+    }
+
+    public async deleteUser(userId: string): Promise<void> {
+        const session = db.client!.startSession();
+        session.startTransaction();
+        try {
+            /* delete the user */
+            await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnDocument: 'after', projection: { deleted: 1 } });
+
+            /* delete all user records in roles related to the study */
+            await db.collections!.roles_collection.updateMany(
+                {
+                    deleted: null,
+                    users: userId
+                },
+                {
+                    $pull: { users: { id: userId } }
+                }
+            );
+
+            await session.commitTransaction();
+            session.endSession();
+        } catch (error) {
+            // If an error occurred, abort the whole transaction and
+            // undo any changes that might have happened
+            await session.abortTransaction();
+            session.endSession();
+            throw new ApolloError(`Database error: ${JSON.stringify(error)}`);
+        }
+    }
+
+    public async createOrganisation(org: { name: string, shortname?: string, containOrg: string | null }): Promise<IOrganisation> {
+        const { name, shortname, containOrg } = org;
+        const entry: IOrganisation = {
+            id: uuid(),
+            name,
+            shortname,
+            containOrg,
+            deleted: null,
+            metadata: {}
+        };
+
+        const result = await db.collections!.organisations_collection.insertOne(entry);
+        if (result.acknowledged) {
             return entry;
         } else {
             throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
         }
     }
 
-    public async deleteUser(userId: string) {
-        const result = await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: false }, { $set: { deleted: true, password: 'DeletedUserDummyPassword' } }, { returnOriginal: false, projection: { deleted: 1 } });
-        if (result.ok !== 1 || result.value.deleted !== true) {
-            throw new ApolloError(`Database error: ${JSON.stringify(result.lastErrorObject)}`, errorCodes.DATABASE_ERROR);
+    public async registerPubkey(pubkeyobj: { pubkey: string, associatedUserId: string | null, jwtPubkey: string, jwtSeckey: string }): Promise<IPubkey> {
+        const { pubkey, associatedUserId, jwtPubkey, jwtSeckey } = pubkeyobj;
+        const entry: IPubkey = {
+            id: uuid(),
+            pubkey,
+            associatedUserId,
+            jwtPubkey,
+            jwtSeckey,
+            refreshCounter: 0,
+            deleted: null
+        };
+
+        const result = await db.collections!.pubkeys_collection.insertOne(entry);
+        if (result.acknowledged) {
+            return entry;
+        } else {
+            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
         }
-        return;
     }
-
-
-
-
 }
 
 export const userCore = Object.freeze(new UserCore());
