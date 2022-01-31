@@ -1,22 +1,18 @@
-import * as React from 'react';
-import { Mutation } from 'react-apollo';
-import { LOGIN, WHO_AM_I } from 'itmat-commons/dist/graphql/user';
+import React from 'react';
+import GitInfo from 'react-git-info/macro';
+import { Mutation } from '@apollo/client/react/components';
+import { LOGIN, WHO_AM_I } from 'itmat-commons';
+import { NavLink } from 'react-router-dom';
 import css from './login.module.css';
+import { Input, Form, Button, Alert } from 'antd';
+import Checkbox from 'antd/lib/checkbox/Checkbox';
+
+const gitInfo = GitInfo();
 
 export const LoginBox: React.FunctionComponent = () => {
-    const [usernameInput, setUsernameInput] = React.useState('');
-    const [passwordInput, setPasswordInput] = React.useState('');
-    const [stateError] = React.useState('');
-
-    function handleUsernameChange(e: any) {
-        setUsernameInput(e.target.value);
-    }
-
-    function handlePasswordChange(e: any) {
-        setPasswordInput(e.target.value);
-    }
 
     return (
+
         <Mutation<any, any>
             mutation={LOGIN}
             update={(cache, { data: { login } }) => {
@@ -25,31 +21,65 @@ export const LoginBox: React.FunctionComponent = () => {
                     data: { whoAmI: login }
                 });
             }}
+            onError={() => { return; }}
         >
-            {(login, { loading, error }) =>
-                <div className={css.login_and_error_wrapper}>
-                    <div className={css.login_box}>
-                        <h1>ITMAT - BROKER</h1>
-                        <br /><br />
-                        <div>
-                            <input id='username_input' placeholder='username' value={usernameInput} onChange={handleUsernameChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
-                        </div>
-                        <div>
-                            <input id='password_input' placeholder='password' type='password' value={passwordInput} onChange={handlePasswordChange} onKeyDown={e => e.keyCode === 13 && document.getElementById('loginButton')!.click()} /> <br />
-                        </div>
-                        <br />
-                        {loading ? <button>logging in..</button> :
-                            (
-                                <button id='loginButton' onClick={() => { login({ variables: { password: passwordInput, username: usernameInput } }); }}> login</button>
-                            )
-                        }
-                    </div>
-                    <div id='error_dialog' className={css.error_message}>
-                        {error ? error.message : (stateError ? stateError : null)}
-                    </div>
-                </div>
+            {(login, { loading, error }) => {
+                return (
+                    <div className={css.login_wrapper}>
+                        <div className={css.login_box}>
+                            <img alt='IDEA-FAST Logo' src='https://avatars3.githubusercontent.com/u/60649739?s=150' />
+                            <h1>Welcome</h1>
+                            <br />
+                            <div>
+                                <Form onFinish={(variables) => login({ variables })}>
+                                    <Form.Item name='username' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                        <Input placeholder='Username' />
+                                    </Form.Item>
+                                    <Form.Item name='password' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                        <Input.Password placeholder='Password' />
+                                    </Form.Item>
+                                    <Form.Item name='totp' hasFeedback rules={[{ required: true, len: 6, message: ' ' }]}>
+                                        <Input.Password placeholder='One-Time Passcode' />
+                                    </Form.Item>
+                                    {error ? (
+                                        <>
+                                            <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
+                                            <br />
+                                        </>
+                                    ) : null}
+                                    {(error?.message === 'Account Expired. Please request a new expiry date!') ? (
+                                        <>
+                                            <Form.Item name='requestexpirydate' valuePropName='checked' hasFeedback rules={[{ required: true, message: ' ' }]}>
+                                                <Checkbox> Tick the box to request a new expiry date! </Checkbox>
+                                            </Form.Item>
+                                            <Form.Item>
+                                                <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                                                    Submit Request
+                                                </Button>
+                                            </Form.Item>
+                                        </>
+                                    ) :
+                                        <>
+                                            <Form.Item>
+                                                <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                                                    Login
+                                                </Button>
+                                            </Form.Item>
+                                        </>
+                                    }
 
-            }
+                                </Form>
+                            </div>
+                            <br />
+                            <br />
+                            <br />
+                            <NavLink to='/reset'>Forgot username or password</NavLink><br />
+                            Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
+                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {gitInfo.commit.shortHash} ({gitInfo.branch})</i>
+                        </div>
+                    </div>
+                );
+            }}
         </Mutation>
     );
 };

@@ -1,7 +1,7 @@
-import { ObjectID } from 'mongodb';
+import type { ObjectId } from 'mongodb';
 
 export interface IJobEntry<dataobj> {
-    _id?: ObjectID;
+    _id?: ObjectId;
     jobType: string;
     id: string;
     projectId?: string;
@@ -10,7 +10,7 @@ export interface IJobEntry<dataobj> {
     requestTime: number;
     receivedFiles: string[];
     status: string;
-    error: null | object;
+    error: null | Record<string, unknown>;
     cancelled: boolean;
     cancelledTime?: number;
     claimedBy?: string;
@@ -18,5 +18,6 @@ export interface IJobEntry<dataobj> {
     data?: dataobj;
 }
 
-export type IJobEntryForDataCuration = IJobEntry<{ dataVersion: string, versionTag?: string }>;
-export type IJobEntryForFieldCuration = IJobEntry<{ dataVersionId: string, tag: string }>;
+export type IJobEntryForDataCuration = IJobEntry<never>;
+export type IJobEntryForFieldCuration = IJobEntry<{ tag: string }>;
+export type IJobEntryForQueryCuration = IJobEntry<{ queryId: string[], projectId: string, studyId: string }>;

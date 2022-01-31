@@ -1,1 +1,27 @@
-fieldId	fieldName	valueType	possibleValues	unit	path	numOfTimePoints	numOfMeasurements	startingTimepoint	startingMeasurement	notes42	field_name1	c	"Male,Female"		Demographics>Baseline	1	1	1	1	Sex/Gender43	field_name2	c	"Male,Female"		Demographics>Baseline	3	4	4	3	note344	field_name3	c	"Male,Female"		Demographics>Baseline	3	4	2	3	45	field_name4	c	"Male,Female"		Demographics>Baseline	3	4	7	3	46	field_name5	c	"Male,Female"		Demographics>Baseline	3	4	7	3	47	field_name6	c	"Male,Female"		Demographics>Baseline	3	4	7	3	48	field_name7	c	"Male,Female"		Demographics>Baseline	3	4	7	3	49	field_name8	c	"Male,Female"		Demographics>Baseline	3	4	7	3	50	field_name9	d			Demographics>Baseline	3	4	7	3	note751	field_name10	d			School Performace	3	4	7	3	note852	field_name11	d		mm	School Performace	3	4	7	3	note953	field_name12	d		kg	School Performace	3	4	7	3	note1054	field_name13	d			School Performace	3	4	7	3	note1155	field_name14	d			School Performace	3	4	7	3	note1256	field_name15	d			School Performace	3	4	7	3	note1357	field_name16	d			School Performace	3	4	7	3	note1458	field_name17	c	"Left,Right"		School Performace	3	4	7	3	note1559	field_name18	t			School Performace	3	4	7	3	note1660	field_name19	i			School Performace	3	4	7	3	note1761	field_name20	i			School Performace	3	4	7	3	62	field_name21	i			School Performace	3	4	7	3	63	field_name22	i			School Performace	3	4	7	3	64	field_name23	i			School Performace	3	4	7	3	65	field_name24	i			School Performace	3	4	7	3	66	field_name25	i			School Performace	3	4	7	3	67	field_name26	i			School Performace	3	4	7	3	
+ID,Database,TableName,TableID,SequentialOrder,QuestionNumber,Fieldname,Label,Label_DE,Label_NL,Label_IT,Label_ES,Label_PL,Label_F,EligibleAnswer,IneligibleAnswer,Validation,DataType,ControlType,SystemGenerated,ValueList,Length,DisplayFormat,Nullable,Required,Mandatory,CollectIf,NotMapped,DefaultValue,RegEx,RegExErrorMsg,ShowOnIndexView,Comments
+1,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+2,IDEAFAST,Participants,,,,GenderID,Gender ID,,,,,,,,,,int,,False,,,,True,False,True,,False,,,,False,
+3,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+4,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+5,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+6,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+7,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+8,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+9,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+10,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+11,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+12,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+13,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+14,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+15,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+16,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+17,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+18,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+19,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+20,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+21,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+22,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+23,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+24,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+25,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,
+26,IDEAFAST,Participants,,,,SubjectID,Subject ID,,,,,,,,,,nvarchar,,False,,9,,True,False,True,,False,,,,False,

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import App from './App';
-import './css/antdOverride.css';
+import './css/antd.css';
 import './css/global.css';
 import registerServiceWorker, { unregister as unregisterServiceWorker } from './registerServiceWorker';
 
@@ -12,7 +12,7 @@ const mountApp = () => {
         </React.StrictMode>,
         document.getElementById('root') as HTMLElement
     );
-}
+};
 
 mountApp();
 registerServiceWorker();

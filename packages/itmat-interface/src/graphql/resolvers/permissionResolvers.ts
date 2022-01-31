@@ -1,6 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { IRole } from 'itmat-commons/dist/models/study';
-import { IUser } from 'itmat-commons/dist/models/user';
+import { IUser, IRole } from 'itmat-commons';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
@@ -8,18 +7,40 @@ import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 import { task_required_permissions, permissions } from 'itmat-commons';
 
-
 export const permissionResolvers = {
     Query: {
+        getGrantedPermissions: async (__unused__parent: Record<string, unknown>, { studyId, projectId }: { studyId?: string, projectId?: string }, context: any): Promise<{
+            studies: unknown[];
+            projects: unknown[];
+        }> => {
+            const requester: IUser = context.req.user;
+            const matchClause: Record<string, unknown> = { users: requester.id };
+            if (studyId)
+                matchClause.studyId = studyId;
+            if (projectId)
+                matchClause.projectId = { $in: [projectId, null] };
+            const aggregationPipeline = [
+                { $match: matchClause }
+                // { $group: { _id: requester.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
+                // { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
+            ];
+
+            const grantedPermissions = {
+                studies: await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray(),
+                projects: await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray()
+            };
+            return grantedPermissions;
+        }
     },
     StudyOrProjectUserRole: {
         users: async (role: IRole): Promise<IUser[]> => {
-            const listOfUsers = role.users;
-            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers }}, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
+            //TODO variable role.users here is not actually of type IRole.IUser
+            const listOfUsers = role.users as any as string[];
+            return await (db.collections!.users_collection.find({ id: { $in: listOfUsers } }, { projection: { _id: 0, password: 0, email: 0 } }).toArray());
         }
     },
     Mutation: {
-        addRoleToStudyOrProject: async (parent: object, args: {studyId: string, projectId?: string, roleName: string }, context: any, info: any): Promise<IRole> => {
+        addRoleToStudyOrProject: async (__unused__parent: Record<string, unknown>, args: { studyId: string, projectId?: string, roleName: string }, context: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { studyId, projectId, roleName } = args;
 
@@ -30,7 +51,7 @@ export const permissionResolvers = {
 
             /* check the requester has privilege */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                args.projectId ?  task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+                args.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
                 requester,
                 args.studyId,
                 args.projectId
@@ -52,18 +73,18 @@ export const permissionResolvers = {
             const result = await permissionCore.addRoleToStudyOrProject({ createdBy: requester.id, studyId: studyId!, projectId, roleName });
             return result;
         },
-        editRole: async (parent: object, args: {roleId: string, name?: string, userChanges?: { add: string[], remove: string[]}, permissionChanges?: { add: string[], remove: string[]}}, context: any, info: any): Promise<IRole> => {
+        editRole: async (__unused__parent: Record<string, unknown>, args: { roleId: string, name?: string, userChanges?: { add: string[], remove: string[] }, permissionChanges?: { add: string[], remove: string[] } }, context: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { roleId, name, permissionChanges, userChanges } = args;
 
-            const role: IRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
+            const role = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
             if (role === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* check the requester has privilege */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId?  task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
                 requester,
                 role.studyId,
                 role.projectId
@@ -74,11 +95,11 @@ export const permissionResolvers = {
             if (permissionChanges) {
                 const allRequestedPermissionChanges: string[] = [...permissionChanges.add, ...permissionChanges.remove];
                 const permittedPermissions: string[] = role.projectId ?
-                    (Object as any).values(permissions.specific_project)
+                    Object.values(permissions.specific_project)
                     :
-                    (Object as any).values(permissions.specific_study);
+                    Object.values(permissions.specific_study);
                 for (const each of allRequestedPermissionChanges) {
-                    if (!(permittedPermissions as any).includes(each)) {
+                    if (!permittedPermissions.includes(each)) {
                         throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
                     }
                 }
@@ -89,7 +110,7 @@ export const permissionResolvers = {
                 const allRequestedUserChanges: string[] = [...userChanges.add, ...userChanges.remove];
                 const testedUser: string[] = [];
                 for (const each of allRequestedUserChanges) {
-                    if (!(testedUser as any).includes(each)) {
+                    if (!testedUser.includes(each)) {
                         const user = await db.collections!.users_collection.findOne({ id: each, deleted: null });
                         if (user === null) {
                             throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
@@ -104,18 +125,18 @@ export const permissionResolvers = {
             const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, name, permissionChanges, userChanges);
             return modifiedRole;
         },
-        removeRole: async (parent: object, args: {roleId: string}, context: any, info: any): Promise<IGenericResponse> => {
+        removeRole: async (__unused__parent: Record<string, unknown>, args: { roleId: string }, context: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
             const { roleId } = args;
 
-            const role: IRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
+            const role = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
             if (role === null) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId?  task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
                 requester,
                 role.studyId,
                 role.projectId

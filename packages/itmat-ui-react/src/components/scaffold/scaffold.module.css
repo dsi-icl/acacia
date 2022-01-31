@@ -3,11 +3,11 @@
     background-color: var(--color-background);
     height: 100%;
     width: 100%;
+    font-weight: var(--font-weight);
     display: grid;
-    grid-template-columns: 60px calc(100% - 60px);
-    grid-template-rows: 100%;
-    grid-template-areas:
-        "mainMenuBar mainPanel"
+    grid-template-columns: 14rem 1fr;
+    grid-template-rows: calc(100% - 2rem) 2rem;
+    grid-template-areas: "mainMenuBar mainPanel" "statusBar statusBar"
 }
 
 .main_panel {
@@ -18,26 +18,46 @@
 .main_menubar {
     grid-area: mainMenuBar;
     height: 100%;
+    background: var(--color-main-menu);
     padding: 1rem 1.2rem 1rem 1.2rem;
-    border-right: 1px solid #444444;
+    border-right: 1px solid var(--color-main-menu-border);
+}
+
+.status_bar {
+    grid-area: statusBar;
+    padding: 0 1rem;
+    line-height: 2rem;
+    text-align: right;
+    background: var(--color-ariane-background);
+    color: var(--color-main-menu);
 }
 
 .button {
+    color: var(--color-scroll-bar-hover);
     display: block;
-    text-align: center;
+    text-align: left;
     width: 100%;
     margin-top: 1rem;
     margin-bottom: 2rem;
 }
 
+.button:hover {
+    color: var(--color-background);
+}
+
 .button svg {
-    fill: rgb(139, 138, 138);
+    fill: var(--color-scroll-bar-hover);
+    margin-right: 0.8em;
 }
 
 .button:hover svg {
-    fill: var(--color-primary-color) 
+    fill: var(--color-background);
 }
 
-.clickedButton svg {
-    fill: rgb(245, 245, 245);
+.clickedButton .button {
+    color: var(--color-background);
+}
+
+.clickedButton .button svg {
+    fill: var(--color-background);
 }

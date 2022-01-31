@@ -1,4 +1,4 @@
-import { Models } from 'itmat-commons';
+import { IUser, IUserWithoutToken } from 'itmat-commons';
 import { db } from '../database/database';
 
 export class UserLoginUtils {
@@ -7,17 +7,17 @@ export class UserLoginUtils {
         this.deserialiseUser = this.deserialiseUser.bind(this);
     }
 
-    public serialiseUser(user: Models.UserModels.IUser, done: Function): void {
-        done(null, user.username);
+    public serialiseUser(user: Express.User, done: (__unused__err: any, __unused__id?: any) => void): void {
+        done(null, (user as IUser).username);
     }
 
-    public async deserialiseUser(username: string, done: Function): Promise<void> {
-        const user: Models.UserModels.IUserWithoutToken = await this._getUser(username);
+    public async deserialiseUser(username: string, done: (__unused__err: any, __unused__id?: any) => void): Promise<void> {
+        const user = await this._getUser(username);
         done(null, user);
     }
 
-    private async _getUser(username: string): Promise<Models.UserModels.IUserWithoutToken> {
-        return await db.collections!.users_collection.findOne({ deleted: null, username }, { projection: { _id: 0, deleted: 0, password: 0 } })!;
+    private async _getUser(username: string): Promise<IUserWithoutToken | null> {
+        return await db.collections!.users_collection.findOne<IUserWithoutToken>({ deleted: null, username }, { projection: { _id: 0, deleted: 0, password: 0 } })!;
     }
 }
 

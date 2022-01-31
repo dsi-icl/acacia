@@ -7,10 +7,13 @@ export const GET_USERS = gql`
             id
             username @include (if: $fetchDetailsAdminOnly)
             type
-            realName
+            firstname
+            lastname
             email @include (if: $fetchDetailsAdminOnly)
-            createdBy
+            emailNotificationsActivated @include (if: $fetchDetailsAdminOnly)
             organisation
+            createdAt @include (if: $fetchDetailsAdminOnly)
+            expiredAt @include (if: $fetchDetailsAdminOnly)
             description @include (if: $fetchDetailsAdminOnly)
             access  @include (if: $fetchAccessPrivileges) {
                 id
@@ -28,55 +31,32 @@ export const GET_USERS = gql`
     }
 `;
 
-export const CREATE_USER = gql`
-    mutation CreateUser(
-        $username: String!
-        $password: String!
-        $realName: String!
-        $description: String!
-        $organisation: String!
-        $emailNotificationsActivated: Boolean!
-        $email: String!
-        $type: USERTYPE!
-    ){
-        createUser(user: {
-            username: $username
-            password: $password
-            realName: $realName
-            description: $description
-            organisation: $organisation
-            emailNotificationsActivated: $emailNotificationsActivated
-            email: $email
-            type: $type
-        }) {
-            ...ALL_FOR_USER
-        }
-    }
-    ${user_fragment}
-`;
-
 export const EDIT_USER = gql`
     mutation EditUser(
         $id: String!
         $username: String
         $type: USERTYPE
-        $realName: String
+        $firstname: String
+        $lastname: String
         $email: String
         $emailNotificationsActivated: Boolean
         $password: String
         $description: String
         $organisation: String
+        $expiredAt: Float
     ) {
         editUser(user: {
             id: $id
             username: $username
             password: $password
-            realName: $realName
+            firstname: $firstname
+            lastname: $lastname
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
             description: $description
             organisation: $organisation
             type: $type
+            expiredAt: $expiredAt
         }) {
             ...ALL_FOR_USER
         }

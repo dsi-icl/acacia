@@ -16,6 +16,12 @@ export const GET_STUDY = gql`
             id
             name
             createdBy
+            description
+            type
+            ontologyTree {
+                fieldId
+                path
+            }
             jobs {
                 ...ALL_FOR_JOB
             }
@@ -32,7 +38,8 @@ export const GET_STUDY = gql`
                 studyId
                 users {
                     id
-                    realName
+                    firstname
+                    lastname
                     organisation
                     username
                 }
@@ -44,31 +51,117 @@ export const GET_STUDY = gql`
                 projectId
                 fileSize
                 description
+                uploadTime
                 uploadedBy
+                hash
             }
-            numOfSubjects
+            subjects
+            visits
+            numOfRecords
             currentDataVersion
             dataVersions {
                 id
                 version
                 tag
-                uploadDate
-                jobId
-                extractedFrom
-                fileSize
+                updateDate
                 contentId
-                fieldTrees
             }
         }
     }
     ${job_fragment}
 `;
 
+export const GET_DATA_RECORDS = gql`
+    query getDataRecords($studyId: String!, $queryString: JSON, $versionId: String, $projectId: String) {
+        getDataRecords(studyId: $studyId, queryString: $queryString, versionId: $versionId, projectId: $projectId)
+    }
+`;
+
+export const GET_ONTOLOGY_TREE = gql`
+    query getOntologyTree($studyId: String!, $projectId: String) {
+        getOntologyTree(studyId: $studyId, projectId: $projectId) {
+            fieldId
+            path
+        }
+    }
+`;
+
+export const CHECK_DATA_COMPLETE = gql`
+    query checkDataComplete($studyId: String!) {
+        checkDataComplete(studyId: $studyId) {
+            subjectId
+            visitId
+            errorFields
+        }
+    }
+`;
+
 export const CREATE_STUDY = gql`
-    mutation createStudy($name: String!){
-        createStudy(name: $name) {
+    mutation createStudy($name: String!, $description: String, $type: STUDYTYPE!){
+        createStudy(name: $name, description: $description, type: $type) {
             id
             name
+            description
+            type
+        }
+    }
+`;
+
+export const EDIT_STUDY = gql`
+    mutation editStudy($studyId: String!, $description: String) {
+        editStudy(studyId: $studyId, description: $description) {
+            id
+            name
+            description
+            type
+        }
+    }
+`;
+
+export const CREATE_NEW_DATA_VERSION = gql`
+    mutation createNewDataVersion($studyId: String!, $dataVersion: String!, $tag: String){
+        createNewDataVersion(studyId: $studyId, dataVersion: $dataVersion, tag: $tag) {
+            id
+            version
+            tag
+            updateDate
+            contentId
+        }
+    }
+`;
+
+export const UPLOAD_DATA_IN_ARRAY = gql`
+    mutation uploadDataInArray($studyId: String!, $data: [DataClip]) {
+        uploadDataInArray(studyId: $studyId, data: $data) {
+            code
+            description
+        }
+    }
+`;
+
+export const DELETE_DATA_RECORDS = gql`
+    mutation deleteDataRecords($studyId: String!, $subjectIds: [String], $visitIds: [String], $fieldIds: [String]) {
+        deleteDataRecords(studyId: $studyId, subjectIds: $subjectIds, visitIds: $visitIds, fieldIds: $fieldIds) {
+            code
+            description
+        }
+    }
+`;
+
+export const ADD_ONTOLOGY_FIELD = gql`
+    mutation addOntologyField($studyId: String!, $ontologyInput: [OntologyFieldInput]!) {
+        addOntologyField(studyId: $studyId, ontologyInput: $ontologyInput) {
+            fieldId
+            path
+        }
+    }
+`;
+
+export const DELETE_ONTOLOGY_FIELD = gql`
+    mutation deleteOntologyField($studyId: String!, $fieldId: [String]!) {
+        deleteOntologyField(studyId: $studyId, fieldId: $fieldId) {
+            fieldId
+            path
         }
     }
 `;
@@ -102,12 +195,8 @@ export const SET_DATAVERSION_AS_CURRENT = gql`
                 id
                 version
                 tag
-                uploadDate
-                jobId
-                extractedFrom
+                updateDate
                 contentId
-                fileSize
-                fieldTrees
             }
         }
     }

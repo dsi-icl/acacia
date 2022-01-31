@@ -1,8 +1,6 @@
-import { IJobEntry } from 'itmat-commons/dist/models/job';
+import { IJobEntry } from 'itmat-commons';
 
 export abstract class JobHandler {
-    protected constructor() { }
-
     /* subclass can decide either singleton
     (if there is expensive metadata collection) or
     just make this return new instance everytime.

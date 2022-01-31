@@ -1,34 +1,28 @@
-.login_and_error_wrapper {
-    position: absolute;
-    top: 30%;
+.login_wrapper {
+    height: 100%;
+    position: relative;
+    overflow: auto;
 }
 
 .login_box {
-    border-left: 100px solid var(--color-primary-color);
-    padding-left: 3rem;
-    /* height: 30%; */
+    position: absolute;
+    top: calc(25% - 100px);
+    left: 50%;
+    width: 38rem;
+    text-align: center;
+    transform: translate(-50%);
+    padding-bottom: 4rem;
 }
 
-.login_box input {
-    text-align:center;
-    width: 100%;
-    margin-bottom: 1.5rem;
-    font-size: 1.2rem;
-    height: 1.2rem;
-    line-height: 1.2rem;
-    padding-bottom: 0.2rem;
+.login_box [class*=ant-select] {
+    text-align: left;
 }
 
-.login_box h1 {
-    font-family: 'Cairo';
-    font-size: 5rem;
-    color: var(--color-primary-color);
-    margin-top: 0px;
+.login_box img {
+    transform: translateX(10%);
 }
 
 .error_message {
     width: 100%;
     min-height: 20%;
-    border-left: calc(100px + 3rem) solid rgba(0,0,0,0);
-    color: var(--color-that-red);
 }

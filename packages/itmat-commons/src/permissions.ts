@@ -24,6 +24,24 @@ export const permissions = {
     }
 };
 
+export const permissionLabels = {
+    systemwide_user_management: 'User management',
+    systemwide_study_existence_management: 'Study management',
+    all_studies_user_management: 'Studies user management',
+    all_studies_data_access: 'Studies data access',
+    all_studies_data_management: 'Studies data management',
+    all_studies_role_management: 'Studies role management',
+    all_studies_manage_projects: 'Studies projects management',
+    all_projects_data_access: 'Projects data_access',
+    all_projects_role_management: 'Projects role management',
+    specific_study_readonly_access: 'This study readonly access',
+    specific_study_data_management: 'This study data management',
+    specific_study_role_management: 'This study role management',
+    specific_study_projects_management: 'This study projects management',
+    specific_project_readonly_access: 'This project readonly access',
+    specific_project_role_management: 'This project role management'
+};
+
 export const task_required_permissions = {
     create_new_study: [
         permissions.all_study.systemwide_study_existence_management

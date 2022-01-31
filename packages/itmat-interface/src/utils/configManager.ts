@@ -1,33 +1,69 @@
 import merge from 'deepmerge';
 import fs from 'fs-extra';
-import { IObjectStoreConfig } from 'itmat-utils';
-import { IDatabaseBaseConfig } from 'itmat-utils/dist/database';
+import { IObjectStoreConfig, IDatabaseBaseConfig } from 'itmat-commons';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
+import chalk from 'chalk';
 
-interface IConfiguration extends IServerConfig {
+export interface IConfiguration extends IServerConfig {
+    appName: string;
     database: IDatabaseBaseConfig;
     objectStore: IObjectStoreConfig;
+    nodemailer: any;
+    aesSecret: string;
+    sessionsSecret: string;
+    adminEmail: string;
 }
 
 class ConfigurationManager {
 
     public static expand(configurationFile: string): IConfiguration {
+        let config: IConfiguration;
+        if (fs.existsSync(configurationFile)) {
 
-        try {
-            if (fs.existsSync(configurationFile)) {
+            const content = fs.readFileSync(configurationFile, 'utf8');
 
-                const content = fs.readFileSync(configurationFile, 'utf8');
-
-                return merge(configDefaults, JSON.parse(content));
+            try {
+                config = merge(configDefaults, JSON.parse(content));
+            } catch (e) {
+                console.error(chalk.red('Cannot parse configuration file. Using defaults.'));
+                config = configDefaults;
             }
-        } catch (e) {
-            console.error('Could not parse configuration file.');
+        } else {
+            console.error(chalk.red('Cannot find configuration file. Using defaults.'));
+            config = configDefaults;
         }
 
-        return configDefaults;
+        if (process.env.CI === 'true') {
+            const { TEST_SMTP_CRED, TEST_SMTP_USERNAME, TEST_RECEIVER_EMAIL_ADDR, SKIP_EMAIL_TEST } = process.env;
+            if (SKIP_EMAIL_TEST !== 'true') {
+                if (config.nodemailer.auth === undefined)
+                    config.nodemailer.auth = {
+                        auth: {}
+                    } as any;
+                if (TEST_SMTP_CRED) {
+                    console.log(chalk.green('Using env secret TEST_SMTP_CRED.'));
+                    config.nodemailer.auth.pass = TEST_SMTP_CRED;
+                } else {
+                    console.log(chalk.blue('Cannot find env secret TEST_SMTP_CRED. Using default.'));
+                }
+                if (TEST_SMTP_USERNAME) {
+                    console.log(chalk.green('Using env secret TEST_SMTP_USERNAME.'));
+                    config.nodemailer.auth.user = TEST_SMTP_USERNAME;
+                } else {
+                    console.log(chalk.blue('Cannot find env secret TEST_SMTP_USERNAME. Using default.'));
+                }
+                if (!TEST_RECEIVER_EMAIL_ADDR) {
+                    console.log(chalk.blue('Cannot find env secret TEST_RECEIVER_EMAIL_ADDR. Using default.'));
+                }
+            } else {
+                console.warn(chalk.yellow('[[WARNING]]: Skipping email tests because SKIP_EMAIL_TEST has been set to "true".'));
+            }
+        }
+
+        return config;
     }
 
 }
 
-export default ConfigurationManager.expand(process.env.TESTING === 'true' ? 'config/config.test.json' : 'config/config.json');
+export default ConfigurationManager.expand('config/config.json');
