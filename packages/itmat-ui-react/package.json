@@ -32,8 +32,8 @@
         "subscriptions-transport-ws": "0.9.18"
     },
     "devDependencies": {
-        "@babel/core": "7.13.13",
-        "@babel/preset-env": "7.13.12",
+        "@babel/core": "7.16.12",
+        "@babel/preset-env": "7.16.11",
         "@cypress/webpack-preprocessor": "5.8.0",
         "@types/apollo-upload-client": "14.1.0",
         "@types/jest": "26.0.23",
@@ -41,7 +41,7 @@
         "@types/react": "16.14.11",
         "@types/react-dom": "16.9.13",
         "@types/react-router-dom": "5.1.7",
-        "babel-loader": "8.2.2",
+        "babel-loader": "8.2.3",
         "cross-env": "7.0.3",
         "cypress": "5.5.0",
         "cypress-file-upload": "4.1.1",
