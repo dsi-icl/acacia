@@ -262,7 +262,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         });
     };
 
-    const sensorColumns = [
+    const fileDetailsColumns = [
         {
             title: 'File name',
             dataIndex: 'name',
@@ -333,7 +333,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             };
         });
 
-    const clinicalColumns = [
+    const fileNameColumns = [
         {
             title: 'File name',
             dataIndex: 'name',
@@ -351,8 +351,8 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             render: (__unused__value, record) => <Button disabled={isUploading} type='primary' danger icon={<DeleteOutlined />} onClick={() => {
                 removeFile(record);
             }}></Button>
-        }].map(col => {
-        return {
+        }]
+        .map(col => ({
             ...col,
             onCell: record => ({
                 record: {
@@ -364,20 +364,8 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 title: col.title,
                 handleSave
             }),
-        };
-    });
-
-    const fileNameColumns = [
-        {
-            title: 'File Name',
-            dataIndex: 'fileName',
-            key: 'fileName',
-            render: (__unused__value, record) => {
-                return record.name;
-            },
-            sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
         }
-    ];
+        ));
 
     if (getOrgsLoading || getStudyLoading || getUsersLoading || whoAmILoading)
         return <LoadSpinner />;
@@ -433,8 +421,8 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         return values;
     }, { set: {}, count: 0 }).count;
 
-    return <div {...getRootProps()} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
-        <input {...getInputProps()} />
+    return <div {...getRootProps() as React.HTMLAttributes<HTMLDivElement>} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
+        <input title='fileTabDropZone' {...getInputProps()} />
         {fileList.length > 0
             ?
             <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
@@ -448,7 +436,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                         rowKey={(rec) => rec.uuid}
                         rowClassName={() => css.editable_row}
                         pagination={false}
-                        columns={(getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) ? sensorColumns : (getStudyData.getStudy.type === studyType.CLINICAL ? clinicalColumns : fileNameColumns)}
+                        columns={(getStudyData.getStudy.type === studyType.ANY || getStudyData.getStudy.type === studyType.CLINICAL) ? fileNameColumns : fileDetailsColumns}
                         dataSource={fileList}
                         size='small'
                         components={{ body: { row: EditableRow, cell: EditableCell } }} />

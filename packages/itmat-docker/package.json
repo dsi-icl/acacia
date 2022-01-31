@@ -1,6 +1,6 @@
 {
     "name": "itmat-docker",
-    "version": "0.9.1",
+    "version": "1.0.2",
     "description": "ITMAT Broker",
     "keywords": [
         "itmat",
@@ -24,9 +24,9 @@
     "dependencies": {
         "bcrypt": "5.0.1",
         "compression": "1.7.4",
-        "express": "4.17.1",
-        "express-rate-limit": "5.2.6",
+        "express": "4.17.2",
+        "express-rate-limit": "6.2.0",
         "isobject": "4.0.0",
-        "mongodb": "3.6.9"
+        "mongodb": "4.3.1"
     }
 }

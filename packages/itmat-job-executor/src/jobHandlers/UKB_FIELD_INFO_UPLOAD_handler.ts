@@ -4,7 +4,7 @@ import { JobHandler } from './jobHandlerInterface';
 import { IFile, IJobEntryForFieldCuration } from 'itmat-commons';
 import { FieldCurator } from '../curation/FieldCurator';
 import { Readable, Writable } from 'stream';
-import csvparse from 'csv-parse';
+import * as csvparse from 'csv-parse';
 
 export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     private _instance?: UKB_FIELD_INFO_UPLOAD_Handler;
@@ -58,13 +58,13 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
 }
 
 function processCodesFileStreamAndReturnList(incomingStream: Readable): Promise<any> {
-    const parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_lines_with_error: true };
-    const csvparseStream = csvparse(parseOptions);
+    const parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_records_with_error: true };
+    const csvparseStream = csvparse.parse(parseOptions);
     const parseStream = incomingStream.pipe(csvparseStream);
 
-    csvparseStream.on('skip', () => {
-        console.log('skipping');
-    });
+    // csvparseStream.on('skip', () => {
+    // });
+
     let isHeader = true;
     const codes: any = {};
 
@@ -94,8 +94,8 @@ function processCodesFileStreamAndReturnList(incomingStream: Readable): Promise<
     });
 
     uploadWriteStream.on('finish', async () => {
+        //TODO
         /* check for subject Id duplicate */
-        console.log('Reading Codes finished.');
     });
 
     parseStream.pipe(uploadWriteStream);

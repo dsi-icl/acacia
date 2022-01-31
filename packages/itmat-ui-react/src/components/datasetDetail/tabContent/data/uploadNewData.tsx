@@ -46,37 +46,37 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile
             mode='multiple'
             onChange={(value) => {
                 const newArr: string[] = [];
-                for (let i=0; i<(value as any).length; i++) {
+                for (let i = 0; i < (value as any).length; i++) {
                     newArr.push(value[i].toString());
                 }
                 setSelectedFile(newArr);
                 setError('');
             }}
             value={selectedFile}
-            style={{width: '80%'}}
+            style={{ width: '80%' }}
             placeholder='Select files'
         >
             {filteredFiles.map((el: IFile) => {
                 return <Option value={el.id}>{el.fileName}</Option>;
             })}
-        </Select><br/><br/>
+        </Select><br /><br />
 
         <Mutation<any, any>
             mutation={CREATE_DATA_CURATION_JOB}
             onCompleted={() => setSuccessfullySaved(true)}
-            // update={(store, { data: { createDataCurationJob } }) => {
-            //     // Read the data from our cache for this query.
-            //     const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
-            //     // Add our comment from the mutation to the end.
-            //     const newjobs = data.getStudy.jobs.concat(createDataCurationJob);
-            //     data.getStudy.jobs = newjobs;
-            //     // Write our data back to the cache.
-            //     store.writeQuery({ query: GET_STUDY, variables: { studyId }, data });
-            // }}
+        // update={(store, { data: { createDataCurationJob } }) => {
+        //     // Read the data from our cache for this query.
+        //     const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
+        //     // Add our comment from the mutation to the end.
+        //     const newjobs = data.getStudy.jobs.concat(createDataCurationJob);
+        //     data.getStudy.jobs = newjobs;
+        //     // Write our data back to the cache.
+        //     store.writeQuery({ query: GET_STUDY, variables: { studyId }, data });
+        // }}
         >
             {(createCurationJob, { loading, error }) => {
                 if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
-                if (error) { console.log(error); return <button style={{ width: '45%', display: 'inline-block' }}>{JSON.stringify(error)}</button>; }
+                if (error) { return <button style={{ width: '45%', display: 'inline-block' }}>{JSON.stringify(error)}</button>; }
                 return <Button style={{ width: '30%', display: 'inline-block' }} onClick={() => {
                     if (!selectedFile) {
                         setError('Please select a file.');

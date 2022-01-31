@@ -24,7 +24,7 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
     if (fieldList.length === 0) { return <p>There is no available field for field tree. Please contact admin or curator of this project.</p>; }
     const transformedList = fieldList.map((el) => {
         // const findPath = getstudyd
-        if (studyData.ontologyTree === [] || studyData.ontologyTree === undefined || studyData.ontologyTree === null) {
+        if (studyData.ontologyTree === undefined || studyData.ontologyTree === null || studyData.ontologyTree.length === 0) {
             return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
         } else {
             const ontologyField = studyData.ontologyTree.filter(es => es.fieldId === el.fieldId);
@@ -60,11 +60,11 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
             }
         }
         const pushed: any = [];
-        for (let i=0; i<output.length; i++) {
+        for (let i = 0; i < output.length; i++) {
             pushed.push(output[i]);
         }
         if (studyData) {
-            const withStudy: any = [{fieldId: 'Study:'.concat(studyData.name), name: 'Study:'.concat(studyData.name), children: pushed}];
+            const withStudy: any = [{ fieldId: 'Study:'.concat(studyData.name), name: 'Study:'.concat(studyData.name), children: pushed }];
             return withStudy;
         } else {
             return output;
@@ -86,7 +86,7 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
         return (
             <Tree
                 checkable={checkable}
-                onCheck={(checkedList) => {onCheck(checkedList);}}
+                onCheck={(checkedList) => { onCheck(checkedList); }}
                 checkedKeys={checkedList}
             >
                 {renderTreeNodes(makeTree(transformedList))}
@@ -113,16 +113,17 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
     if (filteredFieldList.length === 0) { return <p>There is no available field for this field tree. Please contact admin or curator of this project.</p>; }
     const transformedList = fieldList.map((el) => {
         // const findPath = getstudyd
-        if (ontologyTree === [] || ontologyTree === undefined || ontologyTree === null) {
-            return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
+        if (ontologyTree === undefined || ontologyTree === null || ontologyTree.length === 0) {
+            return `${'Others'}>${el.id}|${el.fieldName}`;
         } else {
             const ontologyField = ontologyTree.filter(es => es.fieldId === el.fieldId);
             if (ontologyField.length === 0) {
-                return `${'Others'}>${el.fieldName}>${el.id}|${el.fieldName}`;
+                return `${'Others'}>${el.id}|${el.fieldName}`;
             } else {
                 return `${constructPath(ontologyField[0].path, fieldList)}>${el.id}|${el.fieldName}`;
             }
         }
+
     });
     transformedList.sort((a, b) => {
         if (a.split('>')[0] < b.split('>')[0]) {
@@ -149,7 +150,7 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
             }
         }
         const pushed: any = [];
-        for (let i=0; i<output.length; i++) {
+        for (let i = 0; i < output.length; i++) {
             pushed.push(output[i]);
         }
         return output;
@@ -174,14 +175,14 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
                     visible={isModalShown}
                     onCreate={values => {
                         const newArr = queryOptions[0].filters;
-                        for (let i=0 ;i<fieldList.length; i++) {
+                        for (let i = 0; i < fieldList.length; i++) {
                             if (values.field === fieldList[i].id) {
                                 const value = (fieldList[i].dataType === 'int' || fieldList[i].dataType === 'dec') ? parseFloat(values.value) : values.value.toString();
-                                newArr.push({field: values.field, op: values.op, value: value, name: fieldList[i].fieldName});
+                                newArr.push({ field: values.field, op: values.op, value: value, name: fieldList[i].fieldName });
                                 break;
                             }
                         }
-                        queryOptions[1]({...queryOptions[0], filters: newArr});
+                        queryOptions[1]({ ...queryOptions[0], filters: newArr });
                         setIsModalShown(false);
                     }}
                     onCancel={() => {
@@ -190,7 +191,7 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
                 />
                 <Tree
                     checkable={checkable}
-                    onCheck={(checkedList) => {onCheck(checkedList);}}
+                    onCheck={(checkedList) => { onCheck(checkedList); }}
                     checkedKeys={checkedList}
                     onRightClick={(info) => {
                         if (!('children' in info.node)) {
@@ -215,20 +216,19 @@ export const FieldListSectionWithFilter: React.FunctionComponent<{ ontologyTree:
 const ValueEditForm: React.FunctionComponent<{ visible: boolean; onCreate: any; onCancel: any; fieldList: any; selectedNode: any }> = ({ visible, onCreate, onCancel, fieldList, selectedNode }) => {
     const [form] = Form.useForm();
 
-
     const newFieldOperations = [
-        {label: '=', value: '='},
-        {label: '!=', value: '!='},
-        {label: '>', value: '>'},
-        {label: '<', value: '<'},
-        {label: 'exists', value: 'exists'},
-        {label: 'count', value: 'count'},
-        {label: 'derived', value: 'derived'}
+        { label: '=', value: '=' },
+        { label: '!=', value: '!=' },
+        { label: '>', value: '>' },
+        { label: '<', value: '<' },
+        { label: 'exists', value: 'exists' },
+        { label: 'count', value: 'count' },
+        { label: 'derived', value: 'derived' }
     ];
 
     const fieldOptions: any[] = [];
-    for (let i=0; i<fieldList.length; i++) {
-        fieldOptions.push({label: fieldList[i].fieldName, value: fieldList[i].id, valueType: fieldList[i].valueType});
+    for (let i = 0; i < fieldList.length; i++) {
+        fieldOptions.push({ label: fieldList[i].fieldName, value: fieldList[i].id, valueType: fieldList[i].valueType });
     }
     return (
         (
@@ -245,8 +245,8 @@ const ValueEditForm: React.FunctionComponent<{ visible: boolean; onCreate: any; 
                             values.field = selectedNode;
                             onCreate(values);
                         })
-                        .catch(info => {
-                            console.log('Validate Failed:', info);
+                        .catch(() => {
+                            // NOOP
                         });
                 }}
             >
@@ -254,11 +254,12 @@ const ValueEditForm: React.FunctionComponent<{ visible: boolean; onCreate: any; 
                     initialValues={{
                         field: fieldOptions.filter(el => el.value === selectedNode).length !== 0 ? fieldOptions.filter(el => el.value === selectedNode)[0].label : '',
                         op: '=',
-                        value: ''}}
+                        value: ''
+                    }}
                     form={form}
                     layout='vertical'
                     name='form_in_modal'
-                    // initialValues={person}
+                // initialValues={person}
                 >
                     <Form.Item
                         name='field'
@@ -298,7 +299,7 @@ const ValueEditForm: React.FunctionComponent<{ visible: boolean; onCreate: any; 
 
 function constructPath(fieldPath: string, fieldList: any[]) {
     const newPath: any[] = [];
-    for (let i=0; i<fieldPath.length; i++) {
+    for (let i = 0; i < fieldPath.length; i++) {
         if (fieldList.filter(el => el.fieldId === fieldPath[i]).length === 1) {
             newPath.push(fieldList.filter(el => el.fieldId === fieldPath[i])[0].fieldName);
         } else {
@@ -306,6 +307,6 @@ function constructPath(fieldPath: string, fieldList: any[]) {
         }
         newPath.push('>');
     }
-    newPath.splice(newPath.length-1, 1);
+    newPath.splice(newPath.length - 1, 1);
     return newPath.join('');
 }

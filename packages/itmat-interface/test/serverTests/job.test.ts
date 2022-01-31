@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
@@ -28,22 +31,19 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    mongodb = new MongoMemoryServer();
-    const connectionString = await mongodb.getUri();
-    const database = await mongodb.getDbName();
+    mongodb = await MongoMemoryServer.create();
+    const connectionString = mongodb.getUri();
+    const database = mongodb.instanceInfo.dbName;
     await setupDatabase(connectionString, database);
 
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database, MongoClient.connect);
+    await db.connect(config.database, MongoClient.connect as any);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
-    mongoConnection = await MongoClient.connect(connectionString, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    mongoConnection = await MongoClient.connect(connectionString);
     mongoClient = mongoConnection.db(database);
 
     /* Connecting clients for testing later */
@@ -541,7 +541,7 @@ describe('JOB API', () => {
             createdQuery = {
                 id: `new_query_id_${queryId}`,
                 requester: 'admin',
-                queryString: {date_requested: 'test_query_string'},
+                queryString: { date_requested: 'test_query_string' },
                 studyId: createdStudy.id,
                 projectId: createdProject.id,
                 status: 'QUEUED',
@@ -640,7 +640,7 @@ describe('JOB API', () => {
             };
             await mongoClient.collection(config.database.collections.roles_collection).insertOne(newRole);
 
-            await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: roleId});
+            await mongoClient.collection(config.database.collections.roles_collection).findOne({ id: roleId });
             const authorisedUser = request.agent(app);
             await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
 

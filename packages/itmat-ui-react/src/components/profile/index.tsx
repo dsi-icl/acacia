@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { ProfileManagementSection } from './profilemnt';
-import css from './profilemnt.module.css';
+import { ProfileManagementSection } from './profile';
+import css from './profile.module.css';
 
 export const ProfilePage: React.FunctionComponent = () => {
     return (

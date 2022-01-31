@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser } from './_loginHelper';
@@ -45,22 +48,19 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    mongodb = new MongoMemoryServer();
-    const connectionString = await mongodb.getUri();
-    const database = await mongodb.getDbName();
+    mongodb = await MongoMemoryServer.create();
+    const connectionString = mongodb.getUri();
+    const database = mongodb.instanceInfo.dbName;
     await setupDatabase(connectionString, database);
 
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database, MongoClient.connect);
+    await db.connect(config.database, MongoClient.connect as any);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
-    mongoConnection = await MongoClient.connect(connectionString, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    mongoConnection = await MongoClient.connect(connectionString);
     mongoClient = mongoConnection.db(database);
 
     /* Connecting clients for testing later */
@@ -117,7 +117,7 @@ describe('LOG API', () => {
                 username: 'test_user',
             });
             expect(lastLog.status).toEqual(LOG_STATUS.SUCCESS);
-            expect(lastLog.error).toEqual('');
+            expect(lastLog.errors).toEqual('');
 
             await admin.post('/graphql').send(
                 {
@@ -149,7 +149,7 @@ describe('LOG API', () => {
         });
 
         afterAll(async () => {
-            await mongoClient.collection(config.database.collections.log_collection).remove({});
+            await mongoClient.collection(config.database.collections.log_collection).deleteMany({});
         });
 
         test('GET log (admin)', async () => {

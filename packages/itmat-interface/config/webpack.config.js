@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const StartServerPlugin = require('start-server-webpack-plugin');
+const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
 
 const {
     NODE_ENV = 'production',
@@ -41,11 +41,13 @@ module.exports = {
         ]
     },
     plugins: (NODE_ENV === 'development' ? [
-        new StartServerPlugin('interface.js'),
+        new RunScriptWebpackPlugin('interface.js'),
         new webpack.HotModuleReplacementPlugin()
     ] : []).concat([
-        new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../src/utils/noop`),
-        new webpack.IgnorePlugin(new RegExp('^(node-pre-gyp)$')),
+        new webpack.NormalModuleReplacementPlugin(/node-pre-gyp/, `${__dirname}/../../src/utils/noop`),
+        new webpack.IgnorePlugin({
+            resourceRegExp: new RegExp('^(node-pre-gyp)$')
+        }),
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
             'process.env': {

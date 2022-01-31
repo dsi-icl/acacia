@@ -65,7 +65,7 @@ export class ObjectStore {
         }
 
         const result = await this.client!.putObject(lowercasestudyid, uri, fileStream);
-        return result;
+        return result.etag;
     }
 
     public async downloadFile(studyId: string, uri: string): Promise<Readable> {

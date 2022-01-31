@@ -279,7 +279,6 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
         const user = availableUserList.filter(user => user.id === option.value)?.[0];
         if (!user || !searchTerm || searchTerm === '')
             return false;
-        console.log(searchTerm, user);
         return user.firstname.toLocaleLowerCase().includes(value)
             || user.lastname.toLocaleLowerCase().includes(value);
     };

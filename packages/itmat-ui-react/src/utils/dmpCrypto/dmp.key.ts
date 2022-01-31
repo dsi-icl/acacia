@@ -116,7 +116,7 @@ export class Key {
     static async exportRSAKey(keyPair: CryptoKeyPair) {
         const publicKey = await crypto.subtle.exportKey('spki', keyPair.publicKey);
         const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
-        return {privateKey: Utils.convertBinaryToPem(privateKey, 'PRIVATE KEY'), publicKey: Utils.convertBinaryToPem(publicKey, 'PUBLIC KEY')};
+        return { privateKey: Utils.convertBinaryToPem(privateKey, 'PRIVATE KEY'), publicKey: Utils.convertBinaryToPem(publicKey, 'PUBLIC KEY') };
         //return {privateKey: Utils.arrayBufferToBase64String(privateKey), publicKey: Utils.arrayBufferToBase64String(publicKey)};
     }
 
@@ -128,8 +128,6 @@ export class Key {
     static async signwtRSAKey(message: string, privateKey: CryptoKey) {
         const messageEncoded = Utils.toSupportedArray(message);
         const finalEncoded = await Utils.hash(messageEncoded);
-        //console.log('final encoded to be signed: ', Utils.arrayBufferToBase64String(finalEncoded));
-
         const signature = await crypto.subtle.sign(
             {
                 name: 'RSA-PSS',
@@ -138,7 +136,6 @@ export class Key {
             privateKey,
             finalEncoded
         );
-        //console.log('Signature: ', signature);
         return Utils.arrayBufferToBase64String(signature);
     }
 
@@ -151,7 +148,6 @@ export class Key {
             //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
             const messageEncoded = Utils.toSupportedArray(publicKey);
             message_formatted = await Utils.hash(messageEncoded);
-            //console.log('hash of pubkey to be verified: ', Utils.arrayBufferToBase64String(message_formatted));
         } else {
             message_formatted = Utils.toSupportedArray(message);
         }
@@ -174,7 +170,7 @@ export class Key {
             convertedPem,
             {
                 name: 'RSA-PSS',
-                hash: {name: 'SHA-256'},
+                hash: { name: 'SHA-256' },
             },
             true,
             ['verify']
@@ -190,7 +186,7 @@ export class Key {
             pemArrayBuffer,
             {
                 name: 'RSA-PSS',
-                hash: {name: 'SHA-256'},
+                hash: { name: 'SHA-256' },
             },
             true,
             ['sign']

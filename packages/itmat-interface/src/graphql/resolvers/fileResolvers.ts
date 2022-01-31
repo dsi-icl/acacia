@@ -25,7 +25,7 @@ export const fileResolvers = {
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
-            const study = await db.collections!.studies_collection.findOne({ id: args.studyId});
+            const study = await db.collections!.studies_collection.findOne({ id: args.studyId });
             if (!study) {
                 throw new ApolloError('Study does not exist.');
             }
@@ -128,7 +128,7 @@ export const fileResolvers = {
                                 };
 
                                 const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
-                                if (insertResult.result.ok === 1) {
+                                if (insertResult.acknowledged) {
                                     resolve(fileEntry);
                                 } else {
                                     throw new ApolloError(errorCodes.DATABASE_ERROR);
@@ -158,7 +158,7 @@ export const fileResolvers = {
                                 //         throw new ApolloError(errorCodes.DATABASE_ERROR);
                                 //     }
                                 // }
-                                if (insertResult.result.ok === 1) {
+                                if (insertResult.acknowledged) {
                                     resolve(fileEntry);
                                 } else {
                                     throw new ApolloError(errorCodes.DATABASE_ERROR);
@@ -177,7 +177,7 @@ export const fileResolvers = {
                                     hash: hashString
                                 };
                                 const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
-                                if (insertResult.result.ok === 1) {
+                                if (insertResult.acknowledged) {
                                     resolve(fileEntry);
                                 } else {
                                     throw new ApolloError(errorCodes.DATABASE_ERROR);
@@ -207,7 +207,7 @@ export const fileResolvers = {
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
-            if (updateResult.result.ok === 1) {
+            if (updateResult.modifiedCount === 1 || updateResult.upsertedCount === 1) {
                 return makeGenericReponse();
             } else {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
