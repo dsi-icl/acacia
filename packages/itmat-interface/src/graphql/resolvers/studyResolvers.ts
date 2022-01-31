@@ -2,7 +2,6 @@ import { ApolloError } from 'apollo-server-express';
 import {
     permissions,
     Models,
-    task_required_permissions,
     IProject,
     IStudy,
     IStudyDataVersion,
@@ -34,7 +33,7 @@ export const studyResolvers = {
 
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
+                permissions.dataset_specific.view_dataset,
                 requester,
                 studyId
             );
@@ -60,14 +59,14 @@ export const studyResolvers = {
 
             /* check if user has permission */
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_project.specific_project_readonly_access],
+                permissions.project_specific.view_project,
                 requester,
                 project.studyId,
                 projectId
             );
 
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
+                permissions.dataset_specific.view_dataset,
                 requester,
                 project.studyId
             );
@@ -79,7 +78,7 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
+                permissions.dataset_specific.view_dataset,
                 requester,
                 studyId
             );
@@ -361,7 +360,7 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.access_study_data,  // patientMapping is not visible to project users; only to study users.
+                permissions.dataset_specific.view_dataset,  // patientMapping is not visible to project users; only to study users.
                 requester,
                 project.studyId
             ))) {
@@ -384,7 +383,7 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects.concat(task_required_permissions.access_project_data),
+                permissions.dataset_specific.projects.manage_project_approved_fields,
                 requester,
                 project.studyId,
                 project.id
@@ -399,7 +398,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects.concat(task_required_permissions.access_project_data),
+                permissions.dataset_specific.projects.manage_project_approved_files,
                 requester,
                 project.studyId,
                 project.id
@@ -752,7 +751,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+                permissions.dataset_specific.projects.create_new_projects,
                 requester,
                 studyId
             ))) {
@@ -773,7 +772,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+                permissions.dataset_specific.projects.delete_projects,
                 requester,
                 project.studyId
             ))) {
@@ -811,7 +810,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+                permissions.dataset_specific.projects.manage_project_approved_fields,
                 requester,
                 project.studyId
             ))) {
@@ -844,7 +843,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+                permissions.dataset_specific.projects.manage_project_approved_files,
                 requester,
                 project.studyId
             ))) {
@@ -866,7 +865,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
+                permissions.dataset_specific.data.select_current_dataversion,
                 requester,
                 studyId
             ))) {

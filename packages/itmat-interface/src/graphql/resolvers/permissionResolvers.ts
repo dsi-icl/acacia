@@ -1,11 +1,10 @@
 import { ApolloError } from 'apollo-server-express';
-import { IUser, IRole } from 'itmat-commons';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
-import { task_required_permissions, permissions } from 'itmat-commons';
+import { permissions, flattenObjectToArray, IUser, IRole } from 'itmat-commons';
 
 export const permissionResolvers = {
     Query: {
@@ -51,7 +50,7 @@ export const permissionResolvers = {
 
             /* check the requester has privilege */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                args.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+                args.projectId ? permissions.project_specific.roles.create_project_roles : permissions.dataset_specific.roles.create_dataset_roles,
                 requester,
                 args.studyId,
                 args.projectId
@@ -83,21 +82,33 @@ export const permissionResolvers = {
             }
 
             /* check the requester has privilege */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
-                requester,
-                role.studyId,
-                role.projectId
-            );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (permissionChanges) {
+                const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                    role.projectId ? permissions.project_specific.roles.edit_project_role_permissions : permissions.dataset_specific.roles.edit_dataset_role_permissions,
+                    requester,
+                    role.studyId,
+                    role.projectId
+                );
+                if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            }
+            if (userChanges) {
+                const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                    role.projectId ? permissions.project_specific.roles.edit_project_role_users: permissions.dataset_specific.roles.edit_dataset_role_users,
+                    requester,
+                    role.studyId,
+                    role.projectId
+                );
+                if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            }
 
             /* check whether all the permissions are valid */
             if (permissionChanges) {
                 const allRequestedPermissionChanges: string[] = [...permissionChanges.add, ...permissionChanges.remove];
-                const permittedPermissions: string[] = role.projectId ?
-                    Object.values(permissions.specific_project)
+
+                const permittedPermissions: string[] = []; role.projectId ?
+                    flattenObjectToArray(permissions.project_specific)
                     :
-                    Object.values(permissions.specific_study);
+                    flattenObjectToArray(permissions.dataset_specific);
                 for (const each of allRequestedPermissionChanges) {
                     if (!permittedPermissions.includes(each)) {
                         throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
@@ -136,7 +147,7 @@ export const permissionResolvers = {
 
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+                role.projectId ? permissions.project_specific.roles.delete_project_roles : permissions.dataset_specific.roles.delete_dataset_roles,
                 requester,
                 role.studyId,
                 role.projectId

@@ -11,7 +11,8 @@ import {
     GET_USERS,
     GET_PROJECT,
     GET_STUDY,
-    GET_ORGANISATIONS
+    GET_ORGANISATIONS,
+    flattenObjectToArray
 } from 'itmat-commons';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
@@ -39,8 +40,8 @@ export const RoleControlSection: React.FunctionComponent<RoleControlSectionProps
                     role={el}
                     availablePermissions={
                         projectId
-                            ? Object.values(permissions.specific_project)
-                            : Object.values(permissions.specific_study)
+                            ? flattenObjectToArray(permissions.project_specific)
+                            : flattenObjectToArray(permissions.dataset_specific)
                     } />
             )}
         </>
