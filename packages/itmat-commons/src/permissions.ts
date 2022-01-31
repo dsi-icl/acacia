@@ -1,5 +1,6 @@
 export const permissions = {
     dataset_specific: {
+        // in the future, if needed
         //view_dataset: {
         //    view_files: 'dataset_specific@view_dataset@view_files',
         //    view_roles: 'dataset_specific@view_dataset@view_roles',
@@ -61,54 +62,3 @@ export const permissions = {
         }
     }
 };
-
-//class UserPermissions {
-//    private _permissions: string[];
-//    constructor() {
-//        this._permissions = [];
-//    }
-//
-//    public static newFromSerialisedString(str: string): UserPermissions {
-//        const allPermissions = str.split('|');
-//        const userPermissions = new UserPermissions();
-//        userPermissions.add(allPermissions);
-//        return userPermissions;
-//    }
-//
-//    public serialisePermissionsForMongo(): string {
-//        return this._permissions.join('|');
-//    }
-//
-//    add(permissions: string | string[]): UserPermissions {
-//        if (permissions instanceof Array) {
-//            const set = new Set(this._permissions);
-//            for (const each of permissions) {
-//                set.add(each);
-//            }
-//            this._permissions = Array.from(set);
-//            return this;
-//        } else {
-//            if (!this._permissions.includes(permissions)) {
-//                this._permissions.push(permissions);
-//            }
-//            return this;
-//        }
-//    }
-//
-//    remove(permissions: string | string[]): UserPermissions {
-//        const set = new Set(this._permissions);
-//        if (permissions instanceof Array) {
-//            for (const each of permissions) {
-//                set.delete(each);
-//            }
-//        } else {
-//            set.delete(permissions);
-//        }
-//        this._permissions = Array.from(set);
-//        return this;
-//    }
-//
-//    userHasTheNeccessaryPermissionFor(neededPermission: string): boolean {
-//        return this._permissions.includes(neededPermission);
-//    }
-//}
