@@ -82,6 +82,15 @@ export const permissionResolvers = {
             }
 
             /* check the requester has privilege */
+            if (name) {
+                const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
+                    role.projectId ? permissions.project_specific.roles.edit_project_role_name : permissions.dataset_specific.roles.edit_dataset_role_name,
+                    requester,
+                    role.studyId,
+                    role.projectId
+                );
+                if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            }
             if (permissionChanges) {
                 const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                     role.projectId ? permissions.project_specific.roles.edit_project_role_permissions : permissions.dataset_specific.roles.edit_dataset_role_permissions,

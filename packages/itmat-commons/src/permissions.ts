@@ -16,9 +16,10 @@ export const permissions = {
         },
         roles: {
             create_dataset_roles: 'dataset_specific@roles@create_dataset_roles',
+            edit_dataset_role_name: 'dataset_specific@roles@edit_dataset_role_name',
             edit_dataset_role_users: 'dataset_specific@roles@edit_dataset_role_users',
             edit_dataset_role_permissions: 'dataset_specific@roles@edit_dataset_role_permissions',
-            delete_dataset_roles: 'dataset_specific@roles@delete_dataset_roles'
+            delete_dataset_roles: 'dataset_specific@roles@delete_dataset_roles',
         },
         data: {
             upload_new_clinical_data: 'dataset_specific@data@upload_new_clinical_data',
@@ -43,6 +44,7 @@ export const permissions = {
         },
         roles: {
             create_project_roles: 'project_specific@roles@create_project_roles',
+            edit_project_role_name: 'project_specific@roles@edit_project_role_name',
             edit_project_role_users: 'project_specific@roles@edit_project_role_users',
             edit_project_role_permissions: 'project_specific@roles@edit_project_role_permissions',
             delete_project_roles: 'project_specific@roles@delete_project_roles'
