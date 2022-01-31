@@ -25,7 +25,7 @@ export class UKB_JSON_UPLOAD_Handler extends JobHandler {
             try {
                 const file: IFile = await db.collections!.files_collection.findOne({ id: fileId, deleted: null })!;
                 if (!file) {
-                    errorsList.push({fileId: fileId, error: 'file does not exist'});
+                    errorsList.push({ fileId: fileId, error: 'file does not exist' });
                     continue;
                 }
                 const components = file.fileName.split('.')[0].split('_');
@@ -41,7 +41,7 @@ export class UKB_JSON_UPLOAD_Handler extends JobHandler {
                 );
                 const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
                 if (errors.length !== 0) {
-                    errorsList.push({fileId: file.id, fileName: file.fileName, error: errors});
+                    errorsList.push({ fileId: file.id, fileName: file.fileName, error: errors });
                     await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errorsList } });
                 } else {
                     await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });

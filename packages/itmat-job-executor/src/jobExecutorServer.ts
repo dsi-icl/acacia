@@ -7,9 +7,9 @@ import { Server } from './server/server';
 import { JobPoller } from 'itmat-commons';
 import { JobDispatcher } from './jobDispatch/dispatcher';
 import { MongoClient } from 'mongodb';
-import { UKB_CSV_UPLOAD_Handler } from './jobHandlers/UKB_CSV_UPLOAD_handler';
-import { UKB_JSON_UPLOAD_Handler } from './jobHandlers/UKB_JSON_UPLOAD_handler';
-import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_handler';
+import { UKB_CSV_UPLOAD_Handler } from './jobHandlers/UKB_CSV_UPLOAD_Handler';
+import { UKB_JSON_UPLOAD_Handler } from './jobHandlers/UKB_JSON_UPLOAD_Handler';
+import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_Handler';
 import { QueryHandler } from './query/queryHandler';
 
 class ITMATJobExecutorServer extends Server {

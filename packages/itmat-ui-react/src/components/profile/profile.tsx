@@ -179,9 +179,12 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
                         <Form.Item name='createdAt' label='Created On'>
                             <DatePicker disabled style={{ width: '100%' }} />
                         </Form.Item>
-                        <Form.Item name='expiredAt' label='Expire On'>
-                            <DatePicker disabled disabledDate={disabledDate} style={{ width: '100%' }} />
-                        </Form.Item>
+                        {
+                            user.type === userTypes.ADMIN ? null :
+                                <Form.Item name='expiredAt' label='Expire On'>
+                                    <DatePicker disabled disabledDate={disabledDate} style={{ width: '100%' }} />
+                                </Form.Item>
+                        }
                         <Form.Item name='type' label='User type'>
                             <Select disabled>
                                 <Select.Option value='STANDARD'>System user</Select.Option>

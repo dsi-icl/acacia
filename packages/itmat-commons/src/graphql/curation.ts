@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 
-export const job_fragment = gql`
+export const JOB_FRAGMENT = gql`
     fragment ALL_FOR_JOB on Job {
         id
         studyId
@@ -23,7 +23,7 @@ export const CREATE_DATA_CURATION_JOB = gql`
             ...ALL_FOR_JOB
         }
     }
-    ${job_fragment}
+    ${JOB_FRAGMENT}
 `;
 
 export const CREATE_FIELD_CURATION_JOB = gql`
@@ -32,7 +32,7 @@ export const CREATE_FIELD_CURATION_JOB = gql`
             ...ALL_FOR_JOB
         }
     }
-    ${job_fragment}
+    ${JOB_FRAGMENT}
 `;
 
 export const CREATE_QUERY_CURATION_JOB = gql`
@@ -41,5 +41,5 @@ export const CREATE_QUERY_CURATION_JOB = gql`
             ...ALL_FOR_JOB
         }
     }
-    ${job_fragment}
+    ${JOB_FRAGMENT}
 `;
