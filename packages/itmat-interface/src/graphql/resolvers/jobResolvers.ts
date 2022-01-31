@@ -1,4 +1,5 @@
-import { ApolloError, withFilter } from 'apollo-server-express';
+import { ApolloError } from 'apollo-server-express';
+import { withFilter } from 'graphql-subscriptions';
 import { Models, task_required_permissions } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -67,13 +68,13 @@ export const jobResolvers = {
 
                 const result = await db.collections!.jobs_collection.insertOne(job);
                 jobList.push(job);
-                if (result.result.ok !== 1) {
+                if (!result.acknowledged) {
                     throw new ApolloError(errorCodes.DATABASE_ERROR);
                 }
             }
             return jobList;
         },
-        createFieldCurationJob: async (__unused__parent: Record<string, unknown>, args: { file: string, studyId: string, tag: string}, context: any): Promise<Models.JobModels.IJobEntryForFieldCuration> => {
+        createFieldCurationJob: async (__unused__parent: Record<string, unknown>, args: { file: string, studyId: string, tag: string }, context: any): Promise<Models.JobModels.IJobEntryForFieldCuration> => {
             const requester: Models.UserModels.IUser = context.req.user;
 
             /* check permission */
@@ -115,7 +116,7 @@ export const jobResolvers = {
             };
 
             const result = await db.collections!.jobs_collection.insertOne(job);
-            if (result.result.ok !== 1) {
+            if (!result.acknowledged) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
             return job;
@@ -142,6 +143,8 @@ export const jobResolvers = {
             }
 
             /* check if the query exists */
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             const queryExist = await db.collections!.queries_collection.findOne({ id: args.queryId[0] });
             if (!queryExist) {
                 throw new ApolloError('Query does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -164,7 +167,7 @@ export const jobResolvers = {
                 }
             };
             const result = await db.collections!.jobs_collection.insertOne(job);
-            if (result.result.ok !== 1) {
+            if (!result.acknowledged) {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }
             return job;

@@ -9,6 +9,7 @@ export const UPLOAD_FILE = gql`
             projectId
             fileSize
             description
+            uploadTime
             uploadedBy
             hash
         }

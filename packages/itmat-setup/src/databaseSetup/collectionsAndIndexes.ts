@@ -1,4 +1,4 @@
-import mongo from 'mongodb';
+import * as mongo from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { seedUsers } from './seed/users';
 import { seedOrganisations } from './seed/organisations';
@@ -46,7 +46,7 @@ const collections = {
     data_collection: {
         name: 'DATA_COLLECTION',
         indexes: [
-            { key: { m_subjectId: 1, m_versionId: 1, m_studyId: 1, m_visitId: 1 }, unique: true },
+            { key: { id: 1, m_subjectId: 1, m_versionId: 1, m_studyId: 1, m_visitId: 1, uploadedAt: 1 }, unique: true },
         ]
     },
     roles_collection: {
@@ -85,10 +85,7 @@ const collections = {
 };
 
 export async function setupDatabase(mongostr: string, databaseName: string): Promise<void> {
-    const conn = await mongo.MongoClient.connect(mongostr, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    const conn = await mongo.MongoClient.connect(mongostr);
     const db = conn.db(databaseName);
     const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 

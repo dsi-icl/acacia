@@ -11,17 +11,21 @@ export const ProjectListSection: React.FunctionComponent<{ studyId: string; proj
     </div>;
 };
 
-const OneProject: React.FunctionComponent<{ studyId: string; id: string; name: string }> = ({ id, name, studyId }) =>
-    <NavLink to={`/datasets/${studyId}/projects/${id}`}><Button className={css.project_badge}>{name}</Button></NavLink>;
+const OneProject: React.FunctionComponent<{ studyId: string; id: string; name: string }> = ({ id, name, studyId }) => {
+    return (<>
+        <NavLink to={`/datasets/${studyId}/projects/${id}`}><Button className={css.project_badge}>{name}</Button></NavLink><br/>
+    </>);
+};
 
 
 
 export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-    const [input, setInput] = React.useState('');
+    const [projectName, setProjectName] = React.useState('');
     const [error, setError] = React.useState('');
 
     return <div>
-        <Input value={input} style={{width: '40%'}} onChange={(e) => { setError(''); setInput(e.target.value); }} type='text' placeholder='Enter name' />
+        <span>Project Name: </span>
+        <Input value={projectName} style={{width: '50%'}} onChange={(e) => { setError(''); setProjectName(e.target.value); }} type='text' placeholder='Enter name' /> <br/><br/>
         <Mutation<any, any>
             mutation={CREATE_PROJECT}
             // update={(store, { data: { createProject } }) => {
@@ -49,11 +53,11 @@ export const AddNewProject: React.FunctionComponent<{ studyId: string }> = ({ st
                         loading ?
                             <Button>Loading...</Button> :
                             <Button onClick={() => {
-                                if (!input) {
+                                if (!projectName) {
                                     setError('Please enter project name.');
                                     return;
                                 }
-                                addNewProject({ variables: { studyId, projectName: input, approvedFields: [] } });
+                                addNewProject({ variables: { studyId, projectName: projectName, approvedFields: [] } });
                             }}>Add new project</Button>
                     }
                 </>

@@ -47,7 +47,7 @@ export const pubkeyResolvers = {
             const messageToBeSigned = pubkeycrypto.hashdigest(keyPair.publicKey);
             const signature = pubkeycrypto.rsasigner(keyPair.privateKey, messageToBeSigned);
 
-            return {privateKey: keyPair.privateKey, publicKey: keyPair.publicKey, signature: signature};
+            return { privateKey: keyPair.privateKey, publicKey: keyPair.publicKey, signature: signature };
         },
 
         rsaSigner: async (__unused__parent: Record<string, unknown>, { privateKey, message }: { privateKey: string, message: string }): Promise<Signature> => {
@@ -59,14 +59,14 @@ export const pubkeyResolvers = {
                     const reGenPubkey = pubkeycrypto.reGenPkfromSk(privateKey);
                     messageToBeSigned = pubkeycrypto.hashdigest(reGenPubkey);
                 } catch (error) {
-                    throw new UserInputError('Error: private-key incorrect!', error);
+                    throw new UserInputError('Error: private-key incorrect!', error as any);
                 }
 
             } else {
                 messageToBeSigned = message;
             }
             const signature = pubkeycrypto.rsasigner(privateKey, messageToBeSigned);
-            return {signature: signature};
+            return { signature: signature };
         },
 
         issueAccessToken: async (__unused__parent: Record<string, unknown>, { pubkey, signature }: { pubkey: string, signature: string }): Promise<AccessToken> => {
@@ -95,7 +95,7 @@ export const pubkeyResolvers = {
             const fieldsToUpdate = {
                 refreshCounter: (pubkeyrec.refreshCounter + 1)
             };
-            const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ pubkey, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            const updateResult = await db.collections!.pubkeys_collection.findOneAndUpdate({ pubkey, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
             if (updateResult.ok !== 1) {
                 throw new ApolloError('Server error; cannot fulfil the JWT request.');
             }
@@ -124,11 +124,10 @@ export const pubkeyResolvers = {
             /* Validate the signature with the public key */
             try {
                 const signature_verifier = await pubkeycrypto.rsaverifier(pubkey, signature);
-                if (!signature_verifier){
+                if (!signature_verifier) {
                     throw new UserInputError('Signature vs Public-key mismatched.');
                 }
             } catch (error) {
-                console.log(error);
                 throw new UserInputError('Error: Signature or Public-key is incorrect.');
             }
 
@@ -145,7 +144,7 @@ export const pubkeyResolvers = {
                         jwtPubkey: keypair.publicKey,
                         jwtSeckey: keypair.privateKey
                     };
-                    const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
+                    const updateResult: mongodb.ModifyResult<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
                     if (updateResult.ok === 1) {
                         await mailer.sendMail({
                             from: `${config.appName} <${config.nodemailer.auth.user}>`,

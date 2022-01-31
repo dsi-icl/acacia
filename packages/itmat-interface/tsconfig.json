@@ -3,17 +3,19 @@
     "include": [
         "src/**/*.ts*",
         "../../test/**/*.ts*",
-        "../../global.d.ts"
+        "../../global.d.ts",
+        "../../tools/noop.ts"
     ],
     "compilerOptions": {
         "lib": [
-            "esnext"
+            "esnext",
+            "dom"
         ],
         "allowJs": true,
         "module": "esnext",
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "declaration": false
+        "declaration": false,
     }
 }

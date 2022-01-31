@@ -55,7 +55,9 @@ export const GET_STUDY = gql`
                 uploadedBy
                 hash
             }
-            numOfSubjects
+            subjects
+            visits
+            numOfRecords
             currentDataVersion
             dataVersions {
                 id
@@ -70,7 +72,7 @@ export const GET_STUDY = gql`
 `;
 
 export const GET_DATA_RECORDS = gql`
-    query getDataRecords($studyId: String!, $queryString: JSON, $versionId: [String], $projectId: String) {
+    query getDataRecords($studyId: String!, $queryString: JSON, $versionId: String, $projectId: String) {
         getDataRecords(studyId: $studyId, queryString: $queryString, versionId: $versionId, projectId: $projectId)
     }
 `;
@@ -89,7 +91,7 @@ export const CHECK_DATA_COMPLETE = gql`
         checkDataComplete(studyId: $studyId) {
             subjectId
             visitId
-            missingFields
+            errorFields
         }
     }
 `;
@@ -138,8 +140,8 @@ export const UPLOAD_DATA_IN_ARRAY = gql`
 `;
 
 export const DELETE_DATA_RECORDS = gql`
-    mutation deleteDataRecords($studyId: String!, $subjectId: String, $visitId: String, $fieldIds: [String]) {
-        deleteDataRecords(studyId: $studyId, subjectId: $subjectId, visitId: $visitId, fieldIds: $fieldIds) {
+    mutation deleteDataRecords($studyId: String!, $subjectIds: [String], $visitIds: [String], $fieldIds: [String]) {
+        deleteDataRecords(studyId: $studyId, subjectIds: $subjectIds, visitIds: $visitIds, fieldIds: $fieldIds) {
             code
             description
         }

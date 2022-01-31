@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { ApolloError } from 'apollo-server-core';
-import { IUser, IUserWithoutToken, userTypes, Models, IOrganisation, IPubkey} from 'itmat-commons';
+import { IUser, IUserWithoutToken, userTypes, Models, IOrganisation, IPubkey } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
 
@@ -39,7 +39,7 @@ export class UserCore {
         };
 
         const result = await db.collections!.users_collection.insertOne(entry);
-        if (result.result.ok === 1) {
+        if (result.acknowledged) {
             const cleared: IUserWithoutToken = { ...entry };
             delete cleared['password'];
             delete cleared['otpSecret'];
@@ -50,11 +50,11 @@ export class UserCore {
     }
 
     public async deleteUser(userId: string): Promise<void> {
-        const session = db.client.startSession();
+        const session = db.client!.startSession();
         session.startTransaction();
         try {
             /* delete the user */
-            await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnOriginal: false, projection: { deleted: 1 } });
+            await db.collections!.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnDocument: 'after', projection: { deleted: 1 } });
 
             /* delete all user records in roles related to the study */
             await db.collections!.roles_collection.updateMany(
@@ -63,7 +63,7 @@ export class UserCore {
                     users: userId
                 },
                 {
-                    $pull: { users: userId }
+                    $pull: { users: { id: userId } }
                 }
             );
 
@@ -90,15 +90,15 @@ export class UserCore {
         };
 
         const result = await db.collections!.organisations_collection.insertOne(entry);
-        if (result.result.ok === 1) {
+        if (result.acknowledged) {
             return entry;
         } else {
             throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
         }
     }
 
-    public async registerPubkey(pubkeyobj: { pubkey: string, associatedUserId: string | null, jwtPubkey: string, jwtSeckey: string}): Promise<IPubkey> {
-        const { pubkey, associatedUserId, jwtPubkey, jwtSeckey} = pubkeyobj;
+    public async registerPubkey(pubkeyobj: { pubkey: string, associatedUserId: string | null, jwtPubkey: string, jwtSeckey: string }): Promise<IPubkey> {
+        const { pubkey, associatedUserId, jwtPubkey, jwtSeckey } = pubkeyobj;
         const entry: IPubkey = {
             id: uuid(),
             pubkey,
@@ -110,7 +110,7 @@ export class UserCore {
         };
 
         const result = await db.collections!.pubkeys_collection.insertOne(entry);
-        if (result.result.ok === 1) {
+        if (result.acknowledged) {
             return entry;
         } else {
             throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);

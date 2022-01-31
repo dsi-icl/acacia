@@ -10,7 +10,7 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 // data curation pipeline
 // upload new sets of data
 
-export const FieldListSelectionSection: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+export const FieldListSelectionSection: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion }) => {
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
     if (getStudyLoading || getStudyFieldsLoading) {
@@ -22,7 +22,6 @@ export const FieldListSelectionSection: React.FunctionComponent<{ studyId: strin
         </p>;
     }
     // leave as placeholder;
-    console.log(versions);
     // const { fieldTrees } = versions[selectedVersion];
     const fieldTrees = getStudyFieldsData.getStudyFields;
 

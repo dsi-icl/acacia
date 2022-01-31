@@ -15,7 +15,7 @@ export function rsasigner(privateKey: string, message: string, scheme = 'RSA-SHA
         signer.end();
         return signature;
     }
-    catch(err){
+    catch (err: any) {
         return err;
     }
 }
@@ -42,92 +42,76 @@ export function reGenPkfromSk(privateKey: string, passphrase = 'idea-fast'): str
         });
         return reGenPk.toString('base64');
     }
-    catch(err){
+    catch (err: any) {
         return err;
     }
 }
 
 export async function rsaverifier(pubkey: string, signature: string, message = '', scheme = 'RSA-SHA256') {
-    try {
-        let messageToBeVerified = message;
-        const ec = new TextEncoder();
-        const pkObject = crypto.createPublicKey({
-            key: pubkey,
-            type: 'spki',
-            format: 'pem'
-        });
+    let messageToBeVerified = message;
+    const ec = new TextEncoder();
+    const pkObject = crypto.createPublicKey({
+        key: pubkey,
+        type: 'spki',
+        format: 'pem'
+    });
 
-        if (message === '') {
-            //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
-            const hash = crypto.createHash('sha256');
-            hash.update(ec.encode(pubkey));
-            messageToBeVerified = hash.digest('base64');
-            //console.log('message to be verified: ', messageToBeVerified);
-        }
+    if (message === '') {
+        //default message = hash of the public key (SHA256). Re-generate the message = hash of the public key
+        const hash = crypto.createHash('sha256');
+        hash.update(ec.encode(pubkey));
+        messageToBeVerified = hash.digest('base64');
+    }
 
-        const result = crypto.verify(
-            scheme,
-            Buffer.from(messageToBeVerified, 'base64'),
-            {
-                key: pkObject,
-                saltLength: 32,
-                padding: crypto.constants.RSA_PKCS1_PSS_PADDING
-            },
-            Buffer.from(signature, 'base64')
-        );
-        return result;
-    }
-    catch(err){
-        console.log(err);
-        throw err;
-    }
+    const result = crypto.verify(
+        scheme,
+        Buffer.from(messageToBeVerified, 'base64'),
+        {
+            key: pkObject,
+            saltLength: 32,
+            padding: crypto.constants.RSA_PKCS1_PSS_PADDING
+        },
+        Buffer.from(signature, 'base64')
+    );
+    return result;
 }
 
 export async function rsaSigner_test(privateKey: string, signature: string, message = 'abc', scheme = 'RSA-SHA256') {
+
+    const ec = new TextEncoder();
+
+    const hash3 = crypto.createHash('sha256');
+    hash3.update(ec.encode(message));
+    const messagetobeSigned = hash3.digest('base64');
+
+    const skObject = crypto.createPrivateKey({
+        key: privateKey,
+        type: 'pkcs8',
+        format: 'pem'
+    });
+
     try {
-        const ec = new TextEncoder();
+        const signer = crypto.createSign(scheme);
+        // Signing
+        signer.update(messagetobeSigned);
 
-        const hash3 = crypto.createHash('sha256');
-        hash3.update(ec.encode(message));
-        const messagetobeSigned = hash3.digest('base64');
-        console.log('Final encoded message to be signed: ', messagetobeSigned);
-
-        const skObject = crypto.createPrivateKey({
-            key: privateKey,
-            type: 'pkcs8',
-            format: 'pem'
-        });
-
-        let temp_signature;
-        try {
-            const signer = crypto.createSign(scheme);
-            // Signing
-            signer.update(messagetobeSigned);
-
-            // The signature output_format: HexBase64Latin1Encoding which can be either 'binary', 'hex' or 'base64'
-            temp_signature = signer.sign({
-                key: skObject,
-                saltLength: 32,
-                padding: crypto.constants.RSA_PKCS1_PSS_PADDING
-            }, 'base64');
-            signer.end();
-        }
-        catch(err){
-            return err;
-        }
-        console.log('Signature generated at client-side: ', signature);
-        console.log('Signature generated at server-side: ', temp_signature);
-
-        return false;
+        // The signature output_format: HexBase64Latin1Encoding which can be either 'binary', 'hex' or 'base64'
+        signer.sign({
+            key: skObject,
+            saltLength: 32,
+            padding: crypto.constants.RSA_PKCS1_PSS_PADDING
+        }, 'base64');
+        signer.end();
     }
-    catch(err){
-        console.log(err);
-        throw err;
+    catch (err) {
+        return err;
     }
+
+    return false;
 }
 
 export function rsakeygen(passphrase = 'idea-fast', modulusLength = 4096) {
-    const { publicKey, privateKey }  = crypto.generateKeyPairSync('rsa', {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
         modulusLength: modulusLength,
         publicKeyEncoding: {
             type: 'spki',

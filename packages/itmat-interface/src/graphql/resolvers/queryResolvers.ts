@@ -1,4 +1,4 @@
-import { IQueryEntry, IUser, permissions, IProject, IStudy } from 'itmat-commons';
+import { IQueryEntry, IUser, permissions, IProject } from 'itmat-commons';
 import { queryCore } from '../core/queryCore';
 import { permissionCore } from '../core/permissionCore';
 import { ApolloError } from 'apollo-server-express';
@@ -11,7 +11,7 @@ export const queryResolvers = {
             const queryId = args.queryId;
             const requester: IUser = context.req.user;
             /* check query exists */
-            const queryEntry = await db.collections!.queries_collection.findOne<IQueryEntry>({ id: queryId }, { projection: { _id: 0, claimedBy: 0 } })!;
+            const queryEntry = await db.collections!.queries_collection.findOne({ id: queryId }, { projection: { _id: 0, claimedBy: 0 } });
             if (queryEntry === null || queryEntry === undefined) {
                 throw new ApolloError('Query does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
@@ -55,9 +55,9 @@ export const queryResolvers = {
         }
     },
     Mutation: {
-        createQuery: async (__unused__parent: Record<string, unknown>, args: {query: {userId: string, queryString: any, studyId: string, projectId?: string}}): Promise<IQueryEntry> => {
+        createQuery: async (__unused__parent: Record<string, unknown>, args: { query: { userId: string, queryString: any, studyId: string, projectId?: string } }): Promise<IQueryEntry> => {
             /* check study exists */
-            const studySearchResult: IStudy = await db.collections!.studies_collection.findOne({ id: args.query.studyId, deleted: null });
+            const studySearchResult = await db.collections!.studies_collection.findOne({ id: args.query.studyId, deleted: null });
             if (studySearchResult === null || studySearchResult === undefined) {
                 throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }

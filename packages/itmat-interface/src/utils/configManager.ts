@@ -12,6 +12,7 @@ export interface IConfiguration extends IServerConfig {
     nodemailer: any;
     aesSecret: string;
     sessionsSecret: string;
+    adminEmail: string;
 }
 
 class ConfigurationManager {
@@ -37,7 +38,9 @@ class ConfigurationManager {
             const { TEST_SMTP_CRED, TEST_SMTP_USERNAME, TEST_RECEIVER_EMAIL_ADDR, SKIP_EMAIL_TEST } = process.env;
             if (SKIP_EMAIL_TEST !== 'true') {
                 if (config.nodemailer.auth === undefined)
-                    config.nodemailer.auth = {} as any;
+                    config.nodemailer.auth = {
+                        auth: {}
+                    } as any;
                 if (TEST_SMTP_CRED) {
                     console.log(chalk.green('Using env secret TEST_SMTP_CRED.'));
                     config.nodemailer.auth.pass = TEST_SMTP_CRED;

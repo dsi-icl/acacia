@@ -26,14 +26,13 @@ export const UploadNewFields: React.FunctionComponent<{ studyId: string }> = ({ 
                 uploadFileTabSelected ?
                     <>
                         <br />
-                        <input type='file' ref={fileRef as any} />
+                        <input title='file' type='file' ref={fileRef as any} />
                         <Mutation<any, any> mutation={CREATE_FIELD_CURATION_JOB}>
                             {(createCurationJob, { loading }) => {
                                 if (loading) { return <button>Loading...</button>; }
                                 return (
                                     <button onClick={() => {
                                         if ((fileRef.current as any).files.length === 1) {
-                                            console.log((fileRef.current as any).files[0], typeof (fileRef.current as any).files[0]);
                                             setError('');
                                             createCurationJob({
                                                 variables: {
@@ -78,7 +77,7 @@ const UploadFieldBySelectingFileForm: React.FunctionComponent<{ studyId: string;
 
     return <div>
         <label>Data file:</label>
-        <Select style={{width: '50%'}} value={selectedFile} onChange={(value) => { setSuccessfullySaved(false); setSelectedFile(value); setError(''); }}>{files.filter(el => el.fileName.indexOf('VariablesList') >= 0).map((el: IFile) => <Option key={el.id} value={el.id}>{el.fileName}</Option>)}</Select><br /><br />
+        <Select style={{ width: '50%' }} value={selectedFile} onChange={(value) => { setSuccessfullySaved(false); setSelectedFile(value); setError(''); }}>{files.filter(el => el.fileName.indexOf('VariablesList') >= 0).map((el: IFile) => <Option key={el.id} value={el.id}>{el.fileName}</Option>)}</Select><br /><br />
         <label>Tag:</label>
         <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder='e.g main tree' type='text' /><br /><br />
         <Mutation<any, any> mutation={CREATE_FIELD_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>

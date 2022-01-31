@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
-import { Models, task_required_permissions, IFile } from 'itmat-commons';
+import { Models, task_required_permissions } from 'itmat-commons';
 
 export const fileDownloadController = async (req: Request, res: Response): Promise<void> => {
     const requester = req.user as Models.UserModels.IUser;
@@ -15,7 +15,7 @@ export const fileDownloadController = async (req: Request, res: Response): Promi
 
     try {
         /* download file */
-        const file: IFile = await db.collections!.files_collection.findOne({ id: requestedFile, deleted: null })!;
+        const file = await db.collections!.files_collection.findOne({ id: requestedFile, deleted: null })!;
         if (!file) {
             res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
             return;

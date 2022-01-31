@@ -62,7 +62,7 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
         */}
 
         <div>
-            <NavLink to='/profilemnt' title='My account' activeClassName={css.clickedButton}>
+            <NavLink to='/profile' title='My account' activeClassName={css.clickedButton}>
                 <div className={css.button}><SettingOutlined />My account</div>
             </NavLink>
         </div>

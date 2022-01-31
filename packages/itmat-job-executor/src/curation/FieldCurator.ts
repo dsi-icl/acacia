@@ -1,4 +1,4 @@
-import csvparse from 'csv-parse';
+import * as csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import { v4 as uuid } from 'uuid';
@@ -17,7 +17,7 @@ export class FieldCurator {
     constructor(
         private readonly fieldCollection: Collection,
         private readonly incomingWebStream: Readable,
-        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_lines_with_error: true },
+        private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_records_with_error: true },
         private readonly job: IJobEntryForFieldCuration,
         private readonly codesObj: any
     ) {
@@ -34,12 +34,11 @@ export class FieldCurator {
          *     Mandatory	CollectIf	NotMapped	DefaultValue	RegEx	RegExErrorMsg	ShowOnIndexView	Comments
          */
         return new Promise((resolve) => {
-            console.log(`uploading for job ${this.job.id}`);
             const fieldIdString: string[] = [];
             let lineNum = 0;
             let isHeader = true;
             let bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
-            const csvparseStream = csvparse(this.parseOptions);
+            const csvparseStream = csvparse.parse(this.parseOptions);
             const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
 
             csvparseStream.on('skip', (error) => {
@@ -88,7 +87,10 @@ export class FieldCurator {
                         if (this._numOfFields > 999) {
                             this._numOfFields = 0;
                             await bulkInsert.execute((err: Error) => {
-                                if (err) { console.log((err as any).writeErrors[1].err); return; }
+                                if (err) {
+                                    //TODO Handle error recording
+                                    console.error(err);
+                                }
                             });
                             bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
                         }
@@ -107,12 +109,13 @@ export class FieldCurator {
 
                 if (!this._errored) {
                     await bulkInsert.execute((err: Error) => {
-                        console.log('FINSIHED LOADING');
-                        if (err) { console.log(err); return; }
+                        if (err) {
+                            //TODO Handle error recording
+                            console.error(err);
+                        }
                     });
                 }
 
-                console.log('end');
                 resolve(this._errors);
             });
 
@@ -173,7 +176,7 @@ export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number,
     } else {
         dataType = dataTypeNames[Object.keys(dataTypeNames).filter(el => row[17].toUpperCase().indexOf(el.toUpperCase()) >= 0)[0]];
     }
-    if ( !(Object.keys(dataTypeNames).some(x => row[17].toUpperCase().indexOf(x.toUpperCase()) >=0)) ) {
+    if (!(Object.keys(dataTypeNames).some(x => row[17].toUpperCase().indexOf(x.toUpperCase()) >= 0))) {
         error.push(`Line ${lineNum} column 18: Invalid value type "${row[2]}": use "int" for integers, "decimal()" for decimals, "nvarchar/varchar" for characters/strings, "datetime" for date time, "bit" for bit.`);
     }
 
@@ -198,7 +201,8 @@ export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number,
         unit: '',
         comments: row[32],
         dateAdded: (new Date()).toISOString(),
-        dateDeleted: null
+        dateDeleted: null,
+        dataVersion: null
     };
 
     return ({ error: undefined, dataEntry });

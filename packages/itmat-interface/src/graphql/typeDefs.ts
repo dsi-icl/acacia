@@ -1,8 +1,9 @@
 import { gql } from 'apollo-server-express';
 
-export const schema = gql`
+export const typeDefs = gql`
 scalar JSON
 scalar BigInt
+scalar Upload
 
 enum USERTYPE {
     ADMIN
@@ -33,6 +34,7 @@ enum STUDYTYPE {
 }
 
 type ValueCategory {
+    id: String!,
     code: String!,
     description: String
 }
@@ -47,6 +49,7 @@ type Field {
     possibleValues: [ValueCategory]
     unit: String
     comments: String
+    dataVersion: String
     dateAdded: String!
     dateDeleted: String
 }
@@ -152,7 +155,7 @@ type File {
     fileName: String!
     studyId: String!
     projectId: String
-    fileSize: BigInt
+    fileSize: String
     description: String!
     uploadTime: String!
     uploadedBy: String!
@@ -183,7 +186,9 @@ type Study {
     roles: [StudyOrProjectUserRole]!
     # fields: [Field]!
     files: [File]!
-    numOfSubjects: Int!
+    subjects: [String]!
+    visits: [String]!
+    numOfRecords: Int!
 }
 
 type Project {
@@ -249,6 +254,7 @@ enum LOG_ACTION {
     LOGOUT
     REQUEST_USERNAME_OR_RESET_PASSWORD
     RESET_PASSWORD
+    REQUEST_EXPIRY_DATE
 
     # KEY
     REGISTER_PUBKEY
@@ -276,7 +282,7 @@ enum LOG_ACTION {
     GET_STUDY_FIELDS
     CREATE_STUDY
     EDIT_STUDY
-    CREATE_DATA_CREATION_JOB
+    CREATE_DATA_CURATION_JOB
     CREATE_FIELD_CURATION_JOB
     GET_DATA_RECORDS
     GET_ONTOLOGY_TREE
@@ -427,7 +433,7 @@ type OntologyField {
 type SubjectDataRecordSummary {
     subjectId: String!
     visitId: String
-    missingFields: [String]
+    errorFields: [String]
 }
 
 type Query {
@@ -446,8 +452,8 @@ type Query {
     # STUDY
     getStudy(studyId: String!): Study
     getProject(projectId: String!): Project
-    getStudyFields(studyId: String!, projectId: String): [Field]
-    getDataRecords(studyId: String!, queryString: JSON, versionId: [String], projectId: String): JSON
+    getStudyFields(studyId: String!, projectId: String, versionId: String): [Field]
+    getDataRecords(studyId: String!, queryString: JSON, versionId: String, projectId: String): JSON
     getOntologyTree(studyId: String!, projectId: String): [OntologyField]
     checkDataComplete(studyId: String!): [SubjectDataRecordSummary]
     
@@ -464,7 +470,7 @@ type Query {
 
 type Mutation {
     # USER
-    login(username: String!, password: String!, totp: String!): User
+    login(username: String!, password: String!, totp: String!, requestexpirydate: Boolean): User
     logout: GenericResponse
     requestUsernameOrResetPassword(
         forgotUsername: Boolean!,
@@ -474,6 +480,7 @@ type Mutation {
     ): GenericResponse
     resetPassword(encryptedEmail: String!, token: String!, newPassword: String!): GenericResponse
     createUser(user: CreateUserInput!): GenericResponse
+    requestExpiryDate(username: String, email: String): GenericResponse
     
     # PUBLIC KEY AUTHENTICATION
     registerPubkey(pubkey: String!, signature: String!, associatedUserId: String): Pubkey    
@@ -494,7 +501,7 @@ type Mutation {
     editStudy(studyId: String!, description: String): Study
     createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
     uploadDataInArray(studyId: String!, data: [DataClip]): [DataClipError]
-    deleteDataRecords(studyId: String!, subjectId: String, visitId: String, fieldIds: [String]): [DataClipError]
+    deleteDataRecords(studyId: String!, subjectIds: [String], visitIds: [String], fieldIds: [String]): [DataClipError]
     createNewField(studyId: String!, fieldInput: [FieldInput]!): [FieldClipError]
     editField(studyId: String!, fieldInput: FieldInput!): Field
     deleteField(studyId: String!, fieldId: String!): Field

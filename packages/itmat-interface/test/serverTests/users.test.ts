@@ -1,4 +1,7 @@
-import request from 'supertest';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
+import request, { SuperAgentTest } from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
@@ -7,7 +10,7 @@ import { v4 as uuid } from 'uuid';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import chalk from 'chalk';
-import { MongoClient } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from 'itmat-setup';
 import config from '../../config/config.sample.json';
@@ -25,13 +28,14 @@ import {
     IUser,
     userTypes
 } from 'itmat-commons';
+import type { Express } from 'express';
 
-let app;
-let mongodb;
-let admin;
-let user;
-let mongoConnection;
-let mongoClient;
+let app: Express;
+let mongodb: MongoMemoryServer;
+let admin: SuperAgentTest;
+let user: SuperAgentTest;
+let mongoConnection: MongoClient;
+let mongoClient: Db;
 
 const SEED_STANDARD_USER_USERNAME = 'standardUser';
 const SEED_STANDARD_USER_EMAIL = 'standard@example.com';
@@ -49,22 +53,19 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    mongodb = new MongoMemoryServer();
-    const connectionString = await mongodb.getUri();
-    const database = await mongodb.getDbName();
+    mongodb = await MongoMemoryServer.create();
+    const connectionString = mongodb.getUri();
+    const database = mongodb.instanceInfo.dbName;
     await setupDatabase(connectionString, database);
 
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = database;
-    await db.connect(config.database, MongoClient.connect);
+    await db.connect(config.database, MongoClient.connect as any);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
-    mongoConnection = await MongoClient.connect(connectionString, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    mongoConnection = await MongoClient.connect(connectionString);
     mongoClient = mongoConnection.db(database);
 
     /* Connecting clients for testing later */
@@ -90,7 +91,6 @@ describe('USERS API', () => {
             encryptedEmailForStandardUser =
                 await encryptEmail(SEED_STANDARD_USER_EMAIL, makeAESKeySalt(presetToken), makeAESIv(presetToken));
         });
-
 
         test('Request reset password with non-existent user providing username', async () => {
             const res = await loggedoutUser
@@ -209,7 +209,7 @@ describe('USERS API', () => {
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
-            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnOriginal: false });
+            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnDocument: 'after' });
             expect(cleanupResult.ok).toBe(1);
             expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
@@ -249,7 +249,7 @@ describe('USERS API', () => {
             expect(new Date().valueOf() - modifiedUser.resetPasswordRequests[0].timeOfRequest).toBeLessThan(15000); // less then 5 seconds
 
             /* cleanup: changing the user's email back */
-            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnOriginal: false });
+            const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnDocument: 'after' });
             expect(cleanupResult.ok).toBe(1);
             expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
@@ -694,7 +694,7 @@ describe('USERS API', () => {
             expect(res.status).toBe(200);
             expect(res.body.data.login).toBeNull();
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('Account Expired.');
+            expect(res.body.errors[0].message).toBe('Account Expired. Please request a new expiry date!');
             await admin.post('/graphql').send(
                 {
                     query: print(DELETE_USER),

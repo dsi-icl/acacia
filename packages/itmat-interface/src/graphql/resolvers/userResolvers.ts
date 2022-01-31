@@ -6,7 +6,6 @@ import {
     Models,
     Logger,
     IProject,
-    IRole,
     IStudy,
     IUser,
     IUserWithoutToken,
@@ -88,7 +87,7 @@ export const userResolvers = {
             }
 
             /* if requested user is not admin, find all the roles a user has */
-            const roles: IRole[] = await db.collections!.roles_collection.find({ users: user.id, deleted: null }).toArray();
+            const roles = await db.collections!.roles_collection.find({ users: user.id, deleted: null }).toArray();
             const init: { projects: string[], studies: string[] } = { projects: [], studies: [] };
             const studiesAndProjectThatUserCanSee: { projects: string[], studies: string[] } = roles.reduce(
                 (a, e) => {
@@ -101,13 +100,13 @@ export const userResolvers = {
                 }, init
             );
 
-            const projects: IProject[] = await db.collections!.projects_collection.find({
+            const projects = await db.collections!.projects_collection.find({
                 $or: [
                     { id: { $in: studiesAndProjectThatUserCanSee.projects }, deleted: null },
                     { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
                 ]
             }).toArray();
-            const studies: IStudy[] = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
+            const studies = await db.collections!.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
         },
         username: async (user: IUser, __unused__arg: any, context: any): Promise<string | null> => {
@@ -139,6 +138,29 @@ export const userResolvers = {
         }
     },
     Mutation: {
+        requestExpiryDate: async (__unused__parent: Record<string, unknown>, { username, email }: { username?: string, email?: string }): Promise<IGenericResponse> => {
+            /* double-check user existence */
+            const queryObj = email ? { deleted: null, email } : { deleted: null, username };
+            const user: IUser | null = await db.collections!.users_collection.findOne(queryObj);
+            if (!user) {
+                /* even user is null. send successful response: they should know that a user doesn't exist */
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
+                return makeGenericReponse();
+            }
+            /* send email to the DMP admin mailing-list */
+            await mailer.sendMail(formatEmailRequestExpiryDatetoAdmin({
+                userEmail: user.email,
+                username: user.username
+            }));
+
+            /* send email to client */
+            await mailer.sendMail(formatEmailRequestExpiryDatetoClient({
+                to: user.email,
+                username: user.username
+            }));
+
+            return makeGenericReponse();
+        },
         requestUsernameOrResetPassword: async (__unused__parent: Record<string, unknown>, { forgotUsername, forgotPassword, email, username }: { forgotUsername: boolean, forgotPassword: boolean, email?: string, username?: string }, context: any): Promise<IGenericResponse> => {
             /* checking the args are right */
             if ((forgotUsername && !email) // should provide email if no username
@@ -153,9 +175,9 @@ export const userResolvers = {
 
             /* check user existence */
             const queryObj = email ? { deleted: null, email } : { deleted: null, username };
-            const user: IUser | null = await db.collections!.users_collection.findOne(queryObj);
+            const user = await db.collections!.users_collection.findOne(queryObj);
             if (!user) {
-                /* even user is null. send successful response: they should know that a user dosen't exist */
+                /* even user is null. send successful response: they should know that a user doesn't exist */
                 await new Promise(resolve => setTimeout(resolve, Math.random() * 6000));
                 return makeGenericReponse();
             }
@@ -215,17 +237,10 @@ export const userResolvers = {
                 throw new UserInputError('User does not exist.');
             }
 
-            /* validate if account expired */
-            if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
-                throw new UserInputError('Account Expired.');
-            }
-
             const passwordMatched = await bcrypt.compare(args.password, result.password);
             if (!passwordMatched) {
                 throw new UserInputError('Incorrect password.');
             }
-            delete result.password;
-            delete result.deleted;
 
             // validate the TOTP
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
@@ -233,13 +248,36 @@ export const userResolvers = {
                 throw new UserInputError('Incorrect One-Time password.');
             }
 
+            /* validate if account expired */
+            if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
+                if (args.requestexpirydate) {
+                    /* send email to the DMP admin mailing-list */
+                    await mailer.sendMail(formatEmailRequestExpiryDatetoAdmin({
+                        userEmail: result.email,
+                        username: result.username
+                    }));
+                    /* send email to client */
+                    await mailer.sendMail(formatEmailRequestExpiryDatetoClient({
+                        to: result.email,
+                        username: result.username
+                    }));
+                    throw new UserInputError('New expiry date has been requested! Wait for ADMIN to approve.');
+                }
+
+                throw new UserInputError('Account Expired. Please request a new expiry date!');
+            }
+
+            const filteredResult: Partial<IUser> = { ...result };
+            delete filteredResult.password;
+            delete filteredResult.deleted;
+
             return new Promise((resolve) => {
-                req.login(result, (err: any) => {
+                req.login(filteredResult, (err: any) => {
                     if (err) {
                         Logger.error(err);
                         throw new ApolloError('Cannot log in. Please try again later.');
                     }
-                    resolve(result);
+                    resolve(filteredResult);
                 });
             });
         },
@@ -480,8 +518,9 @@ export const userResolvers = {
             if (requester.type !== Models.UserModels.userTypes.ADMIN && requester.id !== id) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
+            let result;
             if (requester.type === Models.UserModels.userTypes.ADMIN) {
-                const result: Models.UserModels.IUserWithoutToken = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                result = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     throw new ApolloError('User not found');
                 }
@@ -517,8 +556,16 @@ export const userResolvers = {
                     delete fieldsToUpdate[each];
                 }
             }
-            const updateResult: mongodb.FindAndModifyWriteOpResultObject<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnOriginal: false });
+            const updateResult: mongodb.ModifyResult<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
             if (updateResult.ok === 1) {
+                // New expiry date has been updated successfully.
+                if (expiredAt) {
+                    /* send email to client */
+                    await mailer.sendMail(formatEmailRequestExpiryDateNotification({
+                        to: result.email,
+                        username: result.username
+                    }));
+                }
                 return updateResult.value;
             } else {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
@@ -588,7 +635,7 @@ export async function decryptEmail(encryptedEmail: string, keySalt: string, iv: 
     });
 }
 
-async function formatEmailForForgottenPassword({ username, firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, username:string, firstname: string, origin: any }) {
+async function formatEmailForForgottenPassword({ username, firstname, to, resetPasswordToken, origin }: { resetPasswordToken: string, to: string, username: string, firstname: string, origin: any }) {
     const keySalt = makeAESKeySalt(resetPasswordToken);
     const iv = makeAESIv(resetPasswordToken);
     const encryptedEmail = await encryptEmail(to, keySalt, iv);
@@ -628,6 +675,69 @@ function formatEmailForFogettenUsername({ username, to }: { username: string, to
             <p>
             <p>
                 Your username is <b>${username}</b>.
+            </p>
+            <br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
+        `
+    });
+}
+
+function formatEmailRequestExpiryDatetoClient({ username, to }: { username: string, to: string }) {
+    return ({
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        to,
+        subject: `[${config.appName}] New expiry date has been requested!`,
+        html: `
+            <p>
+                Dear user,
+            <p>
+            <p>
+                New expiry date for your <b>${username}</b> account has been requested.
+                You will get a notification email once the request is approved.                
+            </p>
+            <br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
+        `
+    });
+}
+
+function formatEmailRequestExpiryDatetoAdmin({ username, userEmail }: { username: string, userEmail: string }) {
+    return ({
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        to: `${config.adminEmail}`,
+        subject: `[${config.appName}] New expiry date has been requested from ${username} account!`,
+        html: `
+            <p>
+                Dear ADMINs,
+            <p>
+            <p>
+                A expiry date request from the <b>${username}</b> account (whose email address is <b>${userEmail}</b>) has been submitted.
+                Please approve or deny the request ASAP.
+            </p>
+            <br/>
+            <p>
+                The ${config.appName} Team.
+            </p>
+        `
+    });
+}
+
+function formatEmailRequestExpiryDateNotification({ username, to }: { username: string, to: string }) {
+    return ({
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        to,
+        subject: `[${config.appName}] New expiry date has been updated!`,
+        html: `
+            <p>
+                Dear user,
+            <p>
+            <p>
+                New expiry date for your <b>${username}</b> account has been updated.
+                You now can log in as normal.
             </p>
             <br/>
             <p>
