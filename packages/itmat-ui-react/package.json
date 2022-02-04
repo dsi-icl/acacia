@@ -59,7 +59,7 @@
         "http-proxy-middleware": "2.0.2",
         "jest": "27.4.7",
         "jest-enzyme": "7.1.2",
-        "react-git-info": "2.0.0",
+        "react-git-info": "2.0.1",
         "react-scripts": "5.0.0",
         "react-app-rewired": "2.1.11",
         "rimraf": "3.0.2",
