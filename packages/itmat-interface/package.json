@@ -64,7 +64,7 @@
         "cross-spawn": "7.0.3",
         "get-port": "6.0.0",
         "itmat-setup": "1.0.3",
-        "jest": "27.5.0",
+        "jest": "27.5.1",
         "jsonwebtoken": "8.5.1",
         "mongodb-memory-server": "8.3.0",
         "node-fetch": "3.2.0",
