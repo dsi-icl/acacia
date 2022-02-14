@@ -640,16 +640,24 @@ export const studyResolvers = {
             } else {
                 validFields = fieldIds.reduce((acc, curr) => { acc[curr] = null; return acc; }, {});
             }
-            await db.collections!.data_collection.updateMany({
-                m_studyId: studyId,
-                m_subjectId: { $in: validSubjects },
-                m_visitId: { $in: validVisits },
-                m_versionId: null
-            }, {
-                $set: { ...validFields, uploadedAt: (new Date()).valueOf(), id: uuid() }
-            }, {
-                upsert: true
-            });
+
+            const bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
+            for (const subjectId of validSubjects) {
+                for (const visitId of validVisits) {
+                    bulk.find({ m_studyId: studyId, m_subjectId: subjectId, m_visitId: visitId, m_versionId: null }).upsert().updateOne({
+                        $set: {
+                            ...validFields,
+                            m_studyId: studyId,
+                            m_subjectId: subjectId,
+                            m_visitId: visitId,
+                            m_versionId: null,
+                            uploadedAt: (new Date()).valueOf(),
+                            id: uuid()
+                        }
+                    });
+                }
+            }
+            await bulk.execute();
             return [];
         },
         createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
