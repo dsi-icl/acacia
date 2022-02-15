@@ -310,6 +310,12 @@ export const studyResolvers = {
                     acc[curr['m_subjectId']][curr['m_visitId']] = {};
                 }
                 acc[curr['m_subjectId']][curr['m_visitId']] = { ...acc[curr['m_subjectId']][curr['m_visitId']], ...curr };
+                // revove fields whose value is null; currently will not removed the visit Key
+                Object.keys(acc[curr['m_subjectId']][curr['m_visitId']]).forEach(field => {
+                    if (acc[curr['m_subjectId']][curr['m_visitId']][field] === null) {
+                        delete acc[curr['m_subjectId']][curr['m_visitId']][field];
+                    }
+                });
                 return acc;
             }, {});
 
