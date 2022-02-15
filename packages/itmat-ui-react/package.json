@@ -35,7 +35,7 @@
         "react-highlight-words": "0.17.0",
         "react-router-dom": "5.2.0",
         "react-vis": "1.11.7",
-        "recharts": "2.1.8"
+        "recharts": "2.1.9"
     },
     "devDependencies": {
         "@apollo/react-testing": "4.0.0",
