@@ -326,7 +326,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
     }), {});
 
     return (
-        <Select
+        <Select<any>
             mode='multiple'
             loading={loading}
             style={{ width: '100%' }}
@@ -341,7 +341,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
             {
                 availableUserList.map((user, index) => (
                     <Select.Option key={index} value={user.id}>
-                        {user.firstname} {user.lastname} {sites[user.organisation] ? `(${sites[user.organisation]})` : ''}
+                        PLOP {user.firstname} {user.lastname} {sites[user.organisation] ? `(${sites[user.organisation]})` : ''}
                     </Select.Option>
                 ))
             }
