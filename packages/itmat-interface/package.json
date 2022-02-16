@@ -62,7 +62,7 @@
         "cors": "2.8.5",
         "cross-env": "7.0.3",
         "cross-spawn": "7.0.3",
-        "get-port": "6.0.0",
+        "get-port": "6.1.0",
         "itmat-setup": "1.0.3",
         "jest": "27.5.1",
         "jsonwebtoken": "8.5.1",
