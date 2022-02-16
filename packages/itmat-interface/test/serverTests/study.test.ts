@@ -3344,7 +3344,6 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-
             const deleteRes = await authorisedUser.post('/graphql').send({
                 query: print(DELETE_DATA_RECORDS),
                 variables: { studyId: createdStudy.id, subjectIds: ['I7N3G6G'] }
@@ -3352,7 +3351,9 @@ describe('STUDY API', () => {
             expect(deleteRes.status).toBe(200);
             expect(deleteRes.body.errors).toBeUndefined();
             expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-            const dataInDb = await db.collections!.data_collection.find({}).sort({ uploadedAt: -1 }).limit(2).toArray();
+            const dataInDb = (await db.collections!.data_collection.find({}).sort({ uploadedAt: -1 }).limit(2).toArray()).sort((a, b) => {
+                return parseFloat(a.m_visitId) - parseFloat(b.m_visitId);
+            });
             expect(dataInDb[0]['31']).toBe(null);
             expect(dataInDb[0]['32']).toBe(null);
             expect(dataInDb[0]['m_subjectId']).toBe('I7N3G6G');
