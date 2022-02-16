@@ -3320,7 +3320,7 @@ describe('STUDY API', () => {
             expect(createRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
         });
 
-        test('Delete data reocrds: (unauthorised user) should fail', async () => {
+        test('Delete data records: (unauthorised user) should fail', async () => {
             const res = await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: { studyId: createdStudy.id, data: multipleRecords }
@@ -3337,7 +3337,7 @@ describe('STUDY API', () => {
             expect(deleteRes.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
         });
 
-        test('Delete data reocrds: subjectId (user with study privilege)', async () => {
+        test('Delete data records: subjectId (user with study privilege)', async () => {
             const res = await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: { studyId: createdStudy.id, data: multipleRecords }
@@ -3363,7 +3363,7 @@ describe('STUDY API', () => {
             expect(dataInDb[1]['m_visitId']).toBe('2');
         });
 
-        test('Delete data reocrds: visitId (admin)', async () => {
+        test('Delete data records: visitId (admin)', async () => {
             const res = await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: { studyId: createdStudy.id, data: multipleRecords }
@@ -3388,7 +3388,7 @@ describe('STUDY API', () => {
             expect(Array.from(new Set(dataInDb.map(el => el.m_subjectId))).length).toBe(2);
         });
 
-        test('Delete data reocrds: studyId (admin)', async () => {
+        test('Delete data records: studyId (admin)', async () => {
             const res = await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: { studyId: createdStudy.id, data: multipleRecords }
@@ -3405,7 +3405,27 @@ describe('STUDY API', () => {
             expect(deleteRes.body.errors).toBeUndefined();
             expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
             const dataInDb = await db.collections!.data_collection.find({ 31: null }).sort({ uploadedAt: -1 }).toArray();
-            expect(dataInDb).toHaveLength(3);
+            expect(dataInDb).toHaveLength(4); // 2 visits * 2 subjects = 4 records
+        });
+
+        test('Delete data records: records not exist', async () => {
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(UPLOAD_DATA_IN_ARRAY),
+                variables: { studyId: createdStudy.id, data: multipleRecords }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.uploadDataInArray).toEqual([]);
+
+            const deleteRes = await admin.post('/graphql').send({
+                query: print(DELETE_DATA_RECORDS),
+                variables: { studyId: createdStudy.id, subjectIds:  ['I7N3G6G'], visitIds: ['100', '101']}
+            });
+            expect(deleteRes.status).toBe(200);
+            expect(deleteRes.body.errors).toBeUndefined();
+            expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
+            const dataInDb = await db.collections!.data_collection.find({ m_subjectId: 'I7N3G6G' }).sort({ uploadedAt: -1 }).toArray();
+            expect(dataInDb).toHaveLength(4); // two data records, two deleted records
         });
 
         test('Get data records (user with study privilege)', async () => {
