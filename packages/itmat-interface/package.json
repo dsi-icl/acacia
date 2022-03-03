@@ -36,7 +36,7 @@
         "hi-base32": "0.5.1",
         "itmat-commons": "1.0.6",
         "jwt-decode": "^3.1.2",
-        "mongodb": "4.4.0",
+        "mongodb": "4.4.1",
         "nodemailer": "6.7.2",
         "passport": "0.5.2",
         "passport-local": "1.0.0",
