@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { Button, Upload, notification, Tag, Table, Form, Input, DatePicker } from 'antd';
+import { Button, Upload, notification, Tag, Table, Form, Input, InputRef, DatePicker } from 'antd';
 import { RcFile } from 'antd/lib/upload';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Query } from '@apollo/client/react/components';
@@ -556,7 +556,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
     ...restProps
 }) => {
     const [editing, setEditing] = useState(false);
-    const inputRef = useRef<Input>(null);
+    const inputRef = useRef<InputRef>(null);
     const rangeRef = useRef<any>(null);
     const form = useContext(EditableContext);
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
