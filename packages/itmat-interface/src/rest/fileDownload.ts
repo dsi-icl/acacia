@@ -3,12 +3,28 @@ import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
 import { Models, task_required_permissions } from 'itmat-commons';
+import jwt from 'jsonwebtoken';
+import { UserInputError } from 'apollo-server-express';
+import { userRetrieval } from '../authentication/pubkeyAuthentication';
 
 export const fileDownloadController = async (req: Request, res: Response): Promise<void> => {
     const requester = req.user as Models.UserModels.IUser;
     const requestedFile = req.params.fileId;
-
-    if (!requester) {
+    const token = req.headers.authorization || '';
+    let associatedUser = requester;
+    if ((token !== '') && (req.user === undefined)) {
+        // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
+        const decodedPayload = jwt.decode(token);
+        // obtain the public-key of the robot user in the JWT payload
+        const pubkey = decodedPayload.publicKey;
+        // verify the JWT
+        jwt.verify(token, pubkey, function (err) {
+            if (err) {
+                throw new UserInputError('JWT verification failed. ' + err);
+            }
+        });
+        associatedUser = await userRetrieval(pubkey);
+    } else if (!requester) {
         res.status(403).json({ error: 'Please log in.' });
         return;
     }
@@ -24,7 +40,7 @@ export const fileDownloadController = async (req: Request, res: Response): Promi
         /* check permission */
         const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
             task_required_permissions.access_project_data,
-            requester,
+            associatedUser,
             file.studyId
         );
         if (!hasPermission) {
