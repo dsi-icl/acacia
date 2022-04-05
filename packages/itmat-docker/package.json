@@ -27,6 +27,6 @@
         "express": "4.17.3",
         "express-rate-limit": "6.3.0",
         "isobject": "4.0.0",
-        "mongodb": "4.4.1"
+        "mongodb": "4.5.0"
     }
 }
