@@ -30,7 +30,7 @@ class ConfigurationManager {
                 config = configDefaults;
             }
         } else {
-            console.error(chalk.red('Cannot find configuration file. Using defaults.'));
+            console.warn(chalk.red('Cannot find configuration file. Using defaults.'));
             config = configDefaults;
         }
 
