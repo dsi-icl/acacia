@@ -26,7 +26,6 @@ jobs:
       run: yarn run test
       env:
         CI: true
-        SKIP_EMAIL_TEST: true
   # email_test:
   #   runs-on: itmat
   #   strategy:

@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
+import 'nodemailer';
 import request, { SuperAgentTest } from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
@@ -9,7 +10,6 @@ import { makeAESIv, makeAESKeySalt, encryptEmail } from '../../src/graphql/resol
 import { v4 as uuid } from 'uuid';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
-import chalk from 'chalk';
 import { MongoClient, Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from 'itmat-setup';
@@ -39,8 +39,18 @@ let mongoClient: Db;
 
 const SEED_STANDARD_USER_USERNAME = 'standardUser';
 const SEED_STANDARD_USER_EMAIL = 'standard@example.com';
-const TEMP_USER_TEST_EMAIL = process.env.TEST_RECEIVER_EMAIL_ADDR || SEED_STANDARD_USER_EMAIL;
-const SKIP_EMAIL_TEST = process.env.SKIP_EMAIL_TEST === 'true';
+const { TEST_SMTP_CRED, TEST_SMTP_USERNAME, TEST_RECEIVER_EMAIL_ADDR } = process.env;
+const TEMP_USER_TEST_EMAIL = TEST_RECEIVER_EMAIL_ADDR || SEED_STANDARD_USER_EMAIL;
+
+jest.mock('nodemailer', () => {
+    if (!TEST_SMTP_CRED || !TEST_SMTP_USERNAME || !config?.nodemailer?.auth?.pass || !config?.nodemailer?.auth?.user)
+        return {
+            createTransport: jest.fn().mockImplementation(() => ({
+                sendMail: jest.fn(),
+            })),
+        };
+    return jest.requireActual('nodemailer');
+});
 
 afterAll(async () => {
     await db.closeConnection();
@@ -77,6 +87,16 @@ beforeAll(async () => { // eslint-disable-line no-undef
 
     /* Mock Date for testing */
     jest.spyOn(Date, 'now').mockImplementation(() => 1591134065000);
+
+    /* Mock emailing interface */
+    if (config.nodemailer.auth === undefined)
+        config.nodemailer.auth = {
+            auth: {}
+        } as any;
+    if (TEST_SMTP_CRED)
+        config.nodemailer.auth.pass = TEST_SMTP_CRED;
+    if (TEST_SMTP_USERNAME)
+        config.nodemailer.auth.user = TEST_SMTP_USERNAME;
 });
 
 describe('USERS API', () => {
@@ -175,11 +195,6 @@ describe('USERS API', () => {
         });
 
         test('Request reset password with existing user providing email', async () => {
-            /* skip: this test if email env is not set up */
-            if (SKIP_EMAIL_TEST) {
-                console.warn(chalk.yellow('[[WARNING]]: Skipping test "Request reset password with existing user providing email" because SKIP_EMAIL_TEST is set to "true".'));
-                return;
-            }
             /* setup: replacing the seed user's email with slurp test email */
             const updateResult = await db.collections!.users_collection.findOneAndUpdate({
                 username: SEED_STANDARD_USER_USERNAME
@@ -215,11 +230,6 @@ describe('USERS API', () => {
         }, 30000);
 
         test('Request reset password with existing user providing username', async () => {
-            /* skip: this test if email env is not set up */
-            if (SKIP_EMAIL_TEST) {
-                console.warn(chalk.yellow('[[WARNING]]: Skipping test "Request reset password with existing user providing username" because SKIP_EMAIL_TEST is set to "true".'));
-                return;
-            }
             /* setup: replacing the seed user's email with test email */
             const updateResult = await db.collections!.users_collection.findOneAndUpdate({
                 username: SEED_STANDARD_USER_USERNAME
@@ -430,12 +440,6 @@ describe('USERS API', () => {
         });
 
         test('Reset password with valid token', async () => {
-            /* skip: this test if email env is not set up */
-            if (SKIP_EMAIL_TEST) {
-                console.warn(chalk.yellow('[[WARNING]]: Skipping test "create user" because SKIP_EMAIL_TEST is set to "true".'));
-                return;
-            }
-
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest = {
                 id: presetToken,
@@ -496,13 +500,6 @@ describe('USERS API', () => {
         });
 
         test('Reset password with used token (should fail)', async () => {
-
-            /* skip: this test if email env is not set up */
-            if (SKIP_EMAIL_TEST) {
-                console.warn(chalk.yellow('[[WARNING]]: Skipping test "create user" because SKIP_EMAIL_TEST is set to "true".'));
-                return;
-            }
-
             /* setup: add request entry to user */
             const resetPWrequest: IResetPasswordRequest[] = [
                 {
@@ -1054,11 +1051,6 @@ describe('USERS API', () => {
     describe('APP USER MUTATION API', () => {
 
         test('log in with incorrect totp (user)', async () => {
-            /* skip: this test if email env is not set up */
-            if (SKIP_EMAIL_TEST) {
-                console.warn(chalk.yellow('[[WARNING]]: Skipping test "log in with incorrect totp (user)" because SKIP_EMAIL_TEST is set to "true".'));
-                return;
-            }
             await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
@@ -1087,17 +1079,13 @@ describe('USERS API', () => {
                     variables: { username: 'testuser0', password: 'testpassword0', totp: incorrectTotp.toString() }
                 });
 
+            console.error(res_login.body);
             expect(res_login.status).toBe(200);
             expect(res_login.body.errors).toHaveLength(1);
             expect(res_login.body.errors[0].message).toBe('Incorrect One-Time password.');
         }, 30000);
 
         test('create user', async () => {
-            /* skip: this test if email env is not set up */
-            if (SKIP_EMAIL_TEST) {
-                console.warn(chalk.yellow('[[WARNING]]: Skipping test "create user" because SKIP_EMAIL_TEST is set to "true".'));
-                return;
-            }
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_USER),
                 variables: {
