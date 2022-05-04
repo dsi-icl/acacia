@@ -1079,7 +1079,6 @@ describe('USERS API', () => {
                     variables: { username: 'testuser0', password: 'testpassword0', totp: incorrectTotp.toString() }
                 });
 
-            console.error(res_login.body);
             expect(res_login.status).toBe(200);
             expect(res_login.body.errors).toHaveLength(1);
             expect(res_login.body.errors[0].message).toBe('Incorrect One-Time password.');

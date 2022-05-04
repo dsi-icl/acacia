@@ -31,12 +31,6 @@ let user;
 let mongoConnection;
 let mongoClient;
 
-// const SEED_STANDARD_USER_USERNAME = 'standardUser';
-// const SEED_STANDARD_USER_EMAIL = 'standard@example.com';
-// const TEMP_USER_TEST_EMAIL = process.env.TEST_RECEIVER_EMAIL_ADDR || SEED_STANDARD_USER_EMAIL;
-// const SKIP_EMAIL_TEST = process.env.SKIP_EMAIL_TEST === 'true';
-
-
 afterAll(async () => {
     await db.closeConnection();
     await mongoConnection?.close();
