@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Route, Switch } from 'react-router-dom';
+// import { Route, Routes } from 'react-router-dom';
 import { UserDetailsSection } from './userDetails';
 import { UserListSection } from './userList';
 import css from './userList.module.css';
@@ -16,9 +16,7 @@ export const UserPage: React.FunctionComponent = () => {
                 </div>
             </div>
             <div className='page_section additional_panel'>
-                <Switch>
-                    <Route path='/users/:userId?' component={UserDetailsSection} />
-                </Switch>
+                <UserDetailsSection />
             </div>
         </div>
     );

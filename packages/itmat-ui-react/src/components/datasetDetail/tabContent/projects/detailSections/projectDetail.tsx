@@ -9,9 +9,12 @@ import { GrantedFieldListSection } from './fieldList';
 import { GrantedFileListSelection } from './fileList';
 import { PatientIdMappingSection } from './patientIdMapping';
 import css from './projectDetail.module.css';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 
-export const ProjectDetail: React.FunctionComponent<{ projectId: string; studyId: string }> = ({ projectId, studyId }) => {
+export const ProjectDetail: React.FunctionComponent = () => {
+    const { projectId, studyId } = useParams();
+    if (!projectId || !studyId)
+        return null;
     return <Query<any, any>
         query={GET_PROJECT}
         variables={{ projectId, admin: true }}

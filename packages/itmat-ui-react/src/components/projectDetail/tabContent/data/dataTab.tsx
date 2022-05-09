@@ -20,17 +20,20 @@ import {
     LabelList
 } from 'recharts';
 import { Button, Table, Modal, Switch } from 'antd';
+import { useParams } from 'react-router-dom';
 
-export const DataTabContent: React.FunctionComponent<{ studyId: string; projectId: string }> = ({ studyId, projectId }) => {
+export const DataTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+
+    const { projectId } = useParams();
 
     const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
     const { loading: getOntologyTreeLoading, error: getOntologyTreeError, data: getOntologyTreeData } = useQuery(GET_ONTOLOGY_TREE, { variables: { studyId: studyId, projectId: projectId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId, projectId: projectId } });
 
-    const [ isDataSelectorShown, setIsDataSelectorShown ] = React.useState(false);
-    const [ checkedFields, setCheckedFields ] = React.useState<any[]>([]);
-    const [ queryOptions, setQueryOptions ] = React.useState<any>({filters: [], returned_fields: [], derivedFields: []});
-    const [ viewMode, setViewMode ] = React.useState(true); // dataMode (true): show data in tables; visualMode (false): show data in charts
+    const [isDataSelectorShown, setIsDataSelectorShown] = React.useState(false);
+    const [checkedFields, setCheckedFields] = React.useState<any[]>([]);
+    const [queryOptions, setQueryOptions] = React.useState<any>({ filters: [], returned_fields: [], derivedFields: [] });
+    const [viewMode, setViewMode] = React.useState(true); // dataMode (true): show data in tables; visualMode (false): show data in charts
 
     if (getProjectLoading || getOntologyTreeLoading || getStudyFieldsLoading) {
         return <LoadSpinner />;
@@ -49,15 +52,15 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
             key: el.fieldId.toString()
         };
     });
-    headers.push({label: 'm_subjectId', key: 'm_subjectId'});
-    headers.push({label: 'm_visitId', key: 'm_visitId'});
+    headers.push({ label: 'm_subjectId', key: 'm_subjectId' });
+    headers.push({ label: 'm_visitId', key: 'm_visitId' });
 
     return <div className={css.tab_page_wrapper}>
         <Button type='primary' htmlType='submit' onClick={() => setIsDataSelectorShown(true)}>
-                Select Data
+            Select Data
         </Button>
-        <Switch checkedChildren='Data Mode' unCheckedChildren='Visual Mode' checked={viewMode} onChange={() => setViewMode(!viewMode)}/>
-        <br /><br/><br/>
+        <Switch checkedChildren='Data Mode' unCheckedChildren='Visual Mode' checked={viewMode} onChange={() => setViewMode(!viewMode)} />
+        <br /><br /><br />
         <Modal
             width='80%'
             visible={isDataSelectorShown}
@@ -71,7 +74,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                 </Subsection>
                 <div style={{ width: '50%', marginLeft: 'auto' }}>
                     <Subsection title='Filters'>
-                        {queryOptions.filters.length === 0 ? <p>No filters added.</p>:
+                        {queryOptions.filters.length === 0 ? <p>No filters added.</p> :
                             <Table
                                 rowKey={(rec) => rec.name.toString().concat(rec.op.toString()).concat(rec.value.toString())}
                                 columns={[
@@ -113,7 +116,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                                                     })
                                                 });
                                             }} >
-                                                    Delete
+                                                Delete
                                             </Button>
                                         ),
                                         width: '8rem',
@@ -143,14 +146,14 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                 let fieldKeysInQueryResult: any = {};
                 for (const subject in queryResult) {
                     for (const visit in queryResult[subject]) {
-                        fieldKeysInQueryResult = {...fieldKeysInQueryResult, ...queryResult[subject][visit]};
+                        fieldKeysInQueryResult = { ...fieldKeysInQueryResult, ...queryResult[subject][visit] };
                         dataInArray.push(queryResult[subject][visit]);
                     }
                 }
                 if (viewMode) {
                     for (const key in fieldKeysInQueryResult) {
                         let fieldName = '';
-                        for (let i=0; i<fieldsList.length; i++) {
+                        for (let i = 0; i < fieldsList.length; i++) {
                             if (key.toString() === fieldsList[i].fieldId.toString()) {
                                 fieldName = fieldsList[i].fieldName;
                             }
@@ -192,11 +195,11 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                                 dataSource={dataInArray.filter(el => el.m_visitId !== '0')}
                                 size='middle'
                             ></Table>
-                        </SubsectionWithComment><br/>
+                        </SubsectionWithComment><br />
                     </>;
                 } else {
                     // processing numberical data
-                    const fieldKeysInQueryResult = Object.keys(dataInArray.reduce(function(result, obj) {
+                    const fieldKeysInQueryResult = Object.keys(dataInArray.reduce(function (result, obj) {
                         return Object.assign(result, obj);
                     }, {}));
                     const idsOfNumbericalFields = getStudyFieldsData.getStudyFields.filter((el) => {
@@ -259,7 +262,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                         });
                     });
                     for (const fieldId in categoricalData) {
-                        for (let i=0; i<uniqueVisitIds.length; i++) {
+                        for (let i = 0; i < uniqueVisitIds.length; i++) {
                             for (const cat in categoricalData[fieldId][i]) {
                                 if (cat === 'name') {
                                     continue;
@@ -279,14 +282,14 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
                                             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                             <CartesianGrid strokeDasharray='3 3' />
                                             <XAxis dataKey='name' label={idsOfNumbericalFields.filter(es => es.fieldId === el)[0].fieldName} />
-                                            <YAxis domain={['auto', 'auto']} label={idsOfNumbericalFields.filter(es => es.fieldId === el)[0].unit}/>
+                                            <YAxis domain={['auto', 'auto']} label={idsOfNumbericalFields.filter(es => es.fieldId === el)[0].unit} />
                                             <Tooltip />
                                             <Legend />
                                             {
                                                 uniqueSubjectIds.map(es => <Line type='monotone' dataKey={es} stroke={randomStringToColor(es)} />)
                                             }
                                         </LineChart>
-                                        <br/><br/>
+                                        <br /><br />
                                     </>
                                 )
                             }
@@ -325,7 +328,7 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string; projectI
     </div>;
 };
 
-const FieldListSelectionStateProject: React.FunctionComponent<{ ontologyTree: any, fields: IFieldEntry[], checkedFields: any, onCheck: any, queryOptions: any }> = ({ ontologyTree, fields, checkedFields,onCheck, queryOptions }) => {
+const FieldListSelectionStateProject: React.FunctionComponent<{ ontologyTree: any, fields: IFieldEntry[], checkedFields: any, onCheck: any, queryOptions: any }> = ({ ontologyTree, fields, checkedFields, onCheck, queryOptions }) => {
     /* PRECONDITION: it is given (checked by parent component that fields at least have one key */
     return <FieldListSectionWithFilter ontologyTree={ontologyTree} checkable={true} fieldList={fields} onCheck={onCheck} checkedList={checkedFields} queryOptions={queryOptions} />;
 };
@@ -335,8 +338,8 @@ function constructQueryString(checkedList: any, fieldsList: any, filters: any, d
     // returned Fields
     // const returnedFields = []
     const returnedFields: any[] = [];
-    for (let i=0; i<checkedList.length; i++) {
-        for (let j=0; j<fieldsList.length; j++) {
+    for (let i = 0; i < checkedList.length; i++) {
+        for (let j = 0; j < fieldsList.length; j++) {
             if (checkedList[i] === fieldsList[j].id) {
                 returnedFields.push(fieldsList[j].fieldId);
             }
@@ -346,8 +349,8 @@ function constructQueryString(checkedList: any, fieldsList: any, filters: any, d
     returnedFields.push('m_visitId');
     // cohort
     const cohort: any[] = [];
-    for (let i=0; i<filters.length; i++) {
-        for (let j=0; j<fieldsList.length; j++) {
+    for (let i = 0; i < filters.length; i++) {
+        for (let j = 0; j < fieldsList.length; j++) {
             if (fieldsList[j].id === filters[i].field) {
                 cohort.push({
                     field: fieldsList[j].fieldId,
@@ -363,7 +366,7 @@ function constructQueryString(checkedList: any, fieldsList: any, filters: any, d
     return queryString;
 }
 
-function randomStringToColor (str: string) {
+function randomStringToColor(str: string) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);

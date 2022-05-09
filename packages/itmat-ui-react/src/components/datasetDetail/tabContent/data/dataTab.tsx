@@ -12,8 +12,10 @@ import css from './tabContent.module.css';
 // import { UploadNewData } from './uploadNewData';
 // import { UploadNewFields } from './uploadNewFields';
 import { Button, Form, Input, Switch, Modal, Table } from 'antd';
+import { useParams } from 'react-router-dom';
 
-export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const DataManagementTabContentFetch: React.FunctionComponent = () => {
+    const { studyId } = useParams();
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
     const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, {
@@ -35,7 +37,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent<{ studyId: s
     if (getStudyLoading || getStudyFieldsLoading || getDataRecordsLoading || whoAmILoading) {
         return <LoadSpinner />;
     }
-    if (getStudyError || getStudyFieldsError || getDataRecordsError || whoAmIError) {
+    if (!studyId || getStudyError || getStudyFieldsError || getDataRecordsError || whoAmIError) {
         return <p>
             A error occured, please contact your administrator
         </p>;

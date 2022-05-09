@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { NavLink, useHistory } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { GQLRequests, Models, CREATE_USER } from 'itmat-commons';
 import { Input, Form, Button, Alert, Checkbox, Select } from 'antd';
 import css from './login.module.css';
@@ -9,7 +9,7 @@ const {
 } = GQLRequests;
 
 export const RegisterNewUser: React.FunctionComponent = () => {
-    const history = useHistory();
+    const navigate = useNavigate();
     const [completedCreation, setCompletedCreation] = React.useState(false);
     const [createUser, { loading, error }] = useMutation(CREATE_USER,
         { onCompleted: () => setCompletedCreation(true) }
@@ -33,7 +33,7 @@ export const RegisterNewUser: React.FunctionComponent = () => {
                     </div>
                     <br />
                     <Button onClick={() => {
-                        history.push('/');
+                        navigate('/');
                     }}>
                         Go back to login
                     </Button>
@@ -97,7 +97,7 @@ export const RegisterNewUser: React.FunctionComponent = () => {
                         ) : null}
                         <Form.Item>
                             <Button onClick={() => {
-                                history.push('/');
+                                navigate('/');
                             }}>
                                 Cancel
                             </Button>

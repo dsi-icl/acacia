@@ -19,8 +19,7 @@ export const LogListSection: React.FunctionComponent = () => {
                 if (error) {
                     return (
                         <p>
-                            Error :(
-                            {error.message}
+                            Error {error.message}
                         </p>
                     );
                 }
@@ -286,7 +285,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                 columns={detailColumns}
                 dataSource={[formatActionData(verboseInfo)]}
                 size='small'
-                scroll={{x:true}}
+                scroll={{ x: true }}
             >
             </Table>
         </Modal>

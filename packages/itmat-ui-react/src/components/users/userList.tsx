@@ -1,7 +1,7 @@
 import { Models, GET_USERS } from 'itmat-commons';
 import React, { useState } from 'react';
 import { Query } from '@apollo/client/react/components';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import LoadSpinner from '../reusable/loadSpinner';
 import { Table, Input, Button, Tooltip } from 'antd';
 import { EditOutlined, WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
@@ -19,7 +19,7 @@ export const UserListSection: React.FunctionComponent = () => {
                 if (error) {
                     return (
                         <p>
-                            Error :(
+                            Error
                             {error.message}
                         </p>
                     );
@@ -35,7 +35,7 @@ export const UserListSection: React.FunctionComponent = () => {
 
 const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutToken[] }> = ({ users }) => {
 
-    const history = useHistory();
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState<string | undefined>();
 
     const columns = [
@@ -103,7 +103,7 @@ const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutT
         },
         {
             render: (__unused__value, record) => (
-                <Button icon={<EditOutlined />} onClick={() => { history.push(`/users/${record.id}`); }}>
+                <Button icon={<EditOutlined />} onClick={() => { navigate(`/users/${record.id}`); }}>
                     Edit
                 </Button>
             ),
@@ -118,7 +118,7 @@ const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutT
         <br />
         <Table rowKey={(rec) => rec.id} onRow={(record: Models.UserModels.IUserWithoutToken) => ({
             onClick: () => {
-                history.push(`/users/${record.id}`);
+                navigate(`/users/${record.id}`);
             },
             style: {
                 cursor: 'pointer'

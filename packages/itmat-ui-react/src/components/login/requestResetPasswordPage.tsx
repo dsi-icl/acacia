@@ -1,18 +1,16 @@
 import * as React from 'react';
 import GitInfo from 'react-git-info/macro';
 import { Mutation } from '@apollo/client/react/components';
-import { RouteComponentProps, NavLink, useHistory } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { GQLRequests } from 'itmat-commons';
 import css from './login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
 
 const gitInfo = GitInfo();
 
-type ResetPasswordPageProps = RouteComponentProps
+export const RequestResetPassword: React.FunctionComponent = () => {
 
-export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProps> = () => {
-
-    const history = useHistory();
+    const navigate = useNavigate();
     const [forgotUsername, setForgotUsername] = React.useState(false);
     const [requestCompleted, setRequestCompleted] = React.useState(false);
 
@@ -27,7 +25,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                     <p>The link will be active for 1 hour.</p>
                     <br />
                     <Button onClick={() => {
-                        history.push('/');
+                        navigate('/');
                     }}>
                         Go back to login
                     </Button>
@@ -75,7 +73,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                                     ) : null}
                                     <Form.Item>
                                         <Button onClick={() => {
-                                            history.push('/');
+                                            navigate('/');
                                         }}>
                                             Cancel
                                         </Button>

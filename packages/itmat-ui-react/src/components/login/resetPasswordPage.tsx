@@ -3,21 +3,17 @@ import GitInfo from 'react-git-info/macro';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
 import { GQLRequests } from 'itmat-commons';
-import { NavLink, RouteComponentProps, useHistory } from 'react-router-dom';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import css from '../login/login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
 import LoadSpinner from '../reusable/loadSpinner';
 
 const gitInfo = GitInfo();
 
-type ResetPasswordPageProps = RouteComponentProps<{
-    encryptedEmail: string;
-    token: string;
-}>
+export const ResetPasswordPage: React.FunctionComponent = () => {
 
-export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> = ({ match: { params: { encryptedEmail, token } } }) => {
-
-    const history = useHistory();
+    const { encryptedEmail, token } = useParams();
+    const navigate = useNavigate();
     const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);
     const { loading, error } = useQuery(GQLRequests.VALIDATE_RESET_PASSWORD, {
         variables: {
@@ -31,12 +27,12 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
             <div className={css.login_box}>
                 <h1>The link is invalid. Please make a new request.</h1>
                 <Button onClick={() => {
-                    history.push('/');
+                    navigate('/');
                 }}>
                     Go back to login
                 </Button>
                 <Button onClick={() => {
-                    history.push('/reset');
+                    navigate('/reset');
                 }}>
                     Make a new request
                 </Button>
@@ -56,7 +52,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                     </div>
                     <br />
                     <Button onClick={() => {
-                        history.push('/');
+                        navigate('/');
                     }}>
                         Go back to login
                     </Button>
@@ -113,7 +109,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                                     ) : null}
                                     <Form.Item>
                                         <Button onClick={() => {
-                                            history.push('/');
+                                            navigate('/');
                                         }}>
                                             Cancel
                                         </Button>

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Models, WHO_AM_I } from 'itmat-commons';
 import { Button, Table } from 'antd';
 import { ContainerOutlined } from '@ant-design/icons';
@@ -12,7 +12,7 @@ export const DatasetList: React.FunctionComponent = () => {
             query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <LoadSpinner />; }
-                if (error) { return <p>Error :( {error}</p>; }
+                if (error) { return <p><>Error {error}</></p>; }
                 if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.studies) {
                     const datasets = data.whoAmI.access.studies;
                     if (datasets.length > 0) {
@@ -28,7 +28,7 @@ export const DatasetList: React.FunctionComponent = () => {
 
 const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => {
 
-    const history = useHistory();
+    const navigate = useNavigate();
     const columns = [
         {
             title: 'Dataset name',
@@ -39,7 +39,7 @@ const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStud
                     width: '100%',
                     display: 'block',
                     overflow: 'hidden'
-                }} title={record.name} onClick={() => { history.push(`/datasets/${record.id}/files`); }}>
+                }} title={record.name} onClick={() => { navigate(`${record.id}`); }}>
                     {record.name}
                 </Button>);
             }

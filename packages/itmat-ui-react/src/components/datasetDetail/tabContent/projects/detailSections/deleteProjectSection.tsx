@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mutation } from '@apollo/client/react/components';
-import { Redirect } from 'react-router';
+import { Navigate } from 'react-router';
 import { WHO_AM_I, DELETE_PROJECT, GET_STUDY, IProject } from 'itmat-commons';
 
 export const DeleteProjectSection: React.FunctionComponent<{ studyId: string; projectId: string; projectName: string }> = ({ studyId, projectId, projectName }) => {
@@ -14,7 +14,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string; pr
     }
 
     if (deleted) {
-        return <Redirect to={`/datasets/${studyId}/projects/`} />;
+        return <Navigate to={`/datasets/${studyId}/projects/`} />;
     }
 
     return <>

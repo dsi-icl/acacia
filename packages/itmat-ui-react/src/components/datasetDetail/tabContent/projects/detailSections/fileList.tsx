@@ -23,7 +23,7 @@ export const GrantedFileListSelection: React.FunctionComponent<{ originalChecked
     return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data: fileData, error }) => {
             if (loading) { return <LoadSpinner />; }
-            if (error) { return <p>Error :( {JSON.stringify(error)}</p>; }
+            if (error) { return <p>Error {JSON.stringify(error)}</p>; }
 
             return <>
                 <Tree

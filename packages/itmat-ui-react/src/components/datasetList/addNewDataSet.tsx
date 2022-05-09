@@ -24,7 +24,7 @@ export const AddNewDataSet: React.FunctionComponent = () => {
         <Query<any, any> query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <p>Loading...</p>; }
-                if (error) { return <p>Error :( {error}</p>; }
+                if (error) { return <p><>Error {error}</></p>; }
                 if (data.whoAmI && data.whoAmI.type && data.whoAmI.type === userTypes.ADMIN) {
                     return (
                         !showMore ?

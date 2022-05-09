@@ -5,19 +5,20 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
 import { GET_STUDY, DELETE_STUDY, WHO_AM_I } from 'itmat-commons';
-import { RouteComponentProps } from 'react-router';
 import { Mutation, Query } from '@apollo/client/react/components';
-import { Redirect } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import { Button } from 'antd';
 
-type AdminTabContentProps = RouteComponentProps<{
-    studyId: string;
-}>;
+export const AdminTabContent: React.FunctionComponent = () => {
 
-export const AdminTabContent: React.FunctionComponent<AdminTabContentProps> = ({ match: { params: { studyId } } }) => {
+    const { studyId } = useParams();
     const [deleteButtonShown, setDeleteButtonShown] = React.useState(false);
     const { data, loading } = useQuery(GET_STUDY, { variables: { studyId } });
-    if (loading) { return <LoadSpinner />; }
+
+    if (!studyId)
+        return null;
+    if (loading)
+        return <LoadSpinner />;
 
     return (
         <div className={`${css.tab_page_wrapper_grid} fade_in`}>
@@ -44,7 +45,7 @@ export const AdminTabContent: React.FunctionComponent<AdminTabContentProps> = ({
 
                                     {(deleteStudy, { loading, error, data: StudyDeletedData }) => {
                                         if (StudyDeletedData && StudyDeletedData.deleteStudy && StudyDeletedData.deleteStudy.successful) {
-                                            return <Redirect to={'/datasets'} />;
+                                            return <Navigate to={'/datasets'} />;
                                         }
                                         if (error) return <p>{error.message}</p>;
                                         if (loading)

@@ -7,8 +7,8 @@ import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
 import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm } from 'antd';
 import moment from 'moment';
-import { RouteComponentProps } from 'react-router-dom';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
 
 const {
     WHO_AM_I,
@@ -19,11 +19,10 @@ const {
     GET_ORGANISATIONS
 } = GQLRequests;
 
-type UserDetailsSectionProps = RouteComponentProps<{
-    userId?: string;
-}>
+export const UserDetailsSection: React.FC = () => {
 
-export const UserDetailsSection: React.FC<UserDetailsSectionProps> = ({ match: { params: { userId } } }) => {
+    const { userId } = useParams();
+    console.log('PLOP', userId);
 
     const { loading, error, data } = useQuery(GET_USERS, {
         variables: {

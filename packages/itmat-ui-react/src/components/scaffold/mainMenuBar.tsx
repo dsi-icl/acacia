@@ -13,14 +13,14 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
     <div className={css.main_menubar}>
 
         <div>
-            <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title='Projects' activeClassName={css.clickedButton}>
+            <NavLink to={projects.length === 1 ? `/projects/${projects[0].id}` : '/projects'} title='Projects' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
                 <div className={css.button}><ProjectOutlined /> Projects</div>
             </NavLink>
         </div>
 
 
         <div>
-            <NavLink to='/datasets' title='Datasets' activeClassName={css.clickedButton}>
+            <NavLink to='/datasets' title='Datasets' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
                 <div className={css.button}><DatabaseOutlined /> Datasets</div>
             </NavLink>
         </div>
@@ -32,13 +32,13 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
                     return (
                         <>
                             <div>
-                                <NavLink to='/users' title='Users' activeClassName={css.clickedButton}>
+                                <NavLink to='/users' title='Users' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
                                     <div className={css.button}><TeamOutlined /> Users</div>
                                 </NavLink>
                             </div>
 
                             <div>
-                                <NavLink to='/logs' title='Logs' activeClassName={css.clickedButton}>
+                                <NavLink to='/logs' title='Logs' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
                                     <div className={css.button}><HistoryOutlined /> Logs</div>
                                 </NavLink>
                             </div>
@@ -49,20 +49,20 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
         </Query>
         {/*
         <div>
-            <NavLink to="/notifications" title="Notifications" activeClassName={css.clickedButton}>
+            <NavLink to="/notifications" title="Notifications" className={({isActive}) => isActive ? css.clickedButton : undefined}>
                 <div className={css.button}><BellOutlined /></div>
             </NavLink>
         </div>
 
         <div>
-            <NavLink to="/settings" title="Settings" activeClassName={css.clickedButton}>
+            <NavLink to="/settings" title="Settings" className={({isActive}) => isActive ? css.clickedButton : undefined}>
                 <div className={css.button}><SettingOutlined /></div>
             </NavLink>
         </div>
         */}
 
         <div>
-            <NavLink to='/profile' title='My account' activeClassName={css.clickedButton}>
+            <NavLink to='/profile' title='My account' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
                 <div className={css.button}><SettingOutlined />My account</div>
             </NavLink>
         </div>
