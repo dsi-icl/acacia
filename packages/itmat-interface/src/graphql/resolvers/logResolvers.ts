@@ -24,6 +24,7 @@ export const logResolvers = {
             for (const i in logData) {
                 logData[i].actionData = JSON.stringify(await logDecorationHelper(logData[i].actionData, logData[i].actionType));
             }
+
             return logData;
         }
     }
@@ -36,7 +37,7 @@ export const hiddenFields = {
 };
 
 async function logDecorationHelper(actionData: any, actionType: string) {
-    const obj = JSON.parse(actionData);
+    const obj = JSON.parse(actionData) ?? {};
     if (Object.keys(hiddenFields).includes(actionType)) {
         for (let i = 0; i < hiddenFields[actionType].length; i++) {
             delete obj[hiddenFields[actionType][i]];
