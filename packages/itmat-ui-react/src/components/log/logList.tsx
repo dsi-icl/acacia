@@ -57,7 +57,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
         return { keyList: keysMap, valueList: valuesMap };
     }
     /* time offset, when filter by time, adjust all date to utc time */
-    const timeOffset = moment().zone() /* minutes */ * 60 /* seconds */ * 1000 /* to UNIX millisec */;
+    const timeOffset = moment().utcOffset() /* minutes */ * 60 /* seconds */ * 1000 /* to UNIX millisec */;
 
     const inputControl = (property: string) => ({
         value: inputs[property],
