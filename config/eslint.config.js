@@ -30,7 +30,10 @@ var defaultRules = {
     'indent': [
         'error',
         4,
-        { SwitchCase: 1 }
+        {
+            SwitchCase: 1,
+            ignoredNodes: ['VariableDeclaration[declarations.length=0]']
+        }
     ],
     'eol-last': [
         'error',
