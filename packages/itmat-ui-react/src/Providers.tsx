@@ -4,7 +4,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { client } from './components/apolloClient';
 
-const Providers: React.FunctionComponent = ({ children }) => (
+const Providers: React.FunctionComponent<React.PropsWithChildren<unknown>> = ({ children }) => (
     <ApolloProvider client={client}>
         <HelmetProvider>
             <Router>
