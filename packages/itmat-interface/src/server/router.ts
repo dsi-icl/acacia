@@ -10,6 +10,7 @@ import cors from 'cors';
 import express from 'express';
 import { Express } from 'express';
 import session from 'express-session';
+import rateLimit from 'express-rate-limit';
 import http from 'http';
 import passport from 'passport';
 // import { db } from '../database/database';
@@ -30,7 +31,13 @@ export class Router {
     private readonly server: http.Server;
 
     constructor(config: IConfiguration) {
+
         this.app = express();
+
+        this.app.use(rateLimit({
+            windowMs: 1 * 60 * 1000,
+            max: 500
+        }));
 
         if (process.env.NODE_ENV === 'development')
             this.app.use(cors({ credentials: true }));
