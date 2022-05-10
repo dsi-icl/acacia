@@ -168,7 +168,7 @@ export class Router {
         // AE redirect uri proxy
         const ae_proxy_preprocessor = (req, res, next) => {
             if (!req.user)
-                return res.status(403).json({ error: 'Unauthorized' });
+                return res.status(403).redirect('/');
             res.cookie('ae_proxy', req.headers['host']);
             next();
         };
