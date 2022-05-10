@@ -25,6 +25,7 @@
         "module": "esnext",
         "target": "es5",
         "sourceMap": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "forceConsistentCasingInFileNames": true
     }
 }
