@@ -167,11 +167,13 @@ export class Router {
 
         // AE redirect uri proxy
         const ae_proxy_preprocessor = (req, res, next) => {
+            if (!req.user)
+                return res.status(403).json({ error: 'Unauthorized' });
             res.cookie('ae_proxy', req.headers['host']);
             next();
         };
         const ae_proxy = createProxyMiddleware({
-            target: config.ae_endpoint,
+            target: config.aeEndpoint,
             changeOrigin: true,
             xfwd: true,
             headers: { authorization: `Basic ${Buffer.from('kai:token').toString('base64')}` }
