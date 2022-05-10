@@ -37,5 +37,6 @@
     "nodemailer": {
         "auth": {}
     },
-    "adminEmail": "admin_wp5@ideafast.eu"
+    "adminEmail": "admin_wp5@ideafast.eu",
+    "aeEndpoint": "http://localhost:9090"
 }
