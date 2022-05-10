@@ -22,7 +22,6 @@ const {
 export const UserDetailsSection: React.FC = () => {
 
     const { userId } = useParams();
-    console.log('PLOP', userId);
 
     const { loading, error, data } = useQuery(GET_USERS, {
         variables: {
