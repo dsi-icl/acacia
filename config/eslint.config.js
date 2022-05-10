@@ -18,8 +18,8 @@ var defaultPlugins = [
 
 var javascriptExtensions = [
     'eslint:recommended',
-    'react-app',
-    'react-app/jest'
+    'react-app'
+    // 'react-app/jest'
 ];
 
 var typescriptExtensions = javascriptExtensions.concat([
