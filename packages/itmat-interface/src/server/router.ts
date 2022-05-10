@@ -23,7 +23,7 @@ import { spaceFixing } from '../utils/regrex';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
-// const MongoStore = connectMongo(session);
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 export class Router {
     private readonly app: Express;
@@ -165,6 +165,18 @@ export class Router {
 
         this.app.get('/file/:fileId', fileDownloadController);
 
+        // AE redirect uri proxy
+        const ae_proxy_preprocessor = (req, res, next) => {
+            res.cookie('ae_proxy', req.headers['host']);
+            next();
+        };
+        const ae_proxy = createProxyMiddleware({
+            target: config.ae_endpoint,
+            changeOrigin: true,
+            xfwd: true,
+            headers: { authorization: `Basic ${Buffer.from('kai:token').toString('base64')}` }
+        });
+        this.app.use('/pun', ae_proxy_preprocessor, ae_proxy);
     }
 
     public getApp(): Express {

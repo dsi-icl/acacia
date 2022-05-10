@@ -23,4 +23,15 @@ module.exports = function (app) {
             changeOrigin: true
         })
     );
+    app.use(
+        '/pun',
+        createProxyMiddleware({
+            target: {
+                protocol: 'http',
+                host: 'localhost',
+                port: 3003
+            },
+            changeOrigin: true
+        })
+    );
 };
