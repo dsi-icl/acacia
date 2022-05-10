@@ -14,7 +14,7 @@
         "build": "yarn run clean && yarn run compile",
         "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
         "lint": "eslint --ext .js --ext .ts ./",
-        "lint:fix": "eslint --ext .js --ext .ts --fix ./",
+        "lint-fix": "eslint --ext .js --ext .ts --fix ./",
         "clean": "rimraf -rf ./build",
         "compile": "webpack --config ./config/webpack.config.js",
         "prepublishOnly": "yarn run build"

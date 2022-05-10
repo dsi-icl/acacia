@@ -14,7 +14,7 @@
         "start": "tsc -p ./tsconfig.build.json -w --preserveWatchOutput",
         "test": "jest --color --coverage --runInBand --verbose --forceExit --detectOpenHandles",
         "lint": "eslint --ext .jsx --ext .js --ext .ts ./",
-        "lint:fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./",
+        "lint-fix": "eslint --ext .jsx --ext .js --ext .ts --fix ./",
         "clean": "rimraf -rf ./dist",
         "compile": "tsc -p ./tsconfig.build.json",
         "prepublishOnly": "yarn run build"

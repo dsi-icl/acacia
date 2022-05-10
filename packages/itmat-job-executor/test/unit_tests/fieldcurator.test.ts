@@ -119,11 +119,11 @@ describe('FieldCuratorClass', () => {
         this.initializeUnorderedBulkOp = () => this._bulkinsert;
     }
 
-    it('test mongostub', () => {
+    it('test mongostub', async () => {
         const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({});
         bulkinsert.insert({});
-        bulkinsert.execute().then(() => {
+        return bulkinsert.execute().then(() => {
             bulkinsert.insert({});
             return bulkinsert.execute();
         }).then(() => {

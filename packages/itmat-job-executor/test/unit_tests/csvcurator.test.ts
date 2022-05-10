@@ -225,7 +225,7 @@ describe('Unit tests for processDataRow function', () => {
         });
     });
 
-    it('processDataRow function deals with missing subject id correctly', () => {
+    it('processDataRow function deals with missing visit id correctly', () => {
         const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['0', 'I7N3G6G', '', '1', 'description', 60.2] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
@@ -340,7 +340,7 @@ describe('CSVCuratorClass', () => {
         const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({ a: 1 });
         bulkinsert.insert({ b: 2 });
-        bulkinsert.execute().then(() => {
+        return bulkinsert.execute().then(() => {
             bulkinsert.find({ c: 3 }).upsert().updateOne({ $set: { c: 4 } });
             return bulkinsert.execute();
         }).then(() => {
@@ -353,7 +353,7 @@ describe('CSVCuratorClass', () => {
         const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({ a: 1 });
         bulkinsert.insert({ b: 2 });
-        bulkinsert.execute().then(() => {
+        return bulkinsert.execute().then(() => {
             bulkinsert.find({ b: 2 }).upsert().updateOne({ $set: { d: 4 } });
             return bulkinsert.execute();
         }).then(() => {
