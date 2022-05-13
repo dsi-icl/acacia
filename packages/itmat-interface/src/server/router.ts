@@ -24,6 +24,7 @@ import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import {IUser} from "itmat-commons";
 
 export class Router {
     private readonly app: Express;
@@ -176,7 +177,10 @@ export class Router {
             target: config.aeEndpoint,
             changeOrigin: true,
             xfwd: true,
-            headers: { authorization: `Basic ${Buffer.from('kai:token').toString('base64')}` }
+            onProxyReq: function (preq, req:any){
+                const data = req.user.username + ':token';
+                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+            }
         });
         this.app.use('/pun', ae_proxy_preprocessor, ae_proxy);
     }
