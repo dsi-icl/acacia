@@ -25,7 +25,7 @@ import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import {IUser} from "itmat-commons";
+
 
 export class Router {
     private readonly app: Express;
@@ -173,23 +173,19 @@ export class Router {
 
         this.app.get('/file/:fileId', fileDownloadController);
 
-        // AE redirect uri proxy
-        const ae_proxy_preprocessor = (req, res, next) => {
-            if (!req.user)
-                return res.status(403).redirect('/');
-            res.cookie('ae_proxy', req.headers['host']);
-            next();
-        };
         const ae_proxy = createProxyMiddleware({
             target: config.aeEndpoint,
             changeOrigin: true,
             xfwd: true,
-            onProxyReq: function (preq, req:any){
+            onProxyReq: function (preq, req:any, res){
+                if (!req.user)
+                    return res.status(403).redirect('/');
+                res.cookie('ae_proxy', req.headers['host']);
                 const data = req.user.username + ':token';
                 preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
             }
         });
-        this.app.use('/pun', ae_proxy_preprocessor, ae_proxy);
+        this.app.use('/pun', ae_proxy);
     }
 
     public getApp(): Express {
