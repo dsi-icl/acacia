@@ -6,7 +6,7 @@ const { print } = require('graphql');
 const { v4: uuid } = require('uuid');
 
 describe('File upload page', function () {
-    it('Admin can load data from a selected file', function () {
+    it('Admin can load data from a selected file', async () => {
         cy.fixture('CSVCurator.tsv').as('file');
 
         /* setup: login via API */
@@ -14,7 +14,7 @@ describe('File upload page', function () {
 
         /* setup: create a study via API */
         const createStudyInput = { name: uuid(), description: 'test description', type: studyType.SENSOR };
-        cy.request('POST', 'http://localhost:3003/graphql',
+        return cy.request('POST', 'http://localhost:3003/graphql',
             { query: print(CREATE_STUDY), variables: createStudyInput }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;
@@ -72,7 +72,7 @@ describe('File upload page', function () {
         });
     });
 
-    it.only('Admin loads data; the app displays any error in data format', function () {
+    it.only('Admin loads data; the app displays any error in data format', async () => {
         cy.fixture('CSVCurator_error5.tsv').as('file');
 
         /* setup: login via API */
@@ -80,7 +80,7 @@ describe('File upload page', function () {
 
         /* setup: create a study via API */
         const createStudyInput = { name: uuid(), description: 'test description', type: studyType.SENSOR };
-        cy.request('POST', 'http://localhost:3003/graphql',
+        return cy.request('POST', 'http://localhost:3003/graphql',
             { query: print(CREATE_STUDY), variables: createStudyInput }
         ).then(res => {
             const createdStudyId = res.body.data.createStudy.id;

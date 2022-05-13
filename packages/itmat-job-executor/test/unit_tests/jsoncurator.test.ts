@@ -221,7 +221,7 @@ describe('Unit tests for processEachSubject function', () => {
         });
     });
 
-    it('processEachSubject function deals with missing subject id correctly', () => {
+    it('processEachSubject function deals with missing visit id correctly', () => {
         const { error, dataEntry } = processEachSubject(stub<any>({ ...templateParams, subject: ['0', 'I7N3G6G', '', 0, 'description', 60.2] }));
         expect(error).toBeDefined();
         expect(error).toHaveLength(1);
@@ -334,7 +334,7 @@ describe('JSONCuratorClass', () => {
         const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({ a: 1 });
         bulkinsert.insert({ b: 2 });
-        bulkinsert.execute().then(() => {
+        return bulkinsert.execute().then(() => {
             bulkinsert.find({ c: 3 }).upsert().updateOne({ $set: { c: 4 } });
             return bulkinsert.execute();
         }).then(() => {
@@ -347,7 +347,7 @@ describe('JSONCuratorClass', () => {
         const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
         bulkinsert.insert({ a: 1 });
         bulkinsert.insert({ b: 2 });
-        bulkinsert.execute().then(() => {
+        return bulkinsert.execute().then(() => {
             bulkinsert.find({ b: 2 }).upsert().updateOne({ $set: { d: 4 } });
             return bulkinsert.execute();
         }).then(() => {
