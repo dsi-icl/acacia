@@ -32,16 +32,22 @@ export interface IStudyDataVersion {
     updateDate: string;
 }
 
-
-export interface IRole {
+interface IRoleBase {
     id: string;
     projectId?: string;
     studyId: string;
     name: string;
     permissions: string[];
-    users: IUser[];
     createdBy: string;
     deleted: number | null;
+}
+
+export interface IRole extends IRoleBase {
+    users: string[];
+}
+
+export interface IRoleQL extends IRoleBase {
+    users: IUser[];
 }
 
 export interface IProject {

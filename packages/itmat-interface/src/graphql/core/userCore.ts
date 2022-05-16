@@ -63,7 +63,7 @@ export class UserCore {
                     users: userId
                 },
                 {
-                    $pull: { users: { id: userId } }
+                    $pull: { users: { _id: userId } }
                 }
             );
 

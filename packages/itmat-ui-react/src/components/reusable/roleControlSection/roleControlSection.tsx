@@ -21,7 +21,7 @@ import { LoadingOutlined, TagOutlined, PlusOutlined, DeleteOutlined } from '@ant
 type RoleControlSectionProps = {
     studyId: string;
     projectId?: string;
-    roles: Models.Study.IRole[];
+    roles: Models.Study.IRoleQL[];
 }
 
 export const RoleControlSection: React.FunctionComponent<RoleControlSectionProps> = ({
@@ -50,7 +50,7 @@ export const RoleControlSection: React.FunctionComponent<RoleControlSectionProps
 export default RoleControlSection;
 
 type RoleDescriptorProps = {
-    role: Models.Study.IRole;
+    role: Models.Study.IRoleQL;
     availablePermissions: string[];
 }
 
