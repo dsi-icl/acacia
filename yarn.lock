@@ -1856,14 +1856,14 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nrwl/cli@14.1.4":
-  version "14.1.4"
-  resolved "https://registry.yarnpkg.com/@nrwl/cli/-/cli-14.1.4.tgz#4d896bbfcb49f058711dd47a67c422297db03be9"
-  integrity sha512-XjJe/bnOKDYvvY9IxKdETWTGekRu/cN9wThwwlo8xo4Tqy1VK0MfqpDDALrFYp739NG5Zyuhtbz5+Ko48RK75g==
+"@nrwl/cli@14.1.5":
+  version "14.1.5"
+  resolved "https://registry.yarnpkg.com/@nrwl/cli/-/cli-14.1.5.tgz#f36cef3abed7623521bedfff7c38dc58eff86d6c"
+  integrity sha512-TGMZykGuu2FbGqY+Xj9tDoTNVzBeccIDnG6ofsnVLem5horZGB8OoRFgXXszfnCXebJeYw8WgqHO7F0fqw3ssA==
   dependencies:
-    nx "14.1.4"
+    nx "14.1.5"
 
-"@nrwl/nx-cloud@latest":
+"@nrwl/nx-cloud@14.0.3":
   version "14.0.3"
   resolved "https://registry.yarnpkg.com/@nrwl/nx-cloud/-/nx-cloud-14.0.3.tgz#fda3d75274ca6e8f4a6f469b294a4b65b54bdc28"
   integrity sha512-08t9vnRzA5SAkG6gp+NrAGauraepHH0v4IByO4NQ+7JJ7JMWw0nt6fp/70wofRmem7MGQ+Y/AIgIc5T0m89k+w==
@@ -1874,12 +1874,12 @@
     strip-json-comments "^3.1.1"
     tar "6.1.11"
 
-"@nrwl/tao@14.1.4":
-  version "14.1.4"
-  resolved "https://registry.yarnpkg.com/@nrwl/tao/-/tao-14.1.4.tgz#20902811c5712732d2944a8e0c4cde031e631694"
-  integrity sha512-Dk8/CM1/GTCYBuA5RJ59Vz1OJGK3Tf4KVE3QS7UpEkR/iWTPDmTtrcQmTLSgtX+tYgca5dMWHV9WfiJjKW2/ow==
+"@nrwl/tao@14.1.5":
+  version "14.1.5"
+  resolved "https://registry.yarnpkg.com/@nrwl/tao/-/tao-14.1.5.tgz#6b706f304a3479af2e8553493f68f46edb2ae851"
+  integrity sha512-C30aBxnAJ/0r5uBl8hQKsfllGb+jtMl9sLKStHwP4WEpIO9A8NelL/bGXEKXUiTQ8zFOZmCeHMo0VPfb/xePEg==
   dependencies:
-    nx "14.1.4"
+    nx "14.1.5"
 
 "@parcel/watcher@2.0.4":
   version "2.0.4"
@@ -7363,7 +7363,7 @@ fs-constants@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
   integrity sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==
 
-fs-extra@10.1.0, fs-extra@^10.0.0:
+fs-extra@10.1.0, fs-extra@^10.0.0, fs-extra@^10.1.0:
   version "10.1.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.1.0.tgz#02873cfbc4084dde127eaa5f9905eef2325d1abf"
   integrity sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==
@@ -10326,13 +10326,13 @@ nwsapi@^2.2.0:
   resolved "https://registry.yarnpkg.com/nwsapi/-/nwsapi-2.2.0.tgz#204879a9e3d068ff2a55139c2c772780681a38b7"
   integrity sha512-h2AatdwYH+JHiZpv7pt/gSX1XoRGb7L/qSIeuqA6GwYoF9w1vP1cw42TO0aI2pNyshRK5893hNSl+1//vHK7hQ==
 
-nx@14.1.4:
-  version "14.1.4"
-  resolved "https://registry.yarnpkg.com/nx/-/nx-14.1.4.tgz#83bfb7564604eb26a78b3f5718cb2f90faeaaf4f"
-  integrity sha512-cYULObHKIbDbvxUnxn0tVbBlM8Vzg2u9sZYpmL6TEVF/Xbj3PQi8oyazc2/dU5Qw319lqMJcZonG2ihv9yEGKg==
+nx@14.1.5:
+  version "14.1.5"
+  resolved "https://registry.yarnpkg.com/nx/-/nx-14.1.5.tgz#100fbe9881b30a7eecdc6cc65f7faed29113b986"
+  integrity sha512-fbafloyQV8kaoLR+cV5XadXga7WxWbtQ9wwvQ26cAtv1mOj+HjF9bTgQAFvxquiyoDgr3ZwFIeLOcQPwxAQvxw==
   dependencies:
-    "@nrwl/cli" "14.1.4"
-    "@nrwl/tao" "14.1.4"
+    "@nrwl/cli" "14.1.5"
+    "@nrwl/tao" "14.1.5"
     "@parcel/watcher" "2.0.4"
     "@swc-node/register" "^1.4.2"
     "@swc/core" "^1.2.173"
@@ -10346,7 +10346,7 @@ nx@14.1.4:
     fast-glob "3.2.7"
     figures "3.2.0"
     flat "^5.0.2"
-    fs-extra "^9.1.0"
+    fs-extra "^10.1.0"
     glob "7.1.4"
     ignore "^5.0.4"
     jsonc-parser "3.0.0"
