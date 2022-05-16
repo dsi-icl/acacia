@@ -5,7 +5,7 @@ import { RoleControlSection } from '../../../reusable/roleControlSection/roleCon
 import css from './tabContent.module.css';
 import { useParams } from 'react-router-dom';
 
-export const AdminTabContent: React.FunctionComponent<{ studyId: string; roles: Models.Study.IRole[] }> = ({ roles, studyId }) => {
+export const AdminTabContent: React.FunctionComponent<{ studyId: string; roles: Models.Study.IRoleQL[] }> = ({ roles, studyId }) => {
     const { projectId } = useParams();
     if (!studyId || !projectId)
         return null;
