@@ -116,7 +116,7 @@ export const fileResolvers = {
                                     id: uuid(),
                                     fileName: matcher.test(file.filename)
                                         ? file.filename :
-                                        `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}}`,
+                                        `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}`,
                                     studyId: args.studyId,
                                     fileSize: readBytes.toString(),
                                     description: args.description,
