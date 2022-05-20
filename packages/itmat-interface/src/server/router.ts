@@ -25,6 +25,7 @@ import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import qs from 'qs';
 
 
 export class Router {
@@ -183,9 +184,20 @@ export class Router {
                 res.cookie('ae_proxy', req.headers['host']);
                 const data = req.user.username + ':token';
                 preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+                if (req.method == 'POST' && req.body) {
+                    const body:string = qs.stringify(req.body);
+                    delete req.body;
+                    preq.setHeader('content-type', 'application/x-www-form-urlencoded');
+                    preq.setHeader('content-length', body.length);
+                    preq.write(body);
+                    preq.end();
+                }
             }
         });
+
         this.app.use('/pun', ae_proxy);
+        this.app.use('/node', ae_proxy);
+        this.app.use('/rnode', ae_proxy);
     }
 
     public getApp(): Express {
