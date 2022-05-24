@@ -56,11 +56,11 @@ jobs:
 
       - name: Building packages
         run: |
-          yarn run nx affected --target=build --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }}
+          yarn run nx affected --target=build --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }} --parallel=1
 
       - name: Running unit tests
         run: |
-          yarn run nx affected --target=test --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }}
+          yarn run nx affected --target=test --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }} --parallel=1
         env:
           CI: true
 
