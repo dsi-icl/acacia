@@ -7,7 +7,7 @@ export const App: React.FunctionComponent = () => {
 
     return <Providers>
         <Helmet>
-            <title>{process.env.REACT_APP_NAME ?? 'Data Portal'}</title>
+            <title>{process.env.REACT_APP_NAME ?? 'Data Management Portal'}</title>
         </Helmet>
         <Fence />
     </Providers>;
