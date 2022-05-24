@@ -1,6 +1,4 @@
-
 // eslint:disable: no-console
-import { Express } from 'express';
 import { Socket } from 'net';
 import os from 'os';
 import http from 'http';
@@ -12,13 +10,15 @@ let interfaceServer = new ITMATInterfaceServer(config);
 let interfaceSockets: Socket[] = [];
 let interfaceSocket: http.Server;
 let interfaceRouter;
+let interfaceRouterProxy;
 
 function serverStart() {
     console.info(`Starting server ${interfaceIteration++} ...`);
-    interfaceServer.start().then((itmatRouter: Express) => {
+    interfaceServer.start().then((itmatRouter) => {
 
-        interfaceRouter = itmatRouter;
-        interfaceSocket = itmatRouter.listen(config.server.port, () => {
+        interfaceRouter = itmatRouter.getApp();
+        interfaceRouterProxy = itmatRouter.getProxy();
+        interfaceSocket = interfaceRouter.listen(config.server.port, () => {
             console.info(`Listening at http://${os.hostname()}:${config.server.port}/`);
         })
             .on('connection', (socket) => {
@@ -29,7 +29,8 @@ function serverStart() {
                     console.error('An error occurred while starting the HTTP server.', error);
                     return;
                 }
-            });
+            })
+            .on('upgrade', interfaceRouterProxy.upgrade);
 
     }).catch((error) => {
         console.error('An error occurred while starting the ITMAT core.', error);

@@ -24,13 +24,15 @@ import { spaceFixing } from '../utils/regrex';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
+import { IUser } from 'itmat-commons';
 
 
 export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
+    public readonly proxies: Array<RequestHandler> = [];
 
     constructor(config: IConfiguration) {
 
@@ -177,23 +179,34 @@ export class Router {
         const ae_proxy = createProxyMiddleware({
             target: config.aeEndpoint,
             changeOrigin: true,
+            ws: true,
             xfwd: true,
-            onProxyReq: function (preq, req:any, res){
+            logLevel: 'debug',
+            autoRewrite: true,
+            onProxyReq: function (preq, req, res) {
                 if (!req.user)
                     return res.status(403).redirect('/');
                 res.cookie('ae_proxy', req.headers['host']);
-                const data = req.user.username + ':token';
+                const data = (req.user as IUser).username + ':token';
                 preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
                 if (req.method == 'POST' && req.body) {
-                    const body:string = qs.stringify(req.body);
+                    const body: string = qs.stringify(req.body);
                     delete req.body;
                     preq.setHeader('content-type', 'application/x-www-form-urlencoded');
                     preq.setHeader('content-length', body.length);
                     preq.write(body);
                     preq.end();
                 }
+            },
+            onProxyReqWs: function (preq) {
+                preq.setHeader('authorization', `Basic ${Buffer.from('admin:token').toString('base64')}`);
+            },
+            onError: function (err, req, res, target) {
+                console.error(err, target);
             }
         });
+
+        this.proxies.push(ae_proxy);
 
         this.app.use('/pun', ae_proxy);
         this.app.use('/node', ae_proxy);
@@ -202,6 +215,10 @@ export class Router {
 
     public getApp(): Express {
         return this.app;
+    }
+
+    public getProxy(): RequestHandler {
+        return this.proxies[0];
     }
 
     public getServer(): http.Server {
