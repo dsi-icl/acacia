@@ -20,7 +20,10 @@ Promise.all([
 
     routers.forEach((router) => {
         // Linking itmat's router on /api
-        root.use('/', router);
+        if (router.hasOwnProperty('proxies'))
+            root.use('/', router.getApp());
+        else
+            root.use('/', router);
     });
 
     // Binding static resources folder
