@@ -15,7 +15,8 @@
             "roles_collection": "ROLE_COLLECTION",
             "field_dictionary_collection": "FIELD_COLLECTION",
             "files_collection": "FILES_COLLECTION",
-            "pubkeys_collection": "PUBKEY_COLLECTION"
+            "pubkeys_collection": "PUBKEY_COLLECTION",
+            "standardizations_collection": "STANDARDIZATION_COLLECTION"
         }
     },
     "server": {

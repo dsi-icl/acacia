@@ -81,6 +81,12 @@ const collections = {
             { key: { id: 1 }, unique: true },
             { key: { pubkey: 1 }, unique: true },
         ]
+    },
+    standardizations_collection: {
+        name: 'STANDARDIZATION_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true }
+        ]
     }
 };
 

@@ -6,18 +6,30 @@
 
 .scaffold_wrapper {
     display: grid;
-    grid-template-columns: 35% 65%;
-    grid-template-rows: 100%;
+    grid-template-columns: 33% 33% 33%;
+    grid-template-rows: 50% 50%;
     height: 100%;
-    grid-template-areas: "leftPanel rightPanel"
+    grid-row-gap: 10em;
+    grid-column-gap: 1em;
+    grid-template-areas: 
+        "a a b"
+        "c d d"
+        "e e f"
 }
 
-.left_panel {
-    grid-area: leftPanel;
-    border-right: 1px solid rgb(77, 77, 77);
-    padding-right: 1rem;
+.b {
+    display: grid;
+    grid-area: b;
+    grid-template-columns: 33% 33% 33%;
+    grid-template-rows: 25% 25% 25%;
 }
 
-.right_panel {
-    grid-area: rightPanel;
+.b11 {
+    grid-column: 1 / 2;
+    grid-row: 1;
+}
+
+.b12 {
+    grid-column: 3;
+    grid-row: 1;
 }

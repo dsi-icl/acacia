@@ -11,13 +11,14 @@
     overflow: auto;
 }
 
-.data_management_section {
+.field_management_section {
     display: grid;
-    grid-template-columns: 50% 50%;
-    grid-template-rows: 0.1fr 6fr;
+    grid-template-columns: 100%;
+    grid-template-rows: auto;
     grid-template-areas: 
-    "versions versions"
-    "leftPanel rightPanel"
+    "a a"
+    "left right"
+    "c d"
 }
 
 .left_panel {
@@ -58,7 +59,7 @@
     display: grid;
     grid-template-columns: 30% 5% 30% 5% 30%;
     /* grid-template-rows: 150px 150px; */
-    grid-template-areas: "patients empty1 records empty2 empty3"                        
+    grid-template-areas: "patients empty1 records empty2 unversioned"                        
                         "version empty1  tag empty2 empty3"
                         "date date date empty5 dummy"
                         "filename filename filename filename filename";
@@ -129,7 +130,6 @@
 
 }
 
-
 .switchButton {
     display: inline-block;
     width: 3rem;
@@ -142,4 +142,8 @@
 
 .infocircle {
     height: 1rem;
+}
+
+.ant-table table {
+    font-size: 16px;
 }

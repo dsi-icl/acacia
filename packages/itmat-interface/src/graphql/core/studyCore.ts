@@ -58,7 +58,8 @@ export class StudyCore {
             dataVersions: [],
             deleted: null,
             description: description,
-            type: type
+            type: type,
+            ontologyTrees: []
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;
@@ -262,7 +263,6 @@ export class StudyCore {
     public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
         const project: IProject = {
             id: uuid(),
-            dataVersion: null,
             studyId,
             createdBy: requestedBy,
             name: projectName,
