@@ -198,7 +198,7 @@ export class Router {
                     preq.end();
                 }
             },
-            onProxyReqWs: function (preq, req) {
+            onProxyReqWs: function (preq) {
                 const data = 'username:token';
                 preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
             },
