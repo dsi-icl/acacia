@@ -44,4 +44,13 @@ module.exports = function (app) {
             ws: true
         })
     );
+    app.use(
+        '/public',
+        createProxyMiddleware({
+            target: API_SERVER,
+            changeOrigin: true,
+            autoRewrite: true,
+            ws: true
+        })
+    );
 };

@@ -209,9 +209,16 @@ export class Router {
 
         this.proxies.push(ae_proxy);
 
-        this.app.use('/pun', ae_proxy);
-        this.app.use('/node', ae_proxy);
-        this.app.use('/rnode', ae_proxy);
+        /* AE routers */
+        // pun for AE portal
+        // node and rnode for AE application
+        // public for public resource like favicon and logo
+        const proxy_routers = ['/pun', '/node', '/rnode', '/public'];
+
+        proxy_routers.forEach(router=>{
+            this.app.use(router, ae_proxy);
+        });
+
     }
 
     public getApp(): Express {
