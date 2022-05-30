@@ -8027,10 +8027,10 @@ expect@^27.5.1:
     jest-matcher-utils "^27.5.1"
     jest-message-util "^27.5.1"
 
-export-from-json@1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/export-from-json/-/export-from-json-1.4.0.tgz#b2131045368f3d33b548d91f72518a57719713ef"
-  integrity sha512-YxgwKkaWU6Ox18AqicgZJ7aB9twSo9KAxraoXcoecxaw68W8npO0LGjbQPQDCY8dCZDD+zj3Es6thA0o4U5QMg==
+export-from-json@1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/export-from-json/-/export-from-json-1.6.0.tgz#4a79ba2f6f6aacd1d0e843a40f55009f603614a4"
+  integrity sha512-DLHwOGYeGnATM6tOMOWgs9dbzCjO+DwO3YGaha2R6kmLCE5iL8dz5sOywWeJs4P1rhxpdaVILKhCB4mUrTbbGg==
 
 express-rate-limit@6.4.0:
   version "6.4.0"
