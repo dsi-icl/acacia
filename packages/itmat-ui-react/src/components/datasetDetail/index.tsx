@@ -4,7 +4,7 @@ import { NavLink, Route, Routes, useParams, Navigate } from 'react-router-dom';
 import { GET_STUDY, WHO_AM_I, userTypes, studyType } from 'itmat-commons';
 import LoadSpinner from '../reusable/loadSpinner';
 import css from './projectPage.module.css';
-import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent } from './tabContent';
+import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent, FieldManagementTabContentFetch } from './tabContent';
 import { FileRepositoryTabContent } from './tabContent/files/fileTab';
 
 export const DatasetDetailPage: React.FunctionComponent = () => {
@@ -33,6 +33,7 @@ export const DatasetDetailPage: React.FunctionComponent = () => {
                                         return (
                                             <>
                                                 <NavLink to='dashboard' className={({ isActive }) => isActive ? css.active : undefined}>DASHBOARD</NavLink>
+                                                <NavLink to='field_management' className={({ isActive }) => isActive ? css.active : undefined}>DATA STANDARDIZATION</NavLink>
                                                 <NavLink to='data_management' className={({ isActive }) => isActive ? css.active : undefined}>DATA MANAGEMENT</NavLink>
                                                 <NavLink to='files' className={({ isActive }) => isActive ? css.active : undefined}>FILES REPOSITORY</NavLink>
                                                 <NavLink to='admin' className={({ isActive }) => isActive ? css.active : undefined}>ADMINISTRATION</NavLink>
@@ -49,21 +50,22 @@ export const DatasetDetailPage: React.FunctionComponent = () => {
                                         );
                                     }
                                 }}
-                            </Query>
-                        </div>
-                    </div>
+                            </Query >
+                        </div >
+                    </div >
                     <div className={css.content}>
                         <Routes>
                             <Route path='dashboard' element={<DashboardTabContent studyId={studyId} jobs={data.getStudy.jobs} />} />
+                            <Route path='field_management' element={<FieldManagementTabContentFetch studyId={studyId} />} />
                             <Route path='data_management' element={<DataManagementTabContentFetch />} />
                             <Route path='files' element={<FileRepositoryTabContent studyId={studyId} />} />
                             <Route path='projects/*' element={<ProjectsTabContent projectList={data.getStudy.projects} />} />
                             <Route path='admin' element={<AdminTabContent />} />
                             <Route path='*' element={<Navigate to='dashboard' />} />
                         </Routes>
-                    </div>
-                </div>;
+                    </div >
+                </div >;
             }}
-        </Query>
+        </Query >
     );
 };

@@ -69,5 +69,14 @@
         },
         "testTimeout": 60000,
         "transformIgnorePatterns": []
+    },
+    "nx": {
+        "targets": {
+            "build": {
+                "outputs": [
+                    "packages/itmat-job-executor/build"
+                ]
+            }
+        }
     }
 }

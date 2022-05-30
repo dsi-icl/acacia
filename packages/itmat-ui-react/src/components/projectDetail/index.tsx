@@ -6,6 +6,7 @@ import LoadSpinner from '../reusable/loadSpinner';
 import css_dataset from '../datasetDetail/projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
 import { FileTabContent } from './tabContent/file/fileTab';
+import { AnalysisTabContent } from './tabContent/analysis/analysisTab';
 
 export const ProjectDetailPage: React.FunctionComponent = () => {
     const { projectId } = useParams();
@@ -26,6 +27,7 @@ export const ProjectDetailPage: React.FunctionComponent = () => {
                             <NavLink to='dashboard' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DASHBOARD</div></NavLink>
                             {/* <NavLink to='samples' className={({ isActive }) => isActive ? className={({ isActive }) => isActive ? css.active : undefined}><div>SAMPLE</div></NavLink> */}
                             <NavLink to='data' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DATA</div></NavLink>
+                            <NavLink to='analysis' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>ANALYSIS</div></NavLink>
                             <NavLink to='files' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>FILE REPOSITORY</div></NavLink>
                             <NavLink to='admin' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>ADMINISTRATION</div></NavLink>
                         </div>
@@ -36,6 +38,7 @@ export const ProjectDetailPage: React.FunctionComponent = () => {
                             <Route path='admin' element={<AdminTabContent studyId={data.getProject.studyId} roles={data.getProject.roles} />} />
                             {/* <Route path="samples" element={() => <></>} /> */}
                             <Route path='data' element={<DataTabContent studyId={data.getProject.studyId} />} />
+                            <Route path='analysis' element={<AnalysisTabContent studyId={data.getProject.studyId} />} />
                             <Route path='files' element={<FileTabContent studyId={data.getProject.studyId} />} />
                             <Route path='*' element={<Navigate to='dashboard' />} />
                         </Routes>

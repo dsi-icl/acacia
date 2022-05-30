@@ -13,7 +13,8 @@
             "data_collection": "DATA_COLLECTION",
             "roles_collection": "ROLE_COLLECTION",
             "field_dictionary_collection": "FIELD_COLLECTION",
-            "files_collection": "FILES_COLLECTION"
+            "files_collection": "FILES_COLLECTION",
+            "standardizations_collection": "STANDARDIZATION_COLLECTION"
         }
     }
 }

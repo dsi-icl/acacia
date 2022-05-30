@@ -11,6 +11,14 @@ export const GET_PROJECT = gql`
             name
             approvedFields @include(if: $admin)
             approvedFiles @include(if: $admin)
+            dataVersion {
+                id
+                version
+                contentId
+                tag
+                updateDate
+            }
+            summary
             jobs {
                 ...ALL_FOR_JOB
             }

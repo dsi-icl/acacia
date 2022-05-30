@@ -41,13 +41,14 @@ import {
     studyType,
     UPLOAD_DATA_IN_ARRAY,
     DELETE_DATA_RECORDS,
-    ADD_ONTOLOGY_FIELD,
     GET_DATA_RECORDS,
-    DELETE_ONTOLOGY_FIELD,
     CREATE_NEW_DATA_VERSION,
     CHECK_DATA_COMPLETE,
     CREATE_NEW_FIELD,
-    DELETE_FIELD
+    DELETE_FIELD,
+    CREATE_ONTOLOGY_TREE,
+    DELETE_ONTOLOGY_TREE,
+    GET_ONTOLOGY_TREE
 } from 'itmat-commons';
 
 
@@ -499,7 +500,6 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 createdBy: adminId,
-                dataVersion: null,
                 name: projectName,
                 patientMapping: {},
                 approvedFields: [],
@@ -588,7 +588,6 @@ describe('STUDY API', () => {
                 id: createdProject.id,
                 studyId: setupStudy.id,
                 createdBy: authorisedUserProfile.id,
-                dataVersion: null,
                 patientMapping: {},
                 name: projectName,
                 approvedFields: [],
@@ -1388,7 +1387,6 @@ describe('STUDY API', () => {
                     jobs: [],
                     description: 'test description',
                     type: studyType.SENSOR,
-                    ontologyTree: null,
                     projects: [
                         {
                             id: createdProject.id,
@@ -1450,6 +1448,7 @@ describe('STUDY API', () => {
                             hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
                         }
                     ],
+                    ontologyTrees: [],
                     numOfRecords: 2,
                     subjects: ['mock_patient1', 'mock_patient2'],
                     visits: ['mockvisitId'],
@@ -1477,6 +1476,22 @@ describe('STUDY API', () => {
                     name: createdProject.name,
                     approvedFields: [],
                     approvedFiles: [],
+                    dataVersion: {
+                        contentId: 'mockContentId',
+                        id: 'mockDataVersionId',
+                        tag: null,
+                        updateDate: '5000000',
+                        version: '0.0.1'
+                    },
+                    summary: {
+                        subjects: [
+                            'mock_patient1',
+                            'mock_patient2'
+                        ],
+                        visits: [
+                            'mockvisitId'
+                        ]
+                    },
                     jobs: [],
                     roles: [
                         {
@@ -1602,7 +1617,23 @@ describe('STUDY API', () => {
                     jobs: [],
                     iCanEdit: true,
                     fields: [],
-                    files: []
+                    files: [],
+                    dataVersion: {
+                        contentId: 'mockContentId',
+                        id: 'mockDataVersionId',
+                        tag: null,
+                        updateDate: '5000000',
+                        version: '0.0.1'
+                    },
+                    summary: {
+                        subjects: [
+                            'mock_patient1',
+                            'mock_patient2'
+                        ],
+                        visits: [
+                            'mockvisitId'
+                        ]
+                    },
                 });
             }
         });
@@ -1831,6 +1862,8 @@ describe('STUDY API', () => {
                     dataVersion: 'mockDataVersionId'
                 }
             ].sort((a, b) => a.id.localeCompare(b.id)));
+            // clear database
+            await db.collections!.field_dictionary_collection.deleteMany({ dataVersion: null });
         });
 
         test('Edit project approved fields with fields that are not in the field tree (admin) (should fail)', async () => {
@@ -2295,149 +2328,6 @@ describe('STUDY API', () => {
             await db.collections!.roles_collection.deleteOne({ id: roleDataCurator.id });
         });
 
-        test('Upload ontologyTree (admin)', async () => {
-            // insert necessary field
-            await db.collections!.field_dictionary_collection.insertMany([
-                {
-                    id: 'fakeid1',
-                    studyId: createdStudy.id,
-                    fieldId: '1',
-                    fieldName: 'Age',
-                    dataType: 'int',
-                    dateAdded: 100000000
-                },
-                {
-                    id: 'fakeid2',
-                    studyId: createdStudy.id,
-                    fieldId: '2',
-                    fieldName: 'Gender',
-                    dataType: 'int',
-                    dateAdded: 100000000
-                },
-                {
-                    id: 'fakeid3',
-                    studyId: createdStudy.id,
-                    fieldId: '3',
-                    fieldName: 'Date',
-                    dataType: 'dat',
-                    dateAdded: 100000000
-                }
-            ]);
-
-            const res = await admin.post('/graphql').send({
-                query: print(ADD_ONTOLOGY_FIELD),
-                variables: {
-                    studyId: createdStudy.id,
-                    ontologyInput: [{
-                        fieldId: '1',
-                        path: ['Metadata', 'Subject', '1']
-                    }, {
-                        fieldId: '2',
-                        path: ['Metadata', 'Subject', '2']
-                    }]
-                }
-            });
-            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.addOntologyField).toEqual([{
-                fieldId: '1',
-                path: ['Metadata', 'Subject', '1']
-            }, {
-                fieldId: '2',
-                path: ['Metadata', 'Subject', '2']
-            }]);
-            expect(study.ontologyTree).toEqual([{
-                fieldId: '1',
-                path: ['Metadata', 'Subject', '1']
-            }, {
-                fieldId: '2',
-                path: ['Metadata', 'Subject', '2']
-            }]);
-
-            const resAddMore = await admin.post('/graphql').send({
-                query: print(ADD_ONTOLOGY_FIELD),
-                variables: {
-                    studyId: createdStudy.id,
-                    ontologyInput: [{
-                        fieldId: '1',
-                        path: ['Metadata', 'SubjectNew', '1']
-                    }, {
-                        fieldId: '3',
-                        path: ['Metadata', 'Subject', '3']
-                    }]
-                }
-            });
-            const studyMore = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(resAddMore.status).toBe(200);
-            expect(resAddMore.body.errors).toBeUndefined();
-            expect(resAddMore.body.data.addOntologyField).toEqual([{
-                fieldId: '1',
-                path: ['Metadata', 'SubjectNew', '1']
-            }, {
-                fieldId: '2',
-                path: ['Metadata', 'Subject', '2']
-            }, {
-                fieldId: '3',
-                path: ['Metadata', 'Subject', '3']
-            }]);
-            expect(studyMore.ontologyTree).toEqual([{
-                fieldId: '1',
-                path: ['Metadata', 'SubjectNew', '1']
-            }, {
-                fieldId: '2',
-                path: ['Metadata', 'Subject', '2']
-            }, {
-                fieldId: '3',
-                path: ['Metadata', 'Subject', '3']
-            }]);
-
-            const deleteRes = await admin.post('/graphql').send({
-                query: print(DELETE_ONTOLOGY_FIELD),
-                variables: {
-                    studyId: createdStudy.id,
-                    fieldId: ['1']
-                }
-            });
-            const studyDelete = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-            expect(deleteRes.status).toBe(200);
-            expect(deleteRes.body.errors).toBeUndefined();
-            expect(deleteRes.body.data.deleteOntologyField).toEqual([{
-                fieldId: '1',
-                path: ['Metadata', 'SubjectNew', '1']
-            }]);
-            expect(studyDelete.ontologyTree).toEqual([{
-                fieldId: '2',
-                path: ['Metadata', 'Subject', '2']
-            }, {
-                fieldId: '3',
-                path: ['Metadata', 'Subject', '3']
-            }]);
-
-            // delete fields
-            await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id }, { $set: { ontologyTree: [] } });
-            await db.collections!.field_dictionary_collection.deleteMany({});
-        });
-
-        test('Upload ontologyTree (user) should fail', async () => {
-            const res = await user.post('/graphql').send({
-                query: print(ADD_ONTOLOGY_FIELD),
-                variables: {
-                    studyId: createdStudy.id,
-                    ontologyInput: [{
-                        fieldId: '1',
-                        path: ['Metadata', 'Subject', 'Age']
-                    }, {
-                        fieldId: '2',
-                        path: ['Metadata', 'Subject', 'Gender']
-                    }]
-                }
-            });
-            expect(res.status).toBe(200);
-            expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-        });
-
         test('Create New fields (admin)', async () => {
             const res = await admin.post('/graphql').send({
                 query: print(CREATE_NEW_FIELD),
@@ -2453,7 +2343,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'NOW' },
                                 { code: '2', description: 'OLD' }
-                            ]
+                            ],
                         },
                         {
                             fieldId: '9',
@@ -2464,7 +2354,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'TRUE' },
                                 { code: '2', description: 'FALSE' }
-                            ]
+                            ],
                         }
                     ]
                 }
@@ -2472,7 +2362,7 @@ describe('STUDY API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.createNewField).toEqual([]);
-            const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id }).toArray();
+            const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: null }).toArray();
             expect(fieldsInDb).toHaveLength(2);
         });
 
@@ -2491,7 +2381,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'NOW' },
                                 { code: '2', description: 'OLD' }
-                            ]
+                            ],
                         },
                         {
                             fieldId: '9',
@@ -2502,7 +2392,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'TRUE' },
                                 { code: '2', description: 'FALSE' }
-                            ]
+                            ],
                         }
                     ]
                 }
@@ -2527,7 +2417,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'NOW' },
                                 { code: '2', description: 'OLD' }
-                            ]
+                            ],
                         },
                         {
                             fieldId: '9',
@@ -2538,7 +2428,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'TRUE' },
                                 { code: '2', description: 'FALSE' }
-                            ]
+                            ],
                         }
                     ]
                 }
@@ -2556,6 +2446,8 @@ describe('STUDY API', () => {
             const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dateDeleted: { $ne: null } }).toArray();
             expect(fieldsInDb).toHaveLength(1);
             expect(fieldsInDb[0].fieldId).toBe('8');
+            // clear database
+            await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $in: ['8', '9'] } });
         });
 
         test('Delete a versioned field (admin)', async () => {
@@ -2573,7 +2465,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'NOW' },
                                 { code: '2', description: 'OLD' }
-                            ]
+                            ],
                         },
                         {
                             fieldId: '9',
@@ -2584,7 +2476,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'TRUE' },
                                 { code: '2', description: 'FALSE' }
-                            ]
+                            ],
                         }
                     ]
                 }
@@ -2608,6 +2500,8 @@ describe('STUDY API', () => {
             expect(fieldsInDb[0].fieldId).toBe('8');
             expect(fieldsInDb[1].fieldId).toBe('8');
             expect(fieldsInDb[1].dateDeleted).not.toBe(null);
+            // clear database
+            await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $in: ['8', '9'] } });
         });
     });
 
@@ -2787,7 +2681,7 @@ describe('STUDY API', () => {
                             remove: []
                         },
                         permissionChanges: {
-                            add: [permissions.specific_study.specific_study_data_management],
+                            add: [permissions.specific_study.specific_study_data_management, permissions.specific_study.specific_study_readonly_access],
                             remove: []
                         }
                     }
@@ -2799,7 +2693,7 @@ describe('STUDY API', () => {
                     name: createdRole_study_accessData.name,
                     studyId: createdStudy.id,
                     projectId: null,
-                    permissions: [permissions.specific_study.specific_study_data_management],
+                    permissions: [permissions.specific_study.specific_study_data_management, permissions.specific_study.specific_study_readonly_access],
                     users: [{
                         id: createdUserAuthorisedProfile.id,
                         organisation: 'organisation_system',
@@ -3094,6 +2988,7 @@ describe('STUDY API', () => {
                     }], currentDataVersion: 0
                 }
             });
+            await db.collections!.field_dictionary_collection.deleteMany({ studyId: createdStudy.id, fieldId: { $nin: ['31', '32'] }, dataVersion: null });
         });
 
         test('Upload a data record to study (authorised user)', async () => {
@@ -3423,6 +3318,7 @@ describe('STUDY API', () => {
                     studyId: createdStudy.id,
                     queryString: {
                         data_requested: ['31', '32'],
+                        format: 'raw',
                         cohort: [[]],
                         new_fields: []
                     }
@@ -3445,7 +3341,8 @@ describe('STUDY API', () => {
             await authorisedUser.post('/graphql').send({
                 query: print(UPLOAD_DATA_IN_ARRAY),
                 variables: {
-                    studyId: createdStudy.id, data: [
+                    studyId: createdStudy.id,
+                    data: [
                         {
                             fieldId: '31',
                             value: '10',
@@ -3462,6 +3359,7 @@ describe('STUDY API', () => {
                     projectId: createdProject.id,
                     queryString: {
                         data_requested: ['31', '32'],
+                        format: 'raw',
                         cohort: [[]],
                         new_fields: []
                     }
@@ -3469,7 +3367,342 @@ describe('STUDY API', () => {
             });
             expect(getRes.status).toBe(200);
             expect(getRes.body.errors).toBeUndefined();
-            expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2); // unversioned data/field is invisible to project users
+            expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
+        });
+
+        test('Create an ontology tree (authorised user)', async () => {
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(CREATE_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyTree: {
+                        name: 'fakeTree',
+                        routes: [
+                            {
+                                path: ['DM', 'm_subjectId', 'm_visitId'],
+                                name: 'AGE',
+                                field: ['$100'],
+                                visitRange: []
+                            },
+                            {
+                                path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                                name: '',
+                                field: ['$200'],
+                                visitRange: []
+                            }
+                        ]
+                    }
+                }
+            });
+            const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+            expect(res.status).toBe(200);
+            expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.createOntologyTree).toEqual({
+                id: study.ontologyTrees[0].id,
+                name: 'fakeTree',
+                routes: [
+                    {
+                        id: study.ontologyTrees[0].routes[0].id,
+                        path: ['DM', 'm_subjectId', 'm_visitId'],
+                        name: 'AGE',
+                        field: ['$100'],
+                        visitRange: []
+                    },
+                    {
+                        id: study.ontologyTrees[0].routes[1].id,
+                        path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                        name: '',
+                        field: ['$200'],
+                        visitRange: []
+                    }
+                ]
+            });
+            // clear ontologyTrees
+            await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
+                $set: {
+                    ontologyTrees: []
+                }
+            });
+        });
+
+        test('Create an ontology tree (unauthorised user), should fail', async () => {
+            const res = await user.post('/graphql').send({
+                query: print(CREATE_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyTree: {
+                        name: 'fakeTree',
+                        routes: [
+                            {
+                                path: ['DM', 'm_subjectId', 'm_visitId'],
+                                name: 'AGE',
+                                field: ['$100'],
+                                visitRange: []
+                            },
+                            {
+                                path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                                name: '',
+                                field: ['$200'],
+                                visitRange: []
+                            }
+                        ]
+                    }
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.data.createOntologyTree).toBe(null);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+        });
+
+        test('Delete an ontology tree (authorised user)', async () => {
+            await authorisedUser.post('/graphql').send({
+                query: print(CREATE_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyTree: {
+                        name: 'fakeTree',
+                        routes: [
+                            {
+                                path: ['DM', 'm_subjectId', 'm_visitId'],
+                                name: 'AGE',
+                                field: ['$100'],
+                                visitRange: []
+                            },
+                            {
+                                path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                                name: '',
+                                field: ['$200'],
+                                visitRange: []
+                            }
+                        ]
+                    }
+                }
+            });
+            const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(DELETE_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    treeId: study.ontologyTrees[0].id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.data.deleteOntologyTree).toEqual({
+                id: study.ontologyTrees[0].id,
+                successful: true
+            });
+            const updatedStudy: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+            expect(updatedStudy.ontologyTrees.length).toBe(0);
+        });
+
+        test('Delete an ontology tree (unauthorised user), should fail', async () => {
+            await authorisedUser.post('/graphql').send({
+                query: print(CREATE_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyTree: {
+                        name: 'fakeTree',
+                        routes: [
+                            {
+                                path: ['DM', 'm_subjectId', 'm_visitId'],
+                                name: 'AGE',
+                                field: ['$100'],
+                                visitRange: []
+                            },
+                            {
+                                path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                                name: '',
+                                field: ['$200'],
+                                visitRange: []
+                            }
+                        ]
+                    }
+                }
+            });
+            const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+            const res = await user.post('/graphql').send({
+                query: print(DELETE_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    treeId: study.ontologyTrees[0].id
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.data.deleteOntologyTree).toBe(null);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            await db.collections!.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
+                $set: {
+                    ontologyTrees: []
+                }
+            });
+        });
+
+        test('Get an ontology tree (authorised user)', async () => {
+            await authorisedUser.post('/graphql').send({
+                query: print(CREATE_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyTree: {
+                        name: 'fakeTree',
+                        routes: [
+                            {
+                                path: ['DM', 'm_subjectId', 'm_visitId'],
+                                name: 'AGE',
+                                field: ['$100'],
+                                visitRange: []
+                            },
+                            {
+                                path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                                name: '',
+                                field: ['$200'],
+                                visitRange: []
+                            }
+                        ]
+                    }
+                }
+            });
+            const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(GET_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    treeId: null
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.data.getOntologyTree).toHaveLength(1);
+            expect(res.body.data.getOntologyTree[0]).toEqual({
+                id: study.ontologyTrees[0].id,
+                name: 'fakeTree',
+                routes: [
+                    {
+                        id: study.ontologyTrees[0].routes[0].id,
+                        path: ['DM', 'm_subjectId', 'm_visitId'],
+                        name: 'AGE',
+                        field: ['$100'],
+                        visitRange: []
+                    },
+                    {
+                        id: study.ontologyTrees[0].routes[1].id,
+                        path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                        name: '',
+                        field: ['$200'],
+                        visitRange: []
+                    }
+                ]
+            });
+            await db.collections!.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
+                $set: {
+                    ontologyTrees: []
+                }
+            });
+        });
+
+        test('Get an ontology tree from project (authorised user)', async () => {
+            await authorisedUser.post('/graphql').send({
+                query: print(CREATE_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyTree: {
+                        name: 'fakeTree',
+                        routes: [
+                            {
+                                path: ['DM', 'm_subjectId', 'm_visitId'],
+                                name: 'AGE',
+                                field: ['$100'],
+                                visitRange: []
+                            },
+                            {
+                                path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                                name: '',
+                                field: ['$200'],
+                                visitRange: []
+                            }
+                        ]
+                    }
+                }
+            });
+            const res = await user.post('/graphql').send({
+                query: print(GET_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdProject.studyId,
+                    projectId: createdProject.id,
+                    treeId: null
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.data.getOntologyTree).toBe(null);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            await db.collections!.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
+                $set: {
+                    ontologyTrees: []
+                }
+            });
+        });
+
+        test('Get an ontology tree (unauthorised user), should fail', async () => {
+            await authorisedUser.post('/graphql').send({
+                query: print(CREATE_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdStudy.id,
+                    ontologyTree: {
+                        name: 'fakeTree',
+                        routes: [
+                            {
+                                path: ['DM', 'm_subjectId', 'm_visitId'],
+                                name: 'AGE',
+                                field: ['$100'],
+                                visitRange: []
+                            },
+                            {
+                                path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                                name: '',
+                                field: ['$200'],
+                                visitRange: []
+                            }
+                        ]
+                    }
+                }
+            });
+            const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
+            const res = await authorisedUser.post('/graphql').send({
+                query: print(GET_ONTOLOGY_TREE),
+                variables: {
+                    studyId: createdProject.studyId,
+                    projectId: createdProject.id,
+                    treeId: null
+                }
+            });
+            expect(res.status).toBe(200);
+            expect(res.body.data.getOntologyTree).toHaveLength(1);
+            expect(res.body.data.getOntologyTree[0]).toEqual({
+                id: study.ontologyTrees[0].id,
+                name: 'fakeTree',
+                routes: [
+                    {
+                        id: study.ontologyTrees[0].routes[0].id,
+                        path: ['DM', 'm_subjectId', 'm_visitId'],
+                        name: 'AGE',
+                        field: ['$100'],
+                        visitRange: []
+                    },
+                    {
+                        id: study.ontologyTrees[0].routes[1].id,
+                        path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                        name: '',
+                        field: ['$200'],
+                        visitRange: []
+                    }
+                ]
+            });
+            await db.collections!.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
+                $set: {
+                    ontologyTrees: []
+                }
+            });
         });
 
         test('Check data complete (admin)', async () => {

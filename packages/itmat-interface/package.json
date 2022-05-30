@@ -99,5 +99,14 @@
             "\\.pnp\\.[^\\\/]+$",
             "test/fixtures/_minio"
         ]
+    },
+    "nx": {
+        "targets": {
+            "build": {
+                "outputs": [
+                    "packages/itmat-interface/build"
+                ]
+            }
+        }
     }
 }
