@@ -84,5 +84,14 @@
         "not dead",
         "not ie <= 11",
         "not op_mini all"
-    ]
+    ],
+    "nx": {
+        "targets": {
+            "build": {
+                "outputs": [
+                    "packages/itmat-ui-react/build"
+                ]
+            }
+        }
+    }
 }

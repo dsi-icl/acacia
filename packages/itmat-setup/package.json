@@ -27,5 +27,14 @@
     },
     "eslintConfig": {
         "extends": "./config/eslint.config.js"
+    },
+    "nx": {
+        "targets": {
+            "build": {
+                "outputs": [
+                    "packages/itmat-setup/dist"
+                ]
+            }
+        }
     }
 }
