@@ -1,6 +1,5 @@
 
 // eslint:disable: no-console
-import { Express } from 'express';
 import { Socket } from 'net';
 import os from 'os';
 import http from 'http';
@@ -15,10 +14,10 @@ let interfaceRouter;
 
 function serverStart() {
     console.info(`Starting server ${interfaceIteration++} ...`);
-    interfaceServer.start().then((itmatRouter: Express) => {
+    interfaceServer.start().then((itmatRouter) => {
 
-        interfaceRouter = itmatRouter;
-        interfaceSocket = itmatRouter.listen(config.server.port, () => {
+        interfaceRouter = itmatRouter.getApp();
+        interfaceSocket = interfaceRouter.listen(config.server.port, () => {
             console.info(`Listening at http://${os.hostname()}:${config.server.port}/`);
         })
             .on('connection', (socket) => {
