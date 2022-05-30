@@ -199,7 +199,7 @@ export class Router {
                 }
             },
             onProxyReqWs: function (preq, req) {
-                const data = (req.user as IUser).username + ':token';
+                const data = 'username:token';
                 preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
             },
             onError: function (err, req, res, target) {
