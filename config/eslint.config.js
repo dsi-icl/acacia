@@ -12,7 +12,6 @@ var defaultPlugins = [
     'import',
     'jest',
     'jsx-a11y',
-    'react',
     'react-hooks',
 ];
 
