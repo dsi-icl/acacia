@@ -6670,10 +6670,10 @@ cypress-react-unit-test@4.17.2:
     semver "7.3.2"
     unfetch "4.1.0"
 
-cypress@9.6.1:
-  version "9.6.1"
-  resolved "https://registry.yarnpkg.com/cypress/-/cypress-9.6.1.tgz#a7d6b5a53325b3dc4960181f5800a5ade0f085eb"
-  integrity sha512-ECzmV7pJSkk+NuAhEw6C3D+RIRATkSb2VAHXDY6qGZbca/F9mv5pPsj2LO6Ty6oIFVBTrwCyL9agl28MtJMe2g==
+cypress@9.7.0:
+  version "9.7.0"
+  resolved "https://registry.yarnpkg.com/cypress/-/cypress-9.7.0.tgz#bf55b2afd481f7a113ef5604aa8b693564b5e744"
+  integrity sha512-+1EE1nuuuwIt/N1KXRR2iWHU+OiIt7H28jJDyyI4tiUftId/DrXYEwoDa5+kH2pki1zxnA0r6HrUGHV5eLbF5Q==
   dependencies:
     "@cypress/request" "^2.88.10"
     "@cypress/xvfb" "^1.2.4"
@@ -11433,15 +11433,10 @@ minimist@0.0.5:
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.5.tgz#d7aa327bcecf518f9106ac6b8f003fa3bcea8566"
   integrity sha1-16oye87PUY+RBqxrjwA/o7zqhWY=
 
-minimist@^1.1.0, minimist@^1.1.1, minimist@^1.2.0, minimist@^1.2.5, minimist@^1.2.6:
+minimist@^1.1.0, minimist@^1.1.1, minimist@^1.2.0, minimist@^1.2.5, minimist@^1.2.6, minimist@~1.2.5:
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
   integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
-
-minimist@~1.2.5:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
-  integrity sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
 
 minio@7.0.28:
   version "7.0.28"
