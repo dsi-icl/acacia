@@ -78,19 +78,24 @@ export class UserCore {
         }
     }
 
-    public async createOrganisation(org: { name: string, shortname?: string, containOrg: string | null }): Promise<IOrganisation> {
-        const { name, shortname, containOrg } = org;
+    public async createOrganisation(org: { name: string, shortname: string | null, containOrg: string | null, metadata: any }): Promise<IOrganisation> {
+        const { name, shortname, containOrg, metadata } = org;
         const entry: IOrganisation = {
             id: uuid(),
             name,
             shortname,
             containOrg,
             deleted: null,
-            metadata: {}
+            metadata: metadata?.siteIDMarker ? {
+                siteIDMarker: metadata.siteIDMarker
+            } : {}
         };
-
-        const result = await db.collections!.organisations_collection.insertOne(entry);
-        if (result.acknowledged) {
+        const result = await db.collections!.organisations_collection.findOneAndUpdate({ name: name, deleted: null }, {
+            $set: entry
+        }, {
+            upsert: true
+        });
+        if (result.ok) {
             return entry;
         } else {
             throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);

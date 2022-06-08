@@ -16,12 +16,29 @@ export const GET_ORGANISATIONS = gql`
 `;
 
 export const CREATE_ORGANISATION = gql`
-    mutation createOrganisation($name: String!, $shortname: String, $containOrg: String) {
-        createOrganisation(name: $name, shortname: $shortname, containOrg: $containOrg) {
+    mutation createOrganisation($name: String!, $shortname: String, $containOrg: String, $metadata: OrganisationMetadataInput) {
+        createOrganisation(name: $name, shortname: $shortname, containOrg: $containOrg, metadata: $metadata) {
             id            
             name
             shortname
             containOrg
+            metadata {
+                siteIDMarker
+            }
+        }
+    }
+`;
+
+export const DELETE_ORGANISATION = gql`
+    mutation deleteOrganisation($id: String!) {
+        deleteOrganisation(id: $id) {
+            id            
+            name
+            shortname
+            containOrg
+            metadata {
+                siteIDMarker
+            }
         }
     }
 `;
