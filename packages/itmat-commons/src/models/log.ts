@@ -46,8 +46,9 @@ export enum LOG_ACTION {
     rsaSigner = 'RSA_SIGNER',
     linkUserPubkey = 'LINK_USER_PUBKEY',
 
-    // ORGANIZATION
+    // ORGANISATION
     createOrganisation = 'CREATE_ORGANISATION',
+    deleteOrganisation = 'DELETE_ORGANISATION',
 
     // PROJECT
     getProject = 'GET_PROJECT',

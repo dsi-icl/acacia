@@ -574,7 +574,24 @@ export const userResolvers = {
                 throw new ApolloError('Server error; no entry or more than one entry has been updated.');
             }
         },
-        createOrganisation: async (__unused__parent: Record<string, unknown>, { name, containOrg }: { name: string, containOrg: string }, context: any): Promise<IOrganisation> => {
+        createOrganisation: async (__unused__parent: Record<string, unknown>, { name, shortname, containOrg, metadata }: { name: string, shortname: string, containOrg: string, metadata: any }, context: any): Promise<IOrganisation> => {
+            const requester: IUser = context.req.user;
+
+            /* check privileges */
+            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            }
+            // if the org already exists, update it; the existence is checked by the name
+            const createdOrganisation = await userCore.createOrganisation({
+                name,
+                shortname: shortname ?? null,
+                containOrg: containOrg ?? null,
+                metadata: metadata ?? null
+            });
+
+            return createdOrganisation;
+        },
+        deleteOrganisation: async (__unused__parent: Record<string, unknown>, { id }: { id: string }, context: any): Promise<IOrganisation> => {
             const requester: IUser = context.req.user;
 
             /* check privileges */
@@ -582,17 +599,19 @@ export const userResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            const alreadyExist = await db.collections!.organisations_collection.findOne({ name, deleted: null });
-            if (alreadyExist !== null && alreadyExist !== undefined) {
-                throw new UserInputError('This organisation already exists.');
-            }
-
-            const createdOrganisation = await userCore.createOrganisation({
-                name,
-                containOrg: containOrg ?? null
+            const res = await db.collections!.organisations_collection.findOneAndUpdate({ id: id }, {
+                $set: {
+                    deleted: Date.now()
+                }
+            }, {
+                returnDocument: 'after'
             });
 
-            return createdOrganisation;
+            if (res.ok === 1 && res.value) {
+                return res.value;
+            } else {
+                throw new ApolloError('Delete organisation failed.');
+            }
         }
     },
     Subscription: {}
