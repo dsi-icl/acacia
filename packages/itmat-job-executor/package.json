@@ -44,7 +44,7 @@
         "@types/webpack-env": "1.17.0",
         "cross-env": "7.0.3",
         "jest": "27.5.1",
-        "node-fetch": "3.2.4",
+        "node-fetch": "3.2.5",
         "rimraf": "3.0.2",
         "run-script-webpack-plugin": "0.0.14",
         "supertest": "6.2.3",
