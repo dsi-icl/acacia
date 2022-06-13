@@ -58,7 +58,7 @@
         "babel-loader": "8.2.5",
         "babel-preset-minify": "0.5.2",
         "cross-env": "7.0.3",
-        "cypress": "10.0.3",
+        "cypress": "10.1.0",
         "cypress-file-upload": "5.0.8",
         "cypress-react-unit-test": "4.17.2",
         "jest": "27.5.1",
