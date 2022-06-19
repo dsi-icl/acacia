@@ -1,6 +1,6 @@
 {
     "name": "itmat-job-executor",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "description": "Curator service for UKB image data",
     "license": "MIT",
     "author": "Chon Sou",
@@ -26,7 +26,7 @@
         "deepmerge": "4.2.2",
         "express": "4.17.3",
         "json2csv": "5.0.7",
-        "itmat-commons": "1.0.8",
+        "itmat-commons": "1.0.9",
         "mongodb": "4.4.1",
         "saslprep": "1.0.3",
         "JSONStream": "1.3.5",
