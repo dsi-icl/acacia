@@ -292,12 +292,18 @@ export const userResolvers = {
             }
             return new Promise((resolve) => {
                 req.session!.destroy((err) => {
-                    req.logout();
                     if (err) {
                         Logger.error(err);
-                        throw new ApolloError('Cannot log out');
+                        throw new ApolloError('Cannot destroy the session');
                     } else {
-                        resolve(makeGenericReponse(context.req.user));
+                        req.logout((err) => {
+                            if (err) {
+                                Logger.error(err);
+                                throw new ApolloError('Cannot log out');
+                            } else {
+                                resolve(makeGenericReponse(context.req.user));
+                            }
+                        });
                     }
                 });
             });
