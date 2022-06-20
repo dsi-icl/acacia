@@ -152,112 +152,121 @@ export class StudyCore {
         return newDataVersion;
     }
 
-    public async uploadOneDataClip(studyId: string, fieldList: any[], dataClip: any): Promise<any> {
-        const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId);
-        if (!fieldInDb) {
-            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: FieldId is not registered. Please define this fieldId first.` };
-        }
-        // check subjectId
-        if (!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
-            return { code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Subject ID ${dataClip.subjectId} is illegal.` };
-        }
+    public async uploadOneDataClip(studyId: string, fieldList: any[], data: any): Promise<any> {
+        const errors: any[] = [];
+        const bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
+        // remove duplicates by subjectId, visitId and fieldId
+        const keysToCheck = ['visitId', 'subjectId', 'fieldId'];
+        const filteredData = data.filter(
+            (s => o => (k => !s.has(k) && s.add(k))(keysToCheck.map(k => o[k]).join('|')))(new Set())
+        );
+        for (const dataClip of filteredData) {
+            const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId)[0];
+            if (!fieldInDb) {
+                errors.push({ code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: Field Not found` });
+                continue;
+            }
+            // check subjectId
+            if (!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
+                errors.push({ code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
+                continue;
+            }
 
-        // check value is valid
-        let error;
-        let parsedValue;
-        if (fieldInDb.length === 0) {
-            error = `Field ${dataClip.fieldId}: Field Not found`;
-        } else if (dataClip.value.toString() === '99999') { // agreement with other WPs, 99999 refers to missing
-            parsedValue = '99999';
-        } else {
-            switch (fieldInDb[0].dataType) {
-                case 'dec': {// decimal
-                    if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
-                        error = `Field ${dataClip.fieldId}: Cannot parse as decimal.`;
+            // check value is valid
+            let error;
+            let parsedValue;
+            if (dataClip.value.toString() === '99999') { // agreement with other WPs, 99999 refers to missing
+                parsedValue = '99999';
+            } else {
+                switch (fieldInDb.dataType) {
+                    case 'dec': {// decimal
+                        if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as decimal.`;
+                            break;
+                        }
+                        parsedValue = parseFloat(dataClip.value);
                         break;
                     }
-                    parsedValue = parseFloat(dataClip.value);
-                    break;
-                }
-                case 'int': {// integer
-                    if (!/^-?\d+$/.test(dataClip.value)) {
-                        error = `Field ${dataClip.fieldId}: Cannot parse as integer.`;
+                    case 'int': {// integer
+                        if (!/^-?\d+$/.test(dataClip.value)) {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as integer.`;
+                            break;
+                        }
+                        parsedValue = parseInt(dataClip.value, 10);
                         break;
                     }
-                    parsedValue = parseInt(dataClip.value, 10);
-                    break;
-                }
-                case 'bool': {// boolean
-                    if (dataClip.value.toLowerCase() === 'true' || dataClip.value.toLowerCase() === 'false') {
-                        parsedValue = dataClip.value.toLowerCase() === 'true';
-                    } else {
-                        error = `Field ${dataClip.fieldId}: Cannot parse as boolean.`;
+                    case 'bool': {// boolean
+                        if (dataClip.value.toLowerCase() === 'true' || dataClip.value.toLowerCase() === 'false') {
+                            parsedValue = dataClip.value.toLowerCase() === 'true';
+                        } else {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as boolean.`;
+                            break;
+                        }
                         break;
                     }
-                    break;
-                }
-                case 'str': {
-                    parsedValue = dataClip.value.toString();
-                    break;
-                }
-                // 01/02/2021 00:00:00
-                case 'date': {
-                    const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
-                    if (!dataClip.value.match(matcher)) {
-                        error = `Field ${dataClip.fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
-                        break;
-                    }
-                    parsedValue = dataClip.value.toString();
-                    break;
-                }
-                case 'json': {
-                    parsedValue = dataClip.value;
-                    break;
-                }
-                case 'file': {
-                    const file = await db.collections!.files_collection.findOne({ id: parseValue });
-                    if (!file) {
-                        error = `Field ${dataClip.fieldId}: Cannot parse as file or file does not exist.`;
-                        break;
-                    } else {
+                    case 'str': {
                         parsedValue = dataClip.value.toString();
-                    }
-                    break;
-                }
-                case 'cat': {
-                    if (!fieldInDb[0].possibleValues.map(el => el.code).includes(dataClip.value.toString())) {
-                        error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
                         break;
-                    } else {
-                        parsedValue = dataClip.value.toString();
                     }
-                    break;
-                }
-                default: {
-                    error = (`Field ${dataClip.fieldId}: Invalid data Type.`);
-                    break;
+                    // 01/02/2021 00:00:00
+                    case 'date': {
+                        const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
+                        if (!dataClip.value.match(matcher)) {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
+                            break;
+                        }
+                        parsedValue = dataClip.value.toString();
+                        break;
+                    }
+                    case 'json': {
+                        parsedValue = dataClip.value;
+                        break;
+                    }
+                    case 'file': {
+                        const file = await db.collections!.files_collection.findOne({ id: parseValue });
+                        if (!file) {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as file or file does not exist.`;
+                            break;
+                        } else {
+                            parsedValue = dataClip.value.toString();
+                        }
+                        break;
+                    }
+                    case 'cat': {
+                        if (!fieldInDb.possibleValues.map(el => el.code).includes(dataClip.value.toString())) {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
+                            break;
+                        } else {
+                            parsedValue = dataClip.value.toString();
+                        }
+                        break;
+                    }
+                    default: {
+                        error = (`Field ${dataClip.fieldId}: Invalid data Type.`);
+                        break;
+                    }
                 }
             }
+            if (error !== undefined) {
+                errors.push({ code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: error });
+                continue;
+            }
+            const obj = {
+                m_studyId: studyId,
+                m_subjectId: dataClip.subjectId,
+                m_versionId: undefined,
+                m_visitId: dataClip.visitId,
+            };
+            const objWithData: MatchKeysAndValues<IDataEntry> = {
+                ...obj,
+                id: uuid(),
+                uploadedAt: (new Date()).valueOf()
+            };
+            objWithData[dataClip.fieldId] = parsedValue;
+            bulk.find(obj).upsert().updateOne({ $set: objWithData });
         }
-        if (error !== undefined) {
-            return { code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: error };
-        }
-        const obj = {
-            m_studyId: studyId,
-            m_subjectId: dataClip.subjectId,
-            m_versionId: undefined,
-            m_visitId: dataClip.visitId,
-        };
-        const objWithData: MatchKeysAndValues<IDataEntry> = {
-            ...obj,
-            id: uuid(),
-            uploadedAt: (new Date()).valueOf()
-        };
-        objWithData[dataClip.fieldId] = parsedValue;
-        await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, {
-            upsert: true
-        });
-        return null;
+        bulk.execute();
+        return errors;
     }
 
     public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
