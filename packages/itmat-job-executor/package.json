@@ -50,7 +50,7 @@
         "supertest": "6.2.3",
         "ts-jest": "27.1.4",
         "ts-loader": "9.3.0",
-        "typescript": "4.7.3"
+        "typescript": "4.7.4"
     },
     "babel": {
         "extends": "./config/babel.config.js"
