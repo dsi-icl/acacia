@@ -1,380 +1,688 @@
+import { filterFields, generateCascader, findDmField } from '../../../../utils/tools';
 import * as React from 'react';
+import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
+import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, IFieldEntry, IProject, enumValueType, GET_ONTOLOGY_TREE, IOntologyTree, IOntologyRoute, GET_STANDARDIZATION } from 'itmat-commons';
 import { Query } from '@apollo/client/react/components';
-import { useQuery } from '@apollo/client/react/hooks';
-import { GET_PROJECT, IFieldEntry, GET_DATA_RECORDS, GET_STUDY_FIELDS, GET_ONTOLOGY_TREE, enumValueType } from 'itmat-commons';
-import { FieldListSectionWithFilter } from '../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../reusable/loadSpinner';
-import { DeleteOutlined } from '@ant-design/icons';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
-import {
-    LineChart,
-    CartesianGrid,
-    XAxis,
-    YAxis,
-    Tooltip,
-    Legend,
-    Line,
-    BarChart,
-    Bar,
-    LabelList
-} from 'recharts';
-import { Button, Table, Modal, Switch } from 'antd';
+import { CSVLink } from 'react-csv';
+import { Pagination, Select, Statistic, Row, Col, Button, Table, Empty, Cascader } from 'antd';
+import { Pie, BidirectionalBar, Heatmap, Violin, Column } from '@ant-design/plots';
+import { UserOutlined, ProfileOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
+const { Option } = Select;
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
-
     const { projectId } = useParams();
 
-    const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
-    const { loading: getOntologyTreeLoading, error: getOntologyTreeError, data: getOntologyTreeData } = useQuery(GET_ONTOLOGY_TREE, { variables: { studyId: studyId, projectId: projectId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId, projectId: projectId } });
-
-    const [isDataSelectorShown, setIsDataSelectorShown] = React.useState(false);
-    const [checkedFields, setCheckedFields] = React.useState<any[]>([]);
-    const [queryOptions, setQueryOptions] = React.useState<any>({ filters: [], returned_fields: [], derivedFields: [] });
-    const [viewMode, setViewMode] = React.useState(true); // dataMode (true): show data in tables; visualMode (false): show data in charts
-
-    if (getProjectLoading || getOntologyTreeLoading || getStudyFieldsLoading) {
+    const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
+    const { loading: getOntologyTreeLoading, error: getOntologyTreeError, data: getOntologyTreeData } = useQuery(GET_ONTOLOGY_TREE, {
+        variables: {
+            studyId: studyId,
+            projectId: projectId,
+            treeId: null
+        }
+    });
+    if (getStudyFieldsLoading || getProjectLoading || getOntologyTreeLoading) {
         return <LoadSpinner />;
     }
-
-    if (getProjectError || getOntologyTreeError || getStudyFieldsError) {
+    if (!projectId || getStudyFieldsError || getProjectError || getOntologyTreeError) {
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
             A error occured, please contact your administrator
         </div>;
     }
-
-
-    const headers = getStudyFieldsData.getStudyFields.map((el) => {
-        return {
-            label: el.fieldName,
-            key: el.fieldId.toString()
-        };
-    });
-    headers.push({ label: 'm_subjectId', key: 'm_subjectId' });
-    headers.push({ label: 'm_visitId', key: 'm_visitId' });
-
+    if (getOntologyTreeData.getOntologyTree[0] === undefined) {
+        return <span>Ontology Tree Missing!</span>;
+    }
     return <div className={css.tab_page_wrapper}>
-        <Button type='primary' htmlType='submit' onClick={() => setIsDataSelectorShown(true)}>
-            Select Data
-        </Button>
-        <Switch checkedChildren='Data Mode' unCheckedChildren='Visual Mode' checked={viewMode} onChange={() => setViewMode(!viewMode)} />
-        <br /><br /><br />
-        <Modal
-            width='80%'
-            visible={isDataSelectorShown}
-            title='Data Selector'
-            onOk={() => setIsDataSelectorShown(false)}
-            onCancel={() => setIsDataSelectorShown(false)}
-        >
-            <div style={{ width: '100%', display: 'flex' }}>
-                <Subsection title='Fields & Variables'>
-                    <FieldListSelectionStateProject ontologyTree={getOntologyTreeData.getOntologyTree} fields={getProjectData.getProject.fields} checkedFields={checkedFields} onCheck={setCheckedFields} queryOptions={[queryOptions, setQueryOptions]} />
+        <div className={css.scaffold_wrapper}>
+            <div style={{ gridArea: 'a' }}>
+                <Subsection title='Demographics'>
+                    <DemographicsBlock ontologyTree={getOntologyTreeData.getOntologyTree[0]} studyId={studyId} projectId={projectId} fields={filterFields(getStudyFieldsData.getStudyFields, getOntologyTreeData.getOntologyTree[0])} />
                 </Subsection>
-                <div style={{ width: '50%', marginLeft: 'auto' }}>
-                    <Subsection title='Filters'>
-                        {queryOptions.filters.length === 0 ? <p>No filters added.</p> :
-                            <Table
-                                rowKey={(rec) => rec.name.toString().concat(rec.op.toString()).concat(rec.value.toString())}
-                                columns={[
-                                    {
-                                        title: 'Field Name',
-                                        dataIndex: 'name',
-                                        key: 'name',
-                                        sorter: (a, b) => a.name.localeCompare(b.name),
-                                        render: (__unused__value, record) => {
-                                            return record.name;
-                                        }
-                                    },
-                                    {
-                                        title: 'Operator',
-                                        dataIndex: 'op',
-                                        key: 'op',
-                                        render: (__unused__value, record) => {
-                                            return record.op;
-                                        }
-                                    },
-                                    {
-                                        title: 'Value',
-                                        dataIndex: 'value',
-                                        key: 'value',
-                                        render: (__unused__value, record) => {
-                                            return record.value;
-                                        }
-                                    },
-                                    {
-                                        render: (__unused__value, record) => (
-                                            <Button icon={<DeleteOutlined />} onClick={() => {
-                                                setQueryOptions({
-                                                    ...queryOptions,
-                                                    filters: queryOptions.filters.filter((el) => {
-                                                        if (el.field === record.field && el.op === record.op && el.value === record.value) {
-                                                            return false;
-                                                        }
-                                                        return true;
-                                                    })
-                                                });
-                                            }} >
-                                                Delete
-                                            </Button>
-                                        ),
-                                        width: '8rem',
-                                        key: 'delete'
-                                    }
-                                ]}
-                                dataSource={queryOptions.filters}
-                                size='small'
-                                pagination={false}
-                            >
-                            </Table>
-                        }
-                    </Subsection>
-                </div>
             </div>
-        </Modal>
-        <Query<any, any> query={GET_DATA_RECORDS} variables={{ studyId: studyId, projectId: projectId, queryString: constructQueryString(checkedFields.filter((el) => el.indexOf('CAT') === -1), getProjectData.getProject.fields, queryOptions['filters'], queryOptions['derivedFields']) }} >
-            {({ data, loading, error }) => {
-                if (loading) { return <LoadSpinner />; }
-                if (error) { return <p>No results found.</p>; }
-                if (!data || data.getDataRecords === null) { return <p>Not available.</p>; }
-                const columns: any[] = [];
-                const fieldsList = getProjectData.getProject.fields;
-                const queryResult = data.getDataRecords.data;
-                // convert data source format to arrays
-                const dataInArray: any[] = [];
-                let fieldKeysInQueryResult: any = {};
-                for (const subject in queryResult) {
-                    for (const visit in queryResult[subject]) {
-                        fieldKeysInQueryResult = { ...fieldKeysInQueryResult, ...queryResult[subject][visit] };
-                        dataInArray.push(queryResult[subject][visit]);
-                    }
-                }
-                if (viewMode) {
-                    for (const key in fieldKeysInQueryResult) {
-                        let fieldName = '';
-                        for (let i = 0; i < fieldsList.length; i++) {
-                            if (key.toString() === fieldsList[i].fieldId.toString()) {
-                                fieldName = fieldsList[i].fieldName;
-                            }
-                        }
-                        const name = fieldName === '' ? key : fieldName;
-                        if (['Demographics', 'Medical History', 'Concomitant Medications'].includes(name)) {
-                            continue;
-                        }
-                        columns.push({
-                            title: name,
-                            dataIndex: key,
-                            key: key,
-                            render: (__unused__value, record) => {
-                                if (!(key in record)) {
-                                    return '';
-                                }
-                                if (Object.keys(fieldsList).map((el) => fieldsList[el].fieldId.toString()).includes(key)) {
-                                    return record[key];
-                                } else {
-                                    return record[key];
-                                }
-                            }
-                        });
-                    }
-                    return <>
-                        <SubsectionWithComment title='Data' comment={dataInArray.length.toString().concat(' records found')} >
-                            <Table
-                                scroll={{ x: 'max-content' }}
-                                rowKey={(rec) => rec.id}
-                                pagination={
-                                    {
-                                        defaultPageSize: 10,
-                                        showSizeChanger: true,
-                                        defaultCurrent: 1,
-                                        showQuickJumper: true
-                                    }
-                                }
-                                columns={columns}
-                                dataSource={dataInArray.filter(el => el.m_visitId !== '0')}
-                                size='middle'
-                            ></Table>
-                        </SubsectionWithComment><br />
-                    </>;
-                } else {
-                    // processing numberical data
-                    const fieldKeysInQueryResult = Object.keys(dataInArray.reduce(function (result, obj) {
-                        return Object.assign(result, obj);
-                    }, {}));
-                    const idsOfNumbericalFields = getStudyFieldsData.getStudyFields.filter((el) => {
-                        if (fieldKeysInQueryResult.filter((es) => es.toString() === el.fieldId).length === 0) {
-                            return false;
-                        }
-                        if (el.dataType !== enumValueType.DECIMAL && el.dataType !== enumValueType.INTEGER) {
-                            return false;
-                        }
-                        return true;
-                    });
-                    const uniqueVisitIds = Array.from(new Set(dataInArray.map(el => el.m_visitId)));
-                    const uniqueSubjectIds = Array.from(new Set(dataInArray.map(el => el.m_subjectId)));
-                    const numbericalData: any = {};
-                    idsOfNumbericalFields.forEach(element => {
-                        numbericalData[element['fieldId']] = [];
-                        uniqueVisitIds.forEach(elementIn => {
-                            numbericalData[element['fieldId']].push({
-                                name: elementIn
-                            });
-                        });
-                    });
-                    dataInArray.forEach(element => {
-                        idsOfNumbericalFields.forEach(eleField => {
-                            if (element[eleField['fieldId']] !== undefined && element[eleField['fieldId']] !== null) {
-                                numbericalData[eleField['fieldId']][numbericalData[eleField['fieldId']].map(el => el.name).indexOf(element['m_visitId'])][element['m_subjectId']] = element[eleField['fieldId']];
-                            }
-                        });
-                    });
-
-                    // processing categorical data, shown as percentage
-                    const idsOfCategoricalFields = getStudyFieldsData.getStudyFields.filter((el) => {
-                        if (fieldKeysInQueryResult.filter((es) => es.toString() === el.fieldId).length === 0) {
-                            return false;
-                        }
-                        if (el.dataType !== enumValueType.BOOLEAN && el.dataType !== enumValueType.CATEGORICAL) {
-                            return false;
-                        }
-                        return true;
-                    });
-                    const categoricalData: any = {};
-                    idsOfCategoricalFields.forEach(element => {
-                        categoricalData[element['fieldId']] = [];
-                        uniqueVisitIds.forEach(elementIn => {
-                            if (element.dataType === enumValueType.BOOLEAN) {
-                                categoricalData[element['fieldId']].push({
-                                    name: elementIn,
-                                    True: 0,
-                                    False: 0
-                                });
-                            } else {
-                                categoricalData[element['fieldId']].push({
-                                    name: elementIn,
-                                    ...element.possibleValues.reduce((acc, curr) => {
-                                        acc[curr.code] = 0;
-                                        return acc;
-                                    }, {})
-                                });
-                            }
-                        });
-                    });
-                    for (const fieldId in categoricalData) {
-                        for (let i = 0; i < uniqueVisitIds.length; i++) {
-                            for (const cat in categoricalData[fieldId][i]) {
-                                if (cat === 'name') {
-                                    continue;
-                                } else {
-                                    categoricalData[fieldId][i][cat] = dataInArray.filter(el => el.m_visitId === uniqueVisitIds[i] && el[fieldId] === cat).length /
-                                        dataInArray.filter(el => el.m_visitId === uniqueVisitIds[i]).length;
-                                }
-                            }
-                        }
-                    }
-                    return <>
-                        <Subsection title='Numerical Data'>
-                            {
-                                Object.keys(numbericalData).map(el =>
-                                    <>
-                                        <LineChart width={730} height={250} data={numbericalData[el]}
-                                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                            <CartesianGrid strokeDasharray='3 3' />
-                                            <XAxis dataKey='name' label={idsOfNumbericalFields.filter(es => es.fieldId === el)[0].fieldName} />
-                                            <YAxis domain={['auto', 'auto']} label={idsOfNumbericalFields.filter(es => es.fieldId === el)[0].unit} />
-                                            <Tooltip />
-                                            <Legend />
-                                            {
-                                                uniqueSubjectIds.map(es => <Line type='monotone' dataKey={es} stroke={randomStringToColor(es)} />)
-                                            }
-                                        </LineChart>
-                                        <br /><br />
-                                    </>
-                                )
-                            }
-                        </Subsection>
-                        <Subsection title='Categorical Data'>
-                            {
-                                Object.keys(categoricalData).map(el =>
-                                    <>
-                                        <BarChart width={730} height={250} data={numbericalData[el]}
-                                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                            <CartesianGrid strokeDasharray='3 3' />
-                                            <XAxis />
-                                            <YAxis />
-                                            <Tooltip />
-                                            <Legend />
-                                            {
-                                                Object.keys(el).map(es => {
-                                                    if (es === 'name') {
-                                                        return null;
-                                                    } else {
-                                                        return <Bar dataKey={es} >
-                                                            <LabelList dataKey={es} />
-                                                        </Bar>;
-                                                    }
-                                                })
-                                            }
-                                        </BarChart>
-                                    </>
-                                )
-                            }
-                        </Subsection>
-                    </>;
-                }
-            }}
-        </Query>
+            <div style={{ gridArea: 'b' }}>
+                <ProjectMetaDataBlock project={getProjectData.getProject} />
+            </div>
+            <div style={{ gridArea: 'c' }}>
+                <FieldViewer ontologyTree={getOntologyTreeData.getOntologyTree[0]} fields={getStudyFieldsData.getStudyFields} />
+            </div>
+            <div style={{ gridArea: 'd' }}>
+                <DataCompletenessBlock studyId={studyId} projectId={projectId} ontologyTree={getOntologyTreeData.getOntologyTree[0]} />
+            </div>
+            <div style={{ gridArea: 'e' }}>
+                <DataDetailsBlock studyId={studyId} projectId={projectId} project={getProjectData.getProject} fields={getStudyFieldsData.getStudyFields} ontologyTree={getOntologyTreeData.getOntologyTree[0]} />
+            </div>
+            <div style={{ gridArea: 'f' }}>
+                <DataDownloadBlock project={getProjectData.getProject} />
+            </div>
+        </div>
     </div>;
 };
 
-const FieldListSelectionStateProject: React.FunctionComponent<{ ontologyTree: any, fields: IFieldEntry[], checkedFields: any, onCheck: any, queryOptions: any }> = ({ ontologyTree, fields, checkedFields, onCheck, queryOptions }) => {
-    /* PRECONDITION: it is given (checked by parent component that fields at least have one key */
-    return <FieldListSectionWithFilter ontologyTree={ontologyTree} checkable={true} fieldList={fields} onCheck={onCheck} checkedList={checkedFields} queryOptions={queryOptions} />;
+export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IFieldEntry[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
+    const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, {
+        variables: {
+            studyId: studyId,
+            projectId: projectId,
+            queryString: {
+                format: 'grouped',
+                data_requested: fields.map(el => el.fieldId),
+                new_fields: [],
+                cohort: [[]],
+                subjects_requested: null,
+                visits_requested: null
+            }
+        }
+    });
+    if (getDataRecordsLoading) {
+        return <LoadSpinner />;
+    }
+    if (getDataRecordsError) {
+        return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
+            A error occured, please contact your administrator
+        </div>;
+    }
+    // process the data
+    const obj: any = {};
+    const data = getDataRecordsData.getDataRecords.data;
+    const genderField: any = findDmField(ontologyTree, fields, 'SEX');
+    const raceField: any = findDmField(ontologyTree, fields, 'RACE');
+    const ageField: any = findDmField(ontologyTree, fields, 'AGE');
+    const siteField: any = findDmField(ontologyTree, fields, 'SITE');
+    // const genderFie: IFieldEntry = fields.filter(el => el.fieldId === genderFieldId.fieldId)[0];
+
+    if (genderField === null) {
+        obj.SEX = [];
+        obj.AGE = [];
+    } else {
+        obj.SEX = (data[genderField.fieldId][genderField.visitRange[0]]?.data || []).reduce((acc, curr) => {
+            const thisGender = genderField?.possibleValues?.filter(el => el.code === curr)[0].description || '';
+            if (acc.filter(es => es.type === thisGender).length === 0) {
+                acc.push({ type: thisGender, value: 0 });
+            }
+            acc[acc.findIndex(es => es.type === thisGender)].value += 1;
+            return acc;
+        }, []);
+        obj.SEX.push({
+            type: 'Missing',
+            value: (data[genderField.fieldId][genderField.visitRange[0]]?.totalNumOfRecords || 0) - (data[genderField.fieldId][genderField.visitRange[0]].validNumOfRecords || 0)
+        });
+        if (ageField === null) {
+            obj.AGE = [];
+        } else {
+            obj.AGE = (data[ageField.fieldId][ageField.visitRange[0]]?.data || []).reduce((acc, curr, index) => {
+                if (acc.filter(es => es.age === curr).length === 0) {
+                    acc.push({ age: curr, Male: 0, Female: 0 });
+                }
+                if (data[genderField.fieldId][genderField.visitRange[0]].data[index] === '1') {
+                    acc[acc.findIndex(el => el.age === curr)].Female += 1;
+                } else {
+                    acc[acc.findIndex(el => el.age === curr)].Male += 1;
+                }
+                return acc;
+            }, []);
+        }
+    }
+    if (raceField === null) {
+        obj.RACE = [];
+    } else {
+        if (data[raceField.fieldId] === undefined) {
+            obj.RACE = [];
+        } else {
+            obj.RACE = (data[raceField.fieldId][raceField.visitRange[0]]?.data || []).reduce((acc, curr) => {
+                const thisRace = raceField?.possibleValues?.filter(el => el.code === curr)[0].description || '';
+                if (acc.filter(es => es.type === thisRace).length === 0) {
+                    acc.push({ type: thisRace, value: 0 });
+                }
+                acc[acc.findIndex(es => es.type === thisRace)].value += 1;
+                return acc;
+            }, []);
+            obj.RACE.push({
+                type: 'Missing',
+                value: (data[raceField.fieldId][raceField.visitRange[0]]?.totalNumOfRecords || 0) - (data[raceField.fieldId][raceField.visitRange[0]]?.validNumOfRecords || 0)
+            });
+        }
+    }
+    if (siteField === null) {
+        obj.SITE = [];
+    } else {
+        obj.SITE = (data[siteField.fieldId][siteField.visitRange[0]]?.data || []).reduce((acc, curr) => {
+            if (acc.filter(es => es.type === curr.toString()).length === 0) {
+                acc.push({ type: curr.toString(), value: 0 });
+            }
+            acc[acc.findIndex(es => es.type === curr.toString())].value += 1;
+            return acc;
+        }, []);
+        obj.SITE.push({
+            type: 'Missing',
+            value: (data[siteField.fieldId][siteField.visitRange[0]]?.totalNumOfRecords || 0) - (data[siteField.fieldId][siteField.visitRange[0]]?.validNumOfRecords || 0)
+        });
+    }
+    return (<>
+        {
+            genderField === null ? null :
+                <div style={{ width: '25%', float: 'left' }}>
+                    <Pie
+                        data={obj.SEX}
+                        autoFit={true}
+                        angleField={'value'}
+                        colorField={'type'}
+                        legend={{
+                            layout: 'horizontal',
+                            position: 'bottom',
+                            // offsetY: -80
+                        }}
+                        meta={{
+                            count: { min: 0 }
+                        }}
+                        label={false}
+                        radius={0.8}
+                        interactions={[
+                            {
+                                type: 'element-active',
+                            },
+                        ]}
+                    />
+                    <h1 style={{ textAlign: 'center' }} >Sex</h1>
+                </div>
+        }
+        {
+            raceField === null ? null :
+                <div style={{ width: '25%', float: 'left' }}>
+                    <Pie
+                        data={obj.RACE}
+                        angleField={'value'}
+                        colorField={'type'}
+                        legend={{
+                            layout: 'horizontal',
+                            position: 'bottom',
+                        }}
+                        meta={{
+                            count: { min: 0 }
+                        }}
+                        label={false}
+                        radius={0.8}
+                        interactions={[
+                            {
+                                type: 'element-active',
+                            },
+                        ]}
+                    />
+                    <h1 style={{ textAlign: 'center' }} >Race</h1>
+                </div>
+        }
+        {
+            siteField === null ? null :
+                <div style={{ width: '25%', float: 'left' }}>
+                    <Pie
+                        data={obj.SITE}
+                        angleField={'value'}
+                        colorField={'type'}
+                        legend={{
+                            layout: 'horizontal',
+                            position: 'bottom',
+                            // offsetY: -80
+                        }}
+                        label={false}
+                        radius={0.8}
+                        interactions={[
+                            {
+                                type: 'element-active',
+                            },
+                        ]}
+                    />
+                    <h1 style={{ textAlign: 'center' }} >Site</h1>
+                </div>
+        }
+        {
+            ageField === null ? null :
+                <div style={{ width: '25%', float: 'left' }}>
+                    <BidirectionalBar
+                        data={obj.AGE}
+                        xField={'age'}
+                        xAxis={{
+                            position: 'bottom'
+                        }}
+                        interactions={[
+                            { type: 'active-region' }
+                        ]}
+                        yField={['Male', 'Female']}
+                        tooltip={{
+                            shared: true,
+                            showMarkers: false
+                        }}
+                    />
+                    <h1 style={{ textAlign: 'center' }} >Age</h1>
+                </div>
+        }
+    </>);
 };
 
-function constructQueryString(checkedList: any, fieldsList: any, filters: any, derivedFields: any) {
-    const queryString: any = {};
-    // returned Fields
-    // const returnedFields = []
-    const returnedFields: any[] = [];
-    for (let i = 0; i < checkedList.length; i++) {
-        for (let j = 0; j < fieldsList.length; j++) {
-            if (checkedList[i] === fieldsList[j].id) {
-                returnedFields.push(fieldsList[j].fieldId);
-            }
+export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree, fields: IFieldEntry[] }> = ({ ontologyTree, fields }) => {
+    const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
+    const routes: IOntologyRoute[] = ontologyTree.routes?.filter(es => {
+        return JSON.stringify([...es.path, es.name]) === JSON.stringify(selectedPath);
+    }) || [];
+    const field: IFieldEntry | undefined = fields.filter(el => {
+        return el.fieldId.toString() === routes[0]?.field[0]?.replace('$', '');
+    })[0];
+    //construct the cascader
+    const fieldPathOptions: any = [];
+    ontologyTree.routes?.forEach(el => {
+        generateCascader(el, fieldPathOptions, true);
+    });
+    return (<SubsectionWithComment title='Field Viewer' comment={<>
+        <Cascader
+            options={fieldPathOptions}
+            onChange={(value) => {
+                setSelectedPath(value);
+            }}
+            placeholder={'Please select'}
+        />
+    </>}>
+        {
+            field === undefined ? null :
+                <>
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Statistic title='Field ID' value={field?.fieldId || 'NA'} />
+                        </Col>
+                        <Col span={12}>
+                            <Statistic title='Field Name' value={field?.fieldName || 'NA'} />
+                        </Col>
+                    </Row><br />
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Statistic title='Data Type' value={field?.dataType || 'NA'} />
+                        </Col>
+                        <Col span={12}>
+                            <Statistic title='Unit' value={field?.unit || 'NA'} />
+                        </Col>
+                    </Row><br />
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Statistic title='Comments' value={field?.comments || 'NA'} />
+                        </Col>
+                    </Row><br />
+                    <Row gutter={16}>
+                        <Col span={24}>
+                            <Statistic title='Ontology Chain' prefix={<>
+                                {
+                                    routes[0].path.join(' => ')
+                                }
+                            </>} value={' => ' + field.fieldName} />
+                        </Col>
+                    </Row><br />
+                </>
         }
-    }
-    returnedFields.push('m_subjectId');
-    returnedFields.push('m_visitId');
-    // cohort
-    const cohort: any[] = [];
-    for (let i = 0; i < filters.length; i++) {
-        for (let j = 0; j < fieldsList.length; j++) {
-            if (fieldsList[j].id === filters[i].field) {
-                cohort.push({
-                    field: fieldsList[j].fieldId,
-                    value: filters[i].value,
-                    op: filters[i].op
-                });
-            }
-        }
-    }
-    queryString.data_requested = returnedFields;
-    queryString.cohort = [cohort];
-    queryString.new_fields = derivedFields;
-    return queryString;
-}
+    </SubsectionWithComment>);
+};
 
-function randomStringToColor(str: string) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree }> = ({ studyId, projectId, ontologyTree }) => {
+    const dataCompletenessdPageSize = 20;
+    const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
+
+    const requestedFields = ontologyTree.routes?.filter(el => {
+        if (JSON.stringify(el.path) === JSON.stringify(selectedPath)) {
+            return true;
+        } else {
+            return false;
+        }
+    }).map(el => el.field[0].replace('$', '')) || [];
+    const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, {
+        variables: {
+            studyId: studyId,
+            projectId: projectId,
+            queryString: {
+                format: 'summary',
+                data_requested: requestedFields,
+                cohort: [[]],
+                subjects_requested: null,
+                visits_requested: null
+            }
+        }
+    });
+    if (getDataRecordsLoading) {
+        return <LoadSpinner />;
     }
-    let colour = '#';
-    for (let i = 0; i < 3; i++) {
-        const value = (hash >> (i * 8)) & 0xFF;
-        colour += ('00' + value.toString(16)).substr(-2);
+    if (getDataRecordsError) {
+        return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
+            A error occured, please contact your administrator
+        </div>;
     }
-    return colour;
-}
+    // process the data
+    const data = getDataRecordsData.getDataRecords.data;
+    const obj: any[] = [];
+    for (const fieldId of Object.keys(data)) {
+        for (const visitId of Object.keys(data[fieldId])) {
+            obj.push({
+                visit: visitId,
+                field: fieldId,
+                percentage: parseInt(((data[fieldId][visitId].validNumOfRecords / data[fieldId][visitId].totalNumOfRecords) * 100).toFixed(0))
+            });
+        }
+    }
+    const axisConfig = {
+        xAxis: {
+            title: {
+                text: 'Visit ID',
+                style: {
+                    fill: '#6E759F',
+                    fontSize: 14
+                },
+            }
+        },
+        yAxis: {
+            title: {
+                text: 'Field ID',
+                style: {
+                    fill: '#6E759F',
+                    fontSize: 14
+                },
+            }
+        }
+    };
+    const tooltipConfig = {
+        showTitle: false,
+        fields: ['visit', 'field', 'percentage'],
+        formatter: (datum: any) => {
+            return {
+                name: '3',
+                value: datum.percentage + '%'
+            };
+        }
+    };
+    //construct the cascader
+    const fieldPathOptions: any = [];
+    ontologyTree.routes?.forEach(el => {
+        generateCascader(el, fieldPathOptions, false);
+    });
+    return (
+        <SubsectionWithComment title='Data Completeness' comment={
+            <Cascader
+                options={fieldPathOptions}
+                onChange={(value) => setSelectedPath(value)}
+                placeholder={'Please select'}
+            />
+        }>
+            <Heatmap
+                data={obj}
+                xField={'visit'}
+                yField={'field'}
+                colorField={'percentage'}
+                label={{
+                    style: {
+                        fill: '#fff',
+                        shadowBlur: 2,
+                        shadowColor: 'rgba(0, 0, 0, .45)',
+                    },
+                }}
+                legend={{
+                    layout: 'vertical',
+                    position: 'right',
+                    offsetY: 5,
+                    min: Math.min(...obj.map(el => el.percentage)),
+                    max: 100,
+                    reversed: false
+                }}
+                tooltip={tooltipConfig}
+                xAxis={axisConfig.xAxis}
+                yAxis={axisConfig.yAxis}
+            />
+            <Pagination
+                style={{ float: 'right' }}
+                defaultCurrent={1}
+                defaultPageSize={1}
+                total={Math.ceil(requestedFields.length / dataCompletenessdPageSize)}
+            />
+        </SubsectionWithComment>
+    );
+};
+
+export const DataDetailsBlock: React.FunctionComponent<{ studyId: string, projectId, project: IProject, fields: IFieldEntry[], ontologyTree: IOntologyTree }> = ({ studyId, projectId, project, fields, ontologyTree }) => {
+    const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
+    //construct the cascader
+    const fieldPathOptions: any = [];
+    ontologyTree.routes?.forEach(el => {
+        generateCascader(el, fieldPathOptions, true);
+    });
+    return (<SubsectionWithComment title='Data Distribution' comment={
+        <Cascader
+            options={fieldPathOptions}
+            onChange={(value) => setSelectedPath(value)}
+            placeholder={'Please select'}
+        />
+    }>
+        <Query<any, any> query={GET_DATA_RECORDS} variables={{
+            studyId: studyId,
+            projectId: projectId,
+            queryString: {
+                format: 'grouped',
+                data_requested: [ontologyTree.routes?.filter(el => el.name === selectedPath[selectedPath.length - 1])[0]?.field[0]?.replace('$', '') || ''],
+                cohort: [[]],
+                subjects_requested: null,
+                visits_requested: null
+            }
+        }}>
+            {({ data, loading, error }) => {
+                if (loading) { return <LoadSpinner />; }
+                if (error) { return <p>{JSON.stringify(error)}</p>; }
+                if (!data) { return <p>Not executed.</p>; }
+                const fieldIdFromData: string = Object.keys(data.getDataRecords.data)[0];
+                // return empty if the field is empty, this means that no such data is in database
+                if (fieldIdFromData === undefined) {
+                    return <Empty description={'No Data Found'} />;
+                }
+                if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
+                    data = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
+                        data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
+                            if (el === '99999') {
+                                return;
+                            }
+                            acc.push({ x: curr, y: el });
+                        });
+                        return acc;
+                    }, ([] as any));
+                } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
+                    data = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
+                        let count = 0;
+                        data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
+                            if (acc.filter(es => (es.visit === curr && es.value === el)).length === 0) {
+                                if (el === '99999') {
+                                    return;
+                                }
+                                acc.push({ visit: curr, value: el, count: 0 });
+                            }
+                            count += 1;
+                            acc[acc.findIndex(es => (es.visit === curr && es.value === el))].count += 1;
+                        });
+                        // if no mising (either no missing or missing is considered as an option)
+                        if (project.summary.subjects.length - count !== 0) {
+                            acc.push({ visit: curr, value: 'No Record', count: project.summary.subjects.length - count });
+                        }
+                        return acc;
+                    }, ([] as any)).sort((a, b) => { return parseFloat(a.value) - parseFloat(b.value); });
+                } else {
+                    return null;
+                }
+                return (<>
+                    {
+                        [enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType) ?
+                            <Violin
+                                data={data}
+                                xField={'x'}
+                                yField={'y'}
+                            />
+                            :
+                            <Column
+                                data={data}
+                                xField={'visit'}
+                                yField={'count'}
+                                seriesField={'value'}
+                                isPercent={true}
+                                isStack={true}
+                                interactions={[
+                                    { type: 'element-highlight-by-color' },
+                                    { type: 'element-link' }
+                                ]}
+                            />
+                    }
+                </>);
+            }}
+        </Query>
+        <br />
+    </SubsectionWithComment>);
+};
+
+export const ProjectMetaDataBlock: React.FunctionComponent<{ project: IProject }> = ({ project }) => {
+    return (<Subsection title='Meta Data'>
+        <div style={{ gridArea: 'e' }}>
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Statistic title='Participants' value={project.summary.subjects.length} prefix={<UserOutlined />} />
+                </Col>
+                <Col span={12}>
+                    <Statistic title='Data Version' value={project.dataVersion?.version} />
+                </Col>
+            </Row><br />
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Statistic title='Visits' value={project.summary.visits.length} prefix={<ProfileOutlined />} />
+                </Col>
+                <Col span={12}>
+                    <Statistic title='Version Tag' value={project.dataVersion?.tag} />
+                </Col>
+            </Row><br />
+            <Row gutter={16}>
+                <Col span={12}>
+                </Col>
+            </Row><br />
+            <Row gutter={16}>
+                <Col span={24}>
+                    <Statistic title='Updated At' value={project.dataVersion?.updateDate === undefined ? 'NA' : (new Date(parseFloat(project.dataVersion?.updateDate))).toUTCString()} />
+                </Col>
+            </Row>
+        </div>
+    </Subsection>);
+};
+
+export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> = ({ project }) => {
+    const { loading: getStandardizationLoading, error: getStandardizationError, data: getStandardizationData } = useQuery(GET_STANDARDIZATION, { variables: { studyId: project.studyId } });
+    const [getDataRecordsLazy, { loading: getDataRecordsLoading, data: getDataRecordsData }] = useLazyQuery(GET_DATA_RECORDS, {});
+    const [selectedDataFormat, setSelectedDataFormat] = React.useState<string | undefined>(undefined);
+    const [selectedOutputType, setSelectedOutputType] = React.useState('JSON');
+    if (getDataRecordsLoading || getStandardizationLoading) {
+        return <LoadSpinner />;
+    }
+    if (getStandardizationError) {
+        return <p>
+            A error occured, please contact your administrator
+        </p>;
+    }
+    const availableFormats: string[] = Array.from(new Set(getStandardizationData.getStandardization.map(el => el.type))) || [];
+    const dataArray: any[] = [];
+    if (getDataRecordsData?.getDataRecords?.data !== undefined) {
+        Object.keys(getDataRecordsData.getDataRecords.data).forEach(domain => {
+            dataArray.push({
+                path: domain,
+                data: getDataRecordsData.getDataRecords.data[domain]
+            });
+        });
+    }
+    const downloadColumns = [
+        {
+            title: 'Path',
+            dataIndex: 'path',
+            key: 'path',
+            render: (__unused__value, record) => {
+                return record.path;
+            }
+        },
+        {
+            title: 'Link',
+            dataIndex: 'download',
+            key: 'download',
+            render: (__unused__value, record) => {
+                return (<CSVLink data={record.data} filename={record.path.concat('.csv')} >
+                    <DownloadOutlined />
+                </CSVLink>);
+            }
+        },
+    ];
+    return (<SubsectionWithComment title='Data Download' comment={<>
+        <Select
+            value={selectedDataFormat}
+            style={{ float: 'left' }}
+            placeholder='Select Format'
+            allowClear
+            onSelect={(value: string) => {
+                setSelectedDataFormat(value);
+                if (!value.startsWith('standardized')) {
+                    setSelectedOutputType('JSON');
+                }
+            }}
+        >
+            <Option value={'raw'}>Raw</Option>
+            <Option value={'grouped'}>Grouped</Option>
+            {
+                availableFormats.map(el => <Option value={'standardized-' + el}>{el.toString()}</Option>)
+            }
+        </Select>
+        <Button onClick={() => {
+            getDataRecordsLazy({
+                variables: {
+                    studyId: project.studyId,
+                    projectId: project.id,
+                    queryString: {
+                        data_requested: null,
+                        cnew_fields: [],
+                        cohort: [[]],
+                        format: selectedDataFormat
+                    }
+                }
+            });
+        }}>Fetch data</Button>
+        <Select
+            value={selectedOutputType}
+            style={{ float: 'left' }}
+            placeholder='Select Format'
+            allowClear
+            onSelect={(value: string) => {
+                setSelectedOutputType(value);
+            }}
+        >
+            <Option value={'JSON'}>JSON</Option>
+            {
+                availableFormats.includes(selectedDataFormat?.split('-')[1] || '') ? <Option value={'CSV'}>CSV</Option> : null
+            }
+        </Select>
+    </>}>
+        {
+            getDataRecordsData?.getDataRecords?.data === undefined ? <h2>No Data Available</h2> :
+                selectedOutputType === 'JSON' ?
+                    <Button type='link' onClick={() => {
+                        const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+                            JSON.stringify(getDataRecordsData.getDataRecords.data)
+                        )}`;
+                        const link = document.createElement('a');
+                        link.href = jsonString;
+                        link.download = 'data.json';
+
+                        link.click();
+                    }}>
+                        Download
+                    </Button> :
+                    <Table
+                        scroll={{ x: 'max-content' }}
+                        // rowKey={(rec) => rec.id}
+                        pagination={false}
+                        columns={downloadColumns}
+                        dataSource={dataArray}
+                        size='middle'
+                    ></Table>
+        }
+    </SubsectionWithComment>);
+};

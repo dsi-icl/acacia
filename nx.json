@@ -12,32 +12,18 @@
                     "package",
                     "prepare"
                 ],
-                "accessToken": "ZDQ1NzgyNGEtZTAzMC00MWE2LWIxZTAtOTRmYzhjMzdjYWYyfHJlYWQtd3JpdGU="
+                "accessToken": "ZDQ1NzgyNGEtZTAzMC00MWE2LWIxZTAtOTRmYzhjMzdjYWYyfHJlYWQtd3JpdGU=",
+                "skipNxCache": true
             }
         }
     },
-    "targetDependencies": {
-        "build": [
-            {
-                "target": "build",
-                "projects": "dependencies"
-            }
-        ],
-        "prepare": [
-            {
-                "target": "prepare",
-                "projects": "dependencies"
-            }
-        ],
-        "package": [
-            {
-                "target": "package",
-                "projects": "dependencies"
-            }
-        ]
-    },
     "affected": {
         "defaultBase": "master"
+    },
+    "implicitDependencies": {
+        "packages/*": [
+            "itmat-docker"
+        ]
     },
     "pluginsConfig": {
         "@nrwl/js": {

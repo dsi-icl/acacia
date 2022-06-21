@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models, task_required_permissions, IFile, Logger, studyType } from 'itmat-commons';
+import { Models, task_required_permissions, IFile, Logger, studyType, IOrganisation } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
@@ -9,7 +9,7 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 import { Readable } from 'stream';
 import crypto from 'crypto';
 import { validate } from '@ideafast/idgen';
-import { deviceTypes, sitesIDMarker, fileSizeLimit } from '../../utils/definition';
+import { deviceTypes, fileSizeLimit } from '../../utils/definition';
 
 export const fileResolvers = {
     Query: {
@@ -33,6 +33,13 @@ export const fileResolvers = {
             const file = await args.file;
             const fileNameParts = file.filename.split('.');
 
+            // obtain sitesIDMarker from db
+            const sitesIDMarkers = (await db.collections!.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce((acc, curr) => {
+                if (curr.metadata?.siteIDMarker) {
+                    acc[curr.metadata.siteIDMarker] = curr.shortname;
+                }
+                return acc;
+            }, {});
 
             return new Promise<IFile>((resolve, reject) => {
                 try {
@@ -92,7 +99,7 @@ export const fileResolvers = {
                                     startDate = parseInt(parsedDescription.startDate);
                                     endDate = parseInt(parsedDescription.endDate);
                                     if (
-                                        !Object.keys(sitesIDMarker).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase()) ||
+                                        !Object.keys(sitesIDMarkers).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase()) ||
                                         !Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
                                         !validate(parsedDescription.participantId?.substr(1) ?? '') ||
                                         !validate(parsedDescription.deviceId.substr(3) ?? '') ||

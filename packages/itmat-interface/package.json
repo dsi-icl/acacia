@@ -1,6 +1,6 @@
 {
     "name": "itmat-interface",
-    "version": "1.0.7",
+    "version": "1.0.9",
     "description": "",
     "license": "MIT",
     "author": "Chon Sou",
@@ -20,7 +20,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "apollo-server-express": "3.7.0",
+        "apollo-server-express": "3.9.0",
         "bcrypt": "5.0.1",
         "body-parser": "1.20.0",
         "connect-mongo": "4.6.0",
@@ -32,13 +32,13 @@
         "graphql-scalars": "1.17.0",
         "graphql-type-json": "0.3.2",
         "graphql-subscriptions": "2.0.0",
-        "graphql-upload": "13.0.0",
+        "graphql-upload": "15.0.1",
         "hi-base32": "0.5.1",
-        "itmat-commons": "1.0.7",
-        "jwt-decode": "^3.1.2",
-        "mongodb": "4.6.0",
+        "itmat-commons": "1.0.9",
+        "jwt-decode": "3.1.2",
+        "mongodb": "4.7.0",
         "nodemailer": "6.7.5",
-        "passport": "0.5.3",
+        "passport": "0.6.0",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
         "subscriptions-transport-ws": "0.11.0",
@@ -48,32 +48,33 @@
         "@types/bcrypt": "5.0.0",
         "@types/express": "4.17.13",
         "@types/express-session": "1.17.4",
+        "@types/graphql-upload": "8.0.11",
         "@types/jest": "27.5.0",
-        "@types/node": "17.0.34",
+        "@types/node": "18.0.0",
         "@types/node-fetch": "3.0.3",
         "@types/nodemailer": "6.4.4",
-        "@types/passport": "1.0.7",
+        "@types/passport": "1.0.9",
         "@types/passport-local": "1.0.34",
         "@types/supertest": "2.0.12",
         "@types/text-encoding": "0.0.36",
         "@types/uuid": "8.3.4",
-        "@types/webpack-env": "1.16.4",
+        "@types/webpack-env": "1.17.0",
         "chalk": "4.1.2",
         "cors": "2.8.5",
         "cross-env": "7.0.3",
         "cross-spawn": "7.0.3",
         "get-port": "6.1.2",
-        "itmat-setup": "1.0.7",
+        "itmat-setup": "1.0.9",
         "jest": "27.5.1",
         "jsonwebtoken": "8.5.1",
-        "mongodb-memory-server": "8.5.2",
-        "node-fetch": "3.2.4",
+        "mongodb-memory-server": "8.6.1",
+        "node-fetch": "3.2.6",
         "rimraf": "3.0.2",
-        "run-script-webpack-plugin": "0.0.14",
+        "run-script-webpack-plugin": "0.1.0",
         "supertest": "6.2.3",
         "ts-jest": "27.1.4",
         "ts-loader": "9.3.0",
-        "typescript": "4.6.4"
+        "typescript": "4.7.3"
     },
     "babel": {
         "extends": "./config/babel.config.js"
@@ -99,5 +100,14 @@
             "\\.pnp\\.[^\\\/]+$",
             "test/fixtures/_minio"
         ]
+    },
+    "nx": {
+        "targets": {
+            "build": {
+                "outputs": [
+                    "packages/itmat-interface/build"
+                ]
+            }
+        }
     }
 }

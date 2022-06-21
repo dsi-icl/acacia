@@ -18,9 +18,16 @@ export const GET_STUDY = gql`
             createdBy
             description
             type
-            ontologyTree {
-                fieldId
-                path
+            ontologyTrees {
+                id
+                name
+                routes {
+                    id
+                    path
+                    name
+                    field
+                    visitRange
+                }
             }
             jobs {
                 ...ALL_FOR_JOB
@@ -78,10 +85,17 @@ export const GET_DATA_RECORDS = gql`
 `;
 
 export const GET_ONTOLOGY_TREE = gql`
-    query getOntologyTree($studyId: String!, $projectId: String) {
-        getOntologyTree(studyId: $studyId, projectId: $projectId) {
-            fieldId
-            path
+    query getOntologyTree($studyId: String!, $projectId: String, $treeId: String) {
+        getOntologyTree(studyId: $studyId, projectId: $projectId, treeId: $treeId) {
+            id
+            name
+            routes {
+                id
+                path
+                name
+                field
+                visitRange
+            }
         }
     }
 `;
@@ -148,20 +162,27 @@ export const DELETE_DATA_RECORDS = gql`
     }
 `;
 
-export const ADD_ONTOLOGY_FIELD = gql`
-    mutation addOntologyField($studyId: String!, $ontologyInput: [OntologyFieldInput]!) {
-        addOntologyField(studyId: $studyId, ontologyInput: $ontologyInput) {
-            fieldId
-            path
+export const CREATE_ONTOLOGY_TREE = gql`
+    mutation createOntologyTree($studyId: String!, $ontologyTree: OntologyTreeInput!) {
+        createOntologyTree(studyId: $studyId, ontologyTree: $ontologyTree) {
+            id
+            name
+            routes {
+                id
+                path
+                name
+                field
+                visitRange
+            }
         }
     }
 `;
 
-export const DELETE_ONTOLOGY_FIELD = gql`
-    mutation deleteOntologyField($studyId: String!, $fieldId: [String]!) {
-        deleteOntologyField(studyId: $studyId, fieldId: $fieldId) {
-            fieldId
-            path
+export const DELETE_ONTOLOGY_TREE = gql`
+    mutation deleteOntologyTree($studyId: String!, $treeId: String!) {
+        deleteOntologyTree(studyId: $studyId, treeId: $treeId) {
+            id
+            successful
         }
     }
 `;

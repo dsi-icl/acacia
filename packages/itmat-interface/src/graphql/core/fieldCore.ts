@@ -64,7 +64,6 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
     if (fieldEntry.fieldName.toString().toUpperCase() === 'SUBJECTID' || fieldEntry.fieldName.toString().toUpperCase() === 'VISITID') {
         error.push(`${fieldEntry.fieldId}-${fieldEntry.fieldName}: visitId and subjectId are reserved fields.`);
     }
-
     const newField: any = {
         fieldId: fieldEntry.fieldId,
         fieldName: fieldEntry.fieldName,
@@ -72,7 +71,7 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
         dataType: fieldEntry.dataType,
         possibleValues: fieldEntry.dataType === enumValueType.CATEGORICAL ? fieldEntry.possibleValues : null,
         unit: fieldEntry.unit,
-        comments: fieldEntry.comments,
+        comments: fieldEntry.comments
     };
 
     return { fieldEntry: newField, error: error };

@@ -9,7 +9,7 @@ WORKDIR /itmat-base
 COPY ./itmat-docker/package.json .
 COPY ./itmat-docker/.npmrc .
 
-RUN npm install --production
+RUN npm install --production --legacy-peer-deps
 RUN mkdir ./config
 
 COPY ./itmat-docker/launcher.js ./

@@ -18,7 +18,7 @@ export const DashboardTabContent: React.FunctionComponent<{ studyId: string; pro
     }
     return <div className={css.tab_page_wrapper}>
         <Subsection title='Data summary'>
-            <span>Data Version: {getProjectData.getProject.dataVersion}</span>
+            <span>Data Version: {getProjectData.getProject.dataVersion.version}</span>
         </Subsection><br/>
         <Subsection title='Past Jobs'>
             <JobSection jobs={jobs} />
