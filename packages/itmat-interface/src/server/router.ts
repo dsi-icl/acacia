@@ -144,6 +144,53 @@ export class Router {
             }
         });
 
+        /* AE proxy middleware */
+        // initial this before graphqlUploadExpress middleware
+        const ae_proxy = createProxyMiddleware({
+            target: config.aeEndpoint,
+            changeOrigin: true,
+            ws: true,
+            xfwd: true,
+            // logLevel: 'debug',
+            autoRewrite: true,
+            onProxyReq: function (preq, req, res) {
+                if (!req.user)
+                    return res.status(403).redirect('/');
+                res.cookie('ae_proxy', req.headers['host']);
+                const data = (req.user as IUser).username + ':token';
+                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+                if (req.method == 'POST' && req.body ) {
+                    const contentType = preq.getHeader('Content-Type');
+                    if (contentType === 'application/x-www-form-urlencoded'){
+                        const body: string = qs.stringify(req.body);
+                        delete req.body;
+                        preq.setHeader('content-length', body.length);
+                        preq.write(body);
+                        preq.end();
+                    }
+                }
+            },
+            onProxyReqWs: function (preq) {
+                const data = 'username:token';
+                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+            },
+            onError: function (err, req, res, target) {
+                console.error(err, target);
+            }
+        });
+
+        this.proxies.push(ae_proxy);
+
+        /* AE routers */
+        // pun for AE portal
+        // node and rnode for AE application
+        // public for public resource like favicon and logo
+        const proxy_routers = ['/pun', '/node', '/rnode', '/public'];
+
+        proxy_routers.forEach(router=>{
+            this.app.use(router, ae_proxy);
+        });
+
         this.app.use(graphqlUploadExpress());
 
         gqlServer.start().then(() => {
@@ -175,49 +222,6 @@ export class Router {
         // });
 
         this.app.get('/file/:fileId', fileDownloadController);
-
-        const ae_proxy = createProxyMiddleware({
-            target: config.aeEndpoint,
-            changeOrigin: true,
-            ws: true,
-            xfwd: true,
-            logLevel: 'debug',
-            autoRewrite: true,
-            onProxyReq: function (preq, req, res) {
-                if (!req.user)
-                    return res.status(403).redirect('/');
-                res.cookie('ae_proxy', req.headers['host']);
-                const data = (req.user as IUser).username + ':token';
-                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-                if (req.method == 'POST' && req.body) {
-                    const body: string = qs.stringify(req.body);
-                    delete req.body;
-                    preq.setHeader('content-type', 'application/x-www-form-urlencoded');
-                    preq.setHeader('content-length', body.length);
-                    preq.write(body);
-                    preq.end();
-                }
-            },
-            onProxyReqWs: function (preq) {
-                const data = 'username:token';
-                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-            },
-            onError: function (err, req, res, target) {
-                console.error(err, target);
-            }
-        });
-
-        this.proxies.push(ae_proxy);
-
-        /* AE routers */
-        // pun for AE portal
-        // node and rnode for AE application
-        // public for public resource like favicon and logo
-        const proxy_routers = ['/pun', '/node', '/rnode', '/public'];
-
-        proxy_routers.forEach(router=>{
-            this.app.use(router, ae_proxy);
-        });
 
     }
 
