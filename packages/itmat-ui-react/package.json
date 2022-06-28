@@ -40,7 +40,7 @@
         "react-highlight-words": "0.18.0",
         "react-router-dom": "6.3.0",
         "react-vis": "1.11.7",
-        "recharts": "2.1.10"
+        "recharts": "2.1.12"
     },
     "devDependencies": {
         "@cypress/webpack-preprocessor": "5.12.0",
