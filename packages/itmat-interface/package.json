@@ -32,7 +32,7 @@
         "graphql-scalars": "1.17.0",
         "graphql-type-json": "0.3.2",
         "graphql-subscriptions": "2.0.0",
-        "graphql-upload": "15.0.1",
+        "graphql-upload": "15.0.2",
         "hi-base32": "0.5.1",
         "itmat-commons": "1.0.9",
         "jwt-decode": "3.1.2",
