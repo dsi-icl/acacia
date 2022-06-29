@@ -6761,10 +6761,10 @@ csstype@^3.0.2, csstype@^3.0.3, csstype@^3.0.6, csstype@^3.0.8:
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.0.tgz#4ddcac3718d787cf9df0d1b7d15033925c8f29f2"
   integrity sha512-uX1KG+x9h5hIJsaKR9xHUeUraxf8IODOwq9JLNPq6BwB04a/xgpq3rcx47l5BZu5zBPlgD342tdke3Hom/nJRA==
 
-csv-parse@5.2.0:
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-5.2.0.tgz#492b5ca2e5e87e3672ca834e83ab3a0e2486d5cb"
-  integrity sha512-ZuLjTp3Qx2gycoB7FKS9q11KgDL3f0wQszTlNOajS3fHa0jypN/zgjmkam+rczX5dXw5z7+KrDW2hWkM4542Ug==
+csv-parse@5.2.1:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-5.2.1.tgz#51eed6eb07e0c3948f5f816a762a16fa7758bb54"
+  integrity sha512-6JA4UDz7Vvs66ZZWUxR0uD6BR6Oh07rRaKjsZpoqcI7vDdoNpCHgJ58QpAZ8si/y7yK2qTeqOK+ZhrVsR28icQ==
 
 cypress-file-upload@5.0.8:
   version "5.0.8"
