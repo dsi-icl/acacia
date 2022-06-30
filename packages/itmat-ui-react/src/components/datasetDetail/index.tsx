@@ -46,6 +46,7 @@ export const DatasetDetailPage: React.FunctionComponent = () => {
                                                 <NavLink to={'files'} className={({ isActive }) => isActive ? css.active : undefined}>FILES REPOSITORY</NavLink>
                                                 {data.getStudy.type === studyType.CLINICAL ?
                                                     <NavLink to={'data_management'} className={({ isActive }) => isActive ? css.active : undefined}>DATA MANAGEMENT</NavLink> : null}
+                                                <NavLink to='projects' className={({ isActive }) => isActive ? css.active : undefined}>PROJECTS</NavLink>
                                             </>
                                         );
                                     }

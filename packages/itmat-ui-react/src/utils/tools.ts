@@ -245,7 +245,7 @@ export function generateCascader(root: any, array: any, includeEnd: boolean) {
 }
 
 export function findDmField(ontologyTree: IOntologyTree, fields: IFieldEntry[], key: string) {
-    const node: IOntologyRoute | undefined = ontologyTree.routes?.filter(el => el.name === key)[0];
+    const node: IOntologyRoute | undefined = ontologyTree?.routes?.filter(el => el.name === key)[0];
     if (!node) {
         return null;
     }

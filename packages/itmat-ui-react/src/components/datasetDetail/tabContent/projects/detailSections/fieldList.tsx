@@ -32,7 +32,7 @@ const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: st
 
     if (getStudyFieldsError) {
         return <p>
-            A error occured, please contact your administrator: {(getStudyFieldsError as any).message || ''}
+            An error occured, please contact your administrator: {(getStudyFieldsError as any).message || ''}
         </p>;
     }
     return <>

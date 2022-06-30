@@ -372,7 +372,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     if (getOrgsError || getStudyError || getUsersError || whoAmIError)
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator
+            An error occured, please contact your administrator
         </div>;
 
     const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
@@ -582,7 +582,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
     if (getOrgsError)
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator: {getOrgsError.message}
+            An error occured, please contact your administrator: {getOrgsError.message}
         </div>;
 
     const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({

@@ -53,7 +53,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
         return <LoadSpinner />;
 
     if (getOrgsError || getUsersError)
-        return <>A error occured, please contact your administrator: {(getOrgsError as any).message} {(getUsersError as any).message}</>;
+        return <>An error occured, please contact your administrator: {(getOrgsError as any).message} {(getUsersError as any).message}</>;
 
     const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
 
@@ -256,7 +256,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
                 const startDate = moment(file.startDate).format('YYYYMMDD');
                 const endDate = moment(file.endDate).format('YYYYMMDD');
                 return <Button icon={<CloudDownloadOutlined />} download={`${file.participantId}-${file.deviceId}-${startDate}-${endDate}.${ext}`} href={`/file/${record.id}`}>
-                        Download
+                    Download
                 </Button>;
             },
             width: '10rem',
@@ -301,7 +301,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
                 columns={fileNameColumns}
                 dataSource={files}
                 size='small' />
-            {variablesListFiles.length ===0 ? null :
+            {variablesListFiles.length === 0 ? null :
                 <Table
                     rowKey={(rec) => rec.id}
                     columns={fileNameColumns}

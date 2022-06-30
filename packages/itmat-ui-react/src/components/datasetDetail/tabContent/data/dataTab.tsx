@@ -45,7 +45,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent = () => {
     }
     if (!studyId || getStudyError || getStudyFieldsError || getDataRecordsError || whoAmIError || getOntologyTreeError) {
         return <p>
-            A error occured, please contact your administrator
+            An error occured, please contact your administrator
         </p>;
     }
     const showSaveVersionButton = true;
@@ -154,54 +154,52 @@ export const DataManagementTabContentFetch: React.FunctionComponent = () => {
         </div>
 
         <div className={css.tab_page_wrapper + ' ' + css.right_panel}>
-            {/* <Subsection title='Upload New Data'>
-                <UploadNewData studyId={studyId} ></UploadNewData>
-            </Subsection><br /> */}
-            <Subsection title='Create New Data Version'>
-                <Modal
-                    width='80%'
-                    visible={isModalOn}
-                    title='Unversioned Data'
-                    onOk={() => setIsModalOn(false)}
-                    onCancel={() => setIsModalOn(false)}
-                >
-                    <Query<any, any> query={GET_DATA_RECORDS} variables={{
-                        studyId: studyId, versionId: null, queryString: {
-                            data_requested: null,
-                            new_fields: null,
-                            cohort: null
-                        }
-                    }}>
-                        {({ data, loading, error }) => {
-                            if (loading) { return <LoadSpinner />; }
-                            if (error) { return <p>{JSON.stringify(error)}</p>; }
-                            if (!data) { return <p>Not executed.</p>; }
-                            const parsedData = getDataRecordsData.getDataRecords.data;
-                            const groupedData: any = {};
-                            for (const key in parsedData) {
-                                if (!(key in groupedData)) {
-                                    groupedData[key] = [];
-                                }
-                                groupedData[key].push(Object.keys(parsedData[key]));
+            {whoAmIData.whoAmI.type === userTypes.ADMIN ?
+                <Subsection title='Create New Data Version'>
+                    <Modal
+                        width='80%'
+                        visible={isModalOn}
+                        title='Unversioned Data'
+                        onOk={() => setIsModalOn(false)}
+                        onCancel={() => setIsModalOn(false)}
+                    >
+                        <Query<any, any> query={GET_DATA_RECORDS} variables={{
+                            studyId: studyId, versionId: null, queryString: {
+                                data_requested: null,
+                                new_fields: null,
+                                cohort: null
                             }
-                            return (<Table
-                                scroll={{ x: 'max-content' }}
-                                rowKey={(rec) => rec.id}
-                                pagination={false}
-                                columns={columns}
-                                dataSource={Object.keys(groupedData).map((el) => {
-                                    return {
-                                        id: el,
-                                        subjectId: el,
-                                        visitId: groupedData[el]
-                                    };
-                                })}
-                                size='middle'
-                            ></Table>);
-                        }}
-                    </Query>
-                </Modal>
-                {whoAmIData.whoAmI.type === userTypes.ADMIN ?
+                        }}>
+                            {({ data, loading, error }) => {
+                                if (loading) { return <LoadSpinner />; }
+                                if (error) { return <p>{JSON.stringify(error)}</p>; }
+                                if (!data) { return <p>Not executed.</p>; }
+                                const parsedData = getDataRecordsData.getDataRecords.data;
+                                const groupedData: any = {};
+                                for (const key in parsedData) {
+                                    if (!(key in groupedData)) {
+                                        groupedData[key] = [];
+                                    }
+                                    groupedData[key].push(Object.keys(parsedData[key]));
+                                }
+                                return (<Table
+                                    scroll={{ x: 'max-content' }}
+                                    rowKey={(rec) => rec.id}
+                                    pagination={false}
+                                    columns={columns}
+                                    dataSource={Object.keys(groupedData).map((el) => {
+                                        return {
+                                            id: el,
+                                            subjectId: el,
+                                            visitId: groupedData[el]
+                                        };
+                                    })}
+                                    size='middle'
+                                ></Table>);
+                            }}
+                        </Query>
+                    </Modal>
+
                     <Form onFinish={(variables) => {
                         createNewDataVersion({
                             variables: {
@@ -222,9 +220,9 @@ export const DataManagementTabContentFetch: React.FunctionComponent = () => {
                                 Submit
                             </Button>
                         </Form.Item>
-                    </Form> : null}
-            </Subsection>
-            <Subsection title='Data Summary'>
+                    </Form>
+                </Subsection> : null}
+            < Subsection title='Data Summary'>
                 <DataSummaryVisual
                     studyId={studyId}
                     selectedVersion={getStudyData.getStudy.currentDataVersion}
@@ -234,5 +232,5 @@ export const DataManagementTabContentFetch: React.FunctionComponent = () => {
                 />
             </Subsection>
         </div>
-    </div>;
+    </div >;
 };

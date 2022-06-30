@@ -18,7 +18,7 @@ export const FieldListSelectionSection: React.FunctionComponent<{ studyId: strin
     }
     if (getStudyError || getStudyFieldsError) {
         return <p>
-            A error occured, please contact your administrator
+            An error occured, please contact your administrator
         </p>;
     }
     // leave as placeholder;

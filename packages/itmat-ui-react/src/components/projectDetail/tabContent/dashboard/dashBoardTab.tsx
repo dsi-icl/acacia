@@ -13,13 +13,13 @@ export const DashboardTabContent: React.FunctionComponent<{ studyId: string; pro
     }
     if (getProjectError) {
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator
+            An error occured, please contact your administrator
         </div>;
     }
     return <div className={css.tab_page_wrapper}>
         <Subsection title='Data summary'>
             <span>Data Version: {getProjectData.getProject.dataVersion.version}</span>
-        </Subsection><br/>
+        </Subsection><br />
         <Subsection title='Past Jobs'>
             <JobSection jobs={jobs} />
         </Subsection>

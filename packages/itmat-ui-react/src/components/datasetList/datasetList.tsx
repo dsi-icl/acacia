@@ -39,7 +39,7 @@ const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStud
                     width: '100%',
                     display: 'block',
                     overflow: 'hidden'
-                }} title={record.name} onClick={() => { navigate(`${record.id}`); }}>
+                }} title={record.name} onClick={() => { navigate(`${record.id}/files`); }}>
                     {record.name}
                 </Button>);
             }

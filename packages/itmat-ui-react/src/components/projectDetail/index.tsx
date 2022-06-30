@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Navigate, Route, Routes, useParams } from 'react-router-dom';
-import { GET_PROJECT } from 'itmat-commons';
+import { GET_PROJECT, WHO_AM_I, userTypes } from 'itmat-commons';
 import LoadSpinner from '../reusable/loadSpinner';
 import css_dataset from '../datasetDetail/projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
@@ -23,14 +23,30 @@ export const ProjectDetailPage: React.FunctionComponent = () => {
                 return <div className={css_dataset.page_container}>
                     <div className={css_dataset.ariane}>
                         <h2>{data.getProject.name.toUpperCase()}</h2>
-                        <div className={css_dataset.tabs}>
-                            <NavLink to='dashboard' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DASHBOARD</div></NavLink>
-                            {/* <NavLink to='samples' className={({ isActive }) => isActive ? className={({ isActive }) => isActive ? css.active : undefined}><div>SAMPLE</div></NavLink> */}
-                            <NavLink to='data' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DATA</div></NavLink>
-                            <NavLink to='analysis' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>ANALYSIS</div></NavLink>
-                            <NavLink to='files' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>FILE REPOSITORY</div></NavLink>
-                            <NavLink to='admin' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>ADMINISTRATION</div></NavLink>
-                        </div>
+                        <Query<any, any> query={WHO_AM_I}>
+                            {({ loading, error, data: sessionData }) => {
+                                if (loading) return <LoadSpinner />;
+                                if (error) return <p>{error.toString()}</p>;
+                                if (sessionData.whoAmI.type === userTypes.ADMIN) {
+                                    return <div className={css_dataset.tabs}>
+                                        <NavLink to='dashboard' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DASHBOARD</div></NavLink>
+                                        {/* <NavLink to='samples' className={({ isActive }) => isActive ? className={({ isActive }) => isActive ? css.active : undefined}><div>SAMPLE</div></NavLink> */}
+                                        <NavLink to='data' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DATA</div></NavLink>
+                                        <NavLink to='analysis' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>ANALYSIS</div></NavLink>
+                                        <NavLink to='files' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>FILE REPOSITORY</div></NavLink>
+                                        <NavLink to='admin' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>ADMINISTRATION</div></NavLink>
+                                    </div>;
+                                } else {
+                                    return <div className={css_dataset.tabs}>
+                                        <NavLink to='dashboard' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DASHBOARD</div></NavLink>
+                                        {/* <NavLink to='samples' className={({ isActive }) => isActive ? className={({ isActive }) => isActive ? css.active : undefined}><div>SAMPLE</div></NavLink> */}
+                                        <NavLink to='data' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DATA</div></NavLink>
+                                        <NavLink to='analysis' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>ANALYSIS</div></NavLink>
+                                        {/* <NavLink to='files' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>FILE REPOSITORY</div></NavLink> */}
+                                    </div>;
+                                }
+                            }}
+                        </Query>
                     </div>
                     <div className={css_dataset.content}>
                         <Routes>
