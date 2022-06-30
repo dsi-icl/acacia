@@ -169,6 +169,13 @@ export class Router {
                         preq.write(body);
                         preq.end();
                     }
+                    if (contentType === 'application/json') {
+                        const body = JSON.stringify(req.body);
+                        delete req.body;
+                        preq.setHeader('content-length', body.length);
+                        preq.write(body);
+                        preq.end();
+                    }
                 }
             },
             onProxyReqWs: function (preq) {
