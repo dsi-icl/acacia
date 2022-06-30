@@ -24,7 +24,7 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
             notification.open({
                 message: 'Success',
                 description:
-                  `Std for ${selectedStd.field} has been updated.`,
+                    `Std for ${selectedStd.field} has been updated.`,
                 icon: <SmileTwoTone twoToneColor='#4BB543' />
             });
         },
@@ -32,7 +32,7 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
             notification.open({
                 message: 'Failed',
                 description:
-                  `Field ${selectedStd.field.toString()} failed to update.`,
+                    `Field ${selectedStd.field.toString()} failed to update.`,
                 icon: <FrownTwoTone twoToneColor='#FC100D' />
             });
         }
@@ -59,7 +59,7 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
     }
     if (getStandardizationError || getOntologyTreeError) {
         return <p>
-            A error occured, please contact your administrator
+            An error occured, please contact your administrator
         </p>;
     }
     const availableFormats: string[] = Array.from(new Set(getStandardizationData.getStandardization.map(el => el.type)));
@@ -112,7 +112,7 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
         <Button onClick={() => {
             setEditMode(false);
         }}>Cancel
-        </Button><br/><br/>
+        </Button><br /><br />
 
         <Form
             form={form}
@@ -126,16 +126,18 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
                     delete el.id;
                     stdRules.push(el);
                 });
-                createStandardization({ variables: {
-                    studyId: studyId,
-                    standardization: {
-                        type: selectedStd.type,
-                        field: value.field,
-                        path: value.path,
-                        joinByKeys: value.joinByKeys,
-                        stdRules: stdRules
+                createStandardization({
+                    variables: {
+                        studyId: studyId,
+                        standardization: {
+                            type: selectedStd.type,
+                            field: value.field,
+                            path: value.path,
+                            joinByKeys: value.joinByKeys,
+                            stdRules: stdRules
+                        }
                     }
-                } });
+                });
             }}
         >
 
@@ -213,7 +215,7 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
                             ))}
                             <Form.Item>
                                 <Button type='dashed' onClick={() => add()} block icon={<PlusOutlined />}>
-                                Add field
+                                    Add field
                                 </Button>
                             </Form.Item>
                         </>
@@ -229,7 +231,7 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
                         }}
                     >
                         <Button type='primary' htmlType='submit'>
-                                    Submit
+                            Submit
                         </Button>
                     </Form.Item> : null
             }

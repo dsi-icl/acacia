@@ -317,7 +317,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
 
     if (getOrgsError)
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator: {getOrgsError.message}
+            An error occured, please contact your administrator: {getOrgsError.message}
         </div>;
 
     const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({

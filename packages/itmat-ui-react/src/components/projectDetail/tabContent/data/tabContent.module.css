@@ -7,29 +7,37 @@
 .scaffold_wrapper {
     display: grid;
     grid-template-columns: 33% 33% 33%;
-    grid-template-rows: 50% 50%;
+    grid-template-rows: 50% 60% 50%;
     height: 100%;
-    grid-row-gap: 10em;
+    grid-row-gap: 1em;
     grid-column-gap: 1em;
-    grid-template-areas: 
-        "a a b"
-        "c d d"
+    grid-template-areas:
+        "a b c"
+        "d d d"
         "e e f"
 }
 
-.b {
-    display: grid;
+.metadata {
+    grid-area: a;
+}
+
+.demographics {
+    grid-area: d;
+}
+
+.field_viewer {
     grid-area: b;
-    grid-template-columns: 33% 33% 33%;
-    grid-template-rows: 25% 25% 25%;
 }
 
-.b11 {
-    grid-column: 1 / 2;
-    grid-row: 1;
+.data_completeness {
+    grid-area: f;
+    overflow: auto;
 }
 
-.b12 {
-    grid-column: 3;
-    grid-row: 1;
+.data_details {
+    grid-area: e;
+}
+
+.data_download {
+    grid-area: c;
 }

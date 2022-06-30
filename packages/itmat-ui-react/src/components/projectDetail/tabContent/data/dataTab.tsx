@@ -7,15 +7,14 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { CSVLink } from 'react-csv';
-import { Pagination, Select, Statistic, Row, Col, Button, Table, Empty, Cascader } from 'antd';
-import { Pie, BidirectionalBar, Heatmap, Violin, Column } from '@ant-design/plots';
-import { UserOutlined, ProfileOutlined, DownloadOutlined } from '@ant-design/icons';
+import { Select, Statistic, Row, Col, Button, Table, Empty, Cascader, Tooltip } from 'antd';
+import { Pie, BidirectionalBar, Heatmap, Violin, Column, Box } from '@ant-design/plots';
+import { UserOutlined, ProfileOutlined, DownloadOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
 const { Option } = Select;
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { projectId } = useParams();
-
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId, projectId: projectId } });
     const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
     const { loading: getOntologyTreeLoading, error: getOntologyTreeError, data: getOntologyTreeData } = useQuery(GET_ONTOLOGY_TREE, {
@@ -30,36 +29,38 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string }> = ({ s
     }
     if (!projectId || getStudyFieldsError || getProjectError || getOntologyTreeError) {
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator
-        </div>;
+            An error occured, please contact your administrator
+        </div >;
     }
     if (getOntologyTreeData.getOntologyTree[0] === undefined) {
         return <span>Ontology Tree Missing!</span>;
     }
     return <div className={css.tab_page_wrapper}>
         <div className={css.scaffold_wrapper}>
-            <div style={{ gridArea: 'a' }}>
-                <Subsection title='Demographics'>
+            <div className={css.demographics}>
+                <Subsection title={<Tooltip title={'The statistics of several demographics fields.'}>
+                    <span>Demographics</span> <QuestionCircleOutlined />
+                </Tooltip>}>
                     <DemographicsBlock ontologyTree={getOntologyTreeData.getOntologyTree[0]} studyId={studyId} projectId={projectId} fields={filterFields(getStudyFieldsData.getStudyFields, getOntologyTreeData.getOntologyTree[0])} />
                 </Subsection>
             </div>
-            <div style={{ gridArea: 'b' }}>
+            <div className={css.metadata}>
                 <ProjectMetaDataBlock project={getProjectData.getProject} />
             </div>
-            <div style={{ gridArea: 'c' }}>
+            <div className={css.field_viewer}>
                 <FieldViewer ontologyTree={getOntologyTreeData.getOntologyTree[0]} fields={getStudyFieldsData.getStudyFields} />
             </div>
-            <div style={{ gridArea: 'd' }}>
-                <DataCompletenessBlock studyId={studyId} projectId={projectId} ontologyTree={getOntologyTreeData.getOntologyTree[0]} />
+            <div className={css.data_completeness}>
+                <DataCompletenessBlock studyId={studyId} projectId={projectId} ontologyTree={getOntologyTreeData.getOntologyTree[0]} fields={getStudyFieldsData.getStudyFields} />
             </div>
-            <div style={{ gridArea: 'e' }}>
+            <div className={css.data_details}>
                 <DataDetailsBlock studyId={studyId} projectId={projectId} project={getProjectData.getProject} fields={getStudyFieldsData.getStudyFields} ontologyTree={getOntologyTreeData.getOntologyTree[0]} />
             </div>
-            <div style={{ gridArea: 'f' }}>
+            <div className={css.data_download}>
                 <DataDownloadBlock project={getProjectData.getProject} />
             </div>
         </div>
-    </div>;
+    </div >;
 };
 
 export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IFieldEntry[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
@@ -82,7 +83,7 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
     }
     if (getDataRecordsError) {
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator
+            An error occured, please contact your administrator
         </div>;
     }
     // process the data
@@ -166,21 +167,21 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
             genderField === null ? null :
                 <div style={{ width: '25%', float: 'left' }}>
                     <Pie
+                        appendPadding={10}
                         data={obj.SEX}
-                        autoFit={true}
                         angleField={'value'}
                         colorField={'type'}
+                        radius={0.75}
                         legend={{
-                            layout: 'horizontal',
-                            position: 'bottom',
-                            // offsetY: -80
-                        }}
-                        meta={{
-                            count: { min: 0 }
+                            itemWidth: 100,
+                            layout: 'vertical',
+                            offsetX: -40
                         }}
                         label={false}
-                        radius={0.8}
                         interactions={[
+                            {
+                                type: 'element-selected',
+                            },
                             {
                                 type: 'element-active',
                             },
@@ -193,19 +194,21 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
             raceField === null ? null :
                 <div style={{ width: '25%', float: 'left' }}>
                     <Pie
+                        appendPadding={10}
                         data={obj.RACE}
                         angleField={'value'}
                         colorField={'type'}
+                        radius={0.75}
                         legend={{
-                            layout: 'horizontal',
-                            position: 'bottom',
-                        }}
-                        meta={{
-                            count: { min: 0 }
+                            itemWidth: 100,
+                            layout: 'vertical',
+                            offsetX: -40
                         }}
                         label={false}
-                        radius={0.8}
                         interactions={[
+                            {
+                                type: 'element-selected',
+                            },
                             {
                                 type: 'element-active',
                             },
@@ -218,17 +221,21 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
             siteField === null ? null :
                 <div style={{ width: '25%', float: 'left' }}>
                     <Pie
+                        appendPadding={10}
                         data={obj.SITE}
                         angleField={'value'}
                         colorField={'type'}
+                        radius={0.75}
                         legend={{
-                            layout: 'horizontal',
-                            position: 'bottom',
-                            // offsetY: -80
+                            itemWidth: 100,
+                            layout: 'vertical',
+                            offsetX: -40
                         }}
                         label={false}
-                        radius={0.8}
                         interactions={[
+                            {
+                                type: 'element-selected',
+                            },
                             {
                                 type: 'element-active',
                             },
@@ -244,7 +251,7 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
                         data={obj.AGE}
                         xField={'age'}
                         xAxis={{
-                            position: 'bottom'
+                            position: 'right'
                         }}
                         interactions={[
                             { type: 'active-region' }
@@ -274,15 +281,18 @@ export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree,
     ontologyTree.routes?.forEach(el => {
         generateCascader(el, fieldPathOptions, true);
     });
-    return (<SubsectionWithComment title='Field Viewer' comment={<>
+    return (<SubsectionWithComment title={<Tooltip title={'View the details of a selected field.'}>
+        <span>Field Viewer</span> <QuestionCircleOutlined />
+    </Tooltip>} comment={<>
         <Cascader
+            getPopupContainer={trigger => trigger.parentNode}
             options={fieldPathOptions}
             onChange={(value) => {
                 setSelectedPath(value);
             }}
             placeholder={'Please select'}
         />
-    </>}>
+    </>} float={'center'} >
         {
             field === undefined ? null :
                 <>
@@ -318,11 +328,10 @@ export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree,
                     </Row><br />
                 </>
         }
-    </SubsectionWithComment>);
+    </SubsectionWithComment >);
 };
 
-export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree }> = ({ studyId, projectId, ontologyTree }) => {
-    const dataCompletenessdPageSize = 20;
+export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree, fields: IFieldEntry[] }> = ({ studyId, projectId, ontologyTree, fields }) => {
     const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
 
     const requestedFields = ontologyTree.routes?.filter(el => {
@@ -350,8 +359,8 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
     }
     if (getDataRecordsError) {
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator
-        </div>;
+            An error occured, please contact your administrator
+        </div >;
     }
     // process the data
     const data = getDataRecordsData.getDataRecords.data;
@@ -361,7 +370,7 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
             obj.push({
                 visit: visitId,
                 field: fieldId,
-                percentage: parseInt(((data[fieldId][visitId].validNumOfRecords / data[fieldId][visitId].totalNumOfRecords) * 100).toFixed(0))
+                percentage: parseInt(((data[fieldId][visitId].validNumOfRecords / data[fieldId][visitId].totalNumOfRecords) * 100).toFixed(0)).toString()
             });
         }
     }
@@ -389,8 +398,15 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
         showTitle: false,
         fields: ['visit', 'field', 'percentage'],
         formatter: (datum: any) => {
+            const field: IFieldEntry | undefined = fields.filter(el => el.fieldId === datum.field)[0];
+            let name;
+            if (field) {
+                name = field.fieldId.concat('-').concat(field.fieldName);
+            } else {
+                name = 'NA';
+            }
             return {
-                name: '3',
+                name: name,
                 value: datum.percentage + '%'
             };
         }
@@ -401,61 +417,85 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
         generateCascader(el, fieldPathOptions, false);
     });
     return (
-        <SubsectionWithComment title='Data Completeness' comment={
+        <SubsectionWithComment title={<Tooltip title={'The percentage of valid data. The data completeness of a field is calculated by number of ( valid data pointes / number of expected data pointes).'}>
+            < span > Data Completeness</span > <QuestionCircleOutlined />
+        </Tooltip >} comment={
             <Cascader
+                getPopupContainer={trigger => trigger.parentNode}
                 options={fieldPathOptions}
                 onChange={(value) => setSelectedPath(value)}
                 placeholder={'Please select'}
             />
-        }>
-            <Heatmap
-                data={obj}
-                xField={'visit'}
-                yField={'field'}
-                colorField={'percentage'}
-                label={{
-                    style: {
-                        fill: '#fff',
-                        shadowBlur: 2,
-                        shadowColor: 'rgba(0, 0, 0, .45)',
-                    },
-                }}
-                legend={{
-                    layout: 'vertical',
-                    position: 'right',
-                    offsetY: 5,
-                    min: Math.min(...obj.map(el => el.percentage)),
-                    max: 100,
-                    reversed: false
-                }}
-                tooltip={tooltipConfig}
-                xAxis={axisConfig.xAxis}
-                yAxis={axisConfig.yAxis}
-            />
-            <Pagination
-                style={{ float: 'right' }}
-                defaultCurrent={1}
-                defaultPageSize={1}
-                total={Math.ceil(requestedFields.length / dataCompletenessdPageSize)}
-            />
-        </SubsectionWithComment>
+        } float={'center'}
+        >
+            {
+                selectedPath.length === 0 ? <Empty description={'No Data Found'} /> :
+                    <>
+                        <Heatmap
+                            style={{ overflow: 'auto' }}
+                            data={obj}
+                            height={Array.from(new Set((obj.map(el => el.field)))).length * 20}
+                            xField={'visit'}
+                            yField={'field'}
+                            autoFit={true}
+                            colorField={'percentage'}
+                            label={{
+                                formatter: (datum: any) => {
+                                    return datum.percentage + '%';
+                                }
+                            }}
+                            tooltip={tooltipConfig}
+                            xAxis={axisConfig.xAxis}
+                            yAxis={axisConfig.yAxis}
+                        />
+                    </>
+            }
+        </SubsectionWithComment >
     );
 };
 
 export const DataDetailsBlock: React.FunctionComponent<{ studyId: string, projectId, project: IProject, fields: IFieldEntry[], ontologyTree: IOntologyTree }> = ({ studyId, projectId, project, fields, ontologyTree }) => {
     const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
+    const [selectedGraphType, setSelectedGraphType] = React.useState('');
     //construct the cascader
     const fieldPathOptions: any = [];
     ontologyTree.routes?.forEach(el => {
         generateCascader(el, fieldPathOptions, true);
     });
-    return (<SubsectionWithComment title='Data Distribution' comment={
+    const selectedFieldId = ontologyTree.routes?.filter(el => el.name === selectedPath[selectedPath.length - 1])[0]?.field[0]?.replace('$', '') || '';
+    return (<SubsectionWithComment title={<Tooltip title={'The data distribution of a selected field. We provide different visualization techniques for categorical data and numerical data, respectively.'}>
+        <span>Data Distribution</span> <QuestionCircleOutlined />
+    </Tooltip>} comment={<>
         <Cascader
             options={fieldPathOptions}
-            onChange={(value) => setSelectedPath(value)}
+            getPopupContainer={trigger => trigger.parentNode}
+            onChange={(value) => {
+                setSelectedPath(value);
+                setSelectedGraphType('');
+            }}
             placeholder={'Please select'}
         />
-    }>
+        <Select
+            // value={selectedGraphType}
+            getPopupContainer={trigger => trigger.parentNode}
+            placeholder='Select Graph Type'
+            onChange={(value) => {
+                setSelectedGraphType(value);
+            }}
+        >
+            {
+                [enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === selectedFieldId)[0]?.dataType) ?
+                    <>
+                        <Option value='violin'>Violin</Option>
+                        <Option value='box'>Box</Option>
+                    </> : <>
+                        <Option value='stackedColumn'>Stacked Column</Option>
+                        <Option value='groupedColumn'>Grouped Column</Option>
+                    </>
+            }
+        </Select>
+    </>
+    } float={'center'}>
         <Query<any, any> query={GET_DATA_RECORDS} variables={{
             studyId: studyId,
             projectId: projectId,
@@ -508,29 +548,62 @@ export const DataDetailsBlock: React.FunctionComponent<{ studyId: string, projec
                 } else {
                     return null;
                 }
-                return (<>
-                    {
-                        [enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType) ?
-                            <Violin
+                const boxData = data.reduce((acc, curr) => {
+                    if (acc.filter(el => el.x === curr.x)[0] === undefined) {
+                        acc.push({ x: curr.x, y: [] });
+                    }
+                    acc.filter(el => el.x === curr.x)[0].y.push(curr.y);
+                    return acc;
+                }, []).map(el => {
+                    const sortedY = [...el.y].sort();
+                    return {
+                        x: el.x,
+                        low: sortedY[0],
+                        q1: sortedY[Math.floor(sortedY.length / 4)],
+                        median: sortedY[Math.floor(sortedY.length / 2)],
+                        q3: sortedY[Math.floor(sortedY.length * 3 / 4)],
+                        high: sortedY[sortedY.length - 1],
+                    };
+                });
+                console.log(boxData);
+                if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType))
+                    return (<>
+                        {
+                            selectedGraphType === 'violin' ? <Violin
                                 data={data}
                                 xField={'x'}
                                 yField={'y'}
-                            />
-                            :
-                            <Column
-                                data={data}
-                                xField={'visit'}
-                                yField={'count'}
-                                seriesField={'value'}
-                                isPercent={true}
-                                isStack={true}
-                                interactions={[
-                                    { type: 'element-highlight-by-color' },
-                                    { type: 'element-link' }
-                                ]}
-                            />
-                    }
-                </>);
+                            /> : selectedGraphType === 'box' ? <Box
+                                data={boxData}
+                                xField={'x'}
+                                yField={['low', 'q1', 'median', 'q3', 'high']}
+                                boxStyle={{
+                                    stroke: '#545454',
+                                    fill: '#1890FF',
+                                    fillOpacity: 0.3,
+                                }}
+                            /> : null
+                        }
+                    </>);
+                else
+                    return (<>
+                        {
+                            selectedGraphType === 'stackedColumn' || selectedGraphType === 'groupedColumn' ?
+                                <Column
+                                    data={data}
+                                    xField={'visit'}
+                                    yField={'count'}
+                                    seriesField={'value'}
+                                    isPercent={true}
+                                    isStack={selectedGraphType === 'stackedColumn'}
+                                    isGroup={selectedGraphType === 'groupedColumn'}
+                                    interactions={[
+                                        { type: 'element-highlight-by-color' },
+                                        { type: 'element-link' }
+                                    ]}
+                                /> : null
+                        }
+                    </>);
             }}
         </Query>
         <br />
@@ -538,7 +611,9 @@ export const DataDetailsBlock: React.FunctionComponent<{ studyId: string, projec
 };
 
 export const ProjectMetaDataBlock: React.FunctionComponent<{ project: IProject }> = ({ project }) => {
-    return (<Subsection title='Meta Data'>
+    return (<Subsection title={<Tooltip title={'Summary of the project.'}>
+        <span>Meta data</span> <QuestionCircleOutlined />
+    </Tooltip>}>
         <div style={{ gridArea: 'e' }}>
             <Row gutter={16}>
                 <Col span={12}>
@@ -570,7 +645,7 @@ export const ProjectMetaDataBlock: React.FunctionComponent<{ project: IProject }
 };
 
 export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> = ({ project }) => {
-    const { loading: getStandardizationLoading, error: getStandardizationError, data: getStandardizationData } = useQuery(GET_STANDARDIZATION, { variables: { studyId: project.studyId } });
+    const { loading: getStandardizationLoading, error: getStandardizationError, data: getStandardizationData } = useQuery(GET_STANDARDIZATION, { variables: { studyId: project.studyId, projectId: project.id } });
     const [getDataRecordsLazy, { loading: getDataRecordsLoading, data: getDataRecordsData }] = useLazyQuery(GET_DATA_RECORDS, {});
     const [selectedDataFormat, setSelectedDataFormat] = React.useState<string | undefined>(undefined);
     const [selectedOutputType, setSelectedOutputType] = React.useState('JSON');
@@ -579,8 +654,8 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
     }
     if (getStandardizationError) {
         return <p>
-            A error occured, please contact your administrator
-        </p>;
+            An error occured, please contact your administrator
+        </p >;
     }
     const availableFormats: string[] = Array.from(new Set(getStandardizationData.getStandardization.map(el => el.type))) || [];
     const dataArray: any[] = [];
@@ -612,12 +687,15 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
             }
         },
     ];
-    return (<SubsectionWithComment title='Data Download' comment={<>
+    return (<SubsectionWithComment title={<Tooltip title={'Download data with a specific format. Please select a format, then select JSON or CSV, then click fetch data.'}>
+        <span>Data Download</span> <QuestionCircleOutlined />
+    </Tooltip>} comment={<>
         <Select
             value={selectedDataFormat}
             style={{ float: 'left' }}
             placeholder='Select Format'
             allowClear
+            getPopupContainer={trigger => trigger.parentNode}
             onSelect={(value: string) => {
                 setSelectedDataFormat(value);
                 if (!value.startsWith('standardized')) {
@@ -626,11 +704,11 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
             }}
         >
             <Option value={'raw'}>Raw</Option>
-            <Option value={'grouped'}>Grouped</Option>
+            {/* <Option value={'grouped'}>Grouped</Option> */}
             {
                 availableFormats.map(el => <Option value={'standardized-' + el}>{el.toString()}</Option>)
             }
-        </Select>
+        </ Select>
         <Button onClick={() => {
             getDataRecordsLazy({
                 variables: {
@@ -649,6 +727,7 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
             value={selectedOutputType}
             style={{ float: 'left' }}
             placeholder='Select Format'
+            getPopupContainer={trigger => trigger.parentNode}
             allowClear
             onSelect={(value: string) => {
                 setSelectedOutputType(value);
@@ -661,7 +740,7 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
         </Select>
     </>}>
         {
-            getDataRecordsData?.getDataRecords?.data === undefined ? <h2>No Data Available</h2> :
+            getDataRecordsData?.getDataRecords?.data === undefined ? <Empty description={'No Data Found'} /> :
                 selectedOutputType === 'JSON' ?
                     <Button type='link' onClick={() => {
                         const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
@@ -684,5 +763,5 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
                         size='middle'
                     ></Table>
         }
-    </SubsectionWithComment>);
+    </SubsectionWithComment >);
 };

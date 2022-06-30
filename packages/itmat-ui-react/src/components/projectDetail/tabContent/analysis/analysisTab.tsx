@@ -39,7 +39,7 @@ export const AnalysisTabContent: React.FunctionComponent<{ studyId: string }> = 
     }
     if (!projectId || getStudyFieldsError || getProjectError || getOntologyTreeError) {
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator
+            An error occured, please contact your administrator
         </div>;
     }
     const fieldPathOptions: any = [];
