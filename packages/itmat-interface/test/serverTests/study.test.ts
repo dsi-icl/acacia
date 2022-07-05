@@ -710,13 +710,16 @@ describe('STUDY API', () => {
         let createdStudy;
         let createdRole_study;
         let createdRole_study_manageProject;
+        let createdRole_study_self_access;
         let createdRole_project;
         let createdUserAuthorised;  // profile
         let createdUserAuthorisedStudy;  // profile
         let createdUserAuthorisedStudyManageProjects;  // profile
+        let createdUserAuthorisedToOneOrg; // profile
         let authorisedUser; // client
         let authorisedUserStudy; // client
         let authorisedUserStudyManageProject; // client
+        let authorisedUserToOneOrg; // client
         let mockFields: IFieldEntry[];
         let mockFiles: IFile[];
         let mockDataVersion: IStudyDataVersion;
@@ -810,7 +813,7 @@ describe('STUDY API', () => {
                 mockFiles = [
                     {
                         id: 'mockfile1_id',
-                        fileName: 'mockfile1_name',
+                        fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
                         studyId: createdStudy.id,
                         fileSize: '1000',
                         description: 'Just a test file1',
@@ -822,7 +825,7 @@ describe('STUDY API', () => {
                     },
                     {
                         id: 'mockfile2_id',
-                        fileName: 'mockfile2_name',
+                        fileName: 'GR6R4AR-MMMS3JSPP-20200601-20200703.json',
                         studyId: createdStudy.id,
                         fileSize: '1000',
                         description: 'Just a test file2',
@@ -924,6 +927,42 @@ describe('STUDY API', () => {
                 });
                 expect(res.body.data.addRoleToStudyOrProject).toEqual({
                     id: createdRole_study_manageProject.id,
+                    name: roleName,
+                    permissions: [],
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    users: []
+                });
+            }
+
+            /* create another role for access data with self organisation only */
+            {
+                const roleName = uuid();
+                const res = await admin.post('/graphql').send({
+                    query: print(ADD_NEW_ROLE),
+                    variables: {
+                        roleName,
+                        studyId: createdStudy.id,
+                        projectId: null
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+
+                createdRole_study_self_access = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+                expect(createdRole_study_self_access).toEqual({
+                    _id: createdRole_study_self_access._id,
+                    id: createdRole_study_self_access.id,
+                    projectId: null,
+                    studyId: createdStudy.id,
+                    name: roleName,
+                    permissions: [],
+                    createdBy: adminId,
+                    users: [],
+                    deleted: null
+                });
+                expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                    id: createdRole_study_self_access.id,
                     name: roleName,
                     permissions: [],
                     studyId: createdStudy.id,
@@ -1163,6 +1202,31 @@ describe('STUDY API', () => {
                 createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
             }
 
+            /* 5. create an authorised study user that can access data from self organisation only */
+            {
+                const username = uuid();
+                const newUser: IUser = {
+                    username: username,
+                    type: userTypes.STANDARD,
+                    firstname: `${username}_firstname`,
+                    lastname: `${username}_lastname`,
+                    password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi',
+                    otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
+                    email: `${username}'@user.io'`,
+                    resetPasswordRequests: [],
+                    description: 'I am an authorised study user to access self org data.',
+                    emailNotificationsActivated: true,
+                    organisation: 'organisation_user',
+                    deleted: null,
+                    id: `AuthorisedStudyUserManageProject_${username}`,
+                    createdAt: 1591134065000,
+                    expiredAt: 1991134065000
+                };
+
+                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+                createdUserAuthorisedToOneOrg = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
+            }
+
             /* 6. add authorised user to role */
             {
                 const res = await admin.post('/graphql').send({
@@ -1225,6 +1289,68 @@ describe('STUDY API', () => {
                     }
                 });
             }
+            /* 7. add authorised user to role */
+            {
+                const res = await admin.post('/graphql').send({
+                    query: print(EDIT_ROLE),
+                    variables: {
+                        roleId: createdRole_study_self_access.id,
+                        userChanges: {
+                            add: [createdUserAuthorisedToOneOrg.id],
+                            remove: []
+                        },
+                        permissionChanges: {
+                            add: [permissions.specific_study.specific_study_readonly_access, permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_study.specific_study_projects_management],
+                            remove: []
+                        }
+                    }
+                });
+                expect(res.status).toBe(200);
+                expect(res.body.errors).toBeUndefined();
+                expect(res.body.data.editRole).toEqual({
+                    id: createdRole_study_self_access.id,
+                    name: createdRole_study_self_access.name,
+                    studyId: createdStudy.id,
+                    projectId: null,
+                    permissions: [permissions.specific_study.specific_study_readonly_access, permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_study.specific_study_projects_management],
+                    users: [{
+                        id: createdUserAuthorisedToOneOrg.id,
+                        organisation: 'organisation_user',
+                        firstname: createdUserAuthorisedToOneOrg.firstname,
+                        lastname: createdUserAuthorisedToOneOrg.lastname
+                    }]
+                });
+                const resUser = await admin.post('/graphql').send({
+                    query: print(GET_USERS),
+                    variables: {
+                        fetchDetailsAdminOnly: false,
+                        userId: createdUserAuthorisedToOneOrg.id,
+                        fetchAccessPrivileges: true
+                    }
+                });
+                expect(resUser.status).toBe(200);
+                expect(resUser.body.errors).toBeUndefined();
+                expect(resUser.body.data.getUsers).toHaveLength(1);
+                expect(resUser.body.data.getUsers[0]).toEqual({
+                    id: createdUserAuthorisedToOneOrg.id,
+                    type: userTypes.STANDARD,
+                    firstname: `${createdUserAuthorisedToOneOrg.username}_firstname`,
+                    lastname: `${createdUserAuthorisedToOneOrg.username}_lastname`,
+                    organisation: 'organisation_user',
+                    access: {
+                        id: `user_access_obj_user_id_${createdUserAuthorisedToOneOrg.id}`,
+                        projects: [{
+                            id: createdProject.id,
+                            name: createdProject.name,
+                            studyId: createdStudy.id
+                        }],
+                        studies: [{
+                            id: createdStudy.id,
+                            name: createdStudy.name
+                        }]
+                    }
+                });
+            }
             /* fsdafs: admin who am i */
             {
                 const res = await admin.post('/graphql').send({ query: print(WHO_AM_I) });
@@ -1261,6 +1387,8 @@ describe('STUDY API', () => {
             await connectAgent(authorisedUserStudy, createdUserAuthorisedStudy.username, 'admin', createdUserAuthorisedStudy.otpSecret);
             authorisedUserStudyManageProject = request.agent(app);
             await connectAgent(authorisedUserStudyManageProject, createdUserAuthorisedStudyManageProjects.username, 'admin', createdUserAuthorisedStudyManageProjects.otpSecret);
+            authorisedUserToOneOrg = request.agent(app);
+            await connectAgent(authorisedUserToOneOrg, createdUserAuthorisedToOneOrg.username, 'admin', createdUserAuthorisedToOneOrg.otpSecret);
         });
 
         afterAll(async () => {
@@ -1422,12 +1550,26 @@ describe('STUDY API', () => {
                                 lastname: createdUserAuthorisedStudyManageProjects.lastname,
                                 username: createdUserAuthorisedStudyManageProjects.username
                             }]
+                        },
+                        {
+                            id: createdRole_study_self_access.id,
+                            name: createdRole_study_self_access.name,
+                            permissions: [permissions.specific_study.specific_study_readonly_access, permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_study.specific_study_projects_management],
+                            projectId: null,
+                            studyId: createdStudy.id,
+                            users: [{
+                                id: createdUserAuthorisedToOneOrg.id,
+                                organisation: 'organisation_user',
+                                firstname: createdUserAuthorisedToOneOrg.firstname,
+                                lastname: createdUserAuthorisedToOneOrg.lastname,
+                                username: createdUserAuthorisedToOneOrg.username
+                            }]
                         }
                     ],
                     files: [
                         {
                             id: 'mockfile1_id',
-                            fileName: 'mockfile1_name',
+                            fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
                             studyId: createdStudy.id,
                             projectId: null,
                             fileSize: '1000',
@@ -1438,7 +1580,7 @@ describe('STUDY API', () => {
                         },
                         {
                             id: 'mockfile2_id',
-                            fileName: 'mockfile2_name',
+                            fileName: 'GR6R4AR-MMMS3JSPP-20200601-20200703.json',
                             studyId: createdStudy.id,
                             projectId: null,
                             fileSize: '1000',
@@ -1514,6 +1656,27 @@ describe('STUDY API', () => {
                     files: []
                 });
             }
+        });
+
+        test('Get study (user that can only access self org data)', async () => {
+            const res = await authorisedUserToOneOrg.post('/graphql').send({
+                query: print(GET_STUDY),
+                variables: { studyId: createdStudy.id }
+            });
+            expect(res.status).toBe(200);
+            // expect(res.body.errors).toBeUndefined();
+            expect(res.body.data.getStudy.files[0]).toEqual({
+                id: 'mockfile1_id',
+                fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
+                studyId: createdStudy.id,
+                projectId: null,
+                fileSize: '1000',
+                description: 'Just a test file1',
+                uploadTime: '1599345644000',
+                uploadedBy: adminId,
+                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
+            }
+            );
         });
 
         test('Get patient mapping (admin)', async () => {

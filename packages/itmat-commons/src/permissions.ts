@@ -16,11 +16,13 @@ export const permissions = {
         specific_study_readonly_access: 'specific_study_readonly_access',
         specific_study_data_management: 'specific_study_data_management', // allows to upload / edit data
         specific_study_role_management: 'specific_study_role_management', // create, edit and delete roles and manage permissions and users in those roles
-        specific_study_projects_management: 'specific_study_projects_management' // allows to create, delete, edit projects within a specific study
+        specific_study_projects_management: 'specific_study_projects_management', // allows to create, delete, edit projects within a specific study
+        specific_study_data_own_organisation_only: 'specific_study_data_own_organisation_only' // user with this will access data from own organisaiton, for both readonly and management
     },
     specific_project: {
         specific_project_readonly_access: 'specific_project_readonly_access',
-        specific_project_role_management: 'specific_project_role_management' // create, edit and delete roles and manage permissions and users in those roles
+        specific_project_role_management: 'specific_project_role_management', // create, edit and delete roles and manage permissions and users in those roles
+        specific_project_data_own_organisation_only: 'specific_project_data_own_organisation_only' // user with this will access data from own organisaiton, for both readonly and management
     }
 };
 
@@ -38,8 +40,10 @@ export const permissionLabels = {
     specific_study_data_management: 'This study data management',
     specific_study_role_management: 'This study role management',
     specific_study_projects_management: 'This study projects management',
+    specific_study_data_own_organisation_only: 'This study self organisation readonly access',
     specific_project_readonly_access: 'This project readonly access',
-    specific_project_role_management: 'This project role management'
+    specific_project_role_management: 'This project role management',
+    specific_project_data_own_organisation_only: 'This project self organisation readonly access'
 };
 
 export const task_required_permissions = {

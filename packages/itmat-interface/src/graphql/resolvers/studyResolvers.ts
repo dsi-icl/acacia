@@ -13,7 +13,8 @@ import {
     ISubjectDataRecordSummary,
     DATA_CLIP_ERROR_TYPE,
     IRole,
-    IOntologyTree
+    IOntologyTree,
+    userTypes
 } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -140,7 +141,6 @@ export const studyResolvers = {
                 studyId,
                 projectId
             );
-            console.log(hasPermission, hasProjectLevelPermission);
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
             if (treeId) {
@@ -269,6 +269,20 @@ export const studyResolvers = {
             );
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
+            // check data access permissions
+            // null: user will access all data; undefined: user should not access any data
+            let siteIDMarker: string | undefined | null = undefined;
+            if (requester.type === userTypes.ADMIN || !(await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_project.specific_project_data_own_organisation_only],
+                requester,
+                studyId,
+                projectId
+            ))) {
+                siteIDMarker = null;
+            } else {
+                siteIDMarker = (await db.collections!.organisations_collection.findOne({ id: requester.organisation }))?.metadata?.siteIDMarker;
+            }
+
             // if the user has necessary permission, the latest field and data (including unversioned) will both be used to validate and returned;
             // else only the latest versioned field and data will be used
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
@@ -310,7 +324,7 @@ export const studyResolvers = {
             }
             ]).toArray();
             const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null).map(es => es.fieldId);
-            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission && versionId === null, fieldsList);
+            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission && versionId === null, fieldsList, siteIDMarker);
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             // post processing the data
             // 1. update to the latest data
@@ -347,8 +361,23 @@ export const studyResolvers = {
         roles: async (study: IStudy): Promise<Array<IRole>> => {
             return await db.collections!.roles_collection.find({ studyId: study.id, projectId: undefined, deleted: null }).toArray();
         },
-        files: async (study: IStudy): Promise<Array<IFile>> => {
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
+        files: async (study: IStudy, __unused__args: never, context: any): Promise<Array<IFile>> => {
+            const requester: IUser = context.req.user;
+            if (requester.type === userTypes.ADMIN || !(await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_data_own_organisation_only],
+                requester,
+                study.id
+            ))) {
+                return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
+            } else {
+                const siteIDMarker: string | undefined = (await db.collections!.organisations_collection.findOne({ id: requester.organisation }))?.metadata?.siteIDMarker;
+                if (!siteIDMarker) {
+                    return [];
+                } else {
+                    return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, fileName: { $regex: new RegExp('^' + siteIDMarker + '(.{6})-(.{3})(.{6})-(\\d{8})-(\\d{8})\\.(.*)$') } }).toArray();
+                }
+            }
+
         },
         subjects: async (study: IStudy): Promise<string[]> => {
             return study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id });
@@ -375,8 +404,23 @@ export const studyResolvers = {
         jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IJobEntry<any>>> => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
-        files: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IFile>> => {
-            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
+        files: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<Array<IFile>> => {
+            const requester: IUser = context.req.user;
+            if (requester.type === userTypes.ADMIN || !(await permissionCore.userHasTheNeccessaryPermission(
+                [permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_project.specific_project_data_own_organisation_only],
+                requester,
+                project.studyId,
+                project.id
+            ))) {
+                return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
+            } else {
+                const siteIDMarker: string | undefined = (await db.collections!.organisations_collection.findOne({ id: requester.organisation }))?.metadata?.siteIDMarker;
+                if (!siteIDMarker) {
+                    return [];
+                } else {
+                    return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null, fileName: { $regex: new RegExp('^' + siteIDMarker + '(.{6})-(.{3})(.{6})-(\\d{8})-(\\d{8})\\.(.*)$') } }).toArray();
+                }
+            }
         },
         dataVersion: async (project: IProject): Promise<IStudyDataVersion | null> => {
             const study = await db.collections!.studies_collection.findOne({ id: project.studyId, deleted: null });

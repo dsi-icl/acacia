@@ -10,12 +10,12 @@ import { IStudy, IFieldEntry, IStandardization } from 'itmat-commons';
 // if has study-level permission, non versioned data will also be returned
 
 
-export function buildPipeline(query: any, studyId: string, validDataVersion: string, hasPermission: boolean, fieldsList: any[]) {
+export function buildPipeline(query: any, studyId: string, validDataVersion: string, hasPermission: boolean, fieldsList: any[], siteIDMarker: string | undefined | null) {
     // // parse the input data versions first
     let dataVersionsFilter: any;
     // for data managers; by default will return unversioned data; to return only versioned data, specify a data version
     if (hasPermission) {
-        dataVersionsFilter = { $match: { $or: [ { m_versionId: null }, { m_versionId: { $in: validDataVersion } } ] } };
+        dataVersionsFilter = { $match: { $or: [{ m_versionId: null }, { m_versionId: { $in: validDataVersion } }] } };
     } else {
         dataVersionsFilter = { $match: { m_versionId: { $in: validDataVersion } } };
     }
@@ -61,19 +61,31 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
             match = translateCohort(query.cohort[0]);
         }
     }
+    // siteIDMarker
+    let selfOrgFilter: any;
+    if (siteIDMarker === null) {
+        selfOrgFilter = { $match: { m_subjectId: { $regex: new RegExp('(.{1})' + '-?(.{6})') } } };
+    } else if (siteIDMarker === undefined) {
+        selfOrgFilter = { $match: { m_subjectId: null } };
+    } else {
+        selfOrgFilter = { $match: { m_subjectId: { $regex: new RegExp(siteIDMarker + '-?(.{6})') } } };
+    }
+
     if (isEmptyObject(addFields)) {
         return [
+            selfOrgFilter,
             { $match: { m_studyId: studyId } },
-            { $match: { $or: [ match, { m_versionId: '0' } ] } },
+            { $match: { $or: [match, { m_versionId: '0' }] } },
             dataVersionsFilter,
             { $sort: { m_subjectId: -1, m_visitId: -1 } },
             { $project: fields }
         ];
     } else {
         return [
+            selfOrgFilter,
             { $match: { m_studyId: studyId } },
             { $addFields: addFields },
-            { $match: { $or: [ match, { m_versionId: '0' } ] } },
+            { $match: { $or: [match, { m_versionId: '0' }] } },
             dataVersionsFilter,
             { $sort: { m_subjectId: -1, m_visitId: -1 } },
             { $project: fields }
@@ -250,7 +262,7 @@ function translateCohort(cohort: any) {
     return match;
 }
 
-export function dataStandardization(study:IStudy, fields: IFieldEntry[], data: any, queryString: any, standardizations: IStandardization[] | undefined) {
+export function dataStandardization(study: IStudy, fields: IFieldEntry[], data: any, queryString: any, standardizations: IStandardization[] | undefined) {
     if (!queryString['format'] || queryString['format'] === 'raw') {
         return data;
     } else if (queryString['format'] === 'grouped' || queryString['format'] === 'summary') {
@@ -258,7 +270,7 @@ export function dataStandardization(study:IStudy, fields: IFieldEntry[], data: a
     } else if (standardizations && queryString['format'].startsWith('standardized')) {
         return standardize(study, fields, data, standardizations, queryString['new_fields'] || []);
     }
-    return { error: 'Format not recognized.'};
+    return { error: 'Format not recognized.' };
 }
 
 // fields are obtained from called functions, providing the valid fields
@@ -306,7 +318,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                     if (!rule.parameter) {
                         continue;
                     }
-                    switch(rule.source) {
+                    switch (rule.source) {
                         case 'data': {
                             const chain = rule.parameter || [];
                             let tmpData = data[subjectId][visitId][fieldId];
@@ -361,7 +373,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                     // support two ways: convert to another value, delete this value; input should be [delete/convert, $value]
                     if (rule.filters) {
                         if (Object.keys(rule.filters).includes(dataClip[rule.entry].toString())) {
-                            switch(rule.filters[dataClip[rule.entry]][0]) {
+                            switch (rule.filters[dataClip[rule.entry]][0]) {
                                 case 'convert': {
                                     dataClip[rule.entry] = rule.filters[dataClip[rule.entry]][1];
                                     break;
@@ -383,9 +395,9 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                         pointer = insertInObj(records, standardization.path, [], true, subjectId, visitId);
                     }
                     let isSame = true;
-                    for (let i=0; i<pointer.length; i++) {
+                    for (let i = 0; i < pointer.length; i++) {
                         isSame = true;
-                        for (let j=0; j<standardization.joinByKeys.length; j++) {
+                        for (let j = 0; j < standardization.joinByKeys.length; j++) {
                             if (pointer[i][standardization.joinByKeys[j]] !== dataClip[standardization.joinByKeys[j]]) {
                                 isSame = false;
                                 break;
@@ -447,7 +459,7 @@ export function dataGrouping(data: any, format: string) {
 // recursively create object structures, return the last pointer
 function insertInObj(obj: any, levels: string[], lastValue: any, join: boolean, subjectId: any, visitId: any) {
     let pointer: any = obj;
-    for (let i=0; i<levels.length; i++) {
+    for (let i = 0; i < levels.length; i++) {
         let modifiedLevel = levels[i];
         if (levels[i] === 'm_subjectId') {
             modifiedLevel = subjectId;
@@ -478,7 +490,7 @@ function insertInObj(obj: any, levels: string[], lastValue: any, join: boolean, 
 }
 
 // array[0] should be the name of the new field; array[-1] should be 'derived'
-function preOrderTraversal (node: any, array: string[]) {
+function preOrderTraversal(node: any, array: string[]) {
     if (!node) {
         return false;
     }
