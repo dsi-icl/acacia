@@ -92,7 +92,7 @@ export const fileResolvers = {
                             // description varies: SENSOR, CLINICAL (only participantId), ANY (No check)
                             // check filename and description is valid and matches each other
                             const parsedDescription = JSON.parse(args.description);
-                            if (study.type === studyType.SENSOR || study.type === null || study.type === undefined) {
+                            if (study.type === undefined || study.type === null || study.type === studyType.SENSOR || study.type === studyType.CLINICAL) {
                                 let startDate;
                                 let endDate;
                                 try {
@@ -135,36 +135,6 @@ export const fileResolvers = {
                                 };
 
                                 const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
-                                if (insertResult.acknowledged) {
-                                    resolve(fileEntry);
-                                } else {
-                                    throw new ApolloError(errorCodes.DATABASE_ERROR);
-                                }
-                            } else if (study.type === studyType.CLINICAL) {
-                                if (!file.filename.startsWith('prolific')) {
-                                    reject(new ApolloError('File name is invalid', errorCodes.CLIENT_MALFORMED_INPUT));
-                                    return;
-                                }
-                                const fileEntry: IFile = {
-                                    id: uuid(),
-                                    fileName: file.filename,
-                                    studyId: args.studyId,
-                                    fileSize: readBytes.toString(),
-                                    description: args.description,
-                                    uploadTime: `${Date.now()}`,
-                                    uploadedBy: requester.id,
-                                    uri: fileUri,
-                                    deleted: null,
-                                    hash: hashString
-                                };
-                                const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
-                                // option: whether to keep the old files
-                                // if (oldFile && study.type === studyType.CLINICAL) {
-                                //     const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: oldFile.id }, { $set: { deleted: new Date().valueOf() } });
-                                //     if (updateResult.result.ok !== 1) {
-                                //         throw new ApolloError(errorCodes.DATABASE_ERROR);
-                                //     }
-                                // }
                                 if (insertResult.acknowledged) {
                                     resolve(fileEntry);
                                 } else {

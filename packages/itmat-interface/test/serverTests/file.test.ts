@@ -204,40 +204,6 @@ if (global.hasMinio) {
                     });
                 });
 
-                test('Upload file to CLINICAL study (admin)', async () => {
-                    /* test: upload file */
-                    const res = await admin.post('/graphql')
-                        .field('operations', JSON.stringify({
-                            query: print(UPLOAD_FILE),
-                            variables: {
-                                studyId: createdStudyClinical.id,
-                                file: null,
-                                description: JSON.stringify({}),
-                                fileLength: 13,
-                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
-                            }
-                        }))
-                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/prolific_test.txt'));
-
-                    /* setup: geting the created file Id */
-                    const createdFile = await mongoClient.collection(config.database.collections.files_collection).findOne({ fileName: 'prolific_test.txt', studyId: createdStudyClinical.id });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
-                    expect(uploadTime).toBeDefined();
-                    expect(uploadFile).toEqual({
-                        id: createdFile.id,
-                        fileName: 'prolific_test.txt',
-                        studyId: createdStudyClinical.id,
-                        projectId: null,
-                        fileSize: '13',
-                        description: JSON.stringify({}),
-                        uploadedBy: adminId,
-                        hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a2'
-                    });
-                });
-
                 test('Upload file to study ANY (admin)', async () => {
                     /* test: upload file */
                     const res = await admin.post('/graphql')
