@@ -285,7 +285,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
             }
         ]);
 
-    return (type === studyType.ANY || type === studyType.CLINICAL) ?
+    return type === studyType.ANY ?
         <>
             <Table
                 rowKey={(rec) => rec.id}

@@ -130,7 +130,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
 
     const fileFilter = (files: StudyFile[]) => {
         files.forEach((file) => {
-            if (getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) {
+            if (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === studyType.CLINICAL) {
                 const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
                 const particules = file.name.match(matcher);
                 if (particules?.length === 8) {
@@ -150,22 +150,15 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     }
                 }
                 progressReports[`UP_${file.participantId}_${file.deviceId}_${file.startDate?.valueOf()}_${file.endDate?.valueOf()}`] = undefined;
-            } else if (getStudyData.getStudy.type === studyType.CLINICAL) {
-                const matcher = /(.{1})(.{6}).(.*)/;
-                const particules = file.name.match(matcher);
-                if (particules?.length === 4) {
-                    if (Object.keys(sites).includes(particules[1].toUpperCase())
-                        && validate(particules[2].toUpperCase()))
-                        file.participantId = `${particules[1].toUpperCase()}${particules[2].toUpperCase()}`;
-                }
-                progressReports[`UP_${file.participantId}`] = undefined;
+            } else if (getStudyData.getStudy.type === studyType.ANY) {
+                progressReports[`UP_${file.name}`] = undefined;
             }
             file.uuid = uuid();
             fileList.push(file);
         });
         setFileList([...fileList]);
     };
-    const validFile = (getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) ? fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate)
+    const validFile = (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR) ? fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate)
         : fileList.filter((file) => file.name);
     const uploadHandler = () => {
 
@@ -174,7 +167,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         validFile.forEach(file => {
             let description: any;
             let uploadMapHackName: any;
-            if (getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === null) {
+            if (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === studyType.CLINICAL) {
                 description = {
                     participantId: file.participantId?.trim().toUpperCase(),
                     deviceId: file.deviceId?.trim().toUpperCase(),
@@ -182,9 +175,6 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     endDate: file.endDate?.valueOf()
                 };
                 uploadMapHackName = `UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`;
-            } else if (getStudyData.getStudy.type === studyType.CLINICAL) {
-                description = {};
-                uploadMapHackName = `UP_${description.participantId}`;
             } else {
                 description = {};
                 uploadMapHackName = `UP_${file.name}`;
@@ -436,7 +426,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                         rowKey={(rec) => rec.uuid}
                         rowClassName={() => css.editable_row}
                         pagination={false}
-                        columns={(getStudyData.getStudy.type === studyType.ANY || getStudyData.getStudy.type === studyType.CLINICAL) ? fileNameColumns : fileDetailsColumns}
+                        columns={getStudyData.getStudy.type === studyType.ANY ? fileNameColumns : fileDetailsColumns}
                         dataSource={fileList}
                         size='small'
                         components={{ body: { row: EditableRow, cell: EditableCell } }} />
