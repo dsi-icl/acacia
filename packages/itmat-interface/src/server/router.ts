@@ -149,7 +149,6 @@ export class Router {
         // initial this before graphqlUploadExpress middleware
         const ae_proxy = createProxyMiddleware({
             target: config.aeEndpoint,
-            changeOrigin: true,
             ws: true,
             xfwd: true,
             // logLevel: 'debug',
@@ -162,20 +161,20 @@ export class Router {
                 preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
                 if (req.method == 'POST' && req.body ) {
                     const contentType = preq.getHeader('Content-Type');
-                    if (contentType === 'application/x-www-form-urlencoded'){
-                        const body: string = qs.stringify(req.body);
-                        delete req.body;
-                        preq.setHeader('content-length', body.length);
-                        preq.write(body);
+                    const writeBody = (bodyData: string) => {
+                        preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                        preq.write(bodyData);
                         preq.end();
+                    };
+
+                    if (contentType === 'application/json') {  // contentType.includes('application/json')
+                        writeBody(JSON.stringify(req.body));
                     }
-                    if (contentType === 'application/json') {
-                        const body = JSON.stringify(req.body);
-                        delete req.body;
-                        preq.setHeader('content-length', body.length);
-                        preq.write(body);
-                        preq.end();
+
+                    if (contentType === 'application/x-www-form-urlencoded') {
+                        writeBody(qs.stringify(req.body));
                     }
+
                 }
             },
             onProxyReqWs: function (preq) {

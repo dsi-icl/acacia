@@ -21,7 +21,6 @@ module.exports = function (app) {
         '/pun',
         createProxyMiddleware({
             target: API_SERVER,
-            changeOrigin: true,
             autoRewrite: true,
             ws: true
         })
@@ -30,7 +29,6 @@ module.exports = function (app) {
         '/node',
         createProxyMiddleware({
             target: API_SERVER,
-            changeOrigin: true,
             autoRewrite: true,
             ws: true
         })
@@ -39,7 +37,6 @@ module.exports = function (app) {
         '/rnode',
         createProxyMiddleware({
             target: API_SERVER,
-            changeOrigin: true,
             autoRewrite: true,
             ws: true
         })
@@ -48,7 +45,6 @@ module.exports = function (app) {
         '/public',
         createProxyMiddleware({
             target: API_SERVER,
-            changeOrigin: true,
             autoRewrite: true,
             ws: true
         })
