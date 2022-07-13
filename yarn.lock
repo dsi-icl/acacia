@@ -15,10 +15,10 @@
     "@jridgewell/gen-mapping" "^0.1.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@ant-design/charts@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@ant-design/charts/-/charts-1.4.0.tgz#301cd929d3b97bea571ff7f16055e04bc0bae5d5"
-  integrity sha512-l+Asy6x2eKCnAlaNdvdWe9QufMe9RiTk90bmSD9/Gs4OfFSL/lyMm/JtLY0Q5nAT62MXj7YGZQT4OixRDEuixA==
+"@ant-design/charts@1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@ant-design/charts/-/charts-1.4.1.tgz#e4ea565940ec11546e62ac05774fe196e25beb9d"
+  integrity sha512-TbmwClc+KeDsFiE1gsSOH695qxQQmqx6mYNGEqBb5C0Uaie1I240N6R/GYnF5Epv18nXS/RmBTdDDvfLMAo4Nw==
   dependencies:
     "@ant-design/flowchart" "^1.0.2"
     "@ant-design/graphs" "^1.0.1"
