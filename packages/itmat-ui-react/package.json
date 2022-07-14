@@ -46,7 +46,7 @@
         "@cypress/webpack-preprocessor": "5.12.0",
         "@testing-library/jest-dom": "5.16.4",
         "@testing-library/react": "13.3.0",
-        "@testing-library/user-event": "14.2.1",
+        "@testing-library/user-event": "14.2.3",
         "@types/apollo-upload-client": "17.0.1",
         "@types/jest": "27.5.0",
         "@types/node": "18.0.3",
