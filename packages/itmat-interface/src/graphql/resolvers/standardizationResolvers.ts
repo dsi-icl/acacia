@@ -40,13 +40,13 @@ export const standardizationResolvers = {
 
             let standardizations: IStandardization[] = [];
             if (type) {
-                standardizations =  await db.collections!.standardizations_collection.find({
+                standardizations = await db.collections!.standardizations_collection.find({
                     studyId: studyId,
                     type: type,
                     deleted: null
                 }).toArray();
             } else {
-                standardizations =  await db.collections!.standardizations_collection.find({
+                standardizations = await db.collections!.standardizations_collection.find({
                     studyId: studyId,
                     deleted: null
                 }).toArray();
@@ -55,7 +55,7 @@ export const standardizationResolvers = {
         }
     },
     Mutation: {
-        createStandardization: async (__unused__parent: Record<string, unknown>, { studyId, standardization }: { studyId: string, standardization: any }, context: any ): Promise<IStandardization> => {
+        createStandardization: async (__unused__parent: Record<string, unknown>, { studyId, standardization }: { studyId: string, standardization: any }, context: any): Promise<IStandardization> => {
             const requester: IUser = context.req.user;
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -88,13 +88,13 @@ export const standardizationResolvers = {
             };
 
             await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, type: standardization.type, field: standardization.field }, {
-                $set: standardizationEntry
+                $set: { ...standardizationEntry }
             }, {
                 upsert: true
             });
             return standardizationEntry;
         },
-        deleteStandardization: async (__unused__parent: Record<string, unknown>, { studyId, stdId }: { studyId: string, stdId: string }, context: any ): Promise<IGenericResponse> => {
+        deleteStandardization: async (__unused__parent: Record<string, unknown>, { studyId, stdId }: { studyId: string, stdId: string }, context: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
