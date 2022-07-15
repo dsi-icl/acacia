@@ -19,7 +19,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "mongodb": "4.7.0"
+        "mongodb": "4.8.0"
     },
     "devDependencies": {
         "chalk": "4.1.2",

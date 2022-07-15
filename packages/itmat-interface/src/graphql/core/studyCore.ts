@@ -6,8 +6,6 @@ import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
 import { validate } from '@ideafast/idgen';
 import { parseValue } from 'graphql';
-import type { MatchKeysAndValues } from 'mongodb';
-import { IDataEntry } from '../../../../itmat-commons/dist/models/data';
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -257,7 +255,7 @@ export class StudyCore {
                 m_versionId: undefined,
                 m_visitId: dataClip.visitId,
             };
-            const objWithData: MatchKeysAndValues<IDataEntry> = {
+            const objWithData = {
                 ...obj,
                 id: uuid(),
                 uploadedAt: (new Date()).valueOf()
@@ -318,7 +316,7 @@ export class StudyCore {
             await this.localPermissionCore.removeRoleFromStudyOrProject({ studyId });
 
             /* delete all files belong to the study*/
-            await db.collections!.files_collection.updateMany({ studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
+            await db.collections!.files_collection.updateMany({ studyId, deleted: null }, { $set: { deleted: timestamp } });
 
             await session.commitTransaction();
             session.endSession();
