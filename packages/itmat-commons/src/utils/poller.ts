@@ -43,7 +43,7 @@ export class JobPoller {
     }
 
     private async checkForJobs() {
-        Logger.log(`${this.identity} polling for new jobs of type ${this.jobType || 'ALL'}.`);
+        // Logger.log(`${this.identity} polling for new jobs of type ${this.jobType || 'ALL'}.`);
         let updateResult: mongodb.ModifyResult<any>;
         try {
             updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {
@@ -55,18 +55,18 @@ export class JobPoller {
             });
         } catch (err) {
             //TODO Handle error recording
-            console.error(err);
+            Logger.error(`${this.identity} Errored picking up a job: ${err}`);
             return;
         }
 
         if (updateResult !== undefined && updateResult.ok === 1 && updateResult.value !== null) {
-            Logger.log(`Claimed job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}`);
+            Logger.log(`${this.identity} Claimed job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}`);
             clearInterval(this.intervalObj!);
             await this.action(updateResult.value);
-            Logger.log(`Finished processing job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}.`);
+            Logger.log(`${this.identity} Finished processing job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}.`);
             this.setInterval();
         } else if (updateResult.ok !== 1) {
-            Logger.error(updateResult);
+            Logger.error(`${this.identity} Errored during database update: ${updateResult}`);
         }
     }
 }

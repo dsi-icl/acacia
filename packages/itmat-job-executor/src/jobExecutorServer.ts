@@ -1,4 +1,5 @@
 // External node module imports
+import { v4 as uuid } from 'uuid';
 import { Express } from 'express';
 import { db } from './database/database';
 import { objStore } from './objStore/objStore';
@@ -44,7 +45,7 @@ class ITMATJobExecutorServer extends Server {
                     // jobDispatcher.registerJobType('UKB_IMAGE_UPLOAD', UKB_IMAGE_UPLOAD_Handler.prototype.getInstance);
 
                     const poller = new JobPoller({
-                        identity: 'me',
+                        identity: uuid(),
                         jobCollection: db.collections!.jobs_collection,
                         pollingInterval: this.config.pollingInterval,
                         action: jobDispatcher.dispatch
