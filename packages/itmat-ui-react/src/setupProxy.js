@@ -22,7 +22,8 @@ module.exports = function (app) {
         createProxyMiddleware({
             target: API_SERVER,
             autoRewrite: true,
-            ws: true
+            ws: true,
+            changeOrigin: true
         })
     );
     app.use(
@@ -30,7 +31,8 @@ module.exports = function (app) {
         createProxyMiddleware({
             target: API_SERVER,
             autoRewrite: true,
-            ws: true
+            ws: true,
+            changeOrigin: true
         })
     );
     app.use(
@@ -38,7 +40,8 @@ module.exports = function (app) {
         createProxyMiddleware({
             target: API_SERVER,
             autoRewrite: true,
-            ws: true
+            ws: true,
+            changeOrigin: true
         })
     );
     app.use(
@@ -46,7 +49,8 @@ module.exports = function (app) {
         createProxyMiddleware({
             target: API_SERVER,
             autoRewrite: true,
-            ws: true
+            ws: true,
+            changeOrigin: true
         })
     );
 };

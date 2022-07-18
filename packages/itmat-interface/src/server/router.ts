@@ -153,6 +153,7 @@ export class Router {
             xfwd: true,
             // logLevel: 'debug',
             autoRewrite: true,
+            changeOrigin: true,
             onProxyReq: function (preq, req, res) {
                 if (!req.user)
                     return res.status(403).redirect('/');
@@ -161,6 +162,7 @@ export class Router {
                 preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
                 if (req.method == 'POST' && req.body ) {
                     const contentType = preq.getHeader('Content-Type');
+                    preq.setHeader('origin', config.aeEndpoint);
                     const writeBody = (bodyData: string) => {
                         preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
                         preq.write(bodyData);
