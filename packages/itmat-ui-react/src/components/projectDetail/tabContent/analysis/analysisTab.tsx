@@ -125,7 +125,7 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
                     });
                 }}>Analysis</Button>
             </Subsection>
-        </div>
+        </div><br />
         <div>
             <Subsection title='Data Selection'>
                 <Modal title='Filters' visible={isTemplateModalOn}
@@ -304,7 +304,7 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
                 />
             </Subsection>
         </div>
-    </div>);
+    </div >);
 };
 
 const ResultsVisualization: React.FunctionComponent<{ project: IProject, fields: IFieldEntry[], data: any }> = ({ project, fields, data }) => {
