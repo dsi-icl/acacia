@@ -281,6 +281,9 @@ export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree,
     ontologyTree.routes?.forEach(el => {
         generateCascader(el, fieldPathOptions, true);
     });
+    // ellipsis
+    const subString: string = field?.fieldName ? field.fieldName.length > 10 ? field.fieldName.substring(0, 10) + '...' :
+        field.fieldName : 'NA';
     return (<SubsectionWithComment title={<Tooltip title={'View the details of a selected field.'}>
         <span>Field Viewer</span> <QuestionCircleOutlined />
     </Tooltip>} comment={<>
@@ -301,12 +304,12 @@ export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree,
                             <Statistic title='Field ID' value={field?.fieldId || 'NA'} />
                         </Col>
                         <Col span={12}>
-                            <Statistic title='Field Name' value={field?.fieldName || 'NA'} />
+                            <Statistic title={<Tooltip title={field?.fieldName}>Field Name</Tooltip>} value={subString || 'NA'} />
                         </Col>
                     </Row><br />
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Statistic title='Data Type' value={field?.dataType || 'NA'} />
+                            <Statistic title='Data Type' value={dataTypeMapping[field?.dataType] || 'NA'} />
                         </Col>
                         <Col span={12}>
                             <Statistic title='Unit' value={field?.unit || 'NA'} />
@@ -323,7 +326,7 @@ export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree,
                                 {
                                     routes[0].path.join(' => ')
                                 }
-                            </>} value={' => ' + field.fieldName} />
+                            </>} value={' => ' + subString} />
                         </Col>
                     </Row><br />
                 </>
@@ -333,7 +336,6 @@ export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree,
 
 export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree, fields: IFieldEntry[] }> = ({ studyId, projectId, ontologyTree, fields }) => {
     const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
-
     const requestedFields = ontologyTree.routes?.filter(el => {
         if (JSON.stringify(el.path) === JSON.stringify(selectedPath)) {
             return true;
@@ -352,7 +354,8 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
                 subjects_requested: null,
                 visits_requested: null
             }
-        }
+        },
+        fetchPolicy: 'network-only'
     });
     if (getDataRecordsLoading) {
         return <LoadSpinner />;
@@ -389,8 +392,9 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
                 text: 'Field ID',
                 style: {
                     fill: '#6E759F',
-                    fontSize: 14
+                    fontSize: 14,
                 },
+                position: 'start'
             }
         }
     };
@@ -417,7 +421,7 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
         generateCascader(el, fieldPathOptions, false);
     });
     return (
-        <SubsectionWithComment title={<Tooltip title={'The percentage of valid data. The data completeness of a field is calculated by number of ( valid data pointes / number of expected data pointes).'}>
+        <SubsectionWithComment title={<Tooltip title={'The percentage of valid data. The data completeness of a field is calculated by (number of valid data pointes / number of expected data pointes).'}>
             < span > Data Completeness</span > <QuestionCircleOutlined />
         </Tooltip >} comment={
             <Cascader
@@ -425,6 +429,7 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
                 options={fieldPathOptions}
                 onChange={(value) => setSelectedPath(value)}
                 placeholder={'Please select'}
+                value={selectedPath}
             />
         } float={'center'}
         >
@@ -434,10 +439,11 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
                         <Heatmap
                             style={{ overflow: 'auto' }}
                             data={obj}
-                            height={Array.from(new Set((obj.map(el => el.field)))).length * 20}
+                            height={Object.keys(data).length * 30 + 50}
+                            width={500}
                             xField={'visit'}
                             yField={'field'}
-                            autoFit={true}
+                            renderer={'svg'}
                             colorField={'percentage'}
                             label={{
                                 formatter: (datum: any) => {
@@ -456,7 +462,7 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
 
 export const DataDetailsBlock: React.FunctionComponent<{ studyId: string, projectId, project: IProject, fields: IFieldEntry[], ontologyTree: IOntologyTree }> = ({ studyId, projectId, project, fields, ontologyTree }) => {
     const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
-    const [selectedGraphType, setSelectedGraphType] = React.useState('');
+    const [selectedGraphType, setSelectedGraphType] = React.useState<string | undefined>(undefined);
     //construct the cascader
     const fieldPathOptions: any = [];
     ontologyTree.routes?.forEach(el => {
@@ -471,17 +477,18 @@ export const DataDetailsBlock: React.FunctionComponent<{ studyId: string, projec
             getPopupContainer={trigger => trigger.parentNode}
             onChange={(value) => {
                 setSelectedPath(value);
-                setSelectedGraphType('');
+                setSelectedGraphType(undefined);
             }}
             placeholder={'Please select'}
         />
         <Select
-            // value={selectedGraphType}
+            value={selectedGraphType}
             getPopupContainer={trigger => trigger.parentNode}
             placeholder='Select Graph Type'
             onChange={(value) => {
                 setSelectedGraphType(value);
             }}
+            style={{ width: '20%' }}
         >
             {
                 [enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === selectedFieldId)[0]?.dataType) ?
@@ -620,15 +627,21 @@ export const ProjectMetaDataBlock: React.FunctionComponent<{ project: IProject }
                     <Statistic title='Participants' value={project.summary.subjects.length} prefix={<UserOutlined />} />
                 </Col>
                 <Col span={12}>
-                    <Statistic title='Data Version' value={project.dataVersion?.version} />
+                    <Statistic title={<Tooltip title={'Data of different data versions may be different.'}>
+                        <span>Data Version</span> <QuestionCircleOutlined />
+                    </Tooltip>} value={project.dataVersion?.version} />
                 </Col>
             </Row><br />
             <Row gutter={16}>
                 <Col span={12}>
-                    <Statistic title='Visits' value={project.summary.visits.length} prefix={<ProfileOutlined />} />
+                    <Statistic title={<Tooltip title={'Data of some visits may be unavailable for some participants.'}>
+                        <span>Visits</span> <QuestionCircleOutlined />
+                    </Tooltip>} value={project.summary.visits.length} prefix={<ProfileOutlined />} />
                 </Col>
                 <Col span={12}>
-                    <Statistic title='Version Tag' value={project.dataVersion?.tag} />
+                    <Statistic title={<Tooltip title={'Extra information of this data version.'}>
+                        <span>Version Tag</span> <QuestionCircleOutlined />
+                    </Tooltip>} value={project.dataVersion?.tag} />
                 </Col>
             </Row><br />
             <Row gutter={16}>
@@ -647,6 +660,7 @@ export const ProjectMetaDataBlock: React.FunctionComponent<{ project: IProject }
 export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> = ({ project }) => {
     const { loading: getStandardizationLoading, error: getStandardizationError, data: getStandardizationData } = useQuery(GET_STANDARDIZATION, { variables: { studyId: project.studyId, projectId: project.id } });
     const [getDataRecordsLazy, { loading: getDataRecordsLoading, data: getDataRecordsData }] = useLazyQuery(GET_DATA_RECORDS, {});
+    const [shouldUpdateData, setShouldUpdateData] = React.useState(true);
     const [selectedDataFormat, setSelectedDataFormat] = React.useState<string | undefined>(undefined);
     const [selectedOutputType, setSelectedOutputType] = React.useState('JSON');
     if (getDataRecordsLoading || getStandardizationLoading) {
@@ -702,6 +716,9 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
                     setSelectedOutputType('JSON');
                 }
             }}
+            onChange={() => {
+                setShouldUpdateData(true);
+            }}
         >
             <Option value={'raw'}>Raw</Option>
             {/* <Option value={'grouped'}>Grouped</Option> */}
@@ -709,7 +726,7 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
                 availableFormats.map(el => <Option value={'standardized-' + el}>{el.toString()}</Option>)
             }
         </ Select>
-        <Button onClick={() => {
+        <Button type={shouldUpdateData ? 'primary' : 'ghost'} onClick={() => {
             getDataRecordsLazy({
                 variables: {
                     studyId: project.studyId,
@@ -720,7 +737,11 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
                         cohort: [[]],
                         format: selectedDataFormat
                     }
-                }
+                },
+                onCompleted: () => {
+                    setShouldUpdateData(false);
+                },
+                notifyOnNetworkStatusChange: true
             });
         }}>Fetch data</Button>
         <Select
@@ -732,6 +753,9 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
             onSelect={(value: string) => {
                 setSelectedOutputType(value);
             }}
+        // onChange={() => {
+        //     setShouldUpdateData(true);
+        // }}
         >
             <Option value={'JSON'}>JSON</Option>
             {
@@ -740,7 +764,7 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
         </Select>
     </>}>
         {
-            getDataRecordsData?.getDataRecords?.data === undefined ? <Empty description={'No Data Found'} /> :
+            (getDataRecordsData?.getDataRecords?.data === undefined || shouldUpdateData === true) ? <Empty description={'No Data Found'} /> :
                 selectedOutputType === 'JSON' ?
                     <Button type='link' onClick={() => {
                         const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
@@ -764,4 +788,15 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
                     ></Table>
         }
     </SubsectionWithComment >);
+};
+
+const dataTypeMapping: any = {
+    int: 'Integer',
+    dec: 'Decimal',
+    str: 'String',
+    bool: 'Boolean',
+    date: 'Datetime',
+    file: 'File',
+    json: 'JSON',
+    cat: 'Categorical'
 };
