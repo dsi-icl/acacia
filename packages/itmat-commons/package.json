@@ -20,7 +20,7 @@
         "prepublishOnly": "yarn run build"
     },
     "dependencies": {
-        "graphql": "16.5.0",
+        "graphql": "16.6.0",
         "graphql-tag": "2.12.6",
         "minio": "7.0.30"
     },
