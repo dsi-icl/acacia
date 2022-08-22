@@ -49,7 +49,7 @@
         "@testing-library/user-event": "14.4.3",
         "@types/apollo-upload-client": "17.0.1",
         "@types/jest": "27.5.0",
-        "@types/node": "18.7.8",
+        "@types/node": "18.7.9",
         "@types/react": "18.0.17",
         "@types/react-dom": "18.0.6",
         "@types/react-highlight-words": "0.16.4",
