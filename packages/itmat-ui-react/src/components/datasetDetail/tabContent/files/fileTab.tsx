@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { Button, Upload, notification, Tag, Table, Form, Input, InputRef, DatePicker } from 'antd';
+import { Button, Upload, notification, Tag, Table, Form, Input, InputRef, DatePicker, Space, Modal } from 'antd';
 import { RcFile } from 'antd/lib/upload';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Query } from '@apollo/client/react/components';
@@ -63,6 +63,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const [searchTerm, setSearchTerm] = useState('');
     const [isEditingDescription, setIsEditingDescription] = React.useState(false);
     const [datasetDescription, setDatasetDescription] = React.useState('');
+    const [isFileSummaryShown, setIsFileSummaryShown] = React.useState(false);
     const [editStudy] = useMutation(EDIT_STUDY, {
         onCompleted: () => { window.location.reload(); },
         onError: () => { return; }
@@ -411,6 +412,51 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         return values;
     }, { set: {}, count: 0 }).count;
 
+    // format the file structure
+    const availableSites: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).participantId[0]).sort()));
+    const availableDeviceTypes: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).deviceId.substr(0, 3)).sort()));
+    const categoryColumns: any[] = [
+        {
+            title: 'Site',
+            dataIndex: 'site',
+            key: 'site',
+            render: (__unused__value, record) => sites[record.site] ? sites[record.site].concat(' (').concat(record.site).concat(')') : record.site
+        }
+    ];
+    for (const deviceType of availableDeviceTypes) {
+        categoryColumns.push({
+            title: deviceType,
+            dataIndex: deviceType,
+            key: deviceType,
+            render: (__unused__value, record) => record[deviceType] ? record[deviceType].toString() : deviceTypes[record[deviceType]]
+        });
+    }
+    categoryColumns.push({
+        title: 'Total',
+        dataIndex: 'Total',
+        key: 'total',
+        render: (__unused__value, record) => record.total
+    });
+    const fileSummary: any[] = [];
+    for (const site of availableSites) {
+        const tmpData: any = {
+            site: site
+        };
+        for (const deviceType of availableDeviceTypes) {
+            tmpData[deviceType] = getStudyData.getStudy.files.filter(el => (JSON.parse(el.description).participantId[0] === site
+                && JSON.parse(el.description).deviceId.substr(0, 3) === deviceType)).length;
+        }
+        tmpData.total = getStudyData.getStudy.files.filter(el => JSON.parse(el.description).participantId[0] === site).length;
+        fileSummary.push(tmpData);
+    }
+    const tmpData: any = {
+        site: 'Total',
+        total: getStudyData.getStudy.files.length
+    };
+    for (const deviceType of availableDeviceTypes) {
+        tmpData[deviceType] = getStudyData.getStudy.files.filter(el => JSON.parse(el.description).deviceId.substr(0, 3) === deviceType).length;
+    }
+    fileSummary.push(tmpData);
     return <div {...getRootProps() as React.HTMLAttributes<HTMLDivElement>} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input title='fileTabDropZone' {...getInputProps()} />
         {fileList.length > 0
@@ -496,15 +542,39 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     <br />
                     <br />
                 </Subsection>
-                <SubsectionWithComment title='Existing files' comment={'Total Files: ' + numberOfFiles + '\t\tTotal Size: ' + formatBytes(sizeOfFiles) + '\t\tTotal Participants: ' + participantOfFiles}>
+                <SubsectionWithComment
+                    title='Existing files'
+                    comment={<Space size={'large'}>
+                        <span>Total Files: {numberOfFiles}</span>
+                        <span>Total Size: {formatBytes(sizeOfFiles)}</span>
+                        <span>Total Participants: {participantOfFiles}</span>
+                        {
+                            getStudyData.getStudy.type === studyType.ANY ? null :
+                                <Button onClick={() => setIsFileSummaryShown(true)}>File Details</Button>
+                        }
+                    </Space>}
+                >
+                    <Modal visible={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'100%'}>
+                        <div>Number of files associated to sites and device types.</div><br />
+                        <Table
+                            pagination={false}
+                            columns={categoryColumns}
+                            dataSource={fileSummary}
+                            size='small'
+                        /><br />
+                        <Space wrap={true}>
+                            {Object.keys(deviceTypes).sort().map(el => <Tag>{`${el}: ${deviceTypes[el]}`}</Tag>)}
+                        </Space>
+                    </Modal>
                     <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
                     <FileList type={getStudyData.getStudy.type} files={sortedFiles} searchTerm={searchTerm}></FileList>
                     <br />
                     <br />
                 </SubsectionWithComment>
 
-            </div>}
-    </div>;
+            </div>
+        }
+    </div >;
 };
 
 const EditableContext = React.createContext<any>({});
