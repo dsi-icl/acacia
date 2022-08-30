@@ -77,11 +77,13 @@ export class StudyCore {
         const newContentId = uuid();
         const resData = await db.collections!.data_collection.updateMany({
             m_studyId: studyId,
-            m_versionId: null
+            $and: {
+                m_versionId: null
+            }
         }, {
             $set: {
                 m_versionId: newDataVersionId
-            }
+            } as any
         });
         // if field is modified, need to modified the approved fields of each related project
         // if the field is updated: update the approved field Id

@@ -22,7 +22,7 @@ export class JSONCurator {
     private _visitIdIndex: number;
 
     constructor(
-        private readonly dataCollection: Collection,
+        private readonly dataCollection: Collection<IDataEntry>,
         private readonly incomingWebStream: Readable,
         private readonly job: IJobEntry<never>,
         private readonly fieldsList: any[]

@@ -21,7 +21,11 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
         // check if fieldTreeId version exists: checked by resolvers
 
 
-        const errorsList = [];
+        const errorsList: Array<{
+            fileId: string;
+            fileName?: string;
+            error: string | string[];
+        }> = [];
         // get fieldid info from database
         const fieldsList = await db.collections!.field_dictionary_collection.find({ studyId: job.studyId }).toArray();
 
@@ -47,7 +51,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
                 const errors = await csvcurator.processIncomingStreamAndUploadToMongo();
                 if (errors.length !== 0) {
                     errorsList.push({ fileId: file.id, fileName: file.fileName, error: errors });
-                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errorsList } });
+                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errorsList as any } });
                 } else {
                     await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
                 }

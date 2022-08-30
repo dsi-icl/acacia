@@ -22,7 +22,7 @@ export class CSVCurator {
     private _visitIdIndex: number;
 
     constructor(
-        private readonly dataCollection: Collection,
+        private readonly dataCollection: Collection<IDataEntry>,
         private readonly incomingWebStream: Readable,
         private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_records_with_error: true },
         private readonly job: IJobEntry<never>,

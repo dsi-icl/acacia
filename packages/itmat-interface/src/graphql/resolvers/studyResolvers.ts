@@ -164,7 +164,7 @@ export const studyResolvers = {
             const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             // we only check data that hasnt been pushed to a new data version
-            const data: any[] = await db.collections!.data_collection.find({ m_studyId: studyId, m_versionId: null }).toArray();
+            const data: any[] = await db.collections!.data_collection.find({ m_studyId: studyId, $and: { m_versionId: null } }).toArray();
             const fieldRecords = (await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
@@ -439,8 +439,8 @@ export const studyResolvers = {
                 return summary;
             }
             const availableDataVersions = study.dataVersions.filter(el => study.dataVersions.indexOf(el) <= study.currentDataVersion).map(es => es.id);
-            summary['subjects'] = study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, m_versionId: { $in: availableDataVersions } });
-            summary['visits'] = study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_visitId', { m_studyId: study.id, m_versionId: { $in: availableDataVersions } });
+            summary['subjects'] = study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, $and: { m_versionId: { $in: availableDataVersions } } });
+            summary['visits'] = study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_visitId', { m_studyId: study.id, $and: { m_versionId: { $in: availableDataVersions } } });
             return summary;
         },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {

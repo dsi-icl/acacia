@@ -41,7 +41,7 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
 
         if (errors.length !== 0) {
-            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors } });
+            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors as any } });
             return;
         } else {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
