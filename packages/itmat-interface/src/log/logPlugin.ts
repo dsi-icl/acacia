@@ -52,6 +52,7 @@ export const apiParameters = {
     GET_LOGS: ['requesterName', 'requesterType', 'logType', 'actionType'],
     GET_ORGANISATIONS: ['organisationId'],
     CREATE_ORGANISATION: ['name', 'shortname', 'containOrg'],
+    DELETE_ORGANISATION: ['id'],
     GET_GRANTED_PERMISSIONS: ['studyId', 'projectId'],
     GET_PUBKEYS: ['pubkeyId', 'associatedUserId'],
     REGISTER_PUBKEY: ['associatedUserId'],

@@ -3162,9 +3162,9 @@ describe('STUDY API', () => {
                     fieldId: '31',
                     value: 'wrong',
                     subjectId: 'I7N3G6G',
-                    visitId: '1'
+                    visitId: '2'
                 },
-                // lilegal subject id
+                // illegal subject id
                 {
                     fieldId: '31',
                     value: '10',
@@ -3179,9 +3179,9 @@ describe('STUDY API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.uploadDataInArray).toEqual([
-                { code: 'MALFORMED_INPUT', description: 'Field 33: Field Not found' },
+                { code: 'ACTION_ON_NON_EXISTENT_ENTRY', description: 'Field 33: Field Not found' },
                 { code: 'MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.' },
-                { code: 'ACTION_ON_NON_EXISTENT_ENTRY', description: 'Subject ID I777770 is illegal.' }
+                { code: 'MALFORMED_INPUT', description: 'Subject ID I777770 is illegal.' }
             ]);
 
             const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();

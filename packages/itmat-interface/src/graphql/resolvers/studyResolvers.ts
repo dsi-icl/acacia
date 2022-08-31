@@ -470,8 +470,14 @@ export const studyResolvers = {
 
             const error: any[] = [];
             let isError = false;
+            const bulk = db.collections!.field_dictionary_collection.initializeUnorderedBulkOp();
+            // remove duplicates by fieldId
+            const keysToCheck = ['fieldId'];
+            const filteredFieldInput = fieldInput.filter(
+                (s => o => (k => !s.has(k) && s.add(k))(keysToCheck.map(k => o[k]).join('|')))(new Set())
+            );
             // check fieldId duplicate
-            for (const oneFieldInput of fieldInput) {
+            for (const oneFieldInput of filteredFieldInput) {
                 isError = false;
                 // check data valid
                 const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput);
@@ -487,17 +493,14 @@ export const studyResolvers = {
                     fieldEntry.dataVersion = null;
                     fieldEntry.dateAdded = (new Date()).valueOf();
                     fieldEntry.dateDeleted = null;
-                    await db.collections!.field_dictionary_collection.findOneAndUpdate({
+                    bulk.find({
                         fieldId: fieldEntry.fieldId,
                         studyId: studyId,
                         dataVersion: null
-                    }, {
-                        $set: fieldEntry
-                    }, {
-                        upsert: true
-                    });
+                    }).upsert().updateOne({ $set: fieldEntry });
                 }
             }
+            bulk.execute();
             return error;
         },
         editField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {
@@ -603,13 +606,8 @@ export const studyResolvers = {
             ]).toArray();
             // filter those that have been deleted
             const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
-            const errors: string[] = [];
-            for (const each of data) {
-                const error = (await studyCore.uploadOneDataClip(studyId, fieldsList, each));
-                if (error !== null) {
-                    errors.push(error);
-                }
-            }
+            const errors = (await studyCore.uploadOneDataClip(studyId, fieldsList, data));
+
             return errors;
         },
         deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectIds, visitIds, fieldIds }: { studyId: string, subjectIds: string[], visitIds: string[], fieldIds: string[] }, context: any): Promise<any> => {

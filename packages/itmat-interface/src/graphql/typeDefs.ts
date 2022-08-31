@@ -132,6 +132,10 @@ type OrganisationMetadata {
     siteIDMarker: String
 }
 
+input OrganisationMetadataInput {
+    siteIDMarker: String
+}
+
 type Organisation {
     id: String!
     name: String!
@@ -263,8 +267,10 @@ enum LOG_ACTION {
     RSA_SIGNER
     LINK_USER_PUBKEY
 
-    # ORGANIZATION
+    # ORGANISATION
+    GET_ORGANISATIONS
     CREATE_ORGANISATION
+    DELETE_ORGANISATION
 
     # PROJECT
     GET_PROJECT
@@ -489,7 +495,8 @@ type Mutation {
     rsaSigner(privateKey: String!, message: String): Signature
 
     # ORGANISATION
-    createOrganisation(name: String!, containOrg: String): Organisation
+    createOrganisation(name: String!, shortname: String, containOrg: String, metadata: OrganisationMetadataInput): Organisation
+    deleteOrganisation(id: String!): Organisation
 
     # APP USERS
     editUser(user: EditUserInput!): User

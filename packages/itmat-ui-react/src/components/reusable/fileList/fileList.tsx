@@ -76,7 +76,8 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
                     }} />;
                 else
                     return participantId;
-            }
+            },
+            sorter: (a, b) => JSON.parse(a.description).participantId.localeCompare(JSON.parse(b.description).participantId)
         },
         {
             title: 'Site',
@@ -106,7 +107,8 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
                     }} />;
                 else
                     return deviceId;
-            }
+            },
+            sorter: (a, b) => JSON.parse(a.description).deviceId.localeCompare(JSON.parse(b.description).deviceId)
         },
         {
             title: 'Device Type',
