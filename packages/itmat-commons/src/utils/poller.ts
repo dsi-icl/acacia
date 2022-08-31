@@ -1,10 +1,11 @@
 import * as mongodb from 'mongodb';
+import { IJobEntry } from '../models';
 import { Logger } from './logger';
 
 export interface IJobPollerConfig {
     identity: string; // a string identifying the server; this is just to keep track in mongo
     jobType?: string; // if undefined, matches all jobs
-    jobCollection: mongodb.Collection; // collection to poll
+    jobCollection: mongodb.Collection<IJobEntry<any>>; // collection to poll
     pollingInterval: number; // in ms
     action: (document: any) => void; // gets called every time there is new document
 }
@@ -15,7 +16,7 @@ export class JobPoller {
 
     private readonly identity: string;
     private readonly jobType?: string;
-    private readonly jobCollection: mongodb.Collection;
+    private readonly jobCollection: mongodb.Collection<IJobEntry<any>>;
     private readonly pollingInterval: number;
     private readonly action: (document: any) => void;
 
@@ -44,7 +45,7 @@ export class JobPoller {
 
     private async checkForJobs() {
         // Logger.log(`${this.identity} polling for new jobs of type ${this.jobType || 'ALL'}.`);
-        let updateResult: mongodb.ModifyResult<any>;
+        let updateResult: mongodb.ModifyResult<IJobEntry<any>>;
         try {
             updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {
                 $set: {

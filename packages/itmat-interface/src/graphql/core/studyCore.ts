@@ -80,7 +80,7 @@ export class StudyCore {
             m_versionId: null
         }, {
             $set: {
-                m_versionId: newDataVersionId
+                m_versionId: newDataVersionId as any
             }
         });
         // if field is modified, need to modified the approved fields of each related project

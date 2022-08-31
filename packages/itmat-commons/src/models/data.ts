@@ -3,7 +3,7 @@ export interface IDataEntry {
     m_studyId: string;
     m_subjectId: string; // patient Id
     m_visitId: string; // visit Id
-    m_versionId: string; // data version Id
+    m_versionId: string | null; // data version Id
     [field: string]: any
 }
 
