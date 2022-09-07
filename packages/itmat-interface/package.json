@@ -42,7 +42,7 @@
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
         "subscriptions-transport-ws": "0.11.0",
-        "uuid": "8.3.2"
+        "uuid": "9.0.0"
     },
     "devDependencies": {
         "@types/bcrypt": "5.0.0",
