@@ -1009,6 +1009,12 @@ describe('STUDY API', () => {
                                 source: 'fieldDef',
                                 parameter: ['comments'],
                                 filters: null
+                            },
+                            {
+                                entry: 'visit',
+                                source: 'reserved',
+                                parameter: ['m_visitId'],
+                                filters: null
                             }
                         ]
                     }
@@ -1053,6 +1059,12 @@ describe('STUDY API', () => {
                                 source: 'fieldDef',
                                 parameter: ['comments'],
                                 filters: null
+                            },
+                            {
+                                entry: 'visit',
+                                source: 'reserved',
+                                parameter: ['m_visitId'],
+                                filters: null
                             }
                         ]
                     }
@@ -1075,9 +1087,9 @@ describe('STUDY API', () => {
                                 filters: null
                             },
                             {
-                                entry: 'entry_inc',
+                                entry: 'index',
                                 source: 'inc',
-                                parameter: ['DM', 'm_subjectId'],
+                                parameter: ['DM'],
                                 filters: null
                             },
                             {
@@ -1107,9 +1119,9 @@ describe('STUDY API', () => {
                                 filters: null
                             },
                             {
-                                entry: 'entry_inc',
+                                entry: 'index',
                                 source: 'inc',
-                                parameter: ['m_subjectId'],
+                                parameter: ['DM'],
                                 filters: null
                             },
                             {
@@ -1140,80 +1152,94 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.getDataRecords.data).toEqual({
-                QS: [
-                    {
-                        entry_value: 'fakeValue100',
-                        entry_reserved: 'GR6R4AR',
-                        entry_inc: 1,
-                        entry_data: '2',
-                        entry_field: 'test'
-                    },
-                    {
-                        entry_value: 'fakeValue101',
-                        entry_reserved: 'GR6R4AR',
-                        entry_inc: 2,
-                        entry_data: '1',
-                        entry_field: 'test'
-                    },
-                    {
-                        entry_value: 'fakeValue100',
-                        entry_reserved: 'GR6R4AR',
-                        entry_inc: 4,
-                        entry_data: '1',
-                        entry_field: 'test'
-                    },
-                    {
-                        entry_value: 'fakeValue101',
-                        entry_reserved: 'GR6R4AR',
-                        entry_inc: 5,
-                        entry_data: '2',
-                        entry_field: 'test'
-                    },
-                    {
-                        entry_value: 'fakeValue100',
-                        entry_reserved: 'I7N3G6G',
-                        entry_inc: 1,
-                        entry_data: '1',
-                        entry_field: 'test'
-                    },
-                    {
-                        entry_value: 'fakeValue101',
-                        entry_reserved: 'I7N3G6G',
-                        entry_inc: 2,
-                        entry_data: '2',
-                        entry_field: 'test'
-                    },
-                    {
-                        entry_value: 'fakeValue100',
-                        entry_reserved: 'I7N3G6G',
-                        entry_inc: 4,
-                        entry_data: '1',
-                        entry_field: 'test'
-                    },
-                    {
-                        entry_value: 'fakeValue101',
-                        entry_reserved: 'I7N3G6G',
-                        entry_inc: 5,
-                        entry_data: '2',
-                        entry_field: 'test'
-                    }
-                ],
-                DM: [
-                    {
-                        entry_reserved: 'GR6R4AR',
-                        entry_inc: 3,
-                        entry_data_age: 35,
-                        entry_data_gender: 'F'
-                    },
-                    {
-                        entry_reserved: 'I7N3G6G',
-                        entry_inc: 3,
-                        entry_data_age: 25,
-                        entry_data_gender: 'M'
-                    }
-                ]
-            });
+            expect(res.body.data.getDataRecords.data.QS.sort((a, b) => {
+                console.log(a.entry_reserved, b.entry_reserved, a.entry_reserved.localeCompare(b.entry_reserved));
+                return a.entry_reserved !== b.entry_reserved ? a.entry_reserved.localeCompare(b.entry_reserved)
+                    : a.entry_inc - b.entry_inc;
+            })).toEqual([
+                {
+                    entry_value: 'fakeValue100',
+                    entry_reserved: 'GR6R4AR',
+                    entry_inc: 1,
+                    entry_data: '2',
+                    entry_field: 'test',
+                    visit: '1'
+                },
+                {
+                    entry_value: 'fakeValue100',
+                    entry_reserved: 'GR6R4AR',
+                    entry_inc: 2,
+                    entry_data: '1',
+                    entry_field: 'test',
+                    visit: '2'
+                },
+                {
+                    entry_value: 'fakeValue101',
+                    entry_reserved: 'GR6R4AR',
+                    entry_inc: 3,
+                    entry_data: '1',
+                    entry_field: 'test',
+                    visit: '1'
+                },
+                {
+                    entry_value: 'fakeValue101',
+                    entry_reserved: 'GR6R4AR',
+                    entry_inc: 4,
+                    entry_data: '2',
+                    entry_field: 'test',
+                    visit: '2'
+                },
+                {
+                    entry_value: 'fakeValue100',
+                    entry_reserved: 'I7N3G6G',
+                    entry_inc: 1,
+                    entry_data: '1',
+                    entry_field: 'test',
+                    visit: '1'
+                },
+                {
+                    entry_value: 'fakeValue100',
+                    entry_reserved: 'I7N3G6G',
+                    entry_inc: 2,
+                    entry_data: '1',
+                    entry_field: 'test',
+                    visit: '2'
+                },
+                {
+                    entry_value: 'fakeValue101',
+                    entry_reserved: 'I7N3G6G',
+                    entry_inc: 3,
+                    entry_data: '2',
+                    entry_field: 'test',
+                    visit: '1'
+                },
+                {
+                    entry_value: 'fakeValue101',
+                    entry_reserved: 'I7N3G6G',
+                    entry_inc: 4,
+                    entry_data: '2',
+                    entry_field: 'test',
+                    visit: '2'
+                }
+            ]);
+            expect(res.body.data.getDataRecords.data.DM.sort((a, b) => {
+                console.log(a.entry_reserved, b.entry_reserved, a.entry_reserved.localeCompare(b.entry_reserved));
+                return a.entry_reserved !== b.entry_reserved ? a.entry_reserved.localeCompare(b.entry_reserved)
+                    : a.entry_inc - b.entry_inc;
+            })).toEqual([
+                {
+                    entry_reserved: 'GR6R4AR',
+                    index: 1,
+                    entry_data_age: 35,
+                    entry_data_gender: 'F'
+                },
+                {
+                    entry_reserved: 'I7N3G6G',
+                    index: 2,
+                    entry_data_age: 25,
+                    entry_data_gender: 'M'
+                }
+            ]);
         });
     });
 });

@@ -17,3 +17,14 @@ export const statisticsTypes: string[] = [
 
 export const analysisTemplate: any = {
 };
+
+export const dataTypeMapping: any = {
+    int: 'Integer',
+    dec: 'Decimal',
+    str: 'String',
+    bool: 'Boolean',
+    date: 'Datetime',
+    file: 'File',
+    json: 'JSON',
+    cat: 'Categorical'
+};
