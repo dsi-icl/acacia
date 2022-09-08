@@ -38,7 +38,7 @@
         "@babel/eslint-parser": "7.18.9",
         "@babel/eslint-plugin": "7.18.10",
         "@babel/preset-env": "7.19.0",
-        "@nrwl/nx-cloud": "14.6.1",
+        "@nrwl/nx-cloud": "14.6.2",
         "@nrwl/workspace": "14.6.5",
         "@types/jest": "27.5.0",
         "babel-plugin-rewire-ts": "1.4.0",
