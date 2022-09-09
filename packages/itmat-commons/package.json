@@ -35,7 +35,7 @@
         "mongodb": "4.9.1",
         "rimraf": "3.0.2",
         "ts-jest": "27.1.4",
-        "typescript": "4.8.2"
+        "typescript": "4.8.3"
     },
     "babel": {
         "extends": "./config/babel.config.js"
