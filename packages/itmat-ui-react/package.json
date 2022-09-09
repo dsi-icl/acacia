@@ -20,7 +20,7 @@
     "dependencies": {
         "@ant-design/charts": "1.4.2",
         "@ant-design/icons": "4.7.0",
-        "@ant-design/pro-components": "2.3.6",
+        "@ant-design/pro-components": "2.3.7",
         "@apollo/client": "3.6.9",
         "@ideafast/idgen": "0.1.1",
         "antd": "4.23.1",
