@@ -16,3 +16,11 @@
         "b b b"
         "e e f" */
 }
+
+.selected_color {
+    background-color: cyan;
+}
+
+.white {
+    background-color: white;
+}

@@ -1,6 +1,6 @@
 {
     "name": "itmat-ui-react",
-    "version": "1.0.9",
+    "version": "1.1.0",
     "description": "",
     "license": "MIT",
     "main": "build/index",
@@ -20,14 +20,15 @@
     "dependencies": {
         "@ant-design/charts": "1.4.2",
         "@ant-design/icons": "4.7.0",
+        "@ant-design/pro-components": "2.3.6",
         "@apollo/client": "3.6.9",
         "@ideafast/idgen": "0.1.1",
-        "antd": "4.22.8",
+        "antd": "4.23.0",
         "apollo-upload-client": "17.0.0",
         "axios": "0.27.2",
         "export-from-json": "1.6.0",
         "graphql": "16.6.0",
-        "itmat-commons": "1.0.9",
+        "itmat-commons": "1.1.0",
         "jszip": "3.10.1",
         "jStat": "1.8.6",
         "moment": "2.29.4",
@@ -40,17 +41,17 @@
         "react-highlight-words": "0.18.0",
         "react-router-dom": "6.3.0",
         "react-vis": "1.11.7",
-        "recharts": "2.1.13"
+        "recharts": "2.1.14"
     },
     "devDependencies": {
         "@cypress/webpack-preprocessor": "5.12.2",
         "@testing-library/jest-dom": "5.16.5",
-        "@testing-library/react": "13.3.0",
+        "@testing-library/react": "13.4.0",
         "@testing-library/user-event": "14.4.3",
         "@types/apollo-upload-client": "17.0.1",
         "@types/jest": "27.5.0",
-        "@types/node": "18.7.13",
-        "@types/react": "18.0.17",
+        "@types/node": "18.7.16",
+        "@types/react": "18.0.18",
         "@types/react-dom": "18.0.6",
         "@types/react-highlight-words": "0.16.4",
         "@types/react-router-dom": "5.3.3",
@@ -58,7 +59,7 @@
         "babel-loader": "8.2.5",
         "babel-preset-minify": "0.5.2",
         "cross-env": "7.0.3",
-        "cypress": "10.6.0",
+        "cypress": "10.7.0",
         "cypress-file-upload": "5.0.8",
         "cypress-react-unit-test": "4.17.2",
         "jest": "27.5.1",
@@ -67,8 +68,8 @@
         "react-app-rewired": "2.2.1",
         "rimraf": "3.0.2",
         "typescript": "4.8.2",
-        "uuid": "8.3.2",
-        "web-vitals": "3.0.0"
+        "uuid": "9.0.0",
+        "web-vitals": "3.0.1"
     },
     "babel": {
         "extends": "./config/babel.config.js"

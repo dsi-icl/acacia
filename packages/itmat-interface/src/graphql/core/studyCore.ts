@@ -1,11 +1,12 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, studyType, IStudyDataVersion, DATA_CLIP_ERROR_TYPE } from 'itmat-commons';
+import { IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, DATA_CLIP_ERROR_TYPE } from 'itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
 import { validate } from '@ideafast/idgen';
 import { parseValue } from 'graphql';
+import type { MatchKeysAndValues } from 'mongodb';
 
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
@@ -150,7 +151,7 @@ export class StudyCore {
         return newDataVersion;
     }
 
-    public async uploadOneDataClip(studyId: string, fieldList: any[], data: any): Promise<any> {
+    public async uploadOneDataClip(studyId: string, fieldList: any[], data: IDataClip[]): Promise<any> {
         const errors: any[] = [];
         const bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
@@ -255,7 +256,7 @@ export class StudyCore {
                 m_versionId: undefined,
                 m_visitId: dataClip.visitId,
             };
-            const objWithData = {
+            const objWithData: Partial<MatchKeysAndValues<IDataEntry>> = {
                 ...obj,
                 id: uuid(),
                 uploadedAt: (new Date()).valueOf()

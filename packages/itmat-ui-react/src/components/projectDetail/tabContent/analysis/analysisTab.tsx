@@ -1,19 +1,20 @@
-import { statisticsTypes, analysisTemplate, options } from '../utils/defaultParameters';
+import { statisticsTypes, analysisTemplate, options, dataTypeMapping } from '../utils/defaultParameters';
 import { get_t_test, get_z_test, mannwhitneyu, findDmField, generateCascader } from '../../../../utils/tools';
 import * as React from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
 import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, IFieldEntry, IProject, enumValueType, GET_ONTOLOGY_TREE, IOntologyTree, IOntologyRoute } from 'itmat-commons';
 import LoadSpinner from '../../../reusable/loadSpinner';
-import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
+import { SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import exportFromJSON from 'export-from-json';
-import { Select, Form, Modal, Divider, Slider, Table, Button, Typography, Input, Tag, Popconfirm, message, Tooltip, List, Cascader } from 'antd';
+import { Select, Form, Modal, Divider, Slider, Table, Button, Input, Tag, Popconfirm, message, Tooltip, Cascader, Popover, Space, Progress, Collapse, Typography } from 'antd';
 import { Heatmap, Violin, Column } from '@ant-design/plots';
 import { PlusOutlined, MinusCircleOutlined, CopyOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
 const { Option } = Select;
-const { Paragraph, Text } = Typography;
 const { SHOW_CHILD } = Cascader;
+const { Panel } = Collapse;
+const { Title, Text } = Typography;
 
 export const AnalysisTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { projectId } = useParams();
@@ -23,6 +24,7 @@ export const AnalysisTabContent: React.FunctionComponent<{ studyId: string }> = 
     const [getDataRecords, { loading: getDataRecordsLoading, data: getDataRecordsData }] = useLazyQuery(GET_DATA_RECORDS, {
         fetchPolicy: 'network-only'
     });
+    const [currentStep, setCurrentStep] = React.useState(-1);
     const [filters, setFilters] = React.useState<any>({
         groups: [],
         comparedFields: []
@@ -42,6 +44,15 @@ export const AnalysisTabContent: React.FunctionComponent<{ studyId: string }> = 
             An error occured, please contact your administrator
         </div>;
     }
+
+    if (getStudyFieldsData.getStudyFields.length === 0) {
+        return <span>No Fields Found.</span>;
+    }
+
+    if (getOntologyTreeData.getOntologyTree[0] === undefined) {
+        return <span>Ontology Tree Missing!</span>;
+    }
+
     const fieldPathOptions: any = [];
     getOntologyTreeData.getOntologyTree[0]?.routes.forEach(el => {
         generateCascader(el, fieldPathOptions, true);
@@ -51,17 +62,23 @@ export const AnalysisTabContent: React.FunctionComponent<{ studyId: string }> = 
     const raceField: any = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'RACE');
     const ageField: any = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'AGE');
     const siteField: any = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'SITE');
+    const results = divideResults(filters, getDataRecordsData?.getDataRecords.data, getStudyFieldsData.getStudyFields,
+        [genderField, raceField, ageField, siteField]);
     return (<div className={css.tab_page_wrapper}>
         <div className={css.scaffold_wrapper}></div>
-        <FilterSelector filtersTool={[filters, setFilters]} fields={getStudyFieldsData.getStudyFields} project={getProjectData.getProject} query={getDataRecords}
+        <FilterSelector guideTool={[currentStep, setCurrentStep]} filtersTool={[filters, setFilters]} fields={getStudyFieldsData.getStudyFields} project={getProjectData.getProject} query={getDataRecords}
             ontologyTree={getOntologyTreeData.getOntologyTree[0]} fieldPathOptions={fieldPathOptions} dmFields={[genderField, raceField, ageField, siteField]} />
-        <ResultsVisualization project={getProjectData.getProject} fields={getStudyFieldsData.getStudyFields} data={divideResults(filters, getDataRecordsData?.getDataRecords.data, getStudyFieldsData.getStudyFields,
-            [genderField, raceField, ageField, siteField])} />
-        <div />
+        <br />
+        {
+            (results && results.length) > 0 ?
+                <ResultsVisualization project={getProjectData.getProject} fields={getStudyFieldsData.getStudyFields} data={results} />
+                :
+                null
+        }
     </div>);
 };
 
-const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IFieldEntry[], project: IProject, query: any, ontologyTree: IOntologyTree, fieldPathOptions: any, dmFields: any[] }> = ({ filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
+const FilterSelector: React.FunctionComponent<{ guideTool: any, filtersTool: any, fields: IFieldEntry[], project: IProject, query: any, ontologyTree: IOntologyTree, fieldPathOptions: any, dmFields: any[] }> = ({ guideTool, filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
     const [isModalOn, setIsModalOn] = React.useState(false);
     const [isTemplateModalOn, setIsTemplateModalOn] = React.useState(false);
     const [templateType, setTemplateType] = React.useState<string | undefined>('NA');
@@ -70,65 +87,131 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
     React.useEffect(() => {
         form.setFieldsValue(formInitialValues(form, filtersTool[0], currentGroupIndex));
     });
-
     const [genderField, raceField] = dmFields;
+
     return (<div className={css.scaffold_wrapper}>
         <div>
-            <Subsection title='Introduction'>
-                <Typography>
-                    <Paragraph>
-                        The <Text strong>ANALYSIS</Text> tab allows users to obtain several statistics for a specific group of subjects. Users can also compare these statistics among different groups of subjects.
-                    </Paragraph>
-                    <List
-                        header={<div>Follow the steps to start an analysis</div>}
-                        // footer={<div>Footer</div>}
-                        bordered
-                        dataSource={[
-                            '1. Create groups based on several criteria. These criteria include demographics (age, race, sex, etc.), ' +
-                            'and general variables that can be filtered by a range;',
-                            '2. Click the Analysis button to do an analysis;',
-                            '3. View the analytical results. Users can select on of the two statistics (T test, Z test), and ' +
-                            'download the original data of the results.'
-                        ]}
-                        renderItem={item => (
-                            <List.Item>
-                                <Typography.Text mark></Typography.Text> {item}
-                            </List.Item>
-                        )}
-                    />
-                </Typography><br />
-                <Button onClick={() => {
-                    setIsModalOn(true);
-                    setCurrentGroupIndex(-1);
-                }}>Create a new group</Button>
-                <Button onClick={() => {
-                    if (currentGroupIndex === -1) {
-                        return;
-                    } else {
-                        const newFilters = { ...filtersTool[0] };
-                        newFilters.groups = [...filtersTool[0].groups, filtersTool[0].groups[currentGroupIndex]];
-                        filtersTool[1](newFilters);
-                    }
-                }}>Paste the {currentGroupIndex.toString()} group</Button>
-                <Button onClick={() => {
-                    setIsTemplateModalOn(true);
-                }}>Select a template</Button>
-                <Button style={{ float: 'right' }} type='primary' onClick={() => {
-                    query({
-                        variables: {
-                            studyId: project.studyId,
-                            projectId: project.id,
-                            queryString: {
-                                ...combineFilters(fields, filtersTool[0], dmFields)
-                            }
-                        }
-                    });
-                }}>Analysis</Button>
-            </Subsection>
+            <SubsectionWithComment title='Introduction' comment={
+                <Space>
+                    <Button onClick={() => {
+                        guideTool[1](0);
+                        filtersTool[1]({
+                            groups: [],
+                            comparedFields: []
+                        });
+                    }}>Start to Guide</Button>
+                    <Button onClick={() => {
+                        guideTool[1](-1);
+                        filtersTool[1]({
+                            groups: [],
+                            comparedFields: []
+                        });
+                    }}>Exit Guide</Button>
+                </Space>
+            }>
+                <Modal
+                    title={popoverContents[guideTool[0]]?.title || ''}
+                    visible={guideTool[0] === 0}
+                    onOk={() => guideTool[1](guideTool[0] + 1)}
+                    onCancel={() => guideTool[1](-1)}
+                    okText={'Continue'}
+                    cancelText={'Exit'}
+                >
+                    {popoverContents[guideTool[0]]?.content || ''}
+                </Modal>
+                {
+                    guideTool[0] === -1 ? null :
+                        <div>
+                            <div style={{ fontSize: '40px' }}><span>Progress</span></div>
+                            <Progress
+                                strokeColor={{
+                                    from: '#108ee9',
+                                    to: '#87d068',
+                                }}
+                                style={{ width: '80%' }}
+                                percent={(guideTool[0] + 1) / popoverContents.length * 100}
+                                type={'line'}
+                                // steps={popoverContents.length}
+                                format={() => { return null; }}
+                            >
+                            </Progress>
+                        </div>
+                }
+                <Collapse ghost>
+                    <Panel header='View full guidence.' key='full-guidence'>
+                        <Title level={5}>1. Create several groups based on different criteria.</Title>
+                        <Text>You can filter participants by their demographics, or specify a range of a field.</Text>
+                        <Title level={5}>2. Select the fields to analyse.</Title>
+                        <Text>The fields are organised by the ontology tree of the associated study. You can easily select a collection of them.</Text>
+                        <Title level={5}>3. View the results.</Title>
+                        <Text>Several basic statistics analysis are provided. The results can be exported in a json format.</Text>
+                    </Panel>
+                </Collapse>
+            </SubsectionWithComment>
         </div><br />
         <div>
-            <Subsection title='Data Selection'>
-                <Modal title='Filters' visible={isTemplateModalOn}
+            <SubsectionWithComment
+                title='Data Selection'
+                comment={<div>
+                    <Space>
+                        <Popover
+                            visible={guideTool[0] === popoverContents[1].step && !isModalOn}
+                            title={popoverContents[1].title}
+                            content={<div style={{ overflow: 'hidden' }}>
+                                <span>{popoverContents[1].content}</span><br />
+                                {/* <Button style={{ float: 'left' }} onClick={() => setCurrentStep(currentStep + 1)}>Continue</Button> */}
+                                <Button style={{ float: 'right' }} onClick={() => guideTool[1](-1)}>Exit</Button>
+                            </div>}
+                        >
+                            <Button onClick={() => {
+                                if (guideTool[0] !== -1) {
+                                    guideTool[1](guideTool[0] + 1);
+                                }
+                                setIsModalOn(true);
+                                setCurrentGroupIndex(-1);
+                            }} disabled={guideTool[0] !== -1 && guideTool[0] !== popoverContents[1].step}>Create a new group</Button>
+                        </Popover>
+                        <Button
+                            onClick={() => {
+                                if (currentGroupIndex === -1) {
+                                    if (guideTool[0] === popoverContents[guideTool[0] - 1]?.step) {
+                                        message.error('You havn\'t copy that.');
+                                    }
+                                    return;
+                                } else {
+                                    if (guideTool[0] === popoverContents[3]?.step) {
+                                        guideTool[1](guideTool[0] + 1);
+                                    }
+                                    const newFilters = { ...filtersTool[0] };
+                                    newFilters.groups = [...filtersTool[0].groups, filtersTool[0].groups[currentGroupIndex]];
+                                    filtersTool[1](newFilters);
+                                }
+                            }}
+                            disabled={guideTool[0] !== -1 && guideTool[0] !== popoverContents[3].step}
+                            danger={guideTool[0] === popoverContents[3]?.step && currentGroupIndex !== -1}
+                        >Paste the selected group</Button>
+                        <Button onClick={() => {
+                            setIsTemplateModalOn(true);
+                        }} disabled={guideTool[0] !== -1}>Select a template</Button>
+                        <Button style={{ float: 'right' }} type='primary' onClick={() => {
+                            query({
+                                variables: {
+                                    studyId: project.studyId,
+                                    projectId: project.id,
+                                    queryString: {
+                                        ...combineFilters(fields, filtersTool[0], dmFields)
+                                    }
+                                }
+                            });
+                            if (guideTool[0] === popoverContents[5].step) {
+                                guideTool[1](guideTool[0] + 1);
+                            }
+                        }} disabled={guideTool[0] !== -1 && guideTool[0] !== popoverContents[5].step} danger={guideTool[0] === popoverContents[5].step}>Analyse</Button>
+                    </Space>
+                </div>}>
+                <Modal
+                    title={'Template'}
+                    visible={isTemplateModalOn}
                     width={1000}
                     onOk={() => {
                         setIsTemplateModalOn(false);
@@ -151,15 +234,26 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
                         onChange={(value) => {
                             setTemplateType(value);
                         }}
+                        getPopupContainer={trigger => trigger.parentElement}
                     >
                         {
                             Object.keys(analysisTemplate).map(el => <Option value={el} >{analysisTemplate[el].description}</Option>)
                         }
                     </Select>
                 </Modal>
-                <Modal title='Filters' visible={isModalOn}
+                <Modal
+                    title={'Filters'}
+                    visible={isModalOn}
                     width={1000}
+                    style={{ top: 200 }}
                     onOk={() => {
+                        if (form.getFieldsValue().visit === null) {
+                            message.error('You must select a specific visit.');
+                            return;
+                        }
+                        if (guideTool[0] === popoverContents[2].step || guideTool[0] === popoverContents[4].step) {
+                            guideTool[1](guideTool[0] + 1);
+                        }
                         const data = { ...form.getFieldsValue(true) };
                         for (let i = 0; i < data.filters.length; i++) {
                             const route: IOntologyRoute | undefined = ontologyTree.routes?.filter(el => {
@@ -180,15 +274,43 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
                             newFilters.groups[currentGroupIndex] = data;
                             filtersTool[1](newFilters);
                         }
+                        setIsModalOn(false);
                     }}
                     onCancel={() => {
                         setIsModalOn(false);
+                        guideTool[1](-1);
                     }}
+                    okText={guideTool[0] === -1 ? 'Ok' : 'Continue'}
+                    cancelText={guideTool[0] === -1 ? 'Cancel' : 'Exit'}
                 >
                     <Form
                         layout='horizontal'
                         form={form}
                     >
+                        {
+                            guideTool[0] === popoverContents[2].step ?
+
+                                <>
+                                    <div style={{ overflow: 'hidden' }}>
+                                        <span style={{ float: 'left' }}>{popoverContents[1].content}</span><br />
+                                        <Button style={{ float: 'right' }} onClick={() => {
+                                            form.setFieldsValue({
+                                                visit: 2,
+                                                race: [raceField.possibleValues[1].code],
+                                                genderID: [genderField.possibleValues[0].code],
+                                                siteID: [],
+                                                age: [
+                                                    0,
+                                                    100
+                                                ],
+                                                filters: []
+                                            });
+                                        }}>Fill in</Button>
+                                    </div>
+                                    <br />
+                                </>
+                                : null
+                        }
                         <Form.Item label='Select Visit' name='visit'
                             labelAlign={'left'}
                             rules={[
@@ -200,6 +322,7 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
                             <Select
                                 style={{ width: '100%' }}
                                 placeholder='Select Visit'
+                                getPopupContainer={trigger => trigger.parentElement}
                             >
                                 {[...project.summary.visits].filter(el => el.toString() !== '0').sort((a, b) => { return parseFloat(a) - parseFloat(b); }).map((es) => {
                                     return <Option value={es}>{es.toString()}</Option>;
@@ -213,6 +336,7 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
                                 style={{ width: '100%' }}
                                 placeholder='Select Race'
                                 mode='multiple'
+                                getPopupContainer={trigger => trigger.parentElement}
                             >
                                 {
                                     (raceField?.possibleValues || []).map(el => {
@@ -228,6 +352,7 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
                                 style={{ width: '100%' }}
                                 placeholder='Select Gender'
                                 mode='multiple'
+                                getPopupContainer={trigger => trigger.parentElement}
                             >
                                 {
                                     (genderField?.possibleValues || []).map(el => {
@@ -260,7 +385,7 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
                                                 <Table
                                                     scroll={{ x: 'max-content' }}
                                                     pagination={false}
-                                                    columns={variableFilterColumns(fields, remove, fieldPathOptions)}
+                                                    columns={variableFilterColumns(guideTool, fields, remove, fieldPathOptions)}
                                                     dataSource={filters}
                                                     size='middle'
                                                 ></Table>
@@ -276,33 +401,44 @@ const FilterSelector: React.FunctionComponent<{ filtersTool: any, fields: IField
                 <Table
                     scroll={{ x: 'max-content' }}
                     // rowKey={(rec) => rec.id}
+                    rowClassName={(__unused_record__, index) => {
+                        return index === currentGroupIndex ? css.selected_color : css.white;
+                    }}
                     pagination={false}
-                    columns={filterTableColumns(fields, [genderField, raceField], filtersTool, setIsModalOn, setCurrentGroupIndex)}
+                    columns={filterTableColumns(guideTool, fields, [genderField, raceField], filtersTool, setIsModalOn, setCurrentGroupIndex)}
                     dataSource={[...(filtersTool[0].groups || [])]}
                     size='middle'
                 ></Table>
-                <Cascader
-                    style={{ width: '100%' }}
-                    options={fieldPathOptions}
-                    onChange={(value) => {
-                        const newFields: string[] = [];
-                        value.forEach(el => {
-                            const route: IOntologyRoute | undefined = ontologyTree.routes?.filter(es => {
-                                return JSON.stringify(es.path.concat(es.name)) === JSON.stringify(el);
-                            })[0];
-                            if (route !== undefined) {
-                                newFields.push(route.field[0].replace('$', ''));
-                            }
-                        });
-                        const newFilters = { ...filtersTool[0] };
-                        newFilters.comparedFields = [...newFields];
-                        filtersTool[1](newFilters);
-                    }}
-                    multiple
-                    maxTagCount='responsive'
-                    showCheckedStrategy={SHOW_CHILD}
-                />
-            </Subsection>
+                <Popover
+                    visible={guideTool[0] === popoverContents[5].step}
+                    title={popoverContents[5].title}
+                    content={popoverContents[5].content}
+                    placement={'bottom'}
+                >
+                    <Cascader
+                        style={{ width: '100%' }}
+                        options={fieldPathOptions}
+                        onChange={(value) => {
+                            const newFields: string[] = [];
+                            value.forEach(el => {
+                                const route: IOntologyRoute | undefined = ontologyTree.routes?.filter(es => {
+                                    return JSON.stringify(es.path.concat(es.name)) === JSON.stringify(el);
+                                })[0];
+                                if (route !== undefined) {
+                                    newFields.push(route.field[0].replace('$', ''));
+                                }
+                            });
+                            const newFilters = { ...filtersTool[0] };
+                            newFilters.comparedFields = [...newFields];
+                            filtersTool[1](newFilters);
+                        }}
+                        getPopupContainer={trigger => trigger.parentElement}
+                        multiple
+                        maxTagCount='responsive'
+                        showCheckedStrategy={SHOW_CHILD}
+                    />
+                </Popover>
+            </SubsectionWithComment>
         </div>
     </div >);
 };
@@ -313,18 +449,76 @@ const ResultsVisualization: React.FunctionComponent<{ project: IProject, fields:
     if (data === undefined) {
         return null;
     }
-
-    const columns = [
+    const maxShowLength = 15;
+    const fieldColumns = [
         {
-            title: 'Field Index',
-            dataIndex: 'field',
-            key: 'field',
+            title: 'Attribute',
+            dataIndex: 'key',
+            key: 'key',
             render: (__unused__value, record) => {
-                return record.field;
+                return record.key;
             }
         },
         {
-            title: 'Data Summary',
+            title: 'Value',
+            dataIndex: 'value',
+            key: 'value',
+            render: (__unused__value, record) => {
+                return record.value;
+            }
+        }
+    ];
+    const columns = [
+        {
+            title: 'Field ID',
+            dataIndex: 'field',
+            key: 'field',
+            render: (__unused__value, record) => {
+                const thisField = fields.filter(el => el.fieldId === record.field)[0];
+                const data: any = [];
+                data.push({
+                    key: 'Field Name',
+                    value: <Tooltip title={thisField.fieldName}>
+                        <span>{thisField?.fieldName ? thisField.fieldName.length > maxShowLength ? thisField.fieldName.substring(0, maxShowLength) + '...' :
+                            thisField.fieldName : 'NA'}</span>
+                    </Tooltip >
+                }, {
+                    key: 'Table Name',
+                    value: thisField.tableName || 'NA'
+                }, {
+                    key: 'Data Type',
+                    value: dataTypeMapping[thisField.dataType] || 'NA'
+                }, {
+                    key: 'Unit',
+                    value: thisField.unit || 'NA'
+                }, {
+                    key: 'Comments',
+                    value: thisField.comments || 'NA'
+                });
+                return <Tooltip
+                    placement='topLeft'
+                    arrowPointAtCenter
+                    title={<Table
+                        scroll={{ x: 'max-content' }}
+                        pagination={false}
+                        columns={fieldColumns}
+                        dataSource={data}
+                        size='middle'
+                    >
+                    </Table>}
+                >
+                    <Button>{record.field.toString()}</Button>
+                </Tooltip>;
+            }
+        },
+        {
+            title: <div>
+                <Popover
+                    content={'This column shows the data distribution.'}
+                    placement={'topLeft'}
+                    trigger={'hover'}
+                >Data Summary</Popover>
+            </div>,
             dataIndex: 'graph',
             key: 'graph',
             render: (__unused__value, record) => {
@@ -358,7 +552,13 @@ const ResultsVisualization: React.FunctionComponent<{ project: IProject, fields:
             }
         },
         {
-            title: 'Statistics Score',
+            title: <div>
+                <Popover
+                    content={'This column shows the score of a specific statistics.'}
+                    placement={'topLeft'}
+                    trigger={'hover'}
+                >Statistics Score</Popover>
+            </div>,
             dataIndex: 'score',
             key: 'score',
             render: (__unused__value, record) => {
@@ -379,16 +579,32 @@ const ResultsVisualization: React.FunctionComponent<{ project: IProject, fields:
         },
         {
             title: <>
-                Statistics Pvalue
-                <Select
-                    placeholder='Significance Level'
-                    style={{ float: 'right' }}
-                    value={signifianceLevel}
-                    onChange={(value) => setSignigicanceLevel(value)}
-                >
-                    <Option value={0.05} >0.05</Option>
-                    <Option value={0.01} >0.01</Option>
-                </Select>
+                <div style={{ display: 'inline-block', float: 'left' }}>
+                    <Popover
+                        content={'This column shows the p-value of a specific statistics.'}
+                        placement={'bottomRight'}
+                        trigger={'hover'}
+                    >Statistics Pvalue</Popover>
+                </div>
+                <div style={{ display: 'inline-block', float: 'right' }}>
+                    <Popover
+                        content={'You can set a specific significance level.'}
+                        placement={'leftTop'}
+                        trigger={'hover'}
+                    >
+                        <Select
+                            getPopupContainer={trigger => trigger.parentElement}
+                            placeholder='Significance Level'
+                            style={{ float: 'right' }}
+                            value={signifianceLevel}
+                            onChange={(value) => setSignigicanceLevel(value)}
+                        >
+                            <Option value={0.05} >0.05</Option>
+                            <Option value={0.01} >0.01</Option>
+                            <Option value={undefined} >NA</Option>
+                        </Select>
+                    </Popover>
+                </div>
             </>,
             dataIndex: 'pvalue',
             key: 'pvalue',
@@ -445,27 +661,30 @@ const ResultsVisualization: React.FunctionComponent<{ project: IProject, fields:
         },
     ];
     return (<div>
-        <SubsectionWithComment title='Results' comment={<>
-            <Button style={{ float: 'right' }} onClick={() => {
-                const fileName = 'analyticalResults-v'.concat(project.dataVersion?.version.toString() || '').concat('.json');
-                const exportType = exportFromJSON.types.json;
-                exportFromJSON({ data, fileName, exportType });
-            }}>Export</Button>
-            <Select
-                onChange={(value) => {
-                    setStatisticsType(value);
-                }}
-                value={statisticsType}
-                style={{ float: 'right' }}
-                placeholder='Select Statistics'
-            >
+        <SubsectionWithComment title='Results' comment={<div>
+            <Space>
+                <Select
+                    getPopupContainer={trigger => trigger.parentElement}
+                    onChange={(value) => {
+                        setStatisticsType(value);
+                    }}
+                    value={statisticsType}
+                    style={{ float: 'right' }}
+                    placeholder='Select Statistics'
+                >
 
-                {
-                    statisticsTypes.map(el => <Option value={el}>{el}</Option>)
-                }
+                    {
+                        statisticsTypes.map(el => <Option value={el}>{el}</Option>)
+                    }
 
-            </Select>
-        </>}>
+                </Select>
+                <Button style={{ float: 'right' }} onClick={() => {
+                    const fileName = 'analyticalResults-v'.concat(project.dataVersion?.version.toString() || '').concat('.json');
+                    const exportType = exportFromJSON.types.json;
+                    exportFromJSON({ data, fileName, exportType });
+                }}>Export</Button>
+            </Space>
+        </div>}>
             <Table
                 scroll={{ x: 'max-content' }}
                 pagination={false}
@@ -483,7 +702,7 @@ const ResultsVisualization: React.FunctionComponent<{ project: IProject, fields:
     </div>);
 };
 
-function variableFilterColumns(fields: IFieldEntry[], remove: any, fieldPathOptions: any) {
+function variableFilterColumns(guideTool: any, fields: IFieldEntry[], remove: any, fieldPathOptions: any) {
     return [
         {
             title: 'Field',
@@ -517,7 +736,10 @@ function variableFilterColumns(fields: IFieldEntry[], remove: any, fieldPathOpti
                         name={[index, 'op']}
                         rules={[{ required: true }]}
                     >
-                        <Select placeholder={'Select Operation'}>
+                        <Select
+                            placeholder={'Select Operation'}
+                            getPopupContainer={trigger => trigger.parentElement}
+                        >
                             {
                                 options.ops.map(el => {
                                     return <Select.Option value={el}>{el}</Select.Option>;
@@ -564,7 +786,7 @@ function variableFilterColumns(fields: IFieldEntry[], remove: any, fieldPathOpti
     ];
 }
 
-function filterTableColumns(fields: IFieldEntry[], dmFields: any[], filtersTool?: any, setIsModalOn?: any, setCurrentGroupIndex?: any) {
+function filterTableColumns(guideTool: any, fields: IFieldEntry[], dmFields: any[], filtersTool?: any, setIsModalOn?: any, setCurrentGroupIndex?: any) {
     if (filtersTool[0].groups.length === 0) {
         return [];
     }
@@ -612,7 +834,7 @@ function filterTableColumns(fields: IFieldEntry[], dmFields: any[], filtersTool?
                 render: (__unused__value, record) => {
                     return <div>
                         {
-                            record.genderID.map(el => <Tag color={options.tagColors.race} >{genderField?.possibleValues?.filter(ed => ed.code === el.toString())[0].description}</Tag>)
+                            record.genderID.map(el => <Tag color={options.tagColors.genderID} >{genderField?.possibleValues?.filter(ed => ed.code === el.toString())[0].description}</Tag>)
                         }
                     </div>;
                 }
@@ -680,9 +902,20 @@ function filterTableColumns(fields: IFieldEntry[], dmFields: any[], filtersTool?
             key: 'copy',
             render: (__unused__value, record, index) => {
                 return <div>
-                    <CopyOutlined key='copy' onClick={() => {
-                        setCurrentGroupIndex(index);
-                    }} />
+                    <Popover
+                        visible={guideTool[0] === popoverContents[3].step}
+                        title={popoverContents[guideTool[0]]?.title || ''}
+                        content={popoverContents[guideTool[0]]?.content || ''}
+                        placement={'bottomRight'}
+                    >
+                        <CopyOutlined
+                            style={{ color: guideTool[0] === popoverContents[3].step ? 'red' : 'blue' }}
+                            key='copy'
+                            onClick={() => {
+                                setCurrentGroupIndex(index);
+                            }} />
+                    </Popover>
+
                 </div>;
             }
         });
@@ -692,11 +925,21 @@ function filterTableColumns(fields: IFieldEntry[], dmFields: any[], filtersTool?
             key: 'edit',
             render: (__unused__value, __unused__record, index) => {
                 return <div>
-                    <EditOutlined key='edit' onClick={() => {
-                        setCurrentGroupIndex(index);
-                        setIsModalOn(true);
-                    }} />
-                </div>;
+                    <Popover
+                        visible={guideTool[0] === 4 && index === 1}
+                        title={popoverContents[4].title}
+                        content={popoverContents[4].content}
+                        placement={'bottomRight'}
+                    >
+                        <EditOutlined
+                            style={{ color: guideTool[0] === popoverContents[4].step ? 'red' : 'blue' }}
+                            key='edit'
+                            onClick={() => {
+                                setCurrentGroupIndex(index);
+                                setIsModalOn(true);
+                            }} />
+                    </Popover>
+                </div >;
             }
         });
         columns.push({
@@ -956,3 +1199,48 @@ function divideResults(filters, results, fields, dmFields: any[]) {
     });
     return data;
 }
+
+
+const popoverContents = [
+    {
+        step: 0,
+        title: 'Let\'s start!',
+        content: 'We will compare results from BPI Questionnaire by gender/sex of a specific visit.',
+        requireContinue: true
+    },
+    {
+        step: 1,
+        title: 'Creating the first group.',
+        content: 'We will create a group of male participants only.',
+        requireContinue: true
+    },
+    {
+        step: 2,
+        title: 'Set up the filters.',
+        content: 'You need to filter participants by the following criteria. You can use our template by clicking Fill in.',
+        requireContinue: true
+    },
+    {
+        step: 3,
+        title: 'Create the second group.',
+        content: 'Copy the first group and paste it.',
+        requireContinue: true
+    },
+    {
+        step: 4,
+        title: 'Change the filters.',
+        content: 'Change the sex to male.',
+        requireContinue: true
+    },
+    {
+        step: 5,
+        title: 'Select the fields to compare.',
+        content: 'We will select all fields of the BMI questionnires. Then click Analyse.',
+        requireContinue: true
+    },
+    {
+        step: 6,
+        title: 'View the results.',
+        content: 'You can view the results from now.'
+    }
+];

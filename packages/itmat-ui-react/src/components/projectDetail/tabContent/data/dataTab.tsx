@@ -1,4 +1,5 @@
 import { filterFields, generateCascader, findDmField } from '../../../../utils/tools';
+import { dataTypeMapping } from '../utils/defaultParameters';
 import * as React from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
 import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, IFieldEntry, IProject, enumValueType, GET_ONTOLOGY_TREE, IOntologyTree, IOntologyRoute, GET_STANDARDIZATION } from 'itmat-commons';
@@ -7,11 +8,12 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { CSVLink } from 'react-csv';
-import { Select, Statistic, Row, Col, Button, Table, Empty, Cascader, Tooltip } from 'antd';
+import { Select, Row, Col, Button, Table, Empty, Cascader, Tooltip, Typography, Space } from 'antd';
 import { Pie, BidirectionalBar, Heatmap, Violin, Column, Box } from '@ant-design/plots';
-import { UserOutlined, ProfileOutlined, DownloadOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { UserOutlined, DownloadOutlined, QuestionCircleOutlined, TagOutlined, HistoryOutlined, FieldTimeOutlined, EyeOutlined, HddOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
 const { Option } = Select;
+const { Text } = Typography;
 
 export const DataTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { projectId } = useParams();
@@ -32,45 +34,108 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string }> = ({ s
             An error occured, please contact your administrator
         </div >;
     }
+    if (getStudyFieldsData.getStudyFields.length === 0) {
+        return <span>No Fields Found.</span>;
+    }
+
     if (getOntologyTreeData.getOntologyTree[0] === undefined) {
         return <span>Ontology Tree Missing!</span>;
     }
+
     return <div className={css.tab_page_wrapper}>
         <div className={css.scaffold_wrapper}>
-            <div className={css.demographics}>
-                <Subsection title={<Tooltip title={'The statistics of several demographics fields.'}>
-                    <span>Demographics</span> <QuestionCircleOutlined />
-                </Tooltip>}>
-                    <DemographicsBlock ontologyTree={getOntologyTreeData.getOntologyTree[0]} studyId={studyId} projectId={projectId} fields={filterFields(getStudyFieldsData.getStudyFields, getOntologyTreeData.getOntologyTree[0])} />
-                </Subsection>
-            </div>
             <div className={css.metadata}>
-                <ProjectMetaDataBlock project={getProjectData.getProject} />
+                <MetaDataBlock project={getProjectData.getProject} numOfFields={getStudyFieldsData.getStudyFields.length} numOfOntologyRoutes={getOntologyTreeData.getOntologyTree[0].routes.length} />
             </div>
-            <div className={css.field_viewer}>
-                <FieldViewer ontologyTree={getOntologyTreeData.getOntologyTree[0]} fields={getStudyFieldsData.getStudyFields} />
+            <div className={css.demographics}>
+                <DemographicsBlock ontologyTree={getOntologyTreeData.getOntologyTree[0]} studyId={studyId} projectId={projectId} fields={filterFields(getStudyFieldsData.getStudyFields, getOntologyTreeData.getOntologyTree[0])} />
+            </div>
+            <div className={css.data_distribution}>
+                <DataDistributionBlock ontologyTree={getOntologyTreeData.getOntologyTree[0]} fields={getStudyFieldsData.getStudyFields} project={getProjectData.getProject} />
             </div>
             <div className={css.data_completeness}>
-                <DataCompletenessBlock studyId={studyId} projectId={projectId} ontologyTree={getOntologyTreeData.getOntologyTree[0]} fields={getStudyFieldsData.getStudyFields} />
-            </div>
-            <div className={css.data_details}>
-                <DataDetailsBlock studyId={studyId} projectId={projectId} project={getProjectData.getProject} fields={getStudyFieldsData.getStudyFields} ontologyTree={getOntologyTreeData.getOntologyTree[0]} />
+                <DataCompletenessBlock studyId={studyId} projectId={getProjectData.getProject.id} ontologyTree={getOntologyTreeData.getOntologyTree[0]} fields={filterFields(getStudyFieldsData.getStudyFields, getOntologyTreeData.getOntologyTree[0])} />
             </div>
             <div className={css.data_download}>
                 <DataDownloadBlock project={getProjectData.getProject} />
             </div>
         </div>
-    </div >;
+    </div>;
+};
+
+export const MetaDataBlock: React.FunctionComponent<{ project: IProject, numOfFields: number, numOfOntologyRoutes: number }> = ({ project, numOfFields, numOfOntologyRoutes }) => {
+    return project ? <SubsectionWithComment title={<Tooltip title={'The statistics of several demographics fields.'}>
+        <Text className={css.title}>Meta Data</Text> <QuestionCircleOutlined />
+    </Tooltip>} comment={<>
+        <Space direction={'horizontal'} size={20}>
+            <div><HistoryOutlined /> <span>Data Version - {project?.dataVersion?.version}</span></div>
+            <div><TagOutlined /> <span>Version Tag - {project?.dataVersion?.tag}</span></div>
+        </Space>
+    </>}>
+        <Row gutter={16}>
+            <Col span={5}>
+                <div className={css.grid_col_center} ><UserOutlined style={{ fontSize: '700%' }} /></div>
+            </Col>
+            <Col span={5}>
+                <div className={css.grid_col_center}><EyeOutlined style={{ fontSize: '700%' }} /></div>
+            </Col>
+            <Col span={5}>
+                <div className={css.grid_col_center}><HddOutlined style={{ fontSize: '700%' }} /></div>
+            </Col>
+            <Col span={9}>
+                <div className={css.grid_col_center}><FieldTimeOutlined style={{ fontSize: '700%' }} /></div>
+            </Col>
+        </Row><br />
+        <Row gutter={16}>
+            <Col span={5}>
+                <div className={css.grid_col_center}><span>Participants</span></div>
+            </Col>
+            <Col span={5}>
+                <div className={css.grid_col_center}><span>Visits</span></div>
+            </Col>
+            <Col span={5}>
+                <div className={css.grid_col_center}><span>Fields</span></div>
+            </Col>
+            <Col span={9}>
+                <div className={css.grid_col_center}><span>Updated At</span></div>
+            </Col>
+        </Row><br />
+        <Row gutter={16}>
+            <Col span={5}>
+                <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project?.summary?.subjects?.length}</Text></div>
+            </Col>
+            <Col span={5}>
+                <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project?.summary?.visits?.length}</Text></div>
+            </Col>
+            <Col span={5}>
+                <div className={css.grid_col_center}>
+                    <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes} / {numOfFields}</Text>
+                    <Tooltip title={`${numOfOntologyRoutes} of ${numOfFields} fields are in the ontology tree.`}>
+                        <QuestionCircleOutlined />
+                    </Tooltip>
+                </div>
+            </Col>
+            <Col span={9}>
+                <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project.dataVersion?.updateDate === undefined ? 'NA' : (new Date(parseFloat(project.dataVersion?.updateDate))).toUTCString()}</Text></div>
+            </Col>
+        </Row><br />
+    </SubsectionWithComment > : null;
 };
 
 export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IFieldEntry[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
+    // process the data
+    const genderField: any = findDmField(ontologyTree, fields, 'SEX');
+    const raceField: any = findDmField(ontologyTree, fields, 'RACE');
+    const ageField: any = findDmField(ontologyTree, fields, 'AGE');
+    const siteField: any = findDmField(ontologyTree, fields, 'SITE');
+
     const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, {
         variables: {
             studyId: studyId,
             projectId: projectId,
             queryString: {
                 format: 'grouped',
-                data_requested: fields.map(el => el.fieldId),
+                data_requested: [genderField.fieldId, raceField.fieldId, ageField.fieldId, siteField.fieldId],
                 new_fields: [],
                 cohort: [[]],
                 subjects_requested: null,
@@ -86,15 +151,10 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
             An error occured, please contact your administrator
         </div>;
     }
+
     // process the data
     const obj: any = {};
     const data = getDataRecordsData.getDataRecords.data;
-    const genderField: any = findDmField(ontologyTree, fields, 'SEX');
-    const raceField: any = findDmField(ontologyTree, fields, 'RACE');
-    const ageField: any = findDmField(ontologyTree, fields, 'AGE');
-    const siteField: any = findDmField(ontologyTree, fields, 'SITE');
-    // const genderFie: IFieldEntry = fields.filter(el => el.fieldId === genderFieldId.fieldId)[0];
-
     if (genderField === null) {
         obj.SEX = [];
         obj.AGE = [];
@@ -162,7 +222,10 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
             value: (data[siteField.fieldId][siteField.visitRange[0]]?.totalNumOfRecords || 0) - (data[siteField.fieldId][siteField.visitRange[0]]?.validNumOfRecords || 0)
         });
     }
-    return (<>
+
+    return <Subsection title={<Tooltip title={'The statistics of several demographics fields.'}>
+        <Text className={css.title}>Demographics</Text> <QuestionCircleOutlined />
+    </Tooltip>}>
         {
             genderField === null ? null :
                 <div style={{ width: '25%', float: 'left' }}>
@@ -187,7 +250,7 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
                             },
                         ]}
                     />
-                    <h1 style={{ textAlign: 'center' }} >Sex</h1>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Sex</Text></div>
                 </div>
         }
         {
@@ -214,7 +277,7 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
                             },
                         ]}
                     />
-                    <h1 style={{ textAlign: 'center' }} >Race</h1>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Race</Text></div>
                 </div>
         }
         {
@@ -241,7 +304,7 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
                             },
                         ]}
                     />
-                    <h1 style={{ textAlign: 'center' }} >Site</h1>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Site</Text></div>
                 </div>
         }
         {
@@ -257,19 +320,16 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
                             { type: 'active-region' }
                         ]}
                         yField={['Male', 'Female']}
-                        tooltip={{
-                            shared: true,
-                            showMarkers: false
-                        } as any}
                     />
-                    <h1 style={{ textAlign: 'center' }} >Age</h1>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong>Age</Text></div>
                 </div>
         }
-    </>);
+    </Subsection>;
 };
 
-export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree, fields: IFieldEntry[] }> = ({ ontologyTree, fields }) => {
+export const DataDistributionBlock: React.FunctionComponent<{ ontologyTree: IOntologyTree, fields: IFieldEntry[], project: IProject }> = ({ ontologyTree, fields, project }) => {
     const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
+    const [selectedGraphType, setSelectedGraphType] = React.useState<string | undefined>(undefined);
     const routes: IOntologyRoute[] = ontologyTree.routes?.filter(es => {
         return JSON.stringify([...es.path, es.name]) === JSON.stringify(selectedPath);
     }) || [];
@@ -282,10 +342,46 @@ export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree,
         generateCascader(el, fieldPathOptions, true);
     });
     // ellipsis
-    const subString: string = field?.fieldName ? field.fieldName.length > 10 ? field.fieldName.substring(0, 10) + '...' :
+    const maxShowLength = 20;
+    const fieldNameEllipsis: string = field?.fieldName ? field.fieldName.length > maxShowLength ? field.fieldName.substring(0, maxShowLength) + '...' :
         field.fieldName : 'NA';
+    const fieldCommentsEllipsis: string = field?.comments ? field.comments.length > maxShowLength ? field.comments.substring(0, maxShowLength) + '...' :
+        field.comments : 'NA';
+
+    const axisConfig = {
+        xAxis: {
+            title: {
+                text: 'Visit ID',
+                style: {
+                    fill: '#6E759F',
+                    fontSize: 14
+                },
+            }
+        },
+        yAxisNum: {
+            title: {
+                text: 'Count',
+                style: {
+                    fill: '#6E759F',
+                    fontSize: 14,
+                },
+                position: 'start'
+            }
+        },
+        yAxisPer: {
+            title: {
+                text: 'Percentage',
+                style: {
+                    fill: '#6E759F',
+                    fontSize: 14,
+                },
+                position: 'start'
+            }
+        }
+    };
+
     return (<SubsectionWithComment title={<Tooltip title={'View the details of a selected field.'}>
-        <span>Field Viewer</span> <QuestionCircleOutlined />
+        <Text className={css.title}>Data Distribution</Text> <QuestionCircleOutlined />
     </Tooltip>} comment={<>
         <Cascader
             getPopupContainer={trigger => trigger.parentNode}
@@ -293,43 +389,197 @@ export const FieldViewer: React.FunctionComponent<{ ontologyTree: IOntologyTree,
             onChange={(value) => {
                 setSelectedPath(value);
             }}
-            placeholder={'Please select'}
+            placeholder={'Select Field'}
         />
-    </>} float={'center'} >
+        <Select
+            value={selectedGraphType}
+            getPopupContainer={trigger => trigger.parentNode}
+            placeholder='Select Graph Type'
+            onChange={(value) => {
+                setSelectedGraphType(value);
+            }}
+        >
+            {
+                [enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === field?.fieldId)[0]?.dataType) ?
+                    <>
+                        <Option value='violin'>Violin</Option>
+                        <Option value='box'>Box</Option>
+                    </> : <>
+                        <Option value='stackedColumn'>Stacked Column</Option>
+                        <Option value='groupedColumn'>Grouped Column</Option>
+                    </>
+            }
+        </Select>
+    </>} float={'right'}
+    >
         {
-            field === undefined ? null :
-                <>
+            field === undefined ? <div style={{ height: '200px' }} ><Empty /></div> :
+                <div>
                     <Row gutter={16}>
-                        <Col span={12}>
-                            <Statistic title='Field ID' value={field?.fieldId || 'NA'} />
+                        <Col span={3}>
+                            <div className={css.grid_col_center} ><span>Field ID</span></div>
                         </Col>
-                        <Col span={12}>
-                            <Statistic title={<Tooltip title={field?.fieldName}>Field Name</Tooltip>} value={subString || 'NA'} />
+                        <Col span={3}>
+                            <div className={css.grid_col_center} ><span>Field Name</span></div>
+                        </Col>
+                        <Col span={3}>
+                            <div className={css.grid_col_center} ><span>Data Type</span></div>
+                        </Col>
+                        <Col span={3}>
+                            <div className={css.grid_col_center} ><span>Unit</span></div>
+                        </Col>
+                        <Col span={3}>
+                            <div className={css.grid_col_center} ><span>Comments</span></div>
+                        </Col>
+                        <Col span={9}>
+                            <div className={css.grid_col_center} >
+                                <span>Ontology Chain</span>
+                                <Tooltip title={'The route of the field in the ontology tree.'}>
+                                    <QuestionCircleOutlined />
+                                </Tooltip>
+                            </div>
                         </Col>
                     </Row><br />
                     <Row gutter={16}>
-                        <Col span={12}>
-                            <Statistic title='Data Type' value={dataTypeMapping[field?.dataType] || 'NA'} />
+                        <Col span={3}>
+                            <div className={css.grid_col_center_large} ><Text strong underline>{field?.fieldId || 'NA'}</Text></div>
                         </Col>
-                        <Col span={12}>
-                            <Statistic title='Unit' value={field?.unit || 'NA'} />
+                        <Col span={3}>
+                            <div className={css.grid_col_center_large} ><Text strong underline>{<Tooltip title={field.fieldName}>
+                                <span>{fieldNameEllipsis || 'NA'}</span>
+                            </Tooltip >}</Text></div>
                         </Col>
+                        <Col span={3}>
+                            <div className={css.grid_col_center_large} ><Text strong underline>{dataTypeMapping[field?.fieldId] || 'NA'}</Text></div>
+                        </Col>
+                        <Col span={3}>
+                            <div className={css.grid_col_center_large} ><Text strong underline>{field?.unit || 'NA'}</Text></div>
+                        </Col>
+                        <Col span={3}>
+                            <div className={css.grid_col_center_large} ><Text strong underline>{<Tooltip title={field.comments}>
+                                <span>{fieldCommentsEllipsis || 'NA'}</span>
+                            </Tooltip >}</Text></div>
+                        </Col>
+                        <Col span={9}>
+                            <div className={css.grid_col_center_large} ><Text strong underline>{(routes[0].path.slice(0, routes[0].path.length) || '').concat(fieldNameEllipsis).join(' => ')}</Text></div>
+                        </Col><br />
                     </Row><br />
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Statistic title='Comments' value={field?.comments || 'NA'} />
-                        </Col>
-                    </Row><br />
-                    <Row gutter={16}>
-                        <Col span={24}>
-                            <Statistic title='Ontology Chain' prefix={<>
-                                {
-                                    routes[0].path.join(' => ')
+                    <Query<any, any> query={GET_DATA_RECORDS} variables={{
+                        studyId: project.studyId,
+                        projectId: project.id,
+                        queryString: {
+                            format: 'grouped',
+                            data_requested: [ontologyTree.routes?.filter(el => el.name === selectedPath[selectedPath.length - 1])[0]?.field[0]?.replace('$', '') || ''],
+                            cohort: [[]],
+                            subjects_requested: null,
+                            visits_requested: null
+                        }
+                    }}>
+                        {({ data, loading, error }) => {
+                            if (loading) { return <LoadSpinner />; }
+                            if (error) { return <p>{JSON.stringify(error)}</p>; }
+                            if (!data) { return <p>Not executed.</p>; }
+                            const fieldIdFromData: string = Object.keys(data.getDataRecords.data)[0];
+                            // return empty if the field is empty, this means that no such data is in database
+                            if (fieldIdFromData === undefined) {
+                                return <Empty />;
+                            }
+                            if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
+                                data = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
+                                    data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
+                                        if (el === '99999') {
+                                            return;
+                                        }
+                                        acc.push({ x: curr, y: el });
+                                    });
+                                    return acc;
+                                }, ([] as any));
+                            } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
+                                data = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
+                                    let count = 0;
+                                    data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
+                                        if (acc.filter(es => (es.visit === curr && es.value === el)).length === 0) {
+                                            if (el === '99999') {
+                                                return;
+                                            }
+                                            acc.push({ visit: curr, value: el, count: 0 });
+                                        }
+                                        count += 1;
+                                        acc[acc.findIndex(es => (es.visit === curr && es.value === el))].count += 1;
+                                    });
+                                    // if no mising (either no missing or missing is considered as an option)
+                                    if (project.summary.subjects.length - count !== 0) {
+                                        acc.push({ visit: curr, value: 'No Record', count: project.summary.subjects.length - count });
+                                    }
+                                    return acc;
+                                }, ([] as any)).sort((a, b) => { return parseFloat(a.value) - parseFloat(b.value); });
+                            } else {
+                                return null;
+                            }
+                            const boxData = data.reduce((acc, curr) => {
+                                if (acc.filter(el => el.x === curr.x)[0] === undefined) {
+                                    acc.push({ x: curr.x, y: [] });
                                 }
-                            </>} value={' => ' + subString} />
-                        </Col>
-                    </Row><br />
-                </>
+                                acc.filter(el => el.x === curr.x)[0].y.push(curr.y);
+                                return acc;
+                            }, []).map(el => {
+                                const sortedY = [...el.y].sort();
+                                return {
+                                    x: el.x,
+                                    low: sortedY[0],
+                                    q1: sortedY[Math.floor(sortedY.length / 4)],
+                                    median: sortedY[Math.floor(sortedY.length / 2)],
+                                    q3: sortedY[Math.floor(sortedY.length * 3 / 4)],
+                                    high: sortedY[sortedY.length - 1],
+                                };
+                            });
+                            if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType))
+                                return (<>
+                                    {
+                                        selectedGraphType === 'violin' ? <Violin
+                                            data={data}
+                                            xField={'x'}
+                                            yField={'y'}
+                                            xAxis={axisConfig.xAxis}
+                                            yAxis={axisConfig.yAxisNum}
+                                        /> : selectedGraphType === 'box' ? <Box
+                                            data={boxData}
+                                            xField={'x'}
+                                            yField={['low', 'q1', 'median', 'q3', 'high']}
+                                            xAxis={axisConfig.xAxis}
+                                            yAxis={axisConfig.yAxisNum}
+                                            boxStyle={{
+                                                stroke: '#545454',
+                                                fill: '#1890FF',
+                                                fillOpacity: 0.3,
+                                            }}
+                                        /> : <Empty />
+                                    }
+                                </>);
+                            else
+                                return (<>
+                                    {
+                                        selectedGraphType === 'stackedColumn' || selectedGraphType === 'groupedColumn' ?
+                                            <Column
+                                                data={data}
+                                                xField={'visit'}
+                                                yField={'count'}
+                                                xAxis={axisConfig.xAxis}
+                                                yAxis={axisConfig.yAxisNum}
+                                                seriesField={'value'}
+                                                isPercent={false}
+                                                isStack={selectedGraphType === 'stackedColumn'}
+                                                isGroup={selectedGraphType === 'groupedColumn'}
+                                                interactions={[
+                                                    { type: 'element-highlight-by-color' },
+                                                    { type: 'element-link' }
+                                                ]}
+                                            /> : <Empty />
+                                    }
+                                </>);
+                        }}
+                    </Query>
+                </div>
         }
     </SubsectionWithComment >);
 };
@@ -373,7 +623,7 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
             obj.push({
                 visit: visitId,
                 field: fieldId,
-                percentage: parseInt(((data[fieldId][visitId].validNumOfRecords / data[fieldId][visitId].totalNumOfRecords) * 100).toFixed(0)).toString()
+                percentage: parseInt(((data[fieldId][visitId].validNumOfRecords / data[fieldId][visitId].totalNumOfRecords) * 100).toFixed(0))
             });
         }
     }
@@ -422,7 +672,7 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
     });
     return (
         <SubsectionWithComment title={<Tooltip title={'The percentage of valid data. The data completeness of a field is calculated by (number of valid data pointes / number of expected data pointes).'}>
-            < span > Data Completeness</span > <QuestionCircleOutlined />
+            <Text className={css.title}>Data Completeness</Text> <QuestionCircleOutlined />
         </Tooltip >} comment={
             <Cascader
                 getPopupContainer={trigger => trigger.parentNode}
@@ -434,7 +684,7 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
         } float={'center'}
         >
             {
-                selectedPath.length === 0 ? <Empty description={'No Data Found'} /> :
+                selectedPath.length === 0 ? <Empty /> :
                     <>
                         <Heatmap
                             style={{ overflow: 'auto' }}
@@ -458,203 +708,6 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
             }
         </SubsectionWithComment >
     );
-};
-
-export const DataDetailsBlock: React.FunctionComponent<{ studyId: string, projectId, project: IProject, fields: IFieldEntry[], ontologyTree: IOntologyTree }> = ({ studyId, projectId, project, fields, ontologyTree }) => {
-    const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
-    const [selectedGraphType, setSelectedGraphType] = React.useState<string | undefined>(undefined);
-    //construct the cascader
-    const fieldPathOptions: any = [];
-    ontologyTree.routes?.forEach(el => {
-        generateCascader(el, fieldPathOptions, true);
-    });
-    const selectedFieldId = ontologyTree.routes?.filter(el => el.name === selectedPath[selectedPath.length - 1])[0]?.field[0]?.replace('$', '') || '';
-    return (<SubsectionWithComment title={<Tooltip title={'The data distribution of a selected field. We provide different visualization techniques for categorical data and numerical data, respectively.'}>
-        <span>Data Distribution</span> <QuestionCircleOutlined />
-    </Tooltip>} comment={<>
-        <Cascader
-            options={fieldPathOptions}
-            getPopupContainer={trigger => trigger.parentNode}
-            onChange={(value) => {
-                setSelectedPath(value);
-                setSelectedGraphType(undefined);
-            }}
-            placeholder={'Please select'}
-        />
-        <Select
-            value={selectedGraphType}
-            getPopupContainer={trigger => trigger.parentNode}
-            placeholder='Select Graph Type'
-            onChange={(value) => {
-                setSelectedGraphType(value);
-            }}
-            style={{ width: '20%' }}
-        >
-            {
-                [enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === selectedFieldId)[0]?.dataType) ?
-                    <>
-                        <Option value='violin'>Violin</Option>
-                        <Option value='box'>Box</Option>
-                    </> : <>
-                        <Option value='stackedColumn'>Stacked Column</Option>
-                        <Option value='groupedColumn'>Grouped Column</Option>
-                    </>
-            }
-        </Select>
-    </>
-    } float={'center'}>
-        <Query<any, any> query={GET_DATA_RECORDS} variables={{
-            studyId: studyId,
-            projectId: projectId,
-            queryString: {
-                format: 'grouped',
-                data_requested: [ontologyTree.routes?.filter(el => el.name === selectedPath[selectedPath.length - 1])[0]?.field[0]?.replace('$', '') || ''],
-                cohort: [[]],
-                subjects_requested: null,
-                visits_requested: null
-            }
-        }}>
-            {({ data, loading, error }) => {
-                if (loading) { return <LoadSpinner />; }
-                if (error) { return <p>{JSON.stringify(error)}</p>; }
-                if (!data) { return <p>Not executed.</p>; }
-                const fieldIdFromData: string = Object.keys(data.getDataRecords.data)[0];
-                // return empty if the field is empty, this means that no such data is in database
-                if (fieldIdFromData === undefined) {
-                    return <Empty description={'No Data Found'} />;
-                }
-                if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
-                    data = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
-                        data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
-                            if (el === '99999') {
-                                return;
-                            }
-                            acc.push({ x: curr, y: el });
-                        });
-                        return acc;
-                    }, ([] as any));
-                } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
-                    data = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
-                        let count = 0;
-                        data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
-                            if (acc.filter(es => (es.visit === curr && es.value === el)).length === 0) {
-                                if (el === '99999') {
-                                    return;
-                                }
-                                acc.push({ visit: curr, value: el, count: 0 });
-                            }
-                            count += 1;
-                            acc[acc.findIndex(es => (es.visit === curr && es.value === el))].count += 1;
-                        });
-                        // if no mising (either no missing or missing is considered as an option)
-                        if (project.summary.subjects.length - count !== 0) {
-                            acc.push({ visit: curr, value: 'No Record', count: project.summary.subjects.length - count });
-                        }
-                        return acc;
-                    }, ([] as any)).sort((a, b) => { return parseFloat(a.value) - parseFloat(b.value); });
-                } else {
-                    return null;
-                }
-                const boxData = data.reduce((acc, curr) => {
-                    if (acc.filter(el => el.x === curr.x)[0] === undefined) {
-                        acc.push({ x: curr.x, y: [] });
-                    }
-                    acc.filter(el => el.x === curr.x)[0].y.push(curr.y);
-                    return acc;
-                }, []).map(el => {
-                    const sortedY = [...el.y].sort();
-                    return {
-                        x: el.x,
-                        low: sortedY[0],
-                        q1: sortedY[Math.floor(sortedY.length / 4)],
-                        median: sortedY[Math.floor(sortedY.length / 2)],
-                        q3: sortedY[Math.floor(sortedY.length * 3 / 4)],
-                        high: sortedY[sortedY.length - 1],
-                    };
-                });
-                console.log(boxData);
-                if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType))
-                    return (<>
-                        {
-                            selectedGraphType === 'violin' ? <Violin
-                                data={data}
-                                xField={'x'}
-                                yField={'y'}
-                            /> : selectedGraphType === 'box' ? <Box
-                                data={boxData}
-                                xField={'x'}
-                                yField={['low', 'q1', 'median', 'q3', 'high']}
-                                boxStyle={{
-                                    stroke: '#545454',
-                                    fill: '#1890FF',
-                                    fillOpacity: 0.3,
-                                }}
-                            /> : null
-                        }
-                    </>);
-                else
-                    return (<>
-                        {
-                            selectedGraphType === 'stackedColumn' || selectedGraphType === 'groupedColumn' ?
-                                <Column
-                                    data={data}
-                                    xField={'visit'}
-                                    yField={'count'}
-                                    seriesField={'value'}
-                                    isPercent={true}
-                                    isStack={selectedGraphType === 'stackedColumn'}
-                                    isGroup={selectedGraphType === 'groupedColumn'}
-                                    interactions={[
-                                        { type: 'element-highlight-by-color' },
-                                        { type: 'element-link' }
-                                    ]}
-                                /> : null
-                        }
-                    </>);
-            }}
-        </Query>
-        <br />
-    </SubsectionWithComment>);
-};
-
-export const ProjectMetaDataBlock: React.FunctionComponent<{ project: IProject }> = ({ project }) => {
-    return (<Subsection title={<Tooltip title={'Summary of the project.'}>
-        <span>Meta data</span> <QuestionCircleOutlined />
-    </Tooltip>}>
-        <div style={{ gridArea: 'e' }}>
-            <Row gutter={16}>
-                <Col span={12}>
-                    <Statistic title='Participants' value={project.summary.subjects.length} prefix={<UserOutlined />} />
-                </Col>
-                <Col span={12}>
-                    <Statistic title={<Tooltip title={'Data of different data versions may be different.'}>
-                        <span>Data Version</span> <QuestionCircleOutlined />
-                    </Tooltip>} value={project.dataVersion?.version} />
-                </Col>
-            </Row><br />
-            <Row gutter={16}>
-                <Col span={12}>
-                    <Statistic title={<Tooltip title={'Data of some visits may be unavailable for some participants.'}>
-                        <span>Visits</span> <QuestionCircleOutlined />
-                    </Tooltip>} value={project.summary.visits.length} prefix={<ProfileOutlined />} />
-                </Col>
-                <Col span={12}>
-                    <Statistic title={<Tooltip title={'Extra information of this data version.'}>
-                        <span>Version Tag</span> <QuestionCircleOutlined />
-                    </Tooltip>} value={project.dataVersion?.tag} />
-                </Col>
-            </Row><br />
-            <Row gutter={16}>
-                <Col span={12}>
-                </Col>
-            </Row><br />
-            <Row gutter={16}>
-                <Col span={24}>
-                    <Statistic title='Updated At' value={project.dataVersion?.updateDate === undefined ? 'NA' : (new Date(parseFloat(project.dataVersion?.updateDate))).toUTCString()} />
-                </Col>
-            </Row>
-        </div>
-    </Subsection>);
 };
 
 export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> = ({ project }) => {
@@ -702,7 +755,7 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
         },
     ];
     return (<SubsectionWithComment title={<Tooltip title={'Download data with a specific format. Please select a format, then select JSON or CSV, then click fetch data.'}>
-        <span>Data Download</span> <QuestionCircleOutlined />
+        <Text className={css.title}>Data Download</Text> <QuestionCircleOutlined />
     </Tooltip>} comment={<>
         <Select
             value={selectedDataFormat}
@@ -764,7 +817,7 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
         </Select>
     </>}>
         {
-            (getDataRecordsData?.getDataRecords?.data === undefined || shouldUpdateData === true) ? <Empty description={'No Data Found'} /> :
+            (getDataRecordsData?.getDataRecords?.data === undefined || shouldUpdateData === true) ? <Empty /> :
                 selectedOutputType === 'JSON' ?
                     <Button type='link' onClick={() => {
                         const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
@@ -790,13 +843,3 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
     </SubsectionWithComment >);
 };
 
-const dataTypeMapping: any = {
-    int: 'Integer',
-    dec: 'Decimal',
-    str: 'String',
-    bool: 'Boolean',
-    date: 'Datetime',
-    file: 'File',
-    json: 'JSON',
-    cat: 'Categorical'
-};

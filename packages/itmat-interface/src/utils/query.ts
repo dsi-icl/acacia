@@ -167,8 +167,7 @@ function createNewField(expression: any) {
                     { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
                     '99999',
                     {
-                        // NB the right side my be an integer while the left must be a field !
-                        $pow: ['$' + expression.left, parseInt(expression.right, 10)]
+                        $pow: [createNewField(expression.left), createNewField(expression.right)]
                     }
                 ]
             };
@@ -276,44 +275,33 @@ export function dataStandardization(study: IStudy, fields: IFieldEntry[], data: 
 // fields are obtained from called functions, providing the valid fields
 export function standardize(study: IStudy, fields: IFieldEntry[], data: any, standardizations: IStandardization[], newFields: any) {
     const records: any = {};
-    const preOrderOfNewFields: string[][] = [];
+    const preOrderOfNewFields: any[] = [];
     [...newFields].forEach(el => {
         const emptyArr: string[] = [];
         preOrderTraversal(el, emptyArr);
-        preOrderOfNewFields.push(emptyArr);
+        preOrderOfNewFields.push({ fieldId: emptyArr });
     });
     const seqNumDic: any = {};
-    for (const subjectId of Object.keys(data).sort()) {
-        // The sequence number is assigned to each standardized record in order in some domains; thus, the order may change in different versions
-        for (const visitId of Object.keys(data[subjectId]).sort((a, b) => { return parseFloat(a) - parseFloat(b); })) {
-            for (const fieldId of Object.keys(data[subjectId][visitId])) {
-                // ignore reserved fields
-                if (fieldId === 'm_subjectId' || fieldId === 'm_visitId') {
+    for (const field of [...fields.sort((a, b) => a.fieldId.localeCompare(b.fieldId)), ...preOrderOfNewFields]) {
+        const fieldDef: IFieldEntry = fields.filter(el => el.fieldId === field.fieldId)[0] || {};
+        // check if it is in the standardizations
+        let fieldIdentifier = field.fieldId;
+        if (!Array.isArray(field.fieldId)) {
+            fieldIdentifier = ['$' + field.fieldId];
+        }
+        const standardization: IStandardization = standardizations.filter(el => JSON.stringify(el.field) === JSON.stringify(fieldIdentifier))[0];
+        if (!standardization) {
+            continue;
+        }
+        if (!standardization.stdRules) {
+            continue;
+        }
+        for (const subjectId of Object.keys(data).sort()) {
+            for (const visitId of Object.keys(data[subjectId]).sort()) {
+                if (!data[subjectId][visitId][field.fieldId]) {
                     continue;
                 }
-                // for each field
-                // get the field identifier: string[]
-                const thisNewField: any = preOrderOfNewFields.filter(el => el[0] === fieldId)[0];
-                let fieldIdentifier: string[] = [];
-                if (thisNewField) {
-                    // a new field
-                    fieldIdentifier = thisNewField;
-                } else {
-                    // an existing field
-                    fieldIdentifier = ['$' + fieldId.toString()];
-                }
-                // check if it is in the standardizations
-                const standardization: IStandardization = standardizations.filter(el => JSON.stringify(el.field) === JSON.stringify(fieldIdentifier))[0];
-                if (!standardization) {
-                    continue;
-                }
-                if (!standardization.stdRules) {
-                    continue;
-                }
-                // get the fieldDef in case for use
-                const fieldDef: IFieldEntry = fields.filter(el => el.fieldId === fieldId)[0];
                 const dataClip = {};
-                // createLevels(records, standardization.path, true);
                 for (const rule of standardization.stdRules) {
                     if (!rule.parameter) {
                         continue;
@@ -321,7 +309,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                     switch (rule.source) {
                         case 'data': {
                             const chain = rule.parameter || [];
-                            let tmpData = data[subjectId][visitId][fieldId];
+                            let tmpData = data[subjectId][visitId][field.fieldId] || '';
                             chain.forEach(el => {
                                 tmpData = tmpData[el] || '';
                             });
@@ -336,7 +324,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                             dataClip[rule.entry] = rule.parameter[0] || '';
                             break;
                         }
-                        // parameter should be the levels
+                        // parameter is the path that start from
                         case 'inc': {
                             const value: any = insertInObj(seqNumDic, rule.parameter, undefined, false, subjectId, visitId);
                             if (value) {
@@ -373,6 +361,9 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                     // support two ways: convert to another value, delete this value; input should be [delete/convert, $value]
                     if (rule.filters) {
                         if (Object.keys(rule.filters).includes(dataClip[rule.entry].toString())) {
+                            if (rule.filters[dataClip[rule.entry]].length !== 2) {
+                                continue;
+                            }
                             switch (rule.filters[dataClip[rule.entry]][0]) {
                                 case 'convert': {
                                     dataClip[rule.entry] = rule.filters[dataClip[rule.entry]][1];
@@ -404,7 +395,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                             }
                         }
                         if (isSame) {
-                            pointer[i] = { ...pointer[i], ...dataClip };
+                            pointer[i] = { ...dataClip, ...pointer[i] };
                             break;
                         }
                     }
