@@ -8607,10 +8607,10 @@ expect@^29.0.0:
     jest-message-util "^29.0.2"
     jest-util "^29.0.2"
 
-export-from-json@1.6.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/export-from-json/-/export-from-json-1.6.0.tgz#4a79ba2f6f6aacd1d0e843a40f55009f603614a4"
-  integrity sha512-DLHwOGYeGnATM6tOMOWgs9dbzCjO+DwO3YGaha2R6kmLCE5iL8dz5sOywWeJs4P1rhxpdaVILKhCB4mUrTbbGg==
+export-from-json@1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/export-from-json/-/export-from-json-1.7.0.tgz#2b13e259ae76df4a055d6336a2c4035ab000d94f"
+  integrity sha512-BE7MUOuSZy3uNwBt4mHxDgcknCC9yQWPvXHx1rrxWGKiQ9EYBZlxHWwMuOqQfo5TWkZ0+bSWJLEsWQ0wxrPA1Q==
 
 express-rate-limit@6.6.0:
   version "6.6.0"
