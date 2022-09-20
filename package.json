@@ -39,7 +39,7 @@
         "@babel/eslint-plugin": "7.19.1",
         "@babel/preset-env": "7.19.1",
         "@nrwl/nx-cloud": "14.6.2",
-        "@nrwl/workspace": "14.7.5",
+        "@nrwl/workspace": "14.7.6",
         "@types/jest": "27.5.0",
         "babel-plugin-rewire-ts": "1.4.0",
         "eslint-config-react-app": "7.0.1",
