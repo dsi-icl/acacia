@@ -34,12 +34,12 @@
         ]
     },
     "devDependencies": {
-        "@babel/core": "7.19.0",
-        "@babel/eslint-parser": "7.18.9",
-        "@babel/eslint-plugin": "7.18.10",
-        "@babel/preset-env": "7.19.0",
+        "@babel/core": "7.19.1",
+        "@babel/eslint-parser": "7.19.1",
+        "@babel/eslint-plugin": "7.19.1",
+        "@babel/preset-env": "7.19.1",
         "@nrwl/nx-cloud": "14.6.2",
-        "@nrwl/workspace": "14.6.5",
+        "@nrwl/workspace": "14.7.8",
         "@types/jest": "27.5.0",
         "babel-plugin-rewire-ts": "1.4.0",
         "eslint-config-react-app": "7.0.1",
@@ -49,7 +49,7 @@
         "eslint-plugin-react": "7.31.8",
         "eslint-plugin-react-hooks": "4.6.0",
         "husky": "8.0.1",
-        "nx": "14.6.5",
+        "nx": "14.7.8",
         "typescript": "4.8.3",
         "webpack": "5.74.0",
         "webpack-cli": "4.10.0"
