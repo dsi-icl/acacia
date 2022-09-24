@@ -38,5 +38,5 @@
     "nodemailer": {
         "auth": {}
     },
-    "adminEmail": "admin_wp5@ideafast.eu"
+    "adminEmail": "admin@example.com"
 }
