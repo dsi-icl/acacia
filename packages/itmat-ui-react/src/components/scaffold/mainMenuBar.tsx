@@ -1,7 +1,7 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { Query, Mutation } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
-import { LOGOUT, WHO_AM_I, IProject, userTypes } from 'itmat-commons';
+import { LOGOUT, WHO_AM_I, IProject, userTypes } from '@itmat-broker/itmat-commons';
 import css from './scaffold.module.css';
 import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined, SettingOutlined, ProjectOutlined } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -9,7 +9,7 @@ import LoadSpinner from '../reusable/loadSpinner';
 type MainMenuBarProps = {
     projects: IProject[];
 }
-export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ projects }) => (
+export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) => (
     <div className={css.main_menubar}>
 
         <div>
@@ -75,7 +75,7 @@ export const MainMenuBar: React.FunctionComponent<MainMenuBarProps> = ({ project
                         if (logout.successful === true) {
                             cache.writeQuery({
                                 query: WHO_AM_I,
-                                data: { whoAmI: null },
+                                data: { whoAmI: null }
                             });
                         }
                     }}

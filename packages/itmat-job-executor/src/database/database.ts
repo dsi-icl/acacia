@@ -1,4 +1,4 @@
-import { Database as DatabaseBase, IDatabaseBaseConfig, IFile, IJobEntry, IProject, IQueryEntry, IDataEntry } from 'itmat-commons';
+import { Database as DatabaseBase, IDatabaseBaseConfig, IFile, IJobEntry, IProject, IQueryEntry, IDataEntry } from '@itmat-broker/itmat-commons';
 import type { Collection } from 'mongodb';
 
 export interface IDatabaseConfig extends IDatabaseBaseConfig {

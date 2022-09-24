@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import {
@@ -12,7 +12,7 @@ import {
     GET_PROJECT,
     GET_STUDY,
     GET_ORGANISATIONS
-} from 'itmat-commons';
+} from '@itmat-broker/itmat-commons';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button, Form, Input, Alert, Popconfirm } from 'antd';
@@ -24,7 +24,7 @@ type RoleControlSectionProps = {
     roles: Models.Study.IRoleQL[];
 }
 
-export const RoleControlSection: React.FunctionComponent<RoleControlSectionProps> = ({
+export const RoleControlSection: FunctionComponent<RoleControlSectionProps> = ({
     roles,
     studyId,
     projectId
@@ -54,7 +54,7 @@ type RoleDescriptorProps = {
     availablePermissions: string[];
 }
 
-export const RoleDescriptor: React.FunctionComponent<RoleDescriptorProps> = ({
+export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
     role,
     availablePermissions
 }) => {
@@ -105,12 +105,12 @@ type AddRoleProps = {
     projectId?: string;
 }
 
-export const AddRole: React.FunctionComponent<AddRoleProps> = ({
+export const AddRole: FunctionComponent<AddRoleProps> = ({
     studyId,
     projectId
 }) => {
 
-    const [isExpanded, setIsExpanded] = React.useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [addNewRole, {
         data: createRoleData,
         loading: createRoleLoading,
@@ -185,7 +185,7 @@ type PermissionsControlPanelProps = {
     originallySelectedPermissions: string[];
 }
 
-const PermissionsControlPanel: React.FunctionComponent<PermissionsControlPanelProps> = ({
+const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> = ({
     roleId,
     availablePermissions,
     originallySelectedPermissions
@@ -211,16 +211,16 @@ const PermissionsControlPanel: React.FunctionComponent<PermissionsControlPanelPr
                                     fontSize: '12px',
                                     cursor: 'pointer',
                                     marginRight: 3,
-                                    marginBottom: 3,
+                                    marginBottom: 3
                                 }}
                                 onClick={() => editRole({
                                     variables: {
                                         roleId,
                                         permissionChanges: {
                                             add: isSelected ? [] : [permission],
-                                            remove: isSelected ? [permission] : [],
-                                        },
-                                    },
+                                            remove: isSelected ? [permission] : []
+                                        }
+                                    }
                                 })}
                             >
                                 {permissionLabels[permission]}
@@ -241,7 +241,7 @@ type UsersControlPanelProps = {
     originallySelectedUsers: Models.UserModels.IUser[];
 }
 
-const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
+const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
     roleId,
     availableUserList,
     originallySelectedUsers

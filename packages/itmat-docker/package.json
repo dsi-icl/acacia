@@ -1,5 +1,5 @@
 {
-    "name": "itmat-docker",
+    "name": "@itmat-broker/itmat-setup",
     "version": "1.1.0",
     "description": "ITMAT Broker",
     "keywords": [
@@ -14,14 +14,6 @@
     "contributors": [
         "Florian Guitton <f.guitton@imperial.ac.uk>"
     ],
-    "scripts": {
-        "prebuild": "cd ../itmat-ui-react && cross-env PUBLIC_URL=/ yarn build",
-        "build": "docker build -t datascienceinstitute/itmat-broker:latest -f Dockerfile ..",
-        "build:noui": "docker build -t datascienceinstitute/itmat-broker:latest -f Dockerfile ..",
-        "build:staging": "docker build -t datascienceinstitute/itmat-broker:staging -f Dockerfile ..",
-        "start": "echo \"Nothing to start\"",
-        "test": "echo \"No tests\""
-    },
     "dependencies": {
         "bcrypt": "5.0.1",
         "compression": "1.7.4",
@@ -29,42 +21,5 @@
         "express-rate-limit": "6.6.0",
         "isobject": "4.0.0",
         "mongodb": "4.10.0"
-    },
-    "peerDependencies": {
-        "itmat-interface": "*",
-        "itmat-job-executor": "*",
-        "itmat-ui-react": "*"
-    },
-    "nx": {
-        "targets": {
-            "build": {
-                "dependsOn": [
-                    {
-                        "target": "build",
-                        "projects": "dependencies"
-                    }
-                ]
-            },
-            "build:noui": {
-                "dependsOn": [
-                    {
-                        "target": "build",
-                        "projects": "dependencies"
-                    }
-                ]
-            },
-            "build:staging": {
-                "dependsOn": [
-                    {
-                        "target": "build",
-                        "projects": "dependencies"
-                    },
-                    {
-                        "target": "prebuild",
-                        "projects": "self"
-                    }
-                ]
-            }
-        }
     }
 }

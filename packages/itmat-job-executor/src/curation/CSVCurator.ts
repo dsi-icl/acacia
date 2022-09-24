@@ -1,7 +1,7 @@
 import * as csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
-import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
+import { IFieldDescriptionObject, IDataEntry, IJobEntry } from '@itmat-broker/itmat-commons';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -46,7 +46,7 @@ export class CSVCurator {
             const csvparseStream = csvparse.parse(this.parseOptions);
             const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
 
-            csvparseStream.on('skip', (error) => {
+            csvparseStream.on('skip', (error: any) => {
                 lineNum++;
                 this._errored = true;
                 this._errors.push(error.toString());
@@ -103,7 +103,7 @@ export class CSVCurator {
                         this._numOfSubj++;
                         if (this._numOfSubj > 999) {
                             this._numOfSubj = 0;
-                            await bulkInsert.execute((err: Error) => {
+                            await bulkInsert.execute((err) => {
                                 if (err) {
                                     //TODO Handle error recording
                                     console.error(err);
@@ -118,7 +118,7 @@ export class CSVCurator {
 
             uploadWriteStream.on('finish', async () => {
                 if (!this._errored) {
-                    await bulkInsert.execute((err: Error) => {
+                    await bulkInsert.execute((err) => {
                         if (err) {
                             //TODO Handle error recording
                             console.error(err);
@@ -239,7 +239,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                 switch (dataType) {
                     case 'cat': {// categorical
                         const code = parseInt(each, 10).toString();
-                        if (!possibleValues.map(el => el.code).includes(code)) {
+                        if (!possibleValues.map((el: any) => el.code).includes(code)) {
                             error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as categorical, value is illegal.`);
                             colIndex++;
                             continue;
@@ -303,7 +303,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                     }
                 }
             }
-        } catch (e) {
+        } catch (e: any) {
             error.push(e.toString());
             continue;
         }

@@ -1,15 +1,15 @@
-import { db } from '../../src/database/database';
-import { MongoClient } from 'mongodb';
-import * as itmatCommons from 'itmat-commons';
+import { v4 as uuid } from 'uuid';
+import { Db, MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { setupDatabase } from 'itmat-setup';
+import { setupDatabase } from '@itmat-broker/itmat-setup';
+import { db } from '../../src/database/database';
 import config from '../../config/config.sample.json';
 import { permissionCore } from '../../src/graphql/core/permissionCore';
-const { permissions, task_required_permissions } = itmatCommons;
+import { permissions, task_required_permissions, IUser, IRole } from '@itmat-broker/itmat-commons';
 
-let mongodb;
-let mongoConnection;
-let mongoClient;
+let mongodb: MongoMemoryServer;
+let mongoConnection: MongoClient;
+let mongoClient: Db;
 
 afterAll(async () => {
     await db.closeConnection();
@@ -19,25 +19,25 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    mongodb = await MongoMemoryServer.create();
+    const dbName = uuid();
+    mongodb = await MongoMemoryServer.create({ instance: { dbName } });
     const connectionString = mongodb.getUri();
-    const database = mongodb.instanceInfo.dbName;
-    await setupDatabase(connectionString, database);
+    await setupDatabase(connectionString, dbName);
 
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
-    config.database.database = database;
+    config.database.database = dbName;
     await db.connect(config.database, MongoClient.connect as any);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString);
-    mongoClient = mongoConnection.db(database);
+    mongoClient = mongoConnection.db(dbName);
 });
 
 describe('PERMISSION CORE CLASS', () => {
     describe('Check userHasTheNeccessaryPermission()', () => {
-        let user;
-        let newUsers;
+        let user: { id: any; };
+        let newUsers: any[];
         beforeAll(async () => {
             /* setup: create new users to be tested on */
             newUsers = [
@@ -112,14 +112,14 @@ describe('PERMISSION CORE CLASS', () => {
                     id: 'new_user_id_5'
                 }
             ];
-            await mongoClient.collection(config.database.collections.users_collection).insertMany(newUsers);
+            await mongoClient.collection<IUser>(config.database.collections.users_collection).insertMany(newUsers);
 
             /* setup: first retrieve the generated user id */
-            const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
-            user = result.filter(e => e.username === 'standardUser')[0];
+            const result = await mongoClient.collection<IUser>(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
+            user = result.filter((e: { username: string; }) => e.username === 'standardUser')[0];
 
             /* setup: create roles to be tested on */
-            await mongoClient.collection(config.database.collections.roles_collection).insertMany([
+            await mongoClient.collection<IRole>(config.database.collections.roles_collection).insertMany([
                 // study001
                 //     role004 (Principle investigator)
                 //         |permissions.specific_study.specific_study_data_management,
@@ -172,7 +172,7 @@ describe('PERMISSION CORE CLASS', () => {
                     studyId: 'study001',
                     name: 'Data curator',
                     permissions: [
-                        permissions.specific_study.specific_study_data_management,
+                        permissions.specific_study.specific_study_data_management
                     ],
                     users: [newUsers[2].id],
                     deleted: null
@@ -203,10 +203,10 @@ describe('PERMISSION CORE CLASS', () => {
                     users: [user.id, newUsers[2].id],
                     deleted: null
                 }
-            ]);
+            ] as any[]);
         });
 
-        async function testAllPermissions(user, studyId, projectId) {
+        async function testAllPermissions(user: IUser, studyId: string, projectId: string | undefined) {
             return Promise.all([
                 permissionCore.userHasTheNeccessaryPermission(
                     task_required_permissions.manage_study_roles,
@@ -247,13 +247,13 @@ describe('PERMISSION CORE CLASS', () => {
             ]);
         }
 
-        function testUser(user) {
+        function testUser(user: any) {
             return Promise.all([
                 testAllPermissions(user, 'study001', 'project001'),
                 testAllPermissions(user, 'study001', 'project002'),
                 testAllPermissions(user, 'study001', undefined),
                 testAllPermissions(user, 'study002', 'project001'),
-                testAllPermissions(user, 'study002', undefined),
+                testAllPermissions(user, 'study002', undefined)
             ]);
         }
 

@@ -6,16 +6,16 @@ RUN mkdir -p /itmat-base
 
 WORKDIR /itmat-base
 
-COPY ./itmat-docker/package.json .
-COPY ./itmat-docker/.npmrc .
+COPY ./packages/itmat-docker/package.json ./
+COPY ./packages/itmat-docker/.npmrc ./
 
 RUN npm install --production --legacy-peer-deps
 RUN mkdir ./config
 
-COPY ./itmat-docker/launcher.js ./
-COPY ./itmat-interface/build/* ./
-COPY ./itmat-job-executor/build/* ./
-COPY ./itmat-ui-react/build/* ./static/
+COPY ./packages/itmat-docker/launcher.js ./
+COPY ./dist/packages/itmat-interface/interface* ./
+COPY ./dist/packages/itmat-job-executor/executor* ./
+COPY ./dist/packages/itmat-ui-react/* ./static/
 
 EXPOSE 3080
 CMD [ "node", "launcher.js" ]

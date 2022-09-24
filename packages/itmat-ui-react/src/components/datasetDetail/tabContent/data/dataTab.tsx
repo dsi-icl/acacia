@@ -1,9 +1,8 @@
-import 'antd/lib/switch/style/css';
-import * as React from 'react';
+import { Fragment, FunctionComponent, useState } from 'react';
 import { generateCascader } from '../../../../utils/tools';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { Query } from '@apollo/client/react/components';
-import { GET_STUDY, GET_STUDY_FIELDS, GET_DATA_RECORDS, CREATE_NEW_DATA_VERSION, SET_DATAVERSION_AS_CURRENT, WHO_AM_I, userTypes, GET_ONTOLOGY_TREE, IOntologyRoute } from 'itmat-commons';
+import { GET_STUDY, GET_STUDY_FIELDS, GET_DATA_RECORDS, CREATE_NEW_DATA_VERSION, SET_DATAVERSION_AS_CURRENT, WHO_AM_I, userTypes, GET_ONTOLOGY_TREE, IOntologyRoute } from '@itmat-broker/itmat-commons';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import { DataSummaryVisual } from './dataSummary';
@@ -13,7 +12,7 @@ import { Button, Form, Input, Modal, Table, Tooltip, Select, Cascader } from 'an
 import { useParams } from 'react-router-dom';
 const { Option } = Select;
 
-export const DataManagementTabContentFetch: React.FunctionComponent = () => {
+export const DataManagementTabContentFetch: FunctionComponent = () => {
     const { studyId } = useParams();
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
@@ -36,10 +35,10 @@ export const DataManagementTabContentFetch: React.FunctionComponent = () => {
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     const [createNewDataVersion] = useMutation(CREATE_NEW_DATA_VERSION);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
-    const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
-    const [selectedVersion, setSelectedVersion] = React.useState(getStudyData.getStudy.currentDataVersion);
-    const [isModalOn, setIsModalOn] = React.useState(false);
-    const [treeId, setTreeId] = React.useState<string>('');
+    const [selectedPath, setSelectedPath] = useState<any[]>([]);
+    const [selectedVersion, setSelectedVersion] = useState(getStudyData.getStudy.currentDataVersion);
+    const [isModalOn, setIsModalOn] = useState(false);
+    const [treeId, setTreeId] = useState<string>('');
     if (getStudyLoading || getStudyFieldsLoading || getDataRecordsLoading || whoAmILoading || getOntologyTreeLoading) {
         return <LoadSpinner />;
     }
@@ -90,7 +89,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent = () => {
                 {getStudyData.getStudy.dataVersions.length >= 1 ? <>
                     {
                         getStudyData.getStudy.dataVersions.map((el, ind) =>
-                            <React.Fragment key={el.id}>
+                            <Fragment key={el.id}>
                                 <div
                                     key={el.id}
                                     onClick={() => { setSelectedVersion(ind); }}
@@ -100,7 +99,7 @@ export const DataManagementTabContentFetch: React.FunctionComponent = () => {
                                     </Tooltip>}
                                 </div>
                                 {ind === getStudyData.getStudy.dataVersions.length - 1 ? null : <span className={css.arrow}>⟶</span>}
-                            </React.Fragment>
+                            </Fragment>
                         )
                     }
 

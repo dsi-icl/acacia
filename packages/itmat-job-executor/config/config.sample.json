@@ -19,7 +19,7 @@
         }
     },
     "server": {
-        "port": 3333
+        "port": 3003
     },
     "objectStore": {
         "host": "localhost",

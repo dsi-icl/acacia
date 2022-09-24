@@ -1,8 +1,8 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { LogListSection } from './logList';
 import css from './logList.module.css';
 
-export const LogPage: React.FunctionComponent = () => {
+export const LogPage: FunctionComponent = () => {
     return (
         <div className={css.page_container}>
             <div className={css.user_list_section + ' page_section'}>

@@ -1,4 +1,4 @@
-import { IFile, IJobEntry } from 'itmat-commons';
+import { IJobEntry } from '@itmat-broker/itmat-commons';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
@@ -31,7 +31,7 @@ export class UKB_CSV_UPLOAD_Handler extends JobHandler {
 
         for (const fileId of job.receivedFiles) {
             try {
-                const file: IFile = await db.collections!.files_collection.findOne({ id: fileId, deleted: null })!;
+                const file = await db.collections!.files_collection.findOne({ id: fileId, deleted: null })!;
                 if (!file) {
                     errorsList.push({ fileId: fileId, error: 'file does not exist' });
                     continue;

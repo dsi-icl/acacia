@@ -1,9 +1,9 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Providers from './Providers';
 import Fence from './Fence';
 
-export const App: React.FunctionComponent = () => {
+export const App: FunctionComponent = () => {
 
     return <Providers>
         <Helmet>

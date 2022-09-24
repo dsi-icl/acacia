@@ -5,7 +5,7 @@ import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
 import { Server } from './server/server';
-import { JobPoller } from 'itmat-commons';
+import { JobPoller } from '@itmat-broker/itmat-commons';
 import { JobDispatcher } from './jobDispatch/dispatcher';
 import { MongoClient } from 'mongodb';
 import { UKB_CSV_UPLOAD_Handler } from './jobHandlers/UKB_CSV_UPLOAD_Handler';
@@ -15,7 +15,7 @@ import { QueryHandler } from './query/queryHandler';
 
 class ITMATJobExecutorServer extends Server {
 
-    private router;
+    private router?: Router;
 
     /**
      * @fn start

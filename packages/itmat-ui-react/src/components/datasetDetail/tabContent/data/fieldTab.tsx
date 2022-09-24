@@ -1,7 +1,6 @@
-import 'antd/lib/switch/style/css';
-import * as React from 'react';
+import { FunctionComponent, useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { CREATE_STANDARDIZATION, GET_STANDARDIZATION, IStandardization, GET_ONTOLOGY_TREE } from 'itmat-commons';
+import { CREATE_STANDARDIZATION, GET_STANDARDIZATION, IStandardization, GET_ONTOLOGY_TREE } from '@itmat-broker/itmat-commons';
 import { DeleteOutlined, FrownTwoTone, SmileTwoTone, PlusOutlined } from '@ant-design/icons';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { generateCascader } from '../../../../utils/tools';
@@ -9,7 +8,7 @@ import css from './tabContent.module.css';
 import { Button, Input, Select, notification, Space, Form, Cascader } from 'antd';
 const { Option } = Select;
 
-export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const FieldManagementTabContentFetch: FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { loading: getStandardizationLoading, error: getStandardizationError, data: getStandardizationData } = useQuery(GET_STANDARDIZATION, { variables: { studyId: studyId } });
     const { loading: getOntologyTreeLoading, error: getOntologyTreeError, data: getOntologyTreeData } = useQuery(GET_ONTOLOGY_TREE, {
         variables: {
@@ -38,9 +37,9 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
         }
     });
 
-    const [editMode, setEditMode] = React.useState(false);
-    const [format, setFormat] = React.useState<string | undefined>(undefined);
-    const [selectedStd, setSelectedStd] = React.useState<any>({
+    const [editMode, setEditMode] = useState(false);
+    const [format, setFormat] = useState<string | undefined>(undefined);
+    const [selectedStd, setSelectedStd] = useState<any>({
         id: '',
         studyId: studyId,
         type: format || '',
@@ -48,10 +47,10 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
         path: [],
         stdRules: [],
         joinByKeys: [],
-        deleted: null,
+        deleted: null
     });
     const [form] = Form.useForm();
-    React.useEffect(() => {
+    useEffect(() => {
         form.setFieldsValue(selectedStd);
     }, [form, selectedStd]);
     if (getStandardizationLoading || getOntologyTreeLoading || editFieldLoading) {
@@ -147,8 +146,8 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
                 rules={[
                     {
                         required: true,
-                        message: 'Please input the field.',
-                    },
+                        message: 'Please input the field.'
+                    }
                 ]}
             >
                 <Select mode='tags' disabled={!editMode} />
@@ -159,8 +158,8 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
                 rules={[
                     {
                         required: false,
-                        message: 'Please input the field.',
-                    },
+                        message: 'Please input the field.'
+                    }
                 ]}
             >
                 <Select mode='tags' disabled={!editMode} />
@@ -171,8 +170,8 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
                 rules={[
                     {
                         required: true,
-                        message: 'Please input the field.',
-                    },
+                        message: 'Please input the field.'
+                    }
                 ]}
             >
                 <Select mode='tags' disabled={!editMode} />
@@ -227,7 +226,7 @@ export const FieldManagementTabContentFetch: React.FunctionComponent<{ studyId: 
                     <Form.Item
                         wrapperCol={{
                             offset: 8,
-                            span: 16,
+                            span: 16
                         }}
                     >
                         <Button type='primary' htmlType='submit'>

@@ -1,5 +1,5 @@
 import { jStat } from 'jStat';
-import { IFieldEntry, IOntologyTree, IOntologyRoute } from 'itmat-commons';
+import { IFieldEntry, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-commons';
 
 export function get_t_test(t_array1: number[], t_array2: number[], digits: number) {
     if (t_array1.length <= 1 || t_array2.length <= 1) {

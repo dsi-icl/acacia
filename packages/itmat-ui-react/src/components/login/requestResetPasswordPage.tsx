@@ -1,18 +1,15 @@
-import * as React from 'react';
-import GitInfo from 'react-git-info/macro';
+import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { GQLRequests } from 'itmat-commons';
+import { GQLRequests } from '@itmat-broker/itmat-commons';
 import css from './login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
 
-const gitInfo = GitInfo();
-
-export const RequestResetPassword: React.FunctionComponent = () => {
+export const RequestResetPassword: FunctionComponent = () => {
 
     const navigate = useNavigate();
-    const [forgotUsername, setForgotUsername] = React.useState(false);
-    const [requestCompleted, setRequestCompleted] = React.useState(false);
+    const [forgotUsername, setForgotUsername] = useState(false);
+    const [requestCompleted, setRequestCompleted] = useState(false);
 
     if (requestCompleted) {
         return (
@@ -101,7 +98,7 @@ export const RequestResetPassword: React.FunctionComponent = () => {
                             <br />
                             <br />
                             Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
-                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {gitInfo.commit.shortHash} ({gitInfo.branch})</i>
+                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {process.env.NX_REACT_APP_COMMIT} ({process.env.NX_REACT_APP_BRANCH})</i>
                         </div>
                     </div>
                 );

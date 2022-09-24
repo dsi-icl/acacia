@@ -1,6 +1,6 @@
 import type { ObjectId } from 'mongodb';
 
-export interface IJobEntry<dataobj> {
+export interface IJobEntry<dataobj = unknown> {
     _id?: ObjectId;
     jobType: string;
     id: string;

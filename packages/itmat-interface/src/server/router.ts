@@ -1,11 +1,9 @@
 import { ApolloServer, UserInputError } from 'apollo-server-express';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
-import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import { graphqlUploadExpress, GraphQLUpload } from 'graphql-upload-minimal';
 import { execute, subscribe } from 'graphql';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import bodyParser from 'body-parser';
 // import connectMongo from 'connect-mongo';
 import cors from 'cors';
 import express from 'express';
@@ -43,8 +41,8 @@ export class Router {
         if (process.env.NODE_ENV === 'development')
             this.app.use(cors({ credentials: true }));
 
-        this.app.use(bodyParser.json({ limit: '50mb' }));
-        this.app.use(bodyParser.urlencoded({ extended: true }));
+        this.app.use(express.json({ limit: '50mb' }));
+        this.app.use(express.urlencoded({ extended: true }));
 
 
         /* save persistent sessions in mongo */
@@ -99,13 +97,13 @@ export class Router {
                             async executionDidStart(requestContext) {
                                 const operation = requestContext.operationName;
                                 const actionData = requestContext.request.variables;
-                                (requestContext as any).request.variables = spaceFixing(operation, actionData);
+                                (requestContext as any).request.variables = spaceFixing(operation as any, actionData);
                             },
                             async willSendResponse(requestContext) {
                                 logPlugin.requestDidStartLogPlugin(requestContext);
                             }
                         };
-                    },
+                    }
                 },
                 ApolloServerPluginDrainHttpServer({ httpServer: this.server })
             ],
@@ -114,15 +112,15 @@ export class Router {
                 // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
                 //     throw new ForbiddenError('not logged in');
                 // }
-                const token = req.headers.authorization || '';
+                const token: string = req.headers.authorization || '';
                 if ((token !== '') && (req.user === undefined)) {
                     // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
                     const decodedPayload = jwt.decode(token);
                     // obtain the public-key of the robot user in the JWT payload
-                    const pubkey = decodedPayload.publicKey;
+                    const pubkey = (decodedPayload as any).publicKey;
 
                     // verify the JWT
-                    jwt.verify(token, pubkey, function (err) {
+                    jwt.verify(token, pubkey, function (err: any) {
                         if (err) {
                             throw new UserInputError('JWT verification failed. ' + err);
                         }
@@ -153,13 +151,13 @@ export class Router {
             schema,
             // These are imported from `graphql`.
             execute,
-            subscribe,
+            subscribe
         }, {
             // This is the `httpServer` we created in a previous step.
             server: this.server,
             // Pass a different path here if your ApolloServer serves at
             // a different path.
-            path: '/graphql',
+            path: '/graphql'
         });
 
         /* Bounce all unauthenticated non-graphql HTTP requests */

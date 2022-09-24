@@ -1,14 +1,17 @@
-const fetch = import('node-fetch');
-const crossSpawn = import('cross-spawn');
-const getPort = import('get-port');
-const { v4: uuid } = import('uuid');
-const chalk = import('chalk');
-
+const importDependencies = async () => {
+    const fetch = (await import('node-fetch')).default;
+    const crossSpawn = (await import('cross-spawn')).default;
+    const getPort = (await import('get-port')).default;
+    const { v4: uuid } = await import('uuid');
+    const chalk = (await import('chalk')).default;
+    return { fetch, crossSpawn, getPort, uuid, chalk };
+}
 // const MINIO_DOCKER_VERSION = '@sha256:4a1bbd112c0c09fc3a07ae84f5e5a4501dbc7bf8d637a5ddd0df76a425630043';
 const MINIO_DOCKER_VERSION = ':latest';
 const minioHelpers = {
-    minioContainerSetup: (container, port) => {
-        return new Promise((resolve, reject) => {
+    minioContainerSetup: async (container, port) => {
+        return new Promise(async (resolve, reject) => {
+            const { chalk, crossSpawn, fetch, getPort, uuid } = await importDependencies();
             try {
                 getPort({ port }).then((_port) => {
                     const _container = container ?? uuid();
@@ -68,7 +71,8 @@ const minioHelpers = {
         });
     },
     minioContainerTeardown: (container) => {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
+            const { chalk, crossSpawn, fetch, getPort, uuid } = await importDependencies();
             try {
                 crossSpawn.sync('docker', ['stop', `${container}`], { stdio: 'inherit' });
                 resolve();

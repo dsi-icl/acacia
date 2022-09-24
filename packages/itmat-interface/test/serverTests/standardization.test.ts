@@ -7,9 +7,9 @@ import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
-import { MongoClient } from 'mongodb';
+import { Db, MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { setupDatabase } from 'itmat-setup';
+import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 import {
@@ -32,16 +32,20 @@ import {
     CREATE_STANDARDIZATION,
     GET_STANDARDIZATION,
     DELETE_STANDARDIZATION,
-    CREATE_ONTOLOGY_TREE
-} from 'itmat-commons';
+    CREATE_ONTOLOGY_TREE,
+    IStudy,
+    IProject,
+    IRole
+} from '@itmat-broker/itmat-commons';
+import { Express } from 'express';
 
 
-let app;
-let mongodb;
-let admin;
-let user;
-let mongoConnection;
-let mongoClient;
+let app: Express;
+let mongodb: MongoMemoryServer;
+let admin: request.SuperTest<request.Test>;
+let user: request.SuperTest<request.Test>;
+let mongoConnection: MongoClient;
+let mongoClient: Db;
 
 afterAll(async () => {
     await db.closeConnection();
@@ -54,20 +58,20 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    mongodb = await MongoMemoryServer.create();
+    const dbName = uuid();
+    mongodb = await MongoMemoryServer.create({ instance: { dbName } });
     const connectionString = mongodb.getUri();
-    const database = mongodb.instanceInfo.dbName;
-    await setupDatabase(connectionString, database);
+    await setupDatabase(connectionString, dbName);
 
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
-    config.database.database = database;
+    config.database.database = dbName;
     await db.connect(config.database, MongoClient.connect as any);
     const router = new Router(config);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString);
-    mongoClient = mongoConnection.db(database);
+    mongoClient = mongoConnection.db(dbName);
 
     /* Connecting clients for testing later */
     app = router.getApp();
@@ -81,25 +85,25 @@ beforeAll(async () => { // eslint-disable-line no-undef
 });
 
 describe('STUDY API', () => {
-    let adminId;
+    let adminId: any;
 
     beforeAll(async () => {
         /* setup: first retrieve the generated user id */
-        const result = await mongoClient.collection(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
-        adminId = result.filter(e => e.username === 'admin')[0].id;
+        const result = await mongoClient.collection<IUser>(config.database.collections.users_collection).find({}, { projection: { id: 1, username: 1 } }).toArray();
+        adminId = result.filter((e: { username: string; }) => e.username === 'admin')[0].id;
     });
 
     describe('MINI END-TO-END API TEST, NO UI, NO DATA', () => {
         let createdProject;
-        let createdStudy;
+        let createdStudy: { id: any; name: any; };
         let createdRole_study;
         let createdRole_study_manageProject;
         let createdRole_project;
         let createdUserAuthorised;  // profile
         let createdUserAuthorisedStudy;  // profile
         let createdUserAuthorisedStudyManageProjects;  // profile
-        let authorisedUser; // client
-        let authorisedUserStudy; // client
+        let authorisedUser: request.SuperTest<request.Test>; // client
+        let authorisedUserStudy: request.SuperTest<request.Test>; // client
         let authorisedUserStudyManageProject; // client
 
         beforeAll(async () => {
@@ -113,7 +117,7 @@ describe('STUDY API', () => {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                createdStudy = await mongoClient.collection(config.database.collections.studies_collection).findOne({ name: studyName });
+                createdStudy = await mongoClient.collection<IStudy>(config.database.collections.studies_collection).findOne({ name: studyName });
                 expect(res.body.data.createStudy).toEqual({
                     id: createdStudy.id,
                     name: studyName,
@@ -134,7 +138,7 @@ describe('STUDY API', () => {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                createdProject = await mongoClient.collection(config.database.collections.projects_collection).findOne({ name: projectName });
+                createdProject = await mongoClient.collection<IProject>(config.database.collections.projects_collection).findOne({ name: projectName });
                 expect(res.body.data.createProject).toEqual({
                     id: createdProject.id,
                     studyId: createdStudy.id,
@@ -157,7 +161,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
 
-                createdRole_study = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+                createdRole_study = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
                 expect(createdRole_study).toEqual({
                     _id: createdRole_study._id,
                     id: createdRole_study.id,
@@ -192,7 +196,7 @@ describe('STUDY API', () => {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
 
-                createdRole_study_manageProject = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+                createdRole_study_manageProject = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
                 expect(createdRole_study_manageProject).toEqual({
                     _id: createdRole_study_manageProject._id,
                     id: createdRole_study_manageProject.id,
@@ -227,7 +231,7 @@ describe('STUDY API', () => {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                createdRole_project = await mongoClient.collection(config.database.collections.roles_collection).findOne({ name: roleName });
+                createdRole_project = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
                 expect(createdRole_project).toEqual({
                     _id: createdRole_project._id,
                     id: createdRole_project.id,
@@ -269,8 +273,8 @@ describe('STUDY API', () => {
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
                 };
-                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
-                createdUserAuthorised = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
+                await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
+                createdUserAuthorised = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
             }
 
             /* 6. add authorised user to role */
@@ -353,8 +357,8 @@ describe('STUDY API', () => {
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
                 };
-                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
-                createdUserAuthorisedStudy = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
+                await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
+                createdUserAuthorisedStudy = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
             }
 
             /* 6. add authorised user to role */
@@ -441,8 +445,8 @@ describe('STUDY API', () => {
                     expiredAt: 1991134065000
                 };
 
-                await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
-                createdUserAuthorisedStudyManageProjects = await mongoClient.collection(config.database.collections.users_collection).findOne({ username });
+                await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
+                createdUserAuthorisedStudyManageProjects = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username });
             }
 
             /* 6. add authorised user to role */
@@ -732,7 +736,7 @@ describe('STUDY API', () => {
                 query: print(GET_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
-                    type: 'fakeType',
+                    type: 'fakeType'
                 }
             });
             expect(res.status).toBe(200);
@@ -782,7 +786,7 @@ describe('STUDY API', () => {
                 query: print(GET_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
-                    type: 'fakeType',
+                    type: 'fakeType'
                 }
             });
             expect(res.status).toBe(200);
@@ -816,7 +820,7 @@ describe('STUDY API', () => {
                 query: print(DELETE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
-                    stdId: std?.id,
+                    stdId: std?.id
                 }
             });
             expect(res.status).toBe(200);
@@ -853,7 +857,7 @@ describe('STUDY API', () => {
                 query: print(DELETE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
-                    stdId: std?.id,
+                    stdId: std?.id
                 }
             });
             expect(res.status).toBe(200);
@@ -876,7 +880,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'NOW' },
                                 { code: '2', description: 'OLD' }
-                            ],
+                            ]
                         },
                         {
                             fieldId: '101',
@@ -887,14 +891,14 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'TRUE' },
                                 { code: '2', description: 'FALSE' }
-                            ],
+                            ]
                         },
                         {
                             fieldId: '110',
                             fieldName: 'newField110',
                             tableName: 'test',
                             dataType: 'int',
-                            comments: 'AGE',
+                            comments: 'AGE'
                         },
                         {
                             fieldId: '111',
@@ -905,7 +909,7 @@ describe('STUDY API', () => {
                             possibleValues: [
                                 { code: '1', description: 'Male' },
                                 { code: '2', description: 'Female' }
-                            ],
+                            ]
                         }
                     ]
                 }
@@ -926,7 +930,7 @@ describe('STUDY API', () => {
                         { fieldId: '100', value: '1', subjectId: 'I7N3G6G', visitId: '2' },
                         { fieldId: '101', value: '2', subjectId: 'I7N3G6G', visitId: '2' },
                         { fieldId: '100', value: '1', subjectId: 'GR6R4AR', visitId: '2' },
-                        { fieldId: '101', value: '2', subjectId: 'GR6R4AR', visitId: '2' },
+                        { fieldId: '101', value: '2', subjectId: 'GR6R4AR', visitId: '2' }
 
                     ]
                 }
@@ -1152,8 +1156,7 @@ describe('STUDY API', () => {
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
-            expect(res.body.data.getDataRecords.data.QS.sort((a, b) => {
-                console.log(a.entry_reserved, b.entry_reserved, a.entry_reserved.localeCompare(b.entry_reserved));
+            expect(res.body.data.getDataRecords.data.QS.sort((a: { entry_reserved: string; entry_inc: number; }, b: { entry_reserved: any; entry_inc: number; }) => {
                 return a.entry_reserved !== b.entry_reserved ? a.entry_reserved.localeCompare(b.entry_reserved)
                     : a.entry_inc - b.entry_inc;
             })).toEqual([
@@ -1222,8 +1225,7 @@ describe('STUDY API', () => {
                     visit: '2'
                 }
             ]);
-            expect(res.body.data.getDataRecords.data.DM.sort((a, b) => {
-                console.log(a.entry_reserved, b.entry_reserved, a.entry_reserved.localeCompare(b.entry_reserved));
+            expect(res.body.data.getDataRecords.data.DM.sort((a: { entry_reserved: string; entry_inc: number; }, b: { entry_reserved: any; entry_inc: number; }) => {
                 return a.entry_reserved !== b.entry_reserved ? a.entry_reserved.localeCompare(b.entry_reserved)
                     : a.entry_inc - b.entry_inc;
             })).toEqual([

@@ -1,11 +1,11 @@
-import React from 'react';
+import { FunctionComponent } from 'react';
 import css from './loadSpinner.module.css';
 
 type LoadSpinnerProps = {
     cover?: boolean;
 }
 
-const LoadSpinner: React.FC<LoadSpinnerProps> = ({ cover = true }) => {
+const LoadSpinner: FunctionComponent<LoadSpinnerProps> = ({ cover = true }) => {
     return (
         <div className={cover ? css.cover : undefined}>
             <div className={css.loader}>

@@ -1,10 +1,9 @@
-import * as React from 'react';
-// import { Route, Routes } from 'react-router-dom';
+import { FunctionComponent } from 'react';
 import { UserDetailsSection } from './userDetails';
 import { UserListSection } from './userList';
 import css from './userList.module.css';
 
-export const UserPage: React.FunctionComponent = () => {
+export const UserPage: FunctionComponent = () => {
     return (
         <div className={css.page_container}>
             <div className={css.user_list_section + ' page_section'}>

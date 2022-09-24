@@ -1,14 +1,14 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Navigate, Route, Routes, useParams } from 'react-router-dom';
-import { GET_PROJECT, WHO_AM_I, userTypes } from 'itmat-commons';
+import { GET_PROJECT, WHO_AM_I, userTypes } from '@itmat-broker/itmat-commons';
 import LoadSpinner from '../reusable/loadSpinner';
 import css_dataset from '../datasetDetail/projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
 import { FileTabContent } from './tabContent/file/fileTab';
 import { AnalysisTabContent } from './tabContent/analysis/analysisTab';
 
-export const ProjectDetailPage: React.FunctionComponent = () => {
+export const ProjectDetailPage: FunctionComponent = () => {
     const { projectId } = useParams();
     return (
         <Query<any, any>

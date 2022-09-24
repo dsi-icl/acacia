@@ -1,4 +1,4 @@
-import { IFieldEntry, enumValueType } from 'itmat-commons';
+import { IFieldEntry, enumValueType } from '@itmat-broker/itmat-commons';
 import { db } from '../../database/database';
 import { v4 as uuid } from 'uuid';
 export class FieldCore {

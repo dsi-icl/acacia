@@ -1,14 +1,14 @@
+import { FunctionComponent, useState } from 'react';
 import { Tree } from 'antd';
-import React from 'react';
 import { Mutation, Query } from '@apollo/client/react/components';
-import { EDIT_PROJECT_APPROVED_FILES, IFile, GET_STUDY } from 'itmat-commons';
+import { EDIT_PROJECT_APPROVED_FILES, IFile, GET_STUDY } from '@itmat-broker/itmat-commons';
 import LoadSpinner from '../../../../reusable/loadSpinner';
 import { Button } from 'antd';
 
-export const GrantedFileListSelection: React.FunctionComponent<{ originalCheckedList: string[]; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
-    const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);
-    const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
-    const [currentProjectId, setCurrentProjectId] = React.useState(projectId);
+export const GrantedFileListSelection: FunctionComponent<{ originalCheckedList: string[]; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
+    const [checkedList, setCheckedList] = useState(originalCheckedList || []);
+    const [savedSuccessfully, setSavedSuccessfully] = useState(false);
+    const [currentProjectId, setCurrentProjectId] = useState(projectId);
 
     if (currentProjectId !== projectId) {
         setCheckedList(originalCheckedList);

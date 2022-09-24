@@ -1,6 +1,6 @@
 import {
     IOrganisation
-} from 'itmat-commons';
+} from '@itmat-broker/itmat-commons';
 import { db } from '../../database/database';
 
 export const organisationResolvers = {

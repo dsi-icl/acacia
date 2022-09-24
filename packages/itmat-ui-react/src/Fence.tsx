@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { Routes, Route } from 'react-router-dom';
 import { LoginBox } from './components/login/login';
@@ -8,12 +8,12 @@ import css from './components/scaffold/scaffold.module.css';
 import { ResetPasswordPage } from './components/login/resetPasswordPage';
 import { RequestResetPassword } from './components/login/requestResetPasswordPage';
 import { RegisterNewUser } from './components/login/register';
-import { WHO_AM_I, RECOVER_SESSION_EXPIRE_TIME } from 'itmat-commons';
+import { WHO_AM_I, RECOVER_SESSION_EXPIRE_TIME } from '@itmat-broker/itmat-commons';
 import LoadSpinner from './components/reusable/loadSpinner';
 import { StatusBar } from './components/scaffold/statusBar';
 import { useQuery } from '@apollo/client/react/hooks';
 
-export const Fence: React.FunctionComponent = () => {
+export const Fence: FunctionComponent = () => {
 
     const { loading, error, data } = useQuery(WHO_AM_I);
     let component: JSX.Element | null = null;

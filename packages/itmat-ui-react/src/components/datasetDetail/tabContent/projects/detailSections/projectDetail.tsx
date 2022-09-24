@@ -1,6 +1,6 @@
-import React from 'react';
+import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
-import { GET_PROJECT } from 'itmat-commons';
+import { GET_PROJECT } from '@itmat-broker/itmat-commons';
 import { Subsection } from '../../../../reusable';
 import LoadSpinner from '../../../../reusable/loadSpinner';
 import { RoleControlSection } from '../../../../reusable/roleControlSection/roleControlSection';
@@ -11,7 +11,7 @@ import { PatientIdMappingSection } from './patientIdMapping';
 import css from './projectDetail.module.css';
 import { NavLink, useParams } from 'react-router-dom';
 
-export const ProjectDetail: React.FunctionComponent = () => {
+export const ProjectDetail: FunctionComponent = () => {
     const { projectId, studyId } = useParams();
     if (!projectId || !studyId)
         return null;

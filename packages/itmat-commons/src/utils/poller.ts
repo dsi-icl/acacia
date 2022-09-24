@@ -1,4 +1,4 @@
-import * as mongodb from 'mongodb';
+import type * as mongodb from 'mongodb';
 import { IJobEntry } from '../models';
 import { Logger } from './logger';
 

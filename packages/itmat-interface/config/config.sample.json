@@ -1,5 +1,5 @@
 {
-    "appName": "IDEA-FAST DMP",
+    "appName": "ITMAT Interface",
     "database": {
         "mongo_url": "mongodb://localhost:27017",
         "database": "itmat",
@@ -20,7 +20,7 @@
         }
     },
     "server": {
-        "port": 3003
+        "port": 3333
     },
     "bcrypt": {
         "saltround": 2

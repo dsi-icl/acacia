@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { IRole, IUser, userTypes } from 'itmat-commons';
+import { IRole, IUser, userTypes } from '@itmat-broker/itmat-commons';
 import { BulkWriteResult } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';

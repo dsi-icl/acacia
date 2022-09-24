@@ -1,8 +1,8 @@
+import { FunctionComponent, useState } from 'react';
 import { filterFields, generateCascader, findDmField } from '../../../../utils/tools';
 import { dataTypeMapping } from '../utils/defaultParameters';
-import * as React from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
-import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, IFieldEntry, IProject, enumValueType, GET_ONTOLOGY_TREE, IOntologyTree, IOntologyRoute, GET_STANDARDIZATION } from 'itmat-commons';
+import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, IFieldEntry, IProject, enumValueType, GET_ONTOLOGY_TREE, IOntologyTree, IOntologyRoute, GET_STANDARDIZATION } from '@itmat-broker/itmat-commons';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
@@ -15,7 +15,7 @@ import { useParams } from 'react-router-dom';
 const { Option } = Select;
 const { Text } = Typography;
 
-export const DataTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { projectId } = useParams();
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId, projectId: projectId } });
     const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
@@ -63,15 +63,13 @@ export const DataTabContent: React.FunctionComponent<{ studyId: string }> = ({ s
     </div>;
 };
 
-export const MetaDataBlock: React.FunctionComponent<{ project: IProject, numOfFields: number, numOfOntologyRoutes: number }> = ({ project, numOfFields, numOfOntologyRoutes }) => {
+export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: number, numOfOntologyRoutes: number }> = ({ project, numOfFields, numOfOntologyRoutes }) => {
     return project ? <SubsectionWithComment title={<Tooltip title={'The statistics of several demographics fields.'}>
         <Text className={css.title}>Meta Data</Text> <QuestionCircleOutlined />
-    </Tooltip>} comment={<>
-        <Space direction={'horizontal'} size={20}>
-            <div><HistoryOutlined /> <span>Data Version - {project?.dataVersion?.version}</span></div>
-            <div><TagOutlined /> <span>Version Tag - {project?.dataVersion?.tag}</span></div>
-        </Space>
-    </>}>
+    </Tooltip>} comment={<Space direction={'horizontal'} size={20}>
+        <div><HistoryOutlined /> <span>Data Version - {project?.dataVersion?.version}</span></div>
+        <div><TagOutlined /> <span>Version Tag - {project?.dataVersion?.tag}</span></div>
+    </Space>}>
         <Row gutter={16}>
             <Col span={5}>
                 <div className={css.grid_col_center} ><UserOutlined style={{ fontSize: '700%' }} /></div>
@@ -122,7 +120,7 @@ export const MetaDataBlock: React.FunctionComponent<{ project: IProject, numOfFi
     </SubsectionWithComment > : null;
 };
 
-export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IFieldEntry[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
+export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IFieldEntry[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
     // process the data
     const genderField: any = findDmField(ontologyTree, fields, 'SEX');
     const raceField: any = findDmField(ontologyTree, fields, 'RACE');
@@ -244,11 +242,11 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
                             label={false}
                             interactions={[
                                 {
-                                    type: 'element-selected',
+                                    type: 'element-selected'
                                 },
                                 {
-                                    type: 'element-active',
-                                },
+                                    type: 'element-active'
+                                }
                             ]}
                         />
                         <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Sex</Text></div>
@@ -271,11 +269,11 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
                             label={false}
                             interactions={[
                                 {
-                                    type: 'element-selected',
+                                    type: 'element-selected'
                                 },
                                 {
-                                    type: 'element-active',
-                                },
+                                    type: 'element-active'
+                                }
                             ]}
                         />
                         <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Race</Text></div>
@@ -298,11 +296,11 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
                             label={false}
                             interactions={[
                                 {
-                                    type: 'element-selected',
+                                    type: 'element-selected'
                                 },
                                 {
-                                    type: 'element-active',
-                                },
+                                    type: 'element-active'
+                                }
                             ]}
                         />
                         <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Site</Text></div>
@@ -329,9 +327,9 @@ export const DemographicsBlock: React.FunctionComponent<{ ontologyTree: IOntolog
     </Subsection>;
 };
 
-export const DataDistributionBlock: React.FunctionComponent<{ ontologyTree: IOntologyTree, fields: IFieldEntry[], project: IProject }> = ({ ontologyTree, fields, project }) => {
-    const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
-    const [selectedGraphType, setSelectedGraphType] = React.useState<string | undefined>(undefined);
+export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyTree, fields: IFieldEntry[], project: IProject }> = ({ ontologyTree, fields, project }) => {
+    const [selectedPath, setSelectedPath] = useState<any[]>([]);
+    const [selectedGraphType, setSelectedGraphType] = useState<string | undefined>(undefined);
     const routes: IOntologyRoute[] = ontologyTree.routes?.filter(es => {
         return JSON.stringify([...es.path, es.name]) === JSON.stringify(selectedPath);
     }) || [];
@@ -357,7 +355,7 @@ export const DataDistributionBlock: React.FunctionComponent<{ ontologyTree: IOnt
                 style: {
                     fill: '#6E759F',
                     fontSize: 14
-                },
+                }
             }
         },
         yAxisNum: {
@@ -365,7 +363,7 @@ export const DataDistributionBlock: React.FunctionComponent<{ ontologyTree: IOnt
                 text: 'Count',
                 style: {
                     fill: '#6E759F',
-                    fontSize: 14,
+                    fontSize: 14
                 },
                 position: 'start'
             }
@@ -375,7 +373,7 @@ export const DataDistributionBlock: React.FunctionComponent<{ ontologyTree: IOnt
                 text: 'Percentage',
                 style: {
                     fill: '#6E759F',
-                    fontSize: 14,
+                    fontSize: 14
                 },
                 position: 'start'
             }
@@ -532,7 +530,7 @@ export const DataDistributionBlock: React.FunctionComponent<{ ontologyTree: IOnt
                                     q1: sortedY[Math.floor(sortedY.length / 4)],
                                     median: sortedY[Math.floor(sortedY.length / 2)],
                                     q3: sortedY[Math.floor(sortedY.length * 3 / 4)],
-                                    high: sortedY[sortedY.length - 1],
+                                    high: sortedY[sortedY.length - 1]
                                 };
                             });
                             if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType))
@@ -553,7 +551,7 @@ export const DataDistributionBlock: React.FunctionComponent<{ ontologyTree: IOnt
                                             boxStyle={{
                                                 stroke: '#545454',
                                                 fill: '#1890FF',
-                                                fillOpacity: 0.3,
+                                                fillOpacity: 0.3
                                             }}
                                         /> : <Empty />
                                     }
@@ -586,8 +584,8 @@ export const DataDistributionBlock: React.FunctionComponent<{ ontologyTree: IOnt
     </SubsectionWithComment >);
 };
 
-export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree, fields: IFieldEntry[] }> = ({ studyId, projectId, ontologyTree, fields }) => {
-    const [selectedPath, setSelectedPath] = React.useState<any[]>([]);
+export const DataCompletenessBlock: FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree, fields: IFieldEntry[] }> = ({ studyId, projectId, ontologyTree, fields }) => {
+    const [selectedPath, setSelectedPath] = useState<any[]>([]);
     const requestedFields = ontologyTree.routes?.filter(el => {
         if (JSON.stringify(el.path) === JSON.stringify(selectedPath)) {
             return true;
@@ -636,7 +634,7 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
                 style: {
                     fill: '#6E759F',
                     fontSize: 14
-                },
+                }
             }
         },
         yAxis: {
@@ -644,7 +642,7 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
                 text: 'Field ID',
                 style: {
                     fill: '#6E759F',
-                    fontSize: 14,
+                    fontSize: 14
                 },
                 position: 'start'
             }
@@ -687,37 +685,35 @@ export const DataCompletenessBlock: React.FunctionComponent<{ studyId: string, p
         >
             {
                 selectedPath.length === 0 ? <Empty /> :
-                    <>
-                        <Heatmap
-                            style={{ overflow: 'auto' }}
-                            data={obj}
-                            height={Object.keys(data).length * 30 + 50}
-                            width={500}
-                            xField={'visit'}
-                            yField={'field'}
-                            renderer={'svg'}
-                            colorField={'percentage'}
-                            label={{
-                                formatter: (datum: any) => {
-                                    return datum.percentage + '%';
-                                }
-                            }}
-                            tooltip={tooltipConfig}
-                            xAxis={axisConfig.xAxis}
-                            yAxis={axisConfig.yAxis}
-                        />
-                    </>
+                    <Heatmap
+                        style={{ overflow: 'auto' }}
+                        data={obj}
+                        height={Object.keys(data).length * 30 + 50}
+                        width={500}
+                        xField={'visit'}
+                        yField={'field'}
+                        renderer={'svg'}
+                        colorField={'percentage'}
+                        label={{
+                            formatter: (datum: any) => {
+                                return datum.percentage + '%';
+                            }
+                        }}
+                        tooltip={tooltipConfig}
+                        xAxis={axisConfig.xAxis}
+                        yAxis={axisConfig.yAxis}
+                    />
             }
         </SubsectionWithComment >
     );
 };
 
-export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> = ({ project }) => {
+export const DataDownloadBlock: FunctionComponent<{ project: IProject }> = ({ project }) => {
     const { loading: getStandardizationLoading, error: getStandardizationError, data: getStandardizationData } = useQuery(GET_STANDARDIZATION, { variables: { studyId: project.studyId, projectId: project.id } });
     const [getDataRecordsLazy, { loading: getDataRecordsLoading, data: getDataRecordsData }] = useLazyQuery(GET_DATA_RECORDS, {});
-    const [shouldUpdateData, setShouldUpdateData] = React.useState(true);
-    const [selectedDataFormat, setSelectedDataFormat] = React.useState<string | undefined>(undefined);
-    const [selectedOutputType, setSelectedOutputType] = React.useState('JSON');
+    const [shouldUpdateData, setShouldUpdateData] = useState(true);
+    const [selectedDataFormat, setSelectedDataFormat] = useState<string | undefined>(undefined);
+    const [selectedOutputType, setSelectedOutputType] = useState('JSON');
     if (getDataRecordsLoading || getStandardizationLoading) {
         return <LoadSpinner />;
     }
@@ -754,7 +750,7 @@ export const DataDownloadBlock: React.FunctionComponent<{ project: IProject }> =
                     <DownloadOutlined />
                 </CSVLink>);
             }
-        },
+        }
     ];
     return (<SubsectionWithComment title={<Tooltip title={'Download data with a specific format. Please select a format, then select JSON or CSV, then click fetch data.'}>
         <Text className={css.title}>Data Download</Text> <QuestionCircleOutlined />

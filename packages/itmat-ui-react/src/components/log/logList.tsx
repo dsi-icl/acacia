@@ -1,13 +1,12 @@
-import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT } from 'itmat-commons';
-import * as React from 'react';
+import { FunctionComponent, useState } from 'react';
+import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT } from '@itmat-broker/itmat-commons';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../reusable/loadSpinner';
-import { Table, Input, Button, Checkbox, Descriptions, DatePicker } from 'antd';
-import Modal from 'antd/lib/modal/Modal';
+import { Table, Input, Button, Checkbox, Descriptions, DatePicker, Modal } from 'antd';
 import Highlighter from 'react-highlight-words';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
-export const LogListSection: React.FunctionComponent = () => {
+export const LogListSection: FunctionComponent = () => {
 
     return (
         <Query<any, any>
@@ -32,8 +31,8 @@ export const LogListSection: React.FunctionComponent = () => {
     );
 };
 
-const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) => {
-    const [searchTerm, setSearchTerm] = React.useState('');
+const LogList: FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) => {
+    const [searchTerm, setSearchTerm] = useState('');
     const initInputs = {
         requesterName: '',
         requesterType: [],
@@ -44,10 +43,10 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
         status: [],
         dateRange: ['', '']
     };
-    const [inputs, setInputs]: [{ [key: string]: any }, any] = React.useState(initInputs);
-    const [verbose, setVerbose] = React.useState(false);
-    const [verboseInfo, setVerboseInfo] = React.useState(({ actionData: JSON.stringify({}) }));
-    const [advancedSearch, setAdvancedSearch] = React.useState(false);
+    const [inputs, setInputs]: [{ [key: string]: any }, any] = useState(initInputs);
+    const [verbose, setVerbose] = useState(false);
+    const [verboseInfo, setVerboseInfo] = useState(({ actionData: JSON.stringify({}) }));
+    const [advancedSearch, setAdvancedSearch] = useState(false);
     const dateFormat = 'YYYY-MM-DD';
     function formatActionData(data: any) {
         const obj = JSON.parse(data.actionData);
@@ -57,7 +56,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
         return { keyList: keysMap, valueList: valuesMap };
     }
     /* time offset, when filter by time, adjust all date to utc time */
-    const timeOffset = moment().utcOffset() /* minutes */ * 60 /* seconds */ * 1000 /* to UNIX millisec */;
+    const timeOffset = dayjs().utcOffset() /* minutes */ * 60 /* seconds */ * 1000 /* to UNIX millisec */;
 
     const inputControl = (property: string) => ({
         value: inputs[property],
@@ -89,8 +88,8 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
                 && (inputs.logType.length === 0 || inputs.logType.includes(logCopy.logType))
                 && (inputs.actionType.length === 0 || inputs.actionType.includes(logCopy.actionType))
                 && (inputs.status.length === 0 || inputs.status.includes(logCopy.status))
-                && (inputs.dateRange[0] === '' || (moment(inputs.dateRange[0].startOf('day')).valueOf() - timeOffset) < logCopy.time)
-                && (inputs.dateRange[1] === '' || (moment(inputs.dateRange[1].startOf('day')).valueOf() + 24 * 60 * 60 * 1000 /* ONE DAY IN MILLSEC */ - timeOffset) > logCopy.time);
+                && (inputs.dateRange[0] === '' || (dayjs(inputs.dateRange[0].startOf('day')).valueOf() - timeOffset) < logCopy.time)
+                && (inputs.dateRange[1] === '' || (dayjs(inputs.dateRange[1].startOf('day')).valueOf() + 24 * 60 * 60 * 1000 /* ONE DAY IN MILLSEC */ - timeOffset) > logCopy.time);
         });
     }
 
@@ -245,7 +244,7 @@ const LogList: React.FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ li
             <Checkbox.Group options={Object.keys(LOG_STATUS)} {...checkboxControl('status')} style={{ marginBottom: '20px' }} />
             <Descriptions title='Date Range'></Descriptions>
             <DatePicker.RangePicker
-                defaultValue={[moment('2015-06-06', dateFormat), moment('2015-06-06', dateFormat)]}
+                defaultValue={[dayjs('2015-06-06', dateFormat), dayjs('2015-06-06', dateFormat)]}
                 {...inputControl('dateRange')}
             />
         </Modal>

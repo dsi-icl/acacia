@@ -1,8 +1,8 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { ProfileManagementSection } from './profile';
 import css from './profile.module.css';
 
-export const ProfilePage: React.FunctionComponent = () => {
+export const ProfilePage: FunctionComponent = () => {
     return (
         <div className={css.page_container}>
             <div className={css.user_list_section + ' page_section'}>

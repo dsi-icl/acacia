@@ -9,7 +9,7 @@ import { pubsub, subscriptionEvents } from './graphql/pubsub';
 
 class ITMATInterfaceServer extends Server {
 
-    private router;
+    private router?: Router;
 
     /**
      * @fn start
