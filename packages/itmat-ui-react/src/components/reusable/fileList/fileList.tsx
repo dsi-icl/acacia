@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { FunctionComponent, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react/hooks';
 import { Table, Button, notification, Tooltip } from 'antd';
-import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS, GET_USERS, studyType } from 'itmat-commons';
+import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS, GET_USERS, studyType } from '@itmat-broker/itmat-commons';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined, NumberOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
 import moment from 'moment';
@@ -19,7 +19,7 @@ export function formatBytes(size: number, decimal = 2): string {
     return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + ' ' + units[order];
 }
 
-export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[], searchTerm: string | undefined }> = ({ type, files, searchTerm }) => {
+export const FileList: FunctionComponent<{ type: studyType, files: IFile[], searchTerm: string | undefined }> = ({ type, files, searchTerm }) => {
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
     const { data: dataWhoAmI, loading: loadingWhoAmI } = useQuery(WHO_AM_I);
     const [deleteFile] = useMutation(DELETE_FILE, {
@@ -29,7 +29,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
                 message: 'Deletion error!',
                 description: error.message ?? 'Unknown Error Occurred!',
                 placement: 'topRight',
-                duration: 0,
+                duration: 0
             });
         }
     });

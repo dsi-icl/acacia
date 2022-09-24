@@ -12,7 +12,7 @@ import {
     IResetPasswordRequest,
     userTypes,
     IOrganisation
-} from 'itmat-commons';
+} from '@itmat-broker/itmat-commons';
 import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
@@ -66,7 +66,7 @@ export const userResolvers = {
             }
             return makeGenericReponse();
         },
-        recoverSessionExpireTime: async (__unused__parent: Record<string, unknown>, __unused__context: any): Promise<IGenericResponse> => {
+        recoverSessionExpireTime: async (): Promise<IGenericResponse> => {
             return makeGenericReponse();
         }
     },
@@ -361,7 +361,7 @@ export const userResolvers = {
             const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
-                if (err) throw new ApolloError(err);
+                if (err) throw new ApolloError(err.message);
             });
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
@@ -482,7 +482,7 @@ export const userResolvers = {
             const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
-                if (err) throw new ApolloError(err);
+                if (err) throw new ApolloError(err.message);
             });
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
@@ -560,7 +560,7 @@ export const userResolvers = {
             }
 
             if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
-            for (const each of Object.keys(fieldsToUpdate)) {
+            for (const each of (Object.keys(fieldsToUpdate) as Array<keyof typeof fieldsToUpdate>)) {
                 if (fieldsToUpdate[each] === undefined) {
                     delete fieldsToUpdate[each];
                 }
@@ -568,7 +568,7 @@ export const userResolvers = {
             const updateResult: mongodb.ModifyResult<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
             if (updateResult.ok === 1) {
                 // New expiry date has been updated successfully.
-                if (expiredAt) {
+                if (expiredAt && result) {
                     /* send email to client */
                     await mailer.sendMail(formatEmailRequestExpiryDateNotification({
                         to: result.email,

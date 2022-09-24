@@ -1,5 +1,5 @@
 import { db } from '../../database/database';
-import { ILogEntry, LOG_ACTION, Models, userTypes } from 'itmat-commons';
+import { ILogEntry, LOG_ACTION, Models, userTypes } from '@itmat-broker/itmat-commons';
 import { ApolloError } from 'apollo-server-errors';
 import { errorCodes } from '../errors';
 
@@ -13,7 +13,7 @@ export const logResolvers = {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            const queryObj = {};
+            const queryObj: Record<string, any> = {};
             for (const prop in args) {
                 if (args.prop !== undefined) {
                     queryObj[prop] = args.prop;
@@ -39,8 +39,8 @@ export const hiddenFields = {
 async function logDecorationHelper(actionData: any, actionType: string) {
     const obj = JSON.parse(actionData) ?? {};
     if (Object.keys(hiddenFields).includes(actionType)) {
-        for (let i = 0; i < hiddenFields[actionType].length; i++) {
-            delete obj[hiddenFields[actionType][i]];
+        for (let i = 0; i < hiddenFields[actionType as keyof typeof hiddenFields].length; i++) {
+            delete obj[hiddenFields[actionType as keyof typeof hiddenFields][i]];
         }
     }
     if (actionType === LOG_ACTION.getStudy) {

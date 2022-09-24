@@ -1,4 +1,4 @@
-import { IServerBaseConfig, ServerBase } from 'itmat-commons';
+import { IServerBaseConfig, ServerBase } from '@itmat-broker/itmat-commons';
 import { IConfiguration } from '../utils/configManager';
 
 

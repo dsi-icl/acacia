@@ -1,8 +1,0 @@
-kind: Service
-apiVersion: v1
-metadata:
-  name: minio
-  namespace: itmat
-spec:
-  type: ExternalName
-#   externalName: swift.dsi.ic.ac.uk

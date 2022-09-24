@@ -1,11 +1,11 @@
-import { Models } from 'itmat-commons';
-import * as React from 'react';
+import { FunctionComponent } from 'react';
+import { Models } from '@itmat-broker/itmat-commons';
 import { Subsection } from '../../../reusable';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
 import css from './tabContent.module.css';
 import { useParams } from 'react-router-dom';
 
-export const AdminTabContent: React.FunctionComponent<{ studyId: string; roles: Models.Study.IRoleQL[] }> = ({ roles, studyId }) => {
+export const AdminTabContent: FunctionComponent<{ studyId: string; roles: Models.Study.IRoleQL[] }> = ({ roles, studyId }) => {
     const { projectId } = useParams();
     if (!studyId || !projectId)
         return null;

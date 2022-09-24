@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, DATA_CLIP_ERROR_TYPE } from 'itmat-commons';
+import { IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, DATA_CLIP_ERROR_TYPE } from '@itmat-broker/itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -140,7 +140,7 @@ export class StudyCore {
             contentId: newContentId, // same content = same id - used in reverting data, version control
             version: dataVersion,
             tag: tag,
-            updateDate: (new Date().valueOf()).toString(),
+            updateDate: (new Date().valueOf()).toString()
         };
         await db.collections!.studies_collection.updateOne({ id: studyId }, {
             $push: { dataVersions: newDataVersion },
@@ -155,7 +155,7 @@ export class StudyCore {
         const errors: any[] = [];
         const bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
-        const keysToCheck = ['visitId', 'subjectId', 'fieldId'];
+        const keysToCheck: Array<keyof IDataClip> = ['visitId', 'subjectId', 'fieldId'];
         const filteredData = data.filter(
             (s => o => (k => !s.has(k) && s.add(k))(keysToCheck.map(k => o[k]).join('|')))(new Set())
         );
@@ -232,7 +232,7 @@ export class StudyCore {
                         break;
                     }
                     case 'cat': {
-                        if (!fieldInDb.possibleValues.map(el => el.code).includes(dataClip.value.toString())) {
+                        if (!fieldInDb.possibleValues.map((el: any) => el.code).includes(dataClip.value.toString())) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
                             break;
                         } else {
@@ -254,7 +254,7 @@ export class StudyCore {
                 m_studyId: studyId,
                 m_subjectId: dataClip.subjectId,
                 m_versionId: undefined,
-                m_visitId: dataClip.visitId,
+                m_visitId: dataClip.visitId
             };
             const objWithData: Partial<MatchKeysAndValues<IDataEntry>> = {
                 ...obj,

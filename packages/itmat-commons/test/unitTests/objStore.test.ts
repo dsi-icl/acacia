@@ -4,14 +4,20 @@
 
 import { ObjectStore } from '../../src/utils';
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs-extra';
+import type { Readable } from 'stream';
 
 const ACCESS_KEY = 'minioadmin';
 const SECRET_KEY = 'minioadmin';
 const HOST = 'localhost';
 
+declare const global: typeof globalThis & {
+    hasMinio: boolean;
+    minioContainerPort: number;
+};
+
 if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
-    let client;
+    let client: ObjectStore;
     beforeEach(async () => {
         client = new ObjectStore();
         await client.connect({
@@ -68,7 +74,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
         );
 
         let uploadResult;
-        let error;
+        let error: any;
         try {
             uploadResult = await client.uploadFile(
                 fs.createReadStream(path.join(__dirname, '../files/fakefile.txt')),
@@ -93,7 +99,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
             'sdfsad0fjds0fafdsj21'
         );
 
-        const streamToString = (inputStream) => {
+        const streamToString = (inputStream: Readable) => {
             return new Promise((resolve, reject) => {
                 let string = '';
                 inputStream

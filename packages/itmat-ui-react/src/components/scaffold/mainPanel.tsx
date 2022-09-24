@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { DatasetDetailPage } from '../datasetDetail';
 import { DatasetListPage } from '../datasetList';
@@ -9,7 +9,7 @@ import { LogPage } from '../log';
 import { ProfilePage } from '../profile';
 import css from './scaffold.module.css';
 
-export const MainPanel: React.FunctionComponent = () => {
+export const MainPanel: FunctionComponent = () => {
     return (
         <div className={css.main_panel}>
             <Routes>

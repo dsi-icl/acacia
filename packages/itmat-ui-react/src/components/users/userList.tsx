@@ -1,5 +1,5 @@
-import { Models, GET_USERS } from 'itmat-commons';
-import React, { useState } from 'react';
+import { FunctionComponent, useState } from 'react';
+import { Models, GET_USERS } from '@itmat-broker/itmat-commons';
 import { Query } from '@apollo/client/react/components';
 import { useNavigate } from 'react-router-dom';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -8,7 +8,7 @@ import { EditOutlined, WarningOutlined, PauseCircleOutlined } from '@ant-design/
 import Highlighter from 'react-highlight-words';
 import moment from 'moment';
 
-export const UserListSection: React.FunctionComponent = () => {
+export const UserListSection: FunctionComponent = () => {
     return (
         <Query<any, any>
             query={GET_USERS}
@@ -33,7 +33,7 @@ export const UserListSection: React.FunctionComponent = () => {
     );
 };
 
-const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutToken[] }> = ({ users }) => {
+const UserList: FunctionComponent<{ users: Models.UserModels.IUserWithoutToken[] }> = ({ users }) => {
 
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState<string | undefined>();

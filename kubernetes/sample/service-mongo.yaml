@@ -1,8 +1,0 @@
-kind: Service
-apiVersion: v1
-metadata:
-  name: mongo
-  namespace: itmat
-spec:
-  type: ExternalName
-  externalName: mongo.dsi.ic.ac.uk

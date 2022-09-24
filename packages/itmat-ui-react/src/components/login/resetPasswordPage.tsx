@@ -1,20 +1,17 @@
-import * as React from 'react';
-import GitInfo from 'react-git-info/macro';
+import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
-import { GQLRequests } from 'itmat-commons';
+import { GQLRequests } from '@itmat-broker/itmat-commons';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import css from '../login/login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
 import LoadSpinner from '../reusable/loadSpinner';
 
-const gitInfo = GitInfo();
-
-export const ResetPasswordPage: React.FunctionComponent = () => {
+export const ResetPasswordPage: FunctionComponent = () => {
 
     const { encryptedEmail, token } = useParams();
     const navigate = useNavigate();
-    const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);
+    const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = useState(false);
     const { loading, error } = useQuery(GQLRequests.VALIDATE_RESET_PASSWORD, {
         variables: {
             encryptedEmail: encryptedEmail,
@@ -124,7 +121,7 @@ export const ResetPasswordPage: React.FunctionComponent = () => {
                             <br />
                             <br />
                             Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
-                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {gitInfo.commit.shortHash} ({gitInfo.branch})</i>
+                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {process.env.NX_REACT_APP_COMMIT} ({process.env.NX_REACT_APP_BRANCH})</i>
                         </div>
                     </div>
                 );

@@ -1,16 +1,16 @@
-import * as React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { GQLRequests, Models, CREATE_USER } from 'itmat-commons';
+import { GQLRequests, Models, CREATE_USER } from '@itmat-broker/itmat-commons';
 import { Input, Form, Button, Alert, Checkbox, Select } from 'antd';
 import css from './login.module.css';
 const {
     GET_ORGANISATIONS
 } = GQLRequests;
 
-export const RegisterNewUser: React.FunctionComponent = () => {
+export const RegisterNewUser: FunctionComponent = () => {
     const navigate = useNavigate();
-    const [completedCreation, setCompletedCreation] = React.useState(false);
+    const [completedCreation, setCompletedCreation] = useState(false);
     const [createUser, { loading, error }] = useMutation(CREATE_USER,
         { onCompleted: () => setCompletedCreation(true) }
     );

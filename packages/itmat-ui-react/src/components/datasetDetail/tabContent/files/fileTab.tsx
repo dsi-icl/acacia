@@ -1,26 +1,26 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import { FunctionComponent, useState, useEffect, useRef, useContext, Fragment, HTMLAttributes, createContext, ReactNode } from 'react';
 import { Button, Upload, notification, Tag, Table, Form, Input, InputRef, DatePicker, Space, Modal } from 'antd';
-import { RcFile } from 'antd/lib/upload';
+import { RcFile } from 'antd/es/upload';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Query } from '@apollo/client/react/components';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
-import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, IFile, EDIT_STUDY, WHO_AM_I, userTypes, studyType } from 'itmat-commons';
+import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, IFile, EDIT_STUDY, WHO_AM_I, userTypes, studyType } from '@itmat-broker/itmat-commons';
 import { FileList, formatBytes } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { ApolloError } from '@apollo/client/errors';
 import { validate } from '@ideafast/idgen';
-import moment, { Moment } from 'moment';
+import dayjs, { Dayjs } from 'dayjs';
 import { v4 as uuid } from 'uuid';
 
 type StudyFile = RcFile & {
     uuid: string;
     participantId?: string;
     deviceId?: string;
-    startDate?: Moment;
-    endDate?: Moment;
+    startDate?: Dayjs;
+    endDate?: Dayjs;
 }
 
 export const deviceTypes = {
@@ -49,7 +49,7 @@ export const deviceTypes = {
 const { RangePicker } = DatePicker;
 let progressReports: any[] = [];
 
-export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = ({ studyId }) => {
 
     const [uploadMovement, setUploadMovement] = useState(0);
     const [isDropOverlayShowing, setisDropOverlayShowing] = useState(false);
@@ -61,9 +61,9 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isEditingDescription, setIsEditingDescription] = React.useState(false);
-    const [datasetDescription, setDatasetDescription] = React.useState('');
-    const [isFileSummaryShown, setIsFileSummaryShown] = React.useState(false);
+    const [isEditingDescription, setIsEditingDescription] = useState(false);
+    const [datasetDescription, setDatasetDescription] = useState('');
+    const [isFileSummaryShown, setIsFileSummaryShown] = useState(false);
     const [editStudy] = useMutation(EDIT_STUDY, {
         onCompleted: () => { window.location.reload(); },
         onError: () => { return; }
@@ -91,7 +91,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 message: 'Upload error!',
                 description: error.message ?? 'Unknown Error Occurred!',
                 placement: 'topRight',
-                duration: 0,
+                duration: 0
             });
         }
     });
@@ -141,12 +141,12 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     if (Object.keys(deviceTypes).includes(particules[3].toUpperCase())
                         && validate(particules[4].toUpperCase()))
                         file.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
-                    const startDate = moment(particules[5], 'YYYYMMDD');
-                    const endDate = moment(particules[6], 'YYYYMMDD');
-                    if (startDate.isSameOrBefore(endDate)) {
+                    const startDate = dayjs(particules[5], 'YYYYMMDD');
+                    const endDate = dayjs(particules[6], 'YYYYMMDD');
+                    if (startDate.isSame(endDate) || startDate.isBefore(endDate)) {
                         if (startDate.isValid())
                             file.startDate = startDate;
-                        if (endDate.isValid() && endDate.isSameOrBefore(moment()))
+                        if (endDate.isValid() && (endDate.isSame(dayjs()) || endDate.isBefore(dayjs())))
                             file.endDate = endDate;
                     }
                 }
@@ -203,7 +203,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 notification.success({
                     message: 'Upload succeeded!',
                     description: `File ${result.data.uploadFile.fileName} was successfully uploaded!`,
-                    placement: 'topRight',
+                    placement: 'topRight'
                 });
             }).catch(error => {
                 delete (window as any).onUploadProgressHackMap[uploadMapHackName];
@@ -212,7 +212,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     message: 'Upload error!',
                     description: error?.message ?? error ?? 'Unknown Error Occurred!',
                     placement: 'topRight',
-                    duration: 0,
+                    duration: 0
                 });
             }));
         });
@@ -262,7 +262,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             render: (value, record) => {
                 const progress = progressReports[`UP_${record.participantId}_${record.deviceId}_${record.startDate?.valueOf()}_${record.endDate?.valueOf()}`];
                 if (progress)
-                    return <React.Fragment key={uploadMovement}>{Math.round(1000 * (progress.loaded - 1) / progress.total) / 10}%</React.Fragment>;
+                    return <Fragment key={uploadMovement}>{Math.round(1000 * (progress.loaded - 1) / progress.total) / 10}%</Fragment>;
                 return value;
             }
         },
@@ -320,7 +320,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                     dataIndex: col.dataIndex,
                     title: col.title,
                     handleSave
-                }),
+                })
             };
         });
 
@@ -333,7 +333,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
             render: (value, record) => {
                 const progress = progressReports[`UP_${record.participantId}_${record.deviceId}_${record.startDate?.valueOf()}_${record.endDate?.valueOf()}`];
                 if (progress)
-                    return <React.Fragment key={uploadMovement}>{Math.round(1000 * (progress.loaded - 1) / progress.total) / 10}%</React.Fragment>;
+                    return <Fragment key={uploadMovement}>{Math.round(1000 * (progress.loaded - 1) / progress.total) / 10}%</Fragment>;
                 return value;
             }
         },
@@ -354,7 +354,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                 dataIndex: col.dataIndex,
                 title: col.title,
                 handleSave
-            }),
+            })
         }
         ));
 
@@ -457,7 +457,7 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
         tmpData[deviceType] = getStudyData.getStudy.files.filter(el => JSON.parse(el.description).deviceId.substr(0, 3) === deviceType).length;
     }
     fileSummary.push(tmpData);
-    return <div {...getRootProps() as React.HTMLAttributes<HTMLDivElement>} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
+    return <div {...getRootProps() as HTMLAttributes<HTMLDivElement>} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input title='fileTabDropZone' {...getInputProps()} />
         {fileList.length > 0
             ?
@@ -507,13 +507,11 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
                                     >{'Cancel'}
                                     </Button>
                                 </> :
-                                <>
-                                    <Button
-                                        type='primary'
-                                        onClick={() => { setIsEditingDescription(true); }}
-                                    >{'Edit Description'}
-                                    </Button>
-                                </>
+                                <Button
+                                    type='primary'
+                                    onClick={() => { setIsEditingDescription(true); }}
+                                >{'Edit Description'}
+                                </Button>
                             }
                         </> : null
                 }>
@@ -577,13 +575,13 @@ export const FileRepositoryTabContent: React.FunctionComponent<{ studyId: string
     </div >;
 };
 
-const EditableContext = React.createContext<any>({});
+const EditableContext = createContext<any>({});
 
 type EditableRowProps = {
     index: number;
 }
 
-const EditableRow: React.FC<EditableRowProps> = ({ index: __unused__index, ...props }) => {
+const EditableRow: FunctionComponent<EditableRowProps> = ({ index, ...props }) => {
     const [form] = Form.useForm();
 
     useEffect(() => {
@@ -593,7 +591,7 @@ const EditableRow: React.FC<EditableRowProps> = ({ index: __unused__index, ...pr
     return (
         <Form form={form} component={false}>
             <EditableContext.Provider value={form}>
-                <tr {...props} />
+                <tr key={index} {...props} />
             </EditableContext.Provider>
         </Form>
     );
@@ -601,13 +599,13 @@ const EditableRow: React.FC<EditableRowProps> = ({ index: __unused__index, ...pr
 
 interface EditableCellProps {
     editable: boolean;
-    children: React.ReactNode;
+    children: ReactNode;
     dataIndex: string;
     record: StudyFile;
     handleSave: (__unused__record: StudyFile) => void;
 }
 
-const EditableCell: React.FC<EditableCellProps> = ({
+const EditableCell: FunctionComponent<EditableCellProps> = ({
     editable,
     children,
     dataIndex,
@@ -681,12 +679,12 @@ const EditableCell: React.FC<EditableCellProps> = ({
                                 if (getFieldValue('startDate') && getFieldValue('endDate'))
                                     return Promise.resolve();
                                 return Promise.reject('Missing dates');
-                            },
+                            }
                         })
                     ]}
                 >
                     <RangePicker id={`period_${record.uuid}`} allowClear={false} ref={rangeRef} defaultValue={[record.startDate ?? null, record.endDate ?? null]} disabledDate={(currentDate) => {
-                        return moment().isBefore(currentDate);
+                        return dayjs().isBefore(currentDate);
                     }} onCalendarChange={(dates) => {
                         if (dates === null)
                             return;
@@ -720,6 +718,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
                                 return Promise.resolve();
                             }
                         }
+                        return Promise.resolve();
                     }
                 }]}
             >

@@ -1,4 +1,4 @@
-import { IQueryEntry, IUser, permissions, IProject } from 'itmat-commons';
+import { IQueryEntry, IUser, permissions, IProject } from '@itmat-broker/itmat-commons';
 import { queryCore } from '../core/queryCore';
 import { permissionCore } from '../core/permissionCore';
 import { ApolloError } from 'apollo-server-express';

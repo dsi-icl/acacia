@@ -1,15 +1,15 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Navigate } from 'react-router-dom';
-import { WHO_AM_I, Models } from 'itmat-commons';
+import { WHO_AM_I, Models } from '@itmat-broker/itmat-commons';
 import { Button } from 'antd';
 
-export const ProjectList: React.FunctionComponent = () => {
+export const ProjectList: FunctionComponent = () => {
     return (
         <Query<any, any> query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <p>Loading...</p>; }
-                if (error) { return <p><>Error {error}</></p>; }
+                if (error) { return <p>Error {error.name}: {error.message}</p>; }
                 if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.projects) {
                     const projects = data.whoAmI.access.projects;
                     if (projects.length === 1) {
@@ -26,7 +26,7 @@ export const ProjectList: React.FunctionComponent = () => {
     );
 };
 
-const PickProjectSection: React.FunctionComponent<{ projects: Models.Study.IProject[] }> = ({ projects }) => {
+const PickProjectSection: FunctionComponent<{ projects: Models.Study.IProject[] }> = ({ projects }) => {
     return <>
         You have access to two or more projects. Please pick the one you would like to access: <br /><br /><br />
         {projects.map((el) =>

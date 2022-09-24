@@ -1,18 +1,18 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useNavigate } from 'react-router-dom';
-import { Models, WHO_AM_I } from 'itmat-commons';
+import { Models, WHO_AM_I } from '@itmat-broker/itmat-commons';
 import { Button, Table } from 'antd';
 import { ContainerOutlined } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';
 
-export const DatasetList: React.FunctionComponent = () => {
+export const DatasetList: FunctionComponent = () => {
     return (
         <Query<any, any>
             query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <LoadSpinner />; }
-                if (error) { return <p><>Error {error}</></p>; }
+                if (error) { return <p>Error {error.name}: {error.message}</p>; }
                 if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.studies) {
                     const datasets = data.whoAmI.access.studies;
                     if (datasets.length > 0) {
@@ -26,7 +26,7 @@ export const DatasetList: React.FunctionComponent = () => {
     );
 };
 
-const PickDatasetSection: React.FunctionComponent<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => {
+const PickDatasetSection: FunctionComponent<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => {
 
     const navigate = useNavigate();
     const columns = [

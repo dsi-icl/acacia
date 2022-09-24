@@ -1,4 +1,4 @@
-import * as mongodb from 'mongodb';
+import type * as mongodb from 'mongodb';
 import { CustomError } from './error';
 import { Logger } from './logger';
 
@@ -39,7 +39,7 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
         mongoClientConnect: (uri: string, options?: mongodb.MongoClientOptions) => Promise<mongodb.MongoClient>
     ): Promise<void> {
         this.config = config;
-        const shouldOutput = process.env.JEST_WORKER_ID !== undefined;
+        const shouldOutput = process.env['JEST_WORKER_ID'] !== undefined;
         shouldOutput && Logger.log('Connecting to the database..');
         /* any error throw here will be caught by the server */
         this.localClient = await mongoClientConnect(config.mongo_url);

@@ -1,12 +1,12 @@
-import * as React from 'react';
-import { IJobEntry, GET_PROJECT } from 'itmat-commons';
+import { FunctionComponent } from 'react';
+import { IJobEntry, GET_PROJECT } from '@itmat-broker/itmat-commons';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import { JobSection } from './jobs';
 import { useQuery } from '@apollo/client/react/hooks';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 
-export const DashboardTabContent: React.FunctionComponent<{ studyId: string; projectId: string; jobs: Array<IJobEntry<any>> }> = ({ projectId, jobs }) => {
+export const DashboardTabContent: FunctionComponent<{ studyId: string; projectId: string; jobs: Array<IJobEntry<any>> }> = ({ projectId, jobs }) => {
     const { loading: getProjectLoading, error: getProjectError, data: getProjectData } = useQuery(GET_PROJECT, { variables: { projectId: projectId, admin: false } });
     if (getProjectLoading) {
         return <LoadSpinner />;

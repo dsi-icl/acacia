@@ -9,6 +9,8 @@ import {
     IStudyDataVersion,
     IFieldEntry,
     IUser,
+    IFile,
+    IJobEntry,
     studyType,
     IDataClip,
     ISubjectDataRecordSummary,
@@ -16,7 +18,7 @@ import {
     IRole,
     IOntologyTree,
     userTypes
-} from 'itmat-commons';
+} from '@itmat-broker/itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
@@ -25,8 +27,6 @@ import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 import { buildPipeline } from '../../utils/query';
-import { IJobEntry } from '../../../../itmat-commons/dist/models/job';
-import { IFile } from '../../../../itmat-commons/dist/models/file';
 import { dataStandardization } from '../../utils/query';
 
 export const studyResolvers = {
@@ -92,7 +92,7 @@ export const studyResolvers = {
             );
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
             // get all dataVersions that are valid (before the current version)
-            const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             const fieldRecords = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
@@ -162,7 +162,7 @@ export const studyResolvers = {
             if (!hasPermission) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
-            const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             // we only check data that hasnt been pushed to a new data version
             const data: any[] = await db.collections!.data_collection.find({ m_studyId: studyId, m_versionId: null }).toArray();
@@ -231,7 +231,7 @@ export const studyResolvers = {
                                 break;
                             }
                             case 'cat': {
-                                if (!field.possibleValues.map(el => el.code).includes(record[field.fieldId].toString())) {
+                                if (!field.possibleValues.map((el: any) => el.code).includes(record[field.fieldId].toString())) {
                                     errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as categorical, value not in value list.`);
                                     break;
                                 }
@@ -596,7 +596,7 @@ export const studyResolvers = {
             if (!searchField) {
                 throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-            for (const each of Object.keys(fieldInput)) {
+            for (const each of Object.keys(fieldInput) as Array<keyof IFieldEntry>) {
                 searchField[each] = fieldInput[each];
             }
             const { fieldEntry, error } = validateAndGenerateFieldEntry(searchField);
@@ -643,7 +643,7 @@ export const studyResolvers = {
             await db.collections!.field_dictionary_collection.findOneAndUpdate({
                 fieldId: searchField[0].fieldId,
                 studyId: studyId,
-                dataVersion: null,
+                dataVersion: null
             }, {
                 $set: fieldEntry
             }, {
@@ -655,7 +655,7 @@ export const studyResolvers = {
         },
         uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, data }: { studyId: string, data: IDataClip[] }, context: any): Promise<any> => {
             // check study exists
-            const study: any = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             const requester: IUser = context.req.user;
             /* check privileges */
@@ -721,9 +721,9 @@ export const studyResolvers = {
                 validVisits = visitIds;
             }
             if (fieldIds === undefined || fieldIds === null || fieldIds.length === 0) {
-                validFields = (await db.collections!.field_dictionary_collection.distinct('fieldId', { studyId: studyId })).reduce((acc, curr) => { acc[curr] = null; return acc; }, {});
+                validFields = (await db.collections!.field_dictionary_collection.distinct('fieldId', { studyId: studyId })).reduce<any>((acc, curr) => { acc[curr] = null; return acc; }, {});
             } else {
-                validFields = fieldIds.reduce((acc, curr) => { acc[curr] = null; return acc; }, {});
+                validFields = fieldIds.reduce<any>((acc, curr) => { acc[curr] = null; return acc; }, {});
             }
 
             const bulk = db.collections!.data_collection.initializeUnorderedBulkOp();

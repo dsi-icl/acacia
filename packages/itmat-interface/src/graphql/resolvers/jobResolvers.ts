@@ -1,6 +1,6 @@
 import { ApolloError } from 'apollo-server-express';
 import { withFilter } from 'graphql-subscriptions';
-import { Models, task_required_permissions } from 'itmat-commons';
+import { Models, task_required_permissions } from '@itmat-broker/itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -49,7 +49,7 @@ export const jobResolvers = {
 
                 /* create job */
                 const parts = file.fileName.split('.');
-                const dataFormat = parts[parts.length - 1];
+                const dataFormat = parts[parts.length - 1] as keyof typeof dataFormatToJobType;
 
                 if (!dataFormatToJobType[dataFormat]) {
                     throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -63,7 +63,7 @@ export const jobResolvers = {
                     receivedFiles: [oneFile],
                     error: null,
                     status: 'QUEUED',
-                    cancelled: false,
+                    cancelled: false
                 };
 
                 const result = await db.collections!.jobs_collection.insertOne(job);

@@ -1,4 +1,4 @@
-import { IJobEntry } from 'itmat-commons';
+import { IJobEntry } from '@itmat-broker/itmat-commons';
 
 export abstract class JobHandler {
     /* subclass can decide either singleton

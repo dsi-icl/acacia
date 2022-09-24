@@ -1,7 +1,7 @@
-import React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IUserWithoutToken, userTypes, Models, GQLRequests, GET_STUDY } from 'itmat-commons';
+import { IUserWithoutToken, userTypes, Models, GQLRequests, GET_STUDY } from '@itmat-broker/itmat-commons';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
@@ -19,7 +19,7 @@ const {
     GET_ORGANISATIONS
 } = GQLRequests;
 
-export const UserDetailsSection: React.FC = () => {
+export const UserDetailsSection: FunctionComponent = () => {
 
     const { userId } = useParams();
 
@@ -104,13 +104,13 @@ export const UserDetailsSection: React.FC = () => {
     );
 };
 
-export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: { id: string, projects: { id: string, name: string, studyId: string }[], studies: { id: string, name: string }[] } }) }> = ({ user }) => {
+export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { access?: { id: string, projects: { id: string, name: string, studyId: string }[], studies: { id: string, name: string }[] } }) }> = ({ user }) => {
 
-    const [userIsDeleted, setUserIsDeleted] = React.useState(false);
-    const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
+    const [userIsDeleted, setUserIsDeleted] = useState(false);
+    const [savedSuccessfully, setSavedSuccessfully] = useState(false);
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
     const [requestResetPassword] = useMutation(REQUEST_USERNAME_OR_RESET_PASSWORD, { onCompleted: () => { setRequestResetPasswordSent(true); } });
-    const [requestResetPasswordSent, setRequestResetPasswordSent] = React.useState(false);
+    const [requestResetPasswordSent, setRequestResetPasswordSent] = useState(false);
     const { loading: getorgsloading, error: getorgserror, data: getorgsdata } = useQuery(GET_ORGANISATIONS);
 
     function formatSubmitObj(variables) {
@@ -141,118 +141,114 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
             onCompleted={() => setSavedSuccessfully(true)}
         >
             {(submit, { loading, error }) =>
-                <>
-                    <Form initialValues={{
-                        ...user,
-                        createdAt: moment(user.createdAt),
-                        expiredAt: moment(user.expiredAt),
-                        organisation: orgList.find(org => org.id === user.organisation)?.id
-                    }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
-                        <Form.Item name='username' label='Username'>
-                            <Input disabled />
-                        </Form.Item>
-                        <Form.Item name='email' label='Email'>
-                            <Input disabled />
-                        </Form.Item>
-                        <Form.Item name='firstname' label='Firstname'>
-                            <Input disabled />
-                        </Form.Item>
-                        <Form.Item name='lastname' label='Lastname'>
-                            <Input disabled />
-                        </Form.Item>
-                        <Form.Item name='organisation' label='Organisation'>
-                            <Select placeholder='Organisation' showSearch filterOption={(input, option) =>
-                                option?.children?.toLocaleString()?.toLocaleLowerCase()?.includes(input.toLocaleLowerCase()) ?? false
-                            }>
-                                {orgList.map((org) => <Select.Option key={org.id} value={org.id}>{org.name}</Select.Option>)}
-                            </Select>
-                        </Form.Item>
-                        <Form.Item name='createdAt' label='Created On'>
-                            <DatePicker disabled style={{ width: '100%' }} />
-                        </Form.Item>
-                        {
-                            user.type === userTypes.ADMIN ? null :
-                                <Form.Item name='expiredAt' label='Expire On'>
-                                    <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
-                                </Form.Item>
-                        }
-                        <Form.Item name='type' label='User type'>
-                            <Select>
-                                <Select.Option value='STANDARD'>System user</Select.Option>
-                                <Select.Option value='ADMIN'>System admin</Select.Option>
-                            </Select>
-                        </Form.Item>
-                        {error ? (
-                            <>
-                                <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
-                                <br />
-                            </>
-                        ) : null}
-                        {savedSuccessfully ? (
-                            <>
-                                <Alert type='success' message={'All Saved!'} />
-                                <br />
-                            </>
-                        ) : null}
-                        {requestResetPasswordSent ? (
-                            <>
-                                <Alert type='success' message={'Password reset email sent!'} />
-                                <br />
-                            </>
-                        ) : null}
-                        <Form.Item>
-                            <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                <Form initialValues={{
+                    ...user,
+                    createdAt: moment(user.createdAt),
+                    expiredAt: moment(user.expiredAt),
+                    organisation: orgList.find(org => org.id === user.organisation)?.id
+                }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
+                    <Form.Item name='username' label='Username'>
+                        <Input disabled />
+                    </Form.Item>
+                    <Form.Item name='email' label='Email'>
+                        <Input disabled />
+                    </Form.Item>
+                    <Form.Item name='firstname' label='Firstname'>
+                        <Input disabled />
+                    </Form.Item>
+                    <Form.Item name='lastname' label='Lastname'>
+                        <Input disabled />
+                    </Form.Item>
+                    <Form.Item name='organisation' label='Organisation'>
+                        <Select placeholder='Organisation' showSearch filterOption={(input, option) =>
+                            option?.children?.toLocaleString()?.toLocaleLowerCase()?.includes(input.toLocaleLowerCase()) ?? false
+                        }>
+                            {orgList.map((org) => <Select.Option key={org.id} value={org.id}>{org.name}</Select.Option>)}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name='createdAt' label='Created On'>
+                        <DatePicker disabled style={{ width: '100%' }} />
+                    </Form.Item>
+                    {
+                        user.type === userTypes.ADMIN ? null :
+                            <Form.Item name='expiredAt' label='Expire On'>
+                                <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
+                            </Form.Item>
+                    }
+                    <Form.Item name='type' label='User type'>
+                        <Select>
+                            <Select.Option value='STANDARD'>System user</Select.Option>
+                            <Select.Option value='ADMIN'>System admin</Select.Option>
+                        </Select>
+                    </Form.Item>
+                    {error ? (
+                        <>
+                            <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
+                            <br />
+                        </>
+                    ) : null}
+                    {savedSuccessfully ? (
+                        <>
+                            <Alert type='success' message={'All Saved!'} />
+                            <br />
+                        </>
+                    ) : null}
+                    {requestResetPasswordSent ? (
+                        <>
+                            <Alert type='success' message={'Password reset email sent!'} />
+                            <br />
+                        </>
+                    ) : null}
+                    <Form.Item>
+                        <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
                                 Save
-                            </Button>
-                            {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
-                                ? <>
+                        </Button>
+                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
+                            ? <>
                                     &nbsp;&nbsp;&nbsp;
-                                    <Button disabled={loading} onClick={() => {
-                                        requestResetPassword({
-                                            variables: {
-                                                forgotUsername: false,
-                                                forgotPassword: true,
-                                                username: user.username
-                                            }
-                                        });
-                                    }}>
+                                <Button disabled={loading} onClick={() => {
+                                    requestResetPassword({
+                                        variables: {
+                                            forgotUsername: false,
+                                            forgotPassword: true,
+                                            username: user.username
+                                        }
+                                    });
+                                }}>
                                         Send a password reset email
-                                    </Button>
-                                </>
-                                : null
-                            }
+                                </Button>
+                            </>
+                            : null
+                        }
                             &nbsp;&nbsp;&nbsp;
-                            {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
-                                ? <>
-                                    <Mutation<any, any>
-                                        mutation={DELETE_USER}
-                                        refetchQueries={[
-                                            { query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } },
-                                            /* quick fix: TO_DO, change to cache modification later */
-                                            ...(user.access!.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
-                                        ]}
-                                    >
+                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
+                            ? <Mutation<any, any>
+                                mutation={DELETE_USER}
+                                refetchQueries={[
+                                    { query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } },
+                                    /* quick fix: TO_DO, change to cache modification later */
+                                    ...(user.access!.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
+                                ]}
+                            >
 
-                                        {(deleteUser, { loading, error, data: UserDeletedData }) => {
-                                            if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) {
-                                                setUserIsDeleted(true);
-                                            }
-                                            if (error) return <p>{error.message}</p>;
-                                            return (
-                                                <Popconfirm title={<>Are you sure about deleting user <i>{user.username}</i>?</>} onConfirm={() => { deleteUser({ variables: { userId: user.id } }); }} okText='Yes' cancelText='No'>
-                                                    <Button type='primary' danger disabled={loading}>
+                                {(deleteUser, { loading, error, data: UserDeletedData }) => {
+                                    if (UserDeletedData && UserDeletedData.deleteUser && UserDeletedData.deleteUser.successful) {
+                                        setUserIsDeleted(true);
+                                    }
+                                    if (error) return <p>{error.message}</p>;
+                                    return (
+                                        <Popconfirm title={<>Are you sure about deleting user <i>{user.username}</i>?</>} onConfirm={() => { deleteUser({ variables: { userId: user.id } }); }} okText='Yes' cancelText='No'>
+                                            <Button type='primary' danger disabled={loading}>
                                                         Delete this user
-                                                    </Button>
-                                                </Popconfirm>
-                                            );
-                                        }}
-                                    </Mutation>
-                                </>
-                                : null
-                            }
-                        </Form.Item>
-                    </Form>
-                </>
+                                            </Button>
+                                        </Popconfirm>
+                                    );
+                                }}
+                            </Mutation>
+                            : null
+                        }
+                    </Form.Item>
+                </Form>
             }
 
         </Mutation>

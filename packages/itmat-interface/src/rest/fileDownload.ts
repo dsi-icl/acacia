@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
-import { Models, task_required_permissions } from 'itmat-commons';
+import { Models, task_required_permissions } from '@itmat-broker/itmat-commons';
 import jwt from 'jsonwebtoken';
 import { UserInputError } from 'apollo-server-express';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
@@ -16,9 +16,9 @@ export const fileDownloadController = async (req: Request, res: Response): Promi
         // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
         const decodedPayload = jwt.decode(token);
         // obtain the public-key of the robot user in the JWT payload
-        const pubkey = decodedPayload.publicKey;
+        const pubkey = (decodedPayload as any).publicKey;
         // verify the JWT
-        jwt.verify(token, pubkey, function (err) {
+        jwt.verify(token, pubkey, function (err: any) {
             if (err) {
                 throw new UserInputError('JWT verification failed. ' + err);
             }

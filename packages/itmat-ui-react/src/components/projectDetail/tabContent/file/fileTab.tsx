@@ -1,13 +1,13 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
-import { GET_PROJECT, studyType } from 'itmat-commons';
+import { GET_PROJECT, studyType } from '@itmat-broker/itmat-commons';
 import { FileList } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
 import { useParams } from 'react-router-dom';
 
-export const FileTabContent: React.FunctionComponent<{ studyId: string }> = () => {
+export const FileTabContent: FunctionComponent<{ studyId: string }> = () => {
     const { projectId } = useParams();
     return <div className={css.tab_page_wrapper}>
         <Subsection title='Files'>

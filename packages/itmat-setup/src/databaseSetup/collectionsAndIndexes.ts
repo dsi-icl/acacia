@@ -6,7 +6,7 @@ const collections = {
     jobs_collection: {
         name: 'JOB_COLLECTION',
         indexes: [
-            { key: { id: 1 }, unique: true },
+            { key: { id: 1 }, unique: true }
         ]
     },
     users_collection: {
@@ -34,19 +34,19 @@ const collections = {
     queries_collection: {
         name: 'QUERY_COLLECTION',
         indexes: [
-            { key: { id: 1 }, unique: true },
+            { key: { id: 1 }, unique: true }
         ]
     },
     log_collection: {
         name: 'LOG_COLLECTION',
         indexes: [
-            { key: { id: 1 }, unique: true },
+            { key: { id: 1 }, unique: true }
         ]
     },
     data_collection: {
         name: 'DATA_COLLECTION',
         indexes: [
-            { key: { id: 1, m_subjectId: 1, m_versionId: 1, m_studyId: 1, m_visitId: 1, uploadedAt: 1 }, unique: true },
+            { key: { id: 1, m_subjectId: 1, m_versionId: 1, m_studyId: 1, m_visitId: 1, uploadedAt: 1 }, unique: true }
         ]
     },
     roles_collection: {
@@ -59,27 +59,27 @@ const collections = {
     field_dictionary_collection: {
         name: 'FIELD_COLLECTION',
         indexes: [
-            { key: { id: 1 }, unique: true },
+            { key: { id: 1 }, unique: true }
         ]
     },
     files_collection: {
         name: 'FILES_COLLECTION',
         indexes: [
-            { key: { id: 1 }, unique: true },
+            { key: { id: 1 }, unique: true }
         ]
     },
     organisations_collection: {
         name: 'ORGANISATION_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true },
-            { key: { name: 1 }, unique: true },
+            { key: { name: 1 }, unique: true }
         ]
     },
     pubkeys_collection: {
         name: 'PUBKEY_COLLECTION',
         indexes: [
             { key: { id: 1 }, unique: true },
-            { key: { pubkey: 1 }, unique: true },
+            { key: { pubkey: 1 }, unique: true }
         ]
     },
     standardizations_collection: {
@@ -96,12 +96,12 @@ export async function setupDatabase(mongostr: string, databaseName: string): Pro
     const existingCollections = (await db.listCollections({}).toArray()).map((el) => el.name);
 
     /* creating collections and indexes */
-    for (const each of Object.keys(collections)) {
+    for (const each of Object.keys(collections) as Array<keyof typeof collections>) {
         if (existingCollections.includes(collections[each].name)) {
             await db.dropCollection(collections[each].name);
         }
         const collection = await db.createCollection(collections[each].name);
-        await collection.createIndexes(collections[each].indexes);
+        await collection.createIndexes(collections[each].indexes as Array<mongo.IndexDescription>);
     }
 
 

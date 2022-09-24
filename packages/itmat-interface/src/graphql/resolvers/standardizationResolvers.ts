@@ -1,4 +1,4 @@
-import { IProject, IStandardization, IUser, permissions } from 'itmat-commons';
+import { IProject, IStandardization, IUser, permissions } from '@itmat-broker/itmat-commons';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
 import { ApolloError } from 'apollo-server-express';
@@ -9,7 +9,7 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 
 export const standardizationResolvers = {
     Query: {
-        getStandardization: async (__unused__parent: Record<string, unknown>, { studyId, projectId, type }: { studyId: string, projectId, type: string }, context: any): Promise<IStandardization[]> => {
+        getStandardization: async (__unused__parent: Record<string, unknown>, { studyId, projectId, type }: { studyId: string, projectId: string, type: string }, context: any): Promise<IStandardization[]> => {
             let modifiedStudyId = studyId;
 
             /* check study exists */
@@ -72,7 +72,7 @@ export const standardizationResolvers = {
             if (studySearchResult === null || studySearchResult === undefined) {
                 throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-            const stdRulesWithId: any = [...standardization.stdRules];
+            const stdRulesWithId: any[] = [...standardization.stdRules];
             stdRulesWithId.forEach(el => {
                 el.id = uuid();
             });
@@ -84,7 +84,7 @@ export const standardizationResolvers = {
                 path: standardization.path,
                 stdRules: stdRulesWithId || [],
                 joinByKeys: standardization.joinByKeys || [],
-                deleted: null,
+                deleted: null
             };
 
             await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, type: standardization.type, field: standardization.field }, {

@@ -1,9 +1,9 @@
 import { print } from 'graphql';
-import * as itmatCommons from 'itmat-commons';
+import { GQLRequests } from '@itmat-broker/itmat-commons';
 import * as mfa from '../../src/utils/mfa';
 import { SuperTest, Test } from 'supertest';
 
-const { LOGIN, LOGOUT } = itmatCommons.GQLRequests;
+const { LOGIN, LOGOUT } = GQLRequests;
 
 export function connectAdmin(agent: SuperTest<Test>): Promise<void> {
     const adminSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';
@@ -33,7 +33,7 @@ export function connectAgent(agent: SuperTest<Test>, user: string, pw: string, s
 export function disconnectAgent(agent: SuperTest<Test>): Promise<void> {
     return new Promise((resolve, reject) => agent.post('/graphql')
         .send({
-            query: print(LOGOUT),
+            query: print(LOGOUT)
         })
         .then(res => {
             if (res.status === 200)

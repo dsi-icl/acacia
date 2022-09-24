@@ -1,9 +1,9 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { DatasetList } from './datasetList';
 import css from './datasetPage.module.css';
 import { AddNewDataSet } from './addNewDataSet';
 
-export const DatasetListPage: React.FunctionComponent = () => {
+export const DatasetListPage: FunctionComponent = () => {
     return (
         <div className={css.page_container}>
             <div className={css.project_list + ' page_section'}>

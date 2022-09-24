@@ -1,14 +1,14 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { useQuery } from '@apollo/client/react/hooks';
 import { Route, Routes, useParams, Navigate } from 'react-router-dom';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import { ProjectDetail } from './detailSections/projectDetail';
 import { ProjectListSection, AddNewProject } from './projectListSection';
 import LoadSpinner from '../../../reusable/loadSpinner';
-import { WHO_AM_I, userTypes } from 'itmat-commons';
+import { WHO_AM_I, userTypes } from '@itmat-broker/itmat-commons';
 import css from './tabContent.module.css';
 
-export const ProjectsTabContent: React.FunctionComponent<{ projectList: { id: string; name: string }[] }> = ({ projectList }) => {
+export const ProjectsTabContent: FunctionComponent<{ projectList: { id: string; name: string }[] }> = ({ projectList }) => {
     const { studyId } = useParams();
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     if (whoAmILoading) {

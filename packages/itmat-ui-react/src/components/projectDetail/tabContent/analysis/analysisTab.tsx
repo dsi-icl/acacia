@@ -1,8 +1,8 @@
+import { FunctionComponent, useEffect, useState } from 'react';
 import { statisticsTypes, analysisTemplate, options, dataTypeMapping } from '../utils/defaultParameters';
 import { get_t_test, get_z_test, mannwhitneyu, findDmField, generateCascader } from '../../../../utils/tools';
-import * as React from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
-import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, IFieldEntry, IProject, enumValueType, GET_ONTOLOGY_TREE, IOntologyTree, IOntologyRoute } from 'itmat-commons';
+import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, IFieldEntry, IProject, enumValueType, GET_ONTOLOGY_TREE, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-commons';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
@@ -16,7 +16,7 @@ const { SHOW_CHILD } = Cascader;
 const { Panel } = Collapse;
 const { Title, Text } = Typography;
 
-export const AnalysisTabContent: React.FunctionComponent<{ studyId: string }> = ({ studyId }) => {
+export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { projectId } = useParams();
 
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId, projectId: projectId } });
@@ -24,8 +24,8 @@ export const AnalysisTabContent: React.FunctionComponent<{ studyId: string }> = 
     const [getDataRecords, { loading: getDataRecordsLoading, data: getDataRecordsData }] = useLazyQuery(GET_DATA_RECORDS, {
         fetchPolicy: 'network-only'
     });
-    const [currentStep, setCurrentStep] = React.useState(-1);
-    const [filters, setFilters] = React.useState<any>({
+    const [currentStep, setCurrentStep] = useState(-1);
+    const [filters, setFilters] = useState<any>({
         groups: [],
         comparedFields: []
     });
@@ -78,13 +78,13 @@ export const AnalysisTabContent: React.FunctionComponent<{ studyId: string }> = 
     </div>);
 };
 
-const FilterSelector: React.FunctionComponent<{ guideTool: any, filtersTool: any, fields: IFieldEntry[], project: IProject, query: any, ontologyTree: IOntologyTree, fieldPathOptions: any, dmFields: any[] }> = ({ guideTool, filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
-    const [isModalOn, setIsModalOn] = React.useState(false);
-    const [isTemplateModalOn, setIsTemplateModalOn] = React.useState(false);
-    const [templateType, setTemplateType] = React.useState<string | undefined>('NA');
-    const [currentGroupIndex, setCurrentGroupIndex] = React.useState(-1);
+const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fields: IFieldEntry[], project: IProject, query: any, ontologyTree: IOntologyTree, fieldPathOptions: any, dmFields: any[] }> = ({ guideTool, filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
+    const [isModalOn, setIsModalOn] = useState(false);
+    const [isTemplateModalOn, setIsTemplateModalOn] = useState(false);
+    const [templateType, setTemplateType] = useState<string | undefined>('NA');
+    const [currentGroupIndex, setCurrentGroupIndex] = useState(-1);
     const [form] = Form.useForm();
-    React.useEffect(() => {
+    useEffect(() => {
         form.setFieldsValue(formInitialValues(form, filtersTool[0], currentGroupIndex));
     });
     const [genderField, raceField] = dmFields;
@@ -126,7 +126,7 @@ const FilterSelector: React.FunctionComponent<{ guideTool: any, filtersTool: any
                             <Progress
                                 strokeColor={{
                                     from: '#108ee9',
-                                    to: '#87d068',
+                                    to: '#87d068'
                                 }}
                                 style={{ width: '80%' }}
                                 percent={(guideTool[0] + 1) / popoverContents.length * 100}
@@ -443,9 +443,9 @@ const FilterSelector: React.FunctionComponent<{ guideTool: any, filtersTool: any
     </div >);
 };
 
-const ResultsVisualization: React.FunctionComponent<{ project: IProject, fields: IFieldEntry[], data: any }> = ({ project, fields, data }) => {
-    const [statisticsType, setStatisticsType] = React.useState('ttest');
-    const [signifianceLevel, setSignigicanceLevel] = React.useState<number | undefined>(undefined);
+const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFieldEntry[], data: any }> = ({ project, fields, data }) => {
+    const [statisticsType, setStatisticsType] = useState('ttest');
+    const [signifianceLevel, setSignigicanceLevel] = useState<number | undefined>(undefined);
     if (data === undefined) {
         return null;
     }
@@ -629,14 +629,14 @@ const ResultsVisualization: React.FunctionComponent<{ project: IProject, fields:
                             return {
                                 type: 'square',
                                 cfg: {
-                                    backgroundColor: 'orange', // custom color
+                                    backgroundColor: 'orange' // custom color
                                 }
                             };
                         } else {
                             return {
                                 type: 'square',
                                 cfg: {
-                                    backgroundColor: 'white', // custom color
+                                    backgroundColor: 'white' // custom color
                                 }
                             };
                         }
@@ -658,7 +658,7 @@ const ResultsVisualization: React.FunctionComponent<{ project: IProject, fields:
                     }}
                 />);
             }
-        },
+        }
     ];
     return (<div>
         <SubsectionWithComment title='Results' comment={<div>
@@ -777,7 +777,7 @@ function variableFilterColumns(guideTool: any, fields: IFieldEntry[], remove: an
             dataIndex: 'delete',
             key: 'delete',
             align: 'center' as const,
-            render: (__unused__value, record, __unused__index) => {
+            render: (__unused__value, record) => {
                 return (
                     <MinusCircleOutlined onClick={() => remove(record.name)} />
                 );
@@ -1021,7 +1021,7 @@ function divideResults(filters, results, fields, dmFields: any[]) {
         genderID: dmFields[0],
         race: dmFields[1],
         age: dmFields[2],
-        siteID: dmFields[3],
+        siteID: dmFields[3]
     };
     filters.comparedFields.forEach(el => {
         const fieldDef: IFieldEntry = fields.filter(ek => ek.fieldId === el)[0];

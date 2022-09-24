@@ -1,4 +1,4 @@
-import { IJobEntry } from 'itmat-commons';
+import { IJobEntry } from '@itmat-broker/itmat-commons';
 import { JobHandler } from '../jobHandlers/jobHandlerInterface';
 
 export class JobDispatcher {

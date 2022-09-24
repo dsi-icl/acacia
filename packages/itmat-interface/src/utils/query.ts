@@ -1,4 +1,4 @@
-import { IStudy, IFieldEntry, IStandardization } from 'itmat-commons';
+import { IStudy, IFieldEntry, IStandardization } from '@itmat-broker/itmat-commons';
 /*
     queryString:
         format: string                  # returned foramt: raw, standardized, grouped, summary
@@ -103,7 +103,7 @@ function createNewField(expression: any) {
                     {
                         $or: [
                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] },
+                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
                         ]
                     },
                     '99999',
@@ -119,7 +119,7 @@ function createNewField(expression: any) {
                     {
                         $or: [
                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] },
+                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
                         ]
                     },
                     '99999',
@@ -135,7 +135,7 @@ function createNewField(expression: any) {
                     {
                         $or: [
                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] },
+                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
                         ]
                     },
                     '99999',
@@ -151,7 +151,7 @@ function createNewField(expression: any) {
                     {
                         $or: [
                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] },
+                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
                         ]
                     },
                     '99999',
@@ -301,7 +301,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                 if (!data[subjectId][visitId][field.fieldId]) {
                     continue;
                 }
-                const dataClip = {};
+                const dataClip: any = {};
                 for (const rule of standardization.stdRules) {
                     if (!rule.parameter) {
                         continue;
@@ -317,7 +317,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                             break;
                         }
                         case 'fieldDef': {
-                            dataClip[rule.entry] = fieldDef[rule.parameter[0]] || '';
+                            dataClip[rule.entry] = fieldDef[rule.parameter[0] as keyof IFieldEntry] as any || '';
                             break;
                         }
                         case 'value': {

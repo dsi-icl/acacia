@@ -9,7 +9,7 @@ import { organisationResolvers } from './organisationResolvers';
 import { pubkeyResolvers } from './pubkeyResolvers';
 import { ApolloError } from 'apollo-server-core';
 import { errorCodes } from '../errors';
-import { IUser } from 'itmat-commons';
+import { IUser } from '@itmat-broker/itmat-commons';
 import { logResolvers } from './logResolvers';
 import { standardizationResolvers } from './standardizationResolvers';
 

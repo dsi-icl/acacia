@@ -2,13 +2,13 @@
     --font-size-root: 13px;
     --font-size: 0.9rem;
     --font-size-big: 1.5rem;
-     /* override the default colours and add class to <App/>*/
+    /* override the default colours and add class to <App/>*/
     --font-weight: normal;
     --color-font-color: rgb(31, 31, 31);
-    --color-background: 	#ffffff;
+    --color-background: #ffffff;
     --color-primary-color: #3a434c;
-    --color-error:rgb(15, 9, 9);
-    --color-main-menu-border: rgba(0,0,0,0);
+    --color-error: rgb(15, 9, 9);
+    --color-main-menu-border: rgba(0, 0, 0, 0);
     --color-main-menu: #3a434c;
     --color-button-hover: #3a434c;
     --color-button-active: #566371;
@@ -36,38 +36,14 @@
     --color-popup: #131212;
     --color-popup-border: #4a4a4a;
     --color-status-cancelled: #9e78d0;
-    --animation-duration: 0.4s;  /* set to 0 if customised */   --font-family: 'Inter';
+    /* set to 0 if customised */
+    --animation-duration: 0.4s;
+    --font-family: 'Inter';
 }
 
-@font-face {
-    font-family: "Chivo";
-    src: url("../font/Chivo/Chivo-Regular.ttf");
-}
-
-@font-face {
-    font-family: "Chivo";
-    src: url("../font/Chivo/Chivo-Bold.ttf");
-    font-weight: bold;
-}
-
-@font-face {
-    font-family: "Chivo";
-    src: url("../font/Chivo/Chivo-Light.ttf");
-    font-weight: lighter;
-}
-
-@font-face {
-    font-family: "Cairo";
-    src: url("../font/Cairo/Cairo-Regular.ttf");
-}
-@font-face {
-    font-family: "Cairo";
-    src: url("../font/Cairo/Cairo-Bold.ttf");
-    font-weight: bold;
-}
 @font-face {
     font-family: "Inter";
-    src: url("../font/Inter/Inter-VariableFont_slnt\,wght.ttf");
+    src: url("../font/Inter/Inter-VariableFont.ttf");
 }
 
 * {
@@ -83,7 +59,9 @@
     font-family: var(--font-family);
 }
 
-html, body, #root {
+html,
+body,
+#root {
     background-color: var(--color-background);
     position: fixed;
     font-size: var(--font-size-root);
@@ -102,9 +80,9 @@ html, body, #root {
 .page_section {
     height: 100%;
     display: grid;
-    grid-template-columns: 100%; 
-    grid-template-rows: 60px calc(100% - 60px); 
-    grid-template-areas: 
+    grid-template-columns: 100%;
+    grid-template-rows: 60px calc(100% - 60px);
+    grid-template-areas:
         "ariane"
         "content";
 }
@@ -113,7 +91,7 @@ html, body, #root {
     background: var(--color-additional-panel-background);
 }
 
-.additional_panel > .page_ariane {
+.additional_panel>.page_ariane {
     background: var(--color-additional-panel-ariane);
 }
 
@@ -146,13 +124,25 @@ html, body, #root {
 }
 
 @keyframes fade_in {
-    from { transform: translate(-15px); opacity: 0.5;}
-    to { transform: translate(0); opacity: 1;}
+    from {
+        transform: translate(-15px);
+        opacity: 0.5;
+    }
+
+    to {
+        transform: translate(0);
+        opacity: 1;
+    }
 }
 
 @keyframes fade_in_opacity {
-    from { opacity: 0.2;}
-    to { opacity: 1;}
+    from {
+        opacity: 0.2;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .fade_in_opacity {
@@ -160,9 +150,17 @@ html, body, #root {
 }
 
 @keyframes error_banner_blink {
-    0% { background: rgb(224, 66, 66)}
-    50% { background: rgb(233, 106, 106)}
-    100% { background: rgb(224, 66, 66)}
+    0% {
+        background: rgb(224, 66, 66)
+    }
+
+    50% {
+        background: rgb(233, 106, 106)
+    }
+
+    100% {
+        background: rgb(224, 66, 66)
+    }
 }
 
 .error_banner {
@@ -178,9 +176,17 @@ html, body, #root {
 }
 
 @keyframes save_banner_blink {
-    0% { background: rgb(132, 175, 66)}
-    50% { background: rgb(179, 240, 88)}
-    100% { background: rgb(132, 175, 66)}
+    0% {
+        background: rgb(132, 175, 66)
+    }
+
+    50% {
+        background: rgb(179, 240, 88)
+    }
+
+    100% {
+        background: rgb(132, 175, 66)
+    }
 }
 
 .saved_banner {
@@ -196,14 +202,22 @@ html, body, #root {
 }
 
 @keyframes warning_banner_blink {
-    0% { background: rgb(255, 238, 0)}
-    50% { background: rgb(255, 249, 172)}
-    100% { background: rgb(255, 238, 0)}
+    0% {
+        background: rgb(255, 238, 0)
+    }
+
+    50% {
+        background: rgb(255, 249, 172)
+    }
+
+    100% {
+        background: rgb(255, 238, 0)
+    }
 }
 
 
 
-.warning_banner{
+.warning_banner {
     background: rgb(255, 238, 0);
     border-radius: 0.2rem;
     margin: 0.5rem 0 0.5rem 0;
@@ -219,34 +233,33 @@ html, body, #root {
 /* width */
 ::-webkit-scrollbar {
     width: 10px;
-  }
-  
-  /* Track */
-  ::-webkit-scrollbar-track {
-    background: var(--color-background); 
-  }
-  
-  /* Handle */
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-scroll-bar-hover);
-  }
+}
 
-  ::-webkit-scrollbar-thumb:active {
+/* Track */
+::-webkit-scrollbar-track {
+    background: var(--color-background);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-scroll-bar-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
     background: var(--color-scroll-bar-active);
     cursor: pointer;
-  }
-  
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-scroll-bar);
-  }
+}
 
-  #container {
+/* Handle on hover */
+::-webkit-scrollbar-thumb {
+    background: var(--color-scroll-bar);
+}
+
+#container {
     margin: 0;
     padding: 0;
     border: 0;
     width: 100%;
     height: 100%;
     grid-area: editorCore
-  }
-  
+}

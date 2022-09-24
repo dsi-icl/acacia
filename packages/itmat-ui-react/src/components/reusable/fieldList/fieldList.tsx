@@ -1,9 +1,8 @@
-import { Models, enumValueType } from 'itmat-commons';
-import * as React from 'react';
+import { FunctionComponent } from 'react';
+import { Models, enumValueType } from '@itmat-broker/itmat-commons';
 import { Table, Tooltip } from 'antd';
-import 'antd/lib/tree/style/css';
 
-export const FieldListSection: React.FunctionComponent<{ studyData?: any, onCheck?: any; checkedList?: string[]; checkable: boolean; fieldList: Models.Field.IFieldEntry[]; verbal?: boolean }> = ({ onCheck, checkedList, checkable, fieldList, verbal }) => {
+export const FieldListSection: FunctionComponent<{ studyData?: any, onCheck?: any; checkedList?: string[]; checkable: boolean; fieldList: Models.Field.IFieldEntry[]; verbal?: boolean }> = ({ onCheck, checkedList, checkable, fieldList, verbal }) => {
     const possibleValuesColumns = [
         {
             title: 'Code',
@@ -40,7 +39,7 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
                 <Tooltip placement='topLeft' title={record.fieldName}>
                     {record.fieldName}
                 </Tooltip>
-            ),
+            )
         },
         {
             title: 'Table Name',
@@ -83,7 +82,7 @@ export const FieldListSection: React.FunctionComponent<{ studyData?: any, onChec
             render: (__unused__value, record) => {
                 return record.comments;
             }
-        },
+        }
     ];
     if (checkable) {
         return (<Table

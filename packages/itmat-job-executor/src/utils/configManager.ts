@@ -1,6 +1,7 @@
 import merge from 'deepmerge';
 import fs from 'fs-extra';
-import { IObjectStoreConfig, IDatabaseBaseConfig } from 'itmat-commons';
+import path from 'path';
+import { IObjectStoreConfig, IDatabaseBaseConfig } from '@itmat-broker/itmat-commons';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
 
@@ -11,22 +12,26 @@ export interface IConfiguration extends IServerConfig {
 
 class ConfigurationManager {
 
-    public static expand(configurationFile: string): IConfiguration {
+    public static expand(configurationFiles: string[]): IConfiguration {
 
-        try {
+        let config = configDefaults;
+        console.log('Applied default configuration.');
+
+        configurationFiles.forEach((configurationFile) => {
             if (fs.existsSync(configurationFile)) {
-
                 const content = fs.readFileSync(configurationFile, 'utf8');
-
-                return merge(configDefaults, JSON.parse(content));
+                try {
+                    config = merge(config, JSON.parse(content));
+                    console.log(`Applied configuration from ${path.resolve(configurationFile)}.`);
+                } catch (e) {
+                    console.error('Could not parse configuration file.');
+                }
             }
-        } catch (e) {
-            console.error('Could not parse configuration file.');
-        }
+        });
 
-        return configDefaults;
+        return config;
     }
 
 }
 
-export default ConfigurationManager.expand('config/config.json');
+export default ConfigurationManager.expand((process.env.NODE_ENV === 'development' ? [path.join(__dirname.replace('dist', ''), 'config/config.json')] : []).concat(['config/config.json']));
