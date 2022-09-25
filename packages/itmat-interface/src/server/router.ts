@@ -23,11 +23,15 @@ import { spaceFixing } from '../utils/regrex';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
-// const MongoStore = connectMongo(session);
+import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
+import qs from 'qs';
+import { IUser } from '@itmat-broker/itmat-commons';
+
 
 export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
+    public readonly proxies: Array<RequestHandler> = [];
 
     constructor(config: IConfiguration) {
 
@@ -139,6 +143,61 @@ export class Router {
             }
         });
 
+        /* AE proxy middleware */
+        // initial this before graphqlUploadExpress middleware
+        const ae_proxy = createProxyMiddleware({
+            target: config.aeEndpoint,
+            ws: true,
+            xfwd: true,
+            // logLevel: 'debug',
+            autoRewrite: true,
+            changeOrigin: true,
+            onProxyReq: function (preq, req, res) {
+                if (!req.user)
+                    return res.status(403).redirect('/');
+                res.cookie('ae_proxy', req.headers['host']);
+                const data = (req.user as IUser).username + ':token';
+                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+                if (req.method == 'POST' && req.body) {
+                    const contentType = preq.getHeader('Content-Type');
+                    preq.setHeader('origin', config.aeEndpoint);
+                    const writeBody = (bodyData: string) => {
+                        preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                        preq.write(bodyData);
+                        preq.end();
+                    };
+
+                    if (contentType === 'application/json') {  // contentType.includes('application/json')
+                        writeBody(JSON.stringify(req.body));
+                    }
+
+                    if (contentType === 'application/x-www-form-urlencoded') {
+                        writeBody(qs.stringify(req.body));
+                    }
+
+                }
+            },
+            onProxyReqWs: function (preq) {
+                const data = 'username:token';
+                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+            },
+            onError: function (err, req, res, target) {
+                console.error(err, target);
+            }
+        });
+
+        this.proxies.push(ae_proxy);
+
+        /* AE routers */
+        // pun for AE portal
+        // node and rnode for AE application
+        // public for public resource like favicon and logo
+        const proxy_routers = ['/pun', '/node', '/rnode', '/public'];
+
+        proxy_routers.forEach(router => {
+            this.app.use(router, ae_proxy);
+        });
+
         this.app.use(graphqlUploadExpress());
 
         gqlServer.start().then(() => {
@@ -175,6 +234,10 @@ export class Router {
 
     public getApp(): Express {
         return this.app;
+    }
+
+    public getProxy(): RequestHandler {
+        return this.proxies[0];
     }
 
     public getServer(): http.Server {

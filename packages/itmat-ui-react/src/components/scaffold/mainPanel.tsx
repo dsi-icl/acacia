@@ -21,6 +21,7 @@ export const MainPanel: FunctionComponent = () => {
                 <Route path='/users/:userId' element={<UserPage />} />
                 <Route path='/logs' element={<LogPage />} />
                 <Route path='/profile' element={<ProfilePage />} />
+                <Route path='/pun/sys/dashboard' />
                 <Route path='*' element={<Navigate to='/datasets' />} />
             </Routes>
         </div>

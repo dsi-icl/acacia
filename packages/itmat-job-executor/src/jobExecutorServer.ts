@@ -1,6 +1,5 @@
 // External node module imports
 import { v4 as uuid } from 'uuid';
-import { Express } from 'express';
 import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
@@ -24,7 +23,7 @@ class ITMATJobExecutorServer extends Server {
      * @return {Promise} Resolve to a native Express.js router ready to use on success.
      * In case of error, an ErrorStack is rejected.
      */
-    public start(): Promise<Express> {
+    public start(): Promise<Router> {
         const _this = this;
         return new Promise((resolve, reject) => {
 
@@ -53,7 +52,7 @@ class ITMATJobExecutorServer extends Server {
                     poller.setInterval();
 
                     // Return the Express application
-                    return resolve(_this.router.getApp());
+                    return resolve(_this.router);
 
                 }).catch((err) => reject(err));
         });

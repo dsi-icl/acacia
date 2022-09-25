@@ -1,4 +1,3 @@
-
 // eslint:disable: no-console
 import { Express } from 'express';
 import { Socket } from 'net';
@@ -13,10 +12,10 @@ let interfaceRouter: Express;
 
 function serverStart() {
     console.info(`Starting executor server ${process.pid} ...`);
-    interfaceServer.start().then((itmatRouter: Express) => {
+    interfaceServer.start().then((itmatRouter) => {
 
-        interfaceRouter = itmatRouter;
-        interfaceSocket = itmatRouter.listen(config.server.port, () => {
+        interfaceRouter = itmatRouter.getApp();
+        interfaceSocket = interfaceRouter.listen(config.server.port, () => {
             console.info(`Listening at http://localhost:${config.server.port}/`);
         })
             .on('connection', (socket) => {
@@ -49,7 +48,7 @@ function serverSpinning() {
         interfaceSockets = [];
         interfaceSocket.close(() => {
             console.info(`Shuting down executor server ${process.pid} ...`);
-            interfaceRouter?.on?.('close', () => {
+            interfaceRouter?.on('close', () => {
                 serverStart();
             }) || serverStart();
         });

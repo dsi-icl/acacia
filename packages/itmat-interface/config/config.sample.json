@@ -38,5 +38,6 @@
     "nodemailer": {
         "auth": {}
     },
-    "adminEmail": "admin@example.com"
+    "adminEmail": "admin@example.com",
+    "aeEndpoint": "http://localhost:9090"
 }

@@ -34,5 +34,6 @@
     },
     "sessionsSecret": "Change_Me",
     "aesSecret": "change_this",
-    "nodemailer": {}
+    "nodemailer": {},
+    "aeEndpoint": "http://localhost:9090"
 }

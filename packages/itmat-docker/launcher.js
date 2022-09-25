@@ -20,7 +20,7 @@ Promise.all([
 
     routers.forEach((router) => {
         // Linking itmat's router on /api
-        root.use('/', router);
+        root.use('/', router.getApp());
     });
 
     // Binding static resources folder

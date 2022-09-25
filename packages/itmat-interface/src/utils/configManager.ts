@@ -14,6 +14,7 @@ export interface IConfiguration extends IServerConfig {
     aesSecret: string;
     sessionsSecret: string;
     adminEmail: string;
+    aeEndpoint: string;
 }
 
 class ConfigurationManager {
