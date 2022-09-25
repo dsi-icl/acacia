@@ -67,11 +67,14 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
             </NavLink>
         </div>
 
-        <div>
-            <NavLink to='/pun/sys/dashboard' target='_blank' title='Analytical Environment' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
-                <div className={css.button}><DesktopOutlined />Analytical Environment</div>
-            </NavLink>
-        </div>
+        {window.location.origin.includes('staging') || window.location.origin.includes('localhost')
+            ? <div>
+                <NavLink to='/pun/sys/dashboard' target='_blank' title='Analytical Environment' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
+                    <div className={css.button}><DesktopOutlined />Analytical Environment</div>
+                </NavLink>
+            </div>
+            : null
+        }
 
         <div>
             <NavLink title='Logout' to='/'>
