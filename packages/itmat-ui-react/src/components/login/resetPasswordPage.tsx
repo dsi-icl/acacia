@@ -1,7 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
-import { GQLRequests } from '@itmat-broker/itmat-commons';
+import { VALIDATE_RESET_PASSWORD, RESET_PASSWORD } from '@itmat-broker/itmat-models';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import css from '../login/login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
@@ -12,7 +12,7 @@ export const ResetPasswordPage: FunctionComponent = () => {
     const { encryptedEmail, token } = useParams();
     const navigate = useNavigate();
     const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = useState(false);
-    const { loading, error } = useQuery(GQLRequests.VALIDATE_RESET_PASSWORD, {
+    const { loading, error } = useQuery(VALIDATE_RESET_PASSWORD, {
         variables: {
             encryptedEmail: encryptedEmail,
             token: token
@@ -60,7 +60,7 @@ export const ResetPasswordPage: FunctionComponent = () => {
 
     return (
         <Mutation<any, any>
-            mutation={GQLRequests.RESET_PASSWORD}
+            mutation={RESET_PASSWORD}
             onCompleted={() => {
                 setPasswordSuccessfullyChanged(true);
             }}

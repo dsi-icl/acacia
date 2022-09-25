@@ -25,7 +25,7 @@ import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
-import { IUser } from '@itmat-broker/itmat-commons';
+import { IUser } from '@itmat-broker/itmat-types';
 
 
 export class Router {

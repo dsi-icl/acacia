@@ -14,11 +14,11 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { Db, MongoClient } from 'mongodb';
-import { studyType, permissions, GQLRequests, IStudy, IUser, IRole, IFile } from '@itmat-broker/itmat-commons';
+import { permissions, studyType, IStudy, IUser, IRole, IFile } from '@itmat-broker/itmat-types';
+import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } from '@itmat-broker/itmat-models';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
-const { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } = GQLRequests;
 
 if (global.hasMinio) {
     let app: Express;

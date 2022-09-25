@@ -1,4 +1,5 @@
-import { Logger, IJobEntry } from '@itmat-broker/itmat-commons';
+import { IJobEntry } from '@itmat-broker/itmat-types';
+import { Logger } from '@itmat-broker/itmat-commons';
 import { db } from '../database/database';
 import { pipelineGenerator } from './pipeLineGenerator';
 import { JobHandler } from '../jobHandlers/jobHandlerInterface';

@@ -1,6 +1,6 @@
 import { db } from '../database/database';
 import { v4 as uuid } from 'uuid';
-import { LOG_TYPE, LOG_ACTION, LOG_STATUS, USER_AGENT, userTypes } from '@itmat-broker/itmat-commons';
+import { LOG_TYPE, LOG_ACTION, LOG_STATUS, USER_AGENT, userTypes } from '@itmat-broker/itmat-types';
 
 // only requests in white list will be recorded
 export const logActionRecordWhiteList = Object.keys(LOG_ACTION);

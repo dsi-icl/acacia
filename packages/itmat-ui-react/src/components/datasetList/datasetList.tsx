@@ -1,7 +1,8 @@
 import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useNavigate } from 'react-router-dom';
-import { Models, WHO_AM_I } from '@itmat-broker/itmat-commons';
+import { IStudy } from '@itmat-broker/itmat-types';
+import { WHO_AM_I } from '@itmat-broker/itmat-models';
 import { Button, Table } from 'antd';
 import { ContainerOutlined } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -26,7 +27,7 @@ export const DatasetList: FunctionComponent = () => {
     );
 };
 
-const PickDatasetSection: FunctionComponent<{ datasets: Models.Study.IStudy[] }> = ({ datasets }) => {
+const PickDatasetSection: FunctionComponent<{ datasets: IStudy[] }> = ({ datasets }) => {
 
     const navigate = useNavigate();
     const columns = [

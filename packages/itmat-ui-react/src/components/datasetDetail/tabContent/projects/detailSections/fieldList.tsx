@@ -1,12 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
-import {
-    EDIT_PROJECT_APPROVED_FIELDS,
-    GET_STUDY,
-    GET_STUDY_FIELDS,
-    IFieldEntry
-} from '@itmat-broker/itmat-commons';
+import { EDIT_PROJECT_APPROVED_FIELDS, GET_STUDY, GET_STUDY_FIELDS } from '@itmat-broker/itmat-models';
+import { IFieldEntry } from '@itmat-broker/itmat-types';
 import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../../reusable/loadSpinner';
 import { Button } from 'antd';

@@ -1,4 +1,4 @@
-import { IProject, IStandardization, IUser, permissions } from '@itmat-broker/itmat-commons';
+import { permissions, IProject, IStandardization, IUser } from '@itmat-broker/itmat-types';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
 import { ApolloError } from 'apollo-server-express';

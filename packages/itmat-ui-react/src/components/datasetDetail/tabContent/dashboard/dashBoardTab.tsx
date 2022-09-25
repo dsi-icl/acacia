@@ -1,5 +1,5 @@
 import { FunctionComponent } from 'react';
-import { IJobEntry } from '@itmat-broker/itmat-commons';
+import { IJobEntry } from '@itmat-broker/itmat-types';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import { JobSection } from './jobs';
 import css from './tabContent.module.css';

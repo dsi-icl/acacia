@@ -8,19 +8,6 @@ const getWebpackConfig = (config, { options }) => {
     const webpackConfig = getNxReactWebpackConfig(config);
     const baseHref = options?.baseHref ?? '/';
 
-    // Usage of server modules in `itmat-commons` requires us to explicitly set fallbacks
-    // Investigate spliting the `itmat-commons` package
-    webpackConfig.resolve.fallback = {
-        minio: false,
-        crypto: false,
-        path: false,
-        fs: false,
-        http: false,
-        https: false,
-        timers: false,
-        stream: require.resolve('stream-browserify')
-    };
-
     webpackConfig.plugins.splice(0, 0, new webpack.EnvironmentPlugin({
         NX_REACT_APP_VERSION: version,
         NX_REACT_APP_COMMIT: git.short(),

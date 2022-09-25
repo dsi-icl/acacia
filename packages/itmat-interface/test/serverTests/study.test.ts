@@ -28,17 +28,7 @@ import {
     DELETE_PROJECT,
     EDIT_PROJECT_APPROVED_FILES,
     SET_DATAVERSION_AS_CURRENT,
-    userTypes,
-    permissions,
-    IDataEntry,
-    IUser,
-    IFile,
-    IFieldEntry,
-    IStudyDataVersion,
-    IStudy,
-    enumValueType,
     EDIT_STUDY,
-    studyType,
     UPLOAD_DATA_IN_ARRAY,
     DELETE_DATA_RECORDS,
     GET_DATA_RECORDS,
@@ -48,10 +38,22 @@ import {
     DELETE_FIELD,
     CREATE_ONTOLOGY_TREE,
     DELETE_ONTOLOGY_TREE,
-    GET_ONTOLOGY_TREE,
+    GET_ONTOLOGY_TREE
+} from '@itmat-broker/itmat-models';
+import {
+    permissions,
+    userTypes,
+    studyType,
+    enumValueType,
+    IDataEntry,
+    IUser,
+    IFile,
+    IFieldEntry,
+    IStudyDataVersion,
+    IStudy,
     IProject,
     IRole
-} from '@itmat-broker/itmat-commons';
+} from '@itmat-broker/itmat-types';
 import { Express } from 'express';
 
 

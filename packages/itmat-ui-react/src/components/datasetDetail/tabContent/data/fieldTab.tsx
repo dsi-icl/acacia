@@ -1,6 +1,7 @@
 import { FunctionComponent, useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { CREATE_STANDARDIZATION, GET_STANDARDIZATION, IStandardization, GET_ONTOLOGY_TREE } from '@itmat-broker/itmat-commons';
+import { CREATE_STANDARDIZATION, GET_STANDARDIZATION, GET_ONTOLOGY_TREE } from '@itmat-broker/itmat-models';
+import { IStandardization } from '@itmat-broker/itmat-types';
 import { DeleteOutlined, FrownTwoTone, SmileTwoTone, PlusOutlined } from '@ant-design/icons';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { generateCascader } from '../../../../utils/tools';

@@ -21,10 +21,6 @@ import {
     CREATE_PROJECT,
     CREATE_STUDY,
     DELETE_STUDY,
-    userTypes,
-    permissions,
-    IUser,
-    studyType,
     UPLOAD_DATA_IN_ARRAY,
     GET_DATA_RECORDS,
     CREATE_NEW_DATA_VERSION,
@@ -32,11 +28,9 @@ import {
     CREATE_STANDARDIZATION,
     GET_STANDARDIZATION,
     DELETE_STANDARDIZATION,
-    CREATE_ONTOLOGY_TREE,
-    IStudy,
-    IProject,
-    IRole
-} from '@itmat-broker/itmat-commons';
+    CREATE_ONTOLOGY_TREE
+} from '@itmat-broker/itmat-models';
+import { permissions, userTypes, IUser, studyType, IStudy, IProject, IRole } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
 
 

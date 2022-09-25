@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { IJobEntryForFieldCuration, IJobEntry, enumValueType } from '@itmat-broker/itmat-commons';
+import { IJobEntryForFieldCuration, IJobEntry, enumValueType } from '@itmat-broker/itmat-types';
 import { processFieldRow, FieldCurator } from '../../src/curation/FieldCurator';
 import { stub } from './_stubHelper';
 

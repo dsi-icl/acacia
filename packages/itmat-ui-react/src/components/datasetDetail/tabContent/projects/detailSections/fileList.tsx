@@ -1,7 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import { Tree } from 'antd';
 import { Mutation, Query } from '@apollo/client/react/components';
-import { EDIT_PROJECT_APPROVED_FILES, IFile, GET_STUDY } from '@itmat-broker/itmat-commons';
+import { EDIT_PROJECT_APPROVED_FILES, GET_STUDY } from '@itmat-broker/itmat-models';
+import { IFile } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../../../../reusable/loadSpinner';
 import { Button } from 'antd';
 

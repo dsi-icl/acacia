@@ -1,7 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
-import { GET_STUDY_FIELDS, GET_STUDY, IStudyDataVersion } from '@itmat-broker/itmat-commons';
+import { GET_STUDY_FIELDS, GET_STUDY } from '@itmat-broker/itmat-models';
+import { IStudyDataVersion } from '@itmat-broker/itmat-types';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 // number of patients

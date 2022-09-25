@@ -4,7 +4,7 @@ import { Subsection } from '../../../reusable';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import css from './tabContent.module.css';
 import { RoleControlSection } from '../../../reusable/roleControlSection/roleControlSection';
-import { GET_STUDY, DELETE_STUDY, WHO_AM_I } from '@itmat-broker/itmat-commons';
+import { GET_STUDY, DELETE_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
 import { Mutation, Query } from '@apollo/client/react/components';
 import { Navigate, useParams } from 'react-router-dom';
 import { Button } from 'antd';

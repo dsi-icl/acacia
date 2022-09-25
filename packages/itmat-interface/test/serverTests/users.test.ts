@@ -16,7 +16,6 @@ import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
 import * as mfa from '../../src/utils/mfa';
 import {
-    IResetPasswordRequest,
     WHO_AM_I,
     GET_USERS,
     CREATE_USER,
@@ -24,10 +23,9 @@ import {
     DELETE_USER,
     REQUEST_USERNAME_OR_RESET_PASSWORD,
     RESET_PASSWORD,
-    LOGIN,
-    IUser,
-    userTypes
-} from '@itmat-broker/itmat-commons';
+    LOGIN
+} from '@itmat-broker/itmat-models';
+import { IResetPasswordRequest, IUser, userTypes } from '@itmat-broker/itmat-types';
 import type { Express } from 'express';
 
 let app: Express;

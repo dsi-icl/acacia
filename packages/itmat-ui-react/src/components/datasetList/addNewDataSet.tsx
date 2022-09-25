@@ -1,7 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useMutation } from '@apollo/client/react/hooks';
-import { userTypes, WHO_AM_I, CREATE_STUDY, studyType } from '@itmat-broker/itmat-commons';
+import { WHO_AM_I, CREATE_STUDY } from '@itmat-broker/itmat-models';
+import { userTypes, studyType } from '@itmat-broker/itmat-types';
 import { Button, Form, Input, Alert, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { Subsection } from '../reusable';

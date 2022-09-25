@@ -1,4 +1,4 @@
-import { IJobEntry } from '@itmat-broker/itmat-commons';
+import { IJobEntry } from '@itmat-broker/itmat-types';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';

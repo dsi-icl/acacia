@@ -1,7 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { Navigate } from 'react-router';
-import { WHO_AM_I, DELETE_PROJECT, GET_STUDY, IProject } from '@itmat-broker/itmat-commons';
+import { WHO_AM_I, DELETE_PROJECT, GET_STUDY } from '@itmat-broker/itmat-models';
+import { IProject } from '@itmat-broker/itmat-types';
 
 export const DeleteProjectSection: FunctionComponent<{ studyId: string; projectId: string; projectName: string }> = ({ studyId, projectId, projectName }) => {
     const [isExpanded, setIsExpanded] = useState(false);

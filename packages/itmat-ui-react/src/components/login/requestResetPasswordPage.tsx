@@ -1,7 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { GQLRequests } from '@itmat-broker/itmat-commons';
+import { REQUEST_USERNAME_OR_RESET_PASSWORD } from '@itmat-broker/itmat-models';
 import css from './login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
 
@@ -34,7 +34,7 @@ export const RequestResetPassword: FunctionComponent = () => {
 
     return (
         <Mutation<any, any>
-            mutation={GQLRequests.REQUEST_USERNAME_OR_RESET_PASSWORD}
+            mutation={REQUEST_USERNAME_OR_RESET_PASSWORD}
             onError={() => { return; }}
             onCompleted={() => setRequestCompleted(true)}
         >

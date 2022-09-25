@@ -1,7 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation, Query } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
-import { CREATE_DATA_CURATION_JOB, GET_STUDY, IFile } from '@itmat-broker/itmat-commons';
+import { CREATE_DATA_CURATION_JOB, GET_STUDY } from '@itmat-broker/itmat-models';
+import { IFile } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Select, Button } from 'antd';
 const { Option } = Select;

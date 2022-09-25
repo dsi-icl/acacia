@@ -1,4 +1,4 @@
-import { IStudy, IFieldEntry, IStandardization } from '@itmat-broker/itmat-commons';
+import { IStudy, IFieldEntry, IStandardization } from '@itmat-broker/itmat-types';
 /*
     queryString:
         format: string                  # returned foramt: raw, standardized, grouped, summary

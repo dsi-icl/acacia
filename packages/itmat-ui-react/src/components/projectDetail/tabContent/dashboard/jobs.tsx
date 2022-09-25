@@ -1,5 +1,5 @@
 import { FunctionComponent } from 'react';
-import { IJobEntry } from '@itmat-broker/itmat-commons';
+import { IJobEntry } from '@itmat-broker/itmat-types';
 
 export const JobSection: FunctionComponent<{ jobs: Array<IJobEntry<any>> }> = ({ jobs }) => {
     return <div>

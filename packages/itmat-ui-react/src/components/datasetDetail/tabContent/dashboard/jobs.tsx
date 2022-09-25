@@ -1,9 +1,9 @@
 import { FunctionComponent } from 'react';
-import { GQLRequests } from '@itmat-broker/itmat-commons';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import css from './tabContent.module.css';
 import { useSubscription } from '@apollo/client/react/hooks';
-import { GET_STUDY, IJobEntry } from '@itmat-broker/itmat-commons';
+import type { IJobEntry } from '@itmat-broker/itmat-types';
+import { GET_STUDY, SUBSCRIBE_TO_JOB_STATUS } from '@itmat-broker/itmat-models';
 import { Table, Button } from 'antd';
 
 const STATUSES: { [status: string]: any } = {
@@ -33,7 +33,7 @@ const STATUSES: { [status: string]: any } = {
 
 export const JobSection: FunctionComponent<{ studyId: string; jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
     useSubscription(
-        GQLRequests.SUBSCRIBE_TO_JOB_STATUS,
+        SUBSCRIBE_TO_JOB_STATUS,
         {
             variables: { studyId }, onSubscriptionData: ({ client: store, subscriptionData }) => {
                 if (subscriptionData.data.subscribeToJobStatusChange !== null) {

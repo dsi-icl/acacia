@@ -1,7 +1,8 @@
 import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Route, Routes, useParams, Navigate } from 'react-router-dom';
-import { GET_STUDY, WHO_AM_I, userTypes, studyType } from '@itmat-broker/itmat-commons';
+import { GET_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
+import { userTypes, studyType } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../reusable/loadSpinner';
 import css from './projectPage.module.css';
 import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent, FieldManagementTabContentFetch } from './tabContent';

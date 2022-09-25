@@ -1,7 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IUserWithoutToken, userTypes, Models, GQLRequests, GET_STUDY } from '@itmat-broker/itmat-commons';
+import { IOrganisation, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
+import { WHO_AM_I, DELETE_USER, EDIT_USER, GET_USERS, REQUEST_USERNAME_OR_RESET_PASSWORD, GET_ORGANISATIONS, GET_STUDY } from '@itmat-broker/itmat-models';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
@@ -9,15 +10,6 @@ import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm } from 'antd
 import moment from 'moment';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
-
-const {
-    WHO_AM_I,
-    DELETE_USER,
-    EDIT_USER,
-    GET_USERS,
-    REQUEST_USERNAME_OR_RESET_PASSWORD,
-    GET_ORGANISATIONS
-} = GQLRequests;
 
 export const UserDetailsSection: FunctionComponent = () => {
 
@@ -133,7 +125,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
 
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
-    const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
+    const orgList: IOrganisation[] = getorgsdata.getOrganisations;
 
     return (
         <Mutation<any, any>
@@ -201,11 +193,11 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     ) : null}
                     <Form.Item>
                         <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
-                                Save
+                            Save
                         </Button>
                         {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
                             ? <>
-                                    &nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp;
                                 <Button disabled={loading} onClick={() => {
                                     requestResetPassword({
                                         variables: {
@@ -215,12 +207,12 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                                         }
                                     });
                                 }}>
-                                        Send a password reset email
+                                    Send a password reset email
                                 </Button>
                             </>
                             : null
                         }
-                            &nbsp;&nbsp;&nbsp;
+                        &nbsp;&nbsp;&nbsp;
                         {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
                             ? <Mutation<any, any>
                                 mutation={DELETE_USER}
@@ -239,7 +231,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                                     return (
                                         <Popconfirm title={<>Are you sure about deleting user <i>{user.username}</i>?</>} onConfirm={() => { deleteUser({ variables: { userId: user.id } }); }} okText='Yes' cancelText='No'>
                                             <Button type='primary' danger disabled={loading}>
-                                                        Delete this user
+                                                Delete this user
                                             </Button>
                                         </Popconfirm>
                                     );

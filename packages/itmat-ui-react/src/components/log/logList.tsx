@@ -1,5 +1,6 @@
 import { FunctionComponent, useState } from 'react';
-import { Models, GET_LOGS, userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT } from '@itmat-broker/itmat-commons';
+import { GET_LOGS } from '@itmat-broker/itmat-models';
+import { userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT, ILogEntry } from '@itmat-broker/itmat-types';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../reusable/loadSpinner';
 import { Table, Input, Button, Checkbox, Descriptions, DatePicker, Modal } from 'antd';
@@ -22,7 +23,7 @@ export const LogListSection: FunctionComponent = () => {
                         </p>
                     );
                 }
-                const logList: Models.Log.ILogEntry[] = data.getLogs;
+                const logList: ILogEntry[] = data.getLogs;
                 return (
                     <LogList list={logList} />
                 );
@@ -31,7 +32,7 @@ export const LogListSection: FunctionComponent = () => {
     );
 };
 
-const LogList: FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) => {
+const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const initInputs = {
         requesterName: '',
@@ -71,7 +72,7 @@ const LogList: FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) 
             setInputs({ ...inputs, [property]: e });
         }
     });
-    function dataSourceFilter(logList: Models.ILogEntry[]) {
+    function dataSourceFilter(logList: ILogEntry[]) {
         return logList.filter((log) => {
             // convert the contest of log to be string (except for value), as null could not be parsed
             const logCopy: any = { ...log };
@@ -250,7 +251,7 @@ const LogList: FunctionComponent<{ list: Models.Log.ILogEntry[] }> = ({ list }) 
         </Modal>
         <Table
             rowKey={(rec) => rec.id}
-            onRow={(record: Models.ILogEntry) => ({
+            onRow={(record: ILogEntry) => ({
                 onClick: () => {
                     setVerbose(true);
                     setVerboseInfo(record);

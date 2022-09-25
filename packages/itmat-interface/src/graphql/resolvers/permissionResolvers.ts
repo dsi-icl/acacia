@@ -1,11 +1,10 @@
 import { ApolloError } from 'apollo-server-express';
-import { IUser, IRole } from '@itmat-broker/itmat-commons';
+import { task_required_permissions, permissions, IUser, IRole } from '@itmat-broker/itmat-types';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
-import { task_required_permissions, permissions } from '@itmat-broker/itmat-commons';
 
 export const permissionResolvers = {
     Query: {

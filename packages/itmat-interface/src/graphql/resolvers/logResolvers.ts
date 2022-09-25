@@ -1,12 +1,12 @@
 import { db } from '../../database/database';
-import { ILogEntry, LOG_ACTION, Models, userTypes } from '@itmat-broker/itmat-commons';
+import { ILogEntry, IUser, LOG_ACTION, userTypes } from '@itmat-broker/itmat-types';
 import { ApolloError } from 'apollo-server-errors';
 import { errorCodes } from '../errors';
 
 export const logResolvers = {
     Query: {
         getLogs: async (__unused_parent: Record<string, unknown>, args: any, context: any): Promise<ILogEntry[]> => {
-            const requester: Models.UserModels.IUser = context.req.user;
+            const requester: IUser = context.req.user;
 
             /* only admin can access this field */
             if (requester.type !== userTypes.ADMIN) {

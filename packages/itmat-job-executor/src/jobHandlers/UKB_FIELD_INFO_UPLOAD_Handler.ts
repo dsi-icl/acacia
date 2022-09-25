@@ -1,7 +1,7 @@
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
-import { IJobEntryForFieldCuration } from '@itmat-broker/itmat-commons';
+import { IJobEntryForFieldCuration } from '@itmat-broker/itmat-types';
 import { FieldCurator } from '../curation/FieldCurator';
 import { Readable, Writable } from 'stream';
 import * as csvparse from 'csv-parse';

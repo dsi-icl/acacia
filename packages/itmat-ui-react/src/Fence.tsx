@@ -8,7 +8,7 @@ import css from './components/scaffold/scaffold.module.css';
 import { ResetPasswordPage } from './components/login/resetPasswordPage';
 import { RequestResetPassword } from './components/login/requestResetPasswordPage';
 import { RegisterNewUser } from './components/login/register';
-import { WHO_AM_I, RECOVER_SESSION_EXPIRE_TIME } from '@itmat-broker/itmat-commons';
+import { WHO_AM_I, RECOVER_SESSION_EXPIRE_TIME } from '@itmat-broker/itmat-models';
 import LoadSpinner from './components/reusable/loadSpinner';
 import { StatusBar } from './components/scaffold/statusBar';
 import { useQuery } from '@apollo/client/react/hooks';

@@ -1,5 +1,5 @@
 import type * as mongodb from 'mongodb';
-import { IJobEntry } from '../models';
+import { IJobEntry } from '@itmat-broker/itmat-types';
 import { Logger } from './logger';
 
 export interface IJobPollerConfig {

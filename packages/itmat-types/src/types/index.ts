@@ -1,10 +1,10 @@
 import * as Field from './field';
 import * as File from './file';
-import * as JobModels from './job';
+import * as Job from './job';
 import * as Log from './log';
 import * as Query from './query';
 import * as Study from './study';
-import * as UserModels from './user';
+import * as User from './user';
 import * as Organisation from './organisation';
 import * as Pubkey from './pubkey';
 import * as Data from './data';
@@ -21,4 +21,4 @@ export * from './organisation';
 export * from './pubkey';
 export * from './data';
 export * from './standardization';
-export { File, JobModels, Log, UserModels, Organisation, Pubkey, Study, Query, Field, Data, Standardization };
+export const Types = { File, Job, Log, User, Organisation, Pubkey, Study, Query, Field, Data, Standardization };

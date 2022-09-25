@@ -8,13 +8,13 @@ import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { Db, MongoClient } from 'mongodb';
-import { permissions, GQLRequests, IUser, IStudy, IProject, IRole } from '@itmat-broker/itmat-commons';
+import { permissions, IUser, IStudy, IProject, IRole } from '@itmat-broker/itmat-types';
+import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from '@itmat-broker/itmat-models';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 import { Express } from 'express';
-const { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } = GQLRequests;
 
 let app: Express;
 let mongodb: MongoMemoryServer;

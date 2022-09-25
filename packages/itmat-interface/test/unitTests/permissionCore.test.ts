@@ -5,7 +5,7 @@ import { setupDatabase } from '@itmat-broker/itmat-setup';
 import { db } from '../../src/database/database';
 import config from '../../config/config.sample.json';
 import { permissionCore } from '../../src/graphql/core/permissionCore';
-import { permissions, task_required_permissions, IUser, IRole } from '@itmat-broker/itmat-commons';
+import { permissions, task_required_permissions, IUser, IRole } from '@itmat-broker/itmat-types';
 
 let mongodb: MongoMemoryServer;
 let mongoConnection: MongoClient;

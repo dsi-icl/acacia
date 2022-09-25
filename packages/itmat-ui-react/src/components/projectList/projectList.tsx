@@ -1,7 +1,8 @@
 import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Navigate } from 'react-router-dom';
-import { WHO_AM_I, Models } from '@itmat-broker/itmat-commons';
+import { IProject } from '@itmat-broker/itmat-types';
+import { WHO_AM_I } from '@itmat-broker/itmat-models';
 import { Button } from 'antd';
 
 export const ProjectList: FunctionComponent = () => {
@@ -26,7 +27,7 @@ export const ProjectList: FunctionComponent = () => {
     );
 };
 
-const PickProjectSection: FunctionComponent<{ projects: Models.Study.IProject[] }> = ({ projects }) => {
+const PickProjectSection: FunctionComponent<{ projects: IProject[] }> = ({ projects }) => {
     return <>
         You have access to two or more projects. Please pick the one you would like to access: <br /><br /><br />
         {projects.map((el) =>

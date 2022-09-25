@@ -1,5 +1,5 @@
 import { FunctionComponent } from 'react';
-import { IProject } from '@itmat-broker/itmat-commons';
+import { IProject } from '@itmat-broker/itmat-types';
 import { NavLink } from 'react-router-dom';
 import css from './sections.module.css';
 export const ProjectSection: FunctionComponent<{ study?: boolean; projects: IProject[] }> = ({ study, projects }) => {

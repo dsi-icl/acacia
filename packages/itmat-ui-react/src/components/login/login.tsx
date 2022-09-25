@@ -1,6 +1,6 @@
 import { FunctionComponent } from 'react';
 import { Mutation } from '@apollo/client/react/components';
-import { LOGIN, WHO_AM_I } from '@itmat-broker/itmat-commons';
+import { LOGIN, WHO_AM_I } from '@itmat-broker/itmat-models';
 import { NavLink } from 'react-router-dom';
 import css from './login.module.css';
 import { Input, Form, Button, Alert, Checkbox } from 'antd';
@@ -57,7 +57,7 @@ export const LoginBox: FunctionComponent = () => {
                                     ) :
                                         <Form.Item>
                                             <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
-                                                    Login
+                                                Login
                                             </Button>
                                         </Form.Item>
                                     }

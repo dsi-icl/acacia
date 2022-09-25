@@ -1,15 +1,6 @@
 import { ApolloError, UserInputError } from 'apollo-server-express';
 import { mailer } from '../../emailer/emailer';
-import {
-    //Models,
-    //Logger,
-    IUser,
-    //IUserWithoutToken,
-    IPubkey,
-    AccessToken,
-    KeyPairwSignature,
-    Signature
-} from '@itmat-broker/itmat-commons';
+import { IUser, IPubkey, AccessToken, KeyPairwSignature, Signature } from '@itmat-broker/itmat-types';
 //import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';

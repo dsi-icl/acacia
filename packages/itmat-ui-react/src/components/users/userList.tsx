@@ -1,5 +1,5 @@
 import { FunctionComponent, useState } from 'react';
-import { Models, GET_USERS } from '@itmat-broker/itmat-commons';
+import { GET_USERS } from '@itmat-broker/itmat-models';
 import { Query } from '@apollo/client/react/components';
 import { useNavigate } from 'react-router-dom';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -7,6 +7,7 @@ import { Table, Input, Button, Tooltip } from 'antd';
 import { EditOutlined, WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import moment from 'moment';
+import { IUserWithoutToken } from '@itmat-broker/itmat-types';
 
 export const UserListSection: FunctionComponent = () => {
     return (
@@ -24,7 +25,7 @@ export const UserListSection: FunctionComponent = () => {
                         </p>
                     );
                 }
-                const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
+                const userList: IUserWithoutToken[] = data.getUsers;
                 return (
                     <UserList users={userList} />
                 );
@@ -33,7 +34,7 @@ export const UserListSection: FunctionComponent = () => {
     );
 };
 
-const UserList: FunctionComponent<{ users: Models.UserModels.IUserWithoutToken[] }> = ({ users }) => {
+const UserList: FunctionComponent<{ users: IUserWithoutToken[] }> = ({ users }) => {
 
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState<string | undefined>();
@@ -116,7 +117,7 @@ const UserList: FunctionComponent<{ users: Models.UserModels.IUserWithoutToken[]
         <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value.toUpperCase())} />
         <br />
         <br />
-        <Table rowKey={(rec) => rec.id} onRow={(record: Models.UserModels.IUserWithoutToken) => ({
+        <Table rowKey={(rec) => rec.id} onRow={(record: IUserWithoutToken) => ({
             onClick: () => {
                 navigate(`/users/${record.id}`);
             },

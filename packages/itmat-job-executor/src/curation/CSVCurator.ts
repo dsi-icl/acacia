@@ -1,7 +1,7 @@
 import * as csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
-import { IFieldDescriptionObject, IDataEntry, IJobEntry } from '@itmat-broker/itmat-commons';
+import { IFieldDescriptionObject, IDataEntry, IJobEntry } from '@itmat-broker/itmat-types';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */

@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { ApolloError } from 'apollo-server-core';
-import { IUser, IUserWithoutToken, userTypes, Models, IOrganisation, IPubkey } from '@itmat-broker/itmat-commons';
+import { IUser, IUserWithoutToken, userTypes, IOrganisation, IPubkey } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
 import { MarkOptional } from 'ts-essentials';
@@ -21,7 +21,7 @@ export class UserCore {
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
         const createdAt = Date.now();
         const expiredAt = Date.now() + 86400 * 1000 /* millisec per day */ * 90;
-        const entry: Models.UserModels.IUser = {
+        const entry: IUser = {
             id: uuid(),
             username,
             otpSecret,

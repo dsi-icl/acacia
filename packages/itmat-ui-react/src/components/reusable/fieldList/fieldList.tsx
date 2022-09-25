@@ -1,8 +1,8 @@
 import { FunctionComponent } from 'react';
-import { Models, enumValueType } from '@itmat-broker/itmat-commons';
+import { enumValueType, IFieldEntry } from '@itmat-broker/itmat-types';
 import { Table, Tooltip } from 'antd';
 
-export const FieldListSection: FunctionComponent<{ studyData?: any, onCheck?: any; checkedList?: string[]; checkable: boolean; fieldList: Models.Field.IFieldEntry[]; verbal?: boolean }> = ({ onCheck, checkedList, checkable, fieldList, verbal }) => {
+export const FieldListSection: FunctionComponent<{ studyData?: any, onCheck?: any; checkedList?: string[]; checkable: boolean; fieldList: IFieldEntry[]; verbal?: boolean }> = ({ onCheck, checkedList, checkable, fieldList, verbal }) => {
     const possibleValuesColumns = [
         {
             title: 'Code',

@@ -5,7 +5,8 @@ import { Subsection } from '../../../reusable/subsection/subsection';
 import { ProjectDetail } from './detailSections/projectDetail';
 import { ProjectListSection, AddNewProject } from './projectListSection';
 import LoadSpinner from '../../../reusable/loadSpinner';
-import { WHO_AM_I, userTypes } from '@itmat-broker/itmat-commons';
+import { WHO_AM_I } from '@itmat-broker/itmat-models';
+import { userTypes } from '@itmat-broker/itmat-types';
 import css from './tabContent.module.css';
 
 export const ProjectsTabContent: FunctionComponent<{ projectList: { id: string; name: string }[] }> = ({ projectList }) => {

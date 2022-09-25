@@ -1,12 +1,10 @@
 import { FunctionComponent, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { GQLRequests, Models, CREATE_USER } from '@itmat-broker/itmat-commons';
+import { GET_ORGANISATIONS, CREATE_USER } from '@itmat-broker/itmat-models';
+import { IOrganisation } from '@itmat-broker/itmat-types';
 import { Input, Form, Button, Alert, Checkbox, Select } from 'antd';
 import css from './login.module.css';
-const {
-    GET_ORGANISATIONS
-} = GQLRequests;
 
 export const RegisterNewUser: FunctionComponent = () => {
     const navigate = useNavigate();
@@ -19,7 +17,7 @@ export const RegisterNewUser: FunctionComponent = () => {
     const { loading: getorgsloading, error: getorgserror, data: getorgsdata } = useQuery(GET_ORGANISATIONS);
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
-    const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
+    const orgList: IOrganisation[] = getorgsdata.getOrganisations;
 
     if (completedCreation) {
         return (

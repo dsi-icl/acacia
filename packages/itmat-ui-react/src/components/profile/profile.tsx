@@ -1,7 +1,8 @@
 import { ChangeEvent, FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IUserWithoutToken, Models, userTypes, GQLRequests, IPubkey } from '@itmat-broker/itmat-commons';
+import { IUserWithoutToken, userTypes, IPubkey, IOrganisation } from '@itmat-broker/itmat-types';
+import { WHO_AM_I, EDIT_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, REGISTER_PUBKEY, GET_PUBKEYS, ISSUE_ACCESS_TOKEN, GET_ORGANISATIONS, REQUEST_EXPIRY_DATE } from '@itmat-broker/itmat-models';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from '../users/projectSection';
@@ -9,17 +10,6 @@ import { Form, Input, Select, DatePicker, Button, Alert } from 'antd';
 import moment from 'moment';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import { Key } from '../../utils/dmpCrypto/dmp.key';
-
-const {
-    WHO_AM_I,
-    EDIT_USER,
-    REQUEST_USERNAME_OR_RESET_PASSWORD,
-    REGISTER_PUBKEY,
-    GET_PUBKEYS,
-    ISSUE_ACCESS_TOKEN,
-    GET_ORGANISATIONS,
-    REQUEST_EXPIRY_DATE
-} = GQLRequests;
 
 export const ProfileManagementSection: FunctionComponent = () => {
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
@@ -142,7 +132,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
 
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
-    const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
+    const orgList: IOrganisation[] = getorgsdata.getOrganisations;
 
     return (
         <Mutation<any, any>
@@ -211,7 +201,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     <Form.Item>
                         {user.type === userTypes.ADMIN
                             ? <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
-                                        Save
+                                Save
                             </Button>
                             : null
                         }
@@ -224,7 +214,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                                 }
                             });
                         }}>
-                                Send a password reset email
+                            Send a password reset email
                         </Button>
                     </Form.Item>
                 </Form>
@@ -358,7 +348,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
                         <br />
                         <a download='privateKey.pem' href={downloadLink}>
                             <Button type='primary' onClick={() => makeTextFile(exportedKeyPair.privateKey.replace(/\n/g, '\\n'))}>
-                                    Save the private key (PEM file)
+                                Save the private key (PEM file)
                             </Button>
                         </a>
                         <br />
@@ -369,7 +359,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
                         <br />
                         <a download='publicKey.pem' href={downloadLink}>
                             <Button type='primary' onClick={() => makeTextFile(exportedKeyPair.publicKey.replace(/\n/g, '\\n'))}>
-                                    Save the public key (PEM file)
+                                Save the public key (PEM file)
                             </Button>
                         </a>
                         <br />
@@ -380,7 +370,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
                         <br />
                         <a download='signature.txt' href={downloadLink}>
                             <Button type='primary' onClick={() => makeTextFile(signature)}>
-                                    Save the signature (TXT file)
+                                Save the signature (TXT file)
                             </Button>
                         </a>
                         <br />
@@ -409,7 +399,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
 
                         <Form.Item>
                             <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
-                                    Register
+                                Register
                             </Button>
                         </Form.Item>
 

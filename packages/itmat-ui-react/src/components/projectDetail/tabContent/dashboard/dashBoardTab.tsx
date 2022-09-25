@@ -1,5 +1,6 @@
 import { FunctionComponent } from 'react';
-import { IJobEntry, GET_PROJECT } from '@itmat-broker/itmat-commons';
+import { GET_PROJECT } from '@itmat-broker/itmat-models';
+import { IJobEntry } from '@itmat-broker/itmat-types';
 import { Subsection } from '../../../reusable/subsection/subsection';
 import { JobSection } from './jobs';
 import { useQuery } from '@apollo/client/react/hooks';

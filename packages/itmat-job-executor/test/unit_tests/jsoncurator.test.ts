@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { IJobEntryForDataCuration, enumValueType } from '@itmat-broker/itmat-commons';
+import { IJobEntryForDataCuration, enumValueType } from '@itmat-broker/itmat-types';
 import { processJSONHeader, processEachSubject, JSONCurator } from '../../src/curation/JSONCurator';
 import { stub } from './_stubHelper';
 

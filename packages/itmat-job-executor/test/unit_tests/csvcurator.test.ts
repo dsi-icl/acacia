@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { IJobEntryForDataCuration, enumValueType } from '@itmat-broker/itmat-commons';
+import { IJobEntryForDataCuration, enumValueType } from '@itmat-broker/itmat-types';
 import { processDataRow, processHeader, CSVCurator } from '../../src/curation/CSVCurator';
 import { stub } from './_stubHelper';
 

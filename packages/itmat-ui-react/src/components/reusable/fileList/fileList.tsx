@@ -1,7 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react/hooks';
 import { Table, Button, notification, Tooltip } from 'antd';
-import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS, GET_USERS, studyType } from '@itmat-broker/itmat-commons';
+import { DELETE_FILE, WHO_AM_I, GET_ORGANISATIONS, GET_USERS } from '@itmat-broker/itmat-models';
+import { IFile, userTypes, studyType } from '@itmat-broker/itmat-types';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined, NumberOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
 import moment from 'moment';
@@ -329,7 +330,6 @@ export const FileList: FunctionComponent<{ type: studyType, files: IFile[], sear
                 dataSource={notVariablesListFiles}
                 size='small' />
 
-        </>
-    ;
+        </>;
 
 };

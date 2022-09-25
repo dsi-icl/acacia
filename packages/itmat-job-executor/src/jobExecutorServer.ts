@@ -54,7 +54,7 @@ class ITMATJobExecutorServer extends Server {
                     // Return the Express application
                     return resolve(_this.router);
 
-                }).catch((err) => reject(err));
+                }).catch((err: any) => reject(err));
         });
     }
 

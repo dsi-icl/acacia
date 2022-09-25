@@ -1,6 +1,6 @@
 import { FunctionComponent, useState } from 'react';
 import { Query } from '@apollo/client/react/components';
-import { GET_PROJECT_PATIENT_MAPPING } from '@itmat-broker/itmat-commons';
+import { GET_PROJECT_PATIENT_MAPPING } from '@itmat-broker/itmat-models';
 import LoadSpinner from '../../../../reusable/loadSpinner';
 import { Button } from 'antd';
 

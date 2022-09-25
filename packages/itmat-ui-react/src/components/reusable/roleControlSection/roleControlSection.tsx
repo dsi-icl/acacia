@@ -1,18 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import {
-    Models,
-    permissions,
-    permissionLabels,
-    ADD_NEW_ROLE,
-    EDIT_ROLE,
-    REMOVE_ROLE,
-    GET_USERS,
-    GET_PROJECT,
-    GET_STUDY,
-    GET_ORGANISATIONS
-} from '@itmat-broker/itmat-commons';
+import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE, GET_USERS, GET_PROJECT, GET_STUDY, GET_ORGANISATIONS } from '@itmat-broker/itmat-models';
+import { IRoleQL, IUser, permissions, permissionLabels } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button, Form, Input, Alert, Popconfirm } from 'antd';
@@ -21,7 +11,7 @@ import { LoadingOutlined, TagOutlined, PlusOutlined, DeleteOutlined } from '@ant
 type RoleControlSectionProps = {
     studyId: string;
     projectId?: string;
-    roles: Models.Study.IRoleQL[];
+    roles: IRoleQL[];
 }
 
 export const RoleControlSection: FunctionComponent<RoleControlSectionProps> = ({
@@ -50,7 +40,7 @@ export const RoleControlSection: FunctionComponent<RoleControlSectionProps> = ({
 export default RoleControlSection;
 
 type RoleDescriptorProps = {
-    role: Models.Study.IRoleQL;
+    role: IRoleQL;
     availablePermissions: string[];
 }
 
@@ -237,8 +227,8 @@ type UsersControlPanelProps = {
     roleId: string;
     studyId: string;
     projectId?: string;
-    availableUserList: Models.UserModels.IUser[];
-    originallySelectedUsers: Models.UserModels.IUser[];
+    availableUserList: IUser[];
+    originallySelectedUsers: IUser[];
 }
 
 const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({

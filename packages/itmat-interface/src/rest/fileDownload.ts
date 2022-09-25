@@ -2,13 +2,13 @@ import { Request, Response } from 'express';
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
-import { Models, task_required_permissions } from '@itmat-broker/itmat-commons';
+import { task_required_permissions, IUser } from '@itmat-broker/itmat-types';
 import jwt from 'jsonwebtoken';
 import { UserInputError } from 'apollo-server-express';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 
 export const fileDownloadController = async (req: Request, res: Response): Promise<void> => {
-    const requester = req.user as Models.UserModels.IUser;
+    const requester = req.user as IUser;
     const requestedFile = req.params.fileId;
     const token = req.headers.authorization || '';
     let associatedUser = requester;

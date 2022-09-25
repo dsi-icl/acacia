@@ -10,18 +10,8 @@ import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
 import { errorCodes } from '../../src/graphql/errors';
 import * as mfa from '../../src/utils/mfa';
-import {
-    LOG_ACTION,
-    userTypes,
-    LOG_STATUS,
-    GET_LOGS,
-    LOG_TYPE,
-    LOGIN,
-    IUser,
-    DELETE_USER,
-    USER_AGENT,
-    ILogEntry
-} from '@itmat-broker/itmat-commons';
+import { GET_LOGS, LOGIN, DELETE_USER } from '@itmat-broker/itmat-models';
+import { userTypes, IUser, ILogEntry, LOG_STATUS, LOG_ACTION, LOG_TYPE, USER_AGENT } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
 
 let app: Express;

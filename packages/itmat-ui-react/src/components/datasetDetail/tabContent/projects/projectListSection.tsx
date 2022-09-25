@@ -1,7 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { NavLink, Navigate } from 'react-router-dom';
-import { CREATE_PROJECT } from '@itmat-broker/itmat-commons';
+import { CREATE_PROJECT } from '@itmat-broker/itmat-models';
 import css from './tabContent.module.css';
 import { Button, Input } from 'antd';
 

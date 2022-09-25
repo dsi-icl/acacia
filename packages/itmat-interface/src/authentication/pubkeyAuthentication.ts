@@ -1,6 +1,6 @@
 import { UserInputError } from 'apollo-server-express';
 import { db } from '../database/database';
-import { IUser } from '@itmat-broker/itmat-commons';
+import { IUser } from '@itmat-broker/itmat-types';
 
 
 export async function userRetrieval(pubkey: string): Promise<IUser> {

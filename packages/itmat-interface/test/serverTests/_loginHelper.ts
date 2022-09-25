@@ -1,9 +1,7 @@
 import { print } from 'graphql';
-import { GQLRequests } from '@itmat-broker/itmat-commons';
+import { LOGIN, LOGOUT } from '@itmat-broker/itmat-models';
 import * as mfa from '../../src/utils/mfa';
 import { SuperTest, Test } from 'supertest';
-
-const { LOGIN, LOGOUT } = GQLRequests;
 
 export function connectAdmin(agent: SuperTest<Test>): Promise<void> {
     const adminSecret = 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA';

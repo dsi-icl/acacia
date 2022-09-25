@@ -1,6 +1,7 @@
 import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
-import { GET_PROJECT, studyType } from '@itmat-broker/itmat-commons';
+import { GET_PROJECT } from '@itmat-broker/itmat-models';
+import { studyType } from '@itmat-broker/itmat-types';
 import { FileList } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection } from '../../../reusable/subsection/subsection';

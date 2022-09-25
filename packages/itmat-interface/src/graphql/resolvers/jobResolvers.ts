@@ -1,6 +1,6 @@
 import { ApolloError } from 'apollo-server-express';
 import { withFilter } from 'graphql-subscriptions';
-import { Models, task_required_permissions } from '@itmat-broker/itmat-commons';
+import { task_required_permissions, IJobEntryForDataCuration, IJobEntryForFieldCuration, IJobEntryForQueryCuration, IUser } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -19,8 +19,8 @@ enum JOB_TYPE {
 export const jobResolvers = {
     Query: {},
     Mutation: {
-        createDataCurationJob: async (__unused__parent: Record<string, unknown>, args: { file: string[], studyId: string }, context: any): Promise<Models.JobModels.IJobEntryForDataCuration[]> => {
-            const requester: Models.UserModels.IUser = context.req.user;
+        createDataCurationJob: async (__unused__parent: Record<string, unknown>, args: { file: string[], studyId: string }, context: any): Promise<IJobEntryForDataCuration[]> => {
+            const requester: IUser = context.req.user;
 
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -36,7 +36,7 @@ export const jobResolvers = {
                 // tsv: JOB_TYPE.DATA_UPLOAD_CSV
             };
 
-            const jobList: Models.JobModels.IJobEntryForDataCuration[] = [];
+            const jobList: IJobEntryForDataCuration[] = [];
             for (const oneFile of args.file) {
                 /* check if the file exists */
                 const file = await db.collections!.files_collection.findOne({ deleted: null, id: oneFile });
@@ -54,7 +54,7 @@ export const jobResolvers = {
                 if (!dataFormatToJobType[dataFormat]) {
                     throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
                 }
-                const job: Models.JobModels.IJobEntryForDataCuration = {
+                const job: IJobEntryForDataCuration = {
                     id: uuid(),
                     jobType: dataFormatToJobType[dataFormat],
                     studyId: args.studyId,
@@ -74,8 +74,8 @@ export const jobResolvers = {
             }
             return jobList;
         },
-        createFieldCurationJob: async (__unused__parent: Record<string, unknown>, args: { file: string, studyId: string, tag: string }, context: any): Promise<Models.JobModels.IJobEntryForFieldCuration> => {
-            const requester: Models.UserModels.IUser = context.req.user;
+        createFieldCurationJob: async (__unused__parent: Record<string, unknown>, args: { file: string, studyId: string, tag: string }, context: any): Promise<IJobEntryForFieldCuration> => {
+            const requester: IUser = context.req.user;
 
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -100,7 +100,7 @@ export const jobResolvers = {
             }
 
             /* create job */
-            const job: Models.JobModels.IJobEntryForFieldCuration = {
+            const job: IJobEntryForFieldCuration = {
                 id: uuid(),
                 jobType: JOB_TYPE.FIELD_INFO_UPLOAD,
                 studyId: args.studyId,
@@ -121,8 +121,8 @@ export const jobResolvers = {
             }
             return job;
         },
-        createQueryCurationJob: async (__unused__parent: Record<string, unknown>, args: { queryId: string[], studyId: string, projectId: string }, context: any): Promise<Models.JobModels.IJobEntryForQueryCuration> => {
-            const requester: Models.UserModels.IUser = context.req.user;
+        createQueryCurationJob: async (__unused__parent: Record<string, unknown>, args: { queryId: string[], studyId: string, projectId: string }, context: any): Promise<IJobEntryForQueryCuration> => {
+            const requester: IUser = context.req.user;
 
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -150,7 +150,7 @@ export const jobResolvers = {
                 throw new ApolloError('Query does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
-            const job: Models.JobModels.IJobEntryForQueryCuration = {
+            const job: IJobEntryForQueryCuration = {
                 id: uuid(),
                 jobType: JOB_TYPE.QUERY_EXECUTION,
                 studyId: args.studyId,

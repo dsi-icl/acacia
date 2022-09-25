@@ -9,12 +9,12 @@ import { Router } from '../../src/server/router';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { Db, MongoClient } from 'mongodb';
-import { permissions, GQLRequests, IJobEntry, IUser, IRole, IStudy, IProject, IQueryEntry, IFile } from '@itmat-broker/itmat-commons';
+import { permissions, IJobEntry, IUser, IRole, IStudy, IProject, IQueryEntry, IFile } from '@itmat-broker/itmat-types';
+import { CREATE_DATA_CURATION_JOB, CREATE_FIELD_CURATION_JOB, CREATE_QUERY_CURATION_JOB } from '@itmat-broker/itmat-models';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
 import { Express } from 'express';
-const { CREATE_DATA_CURATION_JOB, CREATE_FIELD_CURATION_JOB, CREATE_QUERY_CURATION_JOB } = GQLRequests;
 
 let app: Express;
 let mongodb: MongoMemoryServer;

@@ -1,7 +1,8 @@
 import { FunctionComponent } from 'react';
 import { Query, Mutation } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
-import { LOGOUT, WHO_AM_I, IProject, userTypes } from '@itmat-broker/itmat-commons';
+import { LOGOUT, WHO_AM_I } from '@itmat-broker/itmat-models';
+import { IProject, userTypes } from '@itmat-broker/itmat-types';
 import css from './scaffold.module.css';
 import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined, SettingOutlined, ProjectOutlined, DesktopOutlined } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';

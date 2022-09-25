@@ -1,6 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 // import { Query } from '@apollo/client/react/components';
-import { GET_STUDY, IStudyDataVersion } from '@itmat-broker/itmat-commons';
+import { GET_STUDY } from '@itmat-broker/itmat-models';
+import { IStudyDataVersion } from '@itmat-broker/itmat-types';
 import css from './tabContent.module.css';
 import { useQuery } from '@apollo/client/react/hooks';
 import LoadSpinner from '../../../reusable/loadSpinner';

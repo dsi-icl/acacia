@@ -2,7 +2,6 @@ import { ApolloError } from 'apollo-server-express';
 import { Document, Filter } from 'mongodb';
 import {
     permissions,
-    Models,
     task_required_permissions,
     IProject,
     IStudy,
@@ -18,7 +17,7 @@ import {
     IRole,
     IOntologyTree,
     userTypes
-} from '@itmat-broker/itmat-commons';
+} from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
@@ -513,7 +512,7 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            if (requester.type !== userTypes.ADMIN) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -525,7 +524,7 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            if (requester.type !== userTypes.ADMIN) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -587,7 +586,7 @@ export const studyResolvers = {
         editField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {
             const requester: IUser = context.req.user;
             /* check privileges */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            if (requester.type !== userTypes.ADMIN) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -759,7 +758,7 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            if (requester.type !== userTypes.ADMIN) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -895,7 +894,7 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
-            if (requester.type !== Models.UserModels.userTypes.ADMIN) {
+            if (requester.type !== userTypes.ADMIN) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 

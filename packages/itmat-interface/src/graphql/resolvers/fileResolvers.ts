@@ -1,5 +1,6 @@
 import { ApolloError } from 'apollo-server-express';
-import { Models, task_required_permissions, IFile, Logger, studyType, IOrganisation } from '@itmat-broker/itmat-commons';
+import { IFile, studyType, IOrganisation, IUser, task_required_permissions } from '@itmat-broker/itmat-types';
+import { Logger } from '@itmat-broker/itmat-commons';
 import { v4 as uuid } from 'uuid';
 import { FileUpload } from 'graphql-upload-minimal';
 import { db } from '../../database/database';
@@ -18,7 +19,7 @@ export const fileResolvers = {
     },
     Mutation: {
         uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: number, studyId: string, file: Promise<FileUpload>, description: string, hash?: string }, context: any): Promise<IFile> => {
-            const requester: Models.UserModels.IUser = context.req.user;
+            const requester: IUser = context.req.user;
 
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 task_required_permissions.manage_study_data,
@@ -196,7 +197,7 @@ export const fileResolvers = {
             });
         },
         deleteFile: async (__unused__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
-            const requester: Models.UserModels.IUser = context.req.user;
+            const requester: IUser = context.req.user;
 
             const file = await db.collections!.files_collection.findOne({ deleted: null, id: args.fileId });
 
