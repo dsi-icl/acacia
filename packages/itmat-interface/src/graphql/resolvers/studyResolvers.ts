@@ -580,7 +580,7 @@ export const studyResolvers = {
                     }).upsert().updateOne({ $set: fieldEntry });
                 }
             }
-            bulk.execute();
+            await bulk.execute();
             return error;
         },
         editField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {

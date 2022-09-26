@@ -264,7 +264,7 @@ export class StudyCore {
             objWithData[dataClip.fieldId] = parsedValue;
             bulk.find(obj).upsert().updateOne({ $set: objWithData });
         }
-        bulk.execute();
+        await bulk.execute();
         return errors;
     }
 
