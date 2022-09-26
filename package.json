@@ -18,6 +18,7 @@
         "dockerise-staging": "nx build itmat-docker --tag datascienceinstitute/itmat-broker:staging",
         "setupDatabase": "nx run-many --projects=itmat-setup --target=setup",
         "test": "nx affected --parallel=1 --target=test",
+        "test-all": "nx run-many --parallel=1 --target=test",
         "lint": "nx affected --target=lint",
         "lint-fix": "nx affected --target=lint --fix"
     },
