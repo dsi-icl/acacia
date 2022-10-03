@@ -254,7 +254,6 @@ export const studyResolvers = {
         },
         getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: any, studyId: string, versionId: string, projectId?: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
-
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
                 [permissions.specific_study.specific_study_data_management, permissions.specific_project.specific_project_readonly_access],
@@ -298,55 +297,65 @@ export const studyResolvers = {
                 }
             }
             // get the fields list, this is to make sure that only data with valid fields are returned, method same as getStudyFields
-            const fieldRecords = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
-                $sort: { dateAdded: -1 }
-            }, {
+            const fieldRecords: any[] = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
                 $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
             }, {
-                $match: { studyId: studyId }
+                $match: { studyId: studyId, dateDeleted: null }
             }, {
                 $group: {
                     _id: '$fieldId',
-                    doc: { $first: '$$ROOT' }
+                    doc: { $last: '$$ROOT' }
                 }
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
+                }
+            }, {
+                $sort: { fieldId: 1 }
             }
             ]).toArray() : await db.collections!.field_dictionary_collection.aggregate([{
-                $sort: { dateAdded: -1 }
-            }, {
                 $match: { dataVersion: { $in: availableDataVersions } }
             }, {
-                $match: { studyId: studyId }
+                $match: { studyId: studyId, dateDeleted: null }
             }, {
                 $group: {
                     _id: '$fieldId',
-                    doc: { $first: '$$ROOT' }
+                    doc: { $last: '$$ROOT' }
                 }
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
+                }
+            }, {
+                $sort: { fieldId: 1 }
             }
             ]).toArray();
-            const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null).map(es => es.fieldId);
-            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission && versionId === null, fieldsList, siteIDMarker);
+            const fieldsIds: string[] = [];
+            for (let i = 0; i < fieldRecords.length; i++) {
+                fieldsIds.push(fieldRecords[i].fieldId);
+            }
+            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission && versionId === null, fieldsIds, siteIDMarker);
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             // post processing the data
-            // 1. update to the latest data
-            const groupedResult = result.reduce((acc, curr) => {
-                if (acc[curr['m_subjectId']] === undefined) {
-                    acc[curr['m_subjectId']] = {};
+            // 1. update to the latest data; start from latest record
+            const groupedResult: any = {};
+            for (let i = 0; i < result.length; i++) {
+                if (groupedResult[result[i]['m_subjectId']] === undefined) {
+                    groupedResult[result[i]['m_subjectId']] = {};
                 }
-                if (acc[curr['m_subjectId']][curr['m_visitId']] === undefined) {
-                    acc[curr['m_subjectId']][curr['m_visitId']] = {};
+                if (groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']] === undefined) {
+                    groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']] = {};
                 }
-                acc[curr['m_subjectId']][curr['m_visitId']] = { ...acc[curr['m_subjectId']][curr['m_visitId']], ...curr };
-                // revove fields whose value is null; currently will not removed the visit Key
-                Object.keys(acc[curr['m_subjectId']][curr['m_visitId']]).forEach(field => {
-                    if (acc[curr['m_subjectId']][curr['m_visitId']][field] === null) {
-                        delete acc[curr['m_subjectId']][curr['m_visitId']][field];
+                groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']] = { ...groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']], ...result[i] };
+                for (const field of Object.keys(result[i])) {
+                    if (groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] === undefined || groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] === null) {
+                        groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] = result[i][field];
                     }
-                });
-                return acc;
-            }, {});
+                }
+            }
             // 2. adjust format: 1) original (exists) 2) standardized-$name 3) grouped
             const standardizations = await db.collections!.standardizations_collection.find({ studyId: studyId, type: queryString['format'].split('-')[1], delete: null }).toArray();
-            const formattedData = dataStandardization(study, fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null),
+            const formattedData = dataStandardization(study, fieldRecords,
                 groupedResult, queryString, standardizations);
             return { data: formattedData };
         }

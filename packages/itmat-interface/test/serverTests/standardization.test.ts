@@ -1225,13 +1225,13 @@ describe('STUDY API', () => {
             })).toEqual([
                 {
                     entry_reserved: 'GR6R4AR',
-                    index: 1,
+                    index: 2,
                     entry_data_age: 35,
                     entry_data_gender: 'F'
                 },
                 {
                     entry_reserved: 'I7N3G6G',
-                    index: 2,
+                    index: 1,
                     entry_data_age: 25,
                     entry_data_gender: 'M'
                 }

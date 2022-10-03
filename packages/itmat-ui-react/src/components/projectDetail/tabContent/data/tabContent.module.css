@@ -7,7 +7,7 @@
 .scaffold_wrapper {
     display: grid;
     grid-template-columns: 50% 50%;
-    grid-template-rows: 30% 60% 70% 50%;
+    grid-template-rows: 40% 60% 70% 50%;
     height: 100%;
     grid-row-gap: 1em;
     grid-column-gap: 1em;
@@ -60,7 +60,5 @@
 }
 
 .title {
-    text-decoration: underline;
-    text-decoration-color: fuchsia;
-    text-decoration-thickness: 30%;
+    font-size: 20px;
 }

@@ -10,7 +10,7 @@ import { IStudy, IFieldEntry, IStandardization } from '@itmat-broker/itmat-types
 // if has study-level permission, non versioned data will also be returned
 
 
-export function buildPipeline(query: any, studyId: string, validDataVersion: string, hasPermission: boolean, fieldsList: any[], siteIDMarker: string | undefined | null) {
+export function buildPipeline(query: any, studyId: string, validDataVersion: string, hasPermission: boolean, fieldsIds: string[], siteIDMarker: string | undefined | null) {
     // // parse the input data versions first
     let dataVersionsFilter: any;
     // for data managers; by default will return unversioned data; to return only versioned data, specify a data version
@@ -23,13 +23,13 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
 
     // We send back the requested fields, by default send all fields
     if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
-        query.data_requested.forEach((field: any) => {
-            if (fieldsList.includes(field)) {
+        query.data_requested.forEach((field: string) => {
+            if (fieldsIds.includes(field)) {
                 (fields as any)[field] = 1;
             }
         });
     } else {
-        fieldsList.forEach((field: any) => {
+        fieldsIds.forEach((field: string) => {
             (fields as any)[field] = 1;
         });
     }
@@ -77,7 +77,7 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
             { $match: { m_studyId: studyId } },
             { $match: { $or: [match, { m_versionId: '0' }] } },
             dataVersionsFilter,
-            { $sort: { m_subjectId: -1, m_visitId: -1 } },
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
             { $project: fields }
         ];
     } else {
@@ -87,7 +87,7 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
             { $addFields: addFields },
             { $match: { $or: [match, { m_versionId: '0' }] } },
             dataVersionsFilter,
-            { $sort: { m_subjectId: -1, m_visitId: -1 } },
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
             { $project: fields }
         ];
     }
@@ -275,35 +275,51 @@ export function dataStandardization(study: IStudy, fields: IFieldEntry[], data: 
 // fields are obtained from called functions, providing the valid fields
 export function standardize(study: IStudy, fields: IFieldEntry[], data: any, standardizations: IStandardization[], newFields: any) {
     const records: any = {};
-    const preOrderOfNewFields: any[] = [];
+    const mergedFields: any[] = [...fields];
     [...newFields].forEach(el => {
         const emptyArr: string[] = [];
         preOrderTraversal(el, emptyArr);
-        preOrderOfNewFields.push({ fieldId: emptyArr });
+        mergedFields.push({ fieldId: emptyArr });
     });
-    const seqNumDic: any = {};
-    for (const field of [...fields.sort((a, b) => a.fieldId.localeCompare(b.fieldId)), ...preOrderOfNewFields]) {
-        const fieldDef: IFieldEntry = fields.filter(el => el.fieldId === field.fieldId)[0] || {};
+    const seqNumMap: Map<string, number> = new Map();
+    for (const field of mergedFields) {
+        let fieldDef: any = {};
+        for (let i = 0; i < mergedFields.length; i++) {
+            if (mergedFields[i].fieldId === field.fieldId) {
+                fieldDef = mergedFields[i];
+                break;
+            }
+        }
         // check if it is in the standardizations
-        let fieldIdentifier = field.fieldId;
+        let fieldIdentifier: string | string[] = field.fieldId;
         if (!Array.isArray(field.fieldId)) {
             fieldIdentifier = ['$' + field.fieldId];
         }
-        const standardization: IStandardization = standardizations.filter(el => JSON.stringify(el.field) === JSON.stringify(fieldIdentifier))[0];
+        let standardization: IStandardization | undefined = undefined;
+        for (let i = 0; i < standardizations.length; i++) {
+            if (JSON.stringify(standardizations[i].field) === JSON.stringify(fieldIdentifier)) {
+                standardization = standardizations[i];
+                break;
+            }
+        }
         if (!standardization) {
             continue;
         }
-        if (!standardization.stdRules) {
+        if (!standardization.stdRules || standardization.stdRules.length === 0) {
             continue;
         }
-        for (const subjectId of Object.keys(data).sort()) {
-            for (const visitId of Object.keys(data[subjectId]).sort()) {
+        for (const subjectId of Object.keys(data)) {
+            for (const visitId of Object.keys(data[subjectId])) {
                 if (!data[subjectId][visitId][field.fieldId]) {
                     continue;
                 }
                 const dataClip: any = {};
                 for (const rule of standardization.stdRules) {
                     if (!rule.parameter) {
+                        continue;
+                    }
+                    if (rule.filters !== undefined && rule.filters !== null && rule.filters[dataClip[rule.entry]] !== undefined
+                        && rule.filters[dataClip[rule.entry]][0] === 'delete') {
                         continue;
                     }
                     switch (rule.source) {
@@ -326,14 +342,11 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                         }
                         // parameter is the path that start from
                         case 'inc': {
-                            const value: any = insertInObj(seqNumDic, rule.parameter, undefined, false, subjectId, visitId);
-                            if (value) {
-                                insertInObj(seqNumDic, rule.parameter, value + 1, false, subjectId, visitId);
-                                dataClip[rule.entry] = value + 1;
-                            } else {
-                                insertInObj(seqNumDic, rule.parameter, 1, false, subjectId, visitId);
-                                dataClip[rule.entry] = 1;
+                            const value: number | undefined = incHelper(seqNumMap, rule.parameter, subjectId, visitId);
+                            if (value === undefined) {
+                                break;
                             }
+                            dataClip[rule.entry] = value;
                             break;
                         }
                         case 'reserved': {
@@ -380,11 +393,11 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                     }
                 }
                 // deal with join
+                let pointer = insertInObj(records, standardization.path, undefined, true, subjectId, visitId);
+                if (pointer === undefined) {
+                    pointer = insertInObj(records, standardization.path, [], true, subjectId, visitId);
+                }
                 if (standardization.joinByKeys.length > 0) {
-                    let pointer = insertInObj(records, standardization.path, undefined, true, subjectId, visitId);
-                    if (pointer === undefined) {
-                        pointer = insertInObj(records, standardization.path, [], true, subjectId, visitId);
-                    }
                     let isSame = true;
                     for (let i = 0; i < pointer.length; i++) {
                         isSame = true;
@@ -400,12 +413,12 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                         }
                     }
                     if (isSame && pointer.length !== 0) {
-                        insertInObj(records, standardization.path, [...pointer], true, subjectId, visitId);
+                        insertInObj(records, standardization.path, pointer, true, subjectId, visitId);
                     } else {
-                        insertInObj(records, standardization.path, [dataClip], false, subjectId, visitId);
+                        insertInObj(records, standardization.path, dataClip, false, subjectId, visitId);
                     }
                 } else {
-                    insertInObj(records, standardization.path, [dataClip], false, subjectId, visitId);
+                    insertInObj(records, standardization.path, dataClip, false, subjectId, visitId);
                 }
             }
         }
@@ -447,8 +460,21 @@ export function dataGrouping(data: any, format: string) {
     return joinedData;
 }
 
+function incHelper(map: Map<string, number>, levels: string[], subjectId: string, visitId: string) {
+    if (levels.length < 1) {
+        return;
+    }
+    let key = levels[0] === 'm_subjectId' ? subjectId : levels[0] === 'm_visitId' ? visitId : levels[0];
+    for (let i = 1; i < levels.length; i++) {
+        const modifiedLevel = levels[i] === 'm_subjectId' ? subjectId : levels[0] === 'm_visitId' ? visitId : levels[0];
+        key += `-${modifiedLevel}`;
+    }
+    map.set(key, (map.get(key) || 0) + 1);
+    return map.get(key) || 0;
+}
+
 // recursively create object structures, return the last pointer
-function insertInObj(obj: any, levels: string[], lastValue: any, join: boolean, subjectId: any, visitId: any) {
+function insertInObj(obj: any, levels: string[], lastValue: any, join: boolean, subjectId: string, visitId: string) {
     let pointer: any = obj;
     for (let i = 0; i < levels.length; i++) {
         let modifiedLevel = levels[i];
@@ -463,7 +489,7 @@ function insertInObj(obj: any, levels: string[], lastValue: any, join: boolean, 
                     if (join) {
                         pointer[modifiedLevel] = lastValue;
                     } else {
-                        pointer[modifiedLevel] = pointer[modifiedLevel].concat(lastValue);
+                        pointer[modifiedLevel].push(lastValue);
                     }
                 } else {
                     pointer[modifiedLevel] = lastValue;
