@@ -6,7 +6,7 @@ import LoadSpinner from '../reusable/loadSpinner';
 import { Table, Input, Button, Tooltip } from 'antd';
 import { EditOutlined, WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { IUserWithoutToken } from '@itmat-broker/itmat-types';
 
 export const UserListSection: FunctionComponent = () => {
@@ -87,8 +87,8 @@ const UserList: FunctionComponent<{ users: IUserWithoutToken[] }> = ({ users }) 
         },
         {
             render: (__unused__value, record) => (
-                moment().add(4, 'weeks').valueOf() - moment(record.expiredAt).valueOf() > 0
-                    ? moment().valueOf() - moment(record.expiredAt).valueOf() > 0
+                dayjs().add(4, 'week').valueOf() - dayjs(record.expiredAt).valueOf() > 0
+                    ? dayjs().valueOf() - dayjs(record.expiredAt).valueOf() > 0
                         ? <Tooltip title='Account has expired.'><PauseCircleOutlined style={{
                             color: '#cccccc',
                             fontSize: '1.5rem'

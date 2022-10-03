@@ -7,7 +7,7 @@ import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from '../users/projectSection';
 import { Form, Input, Select, DatePicker, Button, Alert } from 'antd';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import { Key } from '../../utils/dmpCrypto/dmp.key';
 
@@ -39,8 +39,8 @@ export const ProfileManagementSection: FunctionComponent = () => {
             <div className='page_ariane'>{whoamidata.whoAmI.username}</div>
             <div className='page_content'>
                 {
-                    moment().add(4, 'weeks').valueOf() - moment(user.expiredAt).valueOf() > 0
-                        ? moment().valueOf() - moment(user.expiredAt).valueOf() > 0
+                    dayjs().add(4, 'week').valueOf() - dayjs(user.expiredAt).valueOf() > 0
+                        ? dayjs().valueOf() - dayjs(user.expiredAt).valueOf() > 0
                             ? <>
                                 <PauseCircleOutlined style={{
                                     color: '#cccccc',
@@ -127,7 +127,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     }
 
     const disabledDate = (current) => {
-        return current && (current < moment().endOf('day') || current > moment().add(3, 'months'));
+        return current && (current < dayjs().endOf('day') || current > dayjs().add(3, 'month'));
     };
 
     if (getorgsloading) { return <p>Loading..</p>; }
@@ -142,8 +142,8 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
             {(submit, { loading, error }) =>
                 <Form title='EditUserForm' initialValues={{
                     ...user,
-                    createdAt: moment(user.createdAt),
-                    expiredAt: moment(user.expiredAt),
+                    createdAt: dayjs(user.createdAt),
+                    expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.name
                 }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
                     <Form.Item name='username' label='Username'>

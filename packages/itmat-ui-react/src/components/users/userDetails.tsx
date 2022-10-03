@@ -7,7 +7,7 @@ import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
 import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm } from 'antd';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
 
@@ -59,8 +59,8 @@ export const UserDetailsSection: FunctionComponent = () => {
             <div className='page_ariane'>{data.getUsers[0].username}</div>
             <div className='page_content'>
                 {
-                    moment().add(4, 'weeks').valueOf() - moment(data.getUsers[0].expiredAt).valueOf() > 0
-                        ? moment().valueOf() - moment(data.getUsers[0].expiredAt).valueOf() > 0
+                    dayjs().add(4, 'week').valueOf() - dayjs(data.getUsers[0].expiredAt).valueOf() > 0
+                        ? dayjs().valueOf() - dayjs(data.getUsers[0].expiredAt).valueOf() > 0
                             ? <>
                                 <PauseCircleOutlined style={{
                                     color: '#cccccc',
@@ -120,7 +120,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
     const disabledDate = (current) => {
-        return current && (current < moment().endOf('day') || current > moment().add(3, 'months'));
+        return current && (current < dayjs().endOf('day') || current > dayjs().add(3, 'month'));
     };
 
     if (getorgsloading) { return <p>Loading..</p>; }
@@ -135,8 +135,8 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
             {(submit, { loading, error }) =>
                 <Form initialValues={{
                     ...user,
-                    createdAt: moment(user.createdAt),
-                    expiredAt: moment(user.expiredAt),
+                    createdAt: dayjs(user.createdAt),
+                    expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.id
                 }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
                     <Form.Item name='username' label='Username'>
