@@ -15,7 +15,7 @@ RUN mkdir ./config
 COPY ./packages/itmat-docker/launcher.js ./
 COPY ./dist/packages/itmat-interface/interface* ./
 COPY ./dist/packages/itmat-job-executor/executor* ./
-COPY ./dist/packages/itmat-ui-react/* ./static/
+COPY ./dist/packages/itmat-ui-react/* ./
 
 EXPOSE 3080
 CMD [ "node", "launcher.js" ]
