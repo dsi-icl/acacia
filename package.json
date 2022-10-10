@@ -91,7 +91,7 @@
         "@ant-design/plots": "1.2.2",
         "@apollo/client": "3.7.0",
         "@ideafast/idgen": "0.1.1",
-        "@swc/helpers": "~0.4.11",
+        "@swc/helpers": "~0.4.12",
         "antd": "5.0.0-experimental.30",
         "apollo-upload-client": "17.0.0",
         "apollo-server-express": "3.10.3",
