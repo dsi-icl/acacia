@@ -111,7 +111,7 @@
         "fs-capacitor": "6.2.0",
         "fs-extra": "10.1.0",
         "graphql": "16.6.0",
-        "graphql-scalars": "1.18.0",
+        "graphql-scalars": "1.19.0",
         "graphql-subscriptions": "2.0.0",
         "graphql-tag": "2.12.6",
         "graphql-type-json": "0.3.2",
