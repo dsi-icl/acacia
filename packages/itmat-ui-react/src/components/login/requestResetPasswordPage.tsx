@@ -98,7 +98,7 @@ export const RequestResetPassword: FunctionComponent = () => {
                             <br />
                             <br />
                             Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
-                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {process.env.NX_REACT_APP_COMMIT} ({process.env.NX_REACT_APP_BRANCH})</i>
+                            <i style={{ color: '#ccc' }}>v{process.env.NX_REACT_APP_VERSION} - {process.env.NX_REACT_APP_COMMIT} ({process.env.NX_REACT_APP_BRANCH})</i>
                         </div>
                     </div>
                 );
