@@ -159,7 +159,7 @@ export class Router {
                 res.cookie('ae_proxy', req.headers['host']);
                 const data = (req.user as IUser).username + ':token';
                 preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-                if (req.method == 'POST' && req.body) {
+                if (req.body && Object.keys(req.body).length) {
                     const contentType = preq.getHeader('Content-Type');
                     preq.setHeader('origin', config.aeEndpoint);
                     const writeBody = (bodyData: string) => {
