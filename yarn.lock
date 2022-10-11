@@ -7005,10 +7005,10 @@ graphql-type-json@0.3.2:
   resolved "https://registry.yarnpkg.com/graphql-type-json/-/graphql-type-json-0.3.2.tgz#f53a851dbfe07bd1c8157d24150064baab41e115"
   integrity sha512-J+vjof74oMlCWXSvt0DOf2APEdZOCdubEvGDUAlqH//VBYcOYsGgRW7Xzorr44LvkjiuvecWc8fChxuZZbChtg==
 
-graphql-upload-minimal@1.5.3:
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/graphql-upload-minimal/-/graphql-upload-minimal-1.5.3.tgz#96dbd034e160484ac631ec8af25258f386e2a761"
-  integrity sha512-2i41WESmGepg5jvOtje4XR+YeKc/ziK4lydYE3QDhoQEGz8zSVzbuHzwxPvWaNM/VOUT2T0hL+fiFjnMJxwlqQ==
+graphql-upload-minimal@1.5.4:
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/graphql-upload-minimal/-/graphql-upload-minimal-1.5.4.tgz#eb54bd20fd25df9c4dff86b1e54f03ba6c1917ca"
+  integrity sha512-bBZ2J1kg6Guq++IkAhyyyd5QThHa9Mrl2NRqIumrSi2T/7SdoqduhIEdqZ+U4oniZP9jLzcIOyo+l8b+NuSgCw==
   dependencies:
     busboy "^1.6.0"
 
