@@ -1,4 +1,4 @@
-import { jStat } from 'jStat';
+import jStat from 'jstat';
 import { IFieldEntry, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-types';
 
 export function get_t_test(t_array1: number[], t_array2: number[], digits: number) {
