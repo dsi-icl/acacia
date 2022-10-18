@@ -46,7 +46,6 @@ export const fileResolvers = {
 
             return new Promise<IFile>((resolve, reject) => {
                 try {
-
                     const capacitor = new WriteStream();
                     const hash = crypto.createHash('sha256');
                     const stream: Readable = file.createReadStream();
@@ -83,6 +82,7 @@ export const fileResolvers = {
                     countStream.on('error', (e) => {
                         Logger.error(e);
                         reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
+                        return;
                     });
 
                     countStream.on('end', () => {
@@ -114,6 +114,7 @@ export const fileResolvers = {
                         stream.on('error', (e) => {
                             Logger.error(e);
                             reject(new ApolloError(errorCodes.FILE_STREAM_ERROR));
+                            return;
                         });
 
                         stream.on('end', async () => {

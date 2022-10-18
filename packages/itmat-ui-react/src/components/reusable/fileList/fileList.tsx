@@ -288,7 +288,7 @@ export const FileList: FunctionComponent<{ type: studyType, files: IFile[], sear
             }
         ]);
 
-    return type === studyType.ANY ?
+    return (type === studyType.ANY || type === studyType.CLINICAL) ?
         <>
             <Table
                 rowKey={(rec) => rec.id}

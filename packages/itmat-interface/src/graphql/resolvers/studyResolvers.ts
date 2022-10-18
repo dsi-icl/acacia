@@ -13,10 +13,10 @@ import {
     studyType,
     IDataClip,
     ISubjectDataRecordSummary,
-    DATA_CLIP_ERROR_TYPE,
     IRole,
     IOntologyTree,
-    userTypes
+    userTypes,
+    IGeneralError
 } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -541,7 +541,7 @@ export const studyResolvers = {
             const study = await studyCore.editStudy(studyId, description);
             return study;
         },
-        createNewField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any[] }, context: any): Promise<any[]> => {
+        createNewField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any[] }, context: any): Promise<IGeneralError[]> => {
             const requester: IUser = context.req.user;
             /* check privileges */
             /* user can get study if he has readonly permission */
@@ -557,7 +557,7 @@ export const studyResolvers = {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
-            const error: any[] = [];
+            const error: IGeneralError[] = [];
             let isError = false;
             const bulk = db.collections!.field_dictionary_collection.initializeUnorderedBulkOp();
             // remove duplicates by fieldId
@@ -571,7 +571,7 @@ export const studyResolvers = {
                 // check data valid
                 const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput);
                 if (thisError.length !== 0) {
-                    error.push({ code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
+                    error.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
                     isError = true;
                 }
 
@@ -589,7 +589,9 @@ export const studyResolvers = {
                     }).upsert().updateOne({ $set: fieldEntry });
                 }
             }
-            await bulk.execute();
+            if (bulk.batches.length > 0) {
+                await bulk.execute();
+            }
             return error;
         },
         editField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {
@@ -661,7 +663,7 @@ export const studyResolvers = {
             return searchField[0];
 
         },
-        uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, data }: { studyId: string, data: IDataClip[] }, context: any): Promise<any> => {
+        uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, data }: { studyId: string, data: IDataClip[] }, context: any): Promise<IGeneralError> => {
             // check study exists
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
@@ -695,7 +697,7 @@ export const studyResolvers = {
             ]).toArray();
             // filter those that have been deleted
             const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
-            const errors = (await studyCore.uploadOneDataClip(studyId, fieldsList, data));
+            const errors = (await studyCore.uploadOneDataClip(studyId, fieldsList, data, requester));
 
             return errors;
         },
@@ -750,7 +752,9 @@ export const studyResolvers = {
                     });
                 }
             }
-            await bulk.execute();
+            if (bulk.batches.length > 0) {
+                await bulk.execute();
+            }
             return [];
         },
         createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {

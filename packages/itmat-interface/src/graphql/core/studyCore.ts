@@ -1,13 +1,18 @@
 import { ApolloError } from 'apollo-server-core';
-import { IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, DATA_CLIP_ERROR_TYPE } from '@itmat-broker/itmat-types';
+import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
 import { PermissionCore, permissionCore } from './permissionCore';
 import { validate } from '@ideafast/idgen';
-import { parseValue } from 'graphql';
 import type { MatchKeysAndValues } from 'mongodb';
-
+import { objStore } from '../../objStore/objStore';
+import { FileUpload } from 'graphql-upload-minimal';
+import { Readable } from 'stream';
+import { WriteStream } from 'fs-capacitor';
+import crypto from 'crypto';
+import { Logger } from '@itmat-broker/itmat-commons';
+import { fileSizeLimit } from '../../utils/definition';
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
 
@@ -151,9 +156,9 @@ export class StudyCore {
         return newDataVersion;
     }
 
-    public async uploadOneDataClip(studyId: string, fieldList: any[], data: IDataClip[]): Promise<any> {
+    public async uploadOneDataClip(studyId: string, fieldList: any[], data: IDataClip[], user: IUser): Promise<any> {
         const errors: any[] = [];
-        const bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
+        // const bulk = db.collections!.data_collection.initializeOrderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
         const keysToCheck: Array<keyof IDataClip> = ['visitId', 'subjectId', 'fieldId'];
         const filteredData = data.filter(
@@ -162,23 +167,27 @@ export class StudyCore {
         for (const dataClip of filteredData) {
             const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId)[0];
             if (!fieldInDb) {
-                errors.push({ code: DATA_CLIP_ERROR_TYPE.ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: Field Not found` });
+                errors.push({ code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: Field Not found` });
                 continue;
             }
             // check subjectId
             if (!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
-                errors.push({ code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
+                errors.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
                 continue;
             }
 
             // check value is valid
             let error;
             let parsedValue;
-            if (dataClip.value.toString() === '99999') { // agreement with other WPs, 99999 refers to missing
+            if (dataClip.value?.toString() === '99999') { // agreement with other WPs, 99999 refers to missing
                 parsedValue = '99999';
             } else {
                 switch (fieldInDb.dataType) {
                     case 'dec': {// decimal
+                        if (typeof (dataClip.value) !== 'string') {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as decimal.`;
+                            break;
+                        }
                         if (!/^\d+(.\d+)?$/.test(dataClip.value)) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as decimal.`;
                             break;
@@ -187,6 +196,10 @@ export class StudyCore {
                         break;
                     }
                     case 'int': {// integer
+                        if (typeof (dataClip.value) !== 'string') {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as integer.`;
+                            break;
+                        }
                         if (!/^-?\d+$/.test(dataClip.value)) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as integer.`;
                             break;
@@ -195,6 +208,10 @@ export class StudyCore {
                         break;
                     }
                     case 'bool': {// boolean
+                        if (typeof (dataClip.value) !== 'string') {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as boolean.`;
+                            break;
+                        }
                         if (dataClip.value.toLowerCase() === 'true' || dataClip.value.toLowerCase() === 'false') {
                             parsedValue = dataClip.value.toLowerCase() === 'true';
                         } else {
@@ -204,11 +221,19 @@ export class StudyCore {
                         break;
                     }
                     case 'str': {
+                        if (typeof (dataClip.value) !== 'string') {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as string.`;
+                            break;
+                        }
                         parsedValue = dataClip.value.toString();
                         break;
                     }
                     // 01/02/2021 00:00:00
                     case 'date': {
+                        if (typeof (dataClip.value) !== 'string') {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
+                            break;
+                        }
                         const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
                         if (!dataClip.value.match(matcher)) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
@@ -222,21 +247,26 @@ export class StudyCore {
                         break;
                     }
                     case 'file': {
-                        const file = await db.collections!.files_collection.findOne({ id: parseValue });
-                        if (!file) {
-                            error = `Field ${dataClip.fieldId}: Cannot parse as file or file does not exist.`;
+                        if (!dataClip.file || typeof (dataClip.file) === 'string') {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as file.`;
+                            break;
+                        }
+                        // if old file exists, delete it first
+                        const res = await this.uploadFile(studyId, dataClip, user, {});
+                        if ('code' in res && 'description' in res) {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as file.`;
                             break;
                         } else {
-                            parsedValue = dataClip.value.toString();
+                            parsedValue = res.id;
                         }
                         break;
                     }
                     case 'cat': {
-                        if (!fieldInDb.possibleValues.map((el: any) => el.code).includes(dataClip.value.toString())) {
+                        if (!fieldInDb.possibleValues.map((el: any) => el.code).includes(dataClip.value?.toString())) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
                             break;
                         } else {
-                            parsedValue = dataClip.value.toString();
+                            parsedValue = dataClip.value?.toString();
                         }
                         break;
                     }
@@ -247,7 +277,7 @@ export class StudyCore {
                 }
             }
             if (error !== undefined) {
-                errors.push({ code: DATA_CLIP_ERROR_TYPE.MALFORMED_INPUT, description: error });
+                errors.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: error });
                 continue;
             }
             const obj = {
@@ -256,16 +286,151 @@ export class StudyCore {
                 m_versionId: undefined,
                 m_visitId: dataClip.visitId
             };
+            const existingMetaData: Record<string, any> = (await db.collections!.data_collection.findOne(obj))?.metadata ?? {};
+            if (dataClip.metadata) {
+                // dmpOrganisation is for DMP only; change it for other platforms
+                existingMetaData[dataClip.fieldId] = { ...dataClip.metadata, dmpOrganisation: user.organisation };
+            }
             const objWithData: Partial<MatchKeysAndValues<IDataEntry>> = {
                 ...obj,
                 id: uuid(),
-                uploadedAt: (new Date()).valueOf()
+                uploadedAt: (new Date()).valueOf(),
+                metadata: existingMetaData
             };
             objWithData[dataClip.fieldId] = parsedValue;
-            bulk.find(obj).upsert().updateOne({ $set: objWithData });
+            await db.collections!.data_collection.findOneAndUpdate(obj, {
+                $set: objWithData
+            }, {
+                upsert: true
+            });
+            // bulk.find(obj).upsert().updateOne({ $set: objWithData });
         }
-        await bulk.execute();
+        // await bulk.execute();
         return errors;
+    }
+
+    // This file uploading function will not check any metadate of the file
+    public async uploadFile(studyId: string, data: IDataClip, uploader: IUser, args: { fileLength?: number, fileHash?: string }): Promise<IFile | { code: errorCodes, description: string }> {
+        if (!data.file || typeof (data.file) === 'string') {
+            return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Invalid File Stream' };
+        }
+        const study = await db.collections!.studies_collection.findOne({ id: studyId });
+        if (!study) {
+            return { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: 'Study does not exist.' };
+        }
+        const file: FileUpload = await data.file;
+
+        // check if old files exist; if so, denote it as deleted
+        const dataEntry = await db.collections!.data_collection.findOne({ m_studyId: studyId, m_visitId: data.visitId, m_subjectId: data.subjectId, m_versionId: null }, { [data.fieldId]: 1 });
+        const oldFileId = dataEntry ? dataEntry[data.fieldId] : null;
+        return new Promise<IFile>((resolve, reject) => {
+            try {
+                const capacitor = new WriteStream();
+                const hash = crypto.createHash('sha256');
+                const stream: Readable = file.createReadStream();
+                capacitor.on('error', () => {
+                    stream.unpipe();
+                    stream.resume();
+                });
+
+                stream.on('limit', () => {
+                    capacitor.destroy(new Error('File truncated as it exceeds the byte size limit'));
+                });
+
+                stream.on('error', (error) => {
+                    capacitor.destroy(error);
+                });
+
+                Object.defineProperty(file, 'capacitor', {
+                    enumerable: false,
+                    configurable: false,
+                    writable: false
+                });
+
+                stream.pipe(capacitor);
+
+                const countStream = capacitor.createReadStream();
+                let readBytes = 0;
+
+                countStream.on('data', chunk => {
+                    readBytes += chunk.length;
+                    hash.update(chunk);
+                });
+
+                countStream.on('error', (e) => {
+                    Logger.error(e);
+                    reject({ code: errorCodes.FILE_STREAM_ERROR, description: 'Stream error.' });
+                    return;
+                });
+
+                countStream.on('end', () => {
+                    // hash is optional, but should be correct if provided
+                    const hashString = hash.digest('hex');
+                    if (args.fileHash !== undefined) {
+                        if (args.fileHash !== hashString) {
+                            reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File hash not match.' });
+                            return;
+                        }
+                    }
+                    // check if readbytes equal to filelength in parameters
+                    if (args.fileLength !== undefined) {
+                        // const parsedBigInt = args.fileLength.toString().substring(0, args.fileLength.toString().length);
+                        const parsedBigInt = args.fileLength.toString();
+                        if (parsedBigInt !== readBytes.toString()) {
+                            reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File size mismatch.' });
+                            return;
+                        }
+                    }
+                    if (readBytes > fileSizeLimit) {
+                        reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File should not be larger than 8GB' });
+                        return;
+                    }
+                    const stream: Readable = capacitor.createReadStream();
+                    const fileUri = uuid();
+
+                    /* if the client cancelled the request mid-stream it will throw an error */
+                    stream.on('error', (e) => {
+                        Logger.error(e);
+                        reject({ code: errorCodes.FILE_STREAM_ERROR, description: '' });
+                        return;
+                    });
+
+                    stream.on('end', async () => {
+                        try {
+                            const fileEntry: IFile = {
+                                id: uuid(),
+                                fileName: file.fieldName,
+                                studyId: studyId,
+                                fileSize: readBytes.toString(),
+                                description: JSON.stringify(data.metadata ?? {}),
+                                uploadTime: `${Date.now()}`,
+                                uploadedBy: uploader.id,
+                                uri: fileUri,
+                                deleted: null,
+                                hash: hashString
+                            };
+                            const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
+                            if (insertResult.acknowledged) {
+                                resolve(fileEntry);
+                            } else {
+                                reject({ code: errorCodes.DATABASE_ERROR, description: '' });
+                                return;
+                            }
+                            // delete old file if existing
+                            await db.collections!.files_collection.findOneAndUpdate({ studyId: studyId, id: oldFileId }, { $set: { deleted: Date.now().valueOf() } });
+                        } catch (e) {
+                            reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Missing file metadata.' });
+                            return;
+                        }
+                    });
+                    objStore.uploadFile(stream, studyId, fileUri);
+                });
+            }
+            catch (e) {
+                reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Missing file metadata.' });
+                return;
+            }
+        });
     }
 
     public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {

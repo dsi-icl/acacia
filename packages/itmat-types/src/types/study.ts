@@ -1,4 +1,5 @@
 import { IUser } from './user';
+import { FileUpload } from 'graphql-upload-minimal';
 
 export enum studyType {
     SENSOR = 'SENSOR',
@@ -60,19 +61,16 @@ export interface IProject {
 }
 
 export interface IDataClip {
-    fieldId: string,
-    value: string,
-    subjectId: string,
-    visitId: string
+    fieldId: string;
+    value?: string;
+    subjectId: string;
+    visitId: string;
+    file?: FileUpload;
+    metadata?: JSON
 }
 
-export enum DATA_CLIP_ERROR_TYPE {
-    ACTION_ON_NON_EXISTENT_ENTRY = 'ACTION_ON_NON_EXISTENT_ENTRY',
-    MALFORMED_INPUT = 'MALFORMED_INPUT'
-}
-
-export interface IDataClipError {
-    code: DATA_CLIP_ERROR_TYPE
+export interface IGeneralError {
+    code: string;
     description?: string
 }
 

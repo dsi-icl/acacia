@@ -132,7 +132,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
 
     const fileFilter = (files: StudyFile[]) => {
         files.forEach((file) => {
-            if (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === studyType.CLINICAL) {
+            if (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR) {
                 const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
                 const particules = file.name.match(matcher);
                 if (particules?.length === 8) {
@@ -152,7 +152,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                     }
                 }
                 progressReports[`UP_${file.participantId}_${file.deviceId}_${file.startDate?.valueOf()}_${file.endDate?.valueOf()}`] = undefined;
-            } else if (getStudyData.getStudy.type === studyType.ANY) {
+            } else if (getStudyData.getStudy.type === studyType.CLINICAL || getStudyData.getStudy.type === studyType.ANY) {
                 progressReports[`UP_${file.name}`] = undefined;
             }
             file.uuid = uuid();
@@ -169,7 +169,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
         validFile.forEach(file => {
             let description: any;
             let uploadMapHackName: any;
-            if (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR || getStudyData.getStudy.type === studyType.CLINICAL) {
+            if (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR) {
                 description = {
                     participantId: file.participantId?.trim().toUpperCase(),
                     deviceId: file.deviceId?.trim().toUpperCase(),
@@ -385,15 +385,6 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                     || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
                     || (!userIdNameMapping[file.uploadedBy] || userIdNameMapping[file.uploadedBy].toUpperCase().indexOf(searchTerm) > -1))
             ).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime));
-        } else if (getStudyData.getStudy.type === studyType.CLINICAL) {
-            return files.filter((file) => {
-                if (file.fileName.startsWith('VariablesList')) {
-                    return true;
-                } else if (file !== null && file !== undefined && (!searchTerm || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1)) {
-                    return true;
-                }
-                return false;
-            });
         } else {
             return files.filter(file =>
                 file !== null && file !== undefined &&
@@ -412,52 +403,54 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
         }
         return values;
     }, { set: {}, count: 0 }).count;
-
     // format the file structure
-    const availableSites: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).participantId[0]).sort()));
-    const availableDeviceTypes: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).deviceId.substr(0, 3)).sort()));
-    const categoryColumns: any[] = [
-        {
-            title: 'Site',
-            dataIndex: 'site',
-            key: 'site',
-            render: (__unused__value, record) => sites[record.site] ? sites[record.site].concat(' (').concat(record.site).concat(')') : record.site
-        }
-    ];
-    for (const deviceType of availableDeviceTypes) {
-        categoryColumns.push({
-            title: deviceType,
-            dataIndex: deviceType,
-            key: deviceType,
-            render: (__unused__value, record) => record[deviceType] ? record[deviceType].toString() : deviceTypes[record[deviceType]]
-        });
-    }
-    categoryColumns.push({
-        title: 'Total',
-        dataIndex: 'Total',
-        key: 'total',
-        render: (__unused__value, record) => record.total
-    });
     const fileSummary: any[] = [];
-    for (const site of availableSites) {
+    const categoryColumns: any[] = [];
+    if (getStudyData.getStudy.type === studyType.SENSOR) {
+        const availableSites: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).participantId[0]).sort()));
+        const availableDeviceTypes: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).deviceId.substr(0, 3)).sort()));
+        categoryColumns.push([
+            {
+                title: 'Site',
+                dataIndex: 'site',
+                key: 'site',
+                render: (__unused__value, record) => sites[record.site] ? sites[record.site].concat(' (').concat(record.site).concat(')') : record.site
+            }
+        ]);
+        for (const deviceType of availableDeviceTypes) {
+            categoryColumns.push({
+                title: deviceType,
+                dataIndex: deviceType,
+                key: deviceType,
+                render: (__unused__value, record) => record[deviceType] ? record[deviceType].toString() : deviceTypes[record[deviceType]]
+            });
+        }
+        categoryColumns.push({
+            title: 'Total',
+            dataIndex: 'Total',
+            key: 'total',
+            render: (__unused__value, record) => record.total
+        });
+        for (const site of availableSites) {
+            const tmpData: any = {
+                site: site
+            };
+            for (const deviceType of availableDeviceTypes) {
+                tmpData[deviceType] = getStudyData.getStudy.files.filter(el => (JSON.parse(el.description).participantId[0] === site
+                    && JSON.parse(el.description).deviceId.substr(0, 3) === deviceType)).length;
+            }
+            tmpData.total = getStudyData.getStudy.files.filter(el => JSON.parse(el.description).participantId[0] === site).length;
+            fileSummary.push(tmpData);
+        }
         const tmpData: any = {
-            site: site
+            site: 'Total',
+            total: getStudyData.getStudy.files.length
         };
         for (const deviceType of availableDeviceTypes) {
-            tmpData[deviceType] = getStudyData.getStudy.files.filter(el => (JSON.parse(el.description).participantId[0] === site
-                && JSON.parse(el.description).deviceId.substr(0, 3) === deviceType)).length;
+            tmpData[deviceType] = getStudyData.getStudy.files.filter(el => JSON.parse(el.description).deviceId.substr(0, 3) === deviceType).length;
         }
-        tmpData.total = getStudyData.getStudy.files.filter(el => JSON.parse(el.description).participantId[0] === site).length;
         fileSummary.push(tmpData);
     }
-    const tmpData: any = {
-        site: 'Total',
-        total: getStudyData.getStudy.files.length
-    };
-    for (const deviceType of availableDeviceTypes) {
-        tmpData[deviceType] = getStudyData.getStudy.files.filter(el => JSON.parse(el.description).deviceId.substr(0, 3) === deviceType).length;
-    }
-    fileSummary.push(tmpData);
     return <div {...getRootProps() as HTMLAttributes<HTMLDivElement>} className={`${css.scaffold_wrapper} ${isDropOverlayShowing ? css.drop_overlay : ''}`}>
         <input title='fileTabDropZone' {...getInputProps()} />
         {fileList.length > 0
@@ -473,7 +466,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         rowKey={(rec) => rec.uuid}
                         rowClassName={() => css.editable_row}
                         pagination={false}
-                        columns={getStudyData.getStudy.type === studyType.ANY ? fileNameColumns : fileDetailsColumns}
+                        columns={(getStudyData.getStudy.type === studyType.ANY || getStudyData.getStudy.type === studyType.CLINICAL) ? fileNameColumns : fileDetailsColumns}
                         dataSource={fileList}
                         size='small'
                         components={{ body: { row: EditableRow, cell: EditableCell } }} />
@@ -548,7 +541,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         <span>Total Size: {formatBytes(sizeOfFiles)}</span>
                         <span>Total Participants: {participantOfFiles}</span>
                         {
-                            getStudyData.getStudy.type === studyType.ANY ? null :
+                            (getStudyData.getStudy.type === studyType.ANY || getStudyData.getStudy.type === studyType.CLINICAL) ? null :
                                 <Button onClick={() => setIsFileSummaryShown(true)}>File Details</Button>
                         }
                     </Space>}

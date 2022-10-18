@@ -41,7 +41,10 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
             error.push(`${key} should not be empty.`);
         }
     }
-
+    // only english letters, numbers and _ are allowed in fieldIds
+    if (!/^[a-zA-Z0-9_]*$/.test(fieldEntry.fieldId || '')) {
+        error.push('FieldId should contain letters, numbers and _ only.');
+    }
     // data types
     if (!Object.values(enumValueType).includes(fieldEntry.dataType)) {
         error.push(`Data type shouldn't be ${fieldEntry.dataType}: use 'int' for integer, 'dec' for decimal, 'str' for string, 'bool' for boolean, 'date' for datetime, 'file' for FILE, 'json' for json.`);

@@ -104,7 +104,7 @@ export const FieldListSection: FunctionComponent<{ studyData?: any, onCheck?: an
                 selectedRowKeys: checkedList
             }}
             columns={verbal ? columns : columns.slice(0, 2)}
-            dataSource={[...fieldList].sort((a, b) => { return parseFloat(a.fieldId) - parseFloat(b.fieldId); })}
+            dataSource={[...fieldList].sort((a, b) => a.fieldId.localeCompare(b.fieldId))}
             size='middle'
         ></Table>);
     } else {
@@ -120,7 +120,7 @@ export const FieldListSection: FunctionComponent<{ studyData?: any, onCheck?: an
                 }
             }
             columns={verbal ? columns : columns.slice(0, 2)}
-            dataSource={[...fieldList].sort((a, b) => { return parseFloat(a.fieldId) - parseFloat(b.fieldId); })}
+            dataSource={[...fieldList].sort((a, b) => a.fieldId.localeCompare(b.fieldId))}
             size='middle'
         ></Table>);
     }
