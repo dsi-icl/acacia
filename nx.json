@@ -55,6 +55,12 @@
                 "default",
                 "{workspaceRoot}/.eslintrc.json"
             ]
+        },
+        "e2e": {
+            "inputs": [
+                "default",
+                "^default"
+            ]
         }
     },
     "defaultProject": "itmat-ui-react"

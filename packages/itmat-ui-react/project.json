@@ -82,7 +82,7 @@
         "test": {
             "executor": "@nrwl/jest:jest",
             "outputs": [
-                "coverage/packages/itmat-ui-react"
+                "{workspaceRoot}/coverage/packages/itmat-ui-react"
             ],
             "options": {
                 "jestConfig": "packages/itmat-ui-react/jest.config.ts",

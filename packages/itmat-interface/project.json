@@ -57,7 +57,7 @@
         "test": {
             "executor": "@nrwl/jest:jest",
             "outputs": [
-                "coverage/packages/itmat-interface"
+                "{workspaceRoot}/coverage/packages/itmat-interface"
             ],
             "options": {
                 "jestConfig": "packages/itmat-interface/jest.config.ts",

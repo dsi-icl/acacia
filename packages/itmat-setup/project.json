@@ -32,7 +32,7 @@
         "test": {
             "executor": "@nrwl/jest:jest",
             "outputs": [
-                "coverage/packages/itmat-setup"
+                "{workspaceRoot}/coverage/packages/itmat-setup"
             ],
             "options": {
                 "jestConfig": "packages/itmat-setup/jest.config.ts",

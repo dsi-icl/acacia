@@ -31,7 +31,7 @@
         "test": {
             "executor": "@nrwl/jest:jest",
             "outputs": [
-                "coverage/packages/itmat-commons"
+                "{workspaceRoot}/coverage/packages/itmat-commons"
             ],
             "options": {
                 "jestConfig": "packages/itmat-commons/jest.config.ts",
