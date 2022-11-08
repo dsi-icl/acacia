@@ -46,7 +46,7 @@ export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId
     return <div className={css.tab_page_wrapper}>
         <div className={css.scaffold_wrapper}>
             <div className={css.metadata}>
-                <MetaDataBlock project={getProjectData.getProject} numOfFields={getStudyFieldsData.getStudyFields.length} numOfOntologyRoutes={getOntologyTreeData.getOntologyTree[0].routes.length} />
+                <MetaDataBlock project={getProjectData.getProject} numOfOntologyRoutes={getOntologyTreeData.getOntologyTree[0].routes.length} />
             </div>
             <div className={css.demographics}>
                 <DemographicsBlock ontologyTree={getOntologyTreeData.getOntologyTree[0]} studyId={studyId} projectId={projectId} fields={filterFields(getStudyFieldsData.getStudyFields, getOntologyTreeData.getOntologyTree[0])} />
@@ -64,7 +64,7 @@ export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId
     </div>;
 };
 
-export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: number, numOfOntologyRoutes: number }> = ({ project, numOfFields, numOfOntologyRoutes }) => {
+export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfOntologyRoutes: number }> = ({ project, numOfOntologyRoutes }) => {
     return project ? <SubsectionWithComment title={<Tooltip title={'The statistics of several demographics fields.'}>
         <Text className={css.title}>Meta Data</Text> <QuestionCircleOutlined />
     </Tooltip>} comment={<Space direction={'horizontal'} size={20}>
@@ -108,10 +108,7 @@ export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: 
             </Col>
             <Col span={5}>
                 <div className={css.grid_col_center}>
-                    <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes} / {numOfFields}</Text>
-                    <Tooltip title={`${numOfOntologyRoutes} of ${numOfFields} fields are in the ontology tree.`}>
-                        <QuestionCircleOutlined />
-                    </Tooltip>
+                    <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes}</Text>
                 </div>
             </Col>
             <Col span={9}>
@@ -451,7 +448,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                             </Tooltip >}</Text></div>
                         </Col>
                         <Col span={3}>
-                            <div className={css.grid_col_center_large} ><Text strong underline>{dataTypeMapping[field?.fieldId] || 'NA'}</Text></div>
+                            <div className={css.grid_col_center_large} ><Text strong underline>{dataTypeMapping[field?.dataType] || 'NA'}</Text></div>
                         </Col>
                         <Col span={3}>
                             <div className={css.grid_col_center_large} ><Text strong underline>{field?.unit || 'NA'}</Text></div>

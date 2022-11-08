@@ -19,8 +19,22 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
     } else {
         dataVersionsFilter = { $match: { m_versionId: { $in: validDataVersion } } };
     }
-    const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
 
+    let metadataFilter = {};
+    // metadata filter
+    if (query['metadata'] !== undefined && query['metadata'] !== null) {
+        if (query.metadata.length > 1) {
+            const subqueries: any = [];
+            query.metadata.forEach((subMetadata: any) => {
+                // addFields.
+                subqueries.push(translateMetadata(subMetadata));
+            });
+            metadataFilter = { $or: subqueries };
+        } else {
+            metadataFilter = translateMetadata(query.metadata[0]);
+        }
+    }
+    const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
     // We send back the requested fields, by default send all fields
     if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
         query.data_requested.forEach((field: string) => {
@@ -71,22 +85,64 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
         selfOrgFilter = { $match: { m_subjectId: { $regex: new RegExp(siteIDMarker + '-?(.{6})') } } };
     }
 
-    if (isEmptyObject(addFields)) {
+    const groupFilter: any = [{
+        $group: {
+            _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId' },
+            result: { $addToSet: { k: '$m_fieldId', v: '$value' } }
+        }
+    }, {
+        $set: {
+            result: { $arrayToObject: '$result' }
+        }
+    }, {
+        $replaceRoot: {
+            newRoot: { $mergeObjects: ['$$ROOT', '$_id', '$result'] }
+        }
+    }, {
+        $unset: ['_id', 'result']
+    }
+    ];
+    if (isEmptyObject(addFields) && isEmptyObject(metadataFilter)) {
         return [
             selfOrgFilter,
-            { $match: { m_studyId: studyId } },
-            { $match: { $or: [match, { m_versionId: '0' }] } },
             dataVersionsFilter,
+            { $match: { m_studyId: studyId } },
+            ...groupFilter,
+            { $match: match },
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+            { $project: fields }
+        ];
+    } else if (isEmptyObject(addFields)) {
+        return [
+            selfOrgFilter,
+            dataVersionsFilter,
+            { $match: metadataFilter },
+            { $match: { m_studyId: studyId } },
+            ...groupFilter,
+            { $match: match },
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+            { $project: fields }
+        ];
+    } else if (isEmptyObject(metadataFilter)) {
+        return [
+            selfOrgFilter,
+            dataVersionsFilter,
+            { $match: { m_studyId: studyId } },
+            ...groupFilter,
+            { $addFields: addFields },
+            { $match: match },
             { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
             { $project: fields }
         ];
     } else {
         return [
             selfOrgFilter,
-            { $match: { m_studyId: studyId } },
-            { $addFields: addFields },
-            { $match: { $or: [match, { m_versionId: '0' }] } },
             dataVersionsFilter,
+            { $match: metadataFilter },
+            { $match: { m_studyId: studyId } },
+            ...groupFilter,
+            { $addFields: addFields },
+            { $match: match },
             { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
             { $project: fields }
         ];
@@ -199,7 +255,6 @@ function isEmptyObject(obj: any) {
 
 function translateCohort(cohort: any) {
     const match = {};
-
     cohort.forEach(function (select: any) {
 
         switch (select.op) {
@@ -253,6 +308,39 @@ function translateCohort(cohort: any) {
                 }
                 break;
             }
+            default:
+                break;
+        }
+    }
+    );
+    return match;
+}
+
+function translateMetadata(metadata: any) {
+    const match = {};
+    metadata.forEach(function (select: any) {
+        switch (select.op) {
+            case '=':
+                // select.parameter must be an array
+                (match as any)['metadata.'.concat(select.key)] = { $in: [select.parameter] };
+                break;
+            case '!=':
+                // select.parameter must be an array
+                (match as any)['metadata.'.concat(select.key)] = { $ne: [select.parameter] };
+                break;
+            case '<':
+                // select.parameter must be a float
+                (match as any)['metadata.'.concat(select.key)] = { $lt: parseFloat(select.parameter) };
+                break;
+            case '>':
+                // select.parameter must be a float
+                (match as any)['metadata.'.concat(select.key)] = { $gt: parseFloat(select.parameter) };
+                break;
+            case 'exists':
+                // We check if the field exists. This is to be used for checking if a patient
+                // has an image
+                (match as any)['metadata.'.concat(select.key)] = { $exists: true };
+                break;
             default:
                 break;
         }

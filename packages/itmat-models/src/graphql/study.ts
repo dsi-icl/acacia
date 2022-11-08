@@ -105,7 +105,8 @@ export const CHECK_DATA_COMPLETE = gql`
         checkDataComplete(studyId: $studyId) {
             subjectId
             visitId
-            errorFields
+            fieldId
+            error
         }
     }
 `;

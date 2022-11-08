@@ -142,6 +142,7 @@ type User {
     createdBy: String
     createdAt: Float!
     expiredAt: Float!
+    metadata: JSON
     # external to mongo documents:
     access: UserAccess # admin or self only
 }
@@ -454,7 +455,8 @@ input CreateUserInput {
     description: String
     organisation: String!
     emailNotificationsActivated: Boolean
-    password: String!
+    password: String!,
+    metadata: JSON
 }
 
 input EditUserInput {
@@ -469,6 +471,7 @@ input EditUserInput {
     emailNotificationsActivated: Boolean
     password: String
     expiredAt: Float
+    metadata: JSON
 }
 
 input IntArrayChangesInput {
@@ -494,12 +497,14 @@ input FieldInput {
     possibleValues: [ValueCategoryInput]
     unit: String
     comments: String
+    metadata: JSON
 }
 
 type SubjectDataRecordSummary {
     subjectId: String!
-    visitId: String
-    errorFields: [String]
+    visitId: String!
+    fieldId: String!
+    error: String!
 }
 
 type Query {
