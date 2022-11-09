@@ -13,6 +13,7 @@ import { WriteStream } from 'fs-capacitor';
 import crypto from 'crypto';
 import { Logger } from '@itmat-broker/itmat-commons';
 import { fileSizeLimit } from '../../utils/definition';
+import { IGenericResponse } from '../responses';
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
 
@@ -157,7 +158,7 @@ export class StudyCore {
     }
 
     public async uploadOneDataClip(studyId: string, fieldList: any[], data: IDataClip[], user: IUser): Promise<any> {
-        const errors: any[] = [];
+        const response: IGenericResponse[] = [];
         // const bulk = db.collections!.data_collection.initializeOrderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
         const keysToCheck: Array<keyof IDataClip> = ['visitId', 'subjectId', 'fieldId'];
@@ -167,12 +168,12 @@ export class StudyCore {
         for (const dataClip of filteredData) {
             const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId)[0];
             if (!fieldInDb) {
-                errors.push({ code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: Field Not found` });
+                response.push({ successful: false, code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: Field Not found` });
                 continue;
             }
             // check subjectId
             if (!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
-                errors.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
+                response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
                 continue;
             }
 
@@ -277,8 +278,10 @@ export class StudyCore {
                 }
             }
             if (error !== undefined) {
-                errors.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: error });
+                response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: error });
                 continue;
+            } else {
+                response.push({ successful: true, description: `${dataClip.subjectId}-${dataClip.visitId}-${dataClip.fieldId}` });
             }
             const obj = {
                 m_studyId: studyId,
@@ -306,7 +309,7 @@ export class StudyCore {
             // bulk.find(obj).upsert().updateOne({ $set: objWithData });
         }
         // await bulk.execute();
-        return errors;
+        return response;
     }
 
     // This file uploading function will not check any metadate of the file
