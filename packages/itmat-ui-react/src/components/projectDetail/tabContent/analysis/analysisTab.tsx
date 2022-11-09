@@ -12,6 +12,7 @@ import { Select, Form, Modal, Divider, Slider, Table, Button, Input, Tag, Popcon
 import { Heatmap, Violin, Column } from '@ant-design/plots';
 import { PlusOutlined, MinusCircleOutlined, CopyOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
+import { useWindowSize } from '../utils/utils';
 const { Option } = Select;
 const { SHOW_CHILD } = Cascader;
 const { Panel } = Collapse;
@@ -37,6 +38,7 @@ export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ stu
             treeId: null
         }
     });
+    const [width, __unused__height__] = useWindowSize();
     if (getStudyFieldsLoading || getProjectLoading || getDataRecordsLoading || getOntologyTreeLoading) {
         return <LoadSpinner />;
     }
@@ -44,6 +46,10 @@ export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ stu
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
             An error occured, please contact your administrator
         </div>;
+    }
+
+    if (width < 1200) {
+        return <span>The width of the resolution of your screen must be at least 1200px.</span>;
     }
 
     if (getStudyFieldsData.getStudyFields.length === 0) {
@@ -164,15 +170,15 @@ const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fiel
                                 <Button style={{ float: 'right' }} onClick={() => guideTool[1](-1)}>Exit</Button>
                             </div>}
                         >
-                            <Button onClick={() => {
+                            <Button className={css.button} onClick={() => {
                                 if (guideTool[0] !== -1) {
                                     guideTool[1](guideTool[0] + 1);
                                 }
                                 setIsModalOn(true);
                                 setCurrentGroupIndex(-1);
-                            }} disabled={guideTool[0] !== -1 && guideTool[0] !== popoverContents[1].step}>Create a new group</Button>
+                            }} disabled={guideTool[0] !== -1 && guideTool[0] !== popoverContents[1].step}>Create group</Button>
                         </Popover>
-                        <Button
+                        <Button className={css.button}
                             onClick={() => {
                                 if (currentGroupIndex === -1) {
                                     if (guideTool[0] === popoverContents[guideTool[0] - 1]?.step) {
@@ -190,11 +196,11 @@ const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fiel
                             }}
                             disabled={guideTool[0] !== -1 && guideTool[0] !== popoverContents[3].step}
                             danger={guideTool[0] === popoverContents[3]?.step && currentGroupIndex !== -1}
-                        >Paste the selected group</Button>
-                        <Button onClick={() => {
+                        >Paste group</Button>
+                        <Button className={css.button} onClick={() => {
                             setIsTemplateModalOn(true);
                         }} disabled={guideTool[0] !== -1}>Select a template</Button>
-                        <Button style={{ float: 'right' }} type='primary' onClick={() => {
+                        <Button className={css.button} type='primary' onClick={() => {
                             query({
                                 variables: {
                                     studyId: project.studyId,

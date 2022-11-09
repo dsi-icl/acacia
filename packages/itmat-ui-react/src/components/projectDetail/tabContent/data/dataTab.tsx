@@ -13,6 +13,8 @@ import { Select, Row, Col, Button, Table, Empty, Cascader, Tooltip, Typography, 
 import { Pie, BidirectionalBar, Heatmap, Violin, Column, Box } from '@ant-design/plots';
 import { UserOutlined, DownloadOutlined, QuestionCircleOutlined, TagOutlined, HistoryOutlined, FieldTimeOutlined, EyeOutlined, HddOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
+import React from 'react';
+import { useWindowSize } from '../utils/utils';
 const { Option } = Select;
 const { Text } = Typography;
 
@@ -27,6 +29,7 @@ export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId
             treeId: null
         }
     });
+    const [width, __unused__height__] = useWindowSize();
     if (getStudyFieldsLoading || getProjectLoading || getOntologyTreeLoading) {
         return <LoadSpinner />;
     }
@@ -42,7 +45,9 @@ export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId
     if (getOntologyTreeData.getOntologyTree[0] === undefined) {
         return <span>Ontology Tree Missing!</span>;
     }
-
+    if (width < 900) {
+        return <span>The width of the resolution of your screen must be at least 900px.</span>;
+    }
     return <div className={css.tab_page_wrapper}>
         <div className={css.scaffold_wrapper}>
             <div className={css.metadata}>
@@ -65,63 +70,125 @@ export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId
 };
 
 export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: number, numOfOntologyRoutes: number }> = ({ project, numOfFields, numOfOntologyRoutes }) => {
-    return project ? <SubsectionWithComment title={<Tooltip title={'The statistics of several demographics fields.'}>
+    const [width, __unused__height__] = useWindowSize();
+    return project ? <SubsectionWithComment title={<Tooltip title={'The metadata of this project.'}>
         <Text className={css.title}>Meta Data</Text> <QuestionCircleOutlined />
     </Tooltip>} comment={<Space direction={'horizontal'} size={20}>
         <div><HistoryOutlined /> <span>Data Version - {project?.dataVersion?.version}</span></div>
         <div><TagOutlined /> <span>Version Tag - {project?.dataVersion?.tag}</span></div>
     </Space>}>
-        <Row gutter={16}>
-            <Col span={5}>
-                <div className={css.grid_col_center} ><UserOutlined style={{ fontSize: '700%' }} /></div>
-            </Col>
-            <Col span={5}>
-                <div className={css.grid_col_center}><EyeOutlined style={{ fontSize: '700%' }} /></div>
-            </Col>
-            <Col span={5}>
-                <div className={css.grid_col_center}><HddOutlined style={{ fontSize: '700%' }} /></div>
-            </Col>
-            <Col span={9}>
-                <div className={css.grid_col_center}><FieldTimeOutlined style={{ fontSize: '700%' }} /></div>
-            </Col>
-        </Row><br />
-        <Row gutter={16}>
-            <Col span={5}>
-                <div className={css.grid_col_center}><span>Participants</span></div>
-            </Col>
-            <Col span={5}>
-                <div className={css.grid_col_center}><span>Visits</span></div>
-            </Col>
-            <Col span={5}>
-                <div className={css.grid_col_center}><span>Fields</span></div>
-            </Col>
-            <Col span={9}>
-                <div className={css.grid_col_center}><span>Updated At</span></div>
-            </Col>
-        </Row><br />
-        <Row gutter={16}>
-            <Col span={5}>
-                <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project?.summary?.subjects?.length}</Text></div>
-            </Col>
-            <Col span={5}>
-                <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project?.summary?.visits?.length}</Text></div>
-            </Col>
-            <Col span={5}>
-                <div className={css.grid_col_center}>
-                    <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes} / {numOfFields}</Text>
-                    <Tooltip title={`${numOfOntologyRoutes} of ${numOfFields} fields are in the ontology tree.`}>
-                        <QuestionCircleOutlined />
-                    </Tooltip>
+        {
+            width > 1500 ?
+                <div>
+                    <Row gutter={16}>
+                        <Col span={5}>
+                            <div className={css.grid_col_center} ><UserOutlined style={{ fontSize: '700%' }} /></div>
+                        </Col>
+                        <Col span={5}>
+                            <div className={css.grid_col_center}><EyeOutlined style={{ fontSize: '700%' }} /></div>
+                        </Col>
+                        <Col span={5}>
+                            <div className={css.grid_col_center}><HddOutlined style={{ fontSize: '700%' }} /></div>
+                        </Col>
+                        <Col span={9}>
+                            <div className={css.grid_col_center}><FieldTimeOutlined style={{ fontSize: '700%' }} /></div>
+                        </Col>
+                    </Row><br />
+                    <Row gutter={16}>
+                        <Col span={5}>
+                            <div className={css.grid_col_center}><span>Participants</span></div>
+                        </Col>
+                        <Col span={5}>
+                            <div className={css.grid_col_center}><span>Visits</span></div>
+                        </Col>
+                        <Col span={5}>
+                            <div className={css.grid_col_center}><span>Fields</span></div>
+                        </Col>
+                        <Col span={9}>
+                            <div className={css.grid_col_center}><span>Updated At</span></div>
+                        </Col>
+                    </Row><br />
+                    <Row gutter={16}>
+                        <Col span={5}>
+                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project?.summary?.subjects?.length}</Text></div>
+                        </Col>
+                        <Col span={5}>
+                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project?.summary?.visits?.length}</Text></div>
+                        </Col>
+                        <Col span={5}>
+                            <div className={css.grid_col_center}>
+                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes} / {numOfFields}</Text>
+                                <Tooltip title={`${numOfOntologyRoutes} of ${numOfFields} fields are in the ontology tree.`}>
+                                    <QuestionCircleOutlined />
+                                </Tooltip>
+                            </div>
+                        </Col>
+                        <Col span={9}>
+                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project.dataVersion?.updateDate === undefined ? 'NA' : (new Date(parseFloat(project.dataVersion?.updateDate))).toUTCString()}</Text></div>
+                        </Col>
+                    </Row><br />
+                </div> :
+                <div>
+                    <Row gutter={16}>
+                        <Col span={9}>
+                            <div className={css.grid_col_center} ><UserOutlined style={{ fontSize: '700%' }} /></div>
+                        </Col>
+                        <Col span={15}>
+                            <div className={css.grid_col_center}><EyeOutlined style={{ fontSize: '700%' }} /></div>
+                        </Col>
+                    </Row><br />
+                    <Row gutter={16}>
+                        <Col span={9}>
+                            <div className={css.grid_col_center}><span>Participants</span></div>
+                        </Col>
+                        <Col span={15}>
+                            <div className={css.grid_col_center}><span>Visits</span></div>
+                        </Col>
+                    </Row><br />
+                    <Row gutter={16}>
+                        <Col span={9}>
+                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project?.summary?.subjects?.length}</Text></div>
+                        </Col>
+                        <Col span={15}>
+                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project?.summary?.visits?.length}</Text></div>
+                        </Col>
+                    </Row><br />
+                    <Row gutter={16}>
+                        <Col span={9}>
+                            <div className={css.grid_col_center}><HddOutlined style={{ fontSize: '700%' }} /></div>
+                        </Col>
+                        <Col span={15}>
+                            <div className={css.grid_col_center}><FieldTimeOutlined style={{ fontSize: '700%' }} /></div>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={9}>
+                            <div className={css.grid_col_center}><span>Fields</span></div>
+                        </Col>
+                        <Col span={15}>
+                            <div className={css.grid_col_center}><span>Updated At</span></div>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={9}>
+                            <div className={css.grid_col_center}>
+                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes} / {numOfFields}</Text>
+                                <Tooltip title={`${numOfOntologyRoutes} of ${numOfFields} fields are in the ontology tree.`}>
+                                    <QuestionCircleOutlined />
+                                </Tooltip>
+                            </div>
+                        </Col>
+                        <Col span={15}>
+                            <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project.dataVersion?.updateDate === undefined ? 'NA' : (new Date(parseFloat(project.dataVersion?.updateDate))).toDateString()}</Text></div>
+                        </Col>
+                    </Row>
                 </div>
-            </Col>
-            <Col span={9}>
-                <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong underline>{project.dataVersion?.updateDate === undefined ? 'NA' : (new Date(parseFloat(project.dataVersion?.updateDate))).toUTCString()}</Text></div>
-            </Col>
-        </Row><br />
+        }
     </SubsectionWithComment > : null;
 };
 
 export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IFieldEntry[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
+    const [width, __unused__height__] = useWindowSize();
     // process the data
     const genderField: any = findDmField(ontologyTree, fields, 'SEX');
     const raceField: any = findDmField(ontologyTree, fields, 'RACE');
@@ -150,7 +217,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             An error occured, please contact your administrator
         </div>;
     }
-
+    console.log(getDataRecordsData);
     // process the data
     const obj: any = {};
     const data = getDataRecordsData.getDataRecords.data;
@@ -228,7 +295,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
         <>
             {
                 genderField === null ? null :
-                    <div style={{ width: '25%', float: 'left' }}>
+                    <div className={css.demographics_graph}>
                         <Pie
                             appendPadding={10}
                             data={obj.SEX}
@@ -237,8 +304,9 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
                             radius={0.75}
                             legend={{
                                 itemWidth: 100,
-                                layout: 'vertical',
-                                offsetX: -40
+                                layout: width > 1500 ? 'vertical' : 'horizontal',
+                                offsetX: 0,
+                                position: width > 1500 ? 'right' : 'bottom'
                             }}
                             label={false}
                             interactions={[
@@ -255,7 +323,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             }
             {
                 raceField === null ? null :
-                    <div style={{ width: '25%', float: 'left' }}>
+                    <div className={css.demographics_graph}>
                         <Pie
                             appendPadding={10}
                             data={obj.RACE}
@@ -264,8 +332,9 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
                             radius={0.75}
                             legend={{
                                 itemWidth: 100,
-                                layout: 'vertical',
-                                offsetX: -40
+                                layout: width > 1500 ? 'vertical' : 'horizontal',
+                                offsetX: 0,
+                                position: width > 1500 ? 'right' : 'bottom'
                             }}
                             label={false}
                             interactions={[
@@ -282,7 +351,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             }
             {
                 siteField === null ? null :
-                    <div style={{ width: '25%', float: 'left' }}>
+                    <div className={css.demographics_graph}>
                         <Pie
                             appendPadding={10}
                             data={obj.SITE}
@@ -291,8 +360,9 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
                             radius={0.75}
                             legend={{
                                 itemWidth: 100,
-                                layout: 'vertical',
-                                offsetX: -40
+                                layout: width > 1500 ? 'vertical' : 'horizontal',
+                                offsetX: 0,
+                                position: width > 1500 ? 'right' : 'bottom'
                             }}
                             label={false}
                             interactions={[
@@ -309,7 +379,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             }
             {
                 ageField === null ? null :
-                    <div style={{ width: '25%', float: 'left' }}>
+                    <div className={css.demographics_graph}>
                         <BidirectionalBar
                             data={obj.AGE}
                             xField={'age'}
@@ -325,7 +395,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
                     </div>
             }
         </>
-    </Subsection>;
+    </Subsection >;
 };
 
 export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyTree, fields: IFieldEntry[], project: IProject }> = ({ ontologyTree, fields, project }) => {
@@ -417,22 +487,22 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
             field === undefined ? <div style={{ height: '200px' }} ><Empty /></div> :
                 <div>
                     <Row gutter={16}>
-                        <Col span={3}>
+                        <Col xl={3} md={4}>
                             <div className={css.grid_col_center} ><span>Field ID</span></div>
                         </Col>
-                        <Col span={3}>
+                        <Col xl={3} md={4}>
                             <div className={css.grid_col_center} ><span>Field Name</span></div>
                         </Col>
-                        <Col span={3}>
+                        <Col xl={3} md={4}>
                             <div className={css.grid_col_center} ><span>Data Type</span></div>
                         </Col>
-                        <Col span={3}>
+                        <Col xl={3} md={0}>
                             <div className={css.grid_col_center} ><span>Unit</span></div>
                         </Col>
-                        <Col span={3}>
+                        <Col xl={3} md={0}>
                             <div className={css.grid_col_center} ><span>Comments</span></div>
                         </Col>
-                        <Col span={9}>
+                        <Col xl={9} md={12}>
                             <div className={css.grid_col_center} >
                                 <span>Ontology Chain</span>
                                 <Tooltip title={'The route of the field in the ontology tree.'}>
@@ -442,26 +512,26 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                         </Col>
                     </Row><br />
                     <Row gutter={16}>
-                        <Col span={3}>
+                        <Col xl={3} md={4}>
                             <div className={css.grid_col_center_large} ><Text strong underline>{field?.fieldId || 'NA'}</Text></div>
                         </Col>
-                        <Col span={3}>
+                        <Col xl={3} md={4}>
                             <div className={css.grid_col_center_large} ><Text strong underline>{<Tooltip title={field.fieldName}>
                                 <span>{fieldNameEllipsis || 'NA'}</span>
                             </Tooltip >}</Text></div>
                         </Col>
-                        <Col span={3}>
+                        <Col xl={3} md={4}>
                             <div className={css.grid_col_center_large} ><Text strong underline>{dataTypeMapping[field?.fieldId] || 'NA'}</Text></div>
                         </Col>
-                        <Col span={3}>
+                        <Col xl={3} md={0}>
                             <div className={css.grid_col_center_large} ><Text strong underline>{field?.unit || 'NA'}</Text></div>
                         </Col>
-                        <Col span={3}>
+                        <Col xl={3} md={0}>
                             <div className={css.grid_col_center_large} ><Text strong underline>{<Tooltip title={field.comments}>
                                 <span>{fieldCommentsEllipsis || 'NA'}</span>
                             </Tooltip >}</Text></div>
                         </Col>
-                        <Col span={9}>
+                        <Col xl={9} md={12}>
                             <div className={css.grid_col_center_large} ><Text strong underline>{(routes[0].path.slice(0, routes[0].path.length) || '').concat(fieldNameEllipsis).join(' => ')}</Text></div>
                         </Col><br />
                     </Row><br />
