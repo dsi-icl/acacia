@@ -217,11 +217,11 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             An error occured, please contact your administrator
         </div>;
     }
-    console.log(getDataRecordsData);
     // process the data
     const obj: any = {};
     const data = getDataRecordsData.getDataRecords.data;
-    if (genderField === null) {
+    console.log(genderField.fieldId, raceField.fieldId, ageField.fieldId, siteField.fieldId);
+    if (genderField === null || !data[genderField.fieldId]) {
         obj.SEX = [];
         obj.AGE = [];
     } else {
@@ -273,7 +273,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             });
         }
     }
-    if (siteField === null) {
+    if (siteField === null || !data[siteField.fieldId]) {
         obj.SITE = [];
     } else {
         obj.SITE = (data[siteField.fieldId][siteField.visitRange[0]]?.data || []).reduce((acc, curr) => {

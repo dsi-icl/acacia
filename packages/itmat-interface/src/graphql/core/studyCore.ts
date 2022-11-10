@@ -81,14 +81,35 @@ export class StudyCore {
     public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion | null> {
         const newDataVersionId = uuid();
         const newContentId = uuid();
+
+        // update data
         const resData = await db.collections!.data_collection.updateMany({
             m_studyId: studyId,
             m_versionId: null
         }, {
             $set: {
-                m_versionId: newDataVersionId as any
+                m_versionId: newDataVersionId
             }
         });
+        // update field
+        const resField = await db.collections!.field_dictionary_collection.updateMany({
+            studyId: studyId,
+            dataVersion: null
+        }, {
+            $set: {
+                dataVersion: newDataVersionId
+            }
+        });
+        // update standardization
+        const resStandardization = await db.collections!.standardizations_collection.updateMany({
+            studyId: studyId,
+            dataVersion: null
+        }, {
+            $set: {
+                dataVersion: newDataVersionId
+            }
+        });
+
         // if field is modified, need to modified the approved fields of each related project
         // if the field is updated: update the approved field Id
         // if the field is deleted: remove the original field Id
@@ -127,15 +148,7 @@ export class StudyCore {
             });
         }
 
-        const resField = await db.collections!.field_dictionary_collection.updateMany({
-            studyId: studyId,
-            dataVersion: null
-        }, {
-            $set: {
-                dataVersion: newDataVersionId
-            }
-        });
-        if (resData.modifiedCount === 0 && resField.modifiedCount === 0) {
+        if (resData.modifiedCount === 0 && resField.modifiedCount === 0 && resStandardization.modifiedCount === 0) {
             return null;
         }
 

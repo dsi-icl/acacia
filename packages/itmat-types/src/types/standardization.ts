@@ -4,10 +4,12 @@ export interface IStandardization {
     type: string,
     field: string[],
     // this path is used only for standardization;
-    path: string[],
-    stdRules: IStandardizationRule[],
+    path?: string[],
+    stdRules?: IStandardizationRule[],
     // records with same path will be joined together
-    joinByKeys: string[],
+    joinByKeys?: string[],
+    dataVersion: string | null,
+    uploadedAt: number,
     deleted: number | null,
 }
 

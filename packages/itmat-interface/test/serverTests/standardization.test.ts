@@ -674,6 +674,7 @@ describe('STUDY API', () => {
                         filters: null
                     }
                 ],
+                uploadedAt: '1591134065000',
                 deleted: null
             });
         });
@@ -725,7 +726,10 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            const std = await db.collections!.standardizations_collection.findOne({});
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_DATA_VERSION),
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            });
             const res = await authorisedUserStudy.post('/graphql').send({
                 query: print(GET_STANDARDIZATION),
                 variables: {
@@ -733,6 +737,7 @@ describe('STUDY API', () => {
                     type: 'fakeType'
                 }
             });
+            const std = await db.collections!.standardizations_collection.findOne({ studyId: createdStudy.id, type: 'fakeType', field: ['$testField'] });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getStandardization[0]).toEqual({
@@ -751,6 +756,8 @@ describe('STUDY API', () => {
                         filters: null
                     }
                 ],
+                dataVersion: std?.dataVersion,
+                uploadedAt: '1591134065000',
                 deleted: null
             });
         });
@@ -814,7 +821,8 @@ describe('STUDY API', () => {
                 query: print(DELETE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
-                    stdId: std?.id
+                    type: 'fakeType',
+                    field: ['$testField']
                 }
             });
             expect(res.status).toBe(200);
@@ -846,12 +854,12 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            const std = await db.collections!.standardizations_collection.findOne({});
             const res = await user.post('/graphql').send({
                 query: print(DELETE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
-                    stdId: std?.id
+                    type: 'fakeType',
+                    field: ['$testField']
                 }
             });
             expect(res.status).toBe(200);

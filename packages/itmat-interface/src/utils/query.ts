@@ -393,32 +393,34 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                     }
                 }
                 // deal with join
-                let pointer = insertInObj(records, standardization.path, undefined, true, subjectId, visitId);
-                if (pointer === undefined) {
-                    pointer = insertInObj(records, standardization.path, [], true, subjectId, visitId);
-                }
-                if (standardization.joinByKeys.length > 0) {
-                    let isSame = true;
-                    for (let i = 0; i < pointer.length; i++) {
-                        isSame = true;
-                        for (let j = 0; j < standardization.joinByKeys.length; j++) {
-                            if (pointer[i][standardization.joinByKeys[j]] !== dataClip[standardization.joinByKeys[j]]) {
-                                isSame = false;
+                if (standardization.path) {
+                    let pointer = insertInObj(records, standardization.path, undefined, true, subjectId, visitId);
+                    if (pointer === undefined) {
+                        pointer = insertInObj(records, standardization.path, [], true, subjectId, visitId);
+                    }
+                    if (standardization.joinByKeys && standardization.joinByKeys.length > 0) {
+                        let isSame = true;
+                        for (let i = 0; i < pointer.length; i++) {
+                            isSame = true;
+                            for (let j = 0; j < standardization.joinByKeys.length; j++) {
+                                if (pointer[i][standardization.joinByKeys[j]] !== dataClip[standardization.joinByKeys[j]]) {
+                                    isSame = false;
+                                    break;
+                                }
+                            }
+                            if (isSame) {
+                                pointer[i] = { ...dataClip, ...pointer[i] };
                                 break;
                             }
                         }
-                        if (isSame) {
-                            pointer[i] = { ...dataClip, ...pointer[i] };
-                            break;
+                        if (isSame && pointer.length !== 0) {
+                            insertInObj(records, standardization.path, pointer, true, subjectId, visitId);
+                        } else {
+                            insertInObj(records, standardization.path, dataClip, false, subjectId, visitId);
                         }
-                    }
-                    if (isSame && pointer.length !== 0) {
-                        insertInObj(records, standardization.path, pointer, true, subjectId, visitId);
                     } else {
                         insertInObj(records, standardization.path, dataClip, false, subjectId, visitId);
                     }
-                } else {
-                    insertInObj(records, standardization.path, dataClip, false, subjectId, visitId);
                 }
             }
         }

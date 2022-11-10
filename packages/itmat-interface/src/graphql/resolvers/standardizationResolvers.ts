@@ -9,10 +9,12 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 
 export const standardizationResolvers = {
     Query: {
-        getStandardization: async (__unused__parent: Record<string, unknown>, { studyId, projectId, type }: { studyId: string, projectId: string, type: string }, context: any): Promise<IStandardization[]> => {
+        getStandardization: async (__unused__parent: Record<string, unknown>, { studyId, projectId, type, versionId }: { studyId: string, projectId: string, type: string, versionId: string }, context: any): Promise<IStandardization[]> => {
             let modifiedStudyId = studyId;
-
             /* check study exists */
+            if (!studyId && !projectId) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, 'Either studyId or projectId should be provided.');
+            }
             if (studyId) {
                 await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             }
@@ -37,21 +39,53 @@ export const standardizationResolvers = {
             if (!hasPermission && !hasProjectLevelPermission) {
                 throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
-
-            let standardizations: IStandardization[] = [];
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(modifiedStudyId);
+            let availableTypes: string[] = [];
             if (type) {
-                standardizations = await db.collections!.standardizations_collection.find({
-                    studyId: studyId,
-                    type: type,
-                    deleted: null
-                }).toArray();
+                availableTypes.push(type);
             } else {
-                standardizations = await db.collections!.standardizations_collection.find({
-                    studyId: studyId,
-                    deleted: null
-                }).toArray();
+                availableTypes = await db.collections!.standardizations_collection.distinct('type', { studyId: studyId });
             }
-            return standardizations;
+            // get all dataVersions that are valid (before/equal the current version)
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const standardizations = (hasPermission && versionId === null) ? await db.collections!.standardizations_collection.aggregate([{
+                $sort: { uploadedAt: -1 }
+            }, {
+                $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
+            }, {
+                $match: { studyId: studyId, type: { $in: availableTypes } }
+            }, {
+                $group: {
+                    _id: {
+                        type: '$type',
+                        field: '$field'
+                    },
+                    doc: { $first: '$$ROOT' }
+                }
+            }, {
+                $replaceRoot: { newRoot: '$doc' }
+            }
+            ]).toArray() : await db.collections!.standardizations_collection.aggregate([{
+                $sort: { uploadedAt: -1 }
+            }, {
+                $match: { dataVersion: { $in: availableDataVersions } }
+            }, {
+                $match: { studyId: studyId, type: { $in: availableTypes } }
+            }, {
+                $group: {
+                    _id: {
+                        type: '$type',
+                        field: '$field'
+                    },
+                    doc: { $first: '$$ROOT' }
+                }
+            }, {
+                $replaceRoot: { newRoot: '$doc' }
+            }, {
+                $match: { deleted: null }
+            }
+            ]).toArray();
+            return standardizations as IStandardization[];
         }
     },
     Mutation: {
@@ -84,17 +118,19 @@ export const standardizationResolvers = {
                 path: standardization.path,
                 stdRules: stdRulesWithId || [],
                 joinByKeys: standardization.joinByKeys || [],
+                dataVersion: null,
+                uploadedAt: Date.now(),
                 deleted: null
             };
 
-            await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, type: standardization.type, field: standardization.field }, {
+            await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, type: standardization.type, field: standardization.field, dataVersion: null }, {
                 $set: { ...standardizationEntry }
             }, {
                 upsert: true
             });
             return standardizationEntry;
         },
-        deleteStandardization: async (__unused__parent: Record<string, unknown>, { studyId, stdId }: { studyId: string, stdId: string }, context: any): Promise<IGenericResponse> => {
+        deleteStandardization: async (__unused__parent: Record<string, unknown>, { studyId, type, field }: { studyId: string, type: string, field: string[] }, context: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -112,12 +148,23 @@ export const standardizationResolvers = {
                 throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
-            const result = await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, id: stdId }, {
+            // check type exists
+            const types: string[] = await db.collections!.standardizations_collection.distinct('type', { studyId: studyId, deleted: null });
+            if (!types.includes(type)) {
+                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, 'Type does not exist.');
+            }
+            const result = await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, field: field, type: type, dataVersion: null }, {
                 $set: {
+                    id: uuid(),
+                    studyId: studyId,
+                    field: field,
+                    type: type,
+                    dataVersion: null,
+                    uploadedAt: Date.now(),
                     deleted: Date.now()
                 }
             }, {
-                returnDocument: 'before'
+                upsert: true
             });
             return makeGenericReponse(result.value?.id || '');
         }

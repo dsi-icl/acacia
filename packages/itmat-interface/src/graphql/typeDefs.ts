@@ -59,9 +59,11 @@ type Standardization {
     studyId: String!
     type: String!
     field: [String]!
-    path: [String]!
+    path: [String]
     joinByKeys: [String]
     stdRules: [StandardizationRule]
+    dataVersion: String
+    uploadedAt: String
     deleted: String
 }
 
@@ -521,7 +523,7 @@ type Query {
     getStudyFields(studyId: String!, projectId: String, versionId: String): [Field]
     getDataRecords(studyId: String!, queryString: JSON, versionId: String, projectId: String): JSON
     getOntologyTree(studyId: String!, projectId: String, treeId: String): [OntologyTree]
-    getStandardization(studyId: String, projectId: String, type: String): [Standardization]
+    getStandardization(studyId: String, projectId: String, type: String, versionId: String): [Standardization]
     checkDataComplete(studyId: String!): [SubjectDataRecordSummary]
     
     # QUERY
@@ -578,7 +580,7 @@ type Mutation {
 
     # STANDARDIZATION
     createStandardization(studyId: String!, standardization: StandardizationInput): Standardization
-    deleteStandardization(studyId: String!, stdId: String!): GenericResponse
+    deleteStandardization(studyId: String!, type: String, field: [String]!): GenericResponse
 
     # PROJECT
     createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
