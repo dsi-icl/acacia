@@ -847,7 +847,42 @@ if (global.hasMinio) {
                             hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
                         }
                     ];
-                    await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
+                    await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, {
+                        $push: { dataVersions: mockDataVersion },
+                        $inc: { currentDataVersion: 1 },
+                        $set: {
+                            ontologyTrees: [{
+                                id: 'testOntology_id',
+                                name: 'testOntology',
+                                routes: [
+                                    {
+                                        path: [
+                                            'MO',
+                                            'MOCK'
+                                        ],
+                                        name: 'mockfield1',
+                                        field: [
+                                            '$31'
+                                        ],
+                                        visitRange: [],
+                                        id: '036b7772-f239-4fef-b7f8-c3db883f51e3'
+                                    },
+                                    {
+                                        path: [
+                                            'MO',
+                                            'MOCK'
+                                        ],
+                                        name: 'mockfield2',
+                                        field: [
+                                            '$32'
+                                        ],
+                                        visitRange: [],
+                                        id: 'f577023f-de54-446a-9bbe-1c346823e6bf'
+                                    }
+                                ]
+                            }]
+                        }
+                    });
                     await db.collections!.data_collection.insertMany(mockData);
                     await db.collections!.field_dictionary_collection.insertMany(mockFields);
                     await db.collections!.files_collection.insertMany(mockFiles);
@@ -1601,7 +1636,36 @@ if (global.hasMinio) {
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
                             }
                         ],
-                        ontologyTrees: [],
+                        ontologyTrees: [{
+                            id: 'testOntology_id',
+                            name: 'testOntology',
+                            routes: [
+                                {
+                                    path: [
+                                        'MO',
+                                        'MOCK'
+                                    ],
+                                    name: 'mockfield1',
+                                    field: [
+                                        '$31'
+                                    ],
+                                    visitRange: [],
+                                    id: '036b7772-f239-4fef-b7f8-c3db883f51e3'
+                                },
+                                {
+                                    path: [
+                                        'MO',
+                                        'MOCK'
+                                    ],
+                                    name: 'mockfield2',
+                                    field: [
+                                        '$32'
+                                    ],
+                                    visitRange: [],
+                                    id: 'f577023f-de54-446a-9bbe-1c346823e6bf'
+                                }
+                            ]
+                        }],
                         numOfRecords: 2,
                         subjects: ['mock_patient1', 'mock_patient2'],
                         visits: ['mockvisitId'],
@@ -1816,7 +1880,8 @@ if (global.hasMinio) {
                 const res = await admin.post('/graphql').send({
                     query: print(GET_STUDY_FIELDS),
                     variables: {
-                        studyId: createdStudy.id
+                        studyId: createdStudy.id,
+                        versionId: null
                     }
                 });
                 expect(res.status).toBe(200);
@@ -2861,6 +2926,9 @@ if (global.hasMinio) {
                         description: 'I am an authorised study user managing project.',
                         emailNotificationsActivated: true,
                         organisation: 'organisation_system',
+                        metadata: {
+                            wp: 'wp5.1'
+                        },
                         deleted: null,
                         id: `AuthorisedStudyUserManageProject_${username}`,
                         createdAt: 1591134065000,
@@ -2979,7 +3047,42 @@ if (global.hasMinio) {
                     }
                 ];
                 await db.collections!.field_dictionary_collection.insertMany(mockFields);
-                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: mockDataVersion }, $inc: { currentDataVersion: 1 } });
+                await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, {
+                    $push: { dataVersions: mockDataVersion },
+                    $inc: { currentDataVersion: 1 },
+                    $set: {
+                        ontologyTrees: [{
+                            id: 'testOntology_id',
+                            name: 'testOntology',
+                            routes: [
+                                {
+                                    path: [
+                                        'MO',
+                                        'MOCK'
+                                    ],
+                                    name: 'mockfield1',
+                                    field: [
+                                        '$31'
+                                    ],
+                                    visitRange: [],
+                                    id: '036b7772-f239-4fef-b7f8-c3db883f51e3'
+                                },
+                                {
+                                    path: [
+                                        'MO',
+                                        'MOCK'
+                                    ],
+                                    name: 'mockfield2',
+                                    field: [
+                                        '$32'
+                                    ],
+                                    visitRange: [],
+                                    id: 'f577023f-de54-446a-9bbe-1c346823e6bf'
+                                }
+                            ]
+                        }]
+                    }
+                });
 
                 /* 2. create projects for the study */
                 {
@@ -3018,6 +3121,9 @@ if (global.hasMinio) {
                         description: 'I am an authorised project user.',
                         emailNotificationsActivated: true,
                         organisation: 'organisation_system',
+                        metadata: {
+                            wp: 'wp5.2'
+                        },
                         deleted: null,
                         id: `AuthorisedProjectUser_${username}`,
                         createdAt: 1591134065000,
@@ -3260,7 +3366,7 @@ if (global.hasMinio) {
                 ]);
 
                 const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
-                expect(dataInDb).toHaveLength(2);
+                expect(dataInDb).toHaveLength(3);
             });
 
             test('Upload a data record to study (unauthorised user)', async () => {
@@ -3311,8 +3417,8 @@ if (global.hasMinio) {
                 expect(res.body.errors).toBeUndefined();
                 // check both data collection and file collection
                 const fileFirst = await db.collections!.files_collection.findOne<IFile>({ studyId: createdStudy.id, deleted: null });
-                const dataFirst = await db.collections!.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1' });
-                expect(dataFirst['33']).toBe(fileFirst.id);
+                const dataFirst = await db.collections!.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
+                expect(dataFirst?.value).toBe(fileFirst.id);
 
                 // upload again and check whether the old file has been deleted
                 const resSecond = await authorisedUser.post('/graphql')
@@ -3341,9 +3447,9 @@ if (global.hasMinio) {
                 expect(resSecond.status).toBe(200);
                 expect(resSecond.body.errors).toBeUndefined();
                 const fileSecond = await db.collections!.files_collection.find<IFile>({ studyId: createdStudy.id, deleted: null }).toArray();
-                const dataSecond = await db.collections!.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1' });
+                const dataSecond = await db.collections!.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
                 expect(fileSecond).toHaveLength(1);
-                expect(dataSecond['33']).toBe(fileSecond[0].id);
+                expect(dataSecond?.value).toBe(fileSecond[0].id);
             });
 
             test('Create New data version with data only (user with study privilege)', async () => {
@@ -3366,7 +3472,7 @@ if (global.hasMinio) {
                 expect(studyInDb.dataVersions[1].version).toBe('1');
                 expect(studyInDb.dataVersions[1].tag).toBe('testTag');
                 const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
-                expect(dataInDb).toHaveLength(3);
+                expect(dataInDb).toHaveLength(6);
             });
 
             test('Create New data version with field only (user with study privilege)', async () => {
@@ -3436,7 +3542,7 @@ if (global.hasMinio) {
                 expect(studyInDb.dataVersions[1].version).toBe('1');
                 expect(studyInDb.dataVersions[1].tag).toBe('testTag');
                 const dataInDb = await db.collections!.data_collection.find({ m_studyId: createdStudy.id, m_versionId: createRes.body.data.createNewDataVersion.id }).toArray();
-                expect(dataInDb).toHaveLength(3);
+                expect(dataInDb).toHaveLength(7);
                 const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: { $in: [createRes.body.data.createNewDataVersion.id, 'mockDataVersionId'] } }).toArray();
                 expect(fieldsInDb).toHaveLength(4);
             });
@@ -3489,17 +3595,10 @@ if (global.hasMinio) {
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
                 expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-                const dataInDb = (await db.collections!.data_collection.find({}).sort({ uploadedAt: -1 }).limit(2).toArray()).sort((a, b) => {
-                    return parseFloat(a.m_visitId) - parseFloat(b.m_visitId);
-                });
-                expect(dataInDb[0]['31']).toBe(null);
-                expect(dataInDb[0]['32']).toBe(null);
-                expect(dataInDb[0]['m_subjectId']).toBe('I7N3G6G');
-                expect(dataInDb[0]['m_visitId']).toBe('1');
-                expect(dataInDb[1]['31']).toBe(null);
-                expect(dataInDb[1]['32']).toBe(null);
-                expect(dataInDb[1]['m_subjectId']).toBe('I7N3G6G');
-                expect(dataInDb[1]['m_visitId']).toBe('2');
+                const dataInDb = await db.collections!.data_collection.find({ m_subjectId: 'I7N3G6G' }).toArray();
+                for (let i = 0; i < dataInDb.length; i++) {
+                    expect(dataInDb[i].value).toBe(null);
+                }
             });
 
             test('Delete data records: visitId (admin)', async () => {
@@ -3517,14 +3616,10 @@ if (global.hasMinio) {
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
                 expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-                const dataInDb = await db.collections!.data_collection.find({}).sort({ uploadedAt: -1 }).limit(2).toArray();
-                expect(dataInDb[0]['31']).toBe(null);
-                expect(dataInDb[0]['32']).toBe(null);
-                expect(dataInDb[0]['m_visitId']).toBe('2');
-                expect(dataInDb[1]['31']).toBe(null);
-                expect(dataInDb[1]['32']).toBe(null);
-                expect(dataInDb[1]['m_visitId']).toBe('2');
-                expect(Array.from(new Set(dataInDb.map(el => el.m_subjectId))).length).toBe(2);
+                const dataInDb = await db.collections!.data_collection.find({ m_visitId: '2' }).toArray();
+                for (let i = 0; i < dataInDb.length; i++) {
+                    expect(dataInDb[i].value).toBe(null);
+                }
             });
 
             test('Delete data records: studyId (admin)', async () => {
@@ -3544,7 +3639,7 @@ if (global.hasMinio) {
                 expect(deleteRes.body.errors).toBeUndefined();
                 expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
                 const dataInDb = await db.collections!.data_collection.find({ 31: null }).sort({ uploadedAt: -1 }).toArray();
-                expect(dataInDb).toHaveLength(4); // 2 visits * 2 subjects = 4 records
+                expect(dataInDb).toHaveLength(16); // 2 visits * 2 subjects * 2 fields * 2 (delete or not) = 16 records
             });
 
             test('Delete data records: records not exist', async () => {
@@ -3558,13 +3653,13 @@ if (global.hasMinio) {
 
                 const deleteRes = await admin.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
-                    variables: { studyId: createdStudy.id, subjectIds: ['I7N3G6G'], visitIds: ['100', '101'] }
+                    variables: { studyId: createdStudy.id, subjectIds: ['I7N3G6G'], visitIds: ['1', '2'] }
                 });
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
                 expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-                const dataInDb = await db.collections!.data_collection.find({ m_subjectId: 'I7N3G6G' }).sort({ uploadedAt: -1 }).toArray();
-                expect(dataInDb).toHaveLength(4); // two data records, two deleted records
+                const dataInDb = await db.collections!.data_collection.find({ m_subjectId: 'I7N3G6G', m_visitId: { $in: ['1', '2'] }, value: null }).toArray();
+                expect(dataInDb).toHaveLength(8); // four data records, four deleted records
             });
 
             test('Get data records (user with study privilege)', async () => {
@@ -3629,6 +3724,8 @@ if (global.hasMinio) {
                         ]
                     }
                 });
+                console.log(await db.collections!.studies_collection.findOne({ id: createdStudy.id }));
+                console.log(await db.collections!.data_collection.find({}).toArray());
                 const getRes = await authorisedProjectUser.post('/graphql').send({
                     query: print(GET_DATA_RECORDS),
                     variables: {
@@ -3645,6 +3742,89 @@ if (global.hasMinio) {
                 expect(getRes.status).toBe(200);
                 expect(getRes.body.errors).toBeUndefined();
                 expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
+            });
+
+            test('Get data records with meta data filters', async () => {
+                const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
+                await admin.post('/graphql').send({
+                    query: print(CREATE_ONTOLOGY_TREE),
+                    variables: {
+                        studyId: createdStudy.id,
+                        ontologyTree: {
+                            name: 'fakeTree',
+                            routes: [
+                                {
+                                    path: ['DM', 'm_subjectId', 'm_visitId'],
+                                    name: 'AGE',
+                                    field: ['$31'],
+                                    visitRange: []
+                                },
+                                {
+                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                                    name: '',
+                                    field: ['$32'],
+                                    visitRange: []
+                                }
+                            ]
+                        }
+                    }
+                });
+                await db.collections!.data_collection.insertMany([{
+                    m_studyId: createdStudy.id,
+                    m_fieldId: '31',
+                    m_subjectId: 'I7N3G6G',
+                    m_versionId: study.dataVersions[0].id,
+                    m_visitId: '1',
+                    id: '0001',
+                    metadata: {
+                        'uploader:org': createdUserAuthorisedProfile.organisation,
+                        'uploader:user': createdUserAuthorisedProfile.id,
+                        'uploader:wp': 'wp5.1'
+                    },
+                    updatedAt: '10000000',
+                    value: '1'
+                }, {
+                    m_studyId: createdStudy.id,
+                    m_fieldId: '32',
+                    m_subjectId: 'I7N3G6G',
+                    m_versionId: study.dataVersions[0].id,
+                    m_visitId: '1',
+                    id: '0002',
+                    metadata: {
+                        'uploader:org': createdUserAuthorisedProject.organisation,
+                        'uploader:user': createdUserAuthorisedProject.id,
+                        'uploader:wp': 'wp5.2'
+                    },
+                    updatedAt: '10000000',
+                    value: '2'
+                }]);
+                const resMetadataOrg = await authorisedUser.post('/graphql').send({
+                    query: print(GET_DATA_RECORDS),
+                    variables: {
+                        studyId: createdStudy.id,
+                        queryString: {
+                            data_requested: ['31', '32'],
+                            format: 'raw',
+                            cohort: [[]],
+                            new_fields: [],
+                            metadata: [
+                                [
+                                    {
+                                        key: 'uploader:wp',
+                                        op: '=',
+                                        parameter: 'wp5.1'
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                });
+                expect(resMetadataOrg.status).toBe(200);
+                expect(resMetadataOrg.body.errors).toBeUndefined();
+                expect(resMetadataOrg.body.data.getDataRecords.data).toEqual({
+                    I7N3G6G: { 1: { 31: '1', m_subjectId: 'I7N3G6G', m_visitId: '1' } }
+                });
+                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id }, { $set: { ontologyTrees: [] } });
             });
 
             test('Create an ontology tree (authorised user)', async () => {
@@ -4004,21 +4184,26 @@ if (global.hasMinio) {
                 });
                 expect(checkRes.status).toBe(200);
                 expect(checkRes.body.errors).toBeUndefined();
-                expect(checkRes.body.data.checkDataComplete).toEqual([
-                    {
-                        subjectId: 'I7N3G6G',
-                        visitId: '1',
-                        errorFields: ['Field 32-Sex: Cannot parse as decimal.']
-                    },
-                    {
-                        subjectId: 'I7N3G6G',
-                        visitId: '2',
-                        errorFields: ['Field 32-Sex: Cannot parse as decimal.']
-                    },
+                expect(checkRes.body.data.checkDataComplete.sort((a, b) => {
+                    return a.subjectId === b.subjectId ? a.visitId.localeCompare(b.visitId) : a.subjectId.localeCompare(b.subjectId);
+                })).toEqual([
                     {
                         subjectId: 'GR6R4AR',
                         visitId: '2',
-                        errorFields: ['Field 32-Sex: Cannot parse as decimal.']
+                        fieldId: '32',
+                        error: 'Field 32: Cannot parse as decimal.'
+                    },
+                    {
+                        subjectId: 'I7N3G6G',
+                        visitId: '1',
+                        fieldId: '32',
+                        error: 'Field 32: Cannot parse as decimal.'
+                    },
+                    {
+                        subjectId: 'I7N3G6G',
+                        visitId: '2',
+                        fieldId: '32',
+                        error: 'Field 32: Cannot parse as decimal.'
                     }
                 ]);
             });

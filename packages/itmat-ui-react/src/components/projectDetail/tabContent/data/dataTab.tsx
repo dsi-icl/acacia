@@ -51,7 +51,7 @@ export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId
     return <div className={css.tab_page_wrapper}>
         <div className={css.scaffold_wrapper}>
             <div className={css.metadata}>
-                <MetaDataBlock project={getProjectData.getProject} numOfFields={getStudyFieldsData.getStudyFields.length} numOfOntologyRoutes={getOntologyTreeData.getOntologyTree[0].routes.length} />
+                <MetaDataBlock project={getProjectData.getProject} numOfOntologyRoutes={getOntologyTreeData.getOntologyTree[0].routes.length} />
             </div>
             <div className={css.demographics}>
                 <DemographicsBlock ontologyTree={getOntologyTreeData.getOntologyTree[0]} studyId={studyId} projectId={projectId} fields={filterFields(getStudyFieldsData.getStudyFields, getOntologyTreeData.getOntologyTree[0])} />
@@ -69,7 +69,7 @@ export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId
     </div>;
 };
 
-export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: number, numOfOntologyRoutes: number }> = ({ project, numOfFields, numOfOntologyRoutes }) => {
+export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfOntologyRoutes: number }> = ({ project, numOfOntologyRoutes }) => {
     const [width, __unused__height__] = useWindowSize();
     return project ? <SubsectionWithComment title={<Tooltip title={'The metadata of this project.'}>
         <Text className={css.title}>Meta Data</Text> <QuestionCircleOutlined />
@@ -117,8 +117,8 @@ export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: 
                         </Col>
                         <Col span={5}>
                             <div className={css.grid_col_center}>
-                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes} / {numOfFields}</Text>
-                                <Tooltip title={`${numOfOntologyRoutes} of ${numOfFields} fields are in the ontology tree.`}>
+                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes}</Text>
+                                <Tooltip title={`${numOfOntologyRoutes} fields are in the ontology tree.`}>
                                     <QuestionCircleOutlined />
                                 </Tooltip>
                             </div>
@@ -172,8 +172,8 @@ export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: 
                     <Row gutter={16}>
                         <Col span={9}>
                             <div className={css.grid_col_center}>
-                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes} / {numOfFields}</Text>
-                                <Tooltip title={`${numOfOntologyRoutes} of ${numOfFields} fields are in the ontology tree.`}>
+                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes}</Text>
+                                <Tooltip title={`${numOfOntologyRoutes} fields are in the ontology tree.`}>
                                     <QuestionCircleOutlined />
                                 </Tooltip>
                             </div>
@@ -220,7 +220,6 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
     // process the data
     const obj: any = {};
     const data = getDataRecordsData.getDataRecords.data;
-    console.log(genderField.fieldId, raceField.fieldId, ageField.fieldId, siteField.fieldId);
     if (genderField === null || !data[genderField.fieldId]) {
         obj.SEX = [];
         obj.AGE = [];
@@ -650,7 +649,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                 </>);
                         }}
                     </Query>
-                </div>
+                </div >
         }
     </SubsectionWithComment >);
 };

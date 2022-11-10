@@ -90,8 +90,16 @@ export const studyResolvers = {
                 projectId
             );
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
-            // get all dataVersions that are valid (before the current version)
+            // get ontology tree
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
+            const ontologyTree: IOntologyTree | null = study.ontologyTrees ? (study.ontologyTrees[0] ?? null) : null;
+            const ontologyFieldIds: string[] = [];
+            if (ontologyTree !== null && ontologyTree.routes !== undefined && ontologyTree.routes !== null) {
+                for (let i = 0; i < ontologyTree.routes?.length; i++) {
+                    ontologyTree.routes[i].field.length > 0 && ontologyFieldIds.push(ontologyTree.routes[i].field[0].replace('$', ''));
+                }
+            }
+            // get all dataVersions that are valid (before the current version)
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             const fieldRecords = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
@@ -110,7 +118,7 @@ export const studyResolvers = {
             }, {
                 $match: { dataVersion: { $in: availableDataVersions } }
             }, {
-                $match: { studyId: studyId }
+                $match: { studyId: studyId, fieldId: { $in: ontologyFieldIds } }
             }, {
                 $group: {
                     _id: '$fieldId',
@@ -165,7 +173,7 @@ export const studyResolvers = {
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             // we only check data that hasnt been pushed to a new data version
             const data: any[] = await db.collections!.data_collection.find({ m_studyId: studyId, m_versionId: null }).toArray();
-            const fieldRecords = (await db.collections!.field_dictionary_collection.aggregate([{
+            const fieldMapping = (await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
                 $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
@@ -177,76 +185,78 @@ export const studyResolvers = {
                     doc: { $first: '$$ROOT' }
                 }
             }
-            ]).toArray()).map(el => el.doc).filter(eh => eh.dateDeleted === null);
+            ]).toArray()).map(el => el.doc).filter(eh => eh.dateDeleted === null).reduce((acc, curr) => {
+                acc[curr.fieldId] = curr;
+                return acc;
+            }, {});
             const summary: ISubjectDataRecordSummary[] = [];
             // we will not check data whose fields are not defined, because data that the associated fields are undefined will not be returned while querying data
             for (const record of data) {
-                const errors: any[] = [];
-                for (const field of fieldRecords) {
-                    if (record[field.fieldId] !== undefined && record[field.fieldId] !== null) {
-                        switch (field.dataType) {
-                            case 'dec': {// decimal
-                                if (!/^\d+(.\d+)?$/.test(record[field])) {
-                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as decimal.`);
-                                    break;
-                                }
+                let error: string | null = null;
+                if (fieldMapping[record.m_fieldId] !== undefined && fieldMapping[record.m_fieldId] !== null) {
+                    switch (fieldMapping[record.m_fieldId].dataType) {
+                        case 'dec': {// decimal
+                            if (!/^\d+(.\d+)?$/.test(record.value)) {
+                                error = `Field ${record.m_fieldId}: Cannot parse as decimal.`;
                                 break;
                             }
-                            case 'int': {// integer
-                                if (!/^-?\d+$/.test(record[field.fieldId])) {
-                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as integer.`);
-                                    break;
-                                }
+                            break;
+                        }
+                        case 'int': {// integer
+                            if (!/^-?\d+$/.test(record.value)) {
+                                error = `Field ${record.m_fieldId}: Cannot parse as integer.`;
                                 break;
                             }
-                            case 'bool': {// boolean
-                                if (record[field.fieldId].value.toLowerCase() !== 'true' && record[field.fieldId].value.toLowerCase() !== 'false') {
-                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as boolean.`);
-                                    break;
-                                }
+                            break;
+                        }
+                        case 'bool': {// boolean
+                            if (record.value.toLowerCase() !== 'true' && record.value.toLowerCase() !== 'false') {
+                                error = `Field ${record.m_fieldId}: Cannot parse as boolean.`;
                                 break;
                             }
-                            case 'str': {
+                            break;
+                        }
+                        case 'str': {
+                            break;
+                        }
+                        // 01/02/2021 00:00:00
+                        case 'date': {
+                            const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
+                            if (!record.value.match(matcher)) {
+                                error = `Field ${record.m_fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
                                 break;
                             }
-                            // 01/02/2021 00:00:00
-                            case 'date': {
-                                const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
-                                if (!record[field.fieldId].value.match(matcher)) {
-                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as data. Value for date type must be in ISO format.`);
-                                    break;
-                                }
+                            break;
+                        }
+                        case 'json': {
+                            break;
+                        }
+                        case 'file': {
+                            const file = await db.collections!.files_collection.findOne({ id: record.value });
+                            if (!file) {
+                                error = `Field ${record.m_fieldId}: Cannot parse as file or file does not exist.`;
                                 break;
                             }
-                            case 'json': {
+                            break;
+                        }
+                        case 'cat': {
+                            if (!fieldMapping[record.m_fieldId].possibleValues.map((el: any) => el.code).includes(record.value.toString())) {
+                                error = `Field ${record.m_fieldId}: Cannot parse as categorical, value not in value list.`;
                                 break;
                             }
-                            case 'file': {
-                                const file = await db.collections!.files_collection.findOne({ id: record[field.fieldId] });
-                                if (!file) {
-                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as file or file does not exist.`);
-                                    break;
-                                }
-                                break;
-                            }
-                            case 'cat': {
-                                if (!field.possibleValues.map((el: any) => el.code).includes(record[field.fieldId].toString())) {
-                                    errors.push(`Field ${field.fieldId}-${field.fieldName}: Cannot parse as categorical, value not in value list.`);
-                                    break;
-                                }
-                                break;
-                            }
-                            default: {
-                                errors.push(`Field ${field.fieldId}-${field.fieldName}: Invalid data Type.`);
-                                break;
-                            }
+                            break;
+                        }
+                        default: {
+                            error = `Field ${record.m_fieldId}: Invalid data Type.`;
+                            break;
                         }
                     }
                 }
-                summary.push({
+                error && summary.push({
                     subjectId: record.m_subjectId,
                     visitId: record.m_visitId,
-                    errorFields: errors
+                    fieldId: record.m_fieldId,
+                    error: error
                 });
             }
 
@@ -330,9 +340,24 @@ export const studyResolvers = {
                 $sort: { fieldId: 1 }
             }
             ]).toArray();
+            // get ontology tree
+            const ontologyTree: IOntologyTree | null = study.ontologyTrees ? (study.ontologyTrees[0] ?? null) : null;
             const fieldsIds: string[] = [];
-            for (let i = 0; i < fieldRecords.length; i++) {
-                fieldsIds.push(fieldRecords[i].fieldId);
+            if (!hasPermission) {
+                if (ontologyTree === null || ontologyTree.routes === undefined || ontologyTree.routes === null) {
+                    return { data: {} };
+                }
+                const ontologyFieldIds: string[] = [];
+                for (let i = 0; i < ontologyTree.routes?.length; i++) {
+                    ontologyTree.routes[i].field.length > 0 && ontologyFieldIds.push(ontologyTree.routes[i].field[0].replace('$', ''));
+                }
+                for (let i = 0; i < fieldRecords.length; i++) {
+                    ontologyFieldIds.includes(fieldRecords[i].fieldId) && fieldsIds.push(fieldRecords[i].fieldId);
+                }
+            } else {
+                for (let i = 0; i < fieldRecords.length; i++) {
+                    fieldsIds.push(fieldRecords[i].fieldId);
+                }
             }
             const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission && versionId === null, fieldsIds, siteIDMarker);
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
@@ -353,7 +378,7 @@ export const studyResolvers = {
                     }
                 }
             }
-            // 2. adjust format: 1) original (exists) 2) standardized-$name 3) grouped
+            // 2. adjust format: 1) original(exists) 2) standardized - $name 3) grouped
             const standardizations = await db.collections!.standardizations_collection.find({ studyId: studyId, type: queryString['format'].split('-')[1], delete: null }).toArray();
             const formattedData = dataStandardization(study, fieldRecords,
                 groupedResult, queryString, standardizations);
@@ -569,7 +594,7 @@ export const studyResolvers = {
             for (const oneFieldInput of filteredFieldInput) {
                 isError = false;
                 // check data valid
-                const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput);
+                const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput, requester);
                 if (thisError.length !== 0) {
                     error.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
                     isError = true;
@@ -609,7 +634,7 @@ export const studyResolvers = {
             for (const each of Object.keys(fieldInput) as Array<keyof IFieldEntry>) {
                 searchField[each] = fieldInput[each];
             }
-            const { fieldEntry, error } = validateAndGenerateFieldEntry(searchField);
+            const { fieldEntry, error } = validateAndGenerateFieldEntry(searchField, requester);
             if (error.length !== 0) {
                 throw new ApolloError(JSON.stringify(error), errorCodes.CLIENT_MALFORMED_INPUT);
             }
@@ -731,25 +756,28 @@ export const studyResolvers = {
                 validVisits = visitIds;
             }
             if (fieldIds === undefined || fieldIds === null || fieldIds.length === 0) {
-                validFields = (await db.collections!.field_dictionary_collection.distinct('fieldId', { studyId: studyId })).reduce<any>((acc, curr) => { acc[curr] = null; return acc; }, {});
+                validFields = (await db.collections!.field_dictionary_collection.distinct('fieldId', { studyId: studyId }));
             } else {
-                validFields = fieldIds.reduce<any>((acc, curr) => { acc[curr] = null; return acc; }, {});
+                validFields = fieldIds;
             }
 
             const bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
             for (const subjectId of validSubjects) {
                 for (const visitId of validVisits) {
-                    bulk.find({ m_studyId: studyId, m_subjectId: subjectId, m_visitId: visitId, m_versionId: null }).upsert().updateOne({
-                        $set: {
-                            ...validFields,
-                            m_studyId: studyId,
-                            m_subjectId: subjectId,
-                            m_visitId: visitId,
-                            m_versionId: null,
-                            uploadedAt: (new Date()).valueOf(),
-                            id: uuid()
-                        }
-                    });
+                    for (const fieldId of validFields) {
+                        bulk.find({ m_studyId: studyId, m_subjectId: subjectId, m_visitId: visitId, m_fieldId: fieldId, m_versionId: null }).upsert().updateOne({
+                            $set: {
+                                m_studyId: studyId,
+                                m_subjectId: subjectId,
+                                m_visitId: visitId,
+                                m_versionId: null,
+                                m_fieldId: fieldId,
+                                value: null,
+                                uploadedAt: (new Date()).valueOf(),
+                                id: uuid()
+                            }
+                        });
+                    }
                 }
             }
             if (bulk.batches.length > 0) {

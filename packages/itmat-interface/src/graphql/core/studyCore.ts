@@ -169,9 +169,9 @@ export class StudyCore {
         return newDataVersion;
     }
 
-    public async uploadOneDataClip(studyId: string, fieldList: any[], data: IDataClip[], user: IUser): Promise<any> {
+    public async uploadOneDataClip(studyId: string, fieldList: any[], data: IDataClip[], requester: IUser): Promise<any> {
         const errors: any[] = [];
-        // const bulk = db.collections!.data_collection.initializeOrderedBulkOp();
+        let bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
         const keysToCheck: Array<keyof IDataClip> = ['visitId', 'subjectId', 'fieldId'];
         const filteredData = data.filter(
@@ -265,7 +265,7 @@ export class StudyCore {
                             break;
                         }
                         // if old file exists, delete it first
-                        const res = await this.uploadFile(studyId, dataClip, user, {});
+                        const res = await this.uploadFile(studyId, dataClip, requester, {});
                         if ('code' in res && 'description' in res) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as file.`;
                             break;
@@ -297,28 +297,29 @@ export class StudyCore {
                 m_studyId: studyId,
                 m_subjectId: dataClip.subjectId,
                 m_versionId: undefined,
-                m_visitId: dataClip.visitId
+                m_visitId: dataClip.visitId,
+                m_fieldId: dataClip.fieldId
             };
-            const existingMetaData: Record<string, any> = (await db.collections!.data_collection.findOne(obj))?.metadata ?? {};
-            if (dataClip.metadata) {
-                // dmpOrganisation is for DMP only; change it for other platforms
-                existingMetaData[dataClip.fieldId] = { ...dataClip.metadata, dmpOrganisation: user.organisation };
-            }
             const objWithData: Partial<MatchKeysAndValues<IDataEntry>> = {
                 ...obj,
                 id: uuid(),
-                uploadedAt: (new Date()).valueOf(),
-                metadata: existingMetaData
+                value: parsedValue,
+                updatedAt: (new Date()).valueOf().toString(),
+                metadata: {
+                    'uploader:org': requester.organisation,
+                    'uploader:user': requester.id,
+                    'uploader:wp': requester.metadata?.wp ?? null,
+                    ...dataClip.metadata
+                }
             };
-            objWithData[dataClip.fieldId] = parsedValue;
-            await db.collections!.data_collection.findOneAndUpdate(obj, {
-                $set: objWithData
-            }, {
-                upsert: true
-            });
-            // bulk.find(obj).upsert().updateOne({ $set: objWithData });
+            bulk.find(obj).upsert().updateOne({ $set: objWithData });
+            if (bulk.batches.length > 999) {
+                await bulk.execute();
+                bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
+            }
+
         }
-        // await bulk.execute();
+        await bulk.execute();
         return errors;
     }
 
@@ -334,8 +335,8 @@ export class StudyCore {
         const file: FileUpload = await data.file;
 
         // check if old files exist; if so, denote it as deleted
-        const dataEntry = await db.collections!.data_collection.findOne({ m_studyId: studyId, m_visitId: data.visitId, m_subjectId: data.subjectId, m_versionId: null }, { [data.fieldId]: 1 });
-        const oldFileId = dataEntry ? dataEntry[data.fieldId] : null;
+        const dataEntry = await db.collections!.data_collection.findOne({ m_studyId: studyId, m_visitId: data.visitId, m_subjectId: data.subjectId, m_versionId: null, m_fieldId: data.fieldId });
+        const oldFileId = dataEntry ? dataEntry.value : null;
         return new Promise<IFile>((resolve, reject) => {
             try {
                 const capacitor = new WriteStream();

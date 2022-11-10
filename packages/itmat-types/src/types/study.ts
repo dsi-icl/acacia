@@ -76,8 +76,9 @@ export interface IGeneralError {
 
 export interface ISubjectDataRecordSummary {
     subjectId: string,
-    visitId?: string,
-    errorFields: string[]
+    visitId: string,
+    fieldId: string,
+    error: string
 }
 
 export interface IOntologyTree {

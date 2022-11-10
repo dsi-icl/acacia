@@ -1,4 +1,4 @@
-import { IFieldEntry, enumValueType } from '@itmat-broker/itmat-types';
+import { IFieldEntry, enumValueType, IUser } from '@itmat-broker/itmat-types';
 import { db } from '../../database/database';
 import { v4 as uuid } from 'uuid';
 export class FieldCore {
@@ -26,7 +26,7 @@ export class FieldCore {
 }
 
 
-export function validateAndGenerateFieldEntry(fieldEntry: any) {
+export function validateAndGenerateFieldEntry(fieldEntry: any, requester: IUser) {
     // duplicates with existing fields are checked by caller function
     const error: string[] = [];
     const complusoryField = [
@@ -74,7 +74,13 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
         dataType: fieldEntry.dataType,
         possibleValues: fieldEntry.dataType === enumValueType.CATEGORICAL ? fieldEntry.possibleValues : null,
         unit: fieldEntry.unit,
-        comments: fieldEntry.comments
+        comments: fieldEntry.comments,
+        metadata: {
+            'uploader:org': requester.organisation,
+            'uploader:user': requester.id,
+            'uploader:wp': requester.metadata?.wp ?? null,
+            ...fieldEntry.metadata
+        }
     };
 
     return { fieldEntry: newField, error: error };

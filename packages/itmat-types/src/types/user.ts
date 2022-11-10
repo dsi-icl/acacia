@@ -17,7 +17,8 @@ export interface IUserWithoutToken {
     deleted: number | null;
     createdAt: number;
     expiredAt: number;
-    resetPasswordRequests: IResetPasswordRequest[]
+    resetPasswordRequests: IResetPasswordRequest[];
+    metadata?: any
 }
 
 export interface IResetPasswordRequest {
