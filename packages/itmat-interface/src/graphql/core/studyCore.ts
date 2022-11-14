@@ -110,6 +110,13 @@ export class StudyCore {
             }
         });
 
+        // update ontology trees
+        const resOntologyTrees = await db.collections!.studies_collection.updateOne({ 'id': studyId, 'deleted': null, 'ontologyTrees.dataVersion': null }, {
+            $set: {
+                'ontologyTrees.$.dataVersion': newDataVersionId
+            }
+        });
+
         // if field is modified, need to modified the approved fields of each related project
         // if the field is updated: update the approved field Id
         // if the field is deleted: remove the original field Id
@@ -148,7 +155,7 @@ export class StudyCore {
             });
         }
 
-        if (resData.modifiedCount === 0 && resField.modifiedCount === 0 && resStandardization.modifiedCount === 0) {
+        if (resData.modifiedCount === 0 && resField.modifiedCount === 0 && resStandardization.modifiedCount === 0 && resOntologyTrees.modifiedCount === 0) {
             return null;
         }
 

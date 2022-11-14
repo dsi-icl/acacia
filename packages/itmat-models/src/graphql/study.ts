@@ -18,17 +18,6 @@ export const GET_STUDY = gql`
             createdBy
             description
             type
-            ontologyTrees {
-                id
-                name
-                routes {
-                    id
-                    path
-                    name
-                    field
-                    visitRange
-                }
-            }
             jobs {
                 ...ALL_FOR_JOB
             }
@@ -85,8 +74,8 @@ export const GET_DATA_RECORDS = gql`
 `;
 
 export const GET_ONTOLOGY_TREE = gql`
-    query getOntologyTree($studyId: String!, $projectId: String, $treeId: String) {
-        getOntologyTree(studyId: $studyId, projectId: $projectId, treeId: $treeId) {
+    query getOntologyTree($studyId: String!, $projectId: String, $treeName: String, $versionId: String) {
+        getOntologyTree(studyId: $studyId, projectId: $projectId, treeName: $treeName, versionId: $versionId) {
             id
             name
             routes {
@@ -180,8 +169,8 @@ export const CREATE_ONTOLOGY_TREE = gql`
 `;
 
 export const DELETE_ONTOLOGY_TREE = gql`
-    mutation deleteOntologyTree($studyId: String!, $treeId: String!) {
-        deleteOntologyTree(studyId: $studyId, treeId: $treeId) {
+    mutation deleteOntologyTree($studyId: String!, $treeName: String!) {
+        deleteOntologyTree(studyId: $studyId, treeName: $treeName) {
             id
             successful
         }

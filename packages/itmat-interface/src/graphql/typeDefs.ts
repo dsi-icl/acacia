@@ -223,6 +223,8 @@ type OntologyTree {
     id: String!
     name: String!
     routes: [OntologyRoute]
+    dataVersion: String!
+    deleted: Int
 }
 
 type OntologyRoute {
@@ -527,7 +529,7 @@ type Query {
     getProject(projectId: String!): Project
     getStudyFields(studyId: String!, projectId: String, versionId: String): [Field]
     getDataRecords(studyId: String!, queryString: JSON, versionId: String, projectId: String): JSON
-    getOntologyTree(studyId: String!, projectId: String, treeId: String): [OntologyTree]
+    getOntologyTree(studyId: String!, projectId: String, treeName: String, versionId: String): [OntologyTree]
     getStandardization(studyId: String, projectId: String, type: String, versionId: String): [Standardization]
     checkDataComplete(studyId: String!): [SubjectDataRecordSummary]
     
@@ -581,7 +583,7 @@ type Mutation {
     editField(studyId: String!, fieldInput: FieldInput!): Field
     deleteField(studyId: String!, fieldId: String!): Field
     createOntologyTree(studyId: String!, ontologyTree: OntologyTreeInput!): OntologyTree
-    deleteOntologyTree(studyId: String!, treeId: String!): GenericResponse
+    deleteOntologyTree(studyId: String!, treeName: String!): GenericResponse
 
     # STANDARDIZATION
     createStandardization(studyId: String!, standardization: StandardizationInput): Standardization

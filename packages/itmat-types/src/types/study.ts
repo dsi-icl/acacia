@@ -84,7 +84,9 @@ export interface ISubjectDataRecordSummary {
 export interface IOntologyTree {
     id: string,
     name: string,
-    routes?: IOntologyRoute[]
+    dataVersion: string,
+    routes?: IOntologyRoute[],
+    deleted: number
 }
 
 export interface IOntologyRoute {

@@ -128,7 +128,7 @@ export const studyResolvers = {
             ]).toArray();
             return fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
         },
-        getOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, projectId, treeId }: { studyId: string, projectId: string, treeId: string }, context: any): Promise<IOntologyTree[]> => {
+        getOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, projectId, treeName, versionId }: { studyId: string, projectId: string, treeName?: string, versionId?: string }, context: any): Promise<IOntologyTree[]> => {
             /* get studyId by parameter or project */
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             if (projectId) {
@@ -151,10 +151,43 @@ export const studyResolvers = {
             );
             if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
-            if (treeId) {
-                return study.ontologyTrees?.filter(el => el.id === treeId) || [];
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+
+            if (study.ontologyTrees === undefined) {
+                return [];
             } else {
-                return study.ontologyTrees || [];
+                const trees: IOntologyTree[] = study.ontologyTrees;
+                if (hasPermission && versionId === null) {
+                    const availableTrees: IOntologyTree[] = [];
+                    for (let i = trees.length - 1; i >= 0; i--) {
+                        if ((trees[i].dataVersion === null || availableDataVersions.includes(trees[i].dataVersion))
+                            && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
+                            availableTrees.push(trees[i]);
+                        } else {
+                            continue;
+                        }
+                    }
+                    if (treeName) {
+                        return availableTrees.filter(el => el.name === treeName);
+                    } else {
+                        return availableTrees;
+                    }
+                } else {
+                    const availableTrees: IOntologyTree[] = [];
+                    for (let i = trees.length - 1; i >= 0; i--) {
+                        if (availableDataVersions.includes(trees[i].dataVersion)
+                            && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
+                            availableTrees.push(trees[i]);
+                        } else {
+                            continue;
+                        }
+                    }
+                    if (treeName) {
+                        return availableTrees.filter(el => el.name === treeName);
+                    } else {
+                        return availableTrees;
+                    }
+                }
             }
         },
         checkDataComplete: async (__unused__parent: Record<string, unknown>, { studyId }: { studyId: string }, context: any): Promise<any> => {
@@ -814,7 +847,7 @@ export const studyResolvers = {
             }
             return created;
         },
-        createOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, ontologyTree }: { studyId: string, ontologyTree: IOntologyTree }, context: any): Promise<IOntologyTree> => {
+        createOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, ontologyTree }: { studyId: string, ontologyTree: Pick<IOntologyTree, 'name' | 'routes'> }, context: any): Promise<IOntologyTree> => {
             /* check study exists */
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
@@ -836,7 +869,7 @@ export const studyResolvers = {
                     }
                 });
             }
-            const ontologyTreeWithId: IOntologyTree = { ...ontologyTree };
+            const ontologyTreeWithId: Partial<IOntologyTree> = { ...ontologyTree };
             ontologyTreeWithId.id = uuid();
             ontologyTreeWithId.routes = ontologyTreeWithId.routes || [];
             ontologyTreeWithId.routes.forEach(el => {
@@ -847,7 +880,8 @@ export const studyResolvers = {
                 id: studyId, deleted: null, ontologyTrees: {
                     $not: {
                         $elemMatch: {
-                            name: ontologyTree.name
+                            name: ontologyTree.name,
+                            dataVersion: null
                         }
                     }
                 }
@@ -856,15 +890,17 @@ export const studyResolvers = {
                     ontologyTrees: ontologyTreeWithId
                 }
             });
-            await db.collections!.studies_collection.findOneAndUpdate({ 'id': studyId, 'deleted': null, 'ontologyTrees.name': ontologyTree.name }, {
+            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null, ontologyTrees: { $elemMatch: { name: ontologyTreeWithId.name, dataVersion: null } } }, {
                 $set: {
-                    'ontologyTrees.$.routes': ontologyTreeWithId.routes
+                    'ontologyTrees.$.routes': ontologyTreeWithId.routes,
+                    'ontologyTrees.$.dataVersion': null,
+                    'ontologyTrees.$.deleted': null
                 }
             });
 
-            return ontologyTreeWithId;
+            return ontologyTreeWithId as IOntologyTree;
         },
-        deleteOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, treeId }: { studyId: string, treeId: string }, context: any): Promise<IGenericResponse> => {
+        deleteOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, treeName }: { studyId: string, treeName: string }, context: any): Promise<IGenericResponse> => {
             /* check study exists */
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
@@ -878,17 +914,35 @@ export const studyResolvers = {
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
-            const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
-                $pull: {
-                    ontologyTrees: {
-                        id: treeId
+            const resultAdd = await db.collections!.studies_collection.findOneAndUpdate({
+                id: studyId, deleted: null, ontologyTrees: {
+                    $not: {
+                        $elemMatch: {
+                            name: treeName,
+                            dataVersion: null
+                        }
                     }
                 }
             }, {
-                returnDocument: 'after'
+                $addToSet: {
+                    ontologyTrees: {
+                        id: uuid(),
+                        name: treeName,
+                        dataVersion: null,
+                        deleted: Date.now().valueOf()
+                    }
+                }
             });
-            if (result.ok === 1 && result.value) {
-                return makeGenericReponse(treeId);
+            const resultUpdate = await db.collections!.studies_collection.findOneAndUpdate({
+                id: studyId, deleted: null, ontologyTrees: { $elemMatch: { name: treeName, dataVersion: null } }
+            }, {
+                $set: {
+                    'ontologyTrees.$.deleted': Date.now().valueOf(),
+                    'ontologyTrees.$.routes': undefined
+                }
+            });
+            if ((resultAdd.ok === 1 && resultAdd.value) || (resultUpdate.ok === 1 && resultUpdate.value)) {
+                return makeGenericReponse(treeName);
             } else {
                 throw new ApolloError(errorCodes.DATABASE_ERROR);
             }

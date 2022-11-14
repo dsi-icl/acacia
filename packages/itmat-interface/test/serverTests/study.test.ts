@@ -1636,36 +1636,6 @@ if (global.hasMinio) {
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
                             }
                         ],
-                        ontologyTrees: [{
-                            id: 'testOntology_id',
-                            name: 'testOntology',
-                            routes: [
-                                {
-                                    path: [
-                                        'MO',
-                                        'MOCK'
-                                    ],
-                                    name: 'mockfield1',
-                                    field: [
-                                        '$31'
-                                    ],
-                                    visitRange: [],
-                                    id: '036b7772-f239-4fef-b7f8-c3db883f51e3'
-                                },
-                                {
-                                    path: [
-                                        'MO',
-                                        'MOCK'
-                                    ],
-                                    name: 'mockfield2',
-                                    field: [
-                                        '$32'
-                                    ],
-                                    visitRange: [],
-                                    id: 'f577023f-de54-446a-9bbe-1c346823e6bf'
-                                }
-                            ]
-                        }],
                         numOfRecords: 2,
                         subjects: ['mock_patient1', 'mock_patient2'],
                         visits: ['mockvisitId'],
@@ -3936,21 +3906,33 @@ if (global.hasMinio) {
                         }
                     }
                 });
+                await admin.post('/graphql').send({
+                    query: print(CREATE_NEW_DATA_VERSION),
+                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                });
                 const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(DELETE_ONTOLOGY_TREE),
                     variables: {
                         studyId: createdStudy.id,
-                        treeId: study.ontologyTrees[0].id
+                        treeName: study.ontologyTrees[0].name
                     }
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.data.deleteOntologyTree).toEqual({
-                    id: study.ontologyTrees[0].id,
+                    id: study.ontologyTrees[0].name,
                     successful: true
                 });
                 const updatedStudy: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
-                expect(updatedStudy.ontologyTrees.length).toBe(0);
+                expect(updatedStudy.ontologyTrees.length).toBe(2); // both records
+                // clear study
+                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
+                    $set: {
+                        dataVersions: [],
+                        currentDataVersion: -1,
+                        ontologyTrees: []
+                    }
+                });
             });
 
             test('Delete an ontology tree (unauthorised user), should fail', async () => {
@@ -3982,7 +3964,7 @@ if (global.hasMinio) {
                     query: print(DELETE_ONTOLOGY_TREE),
                     variables: {
                         studyId: createdStudy.id,
-                        treeId: study.ontologyTrees[0].id
+                        treeName: study.ontologyTrees[0].name
                     }
                 });
                 expect(res.status).toBe(200);
@@ -4020,12 +4002,16 @@ if (global.hasMinio) {
                         }
                     }
                 });
+                await admin.post('/graphql').send({
+                    query: print(CREATE_NEW_DATA_VERSION),
+                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                });
                 const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
                 const res = await authorisedUser.post('/graphql').send({
                     query: print(GET_ONTOLOGY_TREE),
                     variables: {
                         studyId: createdStudy.id,
-                        treeId: null
+                        treeName: null
                     }
                 });
                 expect(res.status).toBe(200);
@@ -4050,8 +4036,11 @@ if (global.hasMinio) {
                         }
                     ]
                 });
-                await db.collections!.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
+                // clear study
+                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
                     $set: {
+                        dataVersions: [],
+                        currentDataVersion: -1,
                         ontologyTrees: []
                     }
                 });
@@ -4081,20 +4070,27 @@ if (global.hasMinio) {
                         }
                     }
                 });
+                await admin.post('/graphql').send({
+                    query: print(CREATE_NEW_DATA_VERSION),
+                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                });
                 const res = await user.post('/graphql').send({
                     query: print(GET_ONTOLOGY_TREE),
                     variables: {
                         studyId: createdProject.studyId,
                         projectId: createdProject.id,
-                        treeId: null
+                        treeName: null
                     }
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.data.getOntologyTree).toBe(null);
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                await db.collections!.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
+                // clear study
+                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
                     $set: {
+                        dataVersions: [],
+                        currentDataVersion: -1,
                         ontologyTrees: []
                     }
                 });
@@ -4124,39 +4120,27 @@ if (global.hasMinio) {
                         }
                     }
                 });
-                const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
-                const res = await authorisedUser.post('/graphql').send({
+                await admin.post('/graphql').send({
+                    query: print(CREATE_NEW_DATA_VERSION),
+                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                });
+                const res = await user.post('/graphql').send({
                     query: print(GET_ONTOLOGY_TREE),
                     variables: {
                         studyId: createdProject.studyId,
                         projectId: createdProject.id,
-                        treeId: null
+                        treeName: null
                     }
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.data.getOntologyTree).toHaveLength(1);
-                expect(res.body.data.getOntologyTree[0]).toEqual({
-                    id: study.ontologyTrees[0].id,
-                    name: 'fakeTree',
-                    routes: [
-                        {
-                            id: study.ontologyTrees[0].routes[0].id,
-                            path: ['DM', 'm_subjectId', 'm_visitId'],
-                            name: 'AGE',
-                            field: ['$100'],
-                            visitRange: []
-                        },
-                        {
-                            id: study.ontologyTrees[0].routes[1].id,
-                            path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                            name: '',
-                            field: ['$200'],
-                            visitRange: []
-                        }
-                    ]
-                });
-                await db.collections!.studies_collection.findOneAndUpdate({ studyId: createdStudy.id, deleted: null }, {
+                expect(res.body.data.getOntologyTree).toBe(null);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                // clear study
+                await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
                     $set: {
+                        dataVersions: [],
+                        currentDataVersion: -1,
                         ontologyTrees: []
                     }
                 });
