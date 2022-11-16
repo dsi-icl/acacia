@@ -3694,8 +3694,6 @@ if (global.hasMinio) {
                         ]
                     }
                 });
-                console.log(await db.collections!.studies_collection.findOne({ id: createdStudy.id }));
-                console.log(await db.collections!.data_collection.find({}).toArray());
                 const getRes = await authorisedProjectUser.post('/graphql').send({
                     query: print(GET_DATA_RECORDS),
                     variables: {
@@ -3978,7 +3976,7 @@ if (global.hasMinio) {
                 });
             });
 
-            test('Get an ontology tree (authorised user)', async () => {
+            test('Get an ontology tree with versioning (authorised user)', async () => {
                 await authorisedUser.post('/graphql').send({
                     query: print(CREATE_ONTOLOGY_TREE),
                     variables: {
@@ -4006,17 +4004,40 @@ if (global.hasMinio) {
                     query: print(CREATE_NEW_DATA_VERSION),
                     variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
                 });
+                await authorisedUser.post('/graphql').send({
+                    query: print(CREATE_ONTOLOGY_TREE),
+                    variables: {
+                        studyId: createdStudy.id,
+                        ontologyTree: {
+                            name: 'fakeTree',
+                            routes: [
+                                {
+                                    path: ['DM', 'm_subjectId', 'm_visitId'],
+                                    name: 'AGEnew',
+                                    field: ['$100'],
+                                    visitRange: []
+                                },
+                                {
+                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                                    name: '',
+                                    field: ['$200'],
+                                    visitRange: []
+                                }
+                            ]
+                        }
+                    }
+                });
                 const study: IStudy = await db.collections!.studies_collection.findOne({ id: createdStudy.id, deleted: null });
-                const res = await authorisedUser.post('/graphql').send({
+                const resWithoutVersion = await authorisedUser.post('/graphql').send({
                     query: print(GET_ONTOLOGY_TREE),
                     variables: {
                         studyId: createdStudy.id,
                         treeName: null
                     }
                 });
-                expect(res.status).toBe(200);
-                expect(res.body.data.getOntologyTree).toHaveLength(1);
-                expect(res.body.data.getOntologyTree[0]).toEqual({
+                expect(resWithoutVersion.status).toBe(200);
+                expect(resWithoutVersion.body.data.getOntologyTree).toHaveLength(1);
+                expect(resWithoutVersion.body.data.getOntologyTree[0]).toEqual({
                     id: study.ontologyTrees[0].id,
                     name: 'fakeTree',
                     routes: [
@@ -4029,6 +4050,36 @@ if (global.hasMinio) {
                         },
                         {
                             id: study.ontologyTrees[0].routes[1].id,
+                            path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
+                            name: '',
+                            field: ['$200'],
+                            visitRange: []
+                        }
+                    ]
+                });
+                const resWithVersion = await authorisedUser.post('/graphql').send({
+                    query: print(GET_ONTOLOGY_TREE),
+                    variables: {
+                        studyId: createdStudy.id,
+                        treeName: null,
+                        versionId: null
+                    }
+                });
+                expect(resWithVersion.status).toBe(200);
+                expect(resWithVersion.body.data.getOntologyTree).toHaveLength(1);
+                expect(resWithVersion.body.data.getOntologyTree[0]).toEqual({
+                    id: study.ontologyTrees[1].id,
+                    name: 'fakeTree',
+                    routes: [
+                        {
+                            id: study.ontologyTrees[1].routes[0].id,
+                            path: ['DM', 'm_subjectId', 'm_visitId'],
+                            name: 'AGEnew',
+                            field: ['$100'],
+                            visitRange: []
+                        },
+                        {
+                            id: study.ontologyTrees[1].routes[1].id,
                             path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
                             name: '',
                             field: ['$200'],

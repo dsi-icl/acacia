@@ -632,6 +632,7 @@ describe('STUDY API', () => {
 
         afterEach(async () => {
             await db.collections!.standardizations_collection.deleteMany({});
+            await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, { $set: { dataVersions: [], currentDataVersion: -1 } });
         });
 
         test('Create standardization (authorised user)', async () => {
@@ -760,6 +761,82 @@ describe('STUDY API', () => {
                 uploadedAt: '1591134065000',
                 deleted: null
             });
+        });
+
+        test('Get standardization with versioning (authorised user)', async () => {
+            await authorisedUserStudy.post('/graphql').send({
+                query: print(CREATE_STANDARDIZATION),
+                variables: {
+                    studyId: createdStudy.id,
+                    standardization: {
+                        type: 'fakeType',
+                        field: ['$testField'],
+                        path: ['testPath'],
+                        joinByKeys: [],
+                        stdRules: [
+                            {
+                                entry: 'fakeEntry',
+                                source: 'value',
+                                parameter: ['fakeValue'],
+                                filters: null
+                            }
+                        ]
+                    }
+                }
+            });
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_DATA_VERSION),
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            });
+            await authorisedUserStudy.post('/graphql').send({
+                query: print(CREATE_STANDARDIZATION),
+                variables: {
+                    studyId: createdStudy.id,
+                    standardization: {
+                        type: 'fakeType',
+                        field: ['$testField'],
+                        path: ['testPath'],
+                        joinByKeys: [],
+                        stdRules: [
+                            {
+                                entry: 'fakeEntryNew',
+                                source: 'value',
+                                parameter: ['fakeValue'],
+                                filters: null
+                            }
+                        ]
+                    }
+                }
+            });
+            // modify the uploadedAt of the second uploading as we use mock
+            await db.collections!.standardizations_collection.findOneAndUpdate({ stdRules: { $elemMatch: { entry: 'fakeEntryNew' } } }, {
+                $set: {
+                    uploadedAt: 1591134065001
+                }
+            });
+            const withNullVersion = await authorisedUserStudy.post('/graphql').send({
+                query: print(GET_STANDARDIZATION),
+                variables: {
+                    studyId: createdStudy.id,
+                    type: 'fakeType',
+                    versionId: null
+                }
+            });
+            expect(withNullVersion.status).toBe(200);
+            expect(withNullVersion.body.errors).toBeUndefined();
+            expect(withNullVersion.body.data.getStandardization).toHaveLength(1);
+            expect(withNullVersion.body.data.getStandardization[0].stdRules[0].entry).toBe('fakeEntryNew');
+            const withVersion = await authorisedUserStudy.post('/graphql').send({
+                query: print(GET_STANDARDIZATION),
+                variables: {
+                    studyId: createdStudy.id,
+                    type: 'fakeType'
+                }
+            });
+            expect(withVersion.status).toBe(200);
+            expect(withVersion.body.errors).toBeUndefined();
+            expect(withVersion.body.data.getStandardization).toHaveLength(1);
+            expect(withVersion.body.data.getStandardization[0].stdRules[0].entry).toBe('fakeEntry');
         });
 
         test('Get standardization (unauthorised user)', async () => {
