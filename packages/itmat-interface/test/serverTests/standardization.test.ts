@@ -675,6 +675,7 @@ describe('STUDY API', () => {
                         filters: null
                     }
                 ],
+                metadata: null,
                 uploadedAt: '1591134065000',
                 deleted: null
             });
@@ -758,6 +759,7 @@ describe('STUDY API', () => {
                     }
                 ],
                 dataVersion: std?.dataVersion,
+                metadata: null,
                 uploadedAt: '1591134065000',
                 deleted: null
             });

@@ -64,6 +64,7 @@ type Standardization {
     stdRules: [StandardizationRule]
     dataVersion: String
     uploadedAt: String
+    metadata: JSON
     deleted: String
 }
 
@@ -224,6 +225,7 @@ type OntologyTree {
     name: String!
     routes: [OntologyRoute]
     dataVersion: String!
+    metadata: JSON
     deleted: Int
 }
 
@@ -238,6 +240,7 @@ type OntologyRoute {
 input OntologyTreeInput {
     name: String!
     routes: [OntologyRouteInput]
+    metadata: JSON
 }
 
 input OntologyRouteInput {

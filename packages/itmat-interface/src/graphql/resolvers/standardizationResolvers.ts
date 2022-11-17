@@ -119,6 +119,7 @@ export const standardizationResolvers = {
                 stdRules: stdRulesWithId || [],
                 joinByKeys: standardization.joinByKeys || [],
                 dataVersion: null,
+                metadata: standardization.metadata,
                 uploadedAt: Date.now(),
                 deleted: null
             };

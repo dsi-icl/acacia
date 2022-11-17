@@ -18,6 +18,7 @@ export const GET_STANDARDIZATION = gql`
                 filters
             }
             dataVersion
+            metadata
             deleted
         }
     }
@@ -40,6 +41,7 @@ export const CREATE_STANDARDIZATION = gql`
                 parameter
                 filters
             }
+            metadata
             deleted
         }
     }

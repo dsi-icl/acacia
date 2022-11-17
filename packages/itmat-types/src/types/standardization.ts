@@ -10,6 +10,7 @@ export interface IStandardization {
     joinByKeys?: string[],
     dataVersion: string | null,
     uploadedAt: number,
+    metadata?: JSON,
     deleted: number | null,
 }
 

@@ -85,6 +85,7 @@ export const GET_ONTOLOGY_TREE = gql`
                 field
                 visitRange
             }
+            metadata
         }
     }
 `;
@@ -164,6 +165,7 @@ export const CREATE_ONTOLOGY_TREE = gql`
                 field
                 visitRange
             }
+            metadata
         }
     }
 `;

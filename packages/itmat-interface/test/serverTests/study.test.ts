@@ -3840,7 +3840,8 @@ if (global.hasMinio) {
                             field: ['$200'],
                             visitRange: []
                         }
-                    ]
+                    ],
+                    metadata: null
                 });
                 // clear ontologyTrees
                 await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
@@ -4055,7 +4056,8 @@ if (global.hasMinio) {
                             field: ['$200'],
                             visitRange: []
                         }
-                    ]
+                    ],
+                    metadata: null
                 });
                 const resWithVersion = await authorisedUser.post('/graphql').send({
                     query: print(GET_ONTOLOGY_TREE),
@@ -4085,7 +4087,8 @@ if (global.hasMinio) {
                             field: ['$200'],
                             visitRange: []
                         }
-                    ]
+                    ],
+                    metadata: null
                 });
                 // clear study
                 await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {

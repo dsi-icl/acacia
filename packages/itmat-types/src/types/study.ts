@@ -86,6 +86,7 @@ export interface IOntologyTree {
     name: string,
     dataVersion: string,
     routes?: IOntologyRoute[],
+    metadata?: JSON,
     deleted: number
 }
 
