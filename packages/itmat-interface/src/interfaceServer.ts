@@ -5,7 +5,9 @@ import { MongoClient } from 'mongodb';
 import { Router } from './server/router';
 import { Server } from './server/server';
 import { pubsub, subscriptionEvents } from './graphql/pubsub';
-
+import { mailer } from './emailer/emailer';
+import { IUser, userTypes } from '@itmat-broker/itmat-types';
+import config from './utils/configManager';
 class ITMATInterfaceServer extends Server {
 
     private router?: Router;
@@ -24,7 +26,7 @@ class ITMATInterfaceServer extends Server {
             // Operate database migration if necessary
             db.connect(this.config.database, MongoClient.connect as any)
                 .then(() => objStore.connect(this.config.objectStore))
-                .then(() => {
+                .then(async () => {
 
                     const jobChangestream = db.collections!.jobs_collection.watch([
                         { $match: { operationType: { $in: ['update', 'insert'] } } }
@@ -45,13 +47,56 @@ class ITMATInterfaceServer extends Server {
                             });
                         }
                     });
-
                     _this.router = new Router(this.config);
 
                     // Return the Express application
                     return resolve(_this.router);
 
                 }).catch((err) => reject(err));
+
+            // notice users of expiration
+            setInterval(async () => {
+                const now = Date.now().valueOf();
+                const threshold = now + 7 * 24 * 60 * 60 * 1000;
+                // update info if not set before
+                await db.collections!.users_collection.updateMany({ deleted: null, emailNotificationsStatus: null }, {
+                    $set: { emailNotificationsStatus: { expiringNotification: false } }
+                });
+                const users = await db.collections!.users_collection.find<IUser>({
+                    'expiredAt': {
+                        $lte: threshold,
+                        $gt: now
+                    },
+                    'type': { $ne: userTypes.ADMIN },
+                    'emailNotificationsActivated': true,
+                    'emailNotificationsStatus.expiringNotification': false,
+                    'deleted': null
+                }).toArray();
+                for (const user of users) {
+                    await mailer.sendMail({
+                        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                        to: user.email,
+                        subject: `[${config.appName}] Account is going to expire!`,
+                        html: `
+                    <p>
+                        Dear ${user.firstname},
+                    <p>
+                    <p>
+                        Your account will expire at ${new Date(user.expiredAt).toDateString()}.
+                        You can make a request on the login page at ${config.appName}.
+                    </p>
+
+                    <br/>
+                    <p>
+                        The ${config.appName} Team.
+                    </p>
+                `
+                    });
+                    await db.collections!.users_collection.findOneAndUpdate({ id: user.id }, {
+                        $set: { emailNotificationsStatus: { expiringNotification: true } }
+                    });
+                }
+            }, 24 * 60 * 60 * 1000); // check every 24 hours
         });
     }
 

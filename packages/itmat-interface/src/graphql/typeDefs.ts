@@ -139,6 +139,7 @@ type User {
     email: String # admin only
     description: String # admin only
     emailNotificationsActivated: Boolean!
+    emailNotificationsStatus: JSON
     createdBy: String
     createdAt: Float!
     expiredAt: Float!
@@ -467,6 +468,7 @@ input EditUserInput {
     description: String
     organisation: String
     emailNotificationsActivated: Boolean
+    emailNotificationsStatus: JSON
     password: String
     expiredAt: Float
 }

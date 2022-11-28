@@ -10,6 +10,8 @@ export const USER_FRAGMENT = gql`
         email
         organisation
         description
+        emailNotificationsActivated
+        emailNotificationsStatus
         access {
             id
             projects {

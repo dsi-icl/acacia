@@ -6,7 +6,7 @@ import { WHO_AM_I, DELETE_USER, EDIT_USER, GET_USERS, REQUEST_USERNAME_OR_RESET_
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
-import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm } from 'antd';
+import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm, Checkbox } from 'antd';
 import dayjs from 'dayjs';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
@@ -126,7 +126,6 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
     const orgList: IOrganisation[] = getorgsdata.getOrganisations;
-
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
@@ -161,17 +160,17 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     <Form.Item name='createdAt' label='Created On'>
                         <DatePicker disabled style={{ width: '100%' }} />
                     </Form.Item>
-                    {
-                        user.type === userTypes.ADMIN ? null :
-                            <Form.Item name='expiredAt' label='Expire On'>
-                                <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
-                            </Form.Item>
-                    }
+                    <Form.Item name='expiredAt' label='Expire On'>
+                        <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
+                    </Form.Item>
                     <Form.Item name='type' label='User type'>
                         <Select>
                             <Select.Option value='STANDARD'>System user</Select.Option>
                             <Select.Option value='ADMIN'>System admin</Select.Option>
                         </Select>
+                    </Form.Item>
+                    <Form.Item name='emailNotificationsActivated' label='Email Notification' valuePropName='checked'>
+                        <Checkbox disabled>Email Notification</Checkbox>
                     </Form.Item>
                     {error ? (
                         <>

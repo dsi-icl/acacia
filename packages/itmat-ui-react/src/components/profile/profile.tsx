@@ -1,12 +1,12 @@
 import { ChangeEvent, FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IUserWithoutToken, userTypes, IPubkey, IOrganisation } from '@itmat-broker/itmat-types';
+import { IUserWithoutToken, IPubkey, IOrganisation } from '@itmat-broker/itmat-types';
 import { WHO_AM_I, EDIT_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, REGISTER_PUBKEY, GET_PUBKEYS, ISSUE_ACCESS_TOKEN, GET_ORGANISATIONS, REQUEST_EXPIRY_DATE } from '@itmat-broker/itmat-models';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from '../users/projectSection';
-import { Form, Input, Select, DatePicker, Button, Alert } from 'antd';
+import { Form, Input, Select, DatePicker, Button, Alert, Checkbox } from 'antd';
 import dayjs from 'dayjs';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import { Key } from '../../utils/dmpCrypto/dmp.key';
@@ -118,11 +118,9 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
 
     function formatSubmitObj(variables) {
         const final = {
-            ...user,
-            ...variables,
-            expiredAt: variables.expiredAt.valueOf()
+            id: user.id,
+            emailNotificationsActivated: variables.emailNotificationsActivated
         };
-        delete final.access;
         return final;
     }
 
@@ -168,17 +166,17 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     <Form.Item name='createdAt' label='Created On'>
                         <DatePicker disabled style={{ width: '100%' }} />
                     </Form.Item>
-                    {
-                        user.type === userTypes.ADMIN ? null :
-                            <Form.Item name='expiredAt' label='Expire On'>
-                                <DatePicker disabled disabledDate={disabledDate} style={{ width: '100%' }} />
-                            </Form.Item>
-                    }
+                    <Form.Item name='expiredAt' label='Expire On'>
+                        <DatePicker disabled disabledDate={disabledDate} style={{ width: '100%' }} />
+                    </Form.Item>
                     <Form.Item name='type' label='User type'>
                         <Select disabled>
                             <Select.Option value='STANDARD'>System user</Select.Option>
                             <Select.Option value='ADMIN'>System admin</Select.Option>
                         </Select>
+                    </Form.Item>
+                    <Form.Item name='emailNotificationsActivated' label='Email Notification' valuePropName='checked'>
+                        <Checkbox>Email Notification</Checkbox>
                     </Form.Item>
                     {error ? (
                         <>
@@ -199,12 +197,9 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                         </>
                     ) : null}
                     <Form.Item>
-                        {user.type === userTypes.ADMIN
-                            ? <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
-                                Save
-                            </Button>
-                            : null
-                        }
+                        <Button type='primary' disabled={loading} loading={loading} htmlType='submit' >
+                            Save
+                        </Button>
                         <Button disabled={loading} onClick={() => {
                             requestResetPassword({
                                 variables: {
