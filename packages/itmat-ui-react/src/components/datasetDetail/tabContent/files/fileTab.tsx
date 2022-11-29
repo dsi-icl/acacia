@@ -44,7 +44,9 @@ export const deviceTypes = {
     SMA: 'Stress Monitor App',
     TFA: 'ThinkFast App',
     SMQ: 'Stress Monitor App Questionnaire',
-    VIR: 'Virtual device type'
+    VIR: 'Virtual device type',
+    CAN: 'Cantab App',
+    WLD: 'Wildkey App'
 };
 
 const { RangePicker } = DatePicker;
