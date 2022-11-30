@@ -244,7 +244,7 @@ export const userResolvers = {
 
             // validate the TOTP
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
-            if (!totpValidated && process.env.NODE_ENV === 'production') {
+            if (!totpValidated && process.env.NODE_ENV !== 'development') {
                 throw new UserInputError('Incorrect One-Time password.');
             }
 
