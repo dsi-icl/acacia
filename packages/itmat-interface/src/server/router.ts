@@ -5,7 +5,8 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { GraphQLError } from 'graphql';
 import { graphqlUploadExpress, GraphQLUpload } from 'graphql-upload-minimal';
 import { execute, subscribe } from 'graphql';
-import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 // import connectMongo from 'connect-mongo';
 // import cors from 'cors';
@@ -108,7 +109,7 @@ export class Router {
                         logPlugin.serverWillStartLogPlugin();
                         return {
                             async drainServer() {
-                                subscriptionServer.close();
+                                serverCleanup.dispose();
                             }
                         };
                     },
@@ -226,19 +227,18 @@ export class Router {
         );
 
         /* register the graphql subscription functionalities */
-        const subscriptionServer = SubscriptionServer.create({
-            // This is the `schema` we just created.
-            schema,
-            // These are imported from `graphql`.
-            execute,
-            subscribe
-        }, {
-            // This is the `httpServer` we created in a previous step.
+        // Creating the WebSocket subscription server
+        const wsServer = new WebSocketServer({
+            // This is the `httpServer` returned by createServer(app);
             server: this.server,
             // Pass a different path here if your ApolloServer serves at
             // a different path.
             path: '/graphql'
         });
+
+        // Passing in an instance of a GraphQLSchema and
+        // telling the WebSocketServer to start listening
+        const serverCleanup = useServer({ schema: schema, execute: execute, subscribe: subscribe }, wsServer);
 
         /* Bounce all unauthenticated non-graphql HTTP requests */
         // this.app.use((req: Request, res: Response, next: NextFunction) => {
