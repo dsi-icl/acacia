@@ -38,7 +38,7 @@
         "jwt-decode": "^3.1.2",
         "mongodb": "4.4.1",
         "nodemailer": "6.7.2",
-        "passport": "0.5.2",
+        "passport": "0.6.0",
         "passport-local": "1.0.0",
         "saslprep": "1.0.3",
         "subscriptions-transport-ws": "0.11.0",
