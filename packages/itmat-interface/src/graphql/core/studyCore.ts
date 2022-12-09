@@ -1,4 +1,4 @@
-import { ApolloError } from 'apollo-server-core';
+import { GraphQLError } from 'graphql';
 import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -19,7 +19,7 @@ export class StudyCore {
     public async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
         const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
         if (studySearchResult === null || studySearchResult === undefined) {
-            throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
         return studySearchResult;
     }
@@ -27,7 +27,7 @@ export class StudyCore {
     public async findOneProject_throwErrorIfNotExist(projectId: string): Promise<IProject> {
         const projectSearchResult = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null })!;
         if (projectSearchResult === null || projectSearchResult === undefined) {
-            throw new ApolloError('Project does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            throw new GraphQLError('Project does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
         return projectSearchResult;
     }
@@ -50,7 +50,7 @@ export class StudyCore {
         ).toArray();
 
         if (existingStudies[0] && existingStudies[0].name.includes(studyName.toLowerCase())) {
-            throw new ApolloError(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
+            throw new GraphQLError(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
         }
 
         const study: IStudy = {
@@ -74,7 +74,7 @@ export class StudyCore {
         if (res.ok === 1 && res.value) {
             return res.value;
         } else {
-            throw new ApolloError('Edit study failed');
+            throw new GraphQLError('Edit study failed');
         }
     }
 
@@ -453,7 +453,7 @@ export class StudyCore {
         ]).toArray();
 
         if (getListOfPatientsResult === null || getListOfPatientsResult === undefined) {
-            throw new ApolloError('Cannot get list of patients', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Cannot get list of patients', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
 
         if (getListOfPatientsResult[0] !== undefined) {
@@ -512,7 +512,7 @@ export class StudyCore {
         if (result.ok === 1 && result.value) {
             return result.value as IProject;
         } else {
-            throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
+            throw new GraphQLError(`Cannot update project "${projectId}"`, { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 
@@ -522,7 +522,7 @@ export class StudyCore {
         if (result.ok === 1 && result.value) {
             return result.value as IProject;
         } else {
-            throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
+            throw new GraphQLError(`Cannot update project "${projectId}"`, { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 

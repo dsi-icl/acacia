@@ -24,7 +24,7 @@ class ITMATInterfaceServer extends Server {
             // Operate database migration if necessary
             db.connect(this.config.database, MongoClient.connect as any)
                 .then(() => objStore.connect(this.config.objectStore))
-                .then(() => {
+                .then(async () => {
 
                     const jobChangestream = db.collections!.jobs_collection.watch([
                         { $match: { operationType: { $in: ['update', 'insert'] } } }
@@ -47,6 +47,7 @@ class ITMATInterfaceServer extends Server {
                     });
 
                     _this.router = new Router(this.config);
+                    await _this.router.init();
 
                     // Return the Express application
                     return resolve(_this.router);

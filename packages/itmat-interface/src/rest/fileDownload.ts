@@ -4,8 +4,9 @@ import { objStore } from '../objStore/objStore';
 import { permissionCore } from '../graphql/core/permissionCore';
 import { task_required_permissions, IUser } from '@itmat-broker/itmat-types';
 import jwt from 'jsonwebtoken';
-import { UserInputError } from 'apollo-server-express';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
+import { GraphQLError } from 'graphql';
 
 export const fileDownloadController = async (req: Request, res: Response): Promise<void> => {
     const requester = req.user as IUser;
@@ -18,9 +19,9 @@ export const fileDownloadController = async (req: Request, res: Response): Promi
         // obtain the public-key of the robot user in the JWT payload
         const pubkey = (decodedPayload as any).publicKey;
         // verify the JWT
-        jwt.verify(token, pubkey, function (err: any) {
-            if (err) {
-                throw new UserInputError('JWT verification failed. ' + err);
+        jwt.verify(token, pubkey, function (error: any) {
+            if (error) {
+                throw new GraphQLError('JWT verification failed.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT, error } });
             }
         });
         associatedUser = await userRetrieval(pubkey);

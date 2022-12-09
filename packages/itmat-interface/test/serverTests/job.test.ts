@@ -41,6 +41,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     config.database.database = dbName;
     await db.connect(config.database, MongoClient.connect as any);
     const router = new Router(config);
+    await router.init();
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString);
@@ -360,7 +361,7 @@ describe('JOB API', () => {
                     tag: undefined
                 }
             });
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
         });
 

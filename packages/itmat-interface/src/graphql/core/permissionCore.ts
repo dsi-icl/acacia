@@ -1,4 +1,4 @@
-import { ApolloError } from 'apollo-server-core';
+import { GraphQLError } from 'graphql';
 import { IRole, IUser, userTypes } from '@itmat-broker/itmat-types';
 import { BulkWriteResult } from 'mongodb';
 import { v4 as uuid } from 'uuid';
@@ -35,7 +35,7 @@ export class PermissionCore {
         ];
         const result = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
         if (result.length > 1) {
-            throw new ApolloError('Internal error occurred when checking user privileges.', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Internal error occurred when checking user privileges.', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
         if (result.length === 0) {
             return false;
@@ -56,13 +56,13 @@ export class PermissionCore {
         if (updateResult.ok === 1) {
             return;
         } else {
-            throw new ApolloError('Cannot delete role.', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Cannot delete role.', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 
     public async removeRoleFromStudyOrProject({ studyId, projectId }: { studyId: string, projectId?: string } | { studyId?: string, projectId: string }): Promise<void> {
         if (studyId === undefined && projectId === undefined) {
-            throw new ApolloError('Neither studyId nor projectId is provided');
+            throw new GraphQLError('Neither studyId nor projectId is provided');
         }
         let queryObj = {};
         if (studyId !== undefined && projectId !== undefined) {
@@ -76,7 +76,7 @@ export class PermissionCore {
         if (updateResult.acknowledged) {
             return;
         } else {
-            throw new ApolloError('Cannot delete role(s).', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Cannot delete role(s).', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 
@@ -100,9 +100,9 @@ export class PermissionCore {
         if (result.ok === 1 && resultingRole) {
             return resultingRole;
         } else {
-            throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
-            // throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole, null, 4));
-            // throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole.toArray(), null, 4));
+            throw new GraphQLError('Cannot edit role.', { extensions: { code: errorCodes.DATABASE_ERROR } });
+            // throw new GraphQLError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole, null, 4));
+            // throw new GraphQLError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole.toArray(), null, 4));
         }
     }
 
@@ -122,7 +122,7 @@ export class PermissionCore {
         if (updateResult.acknowledged) {
             return role;
         } else {
-            throw new ApolloError('Cannot create role.', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Cannot create role.', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 }
