@@ -22,7 +22,7 @@ class ITMATInterfaceServer extends Server {
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect(this.config.database, MongoClient.connect as any)
+            db.connect(this.config.database, MongoClient)
                 .then(() => objStore.connect(this.config.objectStore))
                 .then(async () => {
 
