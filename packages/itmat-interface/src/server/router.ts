@@ -8,7 +8,7 @@ import { execute, subscribe } from 'graphql';
 import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-// import connectMongo from 'connect-mongo';
+import MongoStore from 'connect-mongo';
 // import cors from 'cors';
 import express from 'express';
 import { Express } from 'express';
@@ -16,7 +16,7 @@ import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import http from 'http';
 import passport from 'passport';
-// import { db } from '../database/database';
+import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
 import { typeDefs } from '../graphql/typeDefs';
 import { fileDownloadController } from '../rest/fileDownload';
@@ -62,6 +62,10 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(
             session({
+                store: MongoStore.create({
+                    client: db.client,
+                    collectionName: config.database.collections.session_collection
+                }),
                 secret: this.config.sessionsSecret,
                 saveUninitialized: false,
                 resave: true,
