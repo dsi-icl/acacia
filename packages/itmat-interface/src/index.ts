@@ -36,6 +36,7 @@ function serverStart() {
         console.error('An error occurred while starting the ITMAT core.', error);
         if (error.stack)
             console.error(error.stack);
+        setTimeout(serverStart, 5000);
         return false;
     });
 }

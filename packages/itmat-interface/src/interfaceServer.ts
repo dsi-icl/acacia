@@ -62,7 +62,9 @@ class ITMATInterfaceServer extends Server {
      * express router MUST be released and this service endpoints are expected to fail.
      * @return {Promise} Resolve to true on success, ErrorStack otherwise
      */
-    public stop(): Promise<void> {
+    public async stop(): Promise<void> {
+        await objStore.disconnect();
+        await db.closeConnection();
         return Promise.resolve();
     }
 }

@@ -32,6 +32,7 @@ function serverStart() {
         console.error('An error occurred while starting the ITMAT job executor.', error);
         if (error.stack)
             console.error(error.stack);
+        setTimeout(serverStart, 5000);
         return false;
     });
 }
