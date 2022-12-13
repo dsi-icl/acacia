@@ -2,7 +2,7 @@ const path = require('node:path');
 
 const getWebpackConfig = (config) => {
 
-    config.entry.interface = [path.resolve(__dirname, 'src/interfaceServer.ts')];
+    config.entry.interface = [path.resolve(__dirname, 'src/interfaceRunner.ts')];
 
     config.externals = [{
         'bcrypt': 'commonjs bcrypt',

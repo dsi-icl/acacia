@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { Router } from './server/router';
-import { Server } from './server/server';
+import { Runner } from './server/server';
 import { JobPoller } from '@itmat-broker/itmat-commons';
 import { JobDispatcher } from './jobDispatch/dispatcher';
 import { MongoClient } from 'mongodb';
@@ -12,7 +12,7 @@ import { UKB_JSON_UPLOAD_Handler } from './jobHandlers/UKB_JSON_UPLOAD_Handler';
 import { UKB_FIELD_INFO_UPLOAD_Handler } from './jobHandlers/UKB_FIELD_INFO_UPLOAD_Handler';
 import { QueryHandler } from './query/queryHandler';
 
-class ITMATJobExecutorServer extends Server {
+class ITMATJobExecutorRunner extends Runner {
 
     private router?: Router;
 
@@ -71,4 +71,4 @@ class ITMATJobExecutorServer extends Server {
     }
 }
 
-export default ITMATJobExecutorServer;
+export default ITMATJobExecutorRunner;

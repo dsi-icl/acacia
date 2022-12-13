@@ -3,10 +3,10 @@ import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { MongoClient } from 'mongodb';
 import { Router } from './server/router';
-import { Server } from './server/server';
+import { Runner } from './server/server';
 import { pubsub, subscriptionEvents } from './graphql/pubsub';
 
-class ITMATInterfaceServer extends Server {
+class ITMATInterfaceRunner extends Runner {
 
     private router?: Router;
 
@@ -69,4 +69,4 @@ class ITMATInterfaceServer extends Server {
     }
 }
 
-export default ITMATInterfaceServer;
+export default ITMATInterfaceRunner;

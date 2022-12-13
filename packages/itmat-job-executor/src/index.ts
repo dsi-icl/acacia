@@ -2,20 +2,20 @@
 import { Express } from 'express';
 import { Socket } from 'net';
 import http from 'http';
-import ITMATJobExecutorServer from './jobExecutorServer';
+import ITMATJobExecutorRunner from './jobExecutorRunner';
 import config from './utils/configManager';
 
-let interfaceServer = new ITMATJobExecutorServer(config);
+let interfaceRunner = new ITMATJobExecutorRunner(config);
 let interfaceSockets: Socket[] = [];
-let interfaceSocket: http.Server;
+let interfaceServer: http.Server;
 let interfaceRouter: Express;
 
 function serverStart() {
     console.info(`Starting executor server ${process.pid} ...`);
-    interfaceServer.start().then((itmatRouter) => {
+    interfaceRunner.start().then((itmatRouter) => {
 
         interfaceRouter = itmatRouter.getApp();
-        interfaceSocket = interfaceRouter.listen(config.server.port, () => {
+        interfaceServer = interfaceRouter.listen(config.server.port, () => {
             console.info(`Listening at http://localhost:${config.server.port}/`);
         })
             .on('connection', (socket) => {
@@ -41,13 +41,13 @@ function serverSpinning() {
 
     if (interfaceRouter !== undefined) {
         console.info('Renewing executor server ...');
-        interfaceServer = new ITMATJobExecutorServer(config);
+        interfaceRunner = new ITMATJobExecutorRunner(config);
         console.info(`Destroying ${interfaceSockets.length} sockets ...`);
         interfaceSockets.forEach((socket) => {
             socket.destroy();
         });
         interfaceSockets = [];
-        interfaceSocket.close(() => {
+        interfaceServer.close(() => {
             console.info(`Shuting down executor server ${process.pid} ...`);
             interfaceRouter?.on('close', () => {
                 serverStart();
@@ -63,7 +63,7 @@ serverSpinning();
 declare const module: any;
 if (module.hot) {
     module.hot.accept('./index', serverSpinning);
-    module.hot.accept('./jobExecutorServer', serverSpinning);
+    module.hot.accept('./jobExecutorRunner', serverSpinning);
     module.hot.accept('./index.ts', serverSpinning);
-    module.hot.accept('./jobExecutorServer.ts', serverSpinning);
+    module.hot.accept('./jobExecutorRunner.ts', serverSpinning);
 }
