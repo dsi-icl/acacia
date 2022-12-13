@@ -14,11 +14,19 @@ function serverStart() {
     console.info(`Starting api server ${process.pid} ...`);
     interfaceRunner.start().then((itmatRouter) => {
 
-        interfaceRouter = itmatRouter.getApp();
-        interfaceServer = interfaceRouter.listen(config.server.port, () => {
+        interfaceServer = itmatRouter.getServer();
+        interfaceServer.timeout = 0;
+        interfaceServer.headersTimeout = 0;
+        interfaceServer.requestTimeout = 0;
+        interfaceServer.keepAliveTimeout = 1000 * 60 * 60 * 24 * 5;
+        interfaceServer.listen(config.server.port, () => {
             console.info(`Listening at http://localhost:${config.server.port}/`);
         })
             .on('connection', (socket) => {
+                socket.setKeepAlive(true);
+                socket.setNoDelay(true);
+                socket.setTimeout(0);
+                (socket as any).timeout = 0;
                 interfaceSockets.push(socket);
             })
             .on('error', (error) => {

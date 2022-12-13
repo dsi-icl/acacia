@@ -14,7 +14,7 @@ import express from 'express';
 import { Express } from 'express';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
-import http from 'http';
+import http from 'node:http';
 import passport from 'passport';
 import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
@@ -83,7 +83,25 @@ export class Router {
         passport.serializeUser(userLoginUtils.serialiseUser);
         passport.deserializeUser(userLoginUtils.deserialiseUser);
 
-        this.server = http.createServer(this.app);
+        this.server = http.createServer({
+            allowHTTP1: true,
+            keepAlive: true,
+            keepAliveInitialDelay: 0,
+            requestTimeout: 0,
+            headersTimeout: 0,
+            noDelay: true
+        } as any, this.app);
+
+        this.server.timeout = 0;
+        this.server.headersTimeout = 0;
+        this.server.requestTimeout = 0;
+        this.server.keepAliveTimeout = 1000 * 60 * 60 * 24 * 5;
+        this.server.on('connection', (socket) => {
+            socket.setKeepAlive(true);
+            socket.setNoDelay(true);
+            socket.setTimeout(0);
+            (socket as any).timeout = 0;
+        });
     }
 
     async init() {

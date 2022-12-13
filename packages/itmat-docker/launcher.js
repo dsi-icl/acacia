@@ -6,9 +6,11 @@ const ITMATJobExecutor = require('./executor').default;
 const path = require('node:path');
 const fs = require('node:fs');
 const url = require('node:url');
+const http = require('node:http');
 const config = require('./config/config.json');
 
 let root = express();
+let server;
 let interface = new ITMATInterface(config);
 let executor = new ITMATJobExecutor(config);
 
@@ -45,6 +47,27 @@ Promise.all([
             return;
         }
     });
+
+    server = http.createServer({
+        allowHTTP1: true,
+        keepAlive: true,
+        keepAliveInitialDelay: 0,
+        requestTimeout: 0,
+        headersTimeout: 0,
+        noDelay: true
+    }, root);
+
+    server.timeout = 0;
+    server.headersTimeout = 0;
+    server.requestTimeout = 0;
+    server.keepAliveTimeout = 1000 * 60 * 60 * 24 * 5;
+    server.on('connection', (socket) => {
+        socket.setKeepAlive(true);
+        socket.setNoDelay(true)
+        socket.setTimeout(0);
+        socket.timeout = 0;
+    });
+
 }, error => {
     console.error(error);
 });
