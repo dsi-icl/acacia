@@ -1,6 +1,6 @@
 import * as Minio from 'minio';
 import { Logger } from './logger';
-import type { Readable } from 'stream';
+import { Readable, PassThrough } from 'stream';
 
 export interface IObjectStoreConfig {
     host: string;
@@ -10,6 +10,15 @@ export interface IObjectStoreConfig {
     bucketRegion?: string;
     useSSL: boolean;
 }
+
+type StreamFileMap = Record<string, {
+    stream: PassThrough;
+    resultPromise: Promise<Minio.UploadedObjectInfo>;
+}>;
+
+type StreamMap = Record<string, StreamFileMap>;
+
+const streamMap: StreamMap = {};
 
 export class ObjectStore {
     private config?: IObjectStoreConfig;
@@ -43,29 +52,58 @@ export class ObjectStore {
         return await minioClient.listBuckets();
     }
 
-    public async uploadFile(fileStream: Readable, studyId: string, uri: string): Promise<string> {
-        const lowercasestudyid = studyId.toLowerCase();
-        const bucketExists = await this.client!.bucketExists(lowercasestudyid);
+    public async uploadFile(fileStream: Readable, studyId: string, uri: string, final = true): Promise<string | null> {
 
-        if (!bucketExists) {
-            await this.client!.makeBucket(lowercasestudyid, this.config?.bucketRegion ?? '');
-        }
+        return new Promise((resolve, reject) => {
 
-        /* check if object already exists because if it does, minio supplant the old file without warning*/
-        let fileExists;
-        try {
-            await this.client!.statObject(lowercasestudyid, uri);
-            fileExists = true;
-        } catch (e) {
-            fileExists = false;
-        }
+            (async () => {
+                const lowercasestudyid = studyId.toLowerCase();
+                const bucketExists = await this.client!.bucketExists(lowercasestudyid);
 
-        if (fileExists) {
-            throw new Error(`File "${uri}" of study "${studyId}" already exists.`);
-        }
+                if (!bucketExists) {
+                    await this.client!.makeBucket(lowercasestudyid, this.config?.bucketRegion ?? '');
+                }
 
-        const result = await this.client!.putObject(lowercasestudyid, uri, fileStream);
-        return result.etag;
+                /* check if object already exists because if it does, minio supplant the old file without warning*/
+                let fileExists;
+                try {
+                    await this.client!.statObject(lowercasestudyid, uri);
+                    fileExists = true;
+                } catch (e) {
+                    fileExists = false;
+                }
+
+                if (fileExists) {
+                    throw new Error(`File "${uri}" of study "${studyId}" already exists.`);
+                }
+
+                if (!streamMap[lowercasestudyid])
+                    streamMap[lowercasestudyid] = {};
+                if (!streamMap[lowercasestudyid][uri]) {
+                    const stream = new PassThrough();
+                    streamMap[lowercasestudyid][uri] = {
+                        stream,
+                        resultPromise: this.client!.putObject(lowercasestudyid, uri, stream)
+                    };
+                }
+
+                const currentStream = streamMap[lowercasestudyid][uri].stream;
+                fileStream.on('close', () => {
+                    if (!final)
+                        return resolve(null);
+                    currentStream.destroy();
+                    streamMap[lowercasestudyid][uri].resultPromise.then(p => {
+                        delete streamMap[lowercasestudyid][uri];
+                        resolve(p.etag);
+                    });
+                });
+                fileStream.on('error', (error) => {
+                    console.error('Object Store file stream failure', error);
+                    reject(error);
+                });
+                fileStream.pipe(currentStream, { end: final });
+            })();
+        });
     }
 
     public async downloadFile(studyId: string, uri: string): Promise<Readable> {
