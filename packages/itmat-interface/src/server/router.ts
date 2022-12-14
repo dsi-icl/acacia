@@ -62,13 +62,13 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(
             session({
-                store: MongoStore.create({
+                store: process.env.NODE_ENV === 'test' ? undefined : MongoStore.create({
                     client: db.client,
-                    collectionName: config.database.collections.session_collection
+                    collectionName: config.database.collections.sessions_collection
                 }),
                 secret: this.config.sessionsSecret,
                 saveUninitialized: false,
-                resave: true,
+                resave: false,
                 rolling: true,
                 cookie: {
                     maxAge: 2 * 60 * 60 * 1000 /* 2 hour */

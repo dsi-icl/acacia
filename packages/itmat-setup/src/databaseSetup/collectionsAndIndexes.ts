@@ -75,6 +75,12 @@ const collections = {
             { key: { name: 1 }, unique: true }
         ]
     },
+    sessions_collection: {
+        name: 'SESSIONS_COLLECTION',
+        indexes: [
+            { key: { id: 1 }, unique: true }
+        ]
+    },
     pubkeys_collection: {
         name: 'PUBKEY_COLLECTION',
         indexes: [
