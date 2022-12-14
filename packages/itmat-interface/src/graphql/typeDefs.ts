@@ -198,6 +198,7 @@ type StudyOrProjectUserRole {
 
 type File {
     id: String!
+    uri: String!
     fileName: String!
     studyId: String!
     projectId: String
