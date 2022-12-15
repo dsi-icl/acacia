@@ -1,7 +1,8 @@
-import { processDataRow, processHeader, CSVCurator } from '../../src/curation/CSVCurator';
 import fs from 'fs';
+import path from 'path';
+import { IJobEntryForDataCuration, enumValueType } from '@itmat-broker/itmat-types';
+import { processDataRow, processHeader, CSVCurator } from '../../src/curation/CSVCurator';
 import { stub } from './_stubHelper';
-import { IJobEntryForDataCuration, enumValueType } from 'itmat-commons';
 
 describe('Unit tests for processHeader function', () => {
     const fieldsList = [
@@ -44,7 +45,7 @@ describe('Unit tests for processHeader function', () => {
             unit: 'Kg',
             comments: '',
             dataType: enumValueType.DECIMAL
-        },
+        }
     ];
 
     it('processHeader function', () => {
@@ -66,6 +67,8 @@ describe('Unit tests for processHeader function', () => {
         expect(parsedHeader[2]).toEqual(fieldsList[3]);
         expect(parsedHeader[3]).toEqual(fieldsList[4]);
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error.length).toBe(1);
         expect(error[0]).toBe('SubjectID or VisitID not found.');
         expect(subjectIdIndex).toBe(1);
@@ -87,6 +90,8 @@ describe('Unit tests for processHeader function', () => {
             fieldName: 'Weight'
         });
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error.length).toBe(1);
         expect(error[0]).toBe('Line 1 column 7: Duplicate field.');
     });
@@ -102,6 +107,8 @@ describe('Unit tests for processHeader function', () => {
         expect(parsedHeader[4]).toEqual(fieldsList[4]);
         expect(parsedHeader[5]).toEqual({ fieldName: 'UNKNOWN', dataType: 'unk', fieldId: undefined });
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error[0]).toBe('Line 1 column 7: Unknown field.');
     });
 });
@@ -147,12 +154,12 @@ describe('Unit tests for processDataRow function', () => {
             unit: 'Kg',
             comments: '',
             dataType: enumValueType.DECIMAL
-        },
+        }
     ];
 
     const job = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
         id: 'mockJobId',
-        studyId: 'mockStudyId',
+        studyId: 'mockStudyId'
     });
     const { subjectIdIndex, visitIdIndex, parsedHeader } = processHeader(['ID', 'SubjectID', 'VisitID', 'Sex', 'Description', 'Weight'], fieldsList);
     const templateParams = {
@@ -175,13 +182,15 @@ describe('Unit tests for processDataRow function', () => {
             31: '1',
             32: 'description',
             33: 60.2,
-            deleted: null,
+            deleted: null
         });
     });
 
     it('processDataRow function weeds out datatype mismatch', () => {
         const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['0', 'I7N3G6G', '1', 'a', 'description', 'b'] }));
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error).toHaveLength(2);
         expect(error[0]).toBe('Line 22 column 4: Cannot parse \'a\' as categorical, value is illegal.');
         expect(error[1]).toBe('Line 22 column 6: Cannot parse \'b\' as decimal.');
@@ -212,6 +221,8 @@ describe('Unit tests for processDataRow function', () => {
     it('processDataRow function deals with missing subject id correctly', () => {
         const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['0', '', '1', '1', 'description', 60.2] }));
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error).toHaveLength(1);
         expect(error[0]).toBe('No subject id provided.');
         expect(dataEntry).toEqual({
@@ -225,9 +236,11 @@ describe('Unit tests for processDataRow function', () => {
         });
     });
 
-    it('processDataRow function deals with missing subject id correctly', () => {
+    it('processDataRow function deals with missing visit id correctly', () => {
         const { error, dataEntry } = processDataRow(stub<any>({ ...templateParams, row: ['0', 'I7N3G6G', '', '1', 'description', 60.2] }));
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error).toHaveLength(1);
         expect(error[0]).toBe('No visit id provided.');
         expect(dataEntry).toEqual({
@@ -283,16 +296,16 @@ describe('CSVCuratorClass', () => {
             unit: 'Kg',
             comments: '',
             dataType: enumValueType.DECIMAL
-        },
+        }
     ];
 
     // should stop uploading when error occurs
-    function BulkInsert() {
+    function BulkInsert(this: any) {
         this._insertArray = [];
         this._executeCalled = []; // array of length of _insertArray when execute() is called
-        this.insert = (object) => { this._insertArray.push(object); };
+        this.insert = (object: any) => { this._insertArray.push(object); };
         this._foundobj = null;
-        this.find = (object) => {
+        this.find = (object: { [x: string]: any; }) => {
             let tag;
             for (const each of this._insertArray) {
                 tag = true;
@@ -316,7 +329,7 @@ describe('CSVCuratorClass', () => {
                 resolve();
             }, 10);
         });
-        this.updateOne = (object) => {
+        this.updateOne = (object: { [x: string]: { [x: string]: any; }; }) => {
             if (this._foundobj === null) {
                 this._insertArray.push(object['$set']);
             }
@@ -331,16 +344,16 @@ describe('CSVCuratorClass', () => {
         };
     }
 
-    function MongoStub() {
-        this._bulkinsert = new BulkInsert();
+    function MongoStub(this: any) {
+        this._bulkinsert = new (BulkInsert as any)();
         this.initializeUnorderedBulkOp = () => this._bulkinsert;
     }
 
     it('test mongostub update new', async () => {
-        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
+        const bulkinsert = (new (MongoStub as any)()).initializeUnorderedBulkOp();
         bulkinsert.insert({ a: 1 });
         bulkinsert.insert({ b: 2 });
-        bulkinsert.execute().then(() => {
+        return bulkinsert.execute().then(() => {
             bulkinsert.find({ c: 3 }).upsert().updateOne({ $set: { c: 4 } });
             return bulkinsert.execute();
         }).then(() => {
@@ -350,10 +363,10 @@ describe('CSVCuratorClass', () => {
     }, 10000);
 
     it('test mongostub update existing', async () => {
-        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
+        const bulkinsert = (new (MongoStub as any)()).initializeUnorderedBulkOp();
         bulkinsert.insert({ a: 1 });
         bulkinsert.insert({ b: 2 });
-        bulkinsert.execute().then(() => {
+        return bulkinsert.execute().then(() => {
             bulkinsert.find({ b: 2 }).upsert().updateOne({ $set: { d: 4 } });
             return bulkinsert.execute();
         }).then(() => {
@@ -363,8 +376,8 @@ describe('CSVCuratorClass', () => {
     }, 10000);
 
     it('csvcurator uploads csv file okay', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/CSVCurator.tsv');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/CSVCurator.tsv'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -394,8 +407,8 @@ describe('CSVCuratorClass', () => {
     });
 
     it('csvcurator catches non-existing headers', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error1.tsv');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/CSVCurator_error1.tsv'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -416,8 +429,8 @@ describe('CSVCuratorClass', () => {
     });
 
     it('csvcurator catches duplicate header', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error2.tsv');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/CSVCurator_error2.tsv'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -437,8 +450,8 @@ describe('CSVCuratorClass', () => {
     });
 
     it('csvcurator catches uneven field before watermark', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error3.tsv');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/CSVCurator_error3.tsv'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -472,8 +485,8 @@ describe('CSVCuratorClass', () => {
     });
 
     it('csvcurator catches uneven field after watermark', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error4.tsv');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/CSVCurator_error4.tsv'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -507,8 +520,8 @@ describe('CSVCuratorClass', () => {
     });
 
     it('csvcurator catches mixed errors', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/CSVCurator_error5.tsv');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/CSVCurator_error5.tsv'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'

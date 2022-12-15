@@ -1,25 +1,18 @@
-import * as React from 'react';
-import GitInfo from 'react-git-info/macro';
+import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
-import { GQLRequests } from 'itmat-commons';
-import { NavLink, RouteComponentProps, useHistory } from 'react-router-dom';
+import { VALIDATE_RESET_PASSWORD, RESET_PASSWORD } from '@itmat-broker/itmat-models';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import css from '../login/login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
 import LoadSpinner from '../reusable/loadSpinner';
 
-const gitInfo = GitInfo();
+export const ResetPasswordPage: FunctionComponent = () => {
 
-type ResetPasswordPageProps = RouteComponentProps<{
-    encryptedEmail: string;
-    token: string;
-}>
-
-export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> = ({ match: { params: { encryptedEmail, token } } }) => {
-
-    const history = useHistory();
-    const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = React.useState(false);
-    const { loading, error } = useQuery(GQLRequests.VALIDATE_RESET_PASSWORD, {
+    const { encryptedEmail, token } = useParams();
+    const navigate = useNavigate();
+    const [passwordSuccessfullyChanged, setPasswordSuccessfullyChanged] = useState(false);
+    const { loading, error } = useQuery(VALIDATE_RESET_PASSWORD, {
         variables: {
             encryptedEmail: encryptedEmail,
             token: token
@@ -31,12 +24,12 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
             <div className={css.login_box}>
                 <h1>The link is invalid. Please make a new request.</h1>
                 <Button onClick={() => {
-                    history.push('/');
+                    navigate('/');
                 }}>
                     Go back to login
                 </Button>
                 <Button onClick={() => {
-                    history.push('/reset');
+                    navigate('/reset');
                 }}>
                     Make a new request
                 </Button>
@@ -56,7 +49,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                     </div>
                     <br />
                     <Button onClick={() => {
-                        history.push('/');
+                        navigate('/');
                     }}>
                         Go back to login
                     </Button>
@@ -67,7 +60,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
 
     return (
         <Mutation<any, any>
-            mutation={GQLRequests.RESET_PASSWORD}
+            mutation={RESET_PASSWORD}
             onCompleted={() => {
                 setPasswordSuccessfullyChanged(true);
             }}
@@ -113,7 +106,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                                     ) : null}
                                     <Form.Item>
                                         <Button onClick={() => {
-                                            history.push('/');
+                                            navigate('/');
                                         }}>
                                             Cancel
                                         </Button>
@@ -128,7 +121,7 @@ export const ResetPasswordPage: React.FunctionComponent<ResetPasswordPageProps> 
                             <br />
                             <br />
                             Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
-                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {gitInfo.commit.shortHash} ({gitInfo.branch})</i>
+                            <i style={{ color: '#ccc' }}>v{process.env.NX_REACT_APP_VERSION} - {process.env.NX_REACT_APP_COMMIT} ({process.env.NX_REACT_APP_BRANCH})</i>
                         </div>
                     </div>
                 );

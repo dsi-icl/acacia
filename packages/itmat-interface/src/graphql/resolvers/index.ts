@@ -7,10 +7,11 @@ import { studyResolvers } from './studyResolvers';
 import { userResolvers } from './userResolvers';
 import { organisationResolvers } from './organisationResolvers';
 import { pubkeyResolvers } from './pubkeyResolvers';
-import { ApolloError } from 'apollo-server-core';
+import { GraphQLError } from 'graphql';
 import { errorCodes } from '../errors';
-import { IUser } from 'itmat-commons';
+import { IUser } from '@itmat-broker/itmat-types';
 import { logResolvers } from './logResolvers';
+import { standardizationResolvers } from './standardizationResolvers';
 
 const modules = [
     studyResolvers,
@@ -21,7 +22,8 @@ const modules = [
     fileResolvers,
     organisationResolvers,
     pubkeyResolvers,
-    logResolvers
+    logResolvers,
+    standardizationResolvers
 ];
 
 // const loggingDecorator = (reducerFunction: Function) => {
@@ -37,7 +39,7 @@ const bounceNotLoggedInDecorator = (reducerFunction: any) => {
 
         if (!requester) {
             if (!(uncheckedFunctionWhitelist as any).includes(reducerFunction.name)) {
-                throw new ApolloError(errorCodes.NOT_LOGGED_IN);
+                throw new GraphQLError(errorCodes.NOT_LOGGED_IN);
             }
         }
         return await reducerFunction(parent, args, context, info);

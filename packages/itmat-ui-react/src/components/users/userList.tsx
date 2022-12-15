@@ -1,14 +1,15 @@
-import { Models, GET_USERS } from 'itmat-commons';
-import React, { useState } from 'react';
+import { FunctionComponent, useState } from 'react';
+import { GET_USERS } from '@itmat-broker/itmat-models';
 import { Query } from '@apollo/client/react/components';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import LoadSpinner from '../reusable/loadSpinner';
 import { Table, Input, Button, Tooltip } from 'antd';
 import { EditOutlined, WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import { IUserWithoutToken } from '@itmat-broker/itmat-types';
 
-export const UserListSection: React.FunctionComponent = () => {
+export const UserListSection: FunctionComponent = () => {
     return (
         <Query<any, any>
             query={GET_USERS}
@@ -19,12 +20,12 @@ export const UserListSection: React.FunctionComponent = () => {
                 if (error) {
                     return (
                         <p>
-                            Error :(
+                            Error
                             {error.message}
                         </p>
                     );
                 }
-                const userList: Models.UserModels.IUserWithoutToken[] = data.getUsers;
+                const userList: IUserWithoutToken[] = data.getUsers;
                 return (
                     <UserList users={userList} />
                 );
@@ -33,9 +34,9 @@ export const UserListSection: React.FunctionComponent = () => {
     );
 };
 
-const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutToken[] }> = ({ users }) => {
+const UserList: FunctionComponent<{ users: IUserWithoutToken[] }> = ({ users }) => {
 
-    const history = useHistory();
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState<string | undefined>();
 
     const columns = [
@@ -86,8 +87,8 @@ const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutT
         },
         {
             render: (__unused__value, record) => (
-                moment().add(4, 'weeks').valueOf() - moment(record.expiredAt).valueOf() > 0
-                    ? moment().valueOf() - moment(record.expiredAt).valueOf() > 0
+                dayjs().add(4, 'week').valueOf() - dayjs(record.expiredAt).valueOf() > 0
+                    ? dayjs().valueOf() - dayjs(record.expiredAt).valueOf() > 0
                         ? <Tooltip title='Account has expired.'><PauseCircleOutlined style={{
                             color: '#cccccc',
                             fontSize: '1.5rem'
@@ -103,7 +104,7 @@ const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutT
         },
         {
             render: (__unused__value, record) => (
-                <Button icon={<EditOutlined />} onClick={() => { history.push(`/users/${record.id}`); }}>
+                <Button icon={<EditOutlined />} onClick={() => { navigate(`/users/${record.id}`); }}>
                     Edit
                 </Button>
             ),
@@ -116,9 +117,9 @@ const UserList: React.FunctionComponent<{ users: Models.UserModels.IUserWithoutT
         <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value.toUpperCase())} />
         <br />
         <br />
-        <Table rowKey={(rec) => rec.id} onRow={(record: Models.UserModels.IUserWithoutToken) => ({
+        <Table rowKey={(rec) => rec.id} onRow={(record: IUserWithoutToken) => ({
             onClick: () => {
-                history.push(`/users/${record.id}`);
+                navigate(`/users/${record.id}`);
             },
             style: {
                 cursor: 'pointer'

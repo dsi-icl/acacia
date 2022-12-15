@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
+import jwt, { Algorithm } from 'jsonwebtoken';
 
 export function rsasigner(privateKey: string, message: string, scheme = 'RSA-SHA256', passphrase = 'idea-fast'): string {
     try {
@@ -142,7 +142,7 @@ export function eckeygen(curve = 'secp256k1') {
     return keyPair;
 }
 
-export function tokengen(payload, secret, passphrase = 'idea-fast', algorithm = 'RS256', life = 12000) {
+export function tokengen(payload: string | Buffer | object, secret: string, passphrase = 'idea-fast', algorithm: Algorithm = 'RS256', life = 12000) {
     // Asymmetric JWT is used by default by setting algorithm = RS256.
     return jwt.sign(payload,
         { key: secret, passphrase: passphrase },
@@ -150,6 +150,6 @@ export function tokengen(payload, secret, passphrase = 'idea-fast', algorithm = 
     );
 }
 
-export function tokenverifier(token, secret) {
+export function tokenverifier(token: string, secret: string) {
     return jwt.verify(token, secret);
 }

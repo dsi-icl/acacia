@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { Route, Switch, Redirect } from 'react-router-dom';
+import { FunctionComponent } from 'react';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import { DatasetDetailPage } from '../datasetDetail';
 import { DatasetListPage } from '../datasetList';
 import { ProjectDetailPage } from '../projectDetail';
@@ -9,19 +9,21 @@ import { LogPage } from '../log';
 import { ProfilePage } from '../profile';
 import css from './scaffold.module.css';
 
-export const MainPanel: React.FunctionComponent = () => {
+export const MainPanel: FunctionComponent = () => {
     return (
         <div className={css.main_panel}>
-            <Switch>
-                <Route path='/projects/:projectId' render={({ match }) => <ProjectDetailPage projectId={match.params.projectId} />} />
-                <Route path='/projects' render={() => <ProjectListPage />} />
-                <Route path='/datasets/:studyId' render={({ match }) => <DatasetDetailPage studyId={match.params.studyId} />} />
-                <Route path='/datasets' render={() => <DatasetListPage />} />
-                <Route path='/users' render={() => <UserPage />} />
-                <Route path='/logs' render={() => <LogPage />} />
-                <Route path='/profile' render={() => <ProfilePage />} />
-                <Route render={() => <Redirect to='/datasets' />} />
-            </Switch>
+            <Routes>
+                <Route path='/projects/:projectId/*' element={<ProjectDetailPage />} />
+                <Route path='/projects' element={<ProjectListPage />} />
+                <Route path='/datasets/:studyId/*' element={<DatasetDetailPage />} />
+                <Route path='/datasets' element={<DatasetListPage />} />
+                <Route path='/users' element={<UserPage />} />
+                <Route path='/users/:userId' element={<UserPage />} />
+                <Route path='/logs' element={<LogPage />} />
+                <Route path='/profile' element={<ProfilePage />} />
+                <Route path='/pun/sys/dashboard' />
+                <Route path='*' element={<Navigate to='/datasets' />} />
+            </Routes>
         </div>
     );
 };

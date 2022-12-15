@@ -1,5 +1,5 @@
 {
-    "appName": "IDEA-FAST DMP",
+    "appName": "ITMAT Interface",
     "database": {
         "mongo_url": "mongodb://localhost:27017",
         "database": "itmat",
@@ -15,11 +15,13 @@
             "roles_collection": "ROLE_COLLECTION",
             "field_dictionary_collection": "FIELD_COLLECTION",
             "files_collection": "FILES_COLLECTION",
-            "pubkeys_collection": "PUBKEY_COLLECTION"
+            "sessions_collection": "SESSIONS_COLLECTION",
+            "pubkeys_collection": "PUBKEY_COLLECTION",
+            "standardizations_collection": "STANDARDIZATION_COLLECTION"
         }
     },
     "server": {
-        "port": 3003
+        "port": 3333
     },
     "bcrypt": {
         "saltround": 2
@@ -37,5 +39,6 @@
     "nodemailer": {
         "auth": {}
     },
-    "adminEmail": "admin_wp5@ideafast.eu"
+    "adminEmail": "admin@example.com",
+    "aeEndpoint": "http://localhost:9090"
 }

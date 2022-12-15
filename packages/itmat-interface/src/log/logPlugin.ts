@@ -1,6 +1,6 @@
 import { db } from '../database/database';
 import { v4 as uuid } from 'uuid';
-import { LOG_TYPE, LOG_ACTION, LOG_STATUS, USER_AGENT, userTypes } from 'itmat-commons';
+import { LOG_TYPE, LOG_ACTION, LOG_STATUS, USER_AGENT, userTypes } from '@itmat-broker/itmat-types';
 
 // only requests in white list will be recorded
 export const logActionRecordWhiteList = Object.keys(LOG_ACTION);
@@ -69,8 +69,11 @@ export const apiParameters = {
     CREATE_NEW_FIELD: ['studyId'],
     EDIT_FIELD: ['studyId', 'fieldIdInput'],
     DELETE_FIELD: ['studyId', 'fieldId'],
-    ADD_ONTOLOGY_FIELD: ['studyId'],
-    DELETE_ONTOLOGY_FIELD: ['studyId', 'fieldId'],
+    CREATE_ONTOLOGY_TREE: ['studyId'],
+    DELETE_ONTOLOGY_TREE: ['studyId', 'treeId'],
+    GET_STANDARDIZATION: ['studyId', 'projetId', 'type'],
+    CREATE_STANDARDIZATION: ['studyId'],
+    DELETE_STANDARDIZATION: ['studyId', 'stdId'],
     CREATE_QUERY_CURATION_JOB: ['queryId', 'studyId', 'projectId']
 };
 
@@ -95,16 +98,16 @@ export class LogPlugin {
         if (!logActionRecordWhiteList.includes(requestContext.operationName)) {
             return null;
         }
-        if (LOG_ACTION[requestContext.operationName] === undefined || LOG_ACTION[requestContext.operationName] === null) {
+        if ((LOG_ACTION as any)[requestContext.operationName] === undefined || (LOG_ACTION as any)[requestContext.operationName] === null) {
             return null;
         }
         await db.collections!.log_collection.insertOne({
             id: uuid(),
-            requesterName: requestContext.context.req.user ? requestContext.context.req.user.username : 'NA',
-            requesterType: requestContext.context.req.user ? requestContext.context.req.user.type : userTypes.SYSTEM,
-            userAgent: (requestContext.context.req.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
+            requesterName: requestContext.contextValue?.req?.user?.username ?? 'NA',
+            requesterType: requestContext.contextValue?.req?.user?.type ?? userTypes.SYSTEM,
+            userAgent: (requestContext.contextValue.req.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
             logType: LOG_TYPE.REQUEST_LOG,
-            actionType: LOG_ACTION[requestContext.operationName],
+            actionType: (LOG_ACTION as any)[requestContext.operationName],
             actionData: JSON.stringify(ignoreFieldsHelper(requestContext.request.variables, requestContext.operationName)),
             time: Date.now(),
             status: requestContext.errors === undefined ? LOG_STATUS.SUCCESS : LOG_STATUS.FAIL,
@@ -116,9 +119,9 @@ export class LogPlugin {
 
 function ignoreFieldsHelper(dataObj: any, operationName: string) {
     if (Object.keys(ignoredFields).includes(operationName)) {
-        for (let i = 0; i < ignoredFields[operationName].length; i++) {
+        for (let i = 0; i < ignoredFields[operationName as keyof typeof ignoredFields].length; i++) {
             // Not using hard copy as the request is useless in this step (response are to send)
-            delete dataObj[ignoredFields[operationName][i]];
+            delete dataObj[ignoredFields[operationName as keyof typeof ignoredFields][i]];
         }
     }
     return dataObj;

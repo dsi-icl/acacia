@@ -1,10 +1,11 @@
-import * as mongodb from 'mongodb';
+import type * as mongodb from 'mongodb';
+import { IJobEntry } from '@itmat-broker/itmat-types';
 import { Logger } from './logger';
 
 export interface IJobPollerConfig {
     identity: string; // a string identifying the server; this is just to keep track in mongo
     jobType?: string; // if undefined, matches all jobs
-    jobCollection: mongodb.Collection; // collection to poll
+    jobCollection: mongodb.Collection<IJobEntry<any>>; // collection to poll
     pollingInterval: number; // in ms
     action: (document: any) => void; // gets called every time there is new document
 }
@@ -15,7 +16,7 @@ export class JobPoller {
 
     private readonly identity: string;
     private readonly jobType?: string;
-    private readonly jobCollection: mongodb.Collection;
+    private readonly jobCollection: mongodb.Collection<IJobEntry<any>>;
     private readonly pollingInterval: number;
     private readonly action: (document: any) => void;
 
@@ -43,8 +44,8 @@ export class JobPoller {
     }
 
     private async checkForJobs() {
-        Logger.log(`${this.identity} polling for new jobs of type ${this.jobType || 'ALL'}.`);
-        let updateResult: mongodb.ModifyResult<any>;
+        // Logger.log(`${this.identity} polling for new jobs of type ${this.jobType || 'ALL'}.`);
+        let updateResult: mongodb.ModifyResult<IJobEntry<any>>;
         try {
             updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {
                 $set: {
@@ -55,18 +56,18 @@ export class JobPoller {
             });
         } catch (err) {
             //TODO Handle error recording
-            console.error(err);
+            Logger.error(`${this.identity} Errored picking up a job: ${err}`);
             return;
         }
 
         if (updateResult !== undefined && updateResult.ok === 1 && updateResult.value !== null) {
-            Logger.log(`Claimed job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}`);
+            Logger.log(`${this.identity} Claimed job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}`);
             clearInterval(this.intervalObj!);
             await this.action(updateResult.value);
-            Logger.log(`Finished processing job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}.`);
+            Logger.log(`${this.identity} Finished processing job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}.`);
             this.setInterval();
         } else if (updateResult.ok !== 1) {
-            Logger.error(updateResult);
+            Logger.error(`${this.identity} Errored during database update: ${updateResult}`);
         }
     }
 }

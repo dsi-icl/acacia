@@ -1,0 +1,28 @@
+{
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-docker",
+    "sourceRoot": "packages/itmat-docker/src",
+    "projectType": "application",
+    "targets": {
+        "build": {
+            "dependsOn": [
+                {
+                    "target": "build",
+                    "params": "forward",
+                    "projects": "dependencies"
+                }
+            ],
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "docker build -f Dockerfile ../../",
+                "cwd": "packages/itmat-docker"
+            }
+        }
+    },
+    "tags": [],
+    "implicitDependencies": [
+        "itmat-interface",
+        "itmat-job-executor",
+        "itmat-ui-react"
+    ]
+}

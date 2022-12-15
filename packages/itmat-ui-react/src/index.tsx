@@ -1,22 +1,24 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import App from './App';
-import './css/antd.css';
-import './css/global.css';
 import registerServiceWorker, { unregister as unregisterServiceWorker } from './registerServiceWorker';
 
 const mountApp = () => {
-    ReactDOM.render(
-        <React.StrictMode>
+    const container = document.getElementById('root');
+    if (!container)
+        return;
+    const root = createRoot(container);
+    root.render(
+        <StrictMode>
             <App />
-        </React.StrictMode>,
-        document.getElementById('root') as HTMLElement
+        </StrictMode>
     );
 };
 
 mountApp();
 registerServiceWorker();
 
+declare const module: any;
 if (module.hot) {
     module.hot.accept('./index', mountApp);
     module.hot.accept('./App', mountApp);

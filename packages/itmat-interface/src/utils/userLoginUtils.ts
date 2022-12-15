@@ -1,4 +1,4 @@
-import { IUser, IUserWithoutToken } from 'itmat-commons';
+import { IUser, IUserWithoutToken } from '@itmat-broker/itmat-types';
 import { db } from '../database/database';
 
 export class UserLoginUtils {

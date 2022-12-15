@@ -1,9 +1,9 @@
-import { GQLRequests } from 'itmat-commons';
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import css from './tabContent.module.css';
 import { useSubscription } from '@apollo/client/react/hooks';
-import { GET_STUDY, IJobEntry } from 'itmat-commons';
+import type { IJobEntry } from '@itmat-broker/itmat-types';
+import { GET_STUDY, SUBSCRIBE_TO_JOB_STATUS } from '@itmat-broker/itmat-models';
 import { Table, Button } from 'antd';
 
 const STATUSES: { [status: string]: any } = {
@@ -31,9 +31,9 @@ const STATUSES: { [status: string]: any } = {
 //     FIELD_INFO_UPLOAD: <span>Field annotation upload</span>
 // };
 
-export const JobSection: React.FunctionComponent<{ studyId: string; jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
+export const JobSection: FunctionComponent<{ studyId: string; jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
     useSubscription(
-        GQLRequests.SUBSCRIBE_TO_JOB_STATUS,
+        SUBSCRIBE_TO_JOB_STATUS,
         {
             variables: { studyId }, onSubscriptionData: ({ client: store, subscriptionData }) => {
                 if (subscriptionData.data.subscribeToJobStatusChange !== null) {
@@ -48,8 +48,8 @@ export const JobSection: React.FunctionComponent<{ studyId: string; jobs: Array<
                         }
                         return el;
                     });
-                    const tmp = {...olddata.getStudy, jobs: newjobs};
-                    store.writeQuery({ query: GET_STUDY, variables: { studyId }, data: {getStudy: tmp} });
+                    const tmp = { ...olddata.getStudy, jobs: newjobs };
+                    store.writeQuery({ query: GET_STUDY, variables: { studyId }, data: { getStudy: tmp } });
                 }
             }
         }
@@ -91,14 +91,14 @@ export const JobSection: React.FunctionComponent<{ studyId: string; jobs: Array<
             title: 'Cancel',
             dataIndex: 'cancel',
             key: 'cancel',
-            render: (__unused__value, __unused__record) => {
+            render: () => {
                 return (<Button type='primary' htmlType='submit'
-                    // onClick={() => {}}
+                // onClick={() => {}}
                 >
-                  Cancel
+                    Cancel
                 </Button>);
             }
-        },
+        }
     ];
 
     return (<div>

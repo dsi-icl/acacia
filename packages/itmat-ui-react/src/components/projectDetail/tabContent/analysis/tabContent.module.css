@@ -1,0 +1,22 @@
+.tab_page_wrapper {
+    padding: 2rem;
+    height: 100%;
+    overflow: auto;
+}
+
+.scaffold_wrapper {
+    display: grid;
+}
+
+.selected_color {
+    background-color: cyan;
+}
+
+.white {
+    background-color: white;
+}
+
+.button {
+    width: 100%;
+    float: right;
+}

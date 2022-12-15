@@ -1,0 +1,57 @@
+{
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-setup",
+    "sourceRoot": "packages/itmat-setup/src",
+    "projectType": "library",
+    "targets": {
+        "build": {
+            "executor": "@nrwl/js:tsc",
+            "outputs": [
+                "{options.outputPath}"
+            ],
+            "options": {
+                "outputPath": "dist/packages/itmat-setup",
+                "tsConfig": "packages/itmat-setup/tsconfig.lib.json",
+                "packageJson": "packages/itmat-setup/package.json",
+                "main": "packages/itmat-setup/src/index.ts",
+                "assets": [
+                    "packages/itmat-setup/*.md"
+                ]
+            }
+        },
+        "lint": {
+            "executor": "@nrwl/linter:eslint",
+            "outputs": [
+                "{options.outputFile}"
+            ],
+            "options": {
+                "lintFilePatterns": [
+                    "packages/itmat-setup/**/*.ts"
+                ]
+            }
+        },
+        "test": {
+            "executor": "@nrwl/jest:jest",
+            "outputs": [
+                "{workspaceRoot}/coverage/packages/itmat-setup"
+            ],
+            "options": {
+                "jestConfig": "packages/itmat-setup/jest.config.ts",
+                "passWithNoTests": true
+            }
+        },
+        "setup": {
+            "dependsOn": [
+                {
+                    "target": "build",
+                    "projects": "self"
+                }
+            ],
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "node dist/packages/itmat-setup/runSetup.js"
+            }
+        }
+    },
+    "tags": []
+}

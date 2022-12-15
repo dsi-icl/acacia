@@ -1,7 +1,7 @@
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import JSONStream from 'JSONStream';
-import { IFieldDescriptionObject, IDataEntry, IJobEntry } from 'itmat-commons';
+import { IFieldDescriptionObject, IDataEntry, IJobEntry } from '@itmat-broker/itmat-types';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -22,7 +22,7 @@ export class JSONCurator {
     private _visitIdIndex: number;
 
     constructor(
-        private readonly dataCollection: Collection,
+        private readonly dataCollection: Collection<IDataEntry>,
         private readonly incomingWebStream: Readable,
         private readonly job: IJobEntry<never>,
         private readonly fieldsList: any[]
@@ -93,7 +93,7 @@ export class JSONCurator {
                         await bulkInsert.execute((err, res) => {
                             if (err) {
                                 //TODO Handle error recording
-                                console.error(err, res.getWriteErrors());
+                                console.error(err, res?.getWriteErrors());
                                 return;
                             }
                         });
@@ -105,7 +105,7 @@ export class JSONCurator {
 
             uploadWriteStream.on('finish', async () => {
                 if (!this._errored) {
-                    await bulkInsert.execute((err: Error) => {
+                    await bulkInsert.execute((err) => {
                         if (err) {
                             //TOTO Handle error recording
                             console.error(err);
@@ -225,7 +225,7 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                 switch (dataType) {
                     case 'cat': {// categorical
                         const code = parseInt(each, 10).toString();
-                        if (!possibleValues.map(el => el.code).includes(code)) {
+                        if (!possibleValues.map((el: any) => el.code).includes(code)) {
                             error.push(`Object ${objectNum} column ${colIndex + 1}: Cannot parse '${each}' as categorical, value is illegal.`);
                             colIndex++;
                             continue;
@@ -289,7 +289,7 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                     }
                 }
             }
-        } catch (e) {
+        } catch (e: any) {
             error.push(e.toString());
             continue;
         }

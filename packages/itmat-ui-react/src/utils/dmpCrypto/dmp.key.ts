@@ -131,7 +131,7 @@ export class Key {
         const signature = await crypto.subtle.sign(
             {
                 name: 'RSA-PSS',
-                saltLength: 32,
+                saltLength: 32
             },
             privateKey,
             finalEncoded
@@ -155,7 +155,7 @@ export class Key {
         return crypto.subtle.verify(
             {
                 name: 'RSA-PSS',
-                saltLength: 32,
+                saltLength: 32
             },
             publicKey_formatted, //from generateKey or importKey above
             signature_formatted, //ArrayBuffer of the signature
@@ -170,7 +170,7 @@ export class Key {
             convertedPem,
             {
                 name: 'RSA-PSS',
-                hash: { name: 'SHA-256' },
+                hash: { name: 'SHA-256' }
             },
             true,
             ['verify']
@@ -186,7 +186,7 @@ export class Key {
             pemArrayBuffer,
             {
                 name: 'RSA-PSS',
-                hash: { name: 'SHA-256' },
+                hash: { name: 'SHA-256' }
             },
             true,
             ['sign']

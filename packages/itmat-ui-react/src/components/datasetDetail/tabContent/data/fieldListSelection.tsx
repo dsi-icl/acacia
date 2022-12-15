@@ -1,7 +1,8 @@
-import React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
-import { GET_STUDY_FIELDS, GET_STUDY, IStudyDataVersion } from 'itmat-commons';
+import { GET_STUDY_FIELDS, GET_STUDY } from '@itmat-broker/itmat-models';
+import { IStudyDataVersion } from '@itmat-broker/itmat-types';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 // number of patients
@@ -10,7 +11,7 @@ import LoadSpinner from '../../../reusable/loadSpinner';
 // data curation pipeline
 // upload new sets of data
 
-export const FieldListSelectionSection: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion }) => {
+export const FieldListSelectionSection: FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion }) => {
     const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
     if (getStudyLoading || getStudyFieldsLoading) {
@@ -18,7 +19,7 @@ export const FieldListSelectionSection: React.FunctionComponent<{ studyId: strin
     }
     if (getStudyError || getStudyFieldsError) {
         return <p>
-            A error occured, please contact your administrator
+            An error occured, please contact your administrator
         </p>;
     }
     // leave as placeholder;
@@ -37,11 +38,11 @@ export const FieldListSelectionSection: React.FunctionComponent<{ studyId: strin
     </>;
 };
 
-const FieldListSelectionState: React.FunctionComponent<{ studyId: string; fieldTreeIds: string[], studyData: any }> = ({ studyId, fieldTreeIds, studyData }) => {
-    const [selectedTree, setSelectedTree] = React.useState(fieldTreeIds[0]);
+const FieldListSelectionState: FunctionComponent<{ studyId: string; fieldTreeIds: string[], studyData: any }> = ({ studyId, fieldTreeIds, studyData }) => {
+    const [selectedTree, setSelectedTree] = useState(fieldTreeIds[0]);
 
     return <>
-        <label>Select field tree: </label><select onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
+        <label>Select field tree: </label><select title='Field Tree' onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
         <Query<any, any> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
             {({ data, loading, error }) => {
                 if (loading) { return <LoadSpinner />; }

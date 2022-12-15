@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { FunctionComponent, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react/hooks';
 import { Table, Button, notification, Tooltip } from 'antd';
-import { IFile, DELETE_FILE, WHO_AM_I, userTypes, GET_ORGANISATIONS, GET_USERS, studyType } from 'itmat-commons';
+import { DELETE_FILE, WHO_AM_I, GET_ORGANISATIONS, GET_USERS } from '@itmat-broker/itmat-models';
+import { IFile, userTypes, studyType } from '@itmat-broker/itmat-types';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined, NumberOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { deviceTypes } from '../../datasetDetail/tabContent/files/fileTab';
 import Highlighter from 'react-highlight-words';
 import LoadSpinner from '../loadSpinner';
@@ -19,7 +20,7 @@ export function formatBytes(size: number, decimal = 2): string {
     return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + ' ' + units[order];
 }
 
-export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[], searchTerm: string | undefined }> = ({ type, files, searchTerm }) => {
+export const FileList: FunctionComponent<{ type: studyType, files: IFile[], searchTerm: string | undefined }> = ({ type, files, searchTerm }) => {
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
     const { data: dataWhoAmI, loading: loadingWhoAmI } = useQuery(WHO_AM_I);
     const [deleteFile] = useMutation(DELETE_FILE, {
@@ -29,7 +30,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
                 message: 'Deletion error!',
                 description: error.message ?? 'Unknown Error Occurred!',
                 placement: 'topRight',
-                duration: 0,
+                duration: 0
             });
         }
     });
@@ -53,7 +54,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
         return <LoadSpinner />;
 
     if (getOrgsError || getUsersError)
-        return <>A error occured, please contact your administrator: {(getOrgsError as any).message} {(getUsersError as any).message}</>;
+        return <>An error occured, please contact your administrator: {(getOrgsError as any).message} {(getUsersError as any).message}</>;
 
     const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
 
@@ -131,14 +132,14 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
             key: 'period',
             render: (__unused__value, record) => {
                 const { startDate, endDate } = JSON.parse(record.description);
-                return <>{moment(startDate).format('YYYY-MM-DD')}&nbsp;&nbsp;<SwapRightOutlined />&nbsp;&nbsp;{moment(endDate).format('YYYY-MM-DD')}</>;
+                return <>{dayjs(startDate).format('YYYY-MM-DD')}&nbsp;&nbsp;<SwapRightOutlined />&nbsp;&nbsp;{dayjs(endDate).format('YYYY-MM-DD')}</>;
             }
         },
         {
             title: 'Uploaded',
             dataIndex: 'uploadTime',
             key: 'uploadTime',
-            render: (value) => moment(parseInt(value)).format('YYYY-MM-DD'),
+            render: (value) => dayjs(parseInt(value)).format('YYYY-MM-DD'),
             sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
         },
         {
@@ -168,8 +169,8 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
             render: (__unused__value, record) => {
                 const ext = record.fileName.substr(record.fileName.lastIndexOf('.')).toLowerCase();
                 const file = JSON.parse(record.description);
-                const startDate = moment(file.startDate).format('YYYYMMDD');
-                const endDate = moment(file.endDate).format('YYYYMMDD');
+                const startDate = dayjs(file.startDate).format('YYYYMMDD');
+                const endDate = dayjs(file.endDate).format('YYYYMMDD');
                 return <Button icon={<CloudDownloadOutlined />} download={`${file.participantId}-${file.deviceId}-${startDate}-${endDate}.${ext}`} href={`/file/${record.id}`}>
                     Download
                 </Button>;
@@ -225,7 +226,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
             title: 'Updated',
             dataIndex: 'uploadTime',
             key: 'uploadTime',
-            render: (value) => moment(parseInt(value)).format('YYYY-MM-DD'),
+            render: (value) => dayjs(parseInt(value)).format('YYYY-MM-DD'),
             sorter: (a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime)
         },
         {
@@ -255,10 +256,10 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
             render: (__unused__value, record) => {
                 const ext = record.fileName.substr(record.fileName.lastIndexOf('.')).toLowerCase();
                 const file = JSON.parse(record.description);
-                const startDate = moment(file.startDate).format('YYYYMMDD');
-                const endDate = moment(file.endDate).format('YYYYMMDD');
+                const startDate = dayjs(file.startDate).format('YYYYMMDD');
+                const endDate = dayjs(file.endDate).format('YYYYMMDD');
                 return <Button icon={<CloudDownloadOutlined />} download={`${file.participantId}-${file.deviceId}-${startDate}-${endDate}.${ext}`} href={`/file/${record.id}`}>
-                        Download
+                    Download
                 </Button>;
             },
             width: '10rem',
@@ -303,7 +304,7 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
                 columns={fileNameColumns}
                 dataSource={files}
                 size='small' />
-            {variablesListFiles.length ===0 ? null :
+            {variablesListFiles.length === 0 ? null :
                 <Table
                     rowKey={(rec) => rec.id}
                     columns={fileNameColumns}
@@ -329,7 +330,6 @@ export const FileList: React.FunctionComponent<{ type: studyType, files: IFile[]
                 dataSource={notVariablesListFiles}
                 size='small' />
 
-        </>
-    ;
+        </>;
 
 };

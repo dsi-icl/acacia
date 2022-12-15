@@ -1,7 +1,8 @@
-import { processJSONHeader, processEachSubject, JSONCurator } from '../../src/curation/JSONCurator';
 import fs from 'fs';
+import path from 'path';
+import { IJobEntryForDataCuration, enumValueType } from '@itmat-broker/itmat-types';
+import { processJSONHeader, processEachSubject, JSONCurator } from '../../src/curation/JSONCurator';
 import { stub } from './_stubHelper';
-import { IJobEntryForDataCuration, enumValueType } from 'itmat-commons';
 
 describe('Unit tests for processJSONHeader function', () => {
     const fieldsList = [
@@ -44,7 +45,7 @@ describe('Unit tests for processJSONHeader function', () => {
             unit: 'Kg',
             comments: '',
             dataType: enumValueType.DECIMAL
-        },
+        }
     ];
 
     it('processJSONHeader function', () => {
@@ -66,6 +67,8 @@ describe('Unit tests for processJSONHeader function', () => {
         expect(parsedHeader[2]).toEqual(fieldsList[3]);
         expect(parsedHeader[3]).toEqual(fieldsList[4]);
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error.length).toBe(1);
         expect(error[0]).toBe('SubjectID or VisitID not found.');
         expect(subjectIdIndex).toBe(1);
@@ -87,6 +90,8 @@ describe('Unit tests for processJSONHeader function', () => {
             fieldName: 'Weight'
         });
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error.length).toBe(1);
         expect(error[0]).toBe('Object 1 column 7: Duplicate field.');
     });
@@ -102,6 +107,8 @@ describe('Unit tests for processJSONHeader function', () => {
         expect(parsedHeader[4]).toEqual(fieldsList[4]);
         expect(parsedHeader[5]).toEqual({ fieldName: 'UNKNOWN', dataType: 'unk', fieldId: undefined });
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error[0]).toBe('Object 1 column 7: Unknown field.');
     });
 });
@@ -147,7 +154,7 @@ describe('Unit tests for processEachSubject function', () => {
             unit: 'Kg',
             comments: '',
             dataType: enumValueType.DECIMAL
-        },
+        }
     ];
 
     const job = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
@@ -181,6 +188,8 @@ describe('Unit tests for processEachSubject function', () => {
     it('processEachSubject function weeds out datatype mismatch', () => {
         const { error, dataEntry } = processEachSubject(stub<any>({ ...templateParams, subject: ['0', 'I7N3G6G', '1', 'a', 'description', 'b'] }));
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error).toHaveLength(2);
         expect(error[0]).toBe('Object 22 column 4: Cannot parse \'a\' as categorical, value is illegal.');
         expect(error[1]).toBe('Object 22 column 6: Cannot parse \'b\' as decimal.');
@@ -209,6 +218,8 @@ describe('Unit tests for processEachSubject function', () => {
     it('processEachSubject function deals with missing subject id correctly', () => {
         const { error, dataEntry } = processEachSubject(stub<any>({ ...templateParams, subject: ['0', '', '1', 0, 'description', 60.2] }));
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error).toHaveLength(1);
         expect(error[0]).toBe('No subject id provided.');
         expect(dataEntry).toEqual({
@@ -221,9 +232,11 @@ describe('Unit tests for processEachSubject function', () => {
         });
     });
 
-    it('processEachSubject function deals with missing subject id correctly', () => {
+    it('processEachSubject function deals with missing visit id correctly', () => {
         const { error, dataEntry } = processEachSubject(stub<any>({ ...templateParams, subject: ['0', 'I7N3G6G', '', 0, 'description', 60.2] }));
         expect(error).toBeDefined();
+        if (!error)
+            return;
         expect(error).toHaveLength(1);
         expect(error[0]).toBe('No visit id provided.');
         expect(dataEntry).toEqual({
@@ -278,15 +291,15 @@ describe('JSONCuratorClass', () => {
             unit: 'Kg',
             comments: '',
             dataType: enumValueType.DECIMAL
-        },
+        }
     ];
     // should stop uploading when error occurs
-    function BulkInsert() {
+    function BulkInsert(this: any) {
         this._insertArray = [];
         this._executeCalled = []; // array of length of _insertArray when execute() is called
-        this.insert = (object) => { this._insertArray.push(object); };
+        this.insert = (object: any) => { this._insertArray.push(object); };
         this._foundobj = null;
-        this.find = (object) => {
+        this.find = (object: { [x: string]: any; }) => {
             let tag;
             for (const each of this._insertArray) {
                 tag = true;
@@ -310,7 +323,7 @@ describe('JSONCuratorClass', () => {
                 resolve();
             }, 10);
         });
-        this.updateOne = (object) => {
+        this.updateOne = (object: { [x: string]: { [x: string]: any; }; }) => {
             if (this._foundobj === null) {
                 this._insertArray.push(object['$set']);
             }
@@ -325,16 +338,16 @@ describe('JSONCuratorClass', () => {
         };
     }
 
-    function MongoStub() {
-        this._bulkinsert = new BulkInsert();
+    function MongoStub(this: any) {
+        this._bulkinsert = new (BulkInsert as any)();
         this.initializeUnorderedBulkOp = () => this._bulkinsert;
     }
 
     it('test mongostub update new', async () => {
-        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
+        const bulkinsert = (new (MongoStub as any)()).initializeUnorderedBulkOp();
         bulkinsert.insert({ a: 1 });
         bulkinsert.insert({ b: 2 });
-        bulkinsert.execute().then(() => {
+        return bulkinsert.execute().then(() => {
             bulkinsert.find({ c: 3 }).upsert().updateOne({ $set: { c: 4 } });
             return bulkinsert.execute();
         }).then(() => {
@@ -344,10 +357,10 @@ describe('JSONCuratorClass', () => {
     }, 10000);
 
     it('test mongostub update existing', async () => {
-        const bulkinsert = (new MongoStub()).initializeUnorderedBulkOp();
+        const bulkinsert = (new (MongoStub as any)()).initializeUnorderedBulkOp();
         bulkinsert.insert({ a: 1 });
         bulkinsert.insert({ b: 2 });
-        bulkinsert.execute().then(() => {
+        return bulkinsert.execute().then(() => {
             bulkinsert.find({ b: 2 }).upsert().updateOne({ $set: { d: 4 } });
             return bulkinsert.execute();
         }).then(() => {
@@ -357,8 +370,8 @@ describe('JSONCuratorClass', () => {
     }, 10000);
 
     it('jsoncurator uploads json file okay', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/JSONCurator.json');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/JSONCurator.json'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -386,8 +399,8 @@ describe('JSONCuratorClass', () => {
     });
 
     it('jsoncurator catches non-esisting headers', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error1.json');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/JSONCurator_error1.json'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -408,8 +421,8 @@ describe('JSONCuratorClass', () => {
     });
 
     it('jsoncurator catches duplicate header', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error2.json');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/JSONCurator_error2.json'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -428,8 +441,8 @@ describe('JSONCuratorClass', () => {
     });
 
     it('jsoncurator catches uneven field before watermark', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error3.json');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/JSONCurator_error3.json'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -461,8 +474,8 @@ describe('JSONCuratorClass', () => {
     });
 
     it('jsoncurator catches uneven field after watermark', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error4.json');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/JSONCurator_error4.json'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'
@@ -494,8 +507,8 @@ describe('JSONCuratorClass', () => {
     });
 
     it('jsoncurator catches mixed errors', async () => {
-        const readStream = fs.createReadStream('./test/testFiles/JSONCurator_error5.json');
-        const mongoStub = new MongoStub();
+        const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/JSONCurator_error5.json'));
+        const mongoStub = new (MongoStub as any)();
         const jobEntry = stub<IJobEntryForDataCuration>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId'

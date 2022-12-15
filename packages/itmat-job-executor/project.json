@@ -1,0 +1,70 @@
+{
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-job-executor",
+    "sourceRoot": "packages/itmat-job-executor/src",
+    "projectType": "application",
+    "targets": {
+        "build": {
+            "executor": "@nrwl/webpack:webpack",
+            "outputs": [
+                "{options.outputPath}"
+            ],
+            "options": {
+                "target": "node",
+                "compiler": "tsc",
+                "outputPath": "dist/packages/itmat-job-executor",
+                "main": "packages/itmat-job-executor/src/index.ts",
+                "tsConfig": "packages/itmat-job-executor/tsconfig.app.json",
+                "assets": [],
+                "webpackConfig": "packages/itmat-job-executor/webpack.config.js"
+            },
+            "configurations": {
+                "production": {
+                    "optimization": true,
+                    "extractLicenses": true,
+                    "inspect": false,
+                    "fileReplacements": [
+                        {
+                            "replace": "packages/itmat-job-executor/src/environments/environment.ts",
+                            "with": "packages/itmat-job-executor/src/environments/environment.prod.ts"
+                        }
+                    ]
+                }
+            }
+        },
+        "serve": {
+            "executor": "@nrwl/js:node",
+            "options": {
+                "buildTarget": "itmat-job-executor:build",
+                "port": 9228
+            },
+            "configurations": {
+                "production": {
+                    "buildTarget": "itmat-job-executor:build:production"
+                }
+            }
+        },
+        "lint": {
+            "executor": "@nrwl/linter:eslint",
+            "outputs": [
+                "{options.outputFile}"
+            ],
+            "options": {
+                "lintFilePatterns": [
+                    "packages/itmat-job-executor/**/*.ts"
+                ]
+            }
+        },
+        "test": {
+            "executor": "@nrwl/jest:jest",
+            "outputs": [
+                "{workspaceRoot}/coverage/packages/itmat-job-executor"
+            ],
+            "options": {
+                "jestConfig": "packages/itmat-job-executor/jest.config.ts",
+                "passWithNoTests": true
+            }
+        }
+    },
+    "tags": []
+}

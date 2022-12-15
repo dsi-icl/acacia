@@ -1,18 +1,8 @@
-import * as React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import {
-    Models,
-    permissions,
-    permissionLabels,
-    ADD_NEW_ROLE,
-    EDIT_ROLE,
-    REMOVE_ROLE,
-    GET_USERS,
-    GET_PROJECT,
-    GET_STUDY,
-    GET_ORGANISATIONS
-} from 'itmat-commons';
+import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE, GET_USERS, GET_PROJECT, GET_STUDY, GET_ORGANISATIONS } from '@itmat-broker/itmat-models';
+import { IRoleQL, IUser, permissions, permissionLabels } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button, Form, Input, Alert, Popconfirm } from 'antd';
@@ -21,10 +11,10 @@ import { LoadingOutlined, TagOutlined, PlusOutlined, DeleteOutlined } from '@ant
 type RoleControlSectionProps = {
     studyId: string;
     projectId?: string;
-    roles: Models.Study.IRole[];
+    roles: IRoleQL[];
 }
 
-export const RoleControlSection: React.FunctionComponent<RoleControlSectionProps> = ({
+export const RoleControlSection: FunctionComponent<RoleControlSectionProps> = ({
     roles,
     studyId,
     projectId
@@ -50,11 +40,11 @@ export const RoleControlSection: React.FunctionComponent<RoleControlSectionProps
 export default RoleControlSection;
 
 type RoleDescriptorProps = {
-    role: Models.Study.IRole;
+    role: IRoleQL;
     availablePermissions: string[];
 }
 
-export const RoleDescriptor: React.FunctionComponent<RoleDescriptorProps> = ({
+export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
     role,
     availablePermissions
 }) => {
@@ -105,12 +95,12 @@ type AddRoleProps = {
     projectId?: string;
 }
 
-export const AddRole: React.FunctionComponent<AddRoleProps> = ({
+export const AddRole: FunctionComponent<AddRoleProps> = ({
     studyId,
     projectId
 }) => {
 
-    const [isExpanded, setIsExpanded] = React.useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [addNewRole, {
         data: createRoleData,
         loading: createRoleLoading,
@@ -185,7 +175,7 @@ type PermissionsControlPanelProps = {
     originallySelectedPermissions: string[];
 }
 
-const PermissionsControlPanel: React.FunctionComponent<PermissionsControlPanelProps> = ({
+const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> = ({
     roleId,
     availablePermissions,
     originallySelectedPermissions
@@ -211,16 +201,16 @@ const PermissionsControlPanel: React.FunctionComponent<PermissionsControlPanelPr
                                     fontSize: '12px',
                                     cursor: 'pointer',
                                     marginRight: 3,
-                                    marginBottom: 3,
+                                    marginBottom: 3
                                 }}
                                 onClick={() => editRole({
                                     variables: {
                                         roleId,
                                         permissionChanges: {
                                             add: isSelected ? [] : [permission],
-                                            remove: isSelected ? [permission] : [],
-                                        },
-                                    },
+                                            remove: isSelected ? [permission] : []
+                                        }
+                                    }
                                 })}
                             >
                                 {permissionLabels[permission]}
@@ -237,11 +227,11 @@ type UsersControlPanelProps = {
     roleId: string;
     studyId: string;
     projectId?: string;
-    availableUserList: Models.UserModels.IUser[];
-    originallySelectedUsers: Models.UserModels.IUser[];
+    availableUserList: IUser[];
+    originallySelectedUsers: IUser[];
 }
 
-const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
+const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
     roleId,
     availableUserList,
     originallySelectedUsers
@@ -317,7 +307,7 @@ const UsersControlPanel: React.FunctionComponent<UsersControlPanelProps> = ({
 
     if (getOrgsError)
         return <div className={`${css.tab_page_wrapper} ${css.both_panel} ${css.upload_overlay}`}>
-            A error occured, please contact your administrator: {getOrgsError.message}
+            An error occured, please contact your administrator: {getOrgsError.message}
         </div>;
 
     const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({

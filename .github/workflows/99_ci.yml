@@ -1,51 +1,69 @@
 name: Test and Build CI
 
 on: [push]
-    
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest, windows-latest, ubuntu-latest]
+        os: [ubuntu-latest]
         node: [16.x]
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - name: Derive appropriate SHAs for base and head for `nx affected` commands
-      uses: nrwl/nx-set-shas@v2
-    - name: Using Node.js ${{ matrix.node }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node }}
-        cache: yarn
-    - name: Disable TCP/UDP Offloading
-      shell: bash
-      run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          sudo ethtool -K eth0 tx off rx off
-          exit 0
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          sudo sysctl -w net.link.generic.system.hwcksum_tx=0
-          sudo sysctl -w net.link.generic.system.hwcksum_rx=0
-          exit 0
-        else
-          echo "$RUNNER_OS not supported"
-          exit 0
-        fi
-    - name: Installing dependencies
-      run: yarn install
-    - name: Checking for lint
-      run: yarn run lint
-    - name: Building packages
-      run: yarn run build
-    - name: Running unit tests
-      run: yarn run test
-      env:
-        CI: true
-        SKIP_EMAIL_TEST: true
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Derive appropriate SHAs for base and head for `nx affected` commands
+        uses: nrwl/nx-set-shas@v3
+        with:
+          main-branch-name: master
+          error-on-no-successful-workflow: true
+
+      - run: |
+          echo "Nx base: ${{ env.NX_BASE }}"
+          echo "Git head: ${{ env.NX_HEAD }}"
+
+      - name: Using Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+
+      - name: Disable TCP/UDP Offloading
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo ethtool -K eth0 tx off rx off
+            exit 0
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            sudo sysctl -w net.link.generic.system.hwcksum_tx=0
+            sudo sysctl -w net.link.generic.system.hwcksum_rx=0
+            exit 0
+          else
+            echo "$RUNNER_OS not supported"
+            exit 0
+          fi
+
+      - name: Installing dependencies
+        run: |
+          yarn install --network-timeout 1000000 --forzen-lockfile
+
+      - name: Checking for lint
+        run: |
+          yarn run nx affected --target=lint --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }}
+
+      - name: Building packages
+        run: |
+          yarn run nx affected --target=build --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }} --parallel=1
+
+      - name: Running unit tests
+        run: |
+          yarn run nx affected --target=test --base=${{ env.NX_BASE }} --head=${{ env.NX_HEAD }} --parallel=1
+        env:
+          CI: true
+
   # email_test:
   #   runs-on: itmat
   #   strategy:
@@ -68,5 +86,5 @@ jobs:
   #     env:
   #       CI: true
   #       TEST_SMTP_CRED: ${{ secrets.TEST_SMTP_CRED }}
-  #       TEST_SMTP_USERNAME: ${{ secrets.TEST_SMTP_USERNAME }} 
+  #       TEST_SMTP_USERNAME: ${{ secrets.TEST_SMTP_USERNAME }}
   #       TEST_RECEIVER_EMAIL_ADDR: ${{ secrets.TEST_RECEIVER_EMAIL_ADDR }}

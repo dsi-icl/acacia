@@ -1,4 +1,4 @@
-import { LOG_ACTION, LOG_STATUS, userTypes } from 'itmat-commons';
+import { LOG_ACTION, LOG_STATUS, userTypes } from '@itmat-broker/itmat-types';
 import { FetchResult } from '@apollo/client';
 
 export function logFun(mutationFunc: (__unused__data: { variables: any }) => Promise<FetchResult<any>>, whoamidata: any, type: LOG_ACTION, actionData: any, status: LOG_STATUS) {

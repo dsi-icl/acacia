@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 export function Icons(props: { type: string }): JSX.Element {
     switch (props.type) {
         case 'settings':

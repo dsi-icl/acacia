@@ -2,7 +2,7 @@ import * as csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import { v4 as uuid } from 'uuid';
-import { IJobEntryForFieldCuration, IFieldEntry } from 'itmat-commons';
+import { IJobEntryForFieldCuration, IFieldEntry, enumValueType } from '@itmat-broker/itmat-types';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -41,7 +41,7 @@ export class FieldCurator {
             const csvparseStream = csvparse.parse(this.parseOptions);
             const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
 
-            csvparseStream.on('skip', (error) => {
+            csvparseStream.on('skip', (error: any) => {
                 lineNum++;
                 this._errored = true;
                 this._errors.push(error.toString());
@@ -86,7 +86,7 @@ export class FieldCurator {
                         this._numOfFields++;
                         if (this._numOfFields > 999) {
                             this._numOfFields = 0;
-                            await bulkInsert.execute((err: Error) => {
+                            await bulkInsert.execute((err) => {
                                 if (err) {
                                     //TODO Handle error recording
                                     console.error(err);
@@ -108,7 +108,7 @@ export class FieldCurator {
                 }
 
                 if (!this._errored) {
-                    await bulkInsert.execute((err: Error) => {
+                    await bulkInsert.execute((err) => {
                         if (err) {
                             //TODO Handle error recording
                             console.error(err);
@@ -128,10 +128,10 @@ export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number,
     /* pure function */
     const error: string[] = [];
     const dataEntry_nouse: any = {};
-    const THESE_COL_CANT_BE_EMPTY = {
+    const THESE_COL_CANT_BE_EMPTY: Record<number, string> = {
         0: 'FieldID',
         6: 'Field Name',
-        17: 'Data Type',
+        17: 'Data Type'
     };
     if (row.length !== CORRECT_NUMBER_OF_COLUMN) {
         error.push(`Line ${lineNum}: Uneven field Number; expected ${CORRECT_NUMBER_OF_COLUMN} fields but got ${row.length}.`);
@@ -155,16 +155,16 @@ export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number,
     }
 
     /* check the value type */
-    const dataTypeNames = {
-        int: 'int',
-        decimal: 'dec',
-        nvarchar: 'str',
-        varchar: 'str',
-        datetime: 'date',
-        bit: 'bool',
-        json: 'json',
-        file: 'file',
-        categorical: 'cat'
+    const dataTypeNames: Record<string, enumValueType> = {
+        int: enumValueType.INTEGER,
+        decimal: enumValueType.DECIMAL,
+        nvarchar: enumValueType.STRING,
+        varchar: enumValueType.STRING,
+        datetime: enumValueType.DATETIME,
+        bit: enumValueType.BOOLEAN,
+        json: enumValueType.JSON,
+        file: enumValueType.FILE,
+        categorical: enumValueType.CATEGORICAL
     };
 
     // datatypes: if fieldid exist in codes, then convert datatype to categorical

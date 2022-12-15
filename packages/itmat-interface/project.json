@@ -1,0 +1,70 @@
+{
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-interface",
+    "sourceRoot": "packages/itmat-interface/src",
+    "projectType": "application",
+    "targets": {
+        "build": {
+            "executor": "@nrwl/webpack:webpack",
+            "outputs": [
+                "{options.outputPath}"
+            ],
+            "options": {
+                "target": "node",
+                "compiler": "tsc",
+                "outputPath": "dist/packages/itmat-interface",
+                "main": "packages/itmat-interface/src/index.ts",
+                "tsConfig": "packages/itmat-interface/tsconfig.app.json",
+                "assets": [],
+                "webpackConfig": "packages/itmat-interface/webpack.config.js"
+            },
+            "configurations": {
+                "production": {
+                    "optimization": true,
+                    "extractLicenses": true,
+                    "inspect": false,
+                    "fileReplacements": [
+                        {
+                            "replace": "packages/itmat-interface/src/environments/environment.ts",
+                            "with": "packages/itmat-interface/src/environments/environment.prod.ts"
+                        }
+                    ]
+                }
+            }
+        },
+        "serve": {
+            "executor": "@nrwl/js:node",
+            "options": {
+                "buildTarget": "itmat-interface:build",
+                "port": 9229
+            },
+            "configurations": {
+                "production": {
+                    "buildTarget": "itmat-interface:build:production"
+                }
+            }
+        },
+        "lint": {
+            "executor": "@nrwl/linter:eslint",
+            "outputs": [
+                "{options.outputFile}"
+            ],
+            "options": {
+                "lintFilePatterns": [
+                    "packages/itmat-interface/**/*.ts"
+                ]
+            }
+        },
+        "test": {
+            "executor": "@nrwl/jest:jest",
+            "outputs": [
+                "{workspaceRoot}/coverage/packages/itmat-interface"
+            ],
+            "options": {
+                "jestConfig": "packages/itmat-interface/jest.config.ts",
+                "passWithNoTests": true
+            }
+        }
+    },
+    "tags": []
+}

@@ -1,15 +1,7 @@
-import { ApolloError, UserInputError } from 'apollo-server-express';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
+import { GraphQLError } from 'graphql';
 import { mailer } from '../../emailer/emailer';
-import {
-    //Models,
-    //Logger,
-    IUser,
-    //IUserWithoutToken,
-    IPubkey,
-    AccessToken,
-    KeyPairwSignature,
-    Signature
-} from 'itmat-commons';
+import { IUser, IPubkey, AccessToken, KeyPairwSignature, Signature } from '@itmat-broker/itmat-types';
 //import { v4 as uuid } from 'uuid';
 import mongodb from 'mongodb';
 import { db } from '../../database/database';
@@ -18,7 +10,6 @@ import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
 //import { makeGenericReponse, IGenericResponse } from '../responses';
 import * as pubkeycrypto from '../../utils/pubkeycrypto';
-//import { Key} from '../../../../itmat-ui-react/src/utils/dmpCrypto/dmp.key';
 export const pubkeyResolvers = {
     Query: {
         getPubkeys: async (__unused__parent: Record<string, unknown>, args: any): Promise<IPubkey[]> => {
@@ -40,7 +31,7 @@ export const pubkeyResolvers = {
     },
 
     Mutation: {
-        keyPairGenwSignature: async (__unused__parent: Record<string, unknown>): Promise<KeyPairwSignature> => {
+        keyPairGenwSignature: async (): Promise<KeyPairwSignature> => {
             // Generate RSA key-pair with Signature for robot user
             const keyPair = pubkeycrypto.rsakeygen();
             //default message = hash of the public key (SHA256)
@@ -59,7 +50,7 @@ export const pubkeyResolvers = {
                     const reGenPubkey = pubkeycrypto.reGenPkfromSk(privateKey);
                     messageToBeSigned = pubkeycrypto.hashdigest(reGenPubkey);
                 } catch (error) {
-                    throw new UserInputError('Error: private-key incorrect!', error as any);
+                    throw new GraphQLError('Error: private-key incorrect!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT, error } });
                 }
 
             } else {
@@ -75,12 +66,12 @@ export const pubkeyResolvers = {
 
             /* Validate the signature with the public key */
             if (!await pubkeycrypto.rsaverifier(pubkey, signature)) {
-                throw new UserInputError('Signature vs Public key mismatched.');
+                throw new GraphQLError('Signature vs Public key mismatched.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             const pubkeyrec = await db.collections!.pubkeys_collection.findOne({ pubkey, deleted: null });
             if (pubkeyrec === null || pubkeyrec === undefined) {
-                throw new UserInputError('This public-key has not been registered yet!');
+                throw new GraphQLError('This public-key has not been registered yet!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             // payload of the JWT for storing user information
@@ -97,7 +88,7 @@ export const pubkeyResolvers = {
             };
             const updateResult = await db.collections!.pubkeys_collection.findOneAndUpdate({ pubkey, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
             if (updateResult.ok !== 1) {
-                throw new ApolloError('Server error; cannot fulfil the JWT request.');
+                throw new GraphQLError('Server error; cannot fulfil the JWT request.');
             }
             // return the acccess token
             const accessToken = {
@@ -112,23 +103,23 @@ export const pubkeyResolvers = {
             pubkey = pubkey.replace(/\\n/g, '\n');
             const alreadyExist = await db.collections!.pubkeys_collection.findOne({ pubkey, deleted: null });
             if (alreadyExist !== null && alreadyExist !== undefined) {
-                throw new UserInputError('This public-key has already been registered.');
+                throw new GraphQLError('This public-key has already been registered.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             const requester: IUser = context.req.user;
             /* Check whether requester is the same as the associated user*/
             if (associatedUserId && (requester.id !== associatedUserId)) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* Validate the signature with the public key */
             try {
                 const signature_verifier = await pubkeycrypto.rsaverifier(pubkey, signature);
                 if (!signature_verifier) {
-                    throw new UserInputError('Signature vs Public-key mismatched.');
+                    throw new GraphQLError('Signature vs Public-key mismatched.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
                 }
             } catch (error) {
-                throw new UserInputError('Error: Signature or Public-key is incorrect.');
+                throw new GraphQLError('Error: Signature or Public-key is incorrect.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             /* Generate a public key-pair for generating and authenticating JWT access token later */
@@ -170,7 +161,7 @@ export const pubkeyResolvers = {
 
                         return updateResult.value;
                     } else {
-                        throw new ApolloError('Server error; no entry or more than one entry has been updated.');
+                        throw new GraphQLError('Server error; no entry or more than one entry has been updated.');
                     }
                 }
             }

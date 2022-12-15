@@ -1,4 +1,4 @@
-import { IServerBaseConfig, ServerBase } from 'itmat-commons';
+import { IServerBaseConfig, ServerBase } from '@itmat-broker/itmat-commons';
 import { IConfiguration } from '../utils/configManager';
 
 
@@ -6,7 +6,7 @@ export interface IServerConfig extends IServerBaseConfig {
     pollingInterval: number;
 }
 
-export class Server extends ServerBase<IServerConfig> {
+export class Runner extends ServerBase<IServerConfig> {
     constructor(protected config: IConfiguration) {
         super(config);
     }

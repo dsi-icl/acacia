@@ -1,4 +1,4 @@
-import { IFieldEntry, enumValueType } from 'itmat-commons';
+import { IFieldEntry, enumValueType } from '@itmat-broker/itmat-types';
 import { db } from '../../database/database';
 import { v4 as uuid } from 'uuid';
 export class FieldCore {
@@ -41,7 +41,10 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
             error.push(`${key} should not be empty.`);
         }
     }
-
+    // only english letters, numbers and _ are allowed in fieldIds
+    if (!/^[a-zA-Z0-9_]*$/.test(fieldEntry.fieldId || '')) {
+        error.push('FieldId should contain letters, numbers and _ only.');
+    }
     // data types
     if (!Object.values(enumValueType).includes(fieldEntry.dataType)) {
         error.push(`Data type shouldn't be ${fieldEntry.dataType}: use 'int' for integer, 'dec' for decimal, 'str' for string, 'bool' for boolean, 'date' for datetime, 'file' for FILE, 'json' for json.`);
@@ -64,7 +67,6 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
     if (fieldEntry.fieldName.toString().toUpperCase() === 'SUBJECTID' || fieldEntry.fieldName.toString().toUpperCase() === 'VISITID') {
         error.push(`${fieldEntry.fieldId}-${fieldEntry.fieldName}: visitId and subjectId are reserved fields.`);
     }
-
     const newField: any = {
         fieldId: fieldEntry.fieldId,
         fieldName: fieldEntry.fieldName,
@@ -72,7 +74,7 @@ export function validateAndGenerateFieldEntry(fieldEntry: any) {
         dataType: fieldEntry.dataType,
         possibleValues: fieldEntry.dataType === enumValueType.CATEGORICAL ? fieldEntry.possibleValues : null,
         unit: fieldEntry.unit,
-        comments: fieldEntry.comments,
+        comments: fieldEntry.comments
     };
 
     return { fieldEntry: newField, error: error };

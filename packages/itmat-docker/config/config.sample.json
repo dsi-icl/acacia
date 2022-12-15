@@ -14,7 +14,10 @@
             "data_collection": "DATA_COLLECTION",
             "roles_collection": "ROLE_COLLECTION",
             "field_dictionary_collection": "FIELD_COLLECTION",
-            "files_collection": "FILES_COLLECTION"
+            "files_collection": "FILES_COLLECTION",
+            "sessions_collection": "SESSIONS_COLLECTION",
+            "pubkeys_collection": "PUBKEY_COLLECTION",
+            "standardizations_collection": "STANDARDIZATION_COLLECTION"
         }
     },
     "server": {
@@ -33,5 +36,6 @@
     },
     "sessionsSecret": "Change_Me",
     "aesSecret": "change_this",
-    "nodemailer": {}
+    "nodemailer": {},
+    "aeEndpoint": "http://localhost:9090"
 }

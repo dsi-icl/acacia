@@ -1,0 +1,95 @@
+{
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-ui-react",
+    "sourceRoot": "packages/itmat-ui-react/src",
+    "projectType": "application",
+    "targets": {
+        "build": {
+            "executor": "@nrwl/webpack:webpack",
+            "outputs": [
+                "{options.outputPath}"
+            ],
+            "defaultConfiguration": "production",
+            "options": {
+                "compiler": "swc",
+                "outputPath": "dist/packages/itmat-ui-react",
+                "index": "packages/itmat-ui-react/src/index.html",
+                "baseHref": "/",
+                "main": "packages/itmat-ui-react/src/index.tsx",
+                "polyfills": "packages/itmat-ui-react/src/polyfills.ts",
+                "tsConfig": "packages/itmat-ui-react/tsconfig.app.json",
+                "assets": [
+                    "packages/itmat-ui-react/src/favicon.ico",
+                    "packages/itmat-ui-react/src/assets"
+                ],
+                "styles": [
+                    "packages/itmat-ui-react/src/styles.css"
+                ],
+                "scripts": [],
+                "webpackConfig": "packages/itmat-ui-react/webpack.config.js"
+            },
+            "configurations": {
+                "development": {
+                    "extractLicenses": false,
+                    "optimization": false,
+                    "sourceMap": true,
+                    "vendorChunk": true
+                },
+                "production": {
+                    "fileReplacements": [
+                        {
+                            "replace": "packages/itmat-ui-react/src/environments/environment.ts",
+                            "with": "packages/itmat-ui-react/src/environments/environment.prod.ts"
+                        }
+                    ],
+                    "optimization": true,
+                    "outputHashing": "all",
+                    "sourceMap": false,
+                    "namedChunks": false,
+                    "extractLicenses": true,
+                    "vendorChunk": false
+                }
+            }
+        },
+        "serve": {
+            "executor": "@nrwl/webpack:dev-server",
+            "defaultConfiguration": "development",
+            "options": {
+                "buildTarget": "itmat-ui-react:build",
+                "hmr": true,
+                "proxyConfig": "packages/itmat-ui-react/proxy.conf.js"
+            },
+            "configurations": {
+                "development": {
+                    "buildTarget": "itmat-ui-react:build:development"
+                },
+                "production": {
+                    "buildTarget": "itmat-ui-react:build:production",
+                    "hmr": false
+                }
+            }
+        },
+        "lint": {
+            "executor": "@nrwl/linter:eslint",
+            "outputs": [
+                "{options.outputFile}"
+            ],
+            "options": {
+                "lintFilePatterns": [
+                    "packages/itmat-ui-react/**/*.{ts,tsx,js,jsx}"
+                ]
+            }
+        },
+        "test": {
+            "executor": "@nrwl/jest:jest",
+            "outputs": [
+                "{workspaceRoot}/coverage/packages/itmat-ui-react"
+            ],
+            "options": {
+                "jestConfig": "packages/itmat-ui-react/jest.config.ts",
+                "passWithNoTests": true
+            }
+        }
+    },
+    "tags": []
+}

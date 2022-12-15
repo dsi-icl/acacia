@@ -1,20 +1,15 @@
-import * as React from 'react';
-import GitInfo from 'react-git-info/macro';
+import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
-import { RouteComponentProps, NavLink, useHistory } from 'react-router-dom';
-import { GQLRequests } from 'itmat-commons';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { REQUEST_USERNAME_OR_RESET_PASSWORD } from '@itmat-broker/itmat-models';
 import css from './login.module.css';
 import { Input, Form, Button, Alert } from 'antd';
 
-const gitInfo = GitInfo();
+export const RequestResetPassword: FunctionComponent = () => {
 
-type ResetPasswordPageProps = RouteComponentProps
-
-export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProps> = () => {
-
-    const history = useHistory();
-    const [forgotUsername, setForgotUsername] = React.useState(false);
-    const [requestCompleted, setRequestCompleted] = React.useState(false);
+    const navigate = useNavigate();
+    const [forgotUsername, setForgotUsername] = useState(false);
+    const [requestCompleted, setRequestCompleted] = useState(false);
 
     if (requestCompleted) {
         return (
@@ -27,7 +22,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                     <p>The link will be active for 1 hour.</p>
                     <br />
                     <Button onClick={() => {
-                        history.push('/');
+                        navigate('/');
                     }}>
                         Go back to login
                     </Button>
@@ -39,7 +34,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
 
     return (
         <Mutation<any, any>
-            mutation={GQLRequests.REQUEST_USERNAME_OR_RESET_PASSWORD}
+            mutation={REQUEST_USERNAME_OR_RESET_PASSWORD}
             onError={() => { return; }}
             onCompleted={() => setRequestCompleted(true)}
         >
@@ -75,7 +70,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                                     ) : null}
                                     <Form.Item>
                                         <Button onClick={() => {
-                                            history.push('/');
+                                            navigate('/');
                                         }}>
                                             Cancel
                                         </Button>
@@ -103,7 +98,7 @@ export const RequestResetPassword: React.FunctionComponent<ResetPasswordPageProp
                             <br />
                             <br />
                             Do not have an account? <NavLink to='/register'>Please register</NavLink><br />
-                            <i style={{ color: '#ccc' }}>v{process.env.REACT_APP_VERSION} - {gitInfo.commit.shortHash} ({gitInfo.branch})</i>
+                            <i style={{ color: '#ccc' }}>v{process.env.NX_REACT_APP_VERSION} - {process.env.NX_REACT_APP_COMMIT} ({process.env.NX_REACT_APP_BRANCH})</i>
                         </div>
                     </div>
                 );

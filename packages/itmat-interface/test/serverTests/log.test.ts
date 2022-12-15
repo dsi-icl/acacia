@@ -1,41 +1,25 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
+import { v4 as uuid } from 'uuid';
 import request from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser } from './_loginHelper';
 import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
-import { MongoClient } from 'mongodb';
+import { Db, MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { setupDatabase } from 'itmat-setup';
+import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
 import { errorCodes } from '../../src/graphql/errors';
 import * as mfa from '../../src/utils/mfa';
-import {
-    LOG_ACTION,
-    userTypes,
-    LOG_STATUS,
-    GET_LOGS,
-    LOG_TYPE,
-    LOGIN,
-    IUser,
-    DELETE_USER,
-    USER_AGENT
-} from 'itmat-commons';
+import { GET_LOGS, LOGIN, DELETE_USER } from '@itmat-broker/itmat-models';
+import { userTypes, IUser, ILogEntry, LOG_STATUS, LOG_ACTION, LOG_TYPE, USER_AGENT } from '@itmat-broker/itmat-types';
+import { Express } from 'express';
 
-let app;
-let mongodb;
-let admin;
-let user;
-let mongoConnection;
-let mongoClient;
-
-// const SEED_STANDARD_USER_USERNAME = 'standardUser';
-// const SEED_STANDARD_USER_EMAIL = 'standard@example.com';
-// const TEMP_USER_TEST_EMAIL = process.env.TEST_RECEIVER_EMAIL_ADDR || SEED_STANDARD_USER_EMAIL;
-// const SKIP_EMAIL_TEST = process.env.SKIP_EMAIL_TEST === 'true';
-
+let app: Express;
+let mongodb: MongoMemoryServer;
+let admin: request.SuperTest<request.Test>;
+let user: request.SuperTest<request.Test>;
+let mongoConnection: MongoClient;
+let mongoClient: Db;
 
 afterAll(async () => {
     await db.closeConnection();
@@ -48,20 +32,21 @@ afterAll(async () => {
 
 beforeAll(async () => { // eslint-disable-line no-undef
     /* Creating a in-memory MongoDB instance for testing */
-    mongodb = await MongoMemoryServer.create();
+    const dbName = uuid();
+    mongodb = await MongoMemoryServer.create({ instance: { dbName } });
     const connectionString = mongodb.getUri();
-    const database = mongodb.instanceInfo.dbName;
-    await setupDatabase(connectionString, database);
+    await setupDatabase(connectionString, dbName);
 
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
-    config.database.database = database;
-    await db.connect(config.database, MongoClient.connect as any);
+    config.database.database = dbName;
+    await db.connect(config.database, MongoClient);
     const router = new Router(config);
+    await router.init();
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString);
-    mongoClient = mongoConnection.db(database);
+    mongoClient = mongoConnection.db(dbName);
 
     /* Connecting clients for testing later */
     app = router.getApp();
@@ -95,7 +80,7 @@ describe('LOG API', () => {
                 createdAt: 1591134065000,
                 expiredAt: 2501134065000
             };
-            await mongoClient.collection(config.database.collections.users_collection).insertOne(newUser);
+            await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
             const newloggedoutuser = request.agent(app);
             const otp = mfa.generateTOTP(userSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
@@ -109,12 +94,15 @@ describe('LOG API', () => {
             expect(res.status).toBe(200);
             const findLogInMongo = await db.collections!.log_collection.find({}).toArray();
             const lastLog = findLogInMongo.pop();
+            expect(lastLog).toBeDefined();
+            if (!lastLog)
+                return;
             expect(lastLog.requesterName).toEqual('test_user');
             expect(lastLog.requesterType).toEqual(userTypes.ADMIN);
             expect(lastLog.logType).toEqual(LOG_TYPE.REQUEST_LOG);
             expect(lastLog.actionType).toEqual(LOG_ACTION.login);
             expect(JSON.parse(lastLog.actionData)).toEqual({
-                username: 'test_user',
+                username: 'test_user'
             });
             expect(lastLog.status).toEqual(LOG_STATUS.SUCCESS);
             expect(lastLog.errors).toEqual('');
@@ -143,13 +131,13 @@ describe('LOG API', () => {
                 actionData: JSON.stringify({}),
                 time: 100000000,
                 status: LOG_STATUS.SUCCESS,
-                error: ''
+                errors: ''
             }];
             await db.collections!.log_collection.insertMany(logSample);
         });
 
         afterAll(async () => {
-            await mongoClient.collection(config.database.collections.log_collection).deleteMany({});
+            await mongoClient.collection<ILogEntry>(config.database.collections.log_collection).deleteMany({});
         });
 
         test('GET log (admin)', async () => {

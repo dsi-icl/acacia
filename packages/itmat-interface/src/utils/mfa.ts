@@ -8,7 +8,7 @@ export function generateSecret(length = 20): string {
 }
 
 // HMAC-based OTPs algorithm specified in RFC4226.
-function generateHOTP(secret, counter) {
+function generateHOTP(secret: string, counter: number) {
     const decodedSecret = base32.decode.asBytes(secret);
     const buffer = Buffer.alloc(8);
     for (let i = 0; i < 8; i++) {
@@ -28,7 +28,7 @@ function generateHOTP(secret, counter) {
     return code % 10 ** 6;
 }
 
-function dynamicTruncationFn(hmacValue) {
+function dynamicTruncationFn(hmacValue: Buffer) {
     const offset = hmacValue[hmacValue.length - 1] & 0xf;
     return (
         ((hmacValue[offset] & 0x7f) << 24) |

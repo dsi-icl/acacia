@@ -1,4 +1,4 @@
-import { IJobEntry } from 'itmat-commons';
+import { IJobEntry } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 

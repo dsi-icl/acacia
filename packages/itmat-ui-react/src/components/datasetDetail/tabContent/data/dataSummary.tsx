@@ -1,6 +1,7 @@
-import React from 'react';
+import { FunctionComponent, useState } from 'react';
 // import { Query } from '@apollo/client/react/components';
-import { GET_STUDY, IStudyDataVersion } from 'itmat-commons';
+import { GET_STUDY } from '@itmat-broker/itmat-models';
+import { IStudyDataVersion } from '@itmat-broker/itmat-types';
 import css from './tabContent.module.css';
 import { useQuery } from '@apollo/client/react/hooks';
 import LoadSpinner from '../../../reusable/loadSpinner';
@@ -11,7 +12,7 @@ import { Button, Modal, Card, Row, Col, Space } from 'antd';
 // data curation pipeline
 // upload new sets of data
 
-export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
+export const DataSummaryVisual: FunctionComponent<{ studyId: string; selectedVersion: number; currentVersion: number; versions: IStudyDataVersion[] }> = ({ studyId, currentVersion, selectedVersion, versions }) => {
     const { data: getStudyData, loading: getStudyLoading } = useQuery(GET_STUDY, { variables: { studyId } });
     if (getStudyLoading) { return <LoadSpinner />; }
     if (selectedVersion === null || selectedVersion === -1) {
@@ -33,7 +34,7 @@ export const DataSummaryVisual: React.FunctionComponent<{ studyId: string; selec
 };
 
 ////////////////////////// COMPONENTS WITHIN THE PAGE//////////////////////////////////////
-const NumberOfPatients: React.FunctionComponent<{ data: any }> = ({ data }) => {
+const NumberOfPatients: FunctionComponent<{ data: any }> = ({ data }) => {
     return <div style={{ gridArea: 'patients' }}>
         <div>
             <p>Number of subjects</p>
@@ -44,8 +45,8 @@ const NumberOfPatients: React.FunctionComponent<{ data: any }> = ({ data }) => {
     </div>;
 };
 
-const NumberOfRecords: React.FunctionComponent<{ data: any }> = ({ data }) => {
-    const [ showDetails, setShowDetails ] = React.useState(false);
+const NumberOfRecords: FunctionComponent<{ data: any }> = ({ data }) => {
+    const [showDetails, setShowDetails] = useState(false);
     return <div style={{ gridArea: 'records' }}>
         <div>
             <p>Number of records</p>
@@ -64,12 +65,12 @@ const NumberOfRecords: React.FunctionComponent<{ data: any }> = ({ data }) => {
                 <Row gutter={16}>
                     <Col span={8}>
                         <Card title='Subjects' bordered={false}>
-                            {data.getStudy.subjects.map((el) => { return <><span>{el}</span><br/></>; })}
+                            {data.getStudy.subjects.map((el) => { return <><span>{el}</span><br /></>; })}
                         </Card>
                     </Col>
                     <Col span={8}>
                         <Card title='Visits' bordered={false}>
-                            {data.getStudy.visits.map((el) => { return <><span>{el}</span><br/></>; })}
+                            {data.getStudy.visits.map((el) => { return <><span>{el}</span><br /></>; })}
                         </Card>
                     </Col>
                 </Row>
@@ -78,7 +79,7 @@ const NumberOfRecords: React.FunctionComponent<{ data: any }> = ({ data }) => {
     </div>;
 };
 
-const NewestVersionOfData: React.FunctionComponent<{ version: string }> = ({ version }) => {
+const NewestVersionOfData: FunctionComponent<{ version: string }> = ({ version }) => {
     return <div style={{ gridArea: 'version' }}><div>
         <p>Current Data version</p>
         <span className={css.number_highlight}>{version}</span>
@@ -86,7 +87,7 @@ const NewestVersionOfData: React.FunctionComponent<{ version: string }> = ({ ver
     </div>;
 };
 
-const VersionTag: React.FunctionComponent<{ tag: string }> = ({ tag }) => {
+const VersionTag: FunctionComponent<{ tag: string }> = ({ tag }) => {
     if (!tag) { return <div style={{ gridArea: 'tag' }} >Current version of data is not tagged.</div>; }
     return <div style={{ gridArea: 'tag' }}><div>
         <p>Dataset version tag</p>
@@ -95,7 +96,7 @@ const VersionTag: React.FunctionComponent<{ tag: string }> = ({ tag }) => {
     </div>;
 };
 
-const DateOfUpload: React.FunctionComponent<{ date: string | number /* UNIX timestamp */ }> = ({ date }) => {
+const DateOfUpload: FunctionComponent<{ date: string | number /* UNIX timestamp */ }> = ({ date }) => {
     return <div style={{ gridArea: 'date' }}><div>
         <p>Data were uploaded on</p>
         <span className={css.number_highlight}>{date ? (new Date(parseInt(date as any))).toLocaleString() : 'n/a'}</span>

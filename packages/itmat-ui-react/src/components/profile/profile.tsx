@@ -1,30 +1,20 @@
-import React from 'react';
+import { ChangeEvent, FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IUserWithoutToken, Models, userTypes, GQLRequests, IPubkey } from 'itmat-commons';
+import { IUserWithoutToken, userTypes, IPubkey, IOrganisation } from '@itmat-broker/itmat-types';
+import { WHO_AM_I, EDIT_USER, REQUEST_USERNAME_OR_RESET_PASSWORD, REGISTER_PUBKEY, GET_PUBKEYS, ISSUE_ACCESS_TOKEN, GET_ORGANISATIONS, REQUEST_EXPIRY_DATE } from '@itmat-broker/itmat-models';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from '../users/projectSection';
 import { Form, Input, Select, DatePicker, Button, Alert } from 'antd';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import { Key } from '../../utils/dmpCrypto/dmp.key';
 
-const {
-    WHO_AM_I,
-    EDIT_USER,
-    REQUEST_USERNAME_OR_RESET_PASSWORD,
-    REGISTER_PUBKEY,
-    GET_PUBKEYS,
-    ISSUE_ACCESS_TOKEN,
-    GET_ORGANISATIONS,
-    REQUEST_EXPIRY_DATE
-} = GQLRequests;
-
-export const ProfileManagementSection: React.FunctionComponent = () => {
+export const ProfileManagementSection: FunctionComponent = () => {
     const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
     const [requestExpiryDate] = useMutation(REQUEST_EXPIRY_DATE, { onCompleted: () => { setRequestExpiryDateSent(true); } });
-    const [requestExpiryDateSent, setRequestExpiryDateSent] = React.useState(false);
+    const [requestExpiryDateSent, setRequestExpiryDateSent] = useState(false);
 
     if (whoamiloading) {
         return <>
@@ -49,8 +39,8 @@ export const ProfileManagementSection: React.FunctionComponent = () => {
             <div className='page_ariane'>{whoamidata.whoAmI.username}</div>
             <div className='page_content'>
                 {
-                    moment().add(4, 'weeks').valueOf() - moment(user.expiredAt).valueOf() > 0
-                        ? moment().valueOf() - moment(user.expiredAt).valueOf() > 0
+                    dayjs().add(4, 'week').valueOf() - dayjs(user.expiredAt).valueOf() > 0
+                        ? dayjs().valueOf() - dayjs(user.expiredAt).valueOf() > 0
                             ? <>
                                 <PauseCircleOutlined style={{
                                     color: '#cccccc',
@@ -120,10 +110,10 @@ export const ProfileManagementSection: React.FunctionComponent = () => {
     );
 };
 
-export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & { access?: { id: string, projects: { id: string, name: string, studyId: string }[], studies: { id: string, name: string }[] } }) }> = ({ user }) => {
-    const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
+export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { access?: { id: string, projects: { id: string, name: string, studyId: string }[], studies: { id: string, name: string }[] } }) }> = ({ user }) => {
+    const [savedSuccessfully, setSavedSuccessfully] = useState(false);
     const [requestResetPassword] = useMutation(REQUEST_USERNAME_OR_RESET_PASSWORD, { onCompleted: () => { setRequestResetPasswordSent(true); } });
-    const [requestResetPasswordSent, setRequestResetPasswordSent] = React.useState(false);
+    const [requestResetPasswordSent, setRequestResetPasswordSent] = useState(false);
     const { loading: getorgsloading, error: getorgserror, data: getorgsdata } = useQuery(GET_ORGANISATIONS);
 
     function formatSubmitObj(variables) {
@@ -137,12 +127,12 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
     }
 
     const disabledDate = (current) => {
-        return current && (current < moment().endOf('day') || current > moment().add(3, 'months'));
+        return current && (current < dayjs().endOf('day') || current > dayjs().add(3, 'month'));
     };
 
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
-    const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
+    const orgList: IOrganisation[] = getorgsdata.getOrganisations;
 
     return (
         <Mutation<any, any>
@@ -150,88 +140,84 @@ export const EditUserForm: React.FunctionComponent<{ user: (IUserWithoutToken & 
             onCompleted={() => setSavedSuccessfully(true)}
         >
             {(submit, { loading, error }) =>
-                <>
-                    <Form initialValues={{
-                        ...user,
-                        createdAt: moment(user.createdAt),
-                        expiredAt: moment(user.expiredAt),
-                        organisation: orgList.find(org => org.id === user.organisation)?.name
-                    }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
-                        <Form.Item name='username' label='Username'>
-                            <Input disabled />
-                        </Form.Item>
-                        <Form.Item name='email' label='Email'>
-                            <Input disabled />
-                        </Form.Item>
-                        <Form.Item name='firstname' label='Firstname'>
-                            <Input disabled />
-                        </Form.Item>
-                        <Form.Item name='lastname' label='Lastname'>
-                            <Input disabled />
-                        </Form.Item>
-                        <Form.Item name='organisation' label='Organisation'>
-                            <Select disabled placeholder='Organisation' showSearch filterOption={(input, option) =>
-                                option?.children?.toLocaleString()?.toLocaleLowerCase()?.includes(input.toLocaleLowerCase()) ?? false
-                            }>
-                                {orgList.map((org) => <Select.Option key={org.id} value={org.id}>{org.name}</Select.Option>)}
-                            </Select>
-                        </Form.Item>
-                        <Form.Item name='createdAt' label='Created On'>
-                            <DatePicker disabled style={{ width: '100%' }} />
-                        </Form.Item>
-                        {
-                            user.type === userTypes.ADMIN ? null :
-                                <Form.Item name='expiredAt' label='Expire On'>
-                                    <DatePicker disabled disabledDate={disabledDate} style={{ width: '100%' }} />
-                                </Form.Item>
-                        }
-                        <Form.Item name='type' label='User type'>
-                            <Select disabled>
-                                <Select.Option value='STANDARD'>System user</Select.Option>
-                                <Select.Option value='ADMIN'>System admin</Select.Option>
-                            </Select>
-                        </Form.Item>
-                        {error ? (
-                            <>
-                                <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
-                                <br />
-                            </>
-                        ) : null}
-                        {savedSuccessfully ? (
-                            <>
-                                <Alert type='success' message={'All Saved!'} />
-                                <br />
-                            </>
-                        ) : null}
-                        {requestResetPasswordSent ? (
-                            <>
-                                <Alert type='success' message={'Password reset email sent!'} />
-                                <br />
-                            </>
-                        ) : null}
-                        <Form.Item>
-                            {user.type === userTypes.ADMIN
-                                ? <>
-                                    <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
-                                        Save
-                                    </Button>
-                                </>
-                                : null
-                            }
-                            <Button disabled={loading} onClick={() => {
-                                requestResetPassword({
-                                    variables: {
-                                        forgotUsername: false,
-                                        forgotPassword: true,
-                                        username: user.username
-                                    }
-                                });
-                            }}>
-                                Send a password reset email
+                <Form title='EditUserForm' initialValues={{
+                    ...user,
+                    createdAt: dayjs(user.createdAt),
+                    expiredAt: dayjs(user.expiredAt),
+                    organisation: orgList.find(org => org.id === user.organisation)?.name
+                }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
+                    <Form.Item name='username' label='Username'>
+                        <Input disabled />
+                    </Form.Item>
+                    <Form.Item name='email' label='Email'>
+                        <Input disabled />
+                    </Form.Item>
+                    <Form.Item name='firstname' label='Firstname'>
+                        <Input disabled />
+                    </Form.Item>
+                    <Form.Item name='lastname' label='Lastname'>
+                        <Input disabled />
+                    </Form.Item>
+                    <Form.Item name='organisation' label='Organisation'>
+                        <Select disabled placeholder='Organisation' showSearch filterOption={(input, option) =>
+                            option?.children?.toLocaleString()?.toLocaleLowerCase()?.includes(input.toLocaleLowerCase()) ?? false
+                        }>
+                            {orgList.map((org) => <Select.Option key={org.id} value={org.id}>{org.name}</Select.Option>)}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item name='createdAt' label='Created On'>
+                        <DatePicker disabled style={{ width: '100%' }} />
+                    </Form.Item>
+                    {
+                        user.type === userTypes.ADMIN ? null :
+                            <Form.Item name='expiredAt' label='Expire On'>
+                                <DatePicker disabled disabledDate={disabledDate} style={{ width: '100%' }} />
+                            </Form.Item>
+                    }
+                    <Form.Item name='type' label='User type'>
+                        <Select disabled>
+                            <Select.Option value='STANDARD'>System user</Select.Option>
+                            <Select.Option value='ADMIN'>System admin</Select.Option>
+                        </Select>
+                    </Form.Item>
+                    {error ? (
+                        <>
+                            <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
+                            <br />
+                        </>
+                    ) : null}
+                    {savedSuccessfully ? (
+                        <>
+                            <Alert type='success' message={'All Saved!'} />
+                            <br />
+                        </>
+                    ) : null}
+                    {requestResetPasswordSent ? (
+                        <>
+                            <Alert type='success' message={'Password reset email sent!'} />
+                            <br />
+                        </>
+                    ) : null}
+                    <Form.Item>
+                        {user.type === userTypes.ADMIN
+                            ? <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                                Save
                             </Button>
-                        </Form.Item>
-                    </Form>
-                </>
+                            : null
+                        }
+                        <Button disabled={loading} onClick={() => {
+                            requestResetPassword({
+                                variables: {
+                                    forgotUsername: false,
+                                    forgotPassword: true,
+                                    username: user.username
+                                }
+                            });
+                        }}>
+                            Send a password reset email
+                        </Button>
+                    </Form.Item>
+                </Form>
             }
 
         </Mutation>
@@ -279,10 +265,10 @@ export const cryptoInBrowser = {
     }
 };
 
-export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
-    const [completedKeypairGen, setcompletedKeypairGen] = React.useState(false);
-    const [exportedKeyPair, setExportedKeyPair] = React.useState({ privateKey: '', publicKey: '' });
-    const [signature, setSignature] = React.useState('');
+export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userId }) => {
+    const [completedKeypairGen, setcompletedKeypairGen] = useState(false);
+    const [exportedKeyPair, setExportedKeyPair] = useState({ privateKey: '', publicKey: '' });
+    const [signature, setSignature] = useState('');
 
     const keyGenInBrowser = async function () {
         const keyPair = await cryptoInBrowser.keyGen();
@@ -294,7 +280,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ({
         setcompletedKeypairGen(true);
     };
 
-    const [downloadLink, setDownloadLink] = React.useState('');
+    const [downloadLink, setDownloadLink] = useState('');
     // function for generating file and set download link
     const makeTextFile = (filecontent: string) => {
         const data = new Blob([filecontent], { type: 'text/plain' });
@@ -304,7 +290,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ({
         setDownloadLink(window.URL.createObjectURL(data));
     };
 
-    const [completedRegister, setCompletedRegister] = React.useState(false);
+    const [completedRegister, setCompletedRegister] = useState(false);
     const { loading: getPubkeysloading, error: getPubkeyserror, data: getPubkeysdata } = useQuery(GET_PUBKEYS, {
         variables: {
             associatedUserId: userId
@@ -335,93 +321,89 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ({
                 onCompleted={() => setCompletedRegister(true)}
             >
                 {(submit, { loading, error }) =>
-                    <>
-                        <Form initialValues={{
-                            associatedUserId: userId
-                        }} layout='vertical' onFinish={(variables) => submit({ variables })}>
+                    <Form title='RegisterPublicKeyCompletedKeyPai' initialValues={{
+                        associatedUserId: userId
+                    }} layout='vertical' onFinish={(variables) => submit({ variables })}>
 
-                            <Form.Item name='associatedUserId' label='User ID'>
-                                <Input disabled />
-                            </Form.Item>
+                        <Form.Item name='associatedUserId' label='User ID'>
+                            <Input disabled />
+                        </Form.Item>
 
-                            {((ipubkey === null) || (ipubkey === undefined))
-                                ? <>
-                                    <p>Register your public-key for use.</p>
-                                </>
-                                :
-                                <>
-                                    <Form.Item name='currentPubkey' label='Current registered public key'>
-                                        <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')} />
-                                    </Form.Item>
-                                    <br />
-                                    <p>Register a new public-key. The current one will then be no longer valid.</p>
-                                </>
-                            }
+                        {((ipubkey === null) || (ipubkey === undefined))
+                            ? <p>Register your public-key for use.</p>
+                            :
+                            <>
+                                <Form.Item name='currentPubkey' label='Current registered public key'>
+                                    <Input disabled placeholder={ipubkey?.pubkey.replace(/\n/g, '\\n')} />
+                                </Form.Item>
+                                <br />
+                                <p>Register a new public-key. The current one will then be no longer valid.</p>
+                            </>
+                        }
 
-                            <h2>Securely keep the private key and the signature for use as we do not store such information on the server!.</h2>
+                        <h2>Securely keep the private key and the signature for use as we do not store such information on the server!.</h2>
 
-                            <p>Private Key:</p>
-                            <textarea disabled value={exportedKeyPair.privateKey.replace(/\n/g, '\\n')} cols={120} rows={20} />
-                            <br />
-                            <a download='privateKey.pem' href={downloadLink}>
-                                <Button type='primary' onClick={() => makeTextFile(exportedKeyPair.privateKey.replace(/\n/g, '\\n'))}>
-                                    Save the private key (PEM file)
-                                </Button>
-                            </a>
-                            <br />
-                            <br />
+                        <p>Private Key:</p>
+                        <textarea title='Private Key' disabled value={exportedKeyPair.privateKey.replace(/\n/g, '\\n')} cols={120} rows={20} />
+                        <br />
+                        <a download='privateKey.pem' href={downloadLink}>
+                            <Button type='primary' onClick={() => makeTextFile(exportedKeyPair.privateKey.replace(/\n/g, '\\n'))}>
+                                Save the private key (PEM file)
+                            </Button>
+                        </a>
+                        <br />
+                        <br />
 
-                            <p>Public Key:</p>
-                            <textarea disabled value={exportedKeyPair.publicKey.replace(/\n/g, '\\n')} cols={120} rows={7} />
-                            <br />
-                            <a download='publicKey.pem' href={downloadLink}>
-                                <Button type='primary' onClick={() => makeTextFile(exportedKeyPair.publicKey.replace(/\n/g, '\\n'))}>
-                                    Save the public key (PEM file)
-                                </Button>
-                            </a>
-                            <br />
-                            <br />
+                        <p>Public Key:</p>
+                        <textarea title='Public Key' disabled value={exportedKeyPair.publicKey.replace(/\n/g, '\\n')} cols={120} rows={7} />
+                        <br />
+                        <a download='publicKey.pem' href={downloadLink}>
+                            <Button type='primary' onClick={() => makeTextFile(exportedKeyPair.publicKey.replace(/\n/g, '\\n'))}>
+                                Save the public key (PEM file)
+                            </Button>
+                        </a>
+                        <br />
+                        <br />
 
-                            <p>Signature:</p>
-                            <textarea disabled value={signature} cols={120} rows={7} />
-                            <br />
-                            <a download='signature.txt' href={downloadLink}>
-                                <Button type='primary' onClick={() => makeTextFile(signature)}>
-                                    Save the signature (TXT file)
-                                </Button>
-                            </a>
-                            <br />
-                            <br />
+                        <p>Signature:</p>
+                        <textarea title='Signature' disabled value={signature} cols={120} rows={7} />
+                        <br />
+                        <a download='signature.txt' href={downloadLink}>
+                            <Button type='primary' onClick={() => makeTextFile(signature)}>
+                                Save the signature (TXT file)
+                            </Button>
+                        </a>
+                        <br />
+                        <br />
 
-                            <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
-                                <textarea cols={120} rows={10} />
-                            </Form.Item>
+                        <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
+                            <textarea title='Public key' cols={120} rows={10} />
+                        </Form.Item>
 
-                            <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
-                                <textarea cols={120} rows={10} />
-                            </Form.Item>
+                        <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
+                            <textarea title='Signature' cols={120} rows={10} />
+                        </Form.Item>
 
-                            {error ? (
-                                <>
-                                    <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
-                                    <br />
-                                </>
-                            ) : null}
-                            {completedRegister ? (
-                                <>
-                                    <Alert type='success' message={'Public-key is Sucessfully Registered!'} />
-                                    <br />
-                                </>
-                            ) : null}
+                        {error ? (
+                            <>
+                                <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
+                                <br />
+                            </>
+                        ) : null}
+                        {completedRegister ? (
+                            <>
+                                <Alert type='success' message={'Public-key is Sucessfully Registered!'} />
+                                <br />
+                            </>
+                        ) : null}
 
-                            <Form.Item>
-                                <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
-                                    Register
-                                </Button>
-                            </Form.Item>
+                        <Form.Item>
+                            <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                                Register
+                            </Button>
+                        </Form.Item>
 
-                        </Form>
-                    </>
+                    </Form>
                 }
 
             </Mutation>
@@ -435,7 +417,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ({
         >
             {(submit, { loading, error }) =>
                 <>
-                    <Form initialValues={{
+                    <Form title='RegisterPublicKey' initialValues={{
                         associatedUserId: userId
                     }} layout='vertical' onFinish={(variables) => submit({ variables })}>
 
@@ -444,9 +426,7 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ({
                         </Form.Item>
 
                         {((ipubkey === null) || (ipubkey === undefined))
-                            ? <>
-                                <p>Register your public-key for use.</p>
-                            </>
+                            ? <p>Register your public-key for use.</p>
                             :
                             <>
                                 <Form.Item name='currentPubkey' label='Current registered public key'>
@@ -458,11 +438,11 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ({
                         }
 
                         <Form.Item name='pubkey' label='Public key' hasFeedback rules={[{ required: true, message: 'Please enter your public key' }]}>
-                            <textarea cols={120} rows={10} />
+                            <textarea title='Public key' cols={120} rows={10} />
                         </Form.Item>
 
                         <Form.Item name='signature' label='Signature' hasFeedback rules={[{ required: true, message: 'Please enter the signature' }]}>
-                            <textarea cols={120} rows={10} />
+                            <textarea title='Signature' cols={120} rows={10} />
                         </Form.Item>
 
                         {error ? (
@@ -498,22 +478,22 @@ export const RegisterPublicKey: React.FunctionComponent<{ userId: string }> = ({
     );
 
 };
-export const RsaSigner: React.FunctionComponent = () => {
-    const [privateKey, setPrivateKey] = React.useState('');
-    const [publicKey, setPublicKey] = React.useState('');
+export const RsaSigner: FunctionComponent = () => {
+    const [privateKey, setPrivateKey] = useState('');
+    const [publicKey, setPublicKey] = useState('');
 
-    const handlePrivateKey = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handlePrivateKey = (event: ChangeEvent<HTMLTextAreaElement>) => {
         const privateKey = event.target.value;
         setPrivateKey(privateKey);
     };
 
-    const handlePublicKey = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handlePublicKey = (event: ChangeEvent<HTMLTextAreaElement>) => {
         const publicKey = event.target.value;
         setPublicKey(publicKey);
     };
 
-    const [signature, setSignature] = React.useState('');
-    const [completedSignatureGen, setcompletedSignatureGen] = React.useState(false);
+    const [signature, setSignature] = useState('');
+    const [completedSignatureGen, setcompletedSignatureGen] = useState(false);
 
     const signGen = async function () {
         const privateKeyFormatted = await Key.importRSAPrivateKey(privateKey);
@@ -523,7 +503,7 @@ export const RsaSigner: React.FunctionComponent = () => {
         setcompletedSignatureGen(true);
     };
 
-    const [downloadLink, setDownloadLink] = React.useState('');
+    const [downloadLink, setDownloadLink] = useState('');
     // function for generating file and set download link
     const makeTextFile = (filecontent: string) => {
         const data = new Blob([filecontent], { type: 'text/plain' });
@@ -539,7 +519,7 @@ export const RsaSigner: React.FunctionComponent = () => {
                 <h3>The signature is successfully generated!</h3>
                 <br />
                 <p>Securely keep this signature to register with the data management portal!</p>
-                <textarea disabled value={signature} cols={120} rows={7} />
+                <textarea title='Signature' disabled value={signature} cols={120} rows={7} />
                 <br />
                 <a download='signature.txt' href={downloadLink}>
                     <Button type='primary' onClick={() => makeTextFile(signature)}>
@@ -567,9 +547,9 @@ export const RsaSigner: React.FunctionComponent = () => {
 
 };
 
-export const TokenManagement: React.FunctionComponent<{ userId: string }> = ({ userId }) => {
-    const [completedTokenGen, setcompletedTokenGen] = React.useState(false);
-    //const [accessTokenGen, setaccessTokenGen] = React.useState('');
+export const TokenManagement: FunctionComponent<{ userId: string }> = ({ userId }) => {
+    const [completedTokenGen, setcompletedTokenGen] = useState(false);
+    //const [accessTokenGen, setaccessTokenGen] = useState('');
     const [tokenGen, { data: tokendata, loading, error }] = useMutation(ISSUE_ACCESS_TOKEN, {
         onCompleted: () => {
             setcompletedTokenGen(true);
@@ -601,9 +581,7 @@ export const TokenManagement: React.FunctionComponent<{ userId: string }> = ({ u
 
     const ipubkey: IPubkey = getPubkeysdata?.getPubkeys?.[0];
     if ((ipubkey === null) || (ipubkey === undefined)) {
-        return <>
-            <p>You need to register a public-key for generating access token.</p>
-        </>;
+        return <p>You need to register a public-key for generating access token.</p>;
     }
 
     if (completedTokenGen) {
@@ -612,15 +590,15 @@ export const TokenManagement: React.FunctionComponent<{ userId: string }> = ({ u
                 <h2>The access token is successfully generated!</h2>
                 <br />
                 <p>Securely keep this token as an authentication key when interacting with APIs</p>
-                <textarea disabled value={tokendata.issueAccessToken.accessToken} cols={120} rows={20} />
+                <textarea title='Token' disabled value={tokendata.issueAccessToken.accessToken} cols={120} rows={20} />
                 <br />
             </div>
         );
     }
 
     return (
-        <Form initialValues={{
-            pubkey: ipubkey?.pubkey.replace(/\n/g, '\\n'),
+        <Form title='TokenManagement' initialValues={{
+            pubkey: ipubkey?.pubkey.replace(/\n/g, '\\n')
         }} layout='vertical' onFinish={(variables) => tokenGen({ variables })}>
             <p>To generate an access token, you need to enter the signature signed by your private-key</p>
             <p>Current refresh counter: <strong>{ipubkey?.refreshCounter}</strong></p>

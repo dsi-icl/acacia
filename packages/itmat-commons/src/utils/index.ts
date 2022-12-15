@@ -1,6 +1,9 @@
-export { Database, IDatabaseBaseConfig } from './database';
+export type { IDatabaseBaseConfig } from './database';
+export { Database } from './database';
 export { CustomError } from './error';
-export { ServerBase, IServerBaseConfig } from './serverBase';
-export { ObjectStore, IObjectStoreConfig} from './objStore';
+export type { IServerBaseConfig } from './serverBase';
+export { ServerBase } from './serverBase';
+export type { IObjectStoreConfig } from './objStore';
+export { ObjectStore } from './objStore';
 export { Logger } from './logger';
 export { JobPoller } from './poller';

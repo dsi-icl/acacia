@@ -1,12 +1,13 @@
-import React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Mutation, Query } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
-import { CREATE_DATA_CURATION_JOB, GET_STUDY, IFile } from 'itmat-commons';
+import { CREATE_DATA_CURATION_JOB, GET_STUDY } from '@itmat-broker/itmat-models';
+import { IFile } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Select, Button } from 'antd';
 const { Option } = Select;
 
-export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelButton?: () => void }> = ({ studyId, cancelButton }) => {
+export const UploadNewData: FunctionComponent<{ studyId: string; cancelButton?: () => void }> = ({ studyId, cancelButton }) => {
     return <div>
         <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>uploaded the data file to the file repository</span></NavLink>.</p>
         <br /><br />
@@ -25,10 +26,10 @@ export const UploadNewData: React.FunctionComponent<{ studyId: string; cancelBut
     </div>;
 };
 
-const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile[]; cancelButton?: () => void }> = ({ cancelButton, files, studyId }) => {
-    const [error, setError] = React.useState('');
-    const [successfullySaved, setSuccessfullySaved] = React.useState(false);
-    const [selectedFile, setSelectedFile] = React.useState<string[]>([]); // files.length > 0 because of checks above
+const UploadNewDataForm: FunctionComponent<{ studyId: string; files: IFile[]; cancelButton?: () => void }> = ({ cancelButton, files, studyId }) => {
+    const [error, setError] = useState('');
+    const [successfullySaved, setSuccessfullySaved] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<string[]>([]); // files.length > 0 because of checks above
     const handleCancel = cancelButton === undefined ? (() => setSelectedFile([])) : cancelButton;
 
     const filteredFiles = files.filter(el => !(
@@ -101,6 +102,6 @@ const UploadNewDataForm: React.FunctionComponent<{ studyId: string; files: IFile
 
 };
 
-// const CreateNewDataVersion: React.FunctionComponent<{ studyId: string; dataVersion: string; tag: string }> = ({ studyId, dataVersion, tag }) => {
+// const CreateNewDataVersion: FunctionComponent<{ studyId: string; dataVersion: string; tag: string }> = ({ studyId, dataVersion, tag }) => {
 
 // };

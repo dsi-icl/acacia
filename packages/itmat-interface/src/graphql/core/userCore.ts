@@ -1,16 +1,17 @@
 import bcrypt from 'bcrypt';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
-import { ApolloError } from 'apollo-server-core';
-import { IUser, IUserWithoutToken, userTypes, Models, IOrganisation, IPubkey } from 'itmat-commons';
+import { GraphQLError } from 'graphql';
+import { IUser, IUserWithoutToken, userTypes, IOrganisation, IPubkey } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
+import { MarkOptional } from 'ts-essentials';
 
 export class UserCore {
     public async getOneUser_throwErrorIfNotExists(username: string): Promise<IUser> {
         const user = await db.collections!.users_collection.findOne({ deleted: null, username });
         if (user === undefined || user === null) {
-            throw new ApolloError('User does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            throw new GraphQLError('User does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
         return user;
     }
@@ -20,7 +21,7 @@ export class UserCore {
         const hashedPassword: string = await bcrypt.hash(password, config.bcrypt.saltround);
         const createdAt = Date.now();
         const expiredAt = Date.now() + 86400 * 1000 /* millisec per day */ * 90;
-        const entry: Models.UserModels.IUser = {
+        const entry: IUser = {
             id: uuid(),
             username,
             otpSecret,
@@ -40,12 +41,12 @@ export class UserCore {
 
         const result = await db.collections!.users_collection.insertOne(entry);
         if (result.acknowledged) {
-            const cleared: IUserWithoutToken = { ...entry };
+            const cleared: MarkOptional<IUser, 'password' | 'otpSecret'> = { ...entry };
             delete cleared['password'];
             delete cleared['otpSecret'];
             return cleared;
         } else {
-            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Database error', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 
@@ -63,7 +64,7 @@ export class UserCore {
                     users: userId
                 },
                 {
-                    $pull: { users: { id: userId } }
+                    $pull: { users: { _id: userId } }
                 }
             );
 
@@ -74,7 +75,7 @@ export class UserCore {
             // undo any changes that might have happened
             await session.abortTransaction();
             session.endSession();
-            throw new ApolloError(`Database error: ${JSON.stringify(error)}`);
+            throw new GraphQLError(`Database error: ${JSON.stringify(error)}`);
         }
     }
 
@@ -98,7 +99,7 @@ export class UserCore {
         if (result.ok) {
             return entry;
         } else {
-            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Database error', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 
@@ -118,7 +119,7 @@ export class UserCore {
         if (result.acknowledged) {
             return entry;
         } else {
-            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Database error', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 }

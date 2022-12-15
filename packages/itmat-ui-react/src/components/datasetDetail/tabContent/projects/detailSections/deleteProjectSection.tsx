@@ -1,20 +1,21 @@
-import React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
-import { Redirect } from 'react-router';
-import { WHO_AM_I, DELETE_PROJECT, GET_STUDY, IProject } from 'itmat-commons';
+import { Navigate } from 'react-router';
+import { WHO_AM_I, DELETE_PROJECT, GET_STUDY } from '@itmat-broker/itmat-models';
+import { IProject } from '@itmat-broker/itmat-types';
 
-export const DeleteProjectSection: React.FunctionComponent<{ studyId: string; projectId: string; projectName: string }> = ({ studyId, projectId, projectName }) => {
-    const [isExpanded, setIsExpanded] = React.useState(false);
-    const [inputText, setInput] = React.useState('');
-    const [error, setError] = React.useState('');
-    const [deleted, setDeleted] = React.useState(false);
+export const DeleteProjectSection: FunctionComponent<{ studyId: string; projectId: string; projectName: string }> = ({ studyId, projectId, projectName }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [inputText, setInput] = useState('');
+    const [error, setError] = useState('');
+    const [deleted, setDeleted] = useState(false);
 
     if (!isExpanded) {
         return <span style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={() => { setIsExpanded(true); setInput(''); }}>Click to delete</span>;
     }
 
     if (deleted) {
-        return <Redirect to={`/datasets/${studyId}/projects/`} />;
+        return <Navigate to={`/datasets/${studyId}/projects/`} />;
     }
 
     return <>
@@ -41,7 +42,7 @@ export const DeleteProjectSection: React.FunctionComponent<{ studyId: string; pr
             }}
             onCompleted={() => setDeleted(true)}
         >
-            {(deleteProject, { data: __unused__data, loading }) =>
+            {(deleteProject, { loading }) =>
                 loading ?
                     <button style={{ display: 'inline-block', width: '30%' }}>Loading...</button> :
                     <button onClick={() => {

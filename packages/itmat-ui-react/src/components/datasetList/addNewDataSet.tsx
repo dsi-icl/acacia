@@ -1,15 +1,16 @@
-import * as React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useMutation } from '@apollo/client/react/hooks';
-import { userTypes, WHO_AM_I, CREATE_STUDY, studyType } from 'itmat-commons';
+import { WHO_AM_I, CREATE_STUDY } from '@itmat-broker/itmat-models';
+import { userTypes, studyType } from '@itmat-broker/itmat-types';
 import { Button, Form, Input, Alert, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { Subsection } from '../reusable';
 const { Option } = Select;
 
-export const AddNewDataSet: React.FunctionComponent = () => {
+export const AddNewDataSet: FunctionComponent = () => {
 
-    const [showMore, setShowMore] = React.useState(false);
+    const [showMore, setShowMore] = useState(false);
     const [createStudy, {
         data: createStudyData,
         loading: createStudyLoading,
@@ -24,7 +25,7 @@ export const AddNewDataSet: React.FunctionComponent = () => {
         <Query<any, any> query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <p>Loading...</p>; }
-                if (error) { return <p>Error :( {error}</p>; }
+                if (error) { return <p>Error {error.name}: {error.message}</p>; }
                 if (data.whoAmI && data.whoAmI.type && data.whoAmI.type === userTypes.ADMIN) {
                     return (
                         !showMore ?

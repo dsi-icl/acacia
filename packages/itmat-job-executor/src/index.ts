@@ -1,25 +1,22 @@
-
 // eslint:disable: no-console
 import { Express } from 'express';
 import { Socket } from 'net';
-import os from 'os';
 import http from 'http';
-import ITMATJobExecutorServer from './jobExecutorServer';
+import ITMATJobExecutorRunner from './jobExecutorRunner';
 import config from './utils/configManager';
 
-let interfaceIteration = 0;
-let interfaceServer = new ITMATJobExecutorServer(config);
+let interfaceRunner = new ITMATJobExecutorRunner(config);
 let interfaceSockets: Socket[] = [];
-let interfaceSocket: http.Server;
-let interfaceRouter;
+let interfaceServer: http.Server;
+let interfaceRouter: Express;
 
 function serverStart() {
-    console.info(`Starting server ${interfaceIteration++} ...`);
-    interfaceServer.start().then((itmatRouter: Express) => {
+    console.info(`Starting executor server ${process.pid} ...`);
+    interfaceRunner.start().then((itmatRouter) => {
 
-        interfaceRouter = itmatRouter;
-        interfaceSocket = itmatRouter.listen(config.server.port, () => {
-            console.info(`Listening at http://${os.hostname()}:${config.server.port}/`);
+        interfaceRouter = itmatRouter.getApp();
+        interfaceServer = interfaceRouter.listen(config.server.port, () => {
+            console.info(`Listening at http://localhost:${config.server.port}/`);
         })
             .on('connection', (socket) => {
                 interfaceSockets.push(socket);
@@ -35,6 +32,7 @@ function serverStart() {
         console.error('An error occurred while starting the ITMAT job executor.', error);
         if (error.stack)
             console.error(error.stack);
+        setTimeout(serverStart, 5000);
         return false;
     });
 }
@@ -42,16 +40,16 @@ function serverStart() {
 function serverSpinning() {
 
     if (interfaceRouter !== undefined) {
-        console.info('Renewing server ...');
-        interfaceServer = new ITMATJobExecutorServer(config);
+        console.info('Renewing executor server ...');
+        interfaceRunner = new ITMATJobExecutorRunner(config);
         console.info(`Destroying ${interfaceSockets.length} sockets ...`);
         interfaceSockets.forEach((socket) => {
             socket.destroy();
         });
         interfaceSockets = [];
-        interfaceSocket.close(() => {
-            console.info(`Shuting down server ${interfaceIteration} ...`);
-            interfaceRouter?.close?.(() => {
+        interfaceServer.close(() => {
+            console.info(`Shuting down executor server ${process.pid} ...`);
+            interfaceRouter?.on('close', () => {
                 serverStart();
             }) || serverStart();
         });
@@ -62,9 +60,10 @@ function serverSpinning() {
 
 serverSpinning();
 
+declare const module: any;
 if (module.hot) {
     module.hot.accept('./index', serverSpinning);
-    module.hot.accept('./jobExecutorServer', serverSpinning);
+    module.hot.accept('./jobExecutorRunner', serverSpinning);
     module.hot.accept('./index.ts', serverSpinning);
-    module.hot.accept('./jobExecutorServer.ts', serverSpinning);
+    module.hot.accept('./jobExecutorRunner.ts', serverSpinning);
 }

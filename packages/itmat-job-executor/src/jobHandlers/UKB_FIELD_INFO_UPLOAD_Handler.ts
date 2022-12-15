@@ -1,7 +1,7 @@
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
 import { JobHandler } from './jobHandlerInterface';
-import { IFile, IJobEntryForFieldCuration } from 'itmat-commons';
+import { IJobEntryForFieldCuration } from '@itmat-broker/itmat-types';
 import { FieldCurator } from '../curation/FieldCurator';
 import { Readable, Writable } from 'stream';
 import * as csvparse from 'csv-parse';
@@ -17,12 +17,12 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     }
 
     public async execute(job: IJobEntryForFieldCuration) {
-        const file: IFile = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: null })!;
+        const file = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: null })!;
         if (!file) {
             throw new Error('File does not exists.');
         }
 
-        const codesFile: IFile = await db.collections!.files_collection.findOne({ fileName: 'prolific_Codes.csv' });
+        const codesFile = await db.collections!.files_collection.findOne({ fileName: 'prolific_Codes.csv' });
         if (!codesFile) {
             throw new Error('Codes File does not exists.');
         }
@@ -41,7 +41,7 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
         const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
 
         if (errors.length !== 0) {
-            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors } });
+            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors as any } });
             return;
         } else {
             await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });

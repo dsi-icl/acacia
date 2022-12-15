@@ -1,8 +1,8 @@
-import * as React from 'react';
+import { FunctionComponent } from 'react';
 import { ProjectList } from './projectList';
 import css from './projectPage.module.css';
 
-export const ProjectListPage: React.FunctionComponent = () => {
+export const ProjectListPage: FunctionComponent = () => {
     return (
         <div className={css.page_container}>
             <div className={css.project_list + ' page_section'}>

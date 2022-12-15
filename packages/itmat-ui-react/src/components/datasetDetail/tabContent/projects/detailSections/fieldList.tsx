@@ -1,17 +1,13 @@
-import React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
-import {
-    EDIT_PROJECT_APPROVED_FIELDS,
-    GET_STUDY,
-    GET_STUDY_FIELDS,
-    IFieldEntry
-} from 'itmat-commons';
+import { EDIT_PROJECT_APPROVED_FIELDS, GET_STUDY, GET_STUDY_FIELDS } from '@itmat-broker/itmat-models';
+import { IFieldEntry } from '@itmat-broker/itmat-types';
 import { FieldListSection } from '../../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../../reusable/loadSpinner';
 import { Button } from 'antd';
 
-export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedList: string[]; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
+export const GrantedFieldListSection: FunctionComponent<{ originalCheckedList: string[]; studyId: string; projectId: string }> = ({ projectId, originalCheckedList, studyId }) => {
     const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId } });
     if (loading) { return <LoadSpinner />; }
     if (error) { return <p>{error.toString()}</p>; }
@@ -23,7 +19,7 @@ export const GrantedFieldListSection: React.FunctionComponent<{ originalCheckedL
     return <FieldListSelectionState originalCheckedList={originalCheckedList} projectId={projectId} studyId={studyId} />;
 };
 
-const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: string[]; projectId: string; studyId: string; }> = ({ originalCheckedList, projectId, studyId }) => {
+const FieldListSelectionState: FunctionComponent<{ originalCheckedList: string[]; projectId: string; studyId: string; }> = ({ originalCheckedList, projectId, studyId }) => {
     const { loading: getStudyFieldsLoading, error: getStudyFieldsError, data: getStudyFieldsData } = useQuery(GET_STUDY_FIELDS, { variables: { studyId: studyId } });
 
     if (getStudyFieldsLoading) {
@@ -32,17 +28,15 @@ const FieldListSelectionState: React.FunctionComponent<{ originalCheckedList: st
 
     if (getStudyFieldsError) {
         return <p>
-            A error occured, please contact your administrator: {(getStudyFieldsError as any).message || ''}
+            An error occured, please contact your administrator: {(getStudyFieldsError as any).message || ''}
         </p>;
     }
-    return <>
-        <GrantedFieldListSectionSelectedFieldTree originalCheckedList={originalCheckedList} projectId={projectId} fieldList={getStudyFieldsData.getStudyFields} studyId={studyId} />
-    </>;
+    return <GrantedFieldListSectionSelectedFieldTree originalCheckedList={originalCheckedList} projectId={projectId} fieldList={getStudyFieldsData.getStudyFields} studyId={studyId} />;
 };
 
-const GrantedFieldListSectionSelectedFieldTree: React.FunctionComponent<{ originalCheckedList: string[]; fieldList: IFieldEntry[]; studyId: string; projectId: string }> = ({ studyId, fieldList, originalCheckedList, projectId }) => {
-    const [checkedList, setCheckedList] = React.useState(originalCheckedList || []);
-    const [savedSuccessfully, setSavedSuccessfully] = React.useState(false);
+const GrantedFieldListSectionSelectedFieldTree: FunctionComponent<{ originalCheckedList: string[]; fieldList: IFieldEntry[]; studyId: string; projectId: string }> = ({ studyId, fieldList, originalCheckedList, projectId }) => {
+    const [checkedList, setCheckedList] = useState(originalCheckedList || []);
+    const [savedSuccessfully, setSavedSuccessfully] = useState(false);
     const { loading, data, error } = useQuery(GET_STUDY, { variables: { studyId } });
     if (loading) { return <LoadSpinner />; }
     if (error) { return <p>{error.toString()}</p>; }

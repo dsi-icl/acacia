@@ -1,16 +1,14 @@
-import * as React from 'react';
+import { FunctionComponent, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { NavLink, useHistory } from 'react-router-dom';
-import { GQLRequests, Models, CREATE_USER } from 'itmat-commons';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { GET_ORGANISATIONS, CREATE_USER } from '@itmat-broker/itmat-models';
+import { IOrganisation } from '@itmat-broker/itmat-types';
 import { Input, Form, Button, Alert, Checkbox, Select } from 'antd';
 import css from './login.module.css';
-const {
-    GET_ORGANISATIONS
-} = GQLRequests;
 
-export const RegisterNewUser: React.FunctionComponent = () => {
-    const history = useHistory();
-    const [completedCreation, setCompletedCreation] = React.useState(false);
+export const RegisterNewUser: FunctionComponent = () => {
+    const navigate = useNavigate();
+    const [completedCreation, setCompletedCreation] = useState(false);
     const [createUser, { loading, error }] = useMutation(CREATE_USER,
         { onCompleted: () => setCompletedCreation(true) }
     );
@@ -19,7 +17,7 @@ export const RegisterNewUser: React.FunctionComponent = () => {
     const { loading: getorgsloading, error: getorgserror, data: getorgsdata } = useQuery(GET_ORGANISATIONS);
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
-    const orgList: Models.IOrganisation[] = getorgsdata.getOrganisations;
+    const orgList: IOrganisation[] = getorgsdata.getOrganisations;
 
     if (completedCreation) {
         return (
@@ -33,7 +31,7 @@ export const RegisterNewUser: React.FunctionComponent = () => {
                     </div>
                     <br />
                     <Button onClick={() => {
-                        history.push('/');
+                        navigate('/');
                     }}>
                         Go back to login
                     </Button>
@@ -97,7 +95,7 @@ export const RegisterNewUser: React.FunctionComponent = () => {
                         ) : null}
                         <Form.Item>
                             <Button onClick={() => {
-                                history.push('/');
+                                navigate('/');
                             }}>
                                 Cancel
                             </Button>

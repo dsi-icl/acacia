@@ -1,0 +1,44 @@
+{
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-commons",
+    "sourceRoot": "packages/itmat-commons/src",
+    "projectType": "library",
+    "targets": {
+        "build": {
+            "executor": "@nrwl/esbuild:esbuild",
+            "outputs": [
+                "{options.outputPath}"
+            ],
+            "options": {
+                "outputPath": "dist/packages/itmat-commons",
+                "main": "packages/itmat-commons/src/index.ts",
+                "tsConfig": "packages/itmat-commons/tsconfig.lib.json",
+                "assets": [
+                    "packages/itmat-commons/*.md"
+                ]
+            }
+        },
+        "lint": {
+            "executor": "@nrwl/linter:eslint",
+            "outputs": [
+                "{options.outputFile}"
+            ],
+            "options": {
+                "lintFilePatterns": [
+                    "packages/itmat-commons/**/*.ts"
+                ]
+            }
+        },
+        "test": {
+            "executor": "@nrwl/jest:jest",
+            "outputs": [
+                "{workspaceRoot}/coverage/packages/itmat-commons"
+            ],
+            "options": {
+                "jestConfig": "packages/itmat-commons/jest.config.ts",
+                "passWithNoTests": true
+            }
+        }
+    },
+    "tags": []
+}
