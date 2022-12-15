@@ -324,44 +324,49 @@ export class StudyCore {
         const oldFileId = dataEntry ? dataEntry[data.fieldId] : null;
 
         return new Promise<IFile>((resolve, reject) => {
-            try {
-                const fileEntry: Partial<IFile> = {
-                    id: uuid(),
-                    fileName: file.fieldName,
-                    studyId: studyId,
-                    description: JSON.stringify(data.metadata ?? {}),
-                    uploadTime: `${Date.now()}`,
-                    uploadedBy: uploader.id,
-                    deleted: null
-                };
 
-                if (args.fileLength !== undefined && args.fileLength > fileSizeLimit) {
-                    reject(new GraphQLError('File should not be larger than 8GB', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
-                    return;
-                }
+            (async () => {
+                try {
+                    const fileEntry: Partial<IFile> = {
+                        id: uuid(),
+                        fileName: file.fieldName,
+                        studyId: studyId,
+                        description: JSON.stringify(data.metadata ?? {}),
+                        uploadTime: `${Date.now()}`,
+                        uploadedBy: uploader.id,
+                        deleted: null
+                    };
 
-                const stream = file.createReadStream();
-                const fileUri = uuid();
-                const hash = crypto.createHash('sha256');
-                let readBytes = 0;
-
-                /* if the client cancelled the request mid-stream it will throw an error */
-                stream.on('error', (e) => {
-                    reject(new GraphQLError('Upload resolver file stream failure', { extensions: { code: errorCodes.FILE_STREAM_ERROR, error: e } }));
-                    return;
-                });
-
-                stream.on('data', (chunk) => {
-                    readBytes += chunk.length;
-                    if (readBytes > fileSizeLimit) {
-                        stream.destroy();
+                    if (args.fileLength !== undefined && args.fileLength > fileSizeLimit) {
                         reject(new GraphQLError('File should not be larger than 8GB', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
                         return;
                     }
-                    hash.update(chunk);
-                });
 
-                stream.on('end', async () => {
+                    const stream = file.createReadStream();
+                    const fileUri = uuid();
+                    const hash = crypto.createHash('sha256');
+                    let readBytes = 0;
+
+                    stream.pause();
+
+                    /* if the client cancelled the request mid-stream it will throw an error */
+                    stream.on('error', (e) => {
+                        reject(new GraphQLError('Upload resolver file stream failure', { extensions: { code: errorCodes.FILE_STREAM_ERROR, error: e } }));
+                        return;
+                    });
+
+                    stream.on('data', (chunk) => {
+                        readBytes += chunk.length;
+                        if (readBytes > fileSizeLimit) {
+                            stream.destroy();
+                            reject(new GraphQLError('File should not be larger than 8GB', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
+                            return;
+                        }
+                        hash.update(chunk);
+                    });
+
+
+                    await objStore.uploadFile(stream, studyId, fileUri);
 
                     // hash is optional, but should be correct if provided
                     const hashString = hash.digest('hex');
@@ -388,14 +393,12 @@ export class StudyCore {
                     } else {
                         throw new GraphQLError(errorCodes.DATABASE_ERROR);
                     }
-                });
-
-                objStore.uploadFile(stream, studyId, fileUri);
-            }
-            catch (error) {
-                reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Missing file metadata.', error });
-                return;
-            }
+                }
+                catch (error) {
+                    reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Missing file metadata.', error });
+                    return;
+                }
+            })();
         });
     }
 
