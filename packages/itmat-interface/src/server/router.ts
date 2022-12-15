@@ -72,7 +72,7 @@ export class Router {
                 rolling: true,
                 cookie: {
                     maxAge: 2 * 60 * 60 * 1000 /* 2 hour */,
-                    secure: true
+                    secure: 'auto'
                 }
             })
         );
