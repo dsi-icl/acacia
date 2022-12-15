@@ -21,6 +21,7 @@
         "express-rate-limit": "6.7.0",
         "isobject": "4.0.0",
         "minio": "7.0.32",
-        "mongodb": "4.12.1"
+        "mongodb": "4.12.1",
+        "sanitize-filename": "1.6.3"
     }
 }

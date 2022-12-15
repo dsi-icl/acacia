@@ -1,6 +1,7 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
+const sanitize = require("sanitize-filename");
 const ITMATInterface = require('./interface').default;
 const ITMATJobExecutor = require('./executor').default;
 const path = require('node:path');
@@ -34,7 +35,8 @@ Promise.all([
 
     // Referencing any other requests to the /public/index.html
     root.use('*', (req, res) => {
-        const targetFile = path.posix.join(__dirname, url.parse(req.originalUrl).pathname);
+        const sanitizedUrl = url.parse(req.originalUrl).pathname.split('/').map(sanitize).filter(Boolean)
+        const targetFile = path.posix.join(__dirname, ...sanitizedUrl);
         if (fs.existsSync(targetFile))
             return res.sendFile(targetFile);
         else

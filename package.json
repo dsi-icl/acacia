@@ -146,6 +146,7 @@
         "react-highlight-words": "0.18.0",
         "react-router-dom": "6.4.5",
         "regenerator-runtime": "0.13.11",
+        "sanitize-filename": "1.6.3",
         "stream-browserify": "3.0.0",
         "tmp": "0.2.1",
         "tslib": "^2.4.1",
