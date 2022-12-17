@@ -37,7 +37,7 @@ Promise.all([
     root.use('*', (req, res) => {
         const sanitizedUrl = url.parse(req.originalUrl).pathname.split('/').map(sanitize).filter(Boolean)
         const targetFile = path.posix.join(__dirname, ...sanitizedUrl);
-        if (fs.existsSync(targetFile))
+        if (fs.existsSync(targetFile) && fs.lstatSync(targetFile).isFile())
             return res.sendFile(targetFile);
         else
             return res.sendFile(path.posix.join(__dirname, 'index.html'));
