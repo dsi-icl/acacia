@@ -43,13 +43,6 @@ Promise.all([
             return res.sendFile(path.posix.join(__dirname, 'index.html'));
     });
 
-    root.listen(3080, error => {
-        if (error !== undefined && error !== null) {
-            console.error(error); // eslint-disable-line no-console
-            return;
-        }
-    });
-
     server = http.createServer({
         allowHTTP1: true,
         keepAlive: true,
@@ -69,6 +62,14 @@ Promise.all([
         socket.setTimeout(0);
         socket.timeout = 0;
     });
+
+    try {
+        server.listen(config.server.port, () => {
+            console.info(`Listening at http://localhost:${config.server.port}/`);
+        })
+    } catch (error) {
+        console.error(error);
+    }
 
 }, error => {
     console.error(error);
