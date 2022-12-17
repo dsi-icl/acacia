@@ -37,17 +37,10 @@ Promise.all([
     root.use('*', (req, res) => {
         const sanitizedUrl = url.parse(req.originalUrl).pathname.split('/').map(sanitize).filter(Boolean)
         const targetFile = path.posix.join(__dirname, ...sanitizedUrl);
-        if (fs.existsSync(targetFile))
+        if (fs.existsSync(targetFile) && fs.lstatSync(targetFile).isFile())
             return res.sendFile(targetFile);
         else
             return res.sendFile(path.posix.join(__dirname, 'index.html'));
-    });
-
-    root.listen(3080, error => {
-        if (error !== undefined && error !== null) {
-            console.error(error); // eslint-disable-line no-console
-            return;
-        }
     });
 
     server = http.createServer({
@@ -69,6 +62,14 @@ Promise.all([
         socket.setTimeout(0);
         socket.timeout = 0;
     });
+
+    try {
+        server.listen(config.server.port, () => {
+            console.info(`Listening at http://localhost:${config.server.port}/`);
+        })
+    } catch (error) {
+        console.error(error);
+    }
 
 }, error => {
     console.error(error);
