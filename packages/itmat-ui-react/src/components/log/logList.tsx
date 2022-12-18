@@ -225,7 +225,7 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
         </Button>
         <Modal
             title='Advanced Search'
-            visible={advancedSearch}
+            open={advancedSearch}
             onOk={() => { setAdvancedSearch(false); }}
             onCancel={() => { setAdvancedSearch(false); }}
             okText='OK'
@@ -276,7 +276,7 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
         </Table>
         <Modal
             title='Details'
-            visible={verbose}
+            open={verbose}
             onOk={() => { setVerbose(false); }}
             onCancel={() => { setVerbose(false); }}
         >
