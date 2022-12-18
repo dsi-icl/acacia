@@ -51,6 +51,58 @@ export class PermissionCore {
         return false;
     }
 
+    public async userHasTheNeccessaryManagementPermission(type: string, operation: string, user: IUser, studyId: string, projectId?: string): Promise<boolean> {
+        if (user === undefined) {
+            return false;
+        }
+
+        /* if user is an admin then return true if admin privileges includes needed permissions */
+        if (user.type === userTypes.ADMIN) {
+            return true;
+        }
+        const tag = `permissions.manage.${type}`;
+        const roles = await db.collections!.roles_collection.aggregate([
+            { $match: { studyId, projectId: { $in: [projectId, null] }, users: user.id, deleted: null } }, // matches all the role documents where the study and project matches and has the user inside
+            { $match: { [tag]: operation } }
+        ]).toArray();
+        if (roles.length === 0) {
+            return false;
+        }
+        return true;
+    }
+
+    public async userHasTheNeccessaryDataPermission(operation: string, user: IUser, studyId: string, projectId?: string): Promise<any> {
+        if (user === undefined) {
+            return false;
+        }
+
+        /* if user is an admin then return true if admin privileges includes needed permissions */
+        if (user.type === userTypes.ADMIN) {
+            return { hasVersioned: true };
+        }
+
+        const roles = await db.collections!.roles_collection.aggregate([
+            { $match: { studyId, projectId: { $in: [projectId, null] }, users: user.id, deleted: null } }, // matches all the role documents where the study and project matches and has the user inside
+            { $match: { 'permissions.data.operations': operation } }
+        ]).toArray();
+        let hasVersioned = false;
+        const roleObj: any[] = [];
+        for (const role of roles) {
+            roleObj.push([{
+                key: `role:${role.id}`,
+                op: '=',
+                parameter: true
+            }]);
+            if (role.permissions.data?.hasVersioned) {
+                hasVersioned = hasVersioned || role.permissions.data.hasVersioned;
+            }
+        }
+        if (Object.keys(roleObj).length === 0) {
+            return false;
+        }
+        return { matchObj: roleObj, hasVersioned: hasVersioned };
+    }
+
     public async removeRole(roleId: string): Promise<void> {
         const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: null }, { $set: { deleted: new Date().valueOf() } });
         if (updateResult.ok === 1) {
@@ -80,38 +132,92 @@ export class PermissionCore {
         }
     }
 
-    public async editRoleFromStudyOrProject(roleId: string, name?: string, permissionChanges?: { add: string[], remove: string[] }, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
-        if (permissionChanges === undefined) { permissionChanges = { add: [], remove: [] }; }
+    public async editRoleFromStudyOrProject(roleId: string, name?: string, permissionChanges?: any, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
+        if (permissionChanges === undefined) { permissionChanges = { data: { subjectIds: [], visitIds: [], fieldIds: [], hasVersioned: false } }; }
         if (userChanges === undefined) { userChanges = { add: [], remove: [] }; }
 
         const bulkop = db.collections!.roles_collection.initializeUnorderedBulkOp();
-        bulkop.find({ id: roleId, deleted: null }).updateOne({ $addToSet: { permissions: { $each: permissionChanges.add }, users: { $each: userChanges.add } } });
-        bulkop.find({ id: roleId, deleted: null }).updateOne({ $pullAll: { permissions: permissionChanges.remove, users: userChanges.remove } });
+        bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { permissions: permissionChanges }, $addToSet: { users: { $each: userChanges.add } } });
+        bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { permissions: permissionChanges }, $pullAll: { users: userChanges.remove } });
         if (name) {
             bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { name } });
         }
         const result: BulkWriteResult = await bulkop.execute();
         const resultingRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null });
-        // const resultingRole = await db.collections!.roles_collection.find({ id: roleId, deleted: null });
-        // return {
-        //     ...resultingRole,
-        //     tutu
-        // } as any;
+        if (!resultingRole) {
+            throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, 'Role does not exist');
+        }
+        // update the data and field records
+        const dataBulkOp = db.collections!.data_collection.initializeUnorderedBulkOp();
+        const filters: any = {
+            subjectIds: permissionChanges.data?.subjectIds || [],
+            visitIds: permissionChanges.data?.visitIds || [],
+            fieldIds: permissionChanges.data?.fieldIds || []
+        };
+        const dataTag = `metadata.${'role:'.concat(roleId)}`;
+        dataBulkOp.find({
+            m_studyId: resultingRole.studyId,
+            m_versionId: { $exists: true, $ne: null },
+            m_subjectId: { $in: filters.subjectIds.map((el: string) => new RegExp(el)) },
+            m_visitId: { $in: filters.visitIds.map((el: string) => new RegExp(el)) },
+            m_fieldId: { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
+        }).update({
+            $set: { [dataTag]: true }
+        });
+        dataBulkOp.find({
+            m_studyId: resultingRole.studyId,
+            m_versionId: { $exists: true, $ne: null },
+            $or: [
+                { m_subjectId: { $nin: filters.subjectIds.map((el: string) => new RegExp(el)) } },
+                { m_visitId: { $nin: filters.visitIds.map((el: string) => new RegExp(el)) } },
+                { m_fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) } }
+            ]
+        }).update({
+            $set: { [dataTag]: false }
+        });
+        const fieldBulkOp = db.collections!.field_dictionary_collection.initializeUnorderedBulkOp();
+        const fieldIds = permissionChanges.data?.fieldIds || [];
+        const fieldTag = `metadata.${'role:'.concat(roleId)}`;
+        fieldBulkOp.find({
+            studyId: resultingRole.studyId,
+            dataVersion: { $exists: true, $ne: null },
+            fieldId: { $in: fieldIds.map((el: string) => new RegExp(el)) }
+        }).update({
+            $set: { [fieldTag]: true }
+        });
+        fieldBulkOp.find({
+            studyId: resultingRole.studyId,
+            dataVersion: { $exists: true, $ne: null },
+            fieldId: { $nin: fieldIds.map((el: string) => new RegExp(el)) }
+        }).update({
+            $set: { [fieldTag]: false }
+        });
+        await dataBulkOp.execute();
+        await fieldBulkOp.execute();
         if (result.ok === 1 && resultingRole) {
             return resultingRole;
         } else {
             throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR);
-            // throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole, null, 4));
-            // throw new ApolloError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole.toArray(), null, 4));
         }
     }
 
-    public async addRoleToStudyOrProject(opt: ICreateRoleInput): Promise<IRole> {
+    public async addRole(opt: ICreateRoleInput): Promise<IRole> {
         /* add user role */
         const role: IRole = {
             id: uuid(),
             name: opt.roleName,
-            permissions: [],
+            permissions: {
+                data: {
+                    subjectIds: [],
+                    visitIds: [],
+                    fieldIds: [],
+                    hasVersioned: false
+                },
+                manage: {
+                    own: [],
+                    role: []
+                }
+            },
             users: [],
             studyId: opt.studyId,
             projectId: opt.projectId,

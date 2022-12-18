@@ -28,12 +28,29 @@ export interface IStudyDataVersion {
     updateDate: string;
 }
 
+export enum atomicOperation {
+    READ = 'READ',
+    WRITE = 'WRITE'
+}
+
 interface IRoleBase {
     id: string;
     projectId?: string;
     studyId: string;
     name: string;
-    permissions: string[];
+    permissions: {
+        data?: {
+            subjectIds?: string[];
+            visitIds?: string[];
+            fieldIds?: string[];
+            hasVersioned?: boolean;
+            operations?: atomicOperation[];
+        },
+        manage?: {
+            own?: atomicOperation[];
+            role?: atomicOperation[];
+        }
+    };
     createdBy: string;
     deleted: number | null;
 }
@@ -84,7 +101,7 @@ export interface ISubjectDataRecordSummary {
 export interface IOntologyTree {
     id: string,
     name: string,
-    dataVersion: string,
+    dataVersion: string | null,
     routes?: IOntologyRoute[],
     metadata?: JSON,
     deleted: number

@@ -19,7 +19,7 @@ export const EDIT_ROLE = gql`
     mutation editRole(
         $roleId: String!,
         $name: String,
-        $permissionChanges: StringArrayChangesInput,
+        $permissionChanges: JSON,
         $userChanges: StringArrayChangesInput
     ) {
         editRole(roleId: $roleId, name: $name, permissionChanges: $permissionChanges, userChanges: $userChanges) {
@@ -39,12 +39,12 @@ export const EDIT_ROLE = gql`
 `;
 
 export const ADD_NEW_ROLE = gql`
-    mutation addRoleToStudyOrProject(
+    mutation addRole(
         $studyId: String!
         $projectId: String,
         $roleName: String!
     ) {
-        addRoleToStudyOrProject (
+        addRole (
             studyId: $studyId,
             projectId: $projectId,
             roleName: $roleName,

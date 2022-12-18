@@ -82,7 +82,7 @@ export enum LOG_ACTION {
 
     // STUDY & PROJECT
     editRole = 'EDIT_ROLE',
-    addRoleToStudyOrProject = 'ADD_NEW_ROLE',
+    addRole = 'ADD_NEW_ROLE',
     removeRole = 'REMOVE_ROLE',
 
     // FILE

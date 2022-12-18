@@ -936,7 +936,7 @@ if (global.hasMinio) {
                         users: [],
                         deleted: null
                     });
-                    expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                    expect(res.body.data.addRole).toEqual({
                         id: createdRole_study.id,
                         name: roleName,
                         permissions: [],
@@ -971,7 +971,7 @@ if (global.hasMinio) {
                         users: [],
                         deleted: null
                     });
-                    expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                    expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_manageProject.id,
                         name: roleName,
                         permissions: [],
@@ -1007,7 +1007,7 @@ if (global.hasMinio) {
                         users: [],
                         deleted: null
                     });
-                    expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                    expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_self_access.id,
                         name: roleName,
                         permissions: [],
@@ -1042,7 +1042,7 @@ if (global.hasMinio) {
                         users: [],
                         deleted: null
                     });
-                    expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                    expect(res.body.data.addRole).toEqual({
                         id: createdRole_project.id,
                         name: roleName,
                         permissions: [],
@@ -2846,7 +2846,7 @@ if (global.hasMinio) {
                         users: [],
                         deleted: null
                     });
-                    expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                    expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_accessData.id,
                         name: roleName,
                         permissions: [],
@@ -3128,7 +3128,7 @@ if (global.hasMinio) {
                         users: [],
                         deleted: null
                     });
-                    expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                    expect(res.body.data.addRole).toEqual({
                         id: createdRole_project.id,
                         name: roleName,
                         permissions: [],

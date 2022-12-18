@@ -167,7 +167,7 @@ describe('STUDY API', () => {
                     users: [],
                     deleted: null
                 });
-                expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                expect(res.body.data.addRole).toEqual({
                     id: createdRole_study.id,
                     name: roleName,
                     permissions: [],
@@ -202,7 +202,7 @@ describe('STUDY API', () => {
                     users: [],
                     deleted: null
                 });
-                expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                expect(res.body.data.addRole).toEqual({
                     id: createdRole_study_manageProject.id,
                     name: roleName,
                     permissions: [],
@@ -237,7 +237,7 @@ describe('STUDY API', () => {
                     users: [],
                     deleted: null
                 });
-                expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                expect(res.body.data.addRole).toEqual({
                     id: createdRole_project.id,
                     name: roleName,
                     permissions: [],

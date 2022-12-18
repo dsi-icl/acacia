@@ -100,6 +100,7 @@ type Field {
     tableName: String
     dataType: FIELD_VALUE_TYPE!
     possibleValues: [ValueCategory]
+    metadata: JSON
     unit: String
     comments: String
     dataVersion: String
@@ -196,7 +197,7 @@ type StudyOrProjectUserRole {
     name: String!
     studyId: String
     projectId: String
-    permissions: [String]!
+    permissions: JSON
     users: [User]!
 }
 
@@ -599,8 +600,8 @@ type Mutation {
     editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project
 
     # ACCESS MANAGEMENT
-    addRoleToStudyOrProject(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole
-    editRole(roleId: String!, name: String, permissionChanges: StringArrayChangesInput, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
+    addRole(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole
+    editRole(roleId: String!, name: String, permissionChanges: JSON, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
     removeRole(roleId: String!): GenericResponse
 
     # FILES

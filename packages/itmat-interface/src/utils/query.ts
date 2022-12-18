@@ -10,11 +10,11 @@ import { IStudy, IFieldEntry, IStandardization } from '@itmat-broker/itmat-types
 // if has study-level permission, non versioned data will also be returned
 
 
-export function buildPipeline(query: any, studyId: string, validDataVersion: string, hasPermission: boolean, fieldsIds: string[], siteIDMarker: string | undefined | null) {
+export function buildPipeline(query: any, studyId: string, validDataVersion: string[], rolesObj: any) {
     // // parse the input data versions first
     let dataVersionsFilter: any;
     // for data managers; by default will return unversioned data; to return only versioned data, specify a data version
-    if (hasPermission) {
+    if (rolesObj.hasVersioned) {
         dataVersionsFilter = { $match: { $or: [{ m_versionId: null }, { m_versionId: { $in: validDataVersion } }] } };
     } else {
         dataVersionsFilter = { $match: { m_versionId: { $in: validDataVersion } } };
@@ -34,33 +34,33 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
             metadataFilter = translateMetadata(query.metadata[0]);
         }
     }
-    const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
-    // We send back the requested fields, by default send all fields
-    if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
-        query.data_requested.forEach((field: string) => {
-            if (fieldsIds.includes(field)) {
-                (fields as any)[field] = 1;
-            }
-        });
-    } else {
-        fieldsIds.forEach((field: string) => {
-            (fields as any)[field] = 1;
-        });
-    }
+    // const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
+    // // We send back the requested fields, by default send all fields
+    // if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
+    //     query.data_requested.forEach((field: string) => {
+    //         if (fieldsIds.includes(field)) {
+    //             (fields as any)[field] = 1;
+    //         }
+    //     });
+    // } else {
+    //     fieldsIds.forEach((field: string) => {
+    //         (fields as any)[field] = 1;
+    //     });
+    // }
     const addFields = {};
     // We send back the newly created derived fields by default
-    if (query['new_fields'] !== undefined && query['new_fields'] !== null) {
-        if (query.new_fields.length > 0) {
-            query.new_fields.forEach((field: any) => {
-                if (field.op === 'derived') {
-                    (fields as any)[field.name] = 1;
-                    (addFields as any)[field.name] = createNewField(field.value);
-                } else {
-                    return 'Error';
-                }
-            });
-        }
-    }
+    // if (query['new_fields'] !== undefined && query['new_fields'] !== null) {
+    //     if (query.new_fields.length > 0) {
+    //         query.new_fields.forEach((field: any) => {
+    //             if (field.op === 'derived') {
+    //                 (fields as any)[field.name] = 1;
+    //                 (addFields as any)[field.name] = createNewField(field.value);
+    //             } else {
+    //                 return 'Error';
+    //             }
+    //         });
+    //     }
+    // }
     let match = {};
     // We send back the filtered fields values
     if (query['cohort'] !== undefined && query['cohort'] !== null) {
@@ -74,15 +74,6 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
         } else {
             match = translateCohort(query.cohort[0]);
         }
-    }
-    // siteIDMarker
-    let selfOrgFilter: any;
-    if (siteIDMarker === null) {
-        selfOrgFilter = { $match: { m_subjectId: { $regex: new RegExp('(.{1})' + '-?(.{6})') } } };
-    } else if (siteIDMarker === undefined) {
-        selfOrgFilter = { $match: { m_subjectId: null } };
-    } else {
-        selfOrgFilter = { $match: { m_subjectId: { $regex: new RegExp(siteIDMarker + '-?(.{6})') } } };
     }
 
     const groupFilter: any = [{
@@ -104,148 +95,140 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
     ];
     if (isEmptyObject(addFields) && isEmptyObject(metadataFilter)) {
         return [
-            selfOrgFilter,
             dataVersionsFilter,
             { $match: { m_studyId: studyId } },
             ...groupFilter,
             { $match: match },
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
-            { $project: fields }
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } }
         ];
     } else if (isEmptyObject(addFields)) {
         return [
-            selfOrgFilter,
             dataVersionsFilter,
             { $match: metadataFilter },
             { $match: { m_studyId: studyId } },
             ...groupFilter,
             { $match: match },
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
-            { $project: fields }
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } }
         ];
     } else if (isEmptyObject(metadataFilter)) {
         return [
-            selfOrgFilter,
             dataVersionsFilter,
             { $match: { m_studyId: studyId } },
             ...groupFilter,
             { $addFields: addFields },
             { $match: match },
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
-            { $project: fields }
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } }
         ];
     } else {
         return [
-            selfOrgFilter,
             dataVersionsFilter,
             { $match: metadataFilter },
             { $match: { m_studyId: studyId } },
             ...groupFilter,
             { $addFields: addFields },
             { $match: match },
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
-            { $project: fields }
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } }
         ];
     }
 }
 
-function createNewField(expression: any) {
-    let newField = {};
-    // if any parameters === '99999', then ignore this calculation
-    switch (expression.op) {
-        case '*':
-            newField = {
-                $cond: [
-                    {
-                        $or: [
-                            { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
-                        ]
-                    },
-                    '99999',
-                    {
-                        $multiply: [createNewField(expression.left), createNewField(expression.right)]
-                    }
-                ]
-            };
-            break;
-        case '/':
-            newField = {
-                $cond: [
-                    {
-                        $or: [
-                            { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
-                        ]
-                    },
-                    '99999',
-                    {
-                        $divide: [createNewField(expression.left), createNewField(expression.right)]
-                    }
-                ]
-            };
-            break;
-        case '-':
-            newField = {
-                $cond: [
-                    {
-                        $or: [
-                            { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
-                        ]
-                    },
-                    '99999',
-                    {
-                        $subtract: [createNewField(expression.left), createNewField(expression.right)]
-                    }
-                ]
-            };
-            break;
-        case '+':
-            newField = {
-                $cond: [
-                    {
-                        $or: [
-                            { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                            { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
-                        ]
-                    },
-                    '99999',
-                    {
-                        $add: [createNewField(expression.left), createNewField(expression.right)]
-                    }
-                ]
-            };
-            break;
-        case '^':
-            newField = {
-                $cond: [
-                    { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                    '99999',
-                    {
-                        $pow: [createNewField(expression.left), createNewField(expression.right)]
-                    }
-                ]
-            };
-            break;
-        case 'val':
-            newField = parseFloat(expression.left);
-            break;
-        case 'field':
-            newField = {
-                $cond: [
-                    { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-                    '99999',
-                    '$' + expression.left
-                ]
-            };
-            break;
-        default:
-            break;
-    }
+// function createNewField(expression: any) {
+//     let newField = {};
+//     // if any parameters === '99999', then ignore this calculation
+//     switch (expression.op) {
+//         case '*':
+//             newField = {
+//                 $cond: [
+//                     {
+//                         $or: [
+//                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
+//                             { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
+//                         ]
+//                     },
+//                     '99999',
+//                     {
+//                         $multiply: [createNewField(expression.left), createNewField(expression.right)]
+//                     }
+//                 ]
+//             };
+//             break;
+//         case '/':
+//             newField = {
+//                 $cond: [
+//                     {
+//                         $or: [
+//                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
+//                             { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
+//                         ]
+//                     },
+//                     '99999',
+//                     {
+//                         $divide: [createNewField(expression.left), createNewField(expression.right)]
+//                     }
+//                 ]
+//             };
+//             break;
+//         case '-':
+//             newField = {
+//                 $cond: [
+//                     {
+//                         $or: [
+//                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
+//                             { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
+//                         ]
+//                     },
+//                     '99999',
+//                     {
+//                         $subtract: [createNewField(expression.left), createNewField(expression.right)]
+//                     }
+//                 ]
+//             };
+//             break;
+//         case '+':
+//             newField = {
+//                 $cond: [
+//                     {
+//                         $or: [
+//                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
+//                             { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
+//                         ]
+//                     },
+//                     '99999',
+//                     {
+//                         $add: [createNewField(expression.left), createNewField(expression.right)]
+//                     }
+//                 ]
+//             };
+//             break;
+//         case '^':
+//             newField = {
+//                 $cond: [
+//                     { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
+//                     '99999',
+//                     {
+//                         $pow: [createNewField(expression.left), createNewField(expression.right)]
+//                     }
+//                 ]
+//             };
+//             break;
+//         case 'val':
+//             newField = parseFloat(expression.left);
+//             break;
+//         case 'field':
+//             newField = {
+//                 $cond: [
+//                     { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
+//                     '99999',
+//                     '$' + expression.left
+//                 ]
+//             };
+//             break;
+//         default:
+//             break;
+//     }
 
-    return newField;
-}
+//     return newField;
+// }
 
 
 function isEmptyObject(obj: any) {

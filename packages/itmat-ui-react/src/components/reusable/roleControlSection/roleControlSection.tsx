@@ -2,11 +2,13 @@ import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE, GET_USERS, GET_PROJECT, GET_STUDY, GET_ORGANISATIONS } from '@itmat-broker/itmat-models';
-import { IRoleQL, IUser, permissions, permissionLabels } from '@itmat-broker/itmat-types';
+import { IRoleQL, IUser, permissions, permissionLabels, atomicOperation } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
-import { Tag, Select, Button, Form, Input, Alert, Popconfirm } from 'antd';
+import { Tag, Select, Button, Form, Input, Alert, Popconfirm, Checkbox, Collapse } from 'antd';
 import { LoadingOutlined, TagOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+const { Option } = Select;
+const { Panel } = Collapse;
 
 type RoleControlSectionProps = {
     studyId: string;
@@ -23,16 +25,16 @@ export const RoleControlSection: FunctionComponent<RoleControlSectionProps> = ({
         <>
             <AddRole studyId={studyId} projectId={projectId} />
             <br />
-            {roles.map((el) =>
-                <RoleDescriptor
-                    key={el.id}
-                    role={el}
-                    availablePermissions={
-                        projectId
-                            ? Object.values(permissions.specific_project)
-                            : Object.values(permissions.specific_study)
-                    } />
-            )}
+            <Collapse>
+                {roles.map((el, index) =>
+                    <Panel header={el.name} key={`role-${index}`}>
+                        <RoleDescriptor
+                            key={el.id}
+                            role={el}
+                        />
+                    </Panel>
+                )}
+            </Collapse>
         </>
     );
 };
@@ -41,12 +43,10 @@ export default RoleControlSection;
 
 type RoleDescriptorProps = {
     role: IRoleQL;
-    availablePermissions: string[];
 }
 
 export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
-    role,
-    availablePermissions
+    role
 }) => {
     const isStudyRole = !role.projectId;
     const { data: userData, loading: userFetchLoading } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
@@ -68,11 +68,9 @@ export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
                     </div>
                 }
             </div>
-            <label>Permissions: </label>
             <br />
             <PermissionsControlPanel
                 roleId={role.id}
-                availablePermissions={availablePermissions}
                 originallySelectedPermissions={role.permissions}
             />
             <br />
@@ -85,6 +83,7 @@ export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
                 projectId={role.projectId}
                 availableUserList={userData.getUsers}
                 originallySelectedUsers={role.users}
+                permissions={role.permissions}
             />
         </div>
     );
@@ -171,55 +170,104 @@ export const AddRole: FunctionComponent<AddRoleProps> = ({
 
 type PermissionsControlPanelProps = {
     roleId: string;
-    availablePermissions: string[];
-    originallySelectedPermissions: string[];
+    originallySelectedPermissions: any;
 }
 
 const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> = ({
     roleId,
-    availablePermissions,
     originallySelectedPermissions
 }) => {
-
     return (
-        <>
-            {availablePermissions.map((permission, index) => {
-
-                let isSelected = false;
-                if (originallySelectedPermissions.includes(permission))
-                    isSelected = true;
-
-                return (
-
-                    <Mutation<any, any> mutation={EDIT_ROLE} key={index}>
-                        {(editRole, { loading }) => (
-                            <Button
-                                size='small'
-                                type={isSelected ? 'primary' : 'default'}
-                                icon={loading ? <LoadingOutlined /> : <TagOutlined />}
-                                style={{
-                                    fontSize: '12px',
-                                    cursor: 'pointer',
-                                    marginRight: 3,
-                                    marginBottom: 3
-                                }}
-                                onClick={() => editRole({
-                                    variables: {
-                                        roleId,
-                                        permissionChanges: {
-                                            add: isSelected ? [] : [permission],
-                                            remove: isSelected ? [permission] : []
-                                        }
-                                    }
+        <Mutation<any, any>
+            mutation={EDIT_ROLE}
+        // onCompleted={() => setSavedSuccessfully(true)}
+        >
+            {(submit, { loading, error }) =>
+                <Form title='EditUserForm' initialValues={{
+                    ...originallySelectedPermissions.data,
+                    ...originallySelectedPermissions.manage
+                }} layout='vertical' onFinish={(variables) => submit({
+                    variables: {
+                        roleId: roleId,
+                        permissionChanges: {
+                            data: {
+                                subjectIds: variables.subjectIds,
+                                visitIds: variables.visitIds,
+                                fieldIds: variables.fieldIds,
+                                hasVersioned: variables.hasVersioned,
+                                operations: variables.operations
+                            },
+                            manage: {
+                                own: variables.own,
+                                role: variables.role
+                            }
+                        }
+                    }
+                })}>
+                    <div>
+                        <Form.Item name='subjectIds' label='Subject Id'>
+                            <Select
+                                mode='tags'
+                                tokenSeparators={[',']}
+                            />
+                        </Form.Item>
+                        <Form.Item name='visitIds' label='Visit Id'>
+                            <Select
+                                mode='tags'
+                                tokenSeparators={[',']}
+                            />
+                        </Form.Item>
+                        <Form.Item name='fieldIds' label='Field Id'>
+                            <Select
+                                mode='tags'
+                                tokenSeparators={[',']}
+                            />
+                        </Form.Item>
+                        <Form.Item name='operations' label='Operations'>
+                            <Checkbox.Group
+                                options={Object.keys(atomicOperation).map(el => {
+                                    return { label: el, value: atomicOperation[el] };
                                 })}
-                            >
-                                {permissionLabels[permission]}
-                            </Button>
-                        )}
-                    </Mutation>
-                );
-            })}
-        </>
+                            />
+                        </Form.Item>
+                        <Form.Item name='hasVersioned' label='Include Versioned Data' valuePropName="checked">
+                            <Checkbox />
+                        </Form.Item>
+                    </div>
+                    <div>
+                        <Form.Item name='own' label='Self Management'>
+                            <Checkbox.Group
+                                options={Object.keys(atomicOperation).map(el => {
+                                    return { label: el, value: atomicOperation[el] };
+                                })}
+                            />
+                        </Form.Item>
+                    </div>
+                    <div>
+                        <Form.Item name='role' label='Role Management'>
+                            <Checkbox.Group
+                                options={Object.keys(atomicOperation).map(el => {
+                                    return { label: el, value: atomicOperation[el] };
+                                })}
+                            />
+                        </Form.Item>
+                    </div>
+                    <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                        Save
+                    </Button>
+                    {error ? (
+                        <>
+                            <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
+                            <br />
+                        </>
+                    ) : null}
+                    {loading ? (
+                        <LoadSpinner />
+                    ) : null}
+                </Form>
+            }
+
+        </Mutation>
     );
 };
 
@@ -229,12 +277,14 @@ type UsersControlPanelProps = {
     projectId?: string;
     availableUserList: IUser[];
     originallySelectedUsers: IUser[];
+    permissions: any;
 }
 
 const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
     roleId,
     availableUserList,
-    originallySelectedUsers
+    originallySelectedUsers,
+    permissions
 }) => {
 
     const [editUsers, { loading }] = useMutation(EDIT_ROLE);
@@ -247,7 +297,8 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                 userChanges: {
                     add: [value],
                     remove: []
-                }
+                },
+                permissionChanges: permissions
             }
         });
     };
@@ -259,7 +310,8 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                 userChanges: {
                     add: [],
                     remove: [value]
-                }
+                },
+                permissionChanges: permissions
             }
         });
     };
@@ -290,7 +342,8 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                             userChanges: {
                                 add: [],
                                 remove: [value]
-                            }
+                            },
+                            permissionChanges: permissions
                         }
                     }).then(() => {
                         onClose();

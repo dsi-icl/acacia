@@ -1,5 +1,6 @@
 {
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-types",
     "sourceRoot": "packages/itmat-types/src",
     "projectType": "library",
     "targets": {

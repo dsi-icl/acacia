@@ -142,7 +142,7 @@ describe('ROLE API', () => {
                 users: [],
                 deleted: null
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
                 permissions: [],
@@ -168,7 +168,7 @@ describe('ROLE API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            expect(res.body.data.addRoleToStudyOrProject).toEqual(null);
+            expect(res.body.data.addRole).toEqual(null);
 
             const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
             expect(createdRole).toBe(null);
@@ -215,7 +215,7 @@ describe('ROLE API', () => {
                 users: [],
                 deleted: null
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
                 permissions: [],
@@ -253,7 +253,7 @@ describe('ROLE API', () => {
                 users: [],
                 deleted: null
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
                 permissions: [],
@@ -310,7 +310,7 @@ describe('ROLE API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            expect(res.body.data.addRoleToStudyOrProject).toEqual(null);
+            expect(res.body.data.addRole).toEqual(null);
 
             const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
             expect(createdRole).toBe(null);
@@ -357,7 +357,7 @@ describe('ROLE API', () => {
                 users: [],
                 deleted: null
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
                 permissions: [],
@@ -411,7 +411,7 @@ describe('ROLE API', () => {
                 users: [],
                 deleted: null
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
                 permissions: [],
@@ -437,7 +437,7 @@ describe('ROLE API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            expect(res.body.data.addRoleToStudyOrProject).toEqual(null);
+            expect(res.body.data.addRole).toEqual(null);
 
             const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
             expect(createdRole).toBe(null);

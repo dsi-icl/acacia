@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-core';
-import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip } from '@itmat-broker/itmat-types';
+import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -157,6 +157,51 @@ export class StudyCore {
 
         if (resData.modifiedCount === 0 && resField.modifiedCount === 0 && resStandardization.modifiedCount === 0 && resOntologyTrees.modifiedCount === 0) {
             return null;
+        }
+
+        // update permissions based on roles
+        const roles = await db.collections!.roles_collection.find<IRole>({ studyId: studyId, deleted: null }).toArray();
+        for (const role of roles) {
+            const filters: any = {
+                subjectIds: role.permissions.data?.subjectIds || [],
+                visitIds: role.permissions.data?.visitIds || [],
+                fieldIds: role.permissions.data?.fieldIds || []
+            };
+            const tag: any = `metadata.${'role:'.concat(role.id)}`;
+            await db.collections!.data_collection.updateMany({
+                m_studyId: studyId,
+                m_versionId: newDataVersionId,
+                m_subjectId: { $in: filters.subjectIds.map((el: string) => new RegExp(el)) },
+                m_visitId: { $in: filters.visitIds.map((el: string) => new RegExp(el)) },
+                m_fieldId: { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
+            }, {
+                $set: { [tag]: true }
+            });
+            await db.collections!.data_collection.updateMany({
+                m_studyId: studyId,
+                m_versionId: newDataVersionId,
+                $or: [
+                    { m_subjectId: { $nin: filters.subjectIds.map((el: string) => new RegExp(el)) } },
+                    { m_visitId: { $nin: filters.visitIds.map((el: string) => new RegExp(el)) } },
+                    { m_fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) } }
+                ]
+            }, {
+                $set: { [tag]: false }
+            });
+            await db.collections!.field_dictionary_collection.updateMany({
+                studyId: studyId,
+                dataVersion: newDataVersionId,
+                fieldId: { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
+            }, {
+                $set: { [tag]: true }
+            });
+            await db.collections!.field_dictionary_collection.updateMany({
+                studyId: studyId,
+                dataVersion: newDataVersionId,
+                fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) }
+            }, {
+                $set: { [tag]: false }
+            });
         }
 
         // insert a new version into study

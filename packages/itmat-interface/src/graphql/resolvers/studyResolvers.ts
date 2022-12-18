@@ -16,7 +16,8 @@ import {
     IRole,
     IOntologyTree,
     userTypes,
-    IGeneralError
+    IGeneralError,
+    atomicOperation
 } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -35,15 +36,16 @@ export const studyResolvers = {
             const studyId: string = args.studyId;
 
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                'own',
+                atomicOperation.READ,
                 requester,
                 studyId
             );
             if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
 
-            const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
-            if (study === null || study === undefined) {
+            const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
+            if (!study) {
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
@@ -55,19 +57,21 @@ export const studyResolvers = {
 
             /* get project */ // defer patientMapping since it's costly and not available to all users
             const project = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
-            if (project === null || project === undefined)
+            if (!project)
                 throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
 
             /* check if user has permission */
-            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_project.specific_project_readonly_access],
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                'own',
+                atomicOperation.READ,
                 requester,
                 project.studyId,
                 projectId
             );
 
-            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                'own',
+                atomicOperation.READ,
                 requester,
                 project.studyId
             );
@@ -78,30 +82,33 @@ export const studyResolvers = {
         getStudyFields: async (__unused__parent: Record<string, unknown>, { studyId, projectId, versionId }: { studyId: string, projectId?: string, versionId?: string | null }, context: any): Promise<IFieldEntry[]> => {
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
                 requester,
                 studyId
             );
-            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_project.specific_project_readonly_access],
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
                 requester,
                 studyId,
                 projectId
             );
-            if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
-            // get ontology tree
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-            const ontologyTree: IOntologyTree | null = study.ontologyTrees ? (study.ontologyTrees[0] ?? null) : null;
-            const ontologyFieldIds: string[] = [];
-            if (ontologyTree !== null && ontologyTree.routes !== undefined && ontologyTree.routes !== null) {
-                for (let i = 0; i < ontologyTree.routes?.length; i++) {
-                    ontologyTree.routes[i].field.length > 0 && ontologyFieldIds.push(ontologyTree.routes[i].field[0].replace('$', ''));
+            let availableDataVersions: string[];
+            if (versionId === undefined || !hasStudyLevelPermission) {
+                availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            } else {
+                if (hasStudyLevelPermission && hasStudyLevelPermission.hasVersioned) {
+                    const versionIndex = versionId ? study.dataVersions.map(el => el.id).indexOf(versionId) : study.currentDataVersion;
+                    availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= versionIndex)).map(el => el.id);
+                } else {
+                    throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
                 }
             }
-            // get all dataVersions that are valid (before the current version)
-            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            const fieldRecords = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
+
+            const fieldRecords = (hasStudyLevelPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
                 $sort: { dateAdded: -1 }
             }, {
                 $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
@@ -118,7 +125,7 @@ export const studyResolvers = {
             }, {
                 $match: { dataVersion: { $in: availableDataVersions } }
             }, {
-                $match: { studyId: studyId, fieldId: { $in: ontologyFieldIds } }
+                $match: { studyId: studyId }
             }, {
                 $group: {
                     _id: '$fieldId',
@@ -160,7 +167,7 @@ export const studyResolvers = {
                 if (hasPermission && versionId === null) {
                     const availableTrees: IOntologyTree[] = [];
                     for (let i = trees.length - 1; i >= 0; i--) {
-                        if ((trees[i].dataVersion === null || availableDataVersions.includes(trees[i].dataVersion))
+                        if ((trees[i].dataVersion === null || availableDataVersions.includes(trees[i].dataVersion || ''))
                             && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
                             availableTrees.push(trees[i]);
                         } else {
@@ -175,7 +182,7 @@ export const studyResolvers = {
                 } else {
                     const availableTrees: IOntologyTree[] = [];
                     for (let i = trees.length - 1; i >= 0; i--) {
-                        if (availableDataVersions.includes(trees[i].dataVersion)
+                        if (availableDataVersions.includes(trees[i].dataVersion || '')
                             && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
                             availableTrees.push(trees[i]);
                         } else {
@@ -298,31 +305,14 @@ export const studyResolvers = {
         getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: any, studyId: string, versionId: string, projectId?: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_management, permissions.specific_project.specific_project_readonly_access],
-                requester,
-                studyId
-            );
-            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_project.specific_project_readonly_access],
+            const rolesObj = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
                 requester,
                 studyId,
                 projectId
             );
-            if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
-
-            // check data access permissions
-            // null: user will access all data; undefined: user should not access any data
-            let siteIDMarker: string | undefined | null = undefined;
-            if (requester.type === userTypes.ADMIN || !(await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_project.specific_project_data_own_organisation_only],
-                requester,
-                studyId,
-                projectId
-            ))) {
-                siteIDMarker = null;
-            } else {
-                siteIDMarker = (await db.collections!.organisations_collection.findOne({ id: requester.organisation }))?.metadata?.siteIDMarker;
+            if (!rolesObj) {
+                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // if the user has necessary permission, the latest field and data (including unversioned) will both be used to validate and returned;
@@ -330,17 +320,18 @@ export const studyResolvers = {
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             let availableDataVersions: any;
             // standard users can only access the data of the current version (in this case they shouldn't specify the versionids)
-            if (versionId === undefined || versionId === null) {
+            if (versionId === undefined) {
                 availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             } else {
-                if (hasPermission) {
-                    availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.dataVersions.map(el => el.id).indexOf(versionId))).map(el => el.id);
+                if (rolesObj.hasVersioned) {
+                    const versionIndex = versionId ? study.dataVersions.map(el => el.id).indexOf(versionId) : study.currentDataVersion;
+                    availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= versionIndex)).map(el => el.id);
                 } else {
                     throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
                 }
             }
             // get the fields list, this is to make sure that only data with valid fields are returned, method same as getStudyFields
-            const fieldRecords: any[] = (hasPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
+            const fieldRecords: any[] = (rolesObj.hasVersioned && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
                 $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
             }, {
                 $match: { studyId: studyId, dateDeleted: null }
@@ -373,26 +364,13 @@ export const studyResolvers = {
                 $sort: { fieldId: 1 }
             }
             ]).toArray();
-            // get ontology tree
-            const ontologyTree: IOntologyTree | null = study.ontologyTrees ? (study.ontologyTrees[0] ?? null) : null;
-            const fieldsIds: string[] = [];
-            if (!hasPermission) {
-                if (ontologyTree === null || ontologyTree.routes === undefined || ontologyTree.routes === null) {
-                    return { data: {} };
-                }
-                const ontologyFieldIds: string[] = [];
-                for (let i = 0; i < ontologyTree.routes?.length; i++) {
-                    ontologyTree.routes[i].field.length > 0 && ontologyFieldIds.push(ontologyTree.routes[i].field[0].replace('$', ''));
-                }
-                for (let i = 0; i < fieldRecords.length; i++) {
-                    ontologyFieldIds.includes(fieldRecords[i].fieldId) && fieldsIds.push(fieldRecords[i].fieldId);
-                }
-            } else {
-                for (let i = 0; i < fieldRecords.length; i++) {
-                    fieldsIds.push(fieldRecords[i].fieldId);
-                }
+            const queryStringWithMetadata = {
+                ...queryString
+            };
+            if (rolesObj.matchObj) {
+                queryStringWithMetadata.metadata = rolesObj.matchObj;
             }
-            const pipeline = buildPipeline(queryString, studyId, availableDataVersions, hasPermission && versionId === null, fieldsIds, siteIDMarker);
+            const pipeline = buildPipeline(queryStringWithMetadata, studyId, availableDataVersions, rolesObj);
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             // post processing the data
             // 1. update to the latest data; start from latest record
@@ -536,8 +514,9 @@ export const studyResolvers = {
         approvedFields: async (project: IProject, __unused__args: never, context: any): Promise<Record<string, any>> => {
             const requester: IUser = context.req.user;
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects.concat(task_required_permissions.access_project_data),
+            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
+                'own',
+                atomicOperation.READ,
                 requester,
                 project.studyId,
                 project.id
@@ -551,8 +530,9 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects.concat(task_required_permissions.access_project_data),
+            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
+                'own',
+                atomicOperation.READ,
                 requester,
                 project.studyId,
                 project.id
@@ -819,13 +799,6 @@ export const studyResolvers = {
             return [];
         },
         createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
-            // If base versions are specified, the new data version will conbine the data that either belongs to the dataVersion or null;
-            // All the data will be filtered by subjectIds and visitIds then if they are specified;
-            // e.g.
-            // only use data without version: baseVersions: null;  with filter: subjectIds: [...], visitIds: [...]
-            // create from a base: baseVersions: [...]
-            // If create a totally new version (i.e., can not be created by inherite from a base version), select all versions in baseVersions then use the filter;
-
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 

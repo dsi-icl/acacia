@@ -6,7 +6,7 @@ import { WHO_AM_I, DELETE_USER, EDIT_USER, GET_USERS, REQUEST_USERNAME_OR_RESET_
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
 import { ProjectSection } from './projectSection';
-import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm } from 'antd';
+import { Form, Input, Select, DatePicker, Button, Alert, Popconfirm, Checkbox } from 'antd';
 import dayjs from 'dayjs';
 import { WarningOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
@@ -108,7 +108,12 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     function formatSubmitObj(variables) {
         const final = {
             ...user,
-            ...variables,
+            organisation: variables.organisation,
+            type: variables.type,
+            metadata: {
+                ...user.metadata ?? {},
+                aePermission: variables.ae
+            },
             expiredAt: variables.expiredAt.valueOf()
         };
         delete final.access;
@@ -135,6 +140,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
             {(submit, { loading, error }) =>
                 <Form initialValues={{
                     ...user,
+                    ae: user.metadata?.aePermission ?? false,
                     createdAt: dayjs(user.createdAt),
                     expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.id
@@ -172,6 +178,9 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                             <Select.Option value='STANDARD'>System user</Select.Option>
                             <Select.Option value='ADMIN'>System admin</Select.Option>
                         </Select>
+                    </Form.Item>
+                    <Form.Item name='ae' label='Analytical Environment' valuePropName="checked">
+                        <Checkbox></Checkbox>
                     </Form.Item>
                     {error ? (
                         <>
