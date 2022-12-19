@@ -1,4 +1,4 @@
-import { ApolloError } from 'apollo-server-express';
+import { GraphQLError } from 'graphql';
 import { withFilter } from 'graphql-subscriptions';
 import { task_required_permissions, IJobEntryForDataCuration, IJobEntryForFieldCuration, IJobEntryForQueryCuration, IUser } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
@@ -28,7 +28,7 @@ export const jobResolvers = {
                 requester,
                 args.studyId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             const dataFormatToJobType = {
                 json: JOB_TYPE.DATA_UPLOAD_JSON,
@@ -41,7 +41,7 @@ export const jobResolvers = {
                 /* check if the file exists */
                 const file = await db.collections!.files_collection.findOne({ deleted: null, id: oneFile });
                 if (!file) {
-                    throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                    throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
                 }
 
                 /* check study exists */
@@ -52,7 +52,7 @@ export const jobResolvers = {
                 const dataFormat = parts[parts.length - 1] as keyof typeof dataFormatToJobType;
 
                 if (!dataFormatToJobType[dataFormat]) {
-                    throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                    throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
                 }
                 const job: IJobEntryForDataCuration = {
                     id: uuid(),
@@ -69,7 +69,7 @@ export const jobResolvers = {
                 const result = await db.collections!.jobs_collection.insertOne(job);
                 jobList.push(job);
                 if (!result.acknowledged) {
-                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                    throw new GraphQLError(errorCodes.DATABASE_ERROR);
                 }
             }
             return jobList;
@@ -83,12 +83,12 @@ export const jobResolvers = {
                 requester,
                 args.studyId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* check if the file exists */
             const file = await db.collections!.files_collection.findOne({ deleted: null, id: args.file });
             if (!file) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* check study exists */
@@ -96,7 +96,7 @@ export const jobResolvers = {
 
             /* check tag not undefined */
             if (args.tag === undefined) {
-                throw new ApolloError('Tag is not provided', errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError('Tag is not provided', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
 
             /* create job */
@@ -117,7 +117,7 @@ export const jobResolvers = {
 
             const result = await db.collections!.jobs_collection.insertOne(job);
             if (!result.acknowledged) {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                throw new GraphQLError(errorCodes.DATABASE_ERROR);
             }
             return job;
         },
@@ -131,7 +131,7 @@ export const jobResolvers = {
                 args.studyId,
                 args.projectId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* check study exists */
             await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
@@ -139,7 +139,7 @@ export const jobResolvers = {
             /* check if project exists */
             const projectExist = await db.collections!.projects_collection.findOne({ id: args.projectId });
             if (!projectExist) {
-                throw new ApolloError('Project does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Project does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
 
             /* check if the query exists */
@@ -147,7 +147,7 @@ export const jobResolvers = {
             // @ts-ignore
             const queryExist = await db.collections!.queries_collection.findOne({ id: args.queryId[0] });
             if (!queryExist) {
-                throw new ApolloError('Query does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Query does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
 
             const job: IJobEntryForQueryCuration = {
@@ -168,7 +168,7 @@ export const jobResolvers = {
             };
             const result = await db.collections!.jobs_collection.insertOne(job);
             if (!result.acknowledged) {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                throw new GraphQLError(errorCodes.DATABASE_ERROR);
             }
             return job;
         }

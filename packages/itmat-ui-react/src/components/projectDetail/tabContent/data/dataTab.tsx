@@ -217,7 +217,6 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             An error occured, please contact your administrator
         </div>;
     }
-    console.log(getDataRecordsData);
     // process the data
     const obj: any = {};
     const data = getDataRecordsData.getDataRecords.data;

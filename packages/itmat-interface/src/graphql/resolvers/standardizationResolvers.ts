@@ -1,7 +1,7 @@
 import { permissions, IProject, IStandardization, IUser } from '@itmat-broker/itmat-types';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
-import { ApolloError } from 'apollo-server-express';
+import { GraphQLError } from 'graphql';
 import { errorCodes } from '../errors';
 import { db } from '../../database/database';
 import { v4 as uuid } from 'uuid';
@@ -35,7 +35,7 @@ export const standardizationResolvers = {
                 projectId
             );
             if (!hasPermission && !hasProjectLevelPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             let standardizations: IStandardization[] = [];
@@ -64,13 +64,13 @@ export const standardizationResolvers = {
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* check study exists */
             const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
             if (studySearchResult === null || studySearchResult === undefined) {
-                throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             const stdRulesWithId: any[] = [...standardization.stdRules];
             stdRulesWithId.forEach(el => {
@@ -103,13 +103,13 @@ export const standardizationResolvers = {
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* check study exists */
             const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
             if (studySearchResult === null || studySearchResult === undefined) {
-                throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
 
             const result = await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, id: stdId }, {

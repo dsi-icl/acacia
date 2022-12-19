@@ -1,6 +1,6 @@
 import { db } from '../../database/database';
 import { ILogEntry, IUser, LOG_ACTION, userTypes } from '@itmat-broker/itmat-types';
-import { ApolloError } from 'apollo-server-errors';
+import { GraphQLError } from 'graphql';
 import { errorCodes } from '../errors';
 
 export const logResolvers = {
@@ -10,7 +10,7 @@ export const logResolvers = {
 
             /* only admin can access this field */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             const queryObj: Record<string, any> = {};

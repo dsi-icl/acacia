@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server-express';
+import gql from 'graphql-tag';
 
 export const typeDefs = gql`
 scalar JSON
@@ -198,6 +198,7 @@ type StudyOrProjectUserRole {
 
 type File {
     id: String!
+    uri: String!
     fileName: String!
     studyId: String!
     projectId: String

@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
-import { ApolloError } from 'apollo-server-core';
+import { GraphQLError } from 'graphql';
 import { IUser, IUserWithoutToken, userTypes, IOrganisation, IPubkey } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../errors';
@@ -11,7 +11,7 @@ export class UserCore {
     public async getOneUser_throwErrorIfNotExists(username: string): Promise<IUser> {
         const user = await db.collections!.users_collection.findOne({ deleted: null, username });
         if (user === undefined || user === null) {
-            throw new ApolloError('User does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            throw new GraphQLError('User does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
         return user;
     }
@@ -46,7 +46,7 @@ export class UserCore {
             delete cleared['otpSecret'];
             return cleared;
         } else {
-            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Database error', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 
@@ -75,7 +75,7 @@ export class UserCore {
             // undo any changes that might have happened
             await session.abortTransaction();
             session.endSession();
-            throw new ApolloError(`Database error: ${JSON.stringify(error)}`);
+            throw new GraphQLError(`Database error: ${JSON.stringify(error)}`);
         }
     }
 
@@ -99,7 +99,7 @@ export class UserCore {
         if (result.ok) {
             return entry;
         } else {
-            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Database error', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 
@@ -119,7 +119,7 @@ export class UserCore {
         if (result.acknowledged) {
             return entry;
         } else {
-            throw new ApolloError('Database error', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Database error', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 }

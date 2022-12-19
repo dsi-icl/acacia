@@ -46,9 +46,10 @@ if (global.hasMinio) {
         config.objectStore.port = global.minioContainerPort;
         config.database.mongo_url = connectionString;
         config.database.database = dbName;
-        await db.connect(config.database, MongoClient.connect as any);
+        await db.connect(config.database, MongoClient);
         await objStore.connect(config.objectStore);
         const router = new Router(config);
+        await router.init();
 
         /* Connect mongo client (for test setup later / retrieve info later) */
         mongoConnection = await MongoClient.connect(connectionString);
@@ -187,7 +188,8 @@ if (global.hasMinio) {
                     const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
+                    const { uploadTime, uri, ...uploadFile } = res.body.data.uploadFile;
+                    expect(uri).toBeDefined();
                     expect(uploadTime).toBeDefined();
                     expect(uploadFile).toEqual({
                         id: createdFile.id,
@@ -221,7 +223,8 @@ if (global.hasMinio) {
                     const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'RandomFile.txt', studyId: createdStudyAny.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
+                    const { uploadTime, uri, ...uploadFile } = res.body.data.uploadFile;
+                    expect(uri).toBeDefined();
                     expect(uploadTime).toBeDefined();
                     expect(uploadFile).toEqual({
                         id: createdFile.id,
@@ -277,7 +280,8 @@ if (global.hasMinio) {
                     const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
+                    const { uploadTime, uri, ...uploadFile } = res.body.data.uploadFile;
+                    expect(uri).toBeDefined();
                     expect(uploadTime).toBeDefined();
                     expect(uploadFile).toEqual({
                         id: createdFile.id,
@@ -311,7 +315,8 @@ if (global.hasMinio) {
                     const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'IR6R4AR-AX6VJH6F6-20200601-20200703.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
-                    const { uploadTime, ...uploadFile } = res.body.data.uploadFile;
+                    const { uploadTime, uri, ...uploadFile } = res.body.data.uploadFile;
+                    expect(uri).toBeDefined();
                     expect(uploadTime).toBeDefined();
                     expect(uploadFile).toEqual({
                         id: createdFile.id,
@@ -333,7 +338,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: 'just a file 3.',
+                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
                                 fileLength: 21,
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a4'
                             }
@@ -370,26 +375,6 @@ if (global.hasMinio) {
                     expect(res.body.data.uploadFile).toEqual(null);
                 });
 
-                test('File description mismatch with file name', async () => {
-                    /* test: upload file */
-                    const res = await admin.post('/graphql')
-                        .field('operations', JSON.stringify({
-                            query: print(UPLOAD_FILE),
-                            variables: {
-                                studyId: createdStudy.id,
-                                file: null,
-                                description: JSON.stringify({ participantId: '27N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
-                                fileLength: 21
-                            }
-                        }))
-                        .field('map', JSON.stringify({ 1: ['variables.file'] }))
-                        .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
-
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe('File description is invalid');
-                    expect(res.body.data.uploadFile).toEqual(null);
-                });
             });
 
             describe('DOWNLOAD FILES', () => {
@@ -419,7 +404,7 @@ if (global.hasMinio) {
                     });
 
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
-                    await admin.post('/graphql')
+                    const res = await admin.post('/graphql')
                         .field('operations', JSON.stringify({
                             query: print(UPLOAD_FILE),
                             variables: {
@@ -434,7 +419,7 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
 
                     /* setup: geting the created file Id */
-                    createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
+                    createdFile = res.body.data.uploadFile;
                     if (!createdFile)
                         throw 'Test file could not be retreived.';
 

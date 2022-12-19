@@ -27,7 +27,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
     /* Wiring up the backend server */
     config.database.mongo_url = connectionString;
     config.database.database = dbName;
-    await db.connect(config.database, MongoClient.connect as any);
+    await db.connect(config.database, MongoClient);
 
     /* Connect mongo client (for test setup later / retrieve info later) */
     mongoConnection = await MongoClient.connect(connectionString);

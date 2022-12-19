@@ -4,6 +4,7 @@ export const UPLOAD_FILE = gql`
     mutation uploadFile($studyId: String!, $file: Upload!, $description: String!, $fileLength: BigInt, $hash: String) {
         uploadFile(studyId: $studyId, description: $description, file: $file, fileLength: $fileLength, hash: $hash) {
             id
+            uri
             fileName
             studyId
             projectId

@@ -2,23 +2,31 @@
 import { Express } from 'express';
 import { Socket } from 'net';
 import http from 'http';
-import ITMATInterfaceServer from './interfaceServer';
+import ITMATInterfaceRunner from './interfaceRunner';
 import config from './utils/configManager';
 
-let interfaceServer = new ITMATInterfaceServer(config);
+let interfaceRunner = new ITMATInterfaceRunner(config);
 let interfaceSockets: Socket[] = [];
-let interfaceSocket: http.Server;
+let interfaceServer: http.Server;
 let interfaceRouter: Express;
 
 function serverStart() {
     console.info(`Starting api server ${process.pid} ...`);
-    interfaceServer.start().then((itmatRouter) => {
+    interfaceRunner.start().then((itmatRouter) => {
 
-        interfaceRouter = itmatRouter.getApp();
-        interfaceSocket = interfaceRouter.listen(config.server.port, () => {
+        interfaceServer = itmatRouter.getServer();
+        interfaceServer.timeout = 0;
+        interfaceServer.headersTimeout = 0;
+        interfaceServer.requestTimeout = 0;
+        interfaceServer.keepAliveTimeout = 1000 * 60 * 60 * 24 * 5;
+        interfaceServer.listen(config.server.port, () => {
             console.info(`Listening at http://localhost:${config.server.port}/`);
         })
             .on('connection', (socket) => {
+                socket.setKeepAlive(true);
+                socket.setNoDelay(true);
+                socket.setTimeout(0);
+                (socket as any).timeout = 0;
                 interfaceSockets.push(socket);
             })
             .on('error', (error) => {
@@ -30,12 +38,13 @@ function serverStart() {
 
         const interfaceRouterProxy = itmatRouter.getProxy();
         if (interfaceRouterProxy?.upgrade)
-            interfaceSocket.on('upgrade', interfaceRouterProxy?.upgrade);
+            interfaceServer.on('upgrade', interfaceRouterProxy?.upgrade);
 
     }).catch((error) => {
         console.error('An error occurred while starting the ITMAT core.', error);
         if (error.stack)
             console.error(error.stack);
+        setTimeout(serverStart, 5000);
         return false;
     });
 }
@@ -44,13 +53,13 @@ function serverSpinning() {
 
     if (interfaceRouter !== undefined) {
         console.info('Renewing api server ...');
-        interfaceServer = new ITMATInterfaceServer(config);
+        interfaceRunner = new ITMATInterfaceRunner(config);
         console.info(`Destroying ${interfaceSockets.length} sockets ...`);
         interfaceSockets.forEach((socket) => {
             socket.destroy();
         });
         interfaceSockets = [];
-        interfaceSocket.close(() => {
+        interfaceServer.close(() => {
             console.info(`Shuting down api server ${process.pid} ...`);
             interfaceRouter?.on('close', () => {
                 serverStart();
@@ -66,7 +75,7 @@ serverSpinning();
 declare const module: any;
 if (module.hot) {
     module.hot.accept('./index', serverSpinning);
-    module.hot.accept('./interfaceServer', serverSpinning);
+    module.hot.accept('./interfaceRunner', serverSpinning);
     module.hot.accept('./index.ts', serverSpinning);
-    module.hot.accept('./interfaceServer.ts', serverSpinning);
+    module.hot.accept('./interfaceRunner.ts', serverSpinning);
 }
