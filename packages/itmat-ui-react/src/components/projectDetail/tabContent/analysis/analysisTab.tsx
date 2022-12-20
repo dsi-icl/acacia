@@ -118,7 +118,7 @@ const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fiel
             }>
                 <Modal
                     title={popoverContents[guideTool[0]]?.title || ''}
-                    visible={guideTool[0] === 0}
+                    open={guideTool[0] === 0}
                     onOk={() => guideTool[1](guideTool[0] + 1)}
                     onCancel={() => guideTool[1](-1)}
                     okText={'Continue'}
@@ -218,7 +218,7 @@ const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fiel
                 </div>}>
                 <Modal
                     title={'Template'}
-                    visible={isTemplateModalOn}
+                    open={isTemplateModalOn}
                     width={1000}
                     onOk={() => {
                         setIsTemplateModalOn(false);
@@ -250,7 +250,7 @@ const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fiel
                 </Modal>
                 <Modal
                     title={'Filters'}
-                    visible={isModalOn}
+                    open={isModalOn}
                     width={1000}
                     style={{ top: 200 }}
                     onOk={() => {

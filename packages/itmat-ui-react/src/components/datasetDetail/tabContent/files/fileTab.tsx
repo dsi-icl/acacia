@@ -553,7 +553,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         }
                     </Space>}
                 >
-                    <Modal visible={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'100%'}>
+                    <Modal open={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'100%'}>
                         <div>Number of files associated to sites and device types.</div><br />
                         <Table
                             pagination={false}
