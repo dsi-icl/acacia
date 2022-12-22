@@ -144,7 +144,7 @@
         "react-dropzone": "14.2.3",
         "react-helmet-async": "1.3.0",
         "react-highlight-words": "0.18.0",
-        "react-router-dom": "6.5.0",
+        "react-router-dom": "6.6.0",
         "regenerator-runtime": "0.13.11",
         "sanitize-filename": "1.6.3",
         "stream-browserify": "3.0.0",
