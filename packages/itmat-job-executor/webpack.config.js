@@ -2,7 +2,7 @@ const path = require('node:path');
 
 const getWebpackConfig = (config) => {
 
-    config.entry.executor = [path.resolve(__dirname, 'src/jobExecutorServer.ts')];
+    config.entry.executor = [path.resolve(__dirname, 'src/jobExecutorRunner.ts')];
 
     config.externals = [{
         'bcrypt': 'commonjs bcrypt',

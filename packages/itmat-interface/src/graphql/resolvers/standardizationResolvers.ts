@@ -1,7 +1,7 @@
-import { permissions, IProject, IStandardization, IUser } from '@itmat-broker/itmat-types';
+import { IProject, IStandardization, IUser, atomicOperation } from '@itmat-broker/itmat-types';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
-import { ApolloError } from 'apollo-server-express';
+import { GraphQLError } from 'graphql';
 import { errorCodes } from '../errors';
 import { db } from '../../database/database';
 import { v4 as uuid } from 'uuid';
@@ -10,10 +10,11 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 export const standardizationResolvers = {
     Query: {
         getStandardization: async (__unused__parent: Record<string, unknown>, { studyId, projectId, type, versionId }: { studyId: string, projectId: string, type: string, versionId: string }, context: any): Promise<IStandardization[]> => {
+            const requester: IUser = context.req.user;
             let modifiedStudyId = studyId;
             /* check study exists */
             if (!studyId && !projectId) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, 'Either studyId or projectId should be provided.');
+                throw new GraphQLError('Either studyId or projectId should be provided.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             if (studyId) {
                 await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
@@ -22,23 +23,21 @@ export const standardizationResolvers = {
                 const project: IProject = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
                 modifiedStudyId = project.studyId;
             }
-            const requester: IUser = context.req.user;
-            /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
-                requester,
-                modifiedStudyId
-            );
 
-            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_project.specific_project_readonly_access],
+            /* check permission */
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
                 requester,
-                modifiedStudyId,
+                studyId
+            );
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                studyId,
                 projectId
             );
-            if (!hasPermission && !hasProjectLevelPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
-            }
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(modifiedStudyId);
             let availableTypes: string[] = [];
             if (type) {
@@ -48,10 +47,10 @@ export const standardizationResolvers = {
             }
             // get all dataVersions that are valid (before/equal the current version)
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            const standardizations = (hasPermission && versionId === null) ? await db.collections!.standardizations_collection.aggregate([{
+            const standardizations = (hasStudyLevelPermission && versionId === null) ? await db.collections!.standardizations_collection.aggregate([{
                 $sort: { uploadedAt: -1 }
             }, {
-                $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
+                $match: { dataVersion: null }
             }, {
                 $match: { studyId: studyId, type: { $in: availableTypes } }
             }, {
@@ -60,7 +59,7 @@ export const standardizationResolvers = {
                         type: '$type',
                         field: '$field'
                     },
-                    doc: { $first: '$$ROOT' }
+                    doc: { $last: '$$ROOT' }
                 }
             }, {
                 $replaceRoot: { newRoot: '$doc' }
@@ -92,24 +91,26 @@ export const standardizationResolvers = {
         createStandardization: async (__unused__parent: Record<string, unknown>, { studyId, standardization }: { studyId: string, standardization: any }, context: any): Promise<IStandardization> => {
             const requester: IUser = context.req.user;
             /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_management],
+            const hasPermission = await permissionCore.userHasDataWritePermission(
                 requester,
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* check study exists */
             const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
             if (studySearchResult === null || studySearchResult === undefined) {
-                throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             const stdRulesWithId: any[] = [...standardization.stdRules];
             stdRulesWithId.forEach(el => {
                 el.id = uuid();
             });
+            if (!(permissionCore.checkDataEntryValid(hasPermission, standardization.field[0].slice(1)))) {
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
+            }
             const standardizationEntry: IStandardization = {
                 id: uuid(),
                 studyId: studyId,
@@ -134,25 +135,26 @@ export const standardizationResolvers = {
         deleteStandardization: async (__unused__parent: Record<string, unknown>, { studyId, type, field }: { studyId: string, type: string, field: string[] }, context: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
             /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_management],
+            const hasPermission = await permissionCore.userHasDataWritePermission(
                 requester,
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
-
+            if (!(permissionCore.checkDataEntryValid(hasPermission, field[0].slice(1)))) {
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
+            }
             /* check study exists */
             const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
             if (studySearchResult === null || studySearchResult === undefined) {
-                throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
 
             // check type exists
             const types: string[] = await db.collections!.standardizations_collection.distinct('type', { studyId: studyId, deleted: null });
             if (!types.includes(type)) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, 'Type does not exist.');
+                throw new GraphQLError('Type does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             const result = await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, field: field, type: type, dataVersion: null }, {
                 $set: {

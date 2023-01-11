@@ -5,6 +5,7 @@
     ],
     "ignorePatterns": [
         "!**/*",
+        "node_modules",
         "msrCrypto.js"
     ],
     "overrides": [

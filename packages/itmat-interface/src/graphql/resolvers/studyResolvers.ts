@@ -1,8 +1,5 @@
-import { ApolloError } from 'apollo-server-express';
-import { Document, Filter } from 'mongodb';
+import { GraphQLError } from 'graphql';
 import {
-    permissions,
-    task_required_permissions,
     IProject,
     IStudy,
     IStudyDataVersion,
@@ -17,7 +14,8 @@ import {
     IOntologyTree,
     userTypes,
     IGeneralError,
-    atomicOperation
+    atomicOperation,
+    IPermissionManagementOptions
 } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -26,7 +24,7 @@ import { validateAndGenerateFieldEntry } from '../core/fieldCore';
 import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
-import { buildPipeline } from '../../utils/query';
+import { buildPipeline, translateMetadata } from '../../utils/query';
 import { dataStandardization } from '../../utils/query';
 
 export const studyResolvers = {
@@ -37,16 +35,16 @@ export const studyResolvers = {
 
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
-                'own',
+                IPermissionManagementOptions.own,
                 atomicOperation.READ,
                 requester,
                 studyId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
-            const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
-            if (!study) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
+            if (study === null || study === undefined) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             return study;
@@ -58,11 +56,11 @@ export const studyResolvers = {
             /* get project */ // defer patientMapping since it's costly and not available to all users
             const project = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
             if (!project)
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
 
             /* check if user has permission */
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
-                'own',
+                IPermissionManagementOptions.own,
                 atomicOperation.READ,
                 requester,
                 project.studyId,
@@ -70,12 +68,12 @@ export const studyResolvers = {
             );
 
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
-                'own',
+                IPermissionManagementOptions.own,
                 atomicOperation.READ,
                 requester,
                 project.studyId
             );
-            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             return project;
         },
@@ -93,49 +91,82 @@ export const studyResolvers = {
                 studyId,
                 projectId
             );
-            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
-
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+            // get all dataVersions that are valid (before the current version)
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-            let availableDataVersions: string[];
-            if (versionId === undefined || !hasStudyLevelPermission) {
-                availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            } else {
-                if (hasStudyLevelPermission && hasStudyLevelPermission.hasVersioned) {
-                    const versionIndex = versionId ? study.dataVersions.map(el => el.id).indexOf(versionId) : study.currentDataVersion;
-                    availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= versionIndex)).map(el => el.id);
-                } else {
-                    throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
-                }
-            }
+            const aggregatedPermissions: any = permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
 
-            const fieldRecords = (hasStudyLevelPermission && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
-                $sort: { dateAdded: -1 }
-            }, {
-                $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
-            }, {
-                $match: { studyId: studyId }
-            }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $first: '$$ROOT' }
-                }
+            // the processes of requiring versioned data and unversioned data are different
+            // check the metadata:role:**** for versioned data directly
+            // check the regular expressions for unversioned data
+            if (requester.type === userTypes.ADMIN) {
+                const availableDataVersions: Array<string | null> = versionId !== undefined ? [versionId] :
+                    (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+                const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }]).toArray();
+                return fieldRecords;
             }
-            ]).toArray() : await db.collections!.field_dictionary_collection.aggregate([{
-                $sort: { dateAdded: -1 }
-            }, {
-                $match: { dataVersion: { $in: availableDataVersions } }
-            }, {
-                $match: { studyId: studyId }
-            }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $first: '$$ROOT' }
-                }
+            if (versionId === null && aggregatedPermissions.hasVersioned) {
+                const availableDataVersions: null[] = [versionId];
+                const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
+                }, {
+                    $match: {
+                        fieldId: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) }
+                    }
+                }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }]).toArray();
+                return fieldRecords;
+            } else {
+                const availableDataVersions: string[] = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+                // metadata filter
+                const subqueries: any = [];
+                aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
+                    subqueries.push(translateMetadata(subMetadata));
+                });
+                const metadataFilter = { $or: subqueries };
+                const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                }, { $match: metadataFilter }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }, {
+                    $set: { metadata: null }
+                }]).toArray();
+                return fieldRecords;
             }
-            ]).toArray();
-            return fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
         },
-        getOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, projectId, treeName, versionId }: { studyId: string, projectId: string, treeName?: string, versionId?: string }, context: any): Promise<IOntologyTree[]> => {
+        getOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, projectId, treeName, versionId }: { studyId: string, projectId?: string, treeName?: string, versionId?: string }, context: any): Promise<IOntologyTree[]> => {
             /* get studyId by parameter or project */
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             if (projectId) {
@@ -145,26 +176,28 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
-                requester,
-                studyId
-            );
-            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_project.specific_project_readonly_access],
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.ontologyTrees,
+                atomicOperation.READ,
                 requester,
                 studyId,
                 projectId
             );
-            if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.ontologyTrees,
+                atomicOperation.READ,
+                requester,
+                studyId
+            );
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-
             if (study.ontologyTrees === undefined) {
                 return [];
             } else {
                 const trees: IOntologyTree[] = study.ontologyTrees;
-                if (hasPermission && versionId === null) {
+                if (hasStudyLevelPermission && versionId === null) {
                     const availableTrees: IOntologyTree[] = [];
                     for (let i = trees.length - 1; i >= 0; i--) {
                         if ((trees[i].dataVersion === null || availableDataVersions.includes(trees[i].dataVersion || ''))
@@ -199,30 +232,33 @@ export const studyResolvers = {
         },
         checkDataComplete: async (__unused__parent: Record<string, unknown>, { studyId }: { studyId: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
-
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_management],
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
                 requester,
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
-            const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             // we only check data that hasnt been pushed to a new data version
-            const data: any[] = await db.collections!.data_collection.find({ m_studyId: studyId, m_versionId: null }).toArray();
+            const data: any[] = await db.collections!.data_collection.find({
+                m_studyId: studyId,
+                m_versionId: null,
+                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
+            }).toArray();
             const fieldMapping = (await db.collections!.field_dictionary_collection.aggregate([{
-                $sort: { dateAdded: -1 }
-            }, {
-                $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
-            }, {
                 $match: { studyId: studyId }
+            }, {
+                $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } }
+            }, {
+                $sort: { dateAdded: -1 }
             }, {
                 $group: {
                     _id: '$fieldId',
-                    doc: { $first: '$$ROOT' }
+                    doc: { $last: '$$ROOT' }
                 }
             }
             ]).toArray()).map(el => el.doc).filter(eh => eh.dateDeleted === null).reduce((acc, curr) => {
@@ -305,73 +341,102 @@ export const studyResolvers = {
         getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: any, studyId: string, versionId: string, projectId?: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
-            const rolesObj = await permissionCore.userHasTheNeccessaryDataPermission(
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                studyId
+            );
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
                 requester,
                 studyId,
                 projectId
             );
-            if (!rolesObj) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
-            }
-
-            // if the user has necessary permission, the latest field and data (including unversioned) will both be used to validate and returned;
-            // else only the latest versioned field and data will be used
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+            // get all dataVersions that are valid (before the current version)
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-            let availableDataVersions: any;
-            // standard users can only access the data of the current version (in this case they shouldn't specify the versionids)
-            if (versionId === undefined) {
-                availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const aggregatedPermissions: any = permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
+
+            let availableDataVersions: Array<string | null>;
+            let fieldRecords: any[];
+            let result: any;
+            let metadataFilter: any = undefined;
+            if (requester.type === userTypes.ADMIN) {
+                availableDataVersions = versionId !== undefined ? [versionId] :
+                    (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+                fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }]).toArray();
+                const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, undefined, true);
+                result = await db.collections!.data_collection.aggregate(pipeline).toArray();
+            } else if (versionId === null && aggregatedPermissions.hasVersioned) {
+                availableDataVersions = [versionId];
+                fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                }, {
+                    $match: {
+                        subjectIds: { $in: aggregatedPermissions.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                        visitIds: { $in: aggregatedPermissions.raw.visitIds.map((el: string) => new RegExp(el)) },
+                        fieldIds: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) }
+                    }
+                }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }]).toArray();
+                const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, undefined, false);
+                result = await db.collections!.data_collection.aggregate(pipeline).toArray();
+
             } else {
-                if (rolesObj.hasVersioned) {
-                    const versionIndex = versionId ? study.dataVersions.map(el => el.id).indexOf(versionId) : study.currentDataVersion;
-                    availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= versionIndex)).map(el => el.id);
-                } else {
-                    throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+                // metadata filter
+                const subqueries: any = [];
+                aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
+                    subqueries.push(translateMetadata(subMetadata));
+                });
+                metadataFilter = { $or: subqueries };
+                console.log(JSON.stringify(metadataFilter));
+                console.log(await db.collections!.field_dictionary_collection.find({}).toArray());
+                fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                }, { $match: metadataFilter }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }]).toArray();
+                console.log(availableDataVersions);
+                console.log(fieldRecords);
+                if (queryString.metadata) {
+                    metadataFilter = { $and: [{ $or: subqueries }, { $and: queryString.metadata.map((el: any) => translateMetadata(el)) }] };
                 }
+                const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false);
+                result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             }
-            // get the fields list, this is to make sure that only data with valid fields are returned, method same as getStudyFields
-            const fieldRecords: any[] = (rolesObj.hasVersioned && versionId === null) ? await db.collections!.field_dictionary_collection.aggregate([{
-                $match: { $or: [{ dataVersion: null }, { dataVersion: { $in: availableDataVersions } }] }
-            }, {
-                $match: { studyId: studyId, dateDeleted: null }
-            }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $last: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }, {
-                $sort: { fieldId: 1 }
-            }
-            ]).toArray() : await db.collections!.field_dictionary_collection.aggregate([{
-                $match: { dataVersion: { $in: availableDataVersions } }
-            }, {
-                $match: { studyId: studyId, dateDeleted: null }
-            }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $last: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }, {
-                $sort: { fieldId: 1 }
-            }
-            ]).toArray();
-            const queryStringWithMetadata = {
-                ...queryString
-            };
-            if (rolesObj.matchObj) {
-                queryStringWithMetadata.metadata = rolesObj.matchObj;
-            }
-            const pipeline = buildPipeline(queryStringWithMetadata, studyId, availableDataVersions, rolesObj);
-            const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             // post processing the data
             // 1. update to the latest data; start from latest record
             const groupedResult: any = {};
@@ -408,33 +473,96 @@ export const studyResolvers = {
         },
         files: async (study: IStudy, __unused__args: never, context: any): Promise<Array<IFile>> => {
             const requester: IUser = context.req.user;
-            if (requester.type === userTypes.ADMIN || !(await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_own_organisation_only],
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
                 requester,
                 study.id
-            ))) {
-                return await db.collections!.files_collection.find({ studyId: study.id, deleted: null }).toArray();
-            } else {
-                const siteIDMarker: string | undefined = (await db.collections!.organisations_collection.findOne({ id: requester.organisation }))?.metadata?.siteIDMarker;
-                if (!siteIDMarker) {
-                    return [];
-                } else {
-                    return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, fileName: { $regex: new RegExp('^' + siteIDMarker + '(.{6})-(.{3})(.{6})-(\\d{8})-(\\d{8})\\.(.*)$') } }).toArray();
+            );
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
+                $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+            }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $last: '$$ROOT' }
                 }
-            }
-
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
+                }
+            }, {
+                $sort: { fieldId: 1 }
+            }]).toArray()).map(el => el.fieldId);
+            const fileIds = (await db.collections!.data_collection.aggregate([{
+                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+            }, {
+                $group: {
+                    _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId' },
+                    doc: { $last: '$$ROOT' }
+                }
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
+                }
+            }]).toArray()).map(el => el.value);
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, id: { $in: fileIds } }).toArray();
         },
-        subjects: async (study: IStudy): Promise<string[]> => {
-            return study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id });
+        subjects: async (study: IStudy, __unused__args: never, context: any): Promise<string[]> => {
+            const requester: IUser = context.req.user;
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                study.id
+            );
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            return study.currentDataVersion === -1 ? [] : (await db.collections!.data_collection.distinct('m_subjectId', {
+                m_studyId: study.id,
+                m_versionId: { $in: availableDataVersions },
+                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+                value: { $ne: null }
+            })).sort();
         },
-        visits: async (study: IStudy): Promise<string[]> => {
-            return study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_visitId', { m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id });
+        visits: async (study: IStudy, __unused__args: never, context: any): Promise<string[]> => {
+            const requester: IUser = context.req.user;
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                study.id
+            );
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            return study.currentDataVersion === -1 ? [] : (await db.collections!.data_collection.distinct('m_visitId', {
+                m_studyId: study.id,
+                m_versionId: { $in: availableDataVersions },
+                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+                value: { $ne: null }
+            })).sort();
         },
-        numOfRecords: async (study: IStudy): Promise<number> => {
+        numOfRecords: async (study: IStudy, __unused__args: never, context: any): Promise<number> => {
+            const requester: IUser = context.req.user;
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                study.id
+            );
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             if (study.currentDataVersion === -1) {
                 return 0;
             }
-            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.find({ m_studyId: study.id, m_versionId: study.dataVersions[study.currentDataVersion].id }).toArray()).length;
+            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.aggregate([{
+                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, value: { $ne: null } }
+            }, {
+                $match: {
+                    m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                    m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                    m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
+                }
+            }, {
+                $group: { _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId' } }
+            }]).toArray()).length;
         },
         currentDataVersion: async (study: IStudy): Promise<null | number> => {
             return study.currentDataVersion === -1 ? null : study.currentDataVersion;
@@ -449,23 +577,8 @@ export const studyResolvers = {
         jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IJobEntry<any>>> => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
         },
-        files: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<Array<IFile>> => {
-            const requester: IUser = context.req.user;
-            if (requester.type === userTypes.ADMIN || !(await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_project.specific_project_data_own_organisation_only],
-                requester,
-                project.studyId,
-                project.id
-            ))) {
-                return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
-            } else {
-                const siteIDMarker: string | undefined = (await db.collections!.organisations_collection.findOne({ id: requester.organisation }))?.metadata?.siteIDMarker;
-                if (!siteIDMarker) {
-                    return [];
-                } else {
-                    return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null, fileName: { $regex: new RegExp('^' + siteIDMarker + '(.{6})-(.{3})(.{6})-(\\d{8})-(\\d{8})\\.(.*)$') } }).toArray();
-                }
-            }
+        files: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IFile>> => {
+            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
         },
         dataVersion: async (project: IProject): Promise<IStudyDataVersion | null> => {
             const study = await db.collections!.studies_collection.findOne({ id: project.studyId, deleted: null });
@@ -477,26 +590,89 @@ export const studyResolvers = {
             }
             return study.dataVersions[study?.currentDataVersion];
         },
-        summary: async (project: IProject): Promise<any> => {
+        summary: async (project: IProject, __unused__args: never, context: any): Promise<any> => {
             const summary: any = {};
             const study = await db.collections!.studies_collection.findOne({ id: project.studyId });
             if (study === undefined || study === null || study.currentDataVersion === -1) {
                 return summary;
             }
-            const availableDataVersions: Array<string | null> = study.dataVersions.filter(el => study.dataVersions.indexOf(el) <= study.currentDataVersion).map(es => es.id);
-            summary['subjects'] = study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_subjectId', { m_studyId: study.id, m_versionId: { $in: availableDataVersions } } as Filter<Document>);
-            summary['visits'] = study.currentDataVersion === -1 ? [] : await db.collections!.data_collection.distinct('m_visitId', { m_studyId: study.id, m_versionId: { $in: availableDataVersions } } as Filter<Document>);
+
+            const requester: IUser = context.req.user;
+            /* user can get study if he has readonly permission */
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                project.studyId
+            );
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                project.studyId,
+                project.id
+            );
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+            // get all dataVersions that are valid (before the current version)
+            const aggregatedPermissions: any = permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
+
+            let metadataFilter: any = undefined;
+
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            // metadata filter
+            let fieldRecords;
+            if (requester.type === userTypes.ADMIN) {
+                fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }]).toArray();
+            } else {
+                const subqueries: any = [];
+                aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
+                    subqueries.push(translateMetadata(subMetadata));
+                });
+                metadataFilter = { $or: subqueries };
+
+                fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                }, { $match: metadataFilter }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }]).toArray();
+            }
+            const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, false);
+            const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
+
+
+            summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId)));
+            summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId)));
             return summary;
         },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.access_study_data,  // patientMapping is not visible to project users; only to study users.
+            if (!(await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,  // patientMapping is not visible to project users; only to study users.
                 requester,
                 project.studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* returning */
@@ -515,13 +691,13 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
-                'own',
+                IPermissionManagementOptions.own,
                 atomicOperation.READ,
                 requester,
                 project.studyId,
                 project.id
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             return project.approvedFields;
@@ -531,13 +707,13 @@ export const studyResolvers = {
 
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
-                'own',
+                IPermissionManagementOptions.own,
                 atomicOperation.READ,
                 requester,
                 project.studyId,
                 project.id
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             return project.approvedFiles;
@@ -560,7 +736,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* create study */
@@ -572,7 +748,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* create study */
@@ -583,13 +759,12 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
             /* check privileges */
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_management],
+            const hasPermission = await permissionCore.userHasDataWritePermission(
                 requester,
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check study exists
@@ -607,12 +782,15 @@ export const studyResolvers = {
             for (const oneFieldInput of filteredFieldInput) {
                 isError = false;
                 // check data valid
+                if (!(permissionCore.checkDataEntryValid(hasPermission, oneFieldInput.fieldId))) {
+                    isError = true;
+                    error.push({ code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have permissions to create this field.' });
+                }
                 const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput, requester);
                 if (thisError.length !== 0) {
                     error.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
                     isError = true;
                 }
-
                 // // construct the rest of the fields
                 if (!isError) {
                     fieldEntry.id = uuid();
@@ -636,20 +814,20 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check fieldId exist
             const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldInput.fieldId, dateDeleted: null });
             if (!searchField) {
-                throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Field does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             for (const each of Object.keys(fieldInput) as Array<keyof IFieldEntry>) {
                 searchField[each] = fieldInput[each];
             }
             const { fieldEntry, error } = validateAndGenerateFieldEntry(searchField, requester);
             if (error.length !== 0) {
-                throw new ApolloError(JSON.stringify(error), errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError(JSON.stringify(error), { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
             const newFieldEntry = { ...fieldEntry, id: searchField.id, dateAdded: searchField.dateAdded, deleted: searchField.dateDeleted, studyId: searchField.studyId };
             await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: newFieldEntry.fieldId }, { $set: newFieldEntry });
@@ -660,18 +838,22 @@ export const studyResolvers = {
         deleteField: async (__unused__parent: Record<string, unknown>, { studyId, fieldId }: { studyId: string, fieldId: string }, context: any): Promise<IFieldEntry> => {
             const requester: IUser = context.req.user;
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
+            const hasPermission = await permissionCore.userHasDataWritePermission(
                 requester,
                 studyId
-            ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+            );
+            if (!hasPermission) {
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
+            }
+
+            if (!(await permissionCore.checkDataEntryValid(hasPermission, fieldId))) {
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check fieldId exist
             const searchField = await db.collections!.field_dictionary_collection.find({ studyId: studyId, fieldId: fieldId }).limit(1).sort({ dateAdded: -1 }).toArray();
             if (searchField.length === 0 || searchField[0].dateDeleted !== null) {
-                throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Field does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
 
             const fieldEntry: any = {
@@ -708,13 +890,12 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
             /* check privileges */
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_management],
+            const hasPermission = await permissionCore.userHasDataWritePermission(
                 requester,
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // find the fieldsList, including those that have not been versioned, same method as getStudyFields
@@ -735,7 +916,7 @@ export const studyResolvers = {
             ]).toArray();
             // filter those that have been deleted
             const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
-            const errors = (await studyCore.uploadOneDataClip(studyId, fieldsList, data, requester));
+            const errors = (await studyCore.uploadOneDataClip(studyId, hasPermission, fieldsList, data, requester));
 
             return errors;
         },
@@ -745,13 +926,12 @@ export const studyResolvers = {
 
             const requester: IUser = context.req.user;
             /* check privileges */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_management],
+            const hasPermission = await permissionCore.userHasDataWritePermission(
                 requester,
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             let validSubjects: any;
@@ -778,6 +958,9 @@ export const studyResolvers = {
             for (const subjectId of validSubjects) {
                 for (const visitId of validVisits) {
                     for (const fieldId of validFields) {
+                        if (!(await permissionCore.checkDataEntryValid(hasPermission, fieldId, subjectId, visitId))) {
+                            continue;
+                        }
                         bulk.find({ m_studyId: studyId, m_subjectId: subjectId, m_visitId: visitId, m_fieldId: fieldId, m_versionId: null }).upsert().updateOne({
                             $set: {
                                 m_studyId: studyId,
@@ -806,17 +989,17 @@ export const studyResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check dataVersion name valid
             if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(dataVersion)) {
-                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
 
             const created = await studyCore.createNewDataVersion(studyId, tag, dataVersion);
             if (created === null) {
-                throw new ApolloError('No matched or modified records', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('No matched or modified records', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             return created;
         },
@@ -827,12 +1010,13 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_management],
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.ontologyTrees,
+                atomicOperation.WRITE,
                 requester,
                 studyId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             // in case of old documents whose ontologyTrees are invalid
             if (study.ontologyTrees === undefined || ontologyTree === null) {
@@ -880,12 +1064,13 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_data_management],
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.ontologyTrees,
+                atomicOperation.WRITE,
                 requester,
                 studyId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             const resultAdd = await db.collections!.studies_collection.findOneAndUpdate({
                 id: studyId, deleted: null, ontologyTrees: {
@@ -917,7 +1102,7 @@ export const studyResolvers = {
             if ((resultAdd.ok === 1 && resultAdd.value) || (resultUpdate.ok === 1 && resultUpdate.value)) {
                 return makeGenericReponse(treeName);
             } else {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                throw new GraphQLError(errorCodes.DATABASE_ERROR);
             }
 
         },
@@ -925,12 +1110,13 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.own,
+                atomicOperation.WRITE,
                 requester,
                 studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* making sure that the study exists first */
@@ -946,12 +1132,13 @@ export const studyResolvers = {
             const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
 
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.own,
+                atomicOperation.WRITE,
                 requester,
                 project.studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* delete project */
@@ -963,7 +1150,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
@@ -972,7 +1159,7 @@ export const studyResolvers = {
                 /* delete study */
                 await studyCore.deleteStudy(studyId);
             } else {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             return makeGenericReponse(studyId);
@@ -984,25 +1171,26 @@ export const studyResolvers = {
             const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
 
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.own,
+                atomicOperation.WRITE,
                 requester,
                 project.studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* check field tree exists */
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(project.studyId);
             const currentDataVersion = study.dataVersions[study.currentDataVersion];
             if (!currentDataVersion) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* check all the fields are valid */
             const activefields = await db.collections!.field_dictionary_collection.find({ id: { $in: approvedFields }, studyId: project.studyId, dateDeleted: null }).toArray();
             if (activefields.length !== approvedFields.length) {
-                throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError('Some of the fields provided in your changes are not valid.', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
 
 
@@ -1017,18 +1205,19 @@ export const studyResolvers = {
             const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
 
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_projects,
+            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.own,
+                atomicOperation.WRITE,
                 requester,
                 project.studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* check all the files are valid */
             const activefiles = await db.collections!.files_collection.find({ id: { $in: approvedFiles }, deleted: null }).toArray();
             if (activefiles.length !== approvedFiles.length) {
-                throw new ApolloError('Some of the files provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError('Some of the files provided in your changes are not valid.', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
 
             /* edit approved fields */
@@ -1039,12 +1228,13 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
 
             /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
+            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.own,
+                atomicOperation.WRITE,
                 requester,
                 studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
@@ -1052,7 +1242,7 @@ export const studyResolvers = {
             /* check whether the dataversion exists */
             const selectedataVersionFiltered = study.dataVersions.filter((el) => el.id === dataVersionId);
             if (selectedataVersionFiltered.length !== 1) {
-                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
 
             /* create a new dataversion with the same contentId */
@@ -1115,7 +1305,7 @@ export const studyResolvers = {
             if (result.ok === 1 && result.value) {
                 return result.value;
             } else {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                throw new GraphQLError(errorCodes.DATABASE_ERROR);
             }
 
 

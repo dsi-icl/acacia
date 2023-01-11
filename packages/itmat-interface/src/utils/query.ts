@@ -10,44 +10,22 @@ import { IStudy, IFieldEntry, IStandardization } from '@itmat-broker/itmat-types
 // if has study-level permission, non versioned data will also be returned
 
 
-export function buildPipeline(query: any, studyId: string, validDataVersion: string[], rolesObj: any) {
-    // // parse the input data versions first
-    let dataVersionsFilter: any;
-    // for data managers; by default will return unversioned data; to return only versioned data, specify a data version
-    if (rolesObj.hasVersioned) {
-        dataVersionsFilter = { $match: { $or: [{ m_versionId: null }, { m_versionId: { $in: validDataVersion } }] } };
+export function buildPipeline(query: any, studyId: string, permittedVersions: Array<string | null>, permittedFields: IFieldEntry[], metadataFilter: any, isAdmin: boolean) {
+    const fieldIds: string[] = permittedFields.map(el => el.fieldId);
+    const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
+    // We send back the requested fields, by default send all fields
+    if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
+        query.data_requested.forEach((field: string) => {
+            if (fieldIds.includes(field)) {
+                (fields as any)[field] = 1;
+            }
+        });
     } else {
-        dataVersionsFilter = { $match: { m_versionId: { $in: validDataVersion } } };
+        fieldIds.forEach((field: string) => {
+            (fields as any)[field] = 1;
+        });
     }
-
-    let metadataFilter = {};
-    // metadata filter
-    if (query['metadata'] !== undefined && query['metadata'] !== null) {
-        if (query.metadata.length > 1) {
-            const subqueries: any = [];
-            query.metadata.forEach((subMetadata: any) => {
-                // addFields.
-                subqueries.push(translateMetadata(subMetadata));
-            });
-            metadataFilter = { $or: subqueries };
-        } else {
-            metadataFilter = translateMetadata(query.metadata[0]);
-        }
-    }
-    // const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
-    // // We send back the requested fields, by default send all fields
-    // if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
-    //     query.data_requested.forEach((field: string) => {
-    //         if (fieldsIds.includes(field)) {
-    //             (fields as any)[field] = 1;
-    //         }
-    //     });
-    // } else {
-    //     fieldsIds.forEach((field: string) => {
-    //         (fields as any)[field] = 1;
-    //     });
-    // }
-    const addFields = {};
+    // const addFields = {};
     // We send back the newly created derived fields by default
     // if (query['new_fields'] !== undefined && query['new_fields'] !== null) {
     //     if (query.new_fields.length > 0) {
@@ -67,7 +45,6 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
         if (query.cohort.length > 1) {
             const subqueries: any = [];
             query.cohort.forEach((subcohort: any) => {
-                // addFields.
                 subqueries.push(translateCohort(subcohort));
             });
             match = { $or: subqueries };
@@ -76,6 +53,7 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
         }
     }
 
+    // group results into one object by subjectId, visitId
     const groupFilter: any = [{
         $group: {
             _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId' },
@@ -93,43 +71,79 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
         $unset: ['_id', 'result']
     }
     ];
-    if (isEmptyObject(addFields) && isEmptyObject(metadataFilter)) {
+    if (isAdmin) {
         return [
-            dataVersionsFilter,
+            { $match: { m_versionId: { $in: permittedVersions } } },
             { $match: { m_studyId: studyId } },
-            ...groupFilter,
             { $match: match },
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } }
+            ...groupFilter,
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+            { $project: fields }
         ];
-    } else if (isEmptyObject(addFields)) {
+    }
+    if (metadataFilter) {
         return [
-            dataVersionsFilter,
+            { $match: { m_versionId: { $in: permittedVersions } } },
+            { $match: { m_studyId: studyId } },
+            { $match: match },
             { $match: metadataFilter },
-            { $match: { m_studyId: studyId } },
             ...groupFilter,
-            { $match: match },
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } }
-        ];
-    } else if (isEmptyObject(metadataFilter)) {
-        return [
-            dataVersionsFilter,
-            { $match: { m_studyId: studyId } },
-            ...groupFilter,
-            { $addFields: addFields },
-            { $match: match },
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } }
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+            { $project: fields }
         ];
     } else {
         return [
-            dataVersionsFilter,
-            { $match: metadataFilter },
+            { $match: { m_versionId: { $in: permittedVersions } } },
             { $match: { m_studyId: studyId } },
-            ...groupFilter,
-            { $addFields: addFields },
             { $match: match },
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } }
+            ...groupFilter,
+            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+            { $project: fields }
         ];
     }
+
+
+    // if (isEmptyObject(addFields) && isEmptyObject(metadataFilter)) {
+    //     return [
+    //         { $match: { m_versionId: { $in: validDataVersion } } },
+    //         { $match: { m_studyId: studyId } },
+    //         ...groupFilter,
+    //         { $match: match },
+    //         { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+    //         { $project: fields }
+    //     ];
+    // } else if (isEmptyObject(addFields)) {
+    //     return [
+    //         { $match: { m_versionId: { $in: validDataVersion } } },
+    //         { $match: metadataFilter },
+    //         { $match: { m_studyId: studyId } },
+    //         ...groupFilter,
+    //         { $match: match },
+    //         { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+    //         { $project: fields }
+    //     ];
+    // } else if (isEmptyObject(metadataFilter)) {
+    //     return [
+    //         { $match: { m_versionId: { $in: validDataVersion } } },
+    //         { $match: { m_studyId: studyId } },
+    //         ...groupFilter,
+    //         { $addFields: addFields },
+    //         { $match: match },
+    //         { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+    //         { $project: fields }
+    //     ];
+    // } else {
+    //     return [
+    //         { $match: { m_versionId: { $in: validDataVersion } } },
+    //         { $match: metadataFilter },
+    //         { $match: { m_studyId: studyId } },
+    //         ...groupFilter,
+    //         { $addFields: addFields },
+    //         { $match: match },
+    //         { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+    //         { $project: fields }
+    //     ];
+    // }
 }
 
 // function createNewField(expression: any) {
@@ -231,9 +245,9 @@ export function buildPipeline(query: any, studyId: string, validDataVersion: str
 // }
 
 
-function isEmptyObject(obj: any) {
-    return !Object.keys(obj).length;
-}
+// function isEmptyObject(obj: any) {
+//     return !Object.keys(obj).length;
+// }
 
 
 function translateCohort(cohort: any) {
@@ -299,7 +313,7 @@ function translateCohort(cohort: any) {
     return match;
 }
 
-function translateMetadata(metadata: any) {
+export function translateMetadata(metadata: any) {
     const match = {};
     metadata.forEach(function (select: any) {
         switch (select.op) {

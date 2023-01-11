@@ -287,7 +287,6 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             value: (data[siteField.fieldId][siteField.visitRange[0]]?.totalNumOfRecords || 0) - (data[siteField.fieldId][siteField.visitRange[0]]?.validNumOfRecords || 0)
         });
     }
-
     return <Subsection title={<Tooltip title={'The statistics of several demographics fields.'}>
         <Text className={css.title}>Demographics</Text> <QuestionCircleOutlined />
     </Tooltip>}>
@@ -353,7 +352,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
                     <div className={css.demographics_graph}>
                         <Pie
                             appendPadding={10}
-                            data={obj.SITE}
+                            data={obj.SITE.sort((a, b) => a.type.toString().localeCompare(b.type.toString()))}
                             angleField={'value'}
                             colorField={'type'}
                             radius={0.75}

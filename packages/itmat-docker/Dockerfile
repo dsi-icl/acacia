@@ -1,4 +1,4 @@
-FROM node:lts-alpine
+FROM node:16-alpine
 
 LABEL author="Florian Guitton" email="f.guitton@imperial.ac.uk"
 

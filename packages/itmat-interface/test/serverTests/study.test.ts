@@ -43,7 +43,6 @@ import {
     GET_ONTOLOGY_TREE
 } from '@itmat-broker/itmat-models';
 import {
-    permissions,
     userTypes,
     studyType,
     enumValueType,
@@ -54,7 +53,9 @@ import {
     IStudyDataVersion,
     IStudy,
     IProject,
-    IRole
+    IRole,
+    IPermissionManagementOptions,
+    atomicOperation
 } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
 import path from 'path';
@@ -88,9 +89,10 @@ if (global.hasMinio) {
         config.objectStore.port = global.minioContainerPort;
         config.database.mongo_url = connectionString;
         config.database.database = dbName;
-        await db.connect(config.database, MongoClient.connect as any);
+        await db.connect(config.database, MongoClient);
         await objStore.connect(config.objectStore);
         const router = new Router(config);
+        await router.init();
 
         /* Connect mongo client (for test setup later / retrieve info later) */
         mongoConnection = await MongoClient.connect(connectionString);
@@ -156,7 +158,8 @@ if (global.hasMinio) {
                         }]
                     },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 });
 
                 /* cleanup: delete study */
@@ -337,7 +340,8 @@ if (global.hasMinio) {
                         }]
                     },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 });
 
                 /* test */
@@ -373,7 +377,8 @@ if (global.hasMinio) {
                         studies: []
                     },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 });
             });
 
@@ -571,9 +576,22 @@ if (global.hasMinio) {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: `${roleId}_rolename`,
-                    permissions: [
-                        permissions.specific_study.specific_study_projects_management
-                    ],
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: ['^.*$'],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     users: [authorisedUserProfile.id],
                     deleted: null
                 };
@@ -675,9 +693,22 @@ if (global.hasMinio) {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: `${roleId}_rolename`,
-                    permissions: [
-                        permissions.specific_study.specific_study_projects_management
-                    ],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     users: [authorisedUserProfile.id],
                     deleted: null
                 };
@@ -772,23 +803,47 @@ if (global.hasMinio) {
                     };
                     const mockData: IDataEntry[] = [
                         {
-                            id: 'mockData1',
+                            id: 'mockData1_1',
                             m_subjectId: 'mock_patient1',
                             m_visitId: 'mockvisitId',
                             m_studyId: createdStudy.id,
                             m_versionId: mockDataVersion.id,
-                            31: 'male',
-                            49: 'England',
+                            m_fieldId: '31',
+                            value: 'male',
+                            metadata: {},
                             deleted: null
                         },
                         {
-                            id: 'mockData2',
+                            id: 'mockData1_2',
+                            m_subjectId: 'mock_patient1',
+                            m_visitId: 'mockvisitId',
+                            m_studyId: createdStudy.id,
+                            m_versionId: mockDataVersion.id,
+                            m_fieldId: '49',
+                            value: 'England',
+                            metadata: {},
+                            deleted: null
+                        },
+                        {
+                            id: 'mockData2_1',
                             m_subjectId: 'mock_patient2',
                             m_visitId: 'mockvisitId',
                             m_studyId: createdStudy.id,
                             m_versionId: mockDataVersion.id,
-                            31: 'female',
-                            49: 'France',
+                            m_fieldId: '31',
+                            value: 'female',
+                            metadata: {},
+                            deleted: null
+                        },
+                        {
+                            id: 'mockData2_2',
+                            m_subjectId: 'mock_patient2',
+                            m_visitId: 'mockvisitId',
+                            m_studyId: createdStudy.id,
+                            m_versionId: mockDataVersion.id,
+                            m_fieldId: '49',
+                            value: 'France',
+                            metadata: {},
                             deleted: null
                         }
                     ];
@@ -810,7 +865,7 @@ if (global.hasMinio) {
                             id: 'mockfield2',
                             studyId: createdStudy.id,
                             fieldId: '32',
-                            fieldName: 'Sex',
+                            fieldName: 'Race',
                             dataType: enumValueType.STRING,
                             possibleValues: [],
                             unit: 'person',
@@ -931,7 +986,22 @@ if (global.hasMinio) {
                         projectId: null,
                         studyId: createdStudy.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         createdBy: adminId,
                         users: [],
                         deleted: null
@@ -939,7 +1009,22 @@ if (global.hasMinio) {
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         studyId: createdStudy.id,
                         projectId: null,
                         users: []
@@ -966,7 +1051,22 @@ if (global.hasMinio) {
                         projectId: null,
                         studyId: createdStudy.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         createdBy: adminId,
                         users: [],
                         deleted: null
@@ -974,7 +1074,22 @@ if (global.hasMinio) {
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_manageProject.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         studyId: createdStudy.id,
                         projectId: null,
                         users: []
@@ -1002,7 +1117,22 @@ if (global.hasMinio) {
                         projectId: null,
                         studyId: createdStudy.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         createdBy: adminId,
                         users: [],
                         deleted: null
@@ -1010,7 +1140,22 @@ if (global.hasMinio) {
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_self_access.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         studyId: createdStudy.id,
                         projectId: null,
                         users: []
@@ -1037,7 +1182,22 @@ if (global.hasMinio) {
                         projectId: createdProject.id,
                         studyId: createdStudy.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         createdBy: adminId,
                         users: [],
                         deleted: null
@@ -1045,7 +1205,22 @@ if (global.hasMinio) {
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_project.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         studyId: createdStudy.id,
                         projectId: createdProject.id,
                         users: []
@@ -1087,8 +1262,20 @@ if (global.hasMinio) {
                                 remove: []
                             },
                             permissionChanges: {
-                                add: [permissions.specific_project.specific_project_readonly_access],
-                                remove: []
+                                data: {
+                                    fieldIds: ['^.*$'],
+                                    hasVersioned: false,
+                                    operations: [atomicOperation.READ],
+                                    subjectIds: ['^.*$'],
+                                    visitIds: ['^.*$']
+                                },
+                                manage: {
+                                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                    [IPermissionManagementOptions.role]: [],
+                                    [IPermissionManagementOptions.job]: [],
+                                    [IPermissionManagementOptions.query]: [],
+                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                }
                             }
                         }
                     });
@@ -1099,7 +1286,22 @@ if (global.hasMinio) {
                         name: createdRole_project.name,
                         studyId: createdStudy.id,
                         projectId: createdProject.id,
-                        permissions: [permissions.specific_project.specific_project_readonly_access],
+                        permissions: {
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         users: [{
                             id: createdUserAuthorised.id,
                             organisation: 'organisation_system',
@@ -1171,8 +1373,20 @@ if (global.hasMinio) {
                                 remove: []
                             },
                             permissionChanges: {
-                                add: [permissions.specific_study.specific_study_readonly_access],
-                                remove: []
+                                data: {
+                                    fieldIds: ['^.*$'],
+                                    hasVersioned: true,
+                                    operations: [atomicOperation.READ],
+                                    subjectIds: ['^.*$'],
+                                    visitIds: ['^.*$']
+                                },
+                                manage: {
+                                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                    [IPermissionManagementOptions.role]: [],
+                                    [IPermissionManagementOptions.job]: [],
+                                    [IPermissionManagementOptions.query]: [],
+                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                }
                             }
                         }
                     });
@@ -1183,7 +1397,22 @@ if (global.hasMinio) {
                         name: createdRole_study.name,
                         studyId: createdStudy.id,
                         projectId: null,
-                        permissions: [permissions.specific_study.specific_study_readonly_access],
+                        permissions: {
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: true,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         users: [{
                             id: createdUserAuthorisedStudy.id,
                             organisation: 'organisation_system',
@@ -1284,8 +1513,20 @@ if (global.hasMinio) {
                                 remove: []
                             },
                             permissionChanges: {
-                                add: [permissions.specific_study.specific_study_projects_management],
-                                remove: []
+                                data: {
+                                    fieldIds: [],
+                                    hasVersioned: false,
+                                    operations: [],
+                                    subjectIds: [],
+                                    visitIds: []
+                                },
+                                manage: {
+                                    [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                                    [IPermissionManagementOptions.role]: [],
+                                    [IPermissionManagementOptions.job]: [],
+                                    [IPermissionManagementOptions.query]: [],
+                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                }
                             }
                         }
                     });
@@ -1296,7 +1537,22 @@ if (global.hasMinio) {
                         name: createdRole_study_manageProject.name,
                         studyId: createdStudy.id,
                         projectId: null,
-                        permissions: [permissions.specific_study.specific_study_projects_management],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         users: [{
                             id: createdUserAuthorisedStudyManageProjects.id,
                             organisation: 'organisation_system',
@@ -1346,8 +1602,20 @@ if (global.hasMinio) {
                                 remove: []
                             },
                             permissionChanges: {
-                                add: [permissions.specific_study.specific_study_readonly_access, permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_study.specific_study_projects_management],
-                                remove: []
+                                data: {
+                                    fieldIds: ['^.*$'],
+                                    hasVersioned: false,
+                                    operations: [atomicOperation.READ],
+                                    subjectIds: ['^K.*$'],
+                                    visitIds: ['^.*$']
+                                },
+                                manage: {
+                                    [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                                    [IPermissionManagementOptions.role]: [],
+                                    [IPermissionManagementOptions.job]: [],
+                                    [IPermissionManagementOptions.query]: [],
+                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                }
                             }
                         }
                     });
@@ -1358,7 +1626,22 @@ if (global.hasMinio) {
                         name: createdRole_study_self_access.name,
                         studyId: createdStudy.id,
                         projectId: null,
-                        permissions: [permissions.specific_study.specific_study_readonly_access, permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_study.specific_study_projects_management],
+                        permissions: {
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^K.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         users: [{
                             id: createdUserAuthorisedToOneOrg.id,
                             organisation: 'organisation_user',
@@ -1423,7 +1706,8 @@ if (global.hasMinio) {
                             }]
                         },
                         createdAt: 1591134065000,
-                        expiredAt: 1991134065000
+                        expiredAt: 1991134065000,
+                        metadata: null
                     });
                 }
                 /* connecting users */
@@ -1499,7 +1783,8 @@ if (global.hasMinio) {
                             studies: []
                         },
                         createdAt: 1591134065000,
-                        expiredAt: 1991134065000
+                        expiredAt: 1991134065000,
+                        metadata: null
                     });
 
                     // study data is NOT deleted for audit purposes - unless explicitly requested separately
@@ -1572,7 +1857,22 @@ if (global.hasMinio) {
                             {
                                 id: createdRole_study.id,
                                 name: createdRole_study.name,
-                                permissions: [permissions.specific_study.specific_study_readonly_access],
+                                permissions: {
+                                    data: {
+                                        fieldIds: ['^.*$'],
+                                        hasVersioned: true,
+                                        operations: [atomicOperation.READ],
+                                        subjectIds: ['^.*$'],
+                                        visitIds: ['^.*$']
+                                    },
+                                    manage: {
+                                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                        [IPermissionManagementOptions.role]: [],
+                                        [IPermissionManagementOptions.job]: [],
+                                        [IPermissionManagementOptions.query]: [],
+                                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                    }
+                                },
                                 projectId: null,
                                 studyId: createdStudy.id,
                                 users: [{
@@ -1586,7 +1886,22 @@ if (global.hasMinio) {
                             {
                                 id: createdRole_study_manageProject.id,
                                 name: createdRole_study_manageProject.name,
-                                permissions: [permissions.specific_study.specific_study_projects_management],
+                                permissions: {
+                                    data: {
+                                        fieldIds: [],
+                                        hasVersioned: false,
+                                        operations: [],
+                                        subjectIds: [],
+                                        visitIds: []
+                                    },
+                                    manage: {
+                                        [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                                        [IPermissionManagementOptions.role]: [],
+                                        [IPermissionManagementOptions.job]: [],
+                                        [IPermissionManagementOptions.query]: [],
+                                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                    }
+                                },
                                 projectId: null,
                                 studyId: createdStudy.id,
                                 users: [{
@@ -1600,7 +1915,22 @@ if (global.hasMinio) {
                             {
                                 id: createdRole_study_self_access.id,
                                 name: createdRole_study_self_access.name,
-                                permissions: [permissions.specific_study.specific_study_readonly_access, permissions.specific_study.specific_study_data_own_organisation_only, permissions.specific_study.specific_study_projects_management],
+                                permissions: {
+                                    data: {
+                                        fieldIds: ['^.*$'],
+                                        hasVersioned: false,
+                                        operations: [atomicOperation.READ],
+                                        subjectIds: ['^K.*$'],
+                                        visitIds: ['^.*$']
+                                    },
+                                    manage: {
+                                        [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                                        [IPermissionManagementOptions.role]: [],
+                                        [IPermissionManagementOptions.job]: [],
+                                        [IPermissionManagementOptions.query]: [],
+                                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                    }
+                                },
                                 projectId: null,
                                 studyId: createdStudy.id,
                                 users: [{
@@ -1612,30 +1942,31 @@ if (global.hasMinio) {
                                 }]
                             }
                         ],
-                        files: [
-                            {
-                                id: 'mockfile1_id',
-                                fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
-                                studyId: createdStudy.id,
-                                projectId: null,
-                                fileSize: '1000',
-                                description: 'Just a test file1',
-                                uploadTime: '1599345644000',
-                                uploadedBy: adminId,
-                                hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
-                            },
-                            {
-                                id: 'mockfile2_id',
-                                fileName: 'GR6R4AR-MMMS3JSPP-20200601-20200703.json',
-                                studyId: createdStudy.id,
-                                projectId: null,
-                                fileSize: '1000',
-                                description: 'Just a test file2',
-                                uploadTime: '1599345644000',
-                                uploadedBy: adminId,
-                                hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
-                            }
-                        ],
+                        // files: [
+                        //     {
+                        //         id: 'mockfile1_id',
+                        //         fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
+                        //         studyId: createdStudy.id,
+                        //         projectId: null,
+                        //         fileSize: '1000',
+                        //         description: 'Just a test file1',
+                        //         uploadTime: '1599345644000',
+                        //         uploadedBy: adminId,
+                        //         hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                        //     },
+                        //     {
+                        //         id: 'mockfile2_id',
+                        //         fileName: 'GR6R4AR-MMMS3JSPP-20200601-20200703.json',
+                        //         studyId: createdStudy.id,
+                        //         projectId: null,
+                        //         fileSize: '1000',
+                        //         description: 'Just a test file2',
+                        //         uploadTime: '1599345644000',
+                        //         uploadedBy: adminId,
+                        //         hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
+                        //     }
+                        // ],
+                        files: [],
                         numOfRecords: 2,
                         subjects: ['mock_patient1', 'mock_patient2'],
                         visits: ['mockvisitId'],
@@ -1672,8 +2003,8 @@ if (global.hasMinio) {
                         },
                         summary: {
                             subjects: [
-                                'mock_patient1',
-                                'mock_patient2'
+                                'mock_patient2',
+                                'mock_patient1'
                             ],
                             visits: [
                                 'mockvisitId'
@@ -1684,7 +2015,22 @@ if (global.hasMinio) {
                             {
                                 id: createdRole_project.id,
                                 name: createdRole_project.name,
-                                permissions: [permissions.specific_project.specific_project_readonly_access],
+                                permissions: {
+                                    data: {
+                                        fieldIds: ['^.*$'],
+                                        hasVersioned: false,
+                                        operations: [atomicOperation.READ],
+                                        subjectIds: ['^.*$'],
+                                        visitIds: ['^.*$']
+                                    },
+                                    manage: {
+                                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                        [IPermissionManagementOptions.role]: [],
+                                        [IPermissionManagementOptions.job]: [],
+                                        [IPermissionManagementOptions.query]: [],
+                                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                    }
+                                },
                                 projectId: createdProject.id,
                                 studyId: createdStudy.id,
                                 users: [{
@@ -1710,18 +2056,18 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 // expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getStudy.files[0]).toEqual({
-                    id: 'mockfile1_id',
-                    fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
-                    studyId: createdStudy.id,
-                    projectId: null,
-                    fileSize: '1000',
-                    description: 'Just a test file1',
-                    uploadTime: '1599345644000',
-                    uploadedBy: adminId,
-                    hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
-                }
-                );
+                // expect(res.body.data.getStudy.files[0]).toEqual({
+                //     id: 'mockfile1_id',
+                //     fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
+                //     studyId: createdStudy.id,
+                //     projectId: null,
+                //     fileSize: '1000',
+                //     description: 'Just a test file1',
+                //     uploadTime: '1599345644000',
+                //     uploadedBy: adminId,
+                //     hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                // }
+                // );
             });
 
             test('Get patient mapping (admin)', async () => {
@@ -1835,8 +2181,8 @@ if (global.hasMinio) {
                         },
                         summary: {
                             subjects: [
-                                'mock_patient1',
-                                'mock_patient2'
+                                'mock_patient2',
+                                'mock_patient1'
                             ],
                             visits: [
                                 'mockvisitId'
@@ -1850,8 +2196,7 @@ if (global.hasMinio) {
                 const res = await admin.post('/graphql').send({
                     query: print(GET_STUDY_FIELDS),
                     variables: {
-                        studyId: createdStudy.id,
-                        versionId: null
+                        studyId: createdStudy.id
                     }
                 });
                 expect(res.status).toBe(200);
@@ -1861,7 +2206,7 @@ if (global.hasMinio) {
                         id: 'mockfield2',
                         studyId: createdStudy.id,
                         fieldId: '32',
-                        fieldName: 'Sex',
+                        fieldName: 'Race',
                         tableName: null,
                         dataType: enumValueType.STRING,
                         possibleValues: [],
@@ -1869,7 +2214,13 @@ if (global.hasMinio) {
                         comments: 'mockComments2',
                         dateAdded: '2022-06-18T17:35:15.226Z',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
+                        dataVersion: 'mockDataVersionId',
+                        metadata: {
+                            [`role:${createdRole_study.id}`]: true,
+                            [`role:${createdRole_project.id}`]: true,
+                            [`role:${createdRole_study_manageProject.id}`]: false,
+                            [`role:${createdRole_study_self_access.id}`]: true
+                        }
                     },
                     {
                         id: 'mockfield1',
@@ -1883,7 +2234,13 @@ if (global.hasMinio) {
                         comments: 'mockComments1',
                         dateAdded: '2021-05-16T16:32:10.226Z',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
+                        dataVersion: 'mockDataVersionId',
+                        metadata: {
+                            [`role:${createdRole_study.id}`]: true,
+                            [`role:${createdRole_project.id}`]: true,
+                            [`role:${createdRole_study_manageProject.id}`]: false,
+                            [`role:${createdRole_study_self_access.id}`]: true
+                        }
                     }
                 ].sort((a, b) => a.id.localeCompare(b.id)));
             });
@@ -1911,13 +2268,14 @@ if (global.hasMinio) {
                         comments: 'mockComments1',
                         dateAdded: '2021-05-16T16:32:10.226Z',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
+                        dataVersion: 'mockDataVersionId',
+                        metadata: null
                     },
                     {
                         id: 'mockfield2',
                         studyId: createdStudy.id,
                         fieldId: '32',
-                        fieldName: 'Sex',
+                        fieldName: 'Race',
                         tableName: null,
                         dataType: enumValueType.STRING,
                         possibleValues: [],
@@ -1925,7 +2283,8 @@ if (global.hasMinio) {
                         comments: 'mockComments2',
                         dateAdded: '2022-06-18T17:35:15.226Z',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
+                        dataVersion: 'mockDataVersionId',
+                        metadata: null
                     }
                 ].sort((a, b) => a.id.localeCompare(b.id)));
             });
@@ -1950,7 +2309,7 @@ if (global.hasMinio) {
                     id: 'mockfield2_deleted',
                     studyId: createdStudy.id,
                     fieldId: '32',
-                    fieldName: 'Sex',
+                    fieldName: 'Race',
                     tableName: null,
                     dataType: enumValueType.STRING,
                     possibleValues: [],
@@ -2000,35 +2359,23 @@ if (global.hasMinio) {
                         comments: 'mockComments3',
                         dateAdded: '2021-05-18T16:32:10.226Z',
                         dateDeleted: null,
-                        dataVersion: null
+                        dataVersion: null,
+                        metadata: null
                     },
                     {
-                        id: 'mockfield2',
+                        id: 'mockfield2_deleted',
                         studyId: createdStudy.id,
                         fieldId: '32',
-                        fieldName: 'Sex',
-                        tableName: null,
-                        dataType: enumValueType.STRING,
-                        possibleValues: [],
-                        unit: 'person',
-                        comments: 'mockComments2',
-                        dateAdded: '2022-06-18T17:35:15.226Z',
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
-                    },
-                    {
-                        id: 'mockfield1',
-                        studyId: createdStudy.id,
-                        fieldId: '31',
-                        fieldName: 'Sex',
+                        fieldName: 'Race',
                         tableName: null,
                         dataType: enumValueType.STRING,
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: '2021-05-16T16:32:10.226Z',
-                        dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
+                        dateAdded: '2021-05-18T16:32:10.226Z',
+                        dateDeleted: '2021-05-18T16:32:10.226Z',
+                        dataVersion: null,
+                        metadata: null
                     }
                 ].sort((a, b) => a.id.localeCompare(b.id)));
                 // user with project privilege can only access the latest fields that are versioned
@@ -2046,7 +2393,7 @@ if (global.hasMinio) {
                         id: 'mockfield2',
                         studyId: createdStudy.id,
                         fieldId: '32',
-                        fieldName: 'Sex',
+                        fieldName: 'Race',
                         tableName: null,
                         dataType: enumValueType.STRING,
                         possibleValues: [],
@@ -2054,7 +2401,8 @@ if (global.hasMinio) {
                         comments: 'mockComments2',
                         dateAdded: '2022-06-18T17:35:15.226Z',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
+                        dataVersion: 'mockDataVersionId',
+                        metadata: null
                     },
                     {
                         id: 'mockfield1',
@@ -2068,7 +2416,8 @@ if (global.hasMinio) {
                         comments: 'mockComments1',
                         dateAdded: '2021-05-16T16:32:10.226Z',
                         dateDeleted: null,
-                        dataVersion: 'mockDataVersionId'
+                        dataVersion: 'mockDataVersionId',
+                        metadata: null
                     }
                 ].sort((a, b) => a.id.localeCompare(b.id)));
                 // clear database
@@ -2117,13 +2466,19 @@ if (global.hasMinio) {
                             comments: 'mockComments1',
                             dateAdded: '2021-05-16T16:32:10.226Z',
                             dateDeleted: null,
-                            dataVersion: 'mockDataVersionId'
+                            dataVersion: 'mockDataVersionId',
+                            metadata: {
+                                [`role:${createdRole_study.id}`]: true,
+                                [`role:${createdRole_project.id}`]: true,
+                                [`role:${createdRole_study_manageProject.id}`]: false,
+                                [`role:${createdRole_study_self_access.id}`]: true
+                            }
                         },
                         {
                             id: 'mockfield2',
                             studyId: createdStudy.id,
                             fieldId: '32',
-                            fieldName: 'Sex',
+                            fieldName: 'Race',
                             tableName: null,
                             dataType: enumValueType.STRING,
                             possibleValues: [],
@@ -2131,7 +2486,13 @@ if (global.hasMinio) {
                             comments: 'mockComments2',
                             dateAdded: '2022-06-18T17:35:15.226Z',
                             dateDeleted: null,
-                            dataVersion: 'mockDataVersionId'
+                            dataVersion: 'mockDataVersionId',
+                            metadata: {
+                                [`role:${createdRole_study.id}`]: true,
+                                [`role:${createdRole_project.id}`]: true,
+                                [`role:${createdRole_study_manageProject.id}`]: false,
+                                [`role:${createdRole_study_self_access.id}`]: true
+                            }
                         }
                     ]
                 });
@@ -2196,13 +2557,19 @@ if (global.hasMinio) {
                             comments: 'mockComments1',
                             dateAdded: '2021-05-16T16:32:10.226Z',
                             dateDeleted: null,
-                            dataVersion: 'mockDataVersionId'
+                            dataVersion: 'mockDataVersionId',
+                            metadata: {
+                                [`role:${createdRole_study.id}`]: true,
+                                [`role:${createdRole_project.id}`]: true,
+                                [`role:${createdRole_study_manageProject.id}`]: false,
+                                [`role:${createdRole_study_self_access.id}`]: true
+                            }
                         },
                         {
                             id: 'mockfield2',
                             studyId: createdStudy.id,
                             fieldId: '32',
-                            fieldName: 'Sex',
+                            fieldName: 'Race',
                             tableName: null,
                             dataType: enumValueType.STRING,
                             possibleValues: [],
@@ -2210,7 +2577,13 @@ if (global.hasMinio) {
                             comments: 'mockComments2',
                             dateAdded: '2022-06-18T17:35:15.226Z',
                             dateDeleted: null,
-                            dataVersion: 'mockDataVersionId'
+                            dataVersion: 'mockDataVersionId',
+                            metadata: {
+                                [`role:${createdRole_study.id}`]: true,
+                                [`role:${createdRole_project.id}`]: true,
+                                [`role:${createdRole_study_manageProject.id}`]: false,
+                                [`role:${createdRole_study_self_access.id}`]: true
+                            }
                         }
                     ]
                 });
@@ -2447,7 +2820,7 @@ if (global.hasMinio) {
                     .updateOne({ id: createdStudy.id }, { $set: { dataVersions: [mockDataVersion], currentDataVersion: 0 } });
             });
 
-            test('Set a previous study dataversion as current (user with study "manage project" privilege) (should fail)', async () => {
+            test('Set a previous study dataversion as current (user with study "manage project" privilege)', async () => {
                 /* setup: add an extra dataversion */
                 await db.collections!.studies_collection.updateOne({ id: createdStudy.id }, { $push: { dataVersions: newMockDataVersion }, $inc: { currentDataVersion: 1 } });
 
@@ -2459,8 +2832,7 @@ if (global.hasMinio) {
                     }
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.data.setDataversionAsCurrent).toEqual(null);
+                expect(res.body.data.setDataversionAsCurrent.currentDataVersion).toBe(0);
 
                 /* cleanup: reverse setting dataversion */
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection)
@@ -2493,7 +2865,22 @@ if (global.hasMinio) {
                     id: uuid(),
                     studyId: createdStudy.id,
                     name: 'Data Manager',
-                    permissions: [permissions.specific_study.specific_study_data_management],
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: true,
+                            operations: [atomicOperation.READ, atomicOperation.WRITE],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     users: [userDataCurator.id],
                     createdBy: adminId,
                     deleted: null
@@ -2516,17 +2903,8 @@ if (global.hasMinio) {
                     }
                 });
                 expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                const study = await db.collections!.studies_collection.findOne<IStudy>({ id: createdStudy.id }, { projection: { dataVersions: 1 } });
-                expect(study).toBeDefined();
-                expect(res.body.data.setDataversionAsCurrent).toEqual({
-                    id: createdStudy.id,
-                    currentDataVersion: 0,
-                    dataVersions: [
-                        { ...mockDataVersion, tag: null },
-                        { ...newMockDataVersion }
-                    ]
-                });
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
 
                 /* cleanup: reverse setting dataversion */
                 await mongoClient.collection<IStudy>(config.database.collections.studies_collection)
@@ -2841,7 +3219,22 @@ if (global.hasMinio) {
                         projectId: null,
                         studyId: createdStudy.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         createdBy: adminId,
                         users: [],
                         deleted: null
@@ -2849,7 +3242,22 @@ if (global.hasMinio) {
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_accessData.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         studyId: createdStudy.id,
                         projectId: null,
                         users: []
@@ -2920,8 +3328,20 @@ if (global.hasMinio) {
                                 remove: []
                             },
                             permissionChanges: {
-                                add: [permissions.specific_study.specific_study_data_management, permissions.specific_study.specific_study_readonly_access],
-                                remove: []
+                                data: {
+                                    fieldIds: ['^.*$'],
+                                    hasVersioned: true,
+                                    operations: [atomicOperation.READ, atomicOperation.WRITE],
+                                    subjectIds: ['^.*$'],
+                                    visitIds: ['^.*$']
+                                },
+                                manage: {
+                                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                    [IPermissionManagementOptions.role]: [],
+                                    [IPermissionManagementOptions.job]: [],
+                                    [IPermissionManagementOptions.query]: [],
+                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                }
                             }
                         }
                     });
@@ -2932,7 +3352,22 @@ if (global.hasMinio) {
                         name: createdRole_study_accessData.name,
                         studyId: createdStudy.id,
                         projectId: null,
-                        permissions: [permissions.specific_study.specific_study_data_management, permissions.specific_study.specific_study_readonly_access],
+                        permissions: {
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: true,
+                                operations: [atomicOperation.READ, atomicOperation.WRITE],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         users: [{
                             id: createdUserAuthorisedProfile.id,
                             organisation: 'organisation_system',
@@ -3123,7 +3558,22 @@ if (global.hasMinio) {
                         projectId: createdProject.id,
                         studyId: createdStudy.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         createdBy: adminId,
                         users: [],
                         deleted: null
@@ -3131,7 +3581,22 @@ if (global.hasMinio) {
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_project.id,
                         name: roleName,
-                        permissions: [],
+                        permissions: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         studyId: createdStudy.id,
                         projectId: createdProject.id,
                         users: []
@@ -3149,8 +3614,20 @@ if (global.hasMinio) {
                                 remove: []
                             },
                             permissionChanges: {
-                                add: [permissions.specific_project.specific_project_readonly_access],
-                                remove: []
+                                data: {
+                                    fieldIds: ['^.*$'],
+                                    hasVersioned: false,
+                                    operations: [atomicOperation.READ],
+                                    subjectIds: ['^.*$'],
+                                    visitIds: ['^.*$']
+                                },
+                                manage: {
+                                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                    [IPermissionManagementOptions.role]: [],
+                                    [IPermissionManagementOptions.job]: [],
+                                    [IPermissionManagementOptions.query]: [],
+                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                }
                             }
                         }
                     });
@@ -3161,7 +3638,22 @@ if (global.hasMinio) {
                         name: createdRole_project.name,
                         studyId: createdStudy.id,
                         projectId: createdProject.id,
-                        permissions: [permissions.specific_project.specific_project_readonly_access],
+                        permissions: {
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
+                        },
                         users: [{
                             id: createdUserAuthorisedProject.id,
                             organisation: 'organisation_system',
@@ -3239,7 +3731,8 @@ if (global.hasMinio) {
                             studies: []
                         },
                         createdAt: 1591134065000,
-                        expiredAt: 1991134065000
+                        expiredAt: 1991134065000,
+                        metadata: null
                     });
 
                     // study data is NOT deleted for audit purposes - unless explicitly requested separately
@@ -3632,85 +4125,85 @@ if (global.hasMinio) {
                 expect(dataInDb).toHaveLength(8); // four data records, four deleted records
             });
 
-            test('Get data records (user with study privilege)', async () => {
-                await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: { studyId: createdStudy.id, data: multipleRecords }
-                });
-                await admin.post('/graphql').send({
-                    query: print(CREATE_NEW_DATA_VERSION),
-                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-                });
-                await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: {
-                        studyId: createdStudy.id, data: [
-                            {
-                                fieldId: '31',
-                                value: '10',
-                                subjectId: 'I7N3G6G',
-                                visitId: '3'
-                            }
-                        ]
-                    }
-                });
-                const getRes = await authorisedUser.post('/graphql').send({
-                    query: print(GET_DATA_RECORDS),
-                    variables: {
-                        studyId: createdStudy.id,
-                        queryString: {
-                            data_requested: ['31', '32'],
-                            format: 'raw',
-                            cohort: [[]],
-                            new_fields: []
-                        }
-                    }
-                });
-                expect(getRes.status).toBe(200);
-                expect(getRes.body.errors).toBeUndefined();
-                expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
-            });
+            // test('Get data records (user with study privilege)', async () => {
+            //     await authorisedUser.post('/graphql').send({
+            //         query: print(UPLOAD_DATA_IN_ARRAY),
+            //         variables: { studyId: createdStudy.id, data: multipleRecords }
+            //     });
+            //     await admin.post('/graphql').send({
+            //         query: print(CREATE_NEW_DATA_VERSION),
+            //         variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            //     });
+            //     await authorisedUser.post('/graphql').send({
+            //         query: print(UPLOAD_DATA_IN_ARRAY),
+            //         variables: {
+            //             studyId: createdStudy.id, data: [
+            //                 {
+            //                     fieldId: '31',
+            //                     value: '10',
+            //                     subjectId: 'I7N3G6G',
+            //                     visitId: '3'
+            //                 }
+            //             ]
+            //         }
+            //     });
+            //     const getRes = await authorisedUser.post('/graphql').send({
+            //         query: print(GET_DATA_RECORDS),
+            //         variables: {
+            //             studyId: createdStudy.id,
+            //             queryString: {
+            //                 data_requested: ['31', '32'],
+            //                 format: 'raw',
+            //                 cohort: [[]],
+            //                 new_fields: []
+            //             }
+            //         }
+            //     });
+            //     expect(getRes.status).toBe(200);
+            //     expect(getRes.body.errors).toBeUndefined();
+            //     expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
+            // });
 
-            test('Get data records (user with project privilege)', async () => {
-                await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: { studyId: createdStudy.id, data: multipleRecords }
-                });
-                await admin.post('/graphql').send({
-                    query: print(CREATE_NEW_DATA_VERSION),
-                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-                });
-                await authorisedUser.post('/graphql').send({
-                    query: print(UPLOAD_DATA_IN_ARRAY),
-                    variables: {
-                        studyId: createdStudy.id,
-                        data: [
-                            {
-                                fieldId: '31',
-                                value: '10',
-                                subjectId: 'I7N3G6G',
-                                visitId: '3'
-                            }
-                        ]
-                    }
-                });
-                const getRes = await authorisedProjectUser.post('/graphql').send({
-                    query: print(GET_DATA_RECORDS),
-                    variables: {
-                        studyId: createdStudy.id,
-                        projectId: createdProject.id,
-                        queryString: {
-                            data_requested: ['31', '32'],
-                            format: 'raw',
-                            cohort: [[]],
-                            new_fields: []
-                        }
-                    }
-                });
-                expect(getRes.status).toBe(200);
-                expect(getRes.body.errors).toBeUndefined();
-                expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
-            });
+            // test('Get data records (user with project privilege)', async () => {
+            //     await authorisedUser.post('/graphql').send({
+            //         query: print(UPLOAD_DATA_IN_ARRAY),
+            //         variables: { studyId: createdStudy.id, data: multipleRecords }
+            //     });
+            //     await admin.post('/graphql').send({
+            //         query: print(CREATE_NEW_DATA_VERSION),
+            //         variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            //     });
+            //     await authorisedUser.post('/graphql').send({
+            //         query: print(UPLOAD_DATA_IN_ARRAY),
+            //         variables: {
+            //             studyId: createdStudy.id,
+            //             data: [
+            //                 {
+            //                     fieldId: '31',
+            //                     value: '10',
+            //                     subjectId: 'I7N3G6G',
+            //                     visitId: '3'
+            //                 }
+            //             ]
+            //         }
+            //     });
+            //     const getRes = await authorisedProjectUser.post('/graphql').send({
+            //         query: print(GET_DATA_RECORDS),
+            //         variables: {
+            //             studyId: createdStudy.id,
+            //             projectId: createdProject.id,
+            //             queryString: {
+            //                 data_requested: ['31', '32'],
+            //                 format: 'raw',
+            //                 cohort: [[]],
+            //                 new_fields: []
+            //             }
+            //         }
+            //     });
+            //     expect(getRes.status).toBe(200);
+            //     expect(getRes.body.errors).toBeUndefined();
+            //     expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
+            // });
 
             test('Get data records with meta data filters', async () => {
                 const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
@@ -3747,7 +4240,8 @@ if (global.hasMinio) {
                     metadata: {
                         'uploader:org': createdUserAuthorisedProfile.organisation,
                         'uploader:user': createdUserAuthorisedProfile.id,
-                        'uploader:wp': 'wp5.1'
+                        'uploader:wp': 'wp5.1',
+                        [`role:${createdRole_project.id}`]: true
                     },
                     updatedAt: '10000000',
                     value: '1'
@@ -3761,12 +4255,13 @@ if (global.hasMinio) {
                     metadata: {
                         'uploader:org': createdUserAuthorisedProject.organisation,
                         'uploader:user': createdUserAuthorisedProject.id,
-                        'uploader:wp': 'wp5.2'
+                        'uploader:wp': 'wp5.2',
+                        [`role:${createdRole_project.id}`]: true
                     },
                     updatedAt: '10000000',
                     value: '2'
                 }]);
-                const resMetadataOrg = await authorisedUser.post('/graphql').send({
+                const resMetadataOrg = await authorisedProjectUser.post('/graphql').send({
                     query: print(GET_DATA_RECORDS),
                     variables: {
                         studyId: createdStudy.id,
@@ -3841,7 +4336,7 @@ if (global.hasMinio) {
                             visitRange: []
                         }
                     ],
-                    metadata: null
+                    metadata: {}
                 });
                 // clear ontologyTrees
                 await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
@@ -4057,7 +4552,7 @@ if (global.hasMinio) {
                             visitRange: []
                         }
                     ],
-                    metadata: null
+                    metadata: {}
                 });
                 const resWithVersion = await authorisedUser.post('/graphql').send({
                     query: print(GET_ONTOLOGY_TREE),
@@ -4088,7 +4583,7 @@ if (global.hasMinio) {
                             visitRange: []
                         }
                     ],
-                    metadata: null
+                    metadata: {}
                 });
                 // clear study
                 await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {

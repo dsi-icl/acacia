@@ -1,6 +1,6 @@
 import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
-import { GET_PROJECT } from '@itmat-broker/itmat-models';
+import { GET_PROJECT, WHO_AM_I } from '@itmat-broker/itmat-models';
 import { Subsection } from '../../../../reusable';
 import LoadSpinner from '../../../../reusable/loadSpinner';
 import { RoleControlSection } from '../../../../reusable/roleControlSection/roleControlSection';
@@ -10,14 +10,20 @@ import { GrantedFileListSelection } from './fileList';
 import { PatientIdMappingSection } from './patientIdMapping';
 import css from './projectDetail.module.css';
 import { NavLink, useParams } from 'react-router-dom';
+import { useQuery } from '@apollo/client/react/hooks';
+import { userTypes } from '@itmat-broker/itmat-types';
 
 export const ProjectDetail: FunctionComponent = () => {
     const { projectId, studyId } = useParams();
+    const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
+    if (whoamiloading) { return <p>Loading..</p>; }
+    if (whoamierror) { return <p>ERROR: please try again.</p>; }
+
     if (!projectId || !studyId)
         return null;
     return <Query<any, any>
         query={GET_PROJECT}
-        variables={{ projectId, admin: true }}
+        variables={{ projectId, admin: whoamidata.whoAmI.type === userTypes.ADMIN }}
     >
         {({ data, loading, error }) => {
             if (loading) { return <LoadSpinner />; }

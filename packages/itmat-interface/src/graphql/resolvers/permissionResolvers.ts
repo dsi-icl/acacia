@@ -1,5 +1,5 @@
-import { ApolloError } from 'apollo-server-express';
-import { task_required_permissions, IUser, IRole } from '@itmat-broker/itmat-types';
+import { GraphQLError } from 'graphql';
+import { IUser, IRole, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
@@ -44,23 +44,24 @@ export const permissionResolvers = {
 
             /* check whether user has at least provided one id */
             if (studyId === undefined && projectId === undefined) {
-                throw new ApolloError('Please provide either study id or project id.', errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError('Please provide either study id or project id.', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
 
             /* check the requester has privilege */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                args.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.role,
+                atomicOperation.WRITE,
                 requester,
                 args.studyId,
                 args.projectId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* check whether the target study or project exists */
             if (studyId && projectId) {  // if both study id and project id are provided then just make sure they belong to each other
                 const result = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
                 if (result.studyId !== studyId) {
-                    throw new ApolloError('The project provided does not belong to the study provided', errorCodes.CLIENT_MALFORMED_INPUT);
+                    throw new GraphQLError('The project provided does not belong to the study provided', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                 }
             } else if (studyId) {  // if only study id is provided
                 await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
@@ -77,17 +78,18 @@ export const permissionResolvers = {
 
             const role = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
             if (role === null) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* check the requester has privilege */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.role,
+                atomicOperation.WRITE,
                 requester,
                 role.studyId,
                 role.projectId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* check whether all the permissions are valid */
             if (permissionChanges) {
@@ -118,7 +120,7 @@ export const permissionResolvers = {
                     if (!testedUser.includes(each)) {
                         const user = await db.collections!.users_collection.findOne({ id: each, deleted: null });
                         if (user === null) {
-                            throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                            throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
                         } else {
                             testedUser.push(each);
                         }
@@ -136,17 +138,18 @@ export const permissionResolvers = {
 
             const role = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null })!;
             if (role === null) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.role,
+                atomicOperation.WRITE,
                 requester,
                 role.studyId,
                 role.projectId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* remove the role */
             await permissionCore.removeRole(roleId);
@@ -160,6 +163,6 @@ function checkReExpIsValid(pattern: string) {
     try {
         new RegExp(pattern);
     } catch {
-        throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT, `${pattern} is not a valid regular expression.`);
+        throw new GraphQLError(`${pattern} is not a valid regular expression.`, { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
     }
 }

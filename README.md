@@ -35,8 +35,11 @@ Building the library is easy. First run `yarn install && yarn build`, to build t
 - itmat-docker
 - itmat-interface
 - itmat-job-executor
+- itmat-models
 - itmat-setup
+- itmat-types
 - itmat-ui-react
+- itmat-ui-react-e2e
 
 ### Add configuration
 
@@ -58,7 +61,7 @@ yarn setupDatabase
 
 ### Start developing
 
-Once all that is done, you only need to use `yarn start` to start the software in development mode.
+Once all that is done, you only need to use `yarn dev` to start the software in development mode.
 
 ## Credits
 

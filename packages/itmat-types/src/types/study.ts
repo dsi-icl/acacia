@@ -33,6 +33,14 @@ export enum atomicOperation {
     WRITE = 'WRITE'
 }
 
+export enum IPermissionManagementOptions {
+    own = 'own',
+    role = 'role',
+    job = 'job',
+    query = 'query',
+    ontologyTrees = 'ontologyTrees'
+}
+
 interface IRoleBase {
     id: string;
     projectId?: string;
@@ -47,8 +55,11 @@ interface IRoleBase {
             operations?: atomicOperation[];
         },
         manage?: {
-            own?: atomicOperation[];
-            role?: atomicOperation[];
+            [IPermissionManagementOptions.own]?: atomicOperation[];
+            [IPermissionManagementOptions.role]?: atomicOperation[];
+            [IPermissionManagementOptions.job]?: atomicOperation[];
+            [IPermissionManagementOptions.query]?: atomicOperation[];
+            [IPermissionManagementOptions.ontologyTrees]: atomicOperation[];
         }
     };
     createdBy: string;

@@ -23,6 +23,7 @@ export const USER_FRAGMENT = gql`
                 type
             }
         },
+        metadata,
         createdAt,
         expiredAt
     }

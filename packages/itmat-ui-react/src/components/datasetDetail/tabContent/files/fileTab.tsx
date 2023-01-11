@@ -200,6 +200,11 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                     fileLength: file.size
                 }
             }).then(result => {
+                if (!result.data) {
+                    // Any accompanying error should already be displayed by `uploadFile`
+                    console.error(result.errors, result.extensions?.code);
+                    return;
+                }
                 delete (window as any).onUploadProgressHackMap[uploadMapHackName];
                 delete progressReports[uploadMapHackName];
                 removeFile(file);
@@ -548,7 +553,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         }
                     </Space>}
                 >
-                    <Modal visible={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'100%'}>
+                    <Modal open={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'100%'}>
                         <div>Number of files associated to sites and device types.</div><br />
                         <Table
                             pagination={false}
@@ -557,7 +562,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                             size='small'
                         /><br />
                         <Space wrap={true}>
-                            {Object.keys(deviceTypes).sort().map(el => <Tag>{`${el}: ${deviceTypes[el]}`}</Tag>)}
+                            {Object.keys(deviceTypes).sort().map((el, index) => <Tag key={index}>{`${el}: ${deviceTypes[el]}`}</Tag>)}
                         </Space>
                     </Modal>
                     <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />

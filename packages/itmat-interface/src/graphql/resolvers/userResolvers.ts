@@ -1,4 +1,5 @@
-import { ApolloError, UserInputError } from 'apollo-server-express';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
+import { GraphQLError } from 'graphql';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { mailer } from '../../emailer/emailer';
@@ -18,7 +19,9 @@ import tmp from 'tmp';
 export const userResolvers = {
     Query: {
         whoAmI(parent: Record<string, unknown>, __unused__args: any, context: any): Record<string, unknown> {
-            return context.req.user;
+            const copy: Record<string, unknown> = { ...context.req.user };
+            delete copy.metadata;
+            return copy;
         },
         getUsers: async (__unused__parent: Record<string, unknown>, args: any): Promise<IUser[]> => {
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
@@ -34,7 +37,7 @@ export const userResolvers = {
             try {
                 email = await decryptEmail(args.encryptedEmail, salt, iv);
             } catch (e) {
-                throw new ApolloError('Token is not valid.');
+                throw new GraphQLError('Token is not valid.');
             }
 
             /* check whether username and token is valid */
@@ -53,7 +56,7 @@ export const userResolvers = {
                 deleted: null
             });
             if (!user) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
             return makeGenericReponse();
         },
@@ -67,7 +70,7 @@ export const userResolvers = {
 
             /* only admin can access this field */
             if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* if requested user is admin, then he has access to all studies */
@@ -104,7 +107,7 @@ export const userResolvers = {
             const requester: IUser = context.req.user;
             /* only admin can access this field */
             if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             return user.username;
@@ -113,7 +116,7 @@ export const userResolvers = {
             const requester: IUser = context.req.user;
             /* only admin can access this field */
             if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             return user.description;
@@ -122,7 +125,7 @@ export const userResolvers = {
             const requester: IUser = context.req.user;
             /* only admin can access this field */
             if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             return user.email;
@@ -157,11 +160,11 @@ export const userResolvers = {
             if ((forgotUsername && !email) // should provide email if no username
                 || (forgotUsername && username) // should not provide username if it's forgotten..
                 || (!email && !username)) {
-                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
             } else if (email && username) {
                 // TO_DO : better client erro
                 /* only provide email if no username */
-                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
 
             /* check user existence */
@@ -190,7 +193,7 @@ export const userResolvers = {
                     }
                 );
                 if (invalidateAllTokens.ok !== 1) {
-                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                    throw new GraphQLError(errorCodes.DATABASE_ERROR);
                 }
                 const updateResult = await db.collections!.users_collection.findOneAndUpdate(
                     queryObj,
@@ -201,7 +204,7 @@ export const userResolvers = {
                     }
                 );
                 if (updateResult.ok !== 1) {
-                    throw new ApolloError(errorCodes.DATABASE_ERROR);
+                    throw new GraphQLError(errorCodes.DATABASE_ERROR);
                 }
 
                 /* send email to client */
@@ -225,12 +228,12 @@ export const userResolvers = {
             const { req }: { req: Express.Request } = context;
             const result = await db.collections!.users_collection.findOne({ deleted: null, username: args.username });
             if (!result) {
-                throw new UserInputError('User does not exist.');
+                throw new GraphQLError('User does not exist.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             const passwordMatched = await bcrypt.compare(args.password, result.password);
             if (!passwordMatched) {
-                throw new UserInputError('Incorrect password.');
+                throw new GraphQLError('Incorrect password.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             // validate the TOTP
@@ -239,7 +242,7 @@ export const userResolvers = {
                 if (process.env.NODE_ENV === 'development')
                     console.warn('Incorrect One-Time password. Continuing in development ...');
                 else
-                    throw new UserInputError('Incorrect One-Time password.');
+                    throw new GraphQLError('Incorrect One-Time password.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             /* validate if account expired */
@@ -255,10 +258,10 @@ export const userResolvers = {
                         to: result.email,
                         username: result.username
                     }));
-                    throw new UserInputError('New expiry date has been requested! Wait for ADMIN to approve.');
+                    throw new GraphQLError('New expiry date has been requested! Wait for ADMIN to approve.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
                 }
 
-                throw new UserInputError('Account Expired. Please request a new expiry date!');
+                throw new GraphQLError('Account Expired. Please request a new expiry date!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             const filteredResult: Partial<IUser> = { ...result };
@@ -269,7 +272,7 @@ export const userResolvers = {
                 req.login(filteredResult, (err: any) => {
                     if (err) {
                         Logger.error(err);
-                        throw new ApolloError('Cannot log in. Please try again later.');
+                        throw new GraphQLError('Cannot log in. Please try again later.');
                     }
                     resolve(filteredResult);
                 });
@@ -285,7 +288,7 @@ export const userResolvers = {
                 req.logout((err) => {
                     if (err) {
                         Logger.error(err);
-                        throw new ApolloError('Cannot log out');
+                        throw new GraphQLError('Cannot log out');
                     } else {
                         resolve(makeGenericReponse(context.req.user));
                     }
@@ -299,28 +302,28 @@ export const userResolvers = {
 
             /* check email is valid form */
             if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
-                throw new UserInputError('Email is not the right format.');
+                throw new GraphQLError('Email is not the right format.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             /* check password validity */
             if (password && !passwordIsGoodEnough(password)) {
-                throw new UserInputError('Password has to be at least 8 character long.');
+                throw new GraphQLError('Password has to be at least 8 character long.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             /* check that username and password dont have space */
             if (username.indexOf(' ') !== -1 || password.indexOf(' ') !== -1) {
-                throw new UserInputError('Username or password cannot have spaces.');
+                throw new GraphQLError('Username or password cannot have spaces.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             const alreadyExist = await db.collections!.users_collection.findOne({ username, deleted: null }); // since bycrypt is CPU expensive let's check the username is not taken first
             if (alreadyExist !== null && alreadyExist !== undefined) {
-                throw new UserInputError('User already exists.');
+                throw new GraphQLError('User already exists.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             /* check if email has been used to register */
             const emailExist = await db.collections!.users_collection.findOne({ email, deleted: null });
             if (emailExist !== null && emailExist !== undefined) {
-                throw new UserInputError('This email has been registered. Please sign-in or register with another email!');
+                throw new GraphQLError('This email has been registered. Please sign-in or register with another email!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             /* randomly generate a secret for Time-based One Time Password*/
@@ -346,7 +349,7 @@ export const userResolvers = {
             const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
-                if (err) throw new ApolloError(err.message);
+                if (err) throw new GraphQLError(err.message);
             });
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
@@ -384,11 +387,11 @@ export const userResolvers = {
 
             // user (admin type) cannot delete itself
             if (requester.id === args.userId) {
-                throw new ApolloError('User cannot delete itself');
+                throw new GraphQLError('User cannot delete itself');
             }
 
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             await userCore.deleteUser(args.userId);
@@ -397,17 +400,17 @@ export const userResolvers = {
         resetPassword: async (__unused__parent: Record<string, unknown>, { encryptedEmail, token, newPassword }: { encryptedEmail: string, token: string, newPassword: string }): Promise<IGenericResponse> => {
             /* check password validity */
             if (!passwordIsGoodEnough(newPassword)) {
-                throw new ApolloError('Password has to be at least 8 character long.');
+                throw new GraphQLError('Password has to be at least 8 character long.');
             }
 
             /* check that username and password dont have space */
             if (newPassword.indexOf(' ') !== -1) {
-                throw new ApolloError('Password cannot have spaces.');
+                throw new GraphQLError('Password cannot have spaces.');
             }
 
             /* decrypt email */
             if (token.length < 16) {
-                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
             const salt = makeAESKeySalt(token);
             const iv = makeAESIv(token);
@@ -415,7 +418,7 @@ export const userResolvers = {
             try {
                 email = await decryptEmail(encryptedEmail, salt, iv);
             } catch (e) {
-                throw new ApolloError('Token is not valid.');
+                throw new GraphQLError('Token is not valid.');
             }
 
             /* check whether username and token is valid */
@@ -434,7 +437,7 @@ export const userResolvers = {
                 deleted: null
             });
             if (!user) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* randomly generate a secret for Time-based One Time Password*/
@@ -455,7 +458,7 @@ export const userResolvers = {
                 },
                 { $set: { 'password': hashedPw, 'otpSecret': otpSecret, 'resetPasswordRequests.$.used': true } });
             if (updateResult.ok !== 1) {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                throw new GraphQLError(errorCodes.DATABASE_ERROR);
             }
 
             /* need to log user out of all sessions */
@@ -467,7 +470,7 @@ export const userResolvers = {
             const tmpobj = tmp.fileSync({ mode: 0o644, prefix: 'qrcodeimg-', postfix: '.png' });
 
             QRCode.toFile(tmpobj.name, oauth_uri, {}, function (err) {
-                if (err) throw new ApolloError(err.message);
+                if (err) throw new GraphQLError(err.message);
             });
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
@@ -504,19 +507,19 @@ export const userResolvers = {
                 id: string, username?: string, type?: userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number, metadata?: any
             } = args.user;
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             if (password && !passwordIsGoodEnough(password)) {
-                throw new ApolloError('Password has to be at least 8 character long.');
+                throw new GraphQLError('Password has to be at least 8 character long.');
             }
             if (requester.type !== userTypes.ADMIN && requester.id !== id) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             let result;
             if (requester.type === userTypes.ADMIN) {
                 result = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
-                    throw new ApolloError('User not found');
+                    throw new GraphQLError('User not found');
                 }
             }
 
@@ -536,13 +539,13 @@ export const userResolvers = {
 
             /* check email is valid form */
             if (email && !/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
-                throw new UserInputError('User not updated: Email is not the right format.');
+                throw new GraphQLError('User not updated: Email is not the right format.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
             if (requester.type !== userTypes.ADMIN && (
                 type || firstname || lastname || username || description || organisation
             )) {
-                throw new ApolloError('User not updated: Non-admin users are only authorised to change their password or email.');
+                throw new GraphQLError('User not updated: Non-admin users are only authorised to change their password or email.');
             }
 
             if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
@@ -563,7 +566,7 @@ export const userResolvers = {
                 }
                 return updateResult.value;
             } else {
-                throw new ApolloError('Server error; no entry or more than one entry has been updated.');
+                throw new GraphQLError('Server error; no entry or more than one entry has been updated.');
             }
         },
         createOrganisation: async (__unused__parent: Record<string, unknown>, { name, shortname, containOrg, metadata }: { name: string, shortname: string, containOrg: string, metadata: any }, context: any): Promise<IOrganisation> => {
@@ -571,7 +574,7 @@ export const userResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             // if the org already exists, update it; the existence is checked by the name
             const createdOrganisation = await userCore.createOrganisation({
@@ -588,7 +591,7 @@ export const userResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             const res = await db.collections!.organisations_collection.findOneAndUpdate({ id: id }, {
@@ -602,7 +605,7 @@ export const userResolvers = {
             if (res.ok === 1 && res.value) {
                 return res.value;
             } else {
-                throw new ApolloError('Delete organisation failed.');
+                throw new GraphQLError('Delete organisation failed.');
             }
         }
     },
