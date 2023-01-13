@@ -416,14 +416,14 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
     if (getStudyData.getStudy.type === studyType.SENSOR) {
         const availableSites: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).participantId[0]).sort()));
         const availableDeviceTypes: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).deviceId.substr(0, 3)).sort()));
-        categoryColumns.push([
+        categoryColumns.push(
             {
                 title: 'Site',
                 dataIndex: 'site',
                 key: 'site',
                 render: (__unused__value, record) => sites[record.site] ? sites[record.site].concat(' (').concat(record.site).concat(')') : record.site
             }
-        ]);
+        );
         for (const deviceType of availableDeviceTypes) {
             categoryColumns.push({
                 title: deviceType,
@@ -553,7 +553,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         }
                     </Space>}
                 >
-                    <Modal open={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'100%'}>
+                    <Modal open={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'60%'}>
                         <div>Number of files associated to sites and device types.</div><br />
                         <Table
                             pagination={false}
