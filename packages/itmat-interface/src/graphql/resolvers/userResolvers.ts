@@ -541,7 +541,7 @@ export const userResolvers = {
             if (requester.type !== userTypes.ADMIN && (
                 type || firstname || lastname || username || description || organisation
             )) {
-                throw new GraphQLError('User not updated: Non-admin users are only authorised to change their password or email.');
+                throw new GraphQLError('User not updated: Non-admin users are only authorised to change their password, email or email notification.');
             }
 
             if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
