@@ -6,7 +6,7 @@ export interface IServerConfig extends IServerBaseConfig {
     pollingInterval: number;
 }
 
-export class Server extends ServerBase<IServerConfig> {
+export class Runner extends ServerBase<IServerConfig> {
     constructor(protected config: IConfiguration) {
         super(config);
     }

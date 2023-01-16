@@ -1,4 +1,4 @@
-import { ApolloError } from 'apollo-server-express';
+import { GraphQLError } from 'graphql';
 import { Document, Filter } from 'mongodb';
 import {
     permissions,
@@ -40,11 +40,11 @@ export const studyResolvers = {
                 requester,
                 studyId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
             if (study === null || study === undefined) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             return study;
@@ -56,7 +56,7 @@ export const studyResolvers = {
             /* get project */ // defer patientMapping since it's costly and not available to all users
             const project = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
             if (project === null || project === undefined)
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
 
             /* check if user has permission */
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -71,7 +71,7 @@ export const studyResolvers = {
                 requester,
                 project.studyId
             );
-            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             return project;
         },
@@ -89,7 +89,7 @@ export const studyResolvers = {
                 studyId,
                 projectId
             );
-            if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
             // get all dataVersions that are valid (before the current version)
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
@@ -141,7 +141,7 @@ export const studyResolvers = {
                 studyId,
                 projectId
             );
-            if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             if (treeId) {
                 return study.ontologyTrees?.filter(el => el.id === treeId) || [];
@@ -159,7 +159,7 @@ export const studyResolvers = {
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
@@ -266,7 +266,7 @@ export const studyResolvers = {
                 studyId,
                 projectId
             );
-            if (!hasPermission && !hasProjectLevelPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             // check data access permissions
             // null: user will access all data; undefined: user should not access any data
@@ -293,7 +293,7 @@ export const studyResolvers = {
                 if (hasPermission) {
                     availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.dataVersions.map(el => el.id).indexOf(versionId))).map(el => el.id);
                 } else {
-                    throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                    throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
                 }
             }
             // get the fields list, this is to make sure that only data with valid fields are returned, method same as getStudyFields
@@ -460,7 +460,7 @@ export const studyResolvers = {
                 requester,
                 project.studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* returning */
@@ -484,7 +484,7 @@ export const studyResolvers = {
                 project.studyId,
                 project.id
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             return project.approvedFields;
@@ -499,7 +499,7 @@ export const studyResolvers = {
                 project.studyId,
                 project.id
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             return project.approvedFiles;
@@ -522,7 +522,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* create study */
@@ -534,7 +534,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* create study */
@@ -551,7 +551,7 @@ export const studyResolvers = {
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check study exists
@@ -598,20 +598,20 @@ export const studyResolvers = {
             const requester: IUser = context.req.user;
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check fieldId exist
             const searchField = await db.collections!.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldInput.fieldId, dateDeleted: null });
             if (!searchField) {
-                throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Field does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             for (const each of Object.keys(fieldInput) as Array<keyof IFieldEntry>) {
                 searchField[each] = fieldInput[each];
             }
             const { fieldEntry, error } = validateAndGenerateFieldEntry(searchField);
             if (error.length !== 0) {
-                throw new ApolloError(JSON.stringify(error), errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError(JSON.stringify(error), { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
             const newFieldEntry = { ...fieldEntry, id: searchField.id, dateAdded: searchField.dateAdded, deleted: searchField.dateDeleted, studyId: searchField.studyId };
             await db.collections!.field_dictionary_collection.findOneAndUpdate({ studyId: studyId, fieldId: newFieldEntry.fieldId }, { $set: newFieldEntry });
@@ -627,13 +627,13 @@ export const studyResolvers = {
                 requester,
                 studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check fieldId exist
             const searchField = await db.collections!.field_dictionary_collection.find({ studyId: studyId, fieldId: fieldId }).limit(1).sort({ dateAdded: -1 }).toArray();
             if (searchField.length === 0 || searchField[0].dateDeleted !== null) {
-                throw new ApolloError('Field does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('Field does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
 
             const fieldEntry: any = {
@@ -676,7 +676,7 @@ export const studyResolvers = {
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // find the fieldsList, including those that have not been versioned, same method as getStudyFields
@@ -713,7 +713,7 @@ export const studyResolvers = {
                 studyId
             );
             if (!hasPermission) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             let validSubjects: any;
@@ -772,17 +772,17 @@ export const studyResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check dataVersion name valid
             if (!/^\d{1,3}(\.\d{1,2}){0,2}$/.test(dataVersion)) {
-                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
 
             const created = await studyCore.createNewDataVersion(studyId, tag, dataVersion);
             if (created === null) {
-                throw new ApolloError('No matched or modified records', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError('No matched or modified records', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             return created;
         },
@@ -798,7 +798,7 @@ export const studyResolvers = {
                 requester,
                 studyId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             // in case of old documents whose ontologyTrees are invalid
             if (study.ontologyTrees === undefined || ontologyTree === null) {
@@ -848,7 +848,7 @@ export const studyResolvers = {
                 requester,
                 studyId
             );
-            if (!hasPermission) { throw new ApolloError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
                 $pull: {
@@ -862,7 +862,7 @@ export const studyResolvers = {
             if (result.ok === 1 && result.value) {
                 return makeGenericReponse(treeId);
             } else {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                throw new GraphQLError(errorCodes.DATABASE_ERROR);
             }
 
         },
@@ -875,7 +875,7 @@ export const studyResolvers = {
                 requester,
                 studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* making sure that the study exists first */
@@ -896,7 +896,7 @@ export const studyResolvers = {
                 requester,
                 project.studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* delete project */
@@ -908,7 +908,7 @@ export const studyResolvers = {
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             const study = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
@@ -917,7 +917,7 @@ export const studyResolvers = {
                 /* delete study */
                 await studyCore.deleteStudy(studyId);
             } else {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             return makeGenericReponse(studyId);
@@ -934,20 +934,20 @@ export const studyResolvers = {
                 requester,
                 project.studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* check field tree exists */
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(project.studyId);
             const currentDataVersion = study.dataVersions[study.currentDataVersion];
             if (!currentDataVersion) {
-                throw new ApolloError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
 
             /* check all the fields are valid */
             const activefields = await db.collections!.field_dictionary_collection.find({ id: { $in: approvedFields }, studyId: project.studyId, dateDeleted: null }).toArray();
             if (activefields.length !== approvedFields.length) {
-                throw new ApolloError('Some of the fields provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError('Some of the fields provided in your changes are not valid.', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
 
 
@@ -967,13 +967,13 @@ export const studyResolvers = {
                 requester,
                 project.studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             /* check all the files are valid */
             const activefiles = await db.collections!.files_collection.find({ id: { $in: approvedFiles }, deleted: null }).toArray();
             if (activefiles.length !== approvedFiles.length) {
-                throw new ApolloError('Some of the files provided in your changes are not valid.', errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError('Some of the files provided in your changes are not valid.', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
 
             /* edit approved fields */
@@ -989,7 +989,7 @@ export const studyResolvers = {
                 requester,
                 studyId
             ))) {
-                throw new ApolloError(errorCodes.NO_PERMISSION_ERROR);
+                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
@@ -997,7 +997,7 @@ export const studyResolvers = {
             /* check whether the dataversion exists */
             const selectedataVersionFiltered = study.dataVersions.filter((el) => el.id === dataVersionId);
             if (selectedataVersionFiltered.length !== 1) {
-                throw new ApolloError(errorCodes.CLIENT_MALFORMED_INPUT);
+                throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
             }
 
             /* create a new dataversion with the same contentId */
@@ -1060,7 +1060,7 @@ export const studyResolvers = {
             if (result.ok === 1 && result.value) {
                 return result.value;
             } else {
-                throw new ApolloError(errorCodes.DATABASE_ERROR);
+                throw new GraphQLError(errorCodes.DATABASE_ERROR);
             }
 
 

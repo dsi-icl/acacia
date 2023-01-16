@@ -1,5 +1,6 @@
 {
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-ui-react",
     "sourceRoot": "packages/itmat-ui-react/src",
     "projectType": "application",
     "targets": {

@@ -1,5 +1,6 @@
 {
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-commons",
     "sourceRoot": "packages/itmat-commons/src",
     "projectType": "library",
     "targets": {

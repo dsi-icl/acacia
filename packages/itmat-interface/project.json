@@ -1,5 +1,6 @@
 {
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "itmat-interface",
     "sourceRoot": "packages/itmat-interface/src",
     "projectType": "application",
     "targets": {

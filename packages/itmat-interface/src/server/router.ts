@@ -1,18 +1,22 @@
-import { ApolloServer, UserInputError } from 'apollo-server-express';
-import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
+import { ApolloServer } from '@apollo/server';
+import { ApolloServerErrorCode } from '@apollo/server/errors';
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import { GraphQLError } from 'graphql';
 import { graphqlUploadExpress, GraphQLUpload } from 'graphql-upload-minimal';
 import { execute, subscribe } from 'graphql';
-import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-// import connectMongo from 'connect-mongo';
-import cors from 'cors';
+import MongoStore from 'connect-mongo';
+// import cors from 'cors';
 import express from 'express';
 import { Express } from 'express';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
-import http from 'http';
+import http from 'node:http';
 import passport from 'passport';
-// import { db } from '../database/database';
+import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
 import { typeDefs } from '../graphql/typeDefs';
 import { fileDownloadController } from '../rest/fileDownload';
@@ -27,14 +31,20 @@ import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
 import { IUser } from '@itmat-broker/itmat-types';
 
+interface ApolloServerContext {
+    token?: string;
+}
+
 
 export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
+    private readonly config: IConfiguration;
     public readonly proxies: Array<RequestHandler> = [];
 
     constructor(config: IConfiguration) {
 
+        this.config = config;
         this.app = express();
 
         this.app.use(rateLimit({
@@ -42,8 +52,8 @@ export class Router {
             max: 500
         }));
 
-        if (process.env.NODE_ENV === 'development')
-            this.app.use(cors({ credentials: true }));
+        // if (process.env.NODE_ENV === 'development')
+        //     this.app.use(cors({ credentials: true }));
 
         this.app.use(express.json({ limit: '50mb' }));
         this.app.use(express.urlencoded({ extended: true }));
@@ -52,12 +62,17 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(
             session({
-                secret: config.sessionsSecret,
+                store: process.env.NODE_ENV === 'test' ? undefined : MongoStore.create({
+                    client: db.client,
+                    collectionName: config.database.collections.sessions_collection
+                }),
+                secret: this.config.sessionsSecret,
                 saveUninitialized: false,
-                resave: true,
+                resave: false,
                 rolling: true,
                 cookie: {
-                    maxAge: 2 * 60 * 60 * 1000 /* 2 hour */
+                    maxAge: 2 * 60 * 60 * 1000 /* 2 hour */,
+                    secure: 'auto'
                 }
             })
         );
@@ -69,11 +84,35 @@ export class Router {
         passport.serializeUser(userLoginUtils.serialiseUser);
         passport.deserializeUser(userLoginUtils.deserialiseUser);
 
-        this.server = http.createServer(this.app);
+        this.server = http.createServer({
+            allowHTTP1: true,
+            keepAlive: true,
+            keepAliveInitialDelay: 0,
+            requestTimeout: 0,
+            headersTimeout: 0,
+            noDelay: true
+        } as any, this.app);
+
+        this.server.timeout = 0;
+        this.server.headersTimeout = 0;
+        this.server.requestTimeout = 0;
+        this.server.keepAliveTimeout = 1000 * 60 * 60 * 24 * 5;
+        this.server.on('connection', (socket) => {
+            socket.setKeepAlive(true);
+            socket.setNoDelay(true);
+            socket.setTimeout(0);
+            (socket as any).timeout = 0;
+        });
+    }
+
+    async init() {
+
+        const _this = this;
 
         /* putting schema together */
         const schema = makeExecutableSchema({
-            typeDefs, resolvers: {
+            typeDefs,
+            resolvers: {
                 ...resolvers,
                 BigInt: scalarResolvers,
                 // This maps the `Upload` scalar to the implementation provided
@@ -83,17 +122,17 @@ export class Router {
         });
 
         /* register apolloserver for graphql requests */
-        const gqlServer = new ApolloServer({
+        const gqlServer = new ApolloServer<ApolloServerContext>({
             schema,
+            csrfPrevention: false,
             allowBatchedHttpRequests: true,
-            cache: 'bounded',
             plugins: [
                 {
                     async serverWillStart() {
                         logPlugin.serverWillStartLogPlugin();
                         return {
                             async drainServer() {
-                                subscriptionServer.close();
+                                serverCleanup.dispose();
                             }
                         };
                     },
@@ -112,30 +151,6 @@ export class Router {
                 },
                 ApolloServerPluginDrainHttpServer({ httpServer: this.server })
             ],
-            context: async ({ req, res }) => {
-                /* Bounce all unauthenticated graphql requests */
-                // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
-                //     throw new ForbiddenError('not logged in');
-                // }
-                const token: string = req.headers.authorization || '';
-                if ((token !== '') && (req.user === undefined)) {
-                    // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
-                    const decodedPayload = jwt.decode(token);
-                    // obtain the public-key of the robot user in the JWT payload
-                    const pubkey = (decodedPayload as any).publicKey;
-
-                    // verify the JWT
-                    jwt.verify(token, pubkey, function (err: any) {
-                        if (err) {
-                            throw new UserInputError('JWT verification failed. ' + err);
-                        }
-                    });
-                    // store the associated user with the JWT to context
-                    const associatedUser = await userRetrieval(pubkey);
-                    req.user = associatedUser;
-                }
-                return ({ req, res });
-            },
             formatError: (error) => {
                 // TO_DO: generate a ref uuid for errors so the clients can contact admin
                 // TO_DO: check if the error is not thrown my me manually then switch to generic error to client and log
@@ -147,7 +162,7 @@ export class Router {
         /* AE proxy middleware */
         // initial this before graphqlUploadExpress middleware
         const ae_proxy = createProxyMiddleware({
-            target: config.aeEndpoint,
+            target: _this.config.aeEndpoint,
             ws: true,
             xfwd: true,
             // logLevel: 'debug',
@@ -161,7 +176,7 @@ export class Router {
                 preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
                 if (req.body && Object.keys(req.body).length) {
                     const contentType = preq.getHeader('Content-Type');
-                    preq.setHeader('origin', config.aeEndpoint);
+                    preq.setHeader('origin', _this.config.aeEndpoint);
                     const writeBody = (bodyData: string) => {
                         preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
                         preq.write(bodyData);
@@ -199,26 +214,54 @@ export class Router {
             this.app.use(router, ae_proxy);
         });
 
-        this.app.use(graphqlUploadExpress());
+        await gqlServer.start();
 
-        gqlServer.start().then(() => {
-            gqlServer.applyMiddleware({ app: this.app, cors: { credentials: true } });
-        });
+        this.app.use(
+            '/graphql',
+            express.json(),
+            graphqlUploadExpress(),
+            expressMiddleware(gqlServer, {
+                // context: async({ req }) => ({ token: req.headers.token })
+                context: async ({ req, res }) => {
+                    /* Bounce all unauthenticated graphql requests */
+                    // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
+                    //     throw new ForbiddenError('not logged in');
+                    // }
+                    const token: string = req.headers.authorization || '';
+                    if ((token !== '') && (req.user === undefined)) {
+                        // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
+                        const decodedPayload = jwt.decode(token);
+                        // obtain the public-key of the robot user in the JWT payload
+                        const pubkey = (decodedPayload as any).publicKey;
+
+                        // verify the JWT
+                        jwt.verify(token, pubkey, function (error: any) {
+                            if (error) {
+                                throw new GraphQLError('JWT verification failed. ' + error, { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT, error } });
+                            }
+                        });
+                        // store the associated user with the JWT to context
+                        const associatedUser = await userRetrieval(pubkey);
+                        req.user = associatedUser;
+                    }
+                    return ({ req, res });
+                }
+            })
+        );
 
         /* register the graphql subscription functionalities */
-        const subscriptionServer = SubscriptionServer.create({
-            // This is the `schema` we just created.
-            schema,
-            // These are imported from `graphql`.
-            execute,
-            subscribe
-        }, {
-            // This is the `httpServer` we created in a previous step.
+        // Creating the WebSocket subscription server
+        const wsServer = new WebSocketServer({
+            // This is the `httpServer` returned by createServer(app);
             server: this.server,
             // Pass a different path here if your ApolloServer serves at
             // a different path.
             path: '/graphql'
         });
+
+        // Passing in an instance of a GraphQLSchema and
+        // telling the WebSocketServer to start listening
+        const serverCleanup = useServer({ schema: schema, execute: execute, subscribe: subscribe }, wsServer);
 
         /* Bounce all unauthenticated non-graphql HTTP requests */
         // this.app.use((req: Request, res: Response, next: NextFunction) => {

@@ -39,7 +39,7 @@ export const ProfileManagementSection: FunctionComponent = () => {
             <div className='page_ariane'>{whoamidata.whoAmI.username}</div>
             <div className='page_content'>
                 {
-                    dayjs().add(4, 'week').valueOf() - dayjs(user.expiredAt).valueOf() > 0
+                    dayjs().add(2, 'week').valueOf() - dayjs(user.expiredAt).valueOf() > 0
                         ? dayjs().valueOf() - dayjs(user.expiredAt).valueOf() > 0
                             ? <>
                                 <PauseCircleOutlined style={{

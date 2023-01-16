@@ -103,9 +103,9 @@ export class LogPlugin {
         }
         await db.collections!.log_collection.insertOne({
             id: uuid(),
-            requesterName: requestContext.context.req.user ? requestContext.context.req.user.username : 'NA',
-            requesterType: requestContext.context.req.user ? requestContext.context.req.user.type : userTypes.SYSTEM,
-            userAgent: (requestContext.context.req.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
+            requesterName: requestContext.contextValue?.req?.user?.username ?? 'NA',
+            requesterType: requestContext.contextValue?.req?.user?.type ?? userTypes.SYSTEM,
+            userAgent: (requestContext.contextValue.req.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
             logType: LOG_TYPE.REQUEST_LOG,
             actionType: (LOG_ACTION as any)[requestContext.operationName],
             actionData: JSON.stringify(ignoreFieldsHelper(requestContext.request.variables, requestContext.operationName)),
