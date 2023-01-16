@@ -8,13 +8,6 @@ export const logActionRecordWhiteList = Object.keys(LOG_ACTION);
 // only requests in white list will be recorded
 export const logActionShowWhiteList = Object.keys(LOG_ACTION);
 
-// fields that carry sensitive information will be ignored
-export const ignoredFields = {
-    login: ['password', 'totp'],
-    resetPassword: ['newPassword']
-
-};
-
 export class LogPlugin {
     public async serverWillStartLogPlugin(): Promise<null> {
         await db.collections!.log_collection.insertOne({
