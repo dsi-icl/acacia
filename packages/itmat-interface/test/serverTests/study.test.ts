@@ -2536,7 +2536,10 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.createNewField).toEqual([]);
+                expect(res.body.data.createNewField).toEqual([
+                    { successful: true, code: null, id: null, description: 'Field 8-newField8 is created successfully.' },
+                    { successful: true, code: null, id: null, description: 'Field 9-newField9 is created successfully.' }
+                ]);
                 const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: null }).toArray();
                 expect(fieldsInDb).toHaveLength(2);
             });
@@ -2563,6 +2566,8 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.data.createNewField[0]).toEqual({
+                    id: null,
+                    successful: false,
                     code: 'CLIENT_MALFORMED_INPUT',
                     description: 'Field 8.2-newField8: ["FieldId should contain letters, numbers and _ only."]'
                 });
@@ -3255,9 +3260,12 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 expect(res.body.data.uploadDataInArray).toEqual([
-                    { code: 'CLIENT_ACTION_ON_NON_EXISTENT_ENTRY', description: 'Field 34: Field Not found' },
-                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.' },
-                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Subject ID I777770 is illegal.' }
+                    { code: null, description: 'I7N3G6G-1-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-1-32', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-1-31', id: null, successful: true },
+                    { code: 'CLIENT_ACTION_ON_NON_EXISTENT_ENTRY', description: 'Field 34: Field Not found', id: null, successful: false },
+                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.', id: null, successful: false },
+                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Subject ID I777770 is illegal.', id: null, successful: false }
                 ]);
 
                 const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
@@ -3489,7 +3497,10 @@ if (global.hasMinio) {
                 });
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
+                expect(deleteRes.body.data.deleteDataRecords).toEqual([
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true },
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true }
+                ]);
                 const dataInDb = (await db.collections!.data_collection.find({}).sort({ uploadedAt: -1 }).limit(2).toArray()).sort((a, b) => {
                     return parseFloat(a.m_visitId) - parseFloat(b.m_visitId);
                 });
@@ -3517,7 +3528,10 @@ if (global.hasMinio) {
                 });
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
+                expect(deleteRes.body.data.deleteDataRecords).toEqual([
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true },
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true }
+                ]);
                 const dataInDb = await db.collections!.data_collection.find({}).sort({ uploadedAt: -1 }).limit(2).toArray();
                 expect(dataInDb[0]['31']).toBe(null);
                 expect(dataInDb[0]['32']).toBe(null);
@@ -3535,7 +3549,14 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.uploadDataInArray).toEqual([]);
+                expect(res.body.data.uploadDataInArray).toEqual([
+                    { code: null, description: 'I7N3G6G-1-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-1-32', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-2-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-2-32', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
+                ]);
 
                 const deleteRes = await admin.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
@@ -3543,7 +3564,12 @@ if (global.hasMinio) {
                 });
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
+                expect(deleteRes.body.data.deleteDataRecords).toEqual([
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true },
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true },
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true },
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true }
+                ]);
                 const dataInDb = await db.collections!.data_collection.find({ 31: null }).sort({ uploadedAt: -1 }).toArray();
                 expect(dataInDb).toHaveLength(4); // 2 visits * 2 subjects = 4 records
             });
@@ -3555,7 +3581,14 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.uploadDataInArray).toEqual([]);
+                expect(res.body.data.uploadDataInArray).toEqual([
+                    { code: null, description: 'I7N3G6G-1-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-1-32', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-2-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-2-32', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
+                ]);
 
                 const deleteRes = await admin.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
@@ -3563,7 +3596,10 @@ if (global.hasMinio) {
                 });
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
+                expect(deleteRes.body.data.deleteDataRecords).toEqual([
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true },
+                    { code: null, description: '31,32,33,34 are deleted.', id: null, successful: true }
+                ]);
                 const dataInDb = await db.collections!.data_collection.find({ m_subjectId: 'I7N3G6G' }).sort({ uploadedAt: -1 }).toArray();
                 expect(dataInDb).toHaveLength(4); // two data records, two deleted records
             });

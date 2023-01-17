@@ -15,8 +15,7 @@ import {
     ISubjectDataRecordSummary,
     IRole,
     IOntologyTree,
-    userTypes,
-    IGeneralError
+    userTypes
 } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -541,7 +540,7 @@ export const studyResolvers = {
             const study = await studyCore.editStudy(studyId, description);
             return study;
         },
-        createNewField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any[] }, context: any): Promise<IGeneralError[]> => {
+        createNewField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any[] }, context: any): Promise<IGenericResponse[]> => {
             const requester: IUser = context.req.user;
             /* check privileges */
             /* user can get study if he has readonly permission */
@@ -557,7 +556,7 @@ export const studyResolvers = {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
-            const error: IGeneralError[] = [];
+            const response: IGenericResponse[] = [];
             let isError = false;
             const bulk = db.collections!.field_dictionary_collection.initializeUnorderedBulkOp();
             // remove duplicates by fieldId
@@ -571,8 +570,10 @@ export const studyResolvers = {
                 // check data valid
                 const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput);
                 if (thisError.length !== 0) {
-                    error.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
+                    response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
                     isError = true;
+                } else {
+                    response.push({ successful: true, description: `Field ${oneFieldInput.fieldId}-${oneFieldInput.fieldName} is created successfully.` });
                 }
 
                 // // construct the rest of the fields
@@ -592,7 +593,7 @@ export const studyResolvers = {
             if (bulk.batches.length > 0) {
                 await bulk.execute();
             }
-            return error;
+            return response;
         },
         editField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {
             const requester: IUser = context.req.user;
@@ -663,7 +664,7 @@ export const studyResolvers = {
             return searchField[0];
 
         },
-        uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, data }: { studyId: string, data: IDataClip[] }, context: any): Promise<IGeneralError> => {
+        uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, data }: { studyId: string, data: IDataClip[] }, context: any): Promise<IGenericResponse[]> => {
             // check study exists
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
@@ -697,14 +698,14 @@ export const studyResolvers = {
             ]).toArray();
             // filter those that have been deleted
             const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
-            const errors = (await studyCore.uploadOneDataClip(studyId, fieldsList, data, requester));
+            const response = (await studyCore.uploadOneDataClip(studyId, fieldsList, data, requester));
 
-            return errors;
+            return response;
         },
-        deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectIds, visitIds, fieldIds }: { studyId: string, subjectIds: string[], visitIds: string[], fieldIds: string[] }, context: any): Promise<any> => {
+        deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectIds, visitIds, fieldIds }: { studyId: string, subjectIds: string[], visitIds: string[], fieldIds: string[] }, context: any): Promise<IGenericResponse[]> => {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-
+            const response: IGenericResponse[] = [];
             const requester: IUser = context.req.user;
             /* check privileges */
             const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
@@ -716,8 +717,8 @@ export const studyResolvers = {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            let validSubjects: any;
-            let validVisits: any;
+            let validSubjects: string[];
+            let validVisits: string[];
             let validFields: any;
             // filter
             if (subjectIds === undefined || subjectIds === null || subjectIds.length === 0) {
@@ -750,12 +751,13 @@ export const studyResolvers = {
                             id: uuid()
                         }
                     });
+                    response.push({ successful: true, description: `${Object.keys(validFields).join(',')} are deleted.` });
                 }
             }
             if (bulk.batches.length > 0) {
                 await bulk.execute();
             }
-            return [];
+            return response;
         },
         createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
             // If base versions are specified, the new data version will conbine the data that either belongs to the dataVersion or null;
