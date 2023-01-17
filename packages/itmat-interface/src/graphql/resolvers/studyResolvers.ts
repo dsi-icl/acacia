@@ -413,8 +413,6 @@ export const studyResolvers = {
                     subqueries.push(translateMetadata(subMetadata));
                 });
                 metadataFilter = { $or: subqueries };
-                console.log(JSON.stringify(metadataFilter));
-                console.log(await db.collections!.field_dictionary_collection.find({}).toArray());
                 fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, { $match: metadataFilter }, {
@@ -429,8 +427,6 @@ export const studyResolvers = {
                 }, {
                     $sort: { fieldId: 1 }
                 }]).toArray();
-                console.log(availableDataVersions);
-                console.log(fieldRecords);
                 if (queryString.metadata) {
                     metadataFilter = { $and: [{ $or: subqueries }, { $and: queryString.metadata.map((el: any) => translateMetadata(el)) }] };
                 }
@@ -1019,7 +1015,7 @@ export const studyResolvers = {
             if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             // in case of old documents whose ontologyTrees are invalid
-            if (study.ontologyTrees === undefined || ontologyTree === null) {
+            if (study.ontologyTrees === undefined || study.ontologyTrees === null) {
                 await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
                     $set: {
                         ontologyTrees: []

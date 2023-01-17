@@ -127,13 +127,20 @@ export const jobResolvers = {
             const requester: IUser = context.req.user;
 
             /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.job,
                 atomicOperation.WRITE,
                 requester,
                 args.studyId
             );
-            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.job,
+                atomicOperation.WRITE,
+                requester,
+                args.studyId,
+                args.projectId
+            );
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* check study exists */
             await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);

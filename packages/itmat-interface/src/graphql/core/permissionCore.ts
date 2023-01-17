@@ -222,7 +222,18 @@ export class PermissionCore {
     }
 
     public async editRoleFromStudyOrProject(roleId: string, name?: string, permissionChanges?: any, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
-        if (permissionChanges === undefined) { permissionChanges = { data: { subjectIds: [], visitIds: [], fieldIds: [], hasVersioned: false } }; }
+        if (permissionChanges === undefined) {
+            permissionChanges = {
+                data: { subjectIds: [], visitIds: [], fieldIds: [], hasVersioned: false, operations: [] },
+                manage: {
+                    [IPermissionManagementOptions.own]: [],
+                    [IPermissionManagementOptions.role]: [],
+                    [IPermissionManagementOptions.job]: [],
+                    [IPermissionManagementOptions.query]: [],
+                    [IPermissionManagementOptions.ontologyTrees]: []
+                }
+            };
+        }
         if (userChanges === undefined) { userChanges = { add: [], remove: [] }; }
 
         const bulkop = db.collections!.roles_collection.initializeUnorderedBulkOp();

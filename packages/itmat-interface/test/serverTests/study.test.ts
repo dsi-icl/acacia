@@ -1493,7 +1493,7 @@ if (global.hasMinio) {
                         emailNotificationsActivated: true,
                         organisation: 'organisation_user',
                         deleted: null,
-                        id: `AuthorisedStudyUserManageProject_${username}`,
+                        id: `AuthorisedStudyUserAccessSelfData_${username}`,
                         createdAt: 1591134065000,
                         expiredAt: 1991134065000
                     };
@@ -3340,7 +3340,7 @@ if (global.hasMinio) {
                                     [IPermissionManagementOptions.role]: [],
                                     [IPermissionManagementOptions.job]: [],
                                     [IPermissionManagementOptions.query]: [],
-                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ, atomicOperation.WRITE]
                                 }
                             }
                         }
@@ -3365,7 +3365,7 @@ if (global.hasMinio) {
                                 [IPermissionManagementOptions.role]: [],
                                 [IPermissionManagementOptions.job]: [],
                                 [IPermissionManagementOptions.query]: [],
-                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ, atomicOperation.WRITE]
                             }
                         },
                         users: [{
@@ -4125,123 +4125,105 @@ if (global.hasMinio) {
                 expect(dataInDb).toHaveLength(8); // four data records, four deleted records
             });
 
-            // test('Get data records (user with study privilege)', async () => {
-            //     await authorisedUser.post('/graphql').send({
-            //         query: print(UPLOAD_DATA_IN_ARRAY),
-            //         variables: { studyId: createdStudy.id, data: multipleRecords }
-            //     });
-            //     await admin.post('/graphql').send({
-            //         query: print(CREATE_NEW_DATA_VERSION),
-            //         variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-            //     });
-            //     await authorisedUser.post('/graphql').send({
-            //         query: print(UPLOAD_DATA_IN_ARRAY),
-            //         variables: {
-            //             studyId: createdStudy.id, data: [
-            //                 {
-            //                     fieldId: '31',
-            //                     value: '10',
-            //                     subjectId: 'I7N3G6G',
-            //                     visitId: '3'
-            //                 }
-            //             ]
-            //         }
-            //     });
-            //     const getRes = await authorisedUser.post('/graphql').send({
-            //         query: print(GET_DATA_RECORDS),
-            //         variables: {
-            //             studyId: createdStudy.id,
-            //             queryString: {
-            //                 data_requested: ['31', '32'],
-            //                 format: 'raw',
-            //                 cohort: [[]],
-            //                 new_fields: []
-            //             }
-            //         }
-            //     });
-            //     expect(getRes.status).toBe(200);
-            //     expect(getRes.body.errors).toBeUndefined();
-            //     expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
-            // });
+            test('Get data records (user with study privilege)', async () => {
+                await authorisedUser.post('/graphql').send({
+                    query: print(UPLOAD_DATA_IN_ARRAY),
+                    variables: { studyId: createdStudy.id, data: multipleRecords }
+                });
+                await admin.post('/graphql').send({
+                    query: print(CREATE_NEW_DATA_VERSION),
+                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                });
+                await authorisedUser.post('/graphql').send({
+                    query: print(UPLOAD_DATA_IN_ARRAY),
+                    variables: {
+                        studyId: createdStudy.id, data: [
+                            {
+                                fieldId: '31',
+                                value: '10',
+                                subjectId: 'I7N3G6G',
+                                visitId: '3'
+                            }
+                        ]
+                    }
+                });
+                const getRes = await authorisedUser.post('/graphql').send({
+                    query: print(GET_DATA_RECORDS),
+                    variables: {
+                        studyId: createdStudy.id,
+                        queryString: {
+                            data_requested: ['31', '32'],
+                            format: 'raw',
+                            cohort: [[]],
+                            new_fields: []
+                        }
+                    }
+                });
+                expect(getRes.status).toBe(200);
+                expect(getRes.body.errors).toBeUndefined();
+                expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
+            });
 
-            // test('Get data records (user with project privilege)', async () => {
-            //     await authorisedUser.post('/graphql').send({
-            //         query: print(UPLOAD_DATA_IN_ARRAY),
-            //         variables: { studyId: createdStudy.id, data: multipleRecords }
-            //     });
-            //     await admin.post('/graphql').send({
-            //         query: print(CREATE_NEW_DATA_VERSION),
-            //         variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-            //     });
-            //     await authorisedUser.post('/graphql').send({
-            //         query: print(UPLOAD_DATA_IN_ARRAY),
-            //         variables: {
-            //             studyId: createdStudy.id,
-            //             data: [
-            //                 {
-            //                     fieldId: '31',
-            //                     value: '10',
-            //                     subjectId: 'I7N3G6G',
-            //                     visitId: '3'
-            //                 }
-            //             ]
-            //         }
-            //     });
-            //     const getRes = await authorisedProjectUser.post('/graphql').send({
-            //         query: print(GET_DATA_RECORDS),
-            //         variables: {
-            //             studyId: createdStudy.id,
-            //             projectId: createdProject.id,
-            //             queryString: {
-            //                 data_requested: ['31', '32'],
-            //                 format: 'raw',
-            //                 cohort: [[]],
-            //                 new_fields: []
-            //             }
-            //         }
-            //     });
-            //     expect(getRes.status).toBe(200);
-            //     expect(getRes.body.errors).toBeUndefined();
-            //     expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
-            // });
+            test('Get data records (user with project privilege)', async () => {
+                await authorisedUser.post('/graphql').send({
+                    query: print(UPLOAD_DATA_IN_ARRAY),
+                    variables: { studyId: createdStudy.id, data: multipleRecords }
+                });
+                await admin.post('/graphql').send({
+                    query: print(CREATE_NEW_DATA_VERSION),
+                    variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+                });
+                await authorisedUser.post('/graphql').send({
+                    query: print(UPLOAD_DATA_IN_ARRAY),
+                    variables: {
+                        studyId: createdStudy.id,
+                        data: [
+                            {
+                                fieldId: '31',
+                                value: '10',
+                                subjectId: 'I7N3G6G',
+                                visitId: '3'
+                            }
+                        ]
+                    }
+                });
+                const getRes = await authorisedProjectUser.post('/graphql').send({
+                    query: print(GET_DATA_RECORDS),
+                    variables: {
+                        studyId: createdStudy.id,
+                        projectId: createdProject.id,
+                        queryString: {
+                            data_requested: ['31', '32'],
+                            format: 'raw',
+                            cohort: [[]],
+                            new_fields: []
+                        }
+                    }
+                });
+                expect(getRes.status).toBe(200);
+                expect(getRes.body.errors).toBeUndefined();
+                expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
+            });
 
             test('Get data records with meta data filters', async () => {
                 const study = await db.collections!.studies_collection.findOne({ id: createdStudy.id });
-                await admin.post('/graphql').send({
-                    query: print(CREATE_ONTOLOGY_TREE),
-                    variables: {
-                        studyId: createdStudy.id,
-                        ontologyTree: {
-                            name: 'fakeTree',
-                            routes: [
-                                {
-                                    path: ['DM', 'm_subjectId', 'm_visitId'],
-                                    name: 'AGE',
-                                    field: ['$31'],
-                                    visitRange: []
-                                },
-                                {
-                                    path: ['QS', 'MFI', 'm_subjectId', 'm_visitId'],
-                                    name: '',
-                                    field: ['$32'],
-                                    visitRange: []
-                                }
-                            ]
-                        }
+                await db.collections!.field_dictionary_collection.updateMany({ fieldId: { $in: ['31', '32'] } }, {
+                    $set: {
+                        [`metadata.role:${createdRole_study_accessData.id}`]: true
                     }
                 });
                 await db.collections!.data_collection.insertMany([{
                     m_studyId: createdStudy.id,
                     m_fieldId: '31',
                     m_subjectId: 'I7N3G6G',
-                    m_versionId: study.dataVersions[0].id,
+                    m_versionId: study.dataVersions[study?.currentDataVersion].id,
                     m_visitId: '1',
                     id: '0001',
                     metadata: {
                         'uploader:org': createdUserAuthorisedProfile.organisation,
                         'uploader:user': createdUserAuthorisedProfile.id,
                         'uploader:wp': 'wp5.1',
-                        [`role:${createdRole_project.id}`]: true
+                        [`role:${createdRole_study_accessData.id}`]: true
                     },
                     updatedAt: '10000000',
                     value: '1'
@@ -4249,19 +4231,19 @@ if (global.hasMinio) {
                     m_studyId: createdStudy.id,
                     m_fieldId: '32',
                     m_subjectId: 'I7N3G6G',
-                    m_versionId: study.dataVersions[0].id,
+                    m_versionId: study.dataVersions[study?.currentDataVersion].id,
                     m_visitId: '1',
                     id: '0002',
                     metadata: {
                         'uploader:org': createdUserAuthorisedProject.organisation,
                         'uploader:user': createdUserAuthorisedProject.id,
                         'uploader:wp': 'wp5.2',
-                        [`role:${createdRole_project.id}`]: true
+                        [`role:${createdRole_study_accessData.id}`]: true
                     },
                     updatedAt: '10000000',
                     value: '2'
                 }]);
-                const resMetadataOrg = await authorisedProjectUser.post('/graphql').send({
+                const resMetadataOrg = await authorisedUser.post('/graphql').send({
                     query: print(GET_DATA_RECORDS),
                     variables: {
                         studyId: createdStudy.id,
@@ -4336,7 +4318,7 @@ if (global.hasMinio) {
                             visitRange: []
                         }
                     ],
-                    metadata: {}
+                    metadata: null
                 });
                 // clear ontologyTrees
                 await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
@@ -4552,7 +4534,7 @@ if (global.hasMinio) {
                             visitRange: []
                         }
                     ],
-                    metadata: {}
+                    metadata: null
                 });
                 const resWithVersion = await authorisedUser.post('/graphql').send({
                     query: print(GET_ONTOLOGY_TREE),
@@ -4583,7 +4565,7 @@ if (global.hasMinio) {
                             visitRange: []
                         }
                     ],
-                    metadata: {}
+                    metadata: null
                 });
                 // clear study
                 await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, {
