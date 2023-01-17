@@ -44,7 +44,9 @@ export const deviceTypes = {
     SMA: 'Stress Monitor App',
     TFA: 'ThinkFast App',
     SMQ: 'Stress Monitor App Questionnaire',
-    VIR: 'Virtual device type'
+    VIR: 'Virtual device type',
+    CAN: 'Cantab App',
+    WLD: 'Wildkey App'
 };
 
 const { RangePicker } = DatePicker;
@@ -198,6 +200,11 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                     fileLength: file.size
                 }
             }).then(result => {
+                if (!result.data) {
+                    // Any accompanying error should already be displayed by `uploadFile`
+                    console.error(result.errors, result.extensions?.code);
+                    return;
+                }
                 delete (window as any).onUploadProgressHackMap[uploadMapHackName];
                 delete progressReports[uploadMapHackName];
                 removeFile(file);
@@ -409,14 +416,14 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
     if (getStudyData.getStudy.type === studyType.SENSOR) {
         const availableSites: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).participantId[0]).sort()));
         const availableDeviceTypes: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).deviceId.substr(0, 3)).sort()));
-        categoryColumns.push([
+        categoryColumns.push(
             {
                 title: 'Site',
                 dataIndex: 'site',
                 key: 'site',
                 render: (__unused__value, record) => sites[record.site] ? sites[record.site].concat(' (').concat(record.site).concat(')') : record.site
             }
-        ]);
+        );
         for (const deviceType of availableDeviceTypes) {
             categoryColumns.push({
                 title: deviceType,
@@ -546,7 +553,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         }
                     </Space>}
                 >
-                    <Modal visible={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'100%'}>
+                    <Modal open={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'60%'}>
                         <div>Number of files associated to sites and device types.</div><br />
                         <Table
                             pagination={false}
@@ -555,7 +562,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                             size='small'
                         /><br />
                         <Space wrap={true}>
-                            {Object.keys(deviceTypes).sort().map(el => <Tag>{`${el}: ${deviceTypes[el]}`}</Tag>)}
+                            {Object.keys(deviceTypes).sort().map((el, index) => <Tag key={index}>{`${el}: ${deviceTypes[el]}`}</Tag>)}
                         </Space>
                     </Modal>
                     <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />

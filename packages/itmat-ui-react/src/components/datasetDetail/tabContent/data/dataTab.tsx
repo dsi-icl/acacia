@@ -158,7 +158,7 @@ export const DataManagementTabContentFetch: FunctionComponent = () => {
                 <Subsection title='Create New Data Version'>
                     <Modal
                         width='80%'
-                        visible={isModalOn}
+                        open={isModalOn}
                         title='Unversioned Data'
                         onOk={() => setIsModalOn(false)}
                         onCancel={() => setIsModalOn(false)}

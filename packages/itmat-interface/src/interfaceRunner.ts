@@ -3,10 +3,10 @@ import { db } from './database/database';
 import { objStore } from './objStore/objStore';
 import { MongoClient } from 'mongodb';
 import { Router } from './server/router';
-import { Server } from './server/server';
+import { Runner } from './server/server';
 import { pubsub, subscriptionEvents } from './graphql/pubsub';
 
-class ITMATInterfaceServer extends Server {
+class ITMATInterfaceRunner extends Runner {
 
     private router?: Router;
 
@@ -22,9 +22,9 @@ class ITMATInterfaceServer extends Server {
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
-            db.connect(this.config.database, MongoClient.connect as any)
+            db.connect(this.config.database, MongoClient)
                 .then(() => objStore.connect(this.config.objectStore))
-                .then(() => {
+                .then(async () => {
 
                     const jobChangestream = db.collections!.jobs_collection.watch([
                         { $match: { operationType: { $in: ['update', 'insert'] } } }
@@ -47,6 +47,7 @@ class ITMATInterfaceServer extends Server {
                     });
 
                     _this.router = new Router(this.config);
+                    await _this.router.init();
 
                     // Return the Express application
                     return resolve(_this.router);
@@ -61,9 +62,11 @@ class ITMATInterfaceServer extends Server {
      * express router MUST be released and this service endpoints are expected to fail.
      * @return {Promise} Resolve to true on success, ErrorStack otherwise
      */
-    public stop(): Promise<void> {
+    public async stop(): Promise<void> {
+        await objStore.disconnect();
+        await db.closeConnection();
         return Promise.resolve();
     }
 }
 
-export default ITMATInterfaceServer;
+export default ITMATInterfaceRunner;

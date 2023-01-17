@@ -3,7 +3,7 @@ import { GET_LOGS } from '@itmat-broker/itmat-models';
 import { userTypes, LOG_ACTION, LOG_TYPE, LOG_STATUS, USER_AGENT, ILogEntry } from '@itmat-broker/itmat-types';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../reusable/loadSpinner';
-import { Table, Input, Button, Checkbox, Descriptions, DatePicker, Modal } from 'antd';
+import { Table, Input, Button, Checkbox, Descriptions, DatePicker, Modal, Row, Col } from 'antd';
 import Highlighter from 'react-highlight-words';
 import dayjs from 'dayjs';
 
@@ -225,11 +225,12 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
         </Button>
         <Modal
             title='Advanced Search'
-            visible={advancedSearch}
+            open={advancedSearch}
             onOk={() => { setAdvancedSearch(false); }}
             onCancel={() => { setAdvancedSearch(false); }}
             okText='OK'
             cancelText='Reset'
+            width={'50%'}
         >
             <Descriptions title='Requester Name'    ></Descriptions>
             <Input {...inputControl('requesterName')} style={{ marginBottom: '20px' }} />
@@ -240,7 +241,11 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
             <Descriptions title='Log Type'></Descriptions>
             <Checkbox.Group options={Object.keys(LOG_TYPE)} {...checkboxControl('logType')} style={{ marginBottom: '20px' }} />
             <Descriptions title='Request Type'></Descriptions>
-            <Checkbox.Group options={Object.values(LOG_ACTION)} {...checkboxControl('actionType')} style={{ marginBottom: '20px' }} />
+            <Checkbox.Group {...checkboxControl('actionType')} style={{ marginBottom: '20px' }} >
+                <Row>
+                    {Object.keys(LOG_ACTION).map(el => <Col><Checkbox value={LOG_ACTION[el]}>{el}</Checkbox></Col>)}
+                </Row>
+            </Checkbox.Group>
             <Descriptions title='Status'></Descriptions>
             <Checkbox.Group options={Object.keys(LOG_STATUS)} {...checkboxControl('status')} style={{ marginBottom: '20px' }} />
             <Descriptions title='Date Range'></Descriptions>
@@ -276,7 +281,7 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
         </Table>
         <Modal
             title='Details'
-            visible={verbose}
+            open={verbose}
             onOk={() => { setVerbose(false); }}
             onCancel={() => { setVerbose(false); }}
         >

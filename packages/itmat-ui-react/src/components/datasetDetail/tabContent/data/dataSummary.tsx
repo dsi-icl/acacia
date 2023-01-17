@@ -58,7 +58,7 @@ const NumberOfRecords: FunctionComponent<{ data: any }> = ({ data }) => {
             </span>
             <Modal
                 title='Details'
-                visible={showDetails}
+                open={showDetails}
                 onOk={() => { setShowDetails(false); }}
                 onCancel={() => { setShowDetails(false); }}
             >

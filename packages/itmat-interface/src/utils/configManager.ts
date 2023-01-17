@@ -25,14 +25,14 @@ class ConfigurationManager {
         console.log('Applied default configuration.');
 
         configurationFiles.forEach((configurationFile) => {
-            if (fs.existsSync(configurationFile)) {
-                const content = fs.readFileSync(configurationFile, 'utf8');
-                try {
+            try {
+                if (fs.existsSync(configurationFile)) {
+                    const content = fs.readFileSync(configurationFile, 'utf8');
                     config = merge(config, JSON.parse(content));
                     console.log(`Applied configuration from ${path.resolve(configurationFile)}.`);
-                } catch (e) {
-                    console.error(chalk.red('Cannot parse configuration file.'));
                 }
+            } catch (e) {
+                console.error(chalk.red('Cannot parse configuration file.'));
             }
         });
 

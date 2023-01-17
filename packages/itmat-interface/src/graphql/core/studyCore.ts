@@ -1,4 +1,4 @@
-import { ApolloError } from 'apollo-server-core';
+import { GraphQLError } from 'graphql';
 import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -8,10 +8,7 @@ import { validate } from '@ideafast/idgen';
 import type { MatchKeysAndValues } from 'mongodb';
 import { objStore } from '../../objStore/objStore';
 import { FileUpload } from 'graphql-upload-minimal';
-import { Readable } from 'stream';
-import { WriteStream } from 'fs-capacitor';
 import crypto from 'crypto';
-import { Logger } from '@itmat-broker/itmat-commons';
 import { fileSizeLimit } from '../../utils/definition';
 import { IGenericResponse } from '../responses';
 export class StudyCore {
@@ -20,7 +17,7 @@ export class StudyCore {
     public async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
         const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
         if (studySearchResult === null || studySearchResult === undefined) {
-            throw new ApolloError('Study does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
         return studySearchResult;
     }
@@ -28,7 +25,7 @@ export class StudyCore {
     public async findOneProject_throwErrorIfNotExist(projectId: string): Promise<IProject> {
         const projectSearchResult = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null })!;
         if (projectSearchResult === null || projectSearchResult === undefined) {
-            throw new ApolloError('Project does not exist.', errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            throw new GraphQLError('Project does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
         return projectSearchResult;
     }
@@ -51,7 +48,7 @@ export class StudyCore {
         ).toArray();
 
         if (existingStudies[0] && existingStudies[0].name.includes(studyName.toLowerCase())) {
-            throw new ApolloError(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
+            throw new GraphQLError(`Study "${studyName}" already exists (duplicates are case-insensitive).`);
         }
 
         const study: IStudy = {
@@ -75,7 +72,7 @@ export class StudyCore {
         if (res.ok === 1 && res.value) {
             return res.value;
         } else {
-            throw new ApolloError('Edit study failed');
+            throw new GraphQLError('Edit study failed');
         }
     }
 
@@ -314,6 +311,7 @@ export class StudyCore {
 
     // This file uploading function will not check any metadate of the file
     public async uploadFile(studyId: string, data: IDataClip, uploader: IUser, args: { fileLength?: number, fileHash?: string }): Promise<IFile | { code: errorCodes, description: string }> {
+
         if (!data.file || typeof (data.file) === 'string') {
             return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Invalid File Stream' };
         }
@@ -326,113 +324,83 @@ export class StudyCore {
         // check if old files exist; if so, denote it as deleted
         const dataEntry = await db.collections!.data_collection.findOne({ m_studyId: studyId, m_visitId: data.visitId, m_subjectId: data.subjectId, m_versionId: null }, { [data.fieldId]: 1 });
         const oldFileId = dataEntry ? dataEntry[data.fieldId] : null;
+
         return new Promise<IFile>((resolve, reject) => {
-            try {
-                const capacitor = new WriteStream();
-                const hash = crypto.createHash('sha256');
-                const stream: Readable = file.createReadStream();
-                capacitor.on('error', () => {
-                    stream.unpipe();
-                    stream.resume();
-                });
 
-                stream.on('limit', () => {
-                    capacitor.destroy(new Error('File truncated as it exceeds the byte size limit'));
-                });
+            (async () => {
+                try {
+                    const fileEntry: Partial<IFile> = {
+                        id: uuid(),
+                        fileName: file.fieldName,
+                        studyId: studyId,
+                        description: JSON.stringify(data.metadata ?? {}),
+                        uploadTime: `${Date.now()}`,
+                        uploadedBy: uploader.id,
+                        deleted: null
+                    };
 
-                stream.on('error', (error) => {
-                    capacitor.destroy(error);
-                });
-
-                Object.defineProperty(file, 'capacitor', {
-                    enumerable: false,
-                    configurable: false,
-                    writable: false
-                });
-
-                stream.pipe(capacitor);
-
-                const countStream = capacitor.createReadStream();
-                let readBytes = 0;
-
-                countStream.on('data', chunk => {
-                    readBytes += chunk.length;
-                    hash.update(chunk);
-                });
-
-                countStream.on('error', (e) => {
-                    Logger.error(e);
-                    reject({ code: errorCodes.FILE_STREAM_ERROR, description: 'Stream error.' });
-                    return;
-                });
-
-                countStream.on('end', () => {
-                    // hash is optional, but should be correct if provided
-                    const hashString = hash.digest('hex');
-                    if (args.fileHash !== undefined) {
-                        if (args.fileHash !== hashString) {
-                            reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File hash not match.' });
-                            return;
-                        }
-                    }
-                    // check if readbytes equal to filelength in parameters
-                    if (args.fileLength !== undefined) {
-                        // const parsedBigInt = args.fileLength.toString().substring(0, args.fileLength.toString().length);
-                        const parsedBigInt = args.fileLength.toString();
-                        if (parsedBigInt !== readBytes.toString()) {
-                            reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File size mismatch.' });
-                            return;
-                        }
-                    }
-                    if (readBytes > fileSizeLimit) {
-                        reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File should not be larger than 8GB' });
+                    if (args.fileLength !== undefined && args.fileLength > fileSizeLimit) {
+                        reject(new GraphQLError('File should not be larger than 8GB', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
                         return;
                     }
-                    const stream: Readable = capacitor.createReadStream();
+
+                    const stream = file.createReadStream();
                     const fileUri = uuid();
+                    const hash = crypto.createHash('sha256');
+                    let readBytes = 0;
+
+                    stream.pause();
 
                     /* if the client cancelled the request mid-stream it will throw an error */
                     stream.on('error', (e) => {
-                        Logger.error(e);
-                        reject({ code: errorCodes.FILE_STREAM_ERROR, description: '' });
+                        reject(new GraphQLError('Upload resolver file stream failure', { extensions: { code: errorCodes.FILE_STREAM_ERROR, error: e } }));
                         return;
                     });
 
-                    stream.on('end', async () => {
-                        try {
-                            const fileEntry: IFile = {
-                                id: uuid(),
-                                fileName: file.fieldName,
-                                studyId: studyId,
-                                fileSize: readBytes.toString(),
-                                description: JSON.stringify(data.metadata ?? {}),
-                                uploadTime: `${Date.now()}`,
-                                uploadedBy: uploader.id,
-                                uri: fileUri,
-                                deleted: null,
-                                hash: hashString
-                            };
-                            const insertResult = await db.collections!.files_collection.insertOne(fileEntry);
-                            if (insertResult.acknowledged) {
-                                resolve(fileEntry);
-                            } else {
-                                reject({ code: errorCodes.DATABASE_ERROR, description: '' });
-                                return;
-                            }
-                            // delete old file if existing
-                            await db.collections!.files_collection.findOneAndUpdate({ studyId: studyId, id: oldFileId }, { $set: { deleted: Date.now().valueOf() } });
-                        } catch (e) {
-                            reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Missing file metadata.' });
+                    stream.on('data', (chunk) => {
+                        readBytes += chunk.length;
+                        if (readBytes > fileSizeLimit) {
+                            stream.destroy();
+                            reject(new GraphQLError('File should not be larger than 8GB', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
                             return;
                         }
+                        hash.update(chunk);
                     });
-                    objStore.uploadFile(stream, studyId, fileUri);
-                });
-            }
-            catch (e) {
-                reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Missing file metadata.' });
-                return;
-            }
+
+
+                    await objStore.uploadFile(stream, studyId, fileUri);
+
+                    // hash is optional, but should be correct if provided
+                    const hashString = hash.digest('hex');
+                    if (args.fileHash && args.fileHash !== hashString) {
+                        reject(new GraphQLError('File hash not match', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
+                        return;
+                    }
+
+                    // check if readbytes equal to filelength in parameters
+                    if (args.fileLength !== undefined && args.fileLength.toString() !== readBytes.toString()) {
+                        reject(new GraphQLError('File size mismatch', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
+                        return;
+                    }
+
+                    fileEntry.fileSize = readBytes.toString();
+                    fileEntry.uri = fileUri;
+                    fileEntry.hash = hashString;
+
+                    const insertResult = await db.collections!.files_collection.insertOne(fileEntry as IFile);
+                    if (insertResult.acknowledged) {
+                        // delete old file if existing
+                        await db.collections!.files_collection.findOneAndUpdate({ studyId: studyId, id: oldFileId }, { $set: { deleted: Date.now().valueOf() } });
+                        resolve(fileEntry as IFile);
+                    } else {
+                        throw new GraphQLError(errorCodes.DATABASE_ERROR);
+                    }
+                }
+                catch (error) {
+                    reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Missing file metadata.', error });
+                    return;
+                }
+            })();
         });
     }
 
@@ -456,7 +424,7 @@ export class StudyCore {
         ]).toArray();
 
         if (getListOfPatientsResult === null || getListOfPatientsResult === undefined) {
-            throw new ApolloError('Cannot get list of patients', errorCodes.DATABASE_ERROR);
+            throw new GraphQLError('Cannot get list of patients', { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
 
         if (getListOfPatientsResult[0] !== undefined) {
@@ -515,7 +483,7 @@ export class StudyCore {
         if (result.ok === 1 && result.value) {
             return result.value as IProject;
         } else {
-            throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
+            throw new GraphQLError(`Cannot update project "${projectId}"`, { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 
@@ -525,7 +493,7 @@ export class StudyCore {
         if (result.ok === 1 && result.value) {
             return result.value as IProject;
         } else {
-            throw new ApolloError(`Cannot update project "${projectId}"`, errorCodes.DATABASE_ERROR);
+            throw new GraphQLError(`Cannot update project "${projectId}"`, { extensions: { code: errorCodes.DATABASE_ERROR } });
         }
     }
 

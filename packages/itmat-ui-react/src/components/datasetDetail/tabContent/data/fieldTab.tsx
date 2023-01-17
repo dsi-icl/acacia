@@ -119,7 +119,6 @@ export const FieldManagementTabContentFetch: FunctionComponent<{ studyId: string
             name={'standard'}
             initialValues={selectedStd}
             onFinish={(value) => {
-                console.log(value);
                 const stdRules: any[] = [];
                 [...value.stdRules].forEach(el => {
                     delete el.__typename;
