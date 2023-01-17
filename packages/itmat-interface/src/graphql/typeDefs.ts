@@ -113,11 +113,6 @@ input DataClip {
     metadata: JSON
 }
 
-type GeneralError {
-    code: String!
-    description: String
-}
-
 type UserAccess {
     id: String!
     projects: [Project]!
@@ -422,7 +417,9 @@ type QueryEntry {
 
 type GenericResponse {
     successful: Boolean!
-    id: String
+    id: String,
+    code: String,
+    description: String
 }
 
 enum JOB_STATUS {
@@ -571,9 +568,9 @@ type Mutation {
     deleteStudy(studyId: String!): GenericResponse
     editStudy(studyId: String!, description: String): Study
     createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
-    uploadDataInArray(studyId: String!, data: [DataClip]): [GeneralError]
-    deleteDataRecords(studyId: String!, subjectIds: [String], visitIds: [String], fieldIds: [String]): [GeneralError]
-    createNewField(studyId: String!, fieldInput: [FieldInput]!): [GeneralError]
+    uploadDataInArray(studyId: String!, data: [DataClip]): [GenericResponse]
+    deleteDataRecords(studyId: String!, subjectIds: [String], visitIds: [String], fieldIds: [String]): [GenericResponse]
+    createNewField(studyId: String!, fieldInput: [FieldInput]!): [GenericResponse]
     editField(studyId: String!, fieldInput: FieldInput!): Field
     deleteField(studyId: String!, fieldId: String!): Field
     createOntologyTree(studyId: String!, ontologyTree: OntologyTreeInput!): OntologyTree

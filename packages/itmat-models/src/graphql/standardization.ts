@@ -47,6 +47,8 @@ export const DELETE_STANDARDIZATION = gql`
         deleteStandardization(studyId: $studyId, stdId: $stdId) {
             id
             successful
+            code
+            description
         }
     }
 `;

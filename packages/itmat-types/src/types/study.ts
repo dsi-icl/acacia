@@ -69,11 +69,6 @@ export interface IDataClip {
     metadata?: JSON
 }
 
-export interface IGeneralError {
-    code: string;
-    description?: string
-}
-
 export interface ISubjectDataRecordSummary {
     subjectId: string,
     visitId?: string,
