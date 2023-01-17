@@ -5,7 +5,7 @@ import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE, GET_USERS, GET_PROJECT, GET_STUDY
 import { IRoleQL, IUser, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
-import { Tag, Select, Button, Form, Input, Alert, Popconfirm, Checkbox, Collapse, Divider, Table } from 'antd';
+import { Tag, Select, Button, Form, Input, Alert, Popconfirm, Checkbox, Collapse, Divider, Table, Col, Row } from 'antd';
 import { PlusOutlined, DeleteOutlined, MinusCircleOutlined } from '@ant-design/icons';
 const { Panel } = Collapse;
 
@@ -294,24 +294,47 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
                 })}>
                     <div>
                         <div className={css.data_permissions}>
-                            <Form.Item name='subjectIds' label='Subject Id'>
-                                <Select
-                                    mode='tags'
-                                    tokenSeparators={[',']}
-                                />
-                            </Form.Item>
-                            <Form.Item name='visitIds' label='Visit Id'>
-                                <Select
-                                    mode='tags'
-                                    tokenSeparators={[',']}
-                                />
-                            </Form.Item>
-                            <Form.Item name='fieldIds' label='Field Id'>
-                                <Select
-                                    mode='tags'
-                                    tokenSeparators={[',']}
-                                />
-                            </Form.Item>
+                            <Divider orientation='left'>Data Permissions</Divider>
+                            <Row gutter={16}>
+                                <Col span={5}>
+                                    <Form.Item name='subjectIds' label='Subject Id'>
+                                        <Select
+                                            mode='tags'
+                                            tokenSeparators={[',']}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={5}>
+                                    <Form.Item name='visitIds' label='Visit Id'>
+                                        <Select
+                                            mode='tags'
+                                            tokenSeparators={[',']}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={5}>
+                                    <Form.Item name='fieldIds' label='Field Id'>
+                                        <Select
+                                            mode='tags'
+                                            tokenSeparators={[',']}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={5}>
+                                    <Form.Item name='operations' label='Operations'>
+                                        <Checkbox.Group
+                                            options={Object.keys(atomicOperation).map(el => {
+                                                return { label: el, value: atomicOperation[el] };
+                                            })}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={4}>
+                                    <Form.Item name='hasVersioned' label='Include Versioned Data' valuePropName="checked">
+                                        <Checkbox />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
                             <Form.List name='filters'>
                                 {(filters, { add, remove }) => {
                                     return (
@@ -333,63 +356,66 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
                                     );
                                 }}
                             </Form.List>
-                            <Form.Item name='operations' label='Operations'>
-                                <Checkbox.Group
-                                    options={Object.keys(atomicOperation).map(el => {
-                                        return { label: el, value: atomicOperation[el] };
-                                    })}
-                                />
-                            </Form.Item>
-                            <Form.Item name='hasVersioned' label='Include Versioned Data' valuePropName="checked">
-                                <Checkbox />
-                            </Form.Item>
                         </div>
                         <div className={css.management_permissions}>
-                            <div>
-                                <Form.Item name={IPermissionManagementOptions.own} label='Self Management'>
-                                    <Checkbox.Group
-                                        options={Object.keys(atomicOperation).map(el => {
-                                            return { label: el, value: atomicOperation[el] };
-                                        })}
-                                    />
-                                </Form.Item>
-                            </div>
-                            <div>
-                                <Form.Item name={IPermissionManagementOptions.role} label='Role Management'>
-                                    <Checkbox.Group
-                                        options={Object.keys(atomicOperation).map(el => {
-                                            return { label: el, value: atomicOperation[el] };
-                                        })}
-                                    />
-                                </Form.Item>
-                            </div>
-                            <div>
-                                <Form.Item name={IPermissionManagementOptions.job} label='Job Management'>
-                                    <Checkbox.Group
-                                        options={Object.keys(atomicOperation).map(el => {
-                                            return { label: el, value: atomicOperation[el] };
-                                        })}
-                                    />
-                                </Form.Item>
-                            </div>
-                            <div>
-                                <Form.Item name={IPermissionManagementOptions.query} label='Query Management'>
-                                    <Checkbox.Group
-                                        options={Object.keys(atomicOperation).map(el => {
-                                            return { label: el, value: atomicOperation[el] };
-                                        })}
-                                    />
-                                </Form.Item>
-                            </div>
-                            <div>
-                                <Form.Item name={IPermissionManagementOptions.ontologyTrees} label='OntologyTree Management'>
-                                    <Checkbox.Group
-                                        options={Object.keys(atomicOperation).map(el => {
-                                            return { label: el, value: atomicOperation[el] };
-                                        })}
-                                    />
-                                </Form.Item>
-                            </div>
+                            <Divider orientation='left'>Management Permissions</Divider>
+                            <Row gutter={16}>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.own} label='Self Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.role} label='Role Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.job} label='Job Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.query} label='Query Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.ontologyTrees} label='OntologyTree Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                            </Row>
                         </div>
                         <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
                             Save
