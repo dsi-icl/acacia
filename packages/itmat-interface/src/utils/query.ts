@@ -101,49 +101,6 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
             { $project: fields }
         ];
     }
-
-
-    // if (isEmptyObject(addFields) && isEmptyObject(metadataFilter)) {
-    //     return [
-    //         { $match: { m_versionId: { $in: validDataVersion } } },
-    //         { $match: { m_studyId: studyId } },
-    //         ...groupFilter,
-    //         { $match: match },
-    //         { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
-    //         { $project: fields }
-    //     ];
-    // } else if (isEmptyObject(addFields)) {
-    //     return [
-    //         { $match: { m_versionId: { $in: validDataVersion } } },
-    //         { $match: metadataFilter },
-    //         { $match: { m_studyId: studyId } },
-    //         ...groupFilter,
-    //         { $match: match },
-    //         { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
-    //         { $project: fields }
-    //     ];
-    // } else if (isEmptyObject(metadataFilter)) {
-    //     return [
-    //         { $match: { m_versionId: { $in: validDataVersion } } },
-    //         { $match: { m_studyId: studyId } },
-    //         ...groupFilter,
-    //         { $addFields: addFields },
-    //         { $match: match },
-    //         { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
-    //         { $project: fields }
-    //     ];
-    // } else {
-    //     return [
-    //         { $match: { m_versionId: { $in: validDataVersion } } },
-    //         { $match: metadataFilter },
-    //         { $match: { m_studyId: studyId } },
-    //         ...groupFilter,
-    //         { $addFields: addFields },
-    //         { $match: match },
-    //         { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
-    //         { $project: fields }
-    //     ];
-    // }
 }
 
 // function createNewField(expression: any) {

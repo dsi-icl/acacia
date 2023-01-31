@@ -7,7 +7,7 @@ export interface IDataEntry {
     m_fieldId: string;
     metadata?: any;
     value: any;
-    updatedAt: string;
+    uploadedAt: number;
 }
 
 export interface IFieldDescriptionObject {

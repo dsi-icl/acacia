@@ -66,7 +66,7 @@ describe('ROLE API', () => {
 
     describe('ADDING ROLE', () => {
         let setupStudy: { id: any; name?: string; createdBy?: any; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: never[]; };
-        let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; approvedFields?: Record<string, any>; approvedFiles?: never[]; lastModified?: number; deleted?: null; };
+        let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; lastModified?: number; deleted?: null; };
         let authorisedUser: request.SuperTest<request.Test>;
         let authorisedUserProfile: { otpSecret: any; id: any; username?: string; type?: string; firstname?: string; lastname?: string; password?: string; email?: string; description?: string; emailNotificationsActivated?: boolean; organisation?: string; deleted?: null; };
         beforeEach(async () => {
@@ -89,8 +89,6 @@ describe('ROLE API', () => {
                 createdBy: adminId,
                 patientMapping: {},
                 name: projectName,
-                approvedFields: {},
-                approvedFiles: [],
                 lastModified: 20000002,
                 deleted: null
             };
@@ -156,7 +154,8 @@ describe('ROLE API', () => {
                 },
                 createdBy: adminId,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
             expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
@@ -272,7 +271,8 @@ describe('ROLE API', () => {
                 },
                 createdBy: authorisedUserProfile.id,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
             expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
@@ -340,7 +340,8 @@ describe('ROLE API', () => {
                 },
                 createdBy: adminId,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
             expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
@@ -379,8 +380,6 @@ describe('ROLE API', () => {
                 createdBy: adminId,
                 patientMapping: {},
                 name: anotherProjectName,
-                approvedFields: {},
-                approvedFiles: [],
                 lastModified: 20000002,
                 deleted: null
             };
@@ -500,7 +499,8 @@ describe('ROLE API', () => {
                 },
                 createdBy: authorisedUserProfile.id,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
             expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
@@ -597,7 +597,8 @@ describe('ROLE API', () => {
                 },
                 createdBy: authorisedUserProfile.id,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
             expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
@@ -2266,7 +2267,7 @@ describe('ROLE API', () => {
 
         describe('EDIT PROJECT ROLE', () => {
             let setupStudy: { id: any; name?: string; createdBy?: any; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: never[]; };
-            let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; approvedFields?: Record<string, any>; approvedFiles?: never[]; lastModified?: number; deleted?: null; };
+            let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; lastModified?: number; deleted?: null; };
             let setupRole: { id: any; _id?: any; name: any; projectId?: string; studyId?: string; permissions?: never[]; createdBy?: any; users?: never[]; deleted?: null; };
             let authorisedUser: request.SuperTest<request.Test>;
             let authorisedUserProfile;
@@ -2292,8 +2293,6 @@ describe('ROLE API', () => {
                     createdBy: adminId,
                     patientMapping: {},
                     name: projectName,
-                    approvedFields: {},
-                    approvedFiles: [],
                     lastModified: 12103214,
                     deleted: null
                 };
@@ -3007,8 +3006,6 @@ describe('ROLE API', () => {
                     createdBy: adminId,
                     patientMapping: {},
                     name: projectName,
-                    approvedFields: {},
-                    approvedFiles: [],
                     lastModified: 12103214,
                     deleted: null
                 };

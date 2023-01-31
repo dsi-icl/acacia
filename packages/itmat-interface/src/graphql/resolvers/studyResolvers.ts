@@ -15,7 +15,9 @@ import {
     userTypes,
     IGeneralError,
     atomicOperation,
-    IPermissionManagementOptions
+    IPermissionManagementOptions,
+    IDataEntry,
+    enumValueType
 } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -200,7 +202,7 @@ export const studyResolvers = {
                 if (hasStudyLevelPermission && versionId === null) {
                     const availableTrees: IOntologyTree[] = [];
                     for (let i = trees.length - 1; i >= 0; i--) {
-                        if ((trees[i].dataVersion === null || availableDataVersions.includes(trees[i].dataVersion || ''))
+                        if (trees[i].dataVersion === null
                             && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
                             availableTrees.push(trees[i]);
                         } else {
@@ -242,7 +244,7 @@ export const studyResolvers = {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             // we only check data that hasnt been pushed to a new data version
-            const data: any[] = await db.collections!.data_collection.find({
+            const data: IDataEntry[] = await db.collections!.data_collection.find({
                 m_studyId: studyId,
                 m_versionId: null,
                 m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
@@ -361,6 +363,11 @@ export const studyResolvers = {
             let fieldRecords: any[];
             let result: any;
             let metadataFilter: any = undefined;
+
+            const availableTrees: IOntologyTree[] = [];
+            const trees: IOntologyTree[] = study.ontologyTrees || [];
+            let ontologyTreeFieldIds: string[] = [];
+
             if (requester.type === userTypes.ADMIN) {
                 availableDataVersions = versionId !== undefined ? [versionId] :
                     (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
@@ -407,6 +414,18 @@ export const studyResolvers = {
 
             } else {
                 availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+                // filter by ontology trees
+                console.log(availableDataVersions);
+                console.log(JSON.stringify(study));
+                for (let i = trees.length - 1; i >= 0; i--) {
+                    if (availableDataVersions.includes(trees[i].dataVersion || '')
+                        && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
+                        availableTrees.push(trees[i]);
+                    } else {
+                        continue;
+                    }
+                }
+                ontologyTreeFieldIds = (availableTrees[0]?.routes || []).map(el => el.field[0].replace('$', ''));
                 // metadata filter
                 const subqueries: any = [];
                 aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
@@ -414,7 +433,7 @@ export const studyResolvers = {
                 });
                 metadataFilter = { $or: subqueries };
                 fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
-                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
                 }, { $match: metadataFilter }, {
                     $group: {
                         _id: '$fieldId',
@@ -430,6 +449,7 @@ export const studyResolvers = {
                 if (queryString.metadata) {
                     metadataFilter = { $and: [{ $or: subqueries }, { $and: queryString.metadata.map((el: any) => translateMetadata(el)) }] };
                 }
+                console.log(ontologyTreeFieldIds, fieldRecords, JSON.stringify(metadataFilter));
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false);
                 result = await db.collections!.data_collection.aggregate(pipeline).toArray();
             }
@@ -474,10 +494,247 @@ export const studyResolvers = {
                 requester,
                 study.id
             );
-            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            if (!hasPermission) {
+                return [];
+            }
+            const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            if (hasPermission.hasVersioned) {
+                availableDataVersions.push(null);
+            }
             const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
-                $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
             }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $last: '$$ROOT' }
+                }
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
+                }
+            }, {
+                $sort: { fieldId: 1 }
+            }]).toArray()).map(el => el.fieldId);
+            const fileRecords = (await db.collections!.data_collection.aggregate([{
+                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+            }, {
+                $group: {
+                    _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId' },
+                    doc: { $last: '$$ROOT' }
+                }
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
+                }
+            }]).toArray());//.map(el => el.metadata?.files || []).flat();
+            const adds: string[] = fileRecords.map(el => el.metadata?.add || []).flat();
+            const removes: string[] = fileRecords.map(el => el.metadata?.remove || []).flat();
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, id: { $in: adds, $nin: removes } }).toArray();
+        },
+        subjects: async (study: IStudy, __unused__args: never, context: any): Promise<Array<Array<string>>> => {
+            const requester: IUser = context.req.user;
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                study.id
+            );
+            if (!hasPermission) {
+                return [[], []];
+            }
+            const availableDataVersions: Array<string> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const versionedSubjects = (await db.collections!.data_collection.distinct('m_subjectId', {
+                m_studyId: study.id,
+                m_versionId: { $in: availableDataVersions },
+                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+                value: { $ne: null }
+            })).sort() || [];
+            const unVersionedSubjects = hasPermission.hasVersioned ? (await db.collections!.data_collection.distinct('m_subjectId', {
+                m_studyId: study.id,
+                m_versionId: { $in: [null] },
+                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+                value: { $ne: null }
+            })).sort() || [] : [];
+            return [versionedSubjects, unVersionedSubjects];
+        },
+        visits: async (study: IStudy, __unused__args: never, context: any): Promise<Array<Array<string>>> => {
+            const requester: IUser = context.req.user;
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                study.id
+            );
+            if (!hasPermission) {
+                return [[], []];
+            }
+            const availableDataVersions: Array<string> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const versionedVisits = (await db.collections!.data_collection.distinct('m_visitId', {
+                m_studyId: study.id,
+                m_versionId: { $in: availableDataVersions },
+                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+                value: { $ne: null }
+            })).sort((a, b) => parseFloat(a) - parseFloat(b));
+            const unVersionedVisits = hasPermission.hasVersioned ? (await db.collections!.data_collection.distinct('m_visitId', {
+                m_studyId: study.id,
+                m_versionId: { $in: [null] },
+                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+                value: { $ne: null }
+            })).sort((a, b) => parseFloat(a) - parseFloat(b)) : [];
+            return [versionedVisits, unVersionedVisits];
+        },
+        numOfRecords: async (study: IStudy, __unused__args: never, context: any): Promise<number[]> => {
+            const requester: IUser = context.req.user;
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                study.id
+            );
+            if (!hasPermission) {
+                return [0, 0];
+            }
+            const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const numberOfVersioned: number = (await db.collections!.data_collection.aggregate([{
+                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, value: { $ne: null } }
+            }, {
+                $match: {
+                    m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                    m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                    m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
+                }
+            }, {
+                $count: 'count'
+            }]).toArray())[0]?.count || 0;
+            const numberOfUnVersioned: number = hasPermission.hasVersioned ? (await db.collections!.data_collection.aggregate([{
+                $match: { m_studyId: study.id, m_versionId: { $in: [null] }, value: { $ne: null } }
+            }, {
+                $match: {
+                    m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                    m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                    m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
+                }
+            }, {
+                $count: 'count'
+            }]).toArray())[0]?.count || 0 : 0;
+            return [numberOfVersioned, numberOfUnVersioned];
+        },
+        currentDataVersion: async (study: IStudy): Promise<null | number> => {
+            return study.currentDataVersion === -1 ? null : study.currentDataVersion;
+        }
+    },
+    Project: {
+        fields: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<Array<IFieldEntry>> => {
+            const requester: IUser = context.req.user;
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                project.studyId,
+                project.id
+            );
+            if (!hasProjectLevelPermission) { return []; }
+            // get all dataVersions that are valid (before the current version)
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(project.studyId);
+
+            // the processes of requiring versioned data and unversioned data are different
+            // check the metadata:role:**** for versioned data directly
+            // check the regular expressions for unversioned data
+            const availableDataVersions: string[] = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const availableTrees: IOntologyTree[] = [];
+            const trees: IOntologyTree[] = study.ontologyTrees || [];
+            for (let i = trees.length - 1; i >= 0; i--) {
+                if (availableDataVersions.includes(trees[i].dataVersion || '')
+                    && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
+                    availableTrees.push(trees[i]);
+                } else {
+                    continue;
+                }
+            }
+            if (availableTrees.length === 0) {
+                return [];
+            }
+            const ontologyTreeFieldIds: string[] = (availableTrees[0].routes || []).map(el => el.field[0].replace('$', ''));
+            if (requester.type === userTypes.ADMIN) {
+                const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
+                }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }, {
+                    $set: { metadata: null }
+                }]).toArray();
+                return fieldRecords;
+            } else {
+                // metadata filter
+                const subqueries: any = [];
+                hasProjectLevelPermission.matchObj.forEach((subMetadata: any) => {
+                    subqueries.push(translateMetadata(subMetadata));
+                });
+                const metadataFilter = { $or: subqueries };
+                const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
+                }, { $match: metadataFilter }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }, {
+                    $set: { metadata: null }
+                }]).toArray();
+                return fieldRecords;
+            }
+        },
+        jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IJobEntry<any>>> => {
+            return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
+        },
+        files: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<Array<IFile>> => {
+            const requester: IUser = context.req.user;
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.READ,
+                requester,
+                project.studyId
+            );
+            if (!hasPermission) {
+                return [];
+            }
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(project.studyId);
+            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const availableTrees: IOntologyTree[] = [];
+            const trees: IOntologyTree[] = study.ontologyTrees || [];
+            for (let i = trees.length - 1; i >= 0; i--) {
+                if (availableDataVersions.includes(trees[i].dataVersion || '')
+                    && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
+                    availableTrees.push(trees[i]);
+                } else {
+                    continue;
+                }
+            }
+            if (availableTrees.length === 0) {
+                return [];
+            }
+            const ontologyTreeFieldIds: string[] = (availableTrees[0].routes || []).map(el => el.field[0].replace('$', ''));
+            const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
+                $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
+            }, { $match: { fieldId: { $and: [{ $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }, { $in: ontologyTreeFieldIds }] } } }, {
                 $group: {
                     _id: '$fieldId',
                     doc: { $last: '$$ROOT' }
@@ -500,81 +757,8 @@ export const studyResolvers = {
                 $replaceRoot: {
                     newRoot: '$doc'
                 }
-            }]).toArray()).map(el => el.value);
+            }]).toArray()).map(el => el.metadata?.files || []).flat();
             return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, id: { $in: fileIds } }).toArray();
-        },
-        subjects: async (study: IStudy, __unused__args: never, context: any): Promise<string[]> => {
-            const requester: IUser = context.req.user;
-            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
-                atomicOperation.READ,
-                requester,
-                study.id
-            );
-            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            return study.currentDataVersion === -1 ? [] : (await db.collections!.data_collection.distinct('m_subjectId', {
-                m_studyId: study.id,
-                m_versionId: { $in: availableDataVersions },
-                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-                value: { $ne: null }
-            })).sort();
-        },
-        visits: async (study: IStudy, __unused__args: never, context: any): Promise<string[]> => {
-            const requester: IUser = context.req.user;
-            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
-                atomicOperation.READ,
-                requester,
-                study.id
-            );
-            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            return study.currentDataVersion === -1 ? [] : (await db.collections!.data_collection.distinct('m_visitId', {
-                m_studyId: study.id,
-                m_versionId: { $in: availableDataVersions },
-                m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-                m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-                m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-                value: { $ne: null }
-            })).sort();
-        },
-        numOfRecords: async (study: IStudy, __unused__args: never, context: any): Promise<number> => {
-            const requester: IUser = context.req.user;
-            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
-                atomicOperation.READ,
-                requester,
-                study.id
-            );
-            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            if (study.currentDataVersion === -1) {
-                return 0;
-            }
-            return study.currentDataVersion === -1 ? 0 : (await db.collections!.data_collection.aggregate([{
-                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, value: { $ne: null } }
-            }, {
-                $match: {
-                    m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-                    m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-                    m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) }
-                }
-            }, {
-                $group: { _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId' } }
-            }]).toArray()).length;
-        },
-        currentDataVersion: async (study: IStudy): Promise<null | number> => {
-            return study.currentDataVersion === -1 ? null : study.currentDataVersion;
-        }
-    },
-    Project: {
-        fields: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IFieldEntry>> => {
-            const approvedFields = ([] as string[]).concat(...Object.values(project.approvedFields) as string[]);
-            const result = await db.collections!.field_dictionary_collection.find({ studyId: project.studyId, id: { $in: approvedFields }, dateDeleted: null }).toArray();
-            return result;
-        },
-        jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IJobEntry<any>>> => {
-            return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
-        },
-        files: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IFile>> => {
-            return await db.collections!.files_collection.find({ studyId: project.studyId, id: { $in: project.approvedFiles }, deleted: null }).toArray();
         },
         dataVersion: async (project: IProject): Promise<IStudyDataVersion | null> => {
             const study = await db.collections!.studies_collection.findOne({ id: project.studyId, deleted: null });
@@ -613,7 +797,19 @@ export const studyResolvers = {
             let metadataFilter: any = undefined;
 
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            // metadata filter
+            // ontology trees
+            const availableTrees: IOntologyTree[] = [];
+            const trees: IOntologyTree[] = study.ontologyTrees || [];
+            for (let i = trees.length - 1; i >= 0; i--) {
+                if (availableDataVersions.includes(trees[i].dataVersion || '')
+                    && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
+                    availableTrees.push(trees[i]);
+                } else {
+                    continue;
+                }
+            }
+            const ontologyTreeFieldIds = (availableTrees[0]?.routes || []).map(el => el.field[0].replace('$', ''));
+
             let fieldRecords;
             if (requester.type === userTypes.ADMIN) {
                 fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
@@ -627,8 +823,6 @@ export const studyResolvers = {
                     $replaceRoot: {
                         newRoot: '$doc'
                     }
-                }, {
-                    $sort: { fieldId: 1 }
                 }]).toArray();
             } else {
                 const subqueries: any = [];
@@ -638,7 +832,7 @@ export const studyResolvers = {
                 metadataFilter = { $or: subqueries };
 
                 fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
-                    $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                    $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
                 }, { $match: metadataFilter }, {
                     $group: {
                         _id: '$fieldId',
@@ -648,16 +842,14 @@ export const studyResolvers = {
                     $replaceRoot: {
                         newRoot: '$doc'
                     }
-                }, {
-                    $sort: { fieldId: 1 }
                 }]).toArray();
             }
-            const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, false);
+            // fieldRecords = fieldRecords.filter(el => ontologyTreeFieldIds.includes(el.fieldId));
+            const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN);
             const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
 
-
             summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId)));
-            summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId)));
+            summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b));
             return summary;
         },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {
@@ -682,37 +874,6 @@ export const studyResolvers = {
             } else {
                 return null;
             }
-        },
-        approvedFields: async (project: IProject, __unused__args: never, context: any): Promise<Record<string, any>> => {
-            const requester: IUser = context.req.user;
-            /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
-                IPermissionManagementOptions.own,
-                atomicOperation.READ,
-                requester,
-                project.studyId,
-                project.id
-            ))) {
-                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-            }
-
-            return project.approvedFields;
-        },
-        approvedFiles: async (project: IProject, __unused__args: never, context: any): Promise<string[]> => {
-            const requester: IUser = context.req.user;
-
-            /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
-                IPermissionManagementOptions.own,
-                atomicOperation.READ,
-                requester,
-                project.studyId,
-                project.id
-            ))) {
-                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-            }
-
-            return project.approvedFiles;
         },
         roles: async (project: IProject): Promise<Array<any>> => {
             return await db.collections!.roles_collection.find({ studyId: project.studyId, projectId: project.id, deleted: null }).toArray();
@@ -1050,7 +1211,6 @@ export const studyResolvers = {
                     'ontologyTrees.$.deleted': null
                 }
             });
-
             return ontologyTreeWithId as IOntologyTree;
         },
         deleteOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, treeName }: { studyId: string, treeName: string }, context: any): Promise<IGenericResponse> => {
@@ -1160,66 +1320,6 @@ export const studyResolvers = {
 
             return makeGenericReponse(studyId);
         },
-        editProjectApprovedFields: async (__unused__parent: Record<string, unknown>, { projectId, approvedFields }: { projectId: string, approvedFields: string[] }, context: any): Promise<IProject> => {
-            const requester: IUser = context.req.user;
-
-            /* check study id for the project */
-            const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
-
-            /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
-                IPermissionManagementOptions.own,
-                atomicOperation.WRITE,
-                requester,
-                project.studyId
-            ))) {
-                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-            }
-
-            /* check field tree exists */
-            const study = await studyCore.findOneStudy_throwErrorIfNotExist(project.studyId);
-            const currentDataVersion = study.dataVersions[study.currentDataVersion];
-            if (!currentDataVersion) {
-                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-            }
-
-            /* check all the fields are valid */
-            const activefields = await db.collections!.field_dictionary_collection.find({ id: { $in: approvedFields }, studyId: project.studyId, dateDeleted: null }).toArray();
-            if (activefields.length !== approvedFields.length) {
-                throw new GraphQLError('Some of the fields provided in your changes are not valid.', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-            }
-
-
-            /* edit approved fields */
-            const resultingProject = await studyCore.editProjectApprovedFields(projectId, approvedFields);
-            return resultingProject;
-        },
-        editProjectApprovedFiles: async (__unused__parent: Record<string, unknown>, { projectId, approvedFiles }: { projectId: string, approvedFiles: string[] }, context: any): Promise<IProject> => {
-            const requester: IUser = context.req.user;
-
-            /* check study id for the project */
-            const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
-
-            /* check privileges */
-            if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
-                IPermissionManagementOptions.own,
-                atomicOperation.WRITE,
-                requester,
-                project.studyId
-            ))) {
-                throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-            }
-
-            /* check all the files are valid */
-            const activefiles = await db.collections!.files_collection.find({ id: { $in: approvedFiles }, deleted: null }).toArray();
-            if (activefiles.length !== approvedFiles.length) {
-                throw new GraphQLError('Some of the files provided in your changes are not valid.', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-            }
-
-            /* edit approved fields */
-            const resultingProject = await studyCore.editProjectApprovedFiles(projectId, approvedFiles);
-            return resultingProject;
-        },
         setDataversionAsCurrent: async (__unused__parent: Record<string, unknown>, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context: any): Promise<IStudy> => {
             const requester: IUser = context.req.user;
 
@@ -1251,44 +1351,6 @@ export const studyResolvers = {
             // const result = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, {
             //     $push: { dataVersions: newDataVersion }, $inc: { currentDataVersion: 1 }
             // }, { returnDocument: 'after' });
-
-            // update the field Id of the approved fields of each project
-            // get fields that are valid of the curretn data version
-            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            const fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
-                $sort: { dateAdded: -1 }
-            }, {
-                $match: { dataVersion: { $in: availableDataVersions } }
-            }, {
-                $match: { studyId: studyId }
-            }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $first: '$$ROOT' }
-                }
-            }
-            ]).toArray();
-            const validFields = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
-            const validFieldsIds = validFields.map(el => el.fieldId);
-
-
-            const fieldsToReplace: string[] = [];
-            // Replace fields whose fieldId exists in both original approved fields and valid fields of the current version
-            const projects = await db.collections!.projects_collection.find({ studyId: studyId, deleted: null }).toArray();
-            for (const project of projects) {
-                const originalApprovedFieldsInfo = await db.collections!.field_dictionary_collection.find({ id: { $in: project.approvedFields } }).toArray();
-                for (const each of originalApprovedFieldsInfo) {
-                    if (validFieldsIds.includes(each.fieldId)) {
-                        fieldsToReplace.push(validFields.filter(el => el.fieldId === each.fieldId)[0].id);
-                    }
-                }
-                await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id, deleted: null }, {
-                    $set: {
-                        approvedFields: fieldsToReplace
-                    }
-                });
-            }
-
 
             /* update the currentversion field in database */
             const versionIdsList = study.dataVersions.map((el) => el.id);

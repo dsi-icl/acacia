@@ -16,7 +16,6 @@ import config from '../../config/config.sample.json';
 import { v4 as uuid } from 'uuid';
 import {
     GET_STUDY_FIELDS,
-    EDIT_PROJECT_APPROVED_FIELDS,
     GET_PROJECT_PATIENT_MAPPING,
     GET_STUDY,
     GET_PROJECT,
@@ -28,7 +27,6 @@ import {
     CREATE_STUDY,
     DELETE_STUDY,
     DELETE_PROJECT,
-    EDIT_PROJECT_APPROVED_FILES,
     SET_DATAVERSION_AS_CURRENT,
     EDIT_STUDY,
     UPLOAD_DATA_IN_ARRAY,
@@ -453,7 +451,7 @@ if (global.hasMinio) {
         describe('MANIPULATING PROJECTS EXISTENCE', () => {
             let testCounter = 0;
             let setupStudy: { id: any; name?: string; createdBy?: string; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: { id: string; contentId: string; version: string; tag: string; updateDate: string; }[]; };
-            let setupProject: { id: any; studyId?: string; createdBy?: string; name?: string; patientMapping?: { patient001: string; }; approvedFields?: never[]; approvedFiles?: never[]; lastModified?: number; deleted?: null; };
+            let setupProject: { id: any; studyId?: string; createdBy?: string; name?: string; patientMapping?: { patient001: string; }; lastModified?: number; deleted?: null; };
             beforeEach(async () => {
                 testCounter++;
                 /* setup: creating a study */
@@ -485,8 +483,6 @@ if (global.hasMinio) {
                     createdBy: 'admin',
                     name: projectName,
                     patientMapping: { patient001: 'patientA' },
-                    approvedFields: [],
-                    approvedFiles: [],
                     lastModified: 20000002,
                     deleted: null
                 };
@@ -518,16 +514,14 @@ if (global.hasMinio) {
                     createdBy: adminId,
                     name: projectName,
                     patientMapping: {},
-                    approvedFields: [],
-                    approvedFiles: [],
                     lastModified: createdProject.lastModified,
-                    deleted: null
+                    deleted: null,
+                    metadata: {}
                 });
                 expect(res.body.data.createProject).toEqual({
                     id: createdProject.id,
                     studyId: setupStudy.id,
-                    name: projectName,
-                    approvedFields: []
+                    name: projectName
                 });
 
                 /* cleanup: delete project */
@@ -619,16 +613,14 @@ if (global.hasMinio) {
                     createdBy: authorisedUserProfile.id,
                     patientMapping: {},
                     name: projectName,
-                    approvedFields: [],
-                    approvedFiles: [],
                     lastModified: createdProject.lastModified,
-                    deleted: null
+                    deleted: null,
+                    metadata: {}
                 });
                 expect(res.body.data.createProject).toEqual({
                     id: createdProject.id,
                     studyId: setupStudy.id,
-                    name: projectName,
-                    approvedFields: []
+                    name: projectName
                 });
 
                 /* cleanup: delete project */
@@ -960,8 +952,7 @@ if (global.hasMinio) {
                     expect(res.body.data.createProject).toEqual({
                         id: createdProject.id,
                         studyId: createdStudy.id,
-                        name: projectName,
-                        approvedFields: []
+                        name: projectName
                     });
                 }
 
@@ -1004,7 +995,8 @@ if (global.hasMinio) {
                         },
                         createdBy: adminId,
                         users: [],
-                        deleted: null
+                        deleted: null,
+                        metadata: {}
                     });
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study.id,
@@ -1069,7 +1061,8 @@ if (global.hasMinio) {
                         },
                         createdBy: adminId,
                         users: [],
-                        deleted: null
+                        deleted: null,
+                        metadata: {}
                     });
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_manageProject.id,
@@ -1135,7 +1128,8 @@ if (global.hasMinio) {
                         },
                         createdBy: adminId,
                         users: [],
-                        deleted: null
+                        deleted: null,
+                        metadata: {}
                     });
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_self_access.id,
@@ -1200,7 +1194,8 @@ if (global.hasMinio) {
                         },
                         createdBy: adminId,
                         users: [],
-                        deleted: null
+                        deleted: null,
+                        metadata: {}
                     });
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_project.id,
@@ -1967,9 +1962,9 @@ if (global.hasMinio) {
                         //     }
                         // ],
                         files: [],
-                        numOfRecords: 2,
-                        subjects: ['mock_patient1', 'mock_patient2'],
-                        visits: ['mockvisitId'],
+                        numOfRecords: [4, 0],
+                        subjects: [['mock_patient1', 'mock_patient2'], []],
+                        visits: [['mockvisitId'], []],
                         currentDataVersion: 0,
                         dataVersions: [{
                             id: 'mockDataVersionId',
@@ -1992,8 +1987,6 @@ if (global.hasMinio) {
                         id: createdProject.id,
                         studyId: createdStudy.id,
                         name: createdProject.name,
-                        approvedFields: [],
-                        approvedFiles: [],
                         dataVersion: {
                             contentId: 'mockContentId',
                             id: 'mockDataVersionId',
@@ -2422,314 +2415,6 @@ if (global.hasMinio) {
                 ].sort((a, b) => a.id.localeCompare(b.id)));
                 // clear database
                 await db.collections!.field_dictionary_collection.deleteMany({ dataVersion: null });
-            });
-
-            test('Edit project approved fields with fields that are not in the field tree (admin) (should fail)', async () => {
-                const res = await admin.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FIELDS),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFields: ['fakefieldhere']
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe('Some of the fields provided in your changes are not valid.');
-                expect(res.body.data.editProjectApprovedFields).toBe(null);
-            });
-
-
-            test('Edit project approved fields (admin)', async () => {
-                const tentativeApprovedFields = mockFields.map(el => el.id);
-                const res = await admin.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FIELDS),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFields: tentativeApprovedFields
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.editProjectApprovedFields).toEqual({
-                    id: createdProject.id,
-                    approvedFields: tentativeApprovedFields, // seen by study user
-                    fields: [  // seen by project user
-                        {
-                            id: 'mockfield1',
-                            studyId: createdStudy.id,
-                            fieldId: '31',
-                            fieldName: 'Sex',
-                            tableName: null,
-                            dataType: enumValueType.STRING,
-                            possibleValues: [],
-                            unit: 'person',
-                            comments: 'mockComments1',
-                            dateAdded: '2021-05-16T16:32:10.226Z',
-                            dateDeleted: null,
-                            dataVersion: 'mockDataVersionId',
-                            metadata: {
-                                [`role:${createdRole_study.id}`]: true,
-                                [`role:${createdRole_project.id}`]: true,
-                                [`role:${createdRole_study_manageProject.id}`]: false,
-                                [`role:${createdRole_study_self_access.id}`]: true
-                            }
-                        },
-                        {
-                            id: 'mockfield2',
-                            studyId: createdStudy.id,
-                            fieldId: '32',
-                            fieldName: 'Race',
-                            tableName: null,
-                            dataType: enumValueType.STRING,
-                            possibleValues: [],
-                            unit: 'person',
-                            comments: 'mockComments2',
-                            dateAdded: '2022-06-18T17:35:15.226Z',
-                            dateDeleted: null,
-                            dataVersion: 'mockDataVersionId',
-                            metadata: {
-                                [`role:${createdRole_study.id}`]: true,
-                                [`role:${createdRole_project.id}`]: true,
-                                [`role:${createdRole_study_manageProject.id}`]: false,
-                                [`role:${createdRole_study_self_access.id}`]: true
-                            }
-                        }
-                    ]
-                });
-                /* cleanup: revert the adding of fields */
-                await db.collections!.projects_collection.updateOne({ id: createdProject.id }, { $set: { approvedFields: [] } });
-            });
-
-            test('Edit project approved fields (user without privilege) (should fail)', async () => {
-                const tentativeApprovedFields = mockFields.map(el => el.id);
-                const res = await user.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FIELDS),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFields: tentativeApprovedFields
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.editProjectApprovedFields).toEqual(null);
-            });
-
-            test('Edit project approved fields (user with study readonly privilege) (should fail)', async () => {
-                const tentativeApprovedFields = mockFields.map(el => el.id);
-                const res = await authorisedUserStudy.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FIELDS),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFields: tentativeApprovedFields
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.editProjectApprovedFields).toEqual(null);
-            });
-
-            test('Edit project approved fields (user with study " manage project" privilege)', async () => {
-                const tentativeApprovedFields = mockFields.map(el => el.id);
-                const res = await authorisedUserStudyManageProject.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FIELDS),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFields: tentativeApprovedFields
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.editProjectApprovedFields).toEqual({
-                    id: createdProject.id,
-                    approvedFields: tentativeApprovedFields, // seen by study user
-                    fields: [  // seen by project user
-                        {
-                            id: 'mockfield1',
-                            studyId: createdStudy.id,
-                            fieldId: '31',
-                            fieldName: 'Sex',
-                            tableName: null,
-                            dataType: enumValueType.STRING,
-                            possibleValues: [],
-                            unit: 'person',
-                            comments: 'mockComments1',
-                            dateAdded: '2021-05-16T16:32:10.226Z',
-                            dateDeleted: null,
-                            dataVersion: 'mockDataVersionId',
-                            metadata: {
-                                [`role:${createdRole_study.id}`]: true,
-                                [`role:${createdRole_project.id}`]: true,
-                                [`role:${createdRole_study_manageProject.id}`]: false,
-                                [`role:${createdRole_study_self_access.id}`]: true
-                            }
-                        },
-                        {
-                            id: 'mockfield2',
-                            studyId: createdStudy.id,
-                            fieldId: '32',
-                            fieldName: 'Race',
-                            tableName: null,
-                            dataType: enumValueType.STRING,
-                            possibleValues: [],
-                            unit: 'person',
-                            comments: 'mockComments2',
-                            dateAdded: '2022-06-18T17:35:15.226Z',
-                            dateDeleted: null,
-                            dataVersion: 'mockDataVersionId',
-                            metadata: {
-                                [`role:${createdRole_study.id}`]: true,
-                                [`role:${createdRole_project.id}`]: true,
-                                [`role:${createdRole_study_manageProject.id}`]: false,
-                                [`role:${createdRole_study_self_access.id}`]: true
-                            }
-                        }
-                    ]
-                });
-                /* cleanup: revert the adding of fields */
-                await db.collections!.projects_collection.updateOne({ id: createdProject.id }, { $set: { approvedFields: [] } });
-            });
-
-            test('Edit project approved fields (user with project privilege) (should fail)', async () => {
-                const tentativeApprovedFields = mockFields.map(el => el.id);
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FIELDS),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFields: tentativeApprovedFields
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.editProjectApprovedFields).toEqual(null);
-            });
-
-            test('Edit project approved files (user without privilege) (should fail)', async () => {
-                const res = await user.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FILES),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFiles: [mockFiles[0].id]
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.editProjectApprovedFiles).toEqual(null);
-            });
-
-            test('Edit project approved files (user with project privilege) (should fail)', async () => {
-                const res = await authorisedUser.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FILES),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFiles: [mockFiles[0].id]
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.editProjectApprovedFiles).toEqual(null);
-            });
-
-            test('Edit project approved files (user with study read-only privilege) (should fail)', async () => {
-                const res = await authorisedUserStudy.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FILES),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFiles: [mockFiles[0].id]
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                expect(res.body.data.editProjectApprovedFiles).toEqual(null);
-            });
-
-            test('Edit project approved files (user with study "manage project" privilege)', async () => {
-                const res = await authorisedUserStudyManageProject.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FILES),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFiles: [mockFiles[0].id]
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                const { editProjectApprovedFiles } = res.body.data;
-                expect(editProjectApprovedFiles).toEqual({
-                    id: createdProject.id,
-                    approvedFiles: [mockFiles[0].id],
-                    files: [{
-                        id: mockFiles[0].id,
-                        fileName: mockFiles[0].fileName,
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        fileSize: (mockFiles[0].fileSize as any).toString(),
-                        description: mockFiles[0].description,
-                        uploadedBy: adminId
-                    }]
-                });
-                expect(typeof editProjectApprovedFiles.id).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].fileName).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].studyId).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].fileSize).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].description).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].uploadedBy).toEqual('string');
-
-                /* cleanup: reverse adding project approvedfiles */
-                await mongoClient.collection<IProject>(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { approvedFiles: [] } });
-            });
-
-            test('Edit project approved files (admin)', async () => {
-                const res = await admin.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FILES),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFiles: [mockFiles[0].id]
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toBeUndefined();
-                const { editProjectApprovedFiles } = res.body.data;
-                expect(editProjectApprovedFiles).toEqual({
-                    id: createdProject.id,
-                    approvedFiles: [mockFiles[0].id],
-                    files: [{
-                        id: mockFiles[0].id,
-                        fileName: mockFiles[0].fileName,
-                        studyId: createdStudy.id,
-                        projectId: null,
-                        fileSize: (mockFiles[0].fileSize as any).toString(),
-                        description: mockFiles[0].description,
-                        uploadedBy: adminId
-                    }]
-                });
-                expect(typeof editProjectApprovedFiles.id).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].fileName).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].studyId).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].fileSize).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].description).toEqual('string');
-                expect(typeof editProjectApprovedFiles.files[0].uploadedBy).toEqual('string');
-
-                /* cleanup: reverse adding project approvedfiles */
-                await mongoClient.collection<IProject>(config.database.collections.projects_collection).updateOne({ id: createdProject.id }, { $set: { approvedFiles: [] } });
-            });
-
-            test('Edit project approved files for non-existnet file (admin)', async () => {
-                const res = await admin.post('/graphql').send({
-                    query: print(EDIT_PROJECT_APPROVED_FILES),
-                    variables: {
-                        projectId: createdProject.id,
-                        approvedFiles: ['Idontexist!']
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe('Some of the files provided in your changes are not valid.');
-                expect(res.body.data.editProjectApprovedFiles).toBe(null);
             });
 
             test('Set a previous study dataversion as current (admin)', async () => {
@@ -3237,7 +2922,8 @@ if (global.hasMinio) {
                         },
                         createdBy: adminId,
                         users: [],
-                        deleted: null
+                        deleted: null,
+                        metadata: {}
                     });
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_accessData.id,
@@ -3506,8 +3192,7 @@ if (global.hasMinio) {
                     expect(res.body.data.createProject).toEqual({
                         id: createdProject.id,
                         studyId: createdStudy.id,
-                        name: projectName,
-                        approvedFields: []
+                        name: projectName
                     });
                 }
 
@@ -3576,7 +3261,8 @@ if (global.hasMinio) {
                         },
                         createdBy: adminId,
                         users: [],
-                        deleted: null
+                        deleted: null,
+                        metadata: {}
                     });
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_project.id,
@@ -3686,6 +3372,23 @@ if (global.hasMinio) {
                                 studyId: createdStudy.id
                             }],
                             studies: []
+                        }
+                    });
+                }
+
+                /* 7. Create an ontologytree */
+                {
+                    await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id }, {
+                        $set: {
+                            ontologyTrees: [{
+                                name: 'testOntologyTree',
+                                routes: [
+                                    { path: ['DM'], name: 'AGE', field: ['$31'], visitRange: [], id: uuid() },
+                                    { path: ['DM'], name: 'SEX', field: ['$32'], visitRange: [], id: uuid() }
+                                ],
+                                dataVersion: mockDataVersion.id,
+                                deleted: null
+                            }]
                         }
                     });
                 }
@@ -3881,7 +3584,7 @@ if (global.hasMinio) {
                 // check both data collection and file collection
                 const fileFirst = await db.collections!.files_collection.findOne<IFile>({ studyId: createdStudy.id, deleted: null });
                 const dataFirst = await db.collections!.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
-                expect(dataFirst?.value).toBe(fileFirst.id);
+                expect(dataFirst?.metadata?.add[0]).toBe(fileFirst.id);
 
                 // upload again and check whether the old file has been deleted
                 const resSecond = await authorisedUser.post('/graphql')
@@ -3911,8 +3614,8 @@ if (global.hasMinio) {
                 expect(resSecond.body.errors).toBeUndefined();
                 const fileSecond = await db.collections!.files_collection.find<IFile>({ studyId: createdStudy.id, deleted: null }).toArray();
                 const dataSecond = await db.collections!.data_collection.findOne<IDataEntry>({ m_studyId: createdStudy.id, m_visitId: '1', m_fieldId: '33' });
-                expect(fileSecond).toHaveLength(1);
-                expect(dataSecond?.value).toBe(fileSecond[0].id);
+                expect(fileSecond).toHaveLength(2);
+                expect(dataSecond?.metadata?.add).toEqual([fileSecond[0].id, fileSecond[1].id]);
             });
 
             test('Create New data version with data only (user with study privilege)', async () => {
@@ -4225,7 +3928,7 @@ if (global.hasMinio) {
                         'uploader:wp': 'wp5.1',
                         [`role:${createdRole_study_accessData.id}`]: true
                     },
-                    updatedAt: '10000000',
+                    uploadedAt: 10000000,
                     value: '1'
                 }, {
                     m_studyId: createdStudy.id,
@@ -4240,7 +3943,7 @@ if (global.hasMinio) {
                         'uploader:wp': 'wp5.2',
                         [`role:${createdRole_study_accessData.id}`]: true
                     },
-                    updatedAt: '10000000',
+                    uploadedAt: 10000000,
                     value: '2'
                 }]);
                 const resMetadataOrg = await authorisedUser.post('/graphql').send({

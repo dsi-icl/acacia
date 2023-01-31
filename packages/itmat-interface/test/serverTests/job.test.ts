@@ -58,7 +58,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
 describe('JOB API', () => {
     let adminId: any;
     let createdStudy: { id: any; name?: string; createdBy?: string; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: never[]; };
-    let createdProject: { id: any; name?: string; createdBy?: string; lastModified?: number; studyId?: string; deleted?: null; patientMapping?: Record<string, any>; approvedFields?: Record<string, any>; approvedFiles?: Record<string, any>; };
+    let createdProject: { id: any; name?: string; createdBy?: string; lastModified?: number; studyId?: string; deleted?: null; patientMapping?: Record<string, any>; };
     let createdQuery: { id: any; requester?: string; queryString?: { date_requested: string; }; studyId?: string; projectId?: string; status?: string; error?: null; cancelled?: boolean; data_requested?: never[]; cohort?: never[][]; new_fields?: never[]; queryResult?: never[]; };
     let createdFile: { id: any; fileName?: string; studyId?: string; fileSize?: string; description?: string; uploadedBy?: any; uri?: string; deleted?: null; };
 
@@ -556,9 +556,7 @@ describe('JOB API', () => {
                 lastModified: 200000002,
                 studyId: createdStudy.id,
                 deleted: null,
-                patientMapping: {},
-                approvedFields: {},
-                approvedFiles: {}
+                patientMapping: {}
             };
             await mongoClient.collection<IProject>(config.database.collections.projects_collection).insertOne(createdProject);
 

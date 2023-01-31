@@ -137,8 +137,7 @@ describe('STUDY API', () => {
                 expect(res.body.data.createProject).toEqual({
                     id: createdProject.id,
                     studyId: createdStudy.id,
-                    name: projectName,
-                    approvedFields: []
+                    name: projectName
                 });
             }
 
@@ -181,7 +180,8 @@ describe('STUDY API', () => {
                     },
                     createdBy: adminId,
                     users: [],
-                    deleted: null
+                    deleted: null,
+                    metadata: {}
                 });
                 expect(res.body.data.addRole).toEqual({
                     id: createdRole_study.id,
@@ -246,7 +246,8 @@ describe('STUDY API', () => {
                     },
                     createdBy: adminId,
                     users: [],
-                    deleted: null
+                    deleted: null,
+                    metadata: {}
                 });
                 expect(res.body.data.addRole).toEqual({
                     id: createdRole_study_manageProject.id,
@@ -311,7 +312,8 @@ describe('STUDY API', () => {
                     },
                     createdBy: adminId,
                     users: [],
-                    deleted: null
+                    deleted: null,
+                    metadata: {}
                 });
                 expect(res.body.data.addRole).toEqual({
                     id: createdRole_project.id,
@@ -850,7 +852,7 @@ describe('STUDY API', () => {
                     }
                 ],
                 metadata: null,
-                uploadedAt: '1591134065000',
+                uploadedAt: 1591134065000,
                 deleted: null
             });
         });
@@ -934,7 +936,7 @@ describe('STUDY API', () => {
                 ],
                 dataVersion: std?.dataVersion,
                 metadata: null,
-                uploadedAt: '1591134065000',
+                uploadedAt: 1591134065000,
                 deleted: null
             });
         });
@@ -1190,7 +1192,7 @@ describe('STUDY API', () => {
                     ]
                 }
             });
-            await authorisedUser.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_ONTOLOGY_TREE),
                 variables: {
                     studyId: createdStudy.id,
@@ -1226,10 +1228,6 @@ describe('STUDY API', () => {
                 }
             });
             await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-            });
-            await authorisedUserStudy.post('/graphql').send({
                 query: print(CREATE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
@@ -1279,7 +1277,7 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            await authorisedUserStudy.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
@@ -1329,7 +1327,7 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            await authorisedUserStudy.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
@@ -1361,7 +1359,7 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            await authorisedUserStudy.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
@@ -1396,7 +1394,10 @@ describe('STUDY API', () => {
                     }
                 }
             });
-
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_DATA_VERSION),
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            });
             const res = await authorisedUserStudy.post('/graphql').send({
                 query: print(GET_DATA_RECORDS),
                 variables: {

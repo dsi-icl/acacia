@@ -63,7 +63,7 @@ type Standardization {
     joinByKeys: [String]
     stdRules: [StandardizationRule]
     dataVersion: String
-    uploadedAt: String
+    uploadedAt: Float
     metadata: JSON
     deleted: String
 }
@@ -199,6 +199,7 @@ type StudyOrProjectUserRole {
     projectId: String
     permissions: JSON
     users: [User]!
+    metadata: JSON
 }
 
 type File {
@@ -212,6 +213,7 @@ type File {
     uploadTime: String!
     uploadedBy: String!
     hash: String!
+    metadata: JSON
 }
 
 type DataVersion {
@@ -228,7 +230,7 @@ type OntologyTree {
     routes: [OntologyRoute]
     dataVersion: String!
     metadata: JSON
-    deleted: Int
+    deleted: Float
 }
 
 type OntologyRoute {
@@ -268,9 +270,10 @@ type Study {
     roles: [StudyOrProjectUserRole]!
     # fields: [Field]!
     files: [File]!
-    subjects: [String]!
-    visits: [String]!
-    numOfRecords: Int!
+    subjects: JSON!
+    visits: JSON!
+    numOfRecords: [Int]!
+    metadata: JSON
 }
 
 type Project {
@@ -282,15 +285,14 @@ type Project {
 
     #only admin
     patientMapping: JSON!
-    approvedFields: JSON!
-    approvedFiles: [String]!
-
+    
     #external to mongo documents:
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
-    fields: [Field]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
+    fields: [Field]!
     files: [File]!
+    metadata: JSON
 }
 
 type Job {
@@ -595,10 +597,8 @@ type Mutation {
     deleteStandardization(studyId: String!, type: String, field: [String]!): GenericResponse
 
     # PROJECT
-    createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
+    createProject(studyId: String!, projectName: String!): Project
     deleteProject(projectId: String!): GenericResponse
-    editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
-    editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project
 
     # ACCESS MANAGEMENT
     addRole(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole

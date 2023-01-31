@@ -5,8 +5,6 @@ import { Subsection } from '../../../../reusable';
 import LoadSpinner from '../../../../reusable/loadSpinner';
 import { RoleControlSection } from '../../../../reusable/roleControlSection/roleControlSection';
 import { DeleteProjectSection } from './deleteProjectSection';
-import { GrantedFieldListSection } from './fieldList';
-import { GrantedFileListSelection } from './fileList';
 import { PatientIdMappingSection } from './patientIdMapping';
 import css from './projectDetail.module.css';
 import { NavLink, useParams } from 'react-router-dom';
@@ -46,13 +44,6 @@ export const ProjectDetail: FunctionComponent = () => {
                     </Subsection>
                 </div>
                 <div className={css.project_detail_right}>
-                    <Subsection title='Granted Fields'>
-                        <GrantedFieldListSection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFields} />
-                    </Subsection>
-                    <br /><br />
-                    <Subsection title='Granted Files'>
-                        <GrantedFileListSelection projectId={projectId} studyId={studyId} originalCheckedList={data.getProject.approvedFiles} />
-                    </Subsection>
                 </div>
             </div>;
         }}

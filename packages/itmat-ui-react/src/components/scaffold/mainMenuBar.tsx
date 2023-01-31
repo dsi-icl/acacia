@@ -1,5 +1,5 @@
 import { FunctionComponent } from 'react';
-import { Query, Mutation } from '@apollo/client/react/components';
+import { Mutation } from '@apollo/client/react/components';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I } from '@itmat-broker/itmat-models';
 import { IProject, userTypes } from '@itmat-broker/itmat-types';
@@ -18,7 +18,6 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
     }
     if (whoAmIError)
         return null;
-    console.log(whoAmIData);
 
     return <div className={css.main_menubar}>
 

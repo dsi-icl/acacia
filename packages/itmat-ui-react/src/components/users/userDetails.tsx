@@ -112,7 +112,8 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
             type: variables.type,
             metadata: {
                 ...user.metadata ?? {},
-                aePermission: variables.ae
+                aePermission: variables.ae,
+                logPermission: variables.log
             },
             expiredAt: variables.expiredAt.valueOf()
         };
@@ -179,7 +180,10 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                             <Select.Option value='ADMIN'>System admin</Select.Option>
                         </Select>
                     </Form.Item>
-                    <Form.Item name='ae' label='Analytical Environment' valuePropName="checked">
+                    <Form.Item name='ae' label='Analytical Environment Permission' valuePropName="checked">
+                        <Checkbox></Checkbox>
+                    </Form.Item>
+                    <Form.Item name='log' label='Logs Permission' valuePropName="checked">
                         <Checkbox></Checkbox>
                     </Form.Item>
                     {error ? (

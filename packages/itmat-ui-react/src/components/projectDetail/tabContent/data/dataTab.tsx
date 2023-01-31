@@ -13,7 +13,6 @@ import { Select, Row, Col, Button, Table, Empty, Cascader, Tooltip, Typography, 
 import { Pie, BidirectionalBar, Heatmap, Violin, Column, Box } from '@ant-design/plots';
 import { UserOutlined, DownloadOutlined, QuestionCircleOutlined, TagOutlined, HistoryOutlined, FieldTimeOutlined, EyeOutlined, HddOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
-import React from 'react';
 import { useWindowSize } from '../utils/utils';
 const { Option } = Select;
 const { Text } = Typography;
@@ -519,7 +518,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                             </Tooltip >}</Text></div>
                         </Col>
                         <Col xl={3} md={4}>
-                            <div className={css.grid_col_center_large} ><Text strong underline>{dataTypeMapping[field?.fieldId] || 'NA'}</Text></div>
+                            <div className={css.grid_col_center_large} ><Text strong underline>{dataTypeMapping[field?.dataType] || 'NA'}</Text></div>
                         </Col>
                         <Col xl={3} md={0}>
                             <div className={css.grid_col_center_large} ><Text strong underline>{field?.unit || 'NA'}</Text></div>

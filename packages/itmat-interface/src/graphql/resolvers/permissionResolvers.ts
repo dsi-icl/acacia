@@ -91,7 +91,7 @@ export const permissionResolvers = {
             );
             if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
-            /* check whether all the permissions are valid */
+            /* check whether all the permissions are valid in terms of regular expressions */
             if (permissionChanges) {
                 if (permissionChanges.data) {
                     if (permissionChanges.data.subjectIds) {

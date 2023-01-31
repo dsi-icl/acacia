@@ -18,6 +18,7 @@ export interface IStudy {
     description: string;
     ontologyTrees?: IOntologyTree[];
     type: studyType;
+    metadata: Record<string, unknown>
 }
 
 export interface IStudyDataVersion {
@@ -64,6 +65,7 @@ interface IRoleBase {
     };
     createdBy: string;
     deleted: number | null;
+    metadata: Record<string, unknown>
 }
 
 export interface IRole extends IRoleBase {
@@ -82,10 +84,9 @@ export interface IProject {
     dataVersion?: IStudyDataVersion | null;
     summary?: any;
     patientMapping: { [originalId: string]: string };
-    approvedFields: string[];
-    approvedFiles: string[];
     lastModified: number;
     deleted: number | null;
+    metadata: Record<string, unknown>
 }
 
 export interface IDataClip {

@@ -180,12 +180,11 @@ export const DELETE_ONTOLOGY_TREE = gql`
 `;
 
 export const CREATE_PROJECT = gql`
-    mutation createProject($studyId: String!, $projectName: String!, $approvedFields: [String]) {
-        createProject(studyId: $studyId, projectName: $projectName, approvedFields: $approvedFields) {
+    mutation createProject($studyId: String!, $projectName: String!) {
+        createProject(studyId: $studyId, projectName: $projectName) {
             id
             studyId
             name
-            approvedFields
         }
     }
 `;

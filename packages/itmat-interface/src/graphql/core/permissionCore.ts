@@ -17,40 +17,6 @@ export class PermissionCore {
         return db.collections!.roles_collection.find({ studyId, projectId }).toArray();
     }
 
-    public async userHasTheNeccessaryPermission(needAnyOneOfThesePermissions: string[], user: IUser, studyId: string, projectId?: string): Promise<boolean> {
-        if (user === undefined) {
-            return false;
-        }
-
-        /* if user is an admin then return true if admin privileges includes needed permissions */
-        if (user.type === userTypes.ADMIN) {
-            return true;
-        }
-
-        /* aggregationPipeline to return a list of the privileges the user has in this study / project */
-        const aggregationPipeline = [
-            { $match: { studyId, projectId: { $in: [projectId, null] }, users: user.id } }, // matches all the role documents where the study and project matches and has the user inside
-            { $group: { _id: user.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
-            { $project: { arrPrivileges: { $reduce: { input: '$arrArrPrivileges', initialValue: [], in: { $setUnion: ['$$this', '$$value'] } } } } }
-        ];
-        const result = await db.collections!.roles_collection.aggregate(aggregationPipeline).toArray();
-        if (result.length > 1) {
-            throw new GraphQLError('Internal error occurred when checking user privileges.', { extensions: { code: errorCodes.DATABASE_ERROR } });
-        }
-        if (result.length === 0) {
-            return false;
-        }
-        const hisPrivileges = result[0].arrPrivileges;   // example: [permissions.specific_project_data_access, permissions.specific_project_user_management]
-
-        /* checking privileges */
-        for (let i = 0, length = needAnyOneOfThesePermissions.length; i < length; i++) {
-            if (hisPrivileges.includes(needAnyOneOfThesePermissions[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public async userHasTheNeccessaryManagementPermission(type: string, operation: string, user: IUser, studyId: string, projectId?: string): Promise<boolean> {
         if (user === undefined) {
             return false;
@@ -71,7 +37,7 @@ export class PermissionCore {
         return true;
     }
 
-    public async combineUserDataPermissions(operation: string, user: IUser, studyId: string, projectId?: string): Promise<any> {
+    public async combineUserDataPermissions(operation: string, user: IUser, studyId: string, projectId?: string): Promise<Record<string, string[]> | false> {
         if (user.type === userTypes.ADMIN) {
             const matchAnyString = '^.*$';
             return {
@@ -87,28 +53,31 @@ export class PermissionCore {
         if (roles.length === 0) {
             return false;
         }
-        const combined: any = {
+        const combined: Record<string, string[]> = {
             subjectIds: [],
             visitIds: [],
             fieldIds: []
         };
         for (const role of roles) {
-            combined.subjectIds.push([...new Set(combined.subjectIds.concat(role.permissions.data?.subjectIds || []))]);
-            combined.visitIds.push([...new Set(combined.visitIds.concat(role.permissions.data?.visitIds || []))]);
-            combined.fieldIds.push([...new Set(combined.fieldIds.concat(role.permissions.data?.fieldIds || []))]);
+            combined.subjectIds.push(...new Set(combined.subjectIds.concat(role.permissions.data?.subjectIds || [])));
+            combined.visitIds.push(...new Set(combined.visitIds.concat(role.permissions.data?.visitIds || [])));
+            combined.fieldIds.push(...new Set(combined.fieldIds.concat(role.permissions.data?.fieldIds || [])));
         }
         return combined;
     }
 
-    public async userHasDataReadPermission(user: IUser, studyId: string, projectId?: string): Promise<any> {
+    public async userHasDataReadPermission(user: IUser, studyId: string, projectId?: string): Promise<Record<string, string[]> | false> {
         return this.combineUserDataPermissions(atomicOperation.READ, user, studyId, projectId);
     }
 
-    public async userHasDataWritePermission(user: IUser, studyId: string, projectId?: string): Promise<any> {
+    public async userHasDataWritePermission(user: IUser, studyId: string, projectId?: string): Promise<Record<string, string[]> | false> {
         return this.combineUserDataPermissions(atomicOperation.WRITE, user, studyId, projectId);
     }
 
-    public checkDataEntryValid(combinedDataPermissions: any, fieldId: string, subjectId?: string, visitId?: string): Promise<any> {
+    public checkDataEntryValid(combinedDataPermissions: Record<string, string[]> | false, fieldId: string, subjectId?: string, visitId?: string): boolean {
+        if (!combinedDataPermissions) {
+            return false;
+        }
         if (!subjectId || !visitId) {
             return combinedDataPermissions.fieldIds.some((el: string) => (new RegExp(el)).test(fieldId));
         } else {
@@ -120,7 +89,7 @@ export class PermissionCore {
         }
     }
 
-    public async userHasTheNeccessaryDataPermission(operation: string, user: IUser, studyId: string, projectId?: string): Promise<any> {
+    public async userHasTheNeccessaryDataPermission(operation: string, user: IUser, studyId: string, projectId?: string): Promise<Record<string, any> | false> {
         if (user === undefined) {
             return false;
         }
@@ -143,8 +112,8 @@ export class PermissionCore {
             { $match: { 'permissions.data.operations': operation } }
         ]).toArray();
         let hasVersioned = false;
-        const roleObj: any[] = [];
-        const raw: any = {
+        const roleObj: Array<{ key: string; op: string, parameter: boolean }>[] = [];
+        const raw: Record<string, string[]> = {
             subjectIds: [],
             visitIds: [],
             fieldIds: []
@@ -250,18 +219,10 @@ export class PermissionCore {
 
         // filters
         // We send back the filtered fields values
-        let validSubjects: any = undefined;
+        let validSubjects: Array<string | RegExp> = [];
         if (permissionChanges.data?.filters) {
             if (permissionChanges.data.filters.length > 0) {
                 const subqueries = translateCohort(permissionChanges.data.filters);
-                // permissionChanges.data.filters.forEach((subcohort: any) => {
-                //     subqueries.push(translateCohort(subcohort));
-                // });
-                // dataMatch = { $or: subqueries };
-
-                // else if (permissionChanges.data.filters.length === 1) {
-                //     dataMatch = translateCohort(permissionChanges.data.filters[0]);
-                // }
                 validSubjects = (await db.collections!.data_collection.aggregate([{
                     $match: { $and: subqueries }
                 }]).toArray()).map(el => el.m_subjectId);
@@ -271,12 +232,12 @@ export class PermissionCore {
 
         // update the data and field records
         const dataBulkOp = db.collections!.data_collection.initializeUnorderedBulkOp();
-        const filters: any = {
+        const filters: Record<string, string[]> = {
             subjectIds: permissionChanges.data?.subjectIds || [],
             visitIds: permissionChanges.data?.visitIds || [],
             fieldIds: permissionChanges.data?.fieldIds || []
         };
-        if (!validSubjects) {
+        if (!validSubjects.length) {
             validSubjects = filters.subjectIds.map((el: string) => new RegExp(el));
         }
         const dataTag = `metadata.${'role:'.concat(roleId)}`;
@@ -328,8 +289,6 @@ export class PermissionCore {
             return resultingRole;
         } else {
             throw new GraphQLError('Cannot edit role.', { extensions: { code: errorCodes.DATABASE_ERROR } });
-            // throw new GraphQLError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole, null, 4));
-            // throw new GraphQLError('Cannot edit role.', errorCodes.DATABASE_ERROR + JSON.stringify(resultingRole.toArray(), null, 4));
         }
     }
 
@@ -358,6 +317,7 @@ export class PermissionCore {
             studyId: opt.studyId,
             projectId: opt.projectId,
             createdBy: opt.createdBy,
+            metadata: {},
             deleted: null
         };
         const updateResult = await db.collections!.roles_collection.insertOne(role);

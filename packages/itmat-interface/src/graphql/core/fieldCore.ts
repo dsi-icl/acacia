@@ -74,7 +74,6 @@ export function validateAndGenerateFieldEntry(fieldEntry: any, requester: IUser)
         metadata: {
             'uploader:org': requester.organisation,
             'uploader:user': requester.id,
-            'uploader:wp': requester.metadata?.wp ?? null,
             ...fieldEntry.metadata
         }
     };
