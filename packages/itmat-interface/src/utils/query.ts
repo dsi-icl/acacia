@@ -57,7 +57,9 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
     const groupFilter: any = [{
         $group: {
             _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId' },
-            result: { $addToSet: { k: '$m_fieldId', v: '$value' } }
+            result: {
+                $addToSet: { k: '$m_fieldId', v: { $cond: [{ $regexMatch: { input: '$m_fieldId', regex: /^Device.*$/ } }, { add: '$metadata.add', remove: '$metadata.remove' }, '$value'] } }
+            }
         }
     }, {
         $set: {
@@ -303,7 +305,7 @@ export function translateMetadata(metadata: any) {
     return match;
 }
 
-export function dataStandardization(study: IStudy, fields: IFieldEntry[], data: any, queryString: any, standardizations: IStandardization[] | undefined) {
+export function dataStandardization(study: IStudy, fields: IFieldEntry[], data: any, queryString: any, standardizations: IStandardization[] | null) {
     if (!queryString['format'] || queryString['format'] === 'raw') {
         return data;
     } else if (queryString['format'] === 'grouped' || queryString['format'] === 'summary') {

@@ -993,6 +993,7 @@ if (global.hasMinio) {
                                 [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                             }
                         },
+                        description: '',
                         createdBy: adminId,
                         users: [],
                         deleted: null,
@@ -1059,6 +1060,7 @@ if (global.hasMinio) {
                                 [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                             }
                         },
+                        description: '',
                         createdBy: adminId,
                         users: [],
                         deleted: null,
@@ -1126,6 +1128,7 @@ if (global.hasMinio) {
                                 [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                             }
                         },
+                        description: '',
                         createdBy: adminId,
                         users: [],
                         deleted: null,
@@ -1192,6 +1195,7 @@ if (global.hasMinio) {
                                 [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                             }
                         },
+                        description: '',
                         createdBy: adminId,
                         users: [],
                         deleted: null,
@@ -1281,6 +1285,7 @@ if (global.hasMinio) {
                         name: createdRole_project.name,
                         studyId: createdStudy.id,
                         projectId: createdProject.id,
+                        description: '',
                         permissions: {
                             data: {
                                 fieldIds: ['^.*$'],
@@ -1392,6 +1397,7 @@ if (global.hasMinio) {
                         name: createdRole_study.name,
                         studyId: createdStudy.id,
                         projectId: null,
+                        description: '',
                         permissions: {
                             data: {
                                 fieldIds: ['^.*$'],
@@ -1532,6 +1538,7 @@ if (global.hasMinio) {
                         name: createdRole_study_manageProject.name,
                         studyId: createdStudy.id,
                         projectId: null,
+                        description: '',
                         permissions: {
                             data: {
                                 fieldIds: [],
@@ -1621,6 +1628,7 @@ if (global.hasMinio) {
                         name: createdRole_study_self_access.name,
                         studyId: createdStudy.id,
                         projectId: null,
+                        description: '',
                         permissions: {
                             data: {
                                 fieldIds: ['^.*$'],
@@ -1852,6 +1860,7 @@ if (global.hasMinio) {
                             {
                                 id: createdRole_study.id,
                                 name: createdRole_study.name,
+                                description: '',
                                 permissions: {
                                     data: {
                                         fieldIds: ['^.*$'],
@@ -1881,6 +1890,7 @@ if (global.hasMinio) {
                             {
                                 id: createdRole_study_manageProject.id,
                                 name: createdRole_study_manageProject.name,
+                                description: '',
                                 permissions: {
                                     data: {
                                         fieldIds: [],
@@ -1910,6 +1920,7 @@ if (global.hasMinio) {
                             {
                                 id: createdRole_study_self_access.id,
                                 name: createdRole_study_self_access.name,
+                                description: '',
                                 permissions: {
                                     data: {
                                         fieldIds: ['^.*$'],
@@ -2008,6 +2019,7 @@ if (global.hasMinio) {
                             {
                                 id: createdRole_project.id,
                                 name: createdRole_project.name,
+                                description: '',
                                 permissions: {
                                     data: {
                                         fieldIds: ['^.*$'],
@@ -2923,7 +2935,8 @@ if (global.hasMinio) {
                         createdBy: adminId,
                         users: [],
                         deleted: null,
-                        metadata: {}
+                        metadata: {},
+                        description: ''
                     });
                     expect(res.body.data.addRole).toEqual({
                         id: createdRole_study_accessData.id,
@@ -3038,6 +3051,7 @@ if (global.hasMinio) {
                         name: createdRole_study_accessData.name,
                         studyId: createdStudy.id,
                         projectId: null,
+                        description: '',
                         permissions: {
                             data: {
                                 fieldIds: ['^.*$'],
@@ -3243,6 +3257,7 @@ if (global.hasMinio) {
                         projectId: createdProject.id,
                         studyId: createdStudy.id,
                         name: roleName,
+                        description: '',
                         permissions: {
                             data: {
                                 fieldIds: [],
@@ -3324,6 +3339,7 @@ if (global.hasMinio) {
                         name: createdRole_project.name,
                         studyId: createdStudy.id,
                         projectId: createdProject.id,
+                        description: '',
                         permissions: {
                             data: {
                                 fieldIds: ['^.*$'],

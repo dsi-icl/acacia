@@ -136,6 +136,7 @@ describe('ROLE API', () => {
                 projectId: null,
                 studyId: setupStudy.id,
                 name: roleName,
+                description: '',
                 permissions: {
                     data: {
                         fieldIds: [],
@@ -253,6 +254,7 @@ describe('ROLE API', () => {
                 projectId: null,
                 studyId: setupStudy.id,
                 name: roleName,
+                description: '',
                 permissions: {
                     data: {
                         fieldIds: [],
@@ -322,6 +324,7 @@ describe('ROLE API', () => {
                 projectId: setupProject.id,
                 studyId: setupStudy.id,
                 name: roleName,
+                description: '',
                 permissions: {
                     data: {
                         fieldIds: [],
@@ -481,6 +484,7 @@ describe('ROLE API', () => {
                 projectId: setupProject.id,
                 studyId: setupStudy.id,
                 name: roleName,
+                description: '',
                 permissions: {
                     data: {
                         fieldIds: [],
@@ -579,6 +583,7 @@ describe('ROLE API', () => {
                 projectId: setupProject.id,
                 studyId: setupStudy.id,
                 name: roleName,
+                description: '',
                 permissions: {
                     data: {
                         fieldIds: [],
@@ -721,6 +726,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: `${roleId[1]}_rolename`,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -764,6 +770,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -806,6 +813,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -860,6 +868,7 @@ describe('ROLE API', () => {
                     name: newRoleName,
                     studyId: setupStudy.id,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -885,6 +894,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: newRoleName,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -939,6 +949,8 @@ describe('ROLE API', () => {
                     name: newRoleName,
                     studyId: setupStudy.id,
                     projectId: null,
+                    description: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -964,6 +976,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: newRoleName,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1023,6 +1036,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: oldName,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1057,6 +1071,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1100,6 +1115,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1175,6 +1191,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1205,6 +1222,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1280,6 +1298,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1310,6 +1329,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1389,6 +1409,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1473,6 +1494,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1498,6 +1520,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1532,6 +1555,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1583,6 +1607,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -1608,6 +1633,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -1661,6 +1687,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -1712,6 +1739,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -1737,6 +1765,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -1771,6 +1800,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1822,6 +1852,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -1847,6 +1878,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -1900,6 +1932,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -1951,6 +1984,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -1976,6 +2010,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2010,6 +2045,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2061,6 +2097,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2086,6 +2123,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2157,6 +2195,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -2212,6 +2251,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2242,6 +2282,7 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2352,6 +2393,7 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: `${roleId[1]}_rolename`,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2407,6 +2449,7 @@ describe('ROLE API', () => {
                     name: newRoleName,
                     studyId: setupStudy.id,
                     projectId: setupProject.id,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2432,6 +2475,7 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: newRoleName,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2486,6 +2530,7 @@ describe('ROLE API', () => {
                     name: newRoleName,
                     studyId: setupStudy.id,
                     projectId: setupProject.id,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2511,6 +2556,7 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: newRoleName,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2554,6 +2600,7 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: oldName,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2588,6 +2635,7 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2631,6 +2679,7 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2706,6 +2755,7 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupStudy.id,
                     projectId: setupProject.id,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2736,6 +2786,7 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -2799,6 +2850,7 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: setupRole.name,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],

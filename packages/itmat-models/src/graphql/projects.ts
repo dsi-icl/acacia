@@ -26,6 +26,7 @@ export const GET_PROJECT = gql`
                 permissions
                 projectId
                 studyId
+                description
                 users {
                     id
                     firstname

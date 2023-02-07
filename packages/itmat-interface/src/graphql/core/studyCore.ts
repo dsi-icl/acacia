@@ -344,10 +344,10 @@ export class StudyCore {
                     value: '',
                     uploadedAt: (new Date()).valueOf(),
                     metadata: {
-                        'uploader:user': requester.id,
                         ...dataClip.metadata,
-                        'add': ((existing?.metadata as any)?.add || []).concat(parsedValue)
-                    }
+                        add: ((existing?.metadata as any)?.add || []).concat(parsedValue)
+                    },
+                    uploadedBy: requester.id
                 };
             } else {
                 objWithData = {
@@ -356,9 +356,9 @@ export class StudyCore {
                     value: parsedValue,
                     uploadedAt: (new Date()).valueOf(),
                     metadata: {
-                        'uploader:user': requester.id,
                         ...dataClip.metadata
-                    }
+                    },
+                    uploadedBy: requester.id
                 };
             }
             bulk.find(obj).upsert().updateOne({ $set: objWithData });

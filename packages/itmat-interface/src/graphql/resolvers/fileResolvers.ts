@@ -27,7 +27,7 @@ export const fileResolvers = {
                 throw new GraphQLError('Study does not exist.');
             }
             let targetFieldId: string;
-            if (study.type === studyType.SENSOR || study.type === studyType.CLINICAL) {
+            if (study.type === studyType.SENSOR || study.type === studyType.CLINICAL || !study.type) {
                 const parsedDescription = JSON.parse(args.description);
                 const device = parsedDescription.deviceId.slice(0, 3);
                 if (!Object.keys(deviceTypes).includes(device)) {
@@ -151,7 +151,7 @@ export const fileResolvers = {
                         fileEntry.fileSize = readBytes.toString();
                         fileEntry.uri = fileUri;
                         fileEntry.hash = hashString;
-                        if (study.type === studyType.SENSOR || study.type === studyType.CLINICAL) {
+                        if (study.type === studyType.SENSOR || study.type === studyType.CLINICAL || !study.type) {
                             // update data record
                             const obj = {
                                 m_studyId: args.studyId,

@@ -63,6 +63,7 @@ interface IRoleBase {
             [IPermissionManagementOptions.ontologyTrees]: atomicOperation[];
         }
     };
+    description: string;
     createdBy: string;
     deleted: number | null;
     metadata: Record<string, unknown>

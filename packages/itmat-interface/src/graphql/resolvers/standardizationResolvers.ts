@@ -39,37 +39,17 @@ export const standardizationResolvers = {
             if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(modifiedStudyId);
-            let availableTypes: string[] = [];
-            if (type) {
-                availableTypes.push(type);
-            } else {
-                availableTypes = await db.collections!.standardizations_collection.distinct('type', { studyId: studyId });
-            }
             // get all dataVersions that are valid (before/equal the current version)
-            const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            const standardizations = (hasStudyLevelPermission && versionId === null) ? await db.collections!.standardizations_collection.aggregate([{
-                $sort: { uploadedAt: -1 }
-            }, {
-                $match: { dataVersion: null }
-            }, {
-                $match: { studyId: studyId, type: { $in: availableTypes } }
-            }, {
-                $group: {
-                    _id: {
-                        type: '$type',
-                        field: '$field'
-                    },
-                    doc: { $last: '$$ROOT' }
-                }
-            }, {
-                $replaceRoot: { newRoot: '$doc' }
+            const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            if (hasStudyLevelPermission && hasStudyLevelPermission.hasVersioned) {
+                availableDataVersions.push(null);
             }
-            ]).toArray() : await db.collections!.standardizations_collection.aggregate([{
+            const standardizations = await db.collections!.standardizations_collection.aggregate([{
                 $sort: { uploadedAt: -1 }
             }, {
                 $match: { dataVersion: { $in: availableDataVersions } }
             }, {
-                $match: { studyId: studyId, type: { $in: availableTypes } }
+                $match: { studyId: studyId, type: type }
             }, {
                 $group: {
                     _id: {

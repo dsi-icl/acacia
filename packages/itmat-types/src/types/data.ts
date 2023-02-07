@@ -7,6 +7,7 @@ export interface IDataEntry {
     m_fieldId: string;
     metadata?: any;
     value: any;
+    uploadedBy?: string;
     uploadedAt: number;
 }
 

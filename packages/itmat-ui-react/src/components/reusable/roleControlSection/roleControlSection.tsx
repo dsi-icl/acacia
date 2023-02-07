@@ -69,8 +69,7 @@ export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
             </div>
             <br />
             <PermissionsControlPanel
-                roleId={role.id}
-                originallySelectedPermissions={role.permissions}
+                role={role}
             />
             <br />
             <br />
@@ -168,13 +167,11 @@ export const AddRole: FunctionComponent<AddRoleProps> = ({
 };
 
 type PermissionsControlPanelProps = {
-    roleId: string;
-    originallySelectedPermissions: any;
+    role: IRoleQL
 }
 
 const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> = ({
-    roleId,
-    originallySelectedPermissions
+    role
 }) => {
     const filterColumns = function (remove) {
         return [
@@ -260,7 +257,13 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
             }
         ];
     };
-
+    const x = {
+        ...role.permissions.data,
+        ...role.permissions.manage,
+        description: role.description
+    };
+    console.log(role);
+    console.log(x);
     return (
         <Mutation<any, any>
             mutation={EDIT_ROLE}
@@ -268,11 +271,12 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
         >
             {(submit, { loading, error }) =>
                 <Form title='EditUserForm' initialValues={{
-                    ...originallySelectedPermissions.data,
-                    ...originallySelectedPermissions.manage
+                    ...role.permissions.data,
+                    ...role.permissions.manage,
+                    description: role.description
                 }} layout='vertical' onFinish={(variables) => submit({
                     variables: {
-                        roleId: roleId,
+                        roleId: role.id,
                         permissionChanges: {
                             data: {
                                 subjectIds: variables.subjectIds,
@@ -289,10 +293,16 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
                                 query: variables.query,
                                 ontologyTrees: variables.ontologyTrees
                             }
-                        }
+                        },
+                        description: variables.description
                     }
                 })}>
                     <div>
+                        <div>
+                            <Form.Item name='description' label='Description'>
+                                <Input />
+                            </Form.Item>
+                        </div>
                         <div className={css.data_permissions}>
                             <Divider orientation='left'>Data Permissions</Divider>
                             <Row gutter={16}>
@@ -330,7 +340,7 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
                                     </Form.Item>
                                 </Col>
                                 <Col span={4}>
-                                    <Form.Item name='hasVersioned' label='Include Versioned Data' valuePropName="checked">
+                                    <Form.Item name='hasVersioned' label='Include UnVersioned Data' valuePropName="checked">
                                         <Checkbox />
                                     </Form.Item>
                                 </Col>

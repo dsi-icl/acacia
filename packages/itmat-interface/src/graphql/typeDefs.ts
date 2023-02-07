@@ -197,6 +197,7 @@ type StudyOrProjectUserRole {
     name: String!
     studyId: String
     projectId: String
+    description: String
     permissions: JSON
     users: [User]!
     metadata: JSON
@@ -602,7 +603,7 @@ type Mutation {
 
     # ACCESS MANAGEMENT
     addRole(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole
-    editRole(roleId: String!, name: String, permissionChanges: JSON, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
+    editRole(roleId: String!, name: String, description: String, permissionChanges: JSON, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
     removeRole(roleId: String!): GenericResponse
 
     # FILES

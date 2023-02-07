@@ -190,7 +190,7 @@ export class PermissionCore {
         }
     }
 
-    public async editRoleFromStudyOrProject(roleId: string, name?: string, permissionChanges?: any, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
+    public async editRoleFromStudyOrProject(roleId: string, name?: string, description?: string, permissionChanges?: any, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
         if (permissionChanges === undefined) {
             permissionChanges = {
                 data: { subjectIds: [], visitIds: [], fieldIds: [], hasVersioned: false, operations: [] },
@@ -210,6 +210,9 @@ export class PermissionCore {
         bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { permissions: permissionChanges }, $pullAll: { users: userChanges.remove } });
         if (name) {
             bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { name } });
+        }
+        if (description) {
+            bulkop.find({ id: roleId, deleted: null }).updateOne({ $set: { description } });
         }
         const result: BulkWriteResult = await bulkop.execute();
         const resultingRole = await db.collections!.roles_collection.findOne({ id: roleId, deleted: null });
@@ -306,13 +309,14 @@ export class PermissionCore {
                     operations: []
                 },
                 manage: {
-                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                    [IPermissionManagementOptions.own]: [],
                     [IPermissionManagementOptions.role]: [],
                     [IPermissionManagementOptions.job]: [],
                     [IPermissionManagementOptions.query]: [],
-                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    [IPermissionManagementOptions.ontologyTrees]: []
                 }
             },
+            description: '',
             users: [],
             studyId: opt.studyId,
             projectId: opt.projectId,

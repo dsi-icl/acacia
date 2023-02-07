@@ -32,6 +32,7 @@ export const GET_STUDY = gql`
                 permissions
                 projectId
                 studyId
+                description
                 users {
                     id
                     firstname

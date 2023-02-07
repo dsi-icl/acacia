@@ -72,7 +72,7 @@ export const permissionResolvers = {
             const result = await permissionCore.addRole({ createdBy: requester.id, studyId: studyId!, projectId, roleName });
             return result;
         },
-        editRole: async (__unused__parent: Record<string, unknown>, args: { roleId: string, name?: string, userChanges?: { add: string[], remove: string[] }, permissionChanges?: any }, context: any): Promise<IRole> => {
+        editRole: async (__unused__parent: Record<string, unknown>, args: { roleId: string, name?: string, description?: string, userChanges?: { add: string[], remove: string[] }, permissionChanges?: any }, context: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { roleId, name, permissionChanges, userChanges } = args;
 
@@ -129,7 +129,7 @@ export const permissionResolvers = {
             }
 
             /* edit the role */
-            const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, name, permissionChanges, userChanges);
+            const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, name, args.description, permissionChanges, userChanges);
             return modifiedRole;
         },
         removeRole: async (__unused__parent: Record<string, unknown>, args: { roleId: string }, context: any): Promise<IGenericResponse> => {

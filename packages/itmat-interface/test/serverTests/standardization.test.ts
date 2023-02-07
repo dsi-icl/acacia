@@ -162,6 +162,7 @@ describe('STUDY API', () => {
                     projectId: null,
                     studyId: createdStudy.id,
                     name: roleName,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -228,6 +229,7 @@ describe('STUDY API', () => {
                     projectId: null,
                     studyId: createdStudy.id,
                     name: roleName,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -294,6 +296,7 @@ describe('STUDY API', () => {
                     projectId: createdProject.id,
                     studyId: createdStudy.id,
                     name: roleName,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: [],
@@ -399,6 +402,7 @@ describe('STUDY API', () => {
                     name: createdRole_project.name,
                     studyId: createdStudy.id,
                     projectId: createdProject.id,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -510,6 +514,7 @@ describe('STUDY API', () => {
                     name: createdRole_study.name,
                     studyId: createdStudy.id,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
@@ -625,6 +630,7 @@ describe('STUDY API', () => {
                     name: createdRole_study_manageProject.name,
                     studyId: createdStudy.id,
                     projectId: null,
+                    description: '',
                     permissions: {
                         data: {
                             fieldIds: ['^.*$'],
