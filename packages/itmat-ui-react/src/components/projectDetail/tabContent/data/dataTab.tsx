@@ -785,19 +785,14 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
 };
 
 export const DataDownloadBlock: FunctionComponent<{ project: IProject }> = ({ project }) => {
-    const { loading: getStandardizationLoading, error: getStandardizationError, data: getStandardizationData } = useQuery(GET_STANDARDIZATION, { variables: { studyId: project.studyId, projectId: project.id } });
     const [getDataRecordsLazy, { loading: getDataRecordsLoading, data: getDataRecordsData }] = useLazyQuery(GET_DATA_RECORDS, {});
     const [shouldUpdateData, setShouldUpdateData] = useState(true);
     const [selectedDataFormat, setSelectedDataFormat] = useState<string | undefined>(undefined);
     const [selectedOutputType, setSelectedOutputType] = useState('JSON');
-    if (getDataRecordsLoading || getStandardizationLoading) {
+    if (getDataRecordsLoading) {
         return <LoadSpinner />;
     }
-    if (getStandardizationError) {
-        return <p>
-            An error occured, please contact your administrator
-        </p >;
-    }
+
     const availableFormats: string[] = project.summary?.standardizationTypes ?? [];
     const dataArray: any[] = [];
     if (getDataRecordsData?.getDataRecords?.data !== undefined) {
