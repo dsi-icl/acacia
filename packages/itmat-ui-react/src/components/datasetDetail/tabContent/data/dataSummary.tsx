@@ -43,7 +43,7 @@ const NumberOfRecords: FunctionComponent<{ data: any }> = ({ data }) => {
         <div>
             <p>Number of records</p>
             <span className={css.number_highlight}>
-                <Tooltip title={'Versioned /unVersioned'}>
+                <Tooltip title={'Versioned /Unversioned'}>
                     {`${data.getStudy.numOfRecords[0]}/${data.getStudy.numOfRecords[1]}`}
                 </Tooltip>
             </span>

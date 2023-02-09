@@ -19,9 +19,6 @@ import tmp from 'tmp';
 export const userResolvers = {
     Query: {
         whoAmI(parent: Record<string, unknown>, __unused__args: any, context: any): Record<string, unknown> {
-            if (context.req.user && context.req.user.type !== userTypes.ADMIN) {
-                delete context.req.user.metadata;
-            }
             return context.req.user;
         },
         getUsers: async (__unused__parent: Record<string, unknown>, args: any): Promise<IUser[]> => {

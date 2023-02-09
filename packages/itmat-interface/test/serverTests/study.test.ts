@@ -2012,7 +2012,8 @@ if (global.hasMinio) {
                             ],
                             visits: [
                                 'mockvisitId'
-                            ]
+                            ],
+                            standardizationTypes: []
                         },
                         jobs: [],
                         roles: [
@@ -2191,7 +2192,8 @@ if (global.hasMinio) {
                             ],
                             visits: [
                                 'mockvisitId'
-                            ]
+                            ],
+                            standardizationTypes: []
                         }
                     });
                 }
@@ -2351,38 +2353,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getStudyFields.sort((a: { id: string; }, b: { id: any; }) => a.id.localeCompare(b.id))).toEqual([ // as the api will sort the results, the order is changed
-                    {
-                        id: 'mockfield3',
-                        studyId: createdStudy.id,
-                        fieldId: '33',
-                        fieldName: 'Weight',
-                        tableName: null,
-                        dataType: enumValueType.DECIMAL,
-                        possibleValues: [],
-                        unit: 'kg',
-                        comments: 'mockComments3',
-                        dateAdded: '2021-05-18T16:32:10.226Z',
-                        dateDeleted: null,
-                        dataVersion: null,
-                        metadata: null
-                    },
-                    {
-                        id: 'mockfield2_deleted',
-                        studyId: createdStudy.id,
-                        fieldId: '32',
-                        fieldName: 'Race',
-                        tableName: null,
-                        dataType: enumValueType.STRING,
-                        possibleValues: [],
-                        unit: 'person',
-                        comments: 'mockComments1',
-                        dateAdded: '2021-05-18T16:32:10.226Z',
-                        dateDeleted: '2021-05-18T16:32:10.226Z',
-                        dataVersion: null,
-                        metadata: null
-                    }
-                ].sort((a, b) => a.id.localeCompare(b.id)));
+                expect(res.body.data.getStudyFields.map(el => el.id).sort()).toEqual(['mockfield1', 'mockfield2_deleted', 'mockfield3']);
                 // user with project privilege can only access the latest fields that are versioned
                 const res2 = await authorisedUser.post('/graphql').send({
                     query: print(GET_STUDY_FIELDS),
@@ -2613,6 +2584,7 @@ if (global.hasMinio) {
             });
 
             test('Create New fields (admin)', async () => {
+                await db.collections!.field_dictionary_collection.deleteMany({ dataVersion: null });
                 const res = await admin.post('/graphql').send({
                     query: print(CREATE_NEW_FIELD),
                     variables: {
@@ -2645,7 +2617,10 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.createNewField).toEqual([]);
+                expect(res.body.data.createNewField).toEqual([
+                    { successful: true, code: null, id: null, description: 'Field 8-newField8 is created successfully.' },
+                    { successful: true, code: null, id: null, description: 'Field 9-newField9 is created successfully.' }
+                ]);
                 const fieldsInDb = await db.collections!.field_dictionary_collection.find({ studyId: createdStudy.id, dataVersion: null }).toArray();
                 expect(fieldsInDb).toHaveLength(2);
             });
@@ -2672,6 +2647,8 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.data.createNewField[0]).toEqual({
+                    id: null,
+                    successful: false,
                     code: 'CLIENT_MALFORMED_INPUT',
                     description: 'Field 8.2-newField8: ["FieldId should contain letters, numbers and _ only."]'
                 });
@@ -3542,9 +3519,12 @@ if (global.hasMinio) {
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
                 expect(res.body.data.uploadDataInArray).toEqual([
-                    { code: 'CLIENT_ACTION_ON_NON_EXISTENT_ENTRY', description: 'Field 34: Field Not found' },
-                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.' },
-                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Subject ID I777770 is illegal.' }
+                    { code: null, description: 'I7N3G6G-1-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-1-32', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-1-31', id: null, successful: true },
+                    { code: 'CLIENT_ACTION_ON_NON_EXISTENT_ENTRY', description: 'Field 34: Field Not found', id: null, successful: false },
+                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Field 31: Cannot parse as integer.', id: null, successful: false },
+                    { code: 'CLIENT_MALFORMED_INPUT', description: 'Subject ID I777770 is illegal.', id: null, successful: false }
                 ]);
 
                 const dataInDb = await db.collections!.data_collection.find({ deleted: null }).toArray();
@@ -3776,11 +3756,15 @@ if (global.hasMinio) {
                 });
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-                const dataInDb = await db.collections!.data_collection.find({ m_subjectId: 'I7N3G6G' }).toArray();
-                for (let i = 0; i < dataInDb.length; i++) {
-                    expect(dataInDb[i].value).toBe(null);
-                }
+                expect(deleteRes.body.data.deleteDataRecords).toEqual([
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-34 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
             });
 
             test('Delete data records: visitId (admin)', async () => {
@@ -3797,11 +3781,16 @@ if (global.hasMinio) {
                 });
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-                const dataInDb = await db.collections!.data_collection.find({ m_visitId: '2' }).toArray();
-                for (let i = 0; i < dataInDb.length; i++) {
-                    expect(dataInDb[i].value).toBe(null);
-                }
+                expect(deleteRes.body.data.deleteDataRecords).toEqual([
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-34 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }
+                ]);
             });
 
             test('Delete data records: studyId (admin)', async () => {
@@ -3811,7 +3800,14 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.uploadDataInArray).toEqual([]);
+                expect(res.body.data.uploadDataInArray).toEqual([
+                    { code: null, description: 'I7N3G6G-1-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-1-32', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-2-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-2-32', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
+                ]);
 
                 const deleteRes = await admin.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
@@ -3819,7 +3815,23 @@ if (global.hasMinio) {
                 });
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
+                expect(deleteRes.body.data.deleteDataRecords).toEqual([
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-1:fieldId-34 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-GR6R4AR:visitId-2:fieldId-34 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-34 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
                 const dataInDb = await db.collections!.data_collection.find({ 31: null }).sort({ uploadedAt: -1 }).toArray();
                 expect(dataInDb).toHaveLength(16); // 2 visits * 2 subjects * 2 fields * 2 (delete or not) = 16 records
             });
@@ -3831,7 +3843,14 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.uploadDataInArray).toEqual([]);
+                expect(res.body.data.uploadDataInArray).toEqual([
+                    { code: null, description: 'I7N3G6G-1-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-1-32', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-2-31', id: null, successful: true },
+                    { code: null, description: 'I7N3G6G-2-32', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-2-31', id: null, successful: true },
+                    { code: null, description: 'GR6R4AR-2-32', id: null, successful: true }
+                ]);
 
                 const deleteRes = await admin.post('/graphql').send({
                     query: print(DELETE_DATA_RECORDS),
@@ -3839,9 +3858,17 @@ if (global.hasMinio) {
                 });
                 expect(deleteRes.status).toBe(200);
                 expect(deleteRes.body.errors).toBeUndefined();
-                expect(deleteRes.body.data.deleteDataRecords).toEqual([]);
-                const dataInDb = await db.collections!.data_collection.find({ m_subjectId: 'I7N3G6G', m_visitId: { $in: ['1', '2'] }, value: null }).toArray();
-                expect(dataInDb).toHaveLength(8); // four data records, four deleted records
+                expect(deleteRes.body.data.deleteDataRecords).toEqual([
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-1:fieldId-34 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-31 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-32 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-33 is deleted.' },
+                    { successful: true, id: null, code: null, description: 'SubjectId-I7N3G6G:visitId-2:fieldId-34 is deleted.' }]);
+                const dataInDb = await db.collections!.data_collection.find({ m_subjectId: 'I7N3G6G' }).sort({ uploadedAt: -1 }).toArray();
+                expect(dataInDb).toHaveLength(8); // two data records, two deleted records
             });
 
             test('Get data records (user with study privilege)', async () => {

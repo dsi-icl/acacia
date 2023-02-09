@@ -1089,6 +1089,8 @@ describe('STUDY API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.deleteStandardization).toEqual({
+                code: null,
+                description: null,
                 id: std?.id,
                 successful: true
             });

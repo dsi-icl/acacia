@@ -200,7 +200,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             projectId: projectId,
             queryString: {
                 format: 'grouped',
-                data_requested: [genderField.fieldId, raceField.fieldId, ageField.fieldId, siteField.fieldId],
+                data_requested: [genderField?.fieldId, raceField?.fieldId, ageField?.fieldId, siteField?.fieldId],
                 new_fields: [],
                 cohort: [[]],
                 subjects_requested: null,
@@ -291,105 +291,113 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
     </Tooltip>}>
         <>
             {
-                genderField === null ? null :
-                    <div className={css.demographics_graph}>
-                        <Pie
-                            appendPadding={10}
-                            data={obj.SEX}
-                            angleField={'value'}
-                            colorField={'type'}
-                            radius={0.75}
-                            legend={{
-                                itemWidth: 100,
-                                layout: width > 1500 ? 'vertical' : 'horizontal',
-                                offsetX: 0,
-                                position: width > 1500 ? 'right' : 'bottom'
-                            }}
-                            label={false}
-                            interactions={[
-                                {
-                                    type: 'element-selected'
-                                },
-                                {
-                                    type: 'element-active'
-                                }
-                            ]}
-                        />
-                        <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Sex</Text></div>
-                    </div>
+                <div className={css.demographics_graph}>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Sex</Text></div>
+                    {
+                        genderField === null ? <Empty /> :
+                            <Pie
+                                appendPadding={10}
+                                data={obj.SEX}
+                                angleField={'value'}
+                                colorField={'type'}
+                                radius={0.75}
+                                legend={{
+                                    itemWidth: 100,
+                                    layout: width > 1500 ? 'vertical' : 'horizontal',
+                                    offsetX: 0,
+                                    position: width > 1500 ? 'right' : 'bottom'
+                                }}
+                                label={false}
+                                interactions={[
+                                    {
+                                        type: 'element-selected'
+                                    },
+                                    {
+                                        type: 'element-active'
+                                    }
+                                ]}
+                            />
+                    }
+                </div>
             }
             {
-                raceField === null ? null :
-                    <div className={css.demographics_graph}>
-                        <Pie
-                            appendPadding={10}
-                            data={obj.RACE}
-                            angleField={'value'}
-                            colorField={'type'}
-                            radius={0.75}
-                            legend={{
-                                itemWidth: 100,
-                                layout: width > 1500 ? 'vertical' : 'horizontal',
-                                offsetX: 0,
-                                position: width > 1500 ? 'right' : 'bottom'
-                            }}
-                            label={false}
-                            interactions={[
-                                {
-                                    type: 'element-selected'
-                                },
-                                {
-                                    type: 'element-active'
-                                }
-                            ]}
-                        />
-                        <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Race</Text></div>
-                    </div>
+                <div className={css.demographics_graph}>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Race</Text></div>
+                    {
+                        raceField === null ? <Empty /> :
+                            <Pie
+                                appendPadding={10}
+                                data={obj.RACE}
+                                angleField={'value'}
+                                colorField={'type'}
+                                radius={0.75}
+                                legend={{
+                                    itemWidth: 100,
+                                    layout: width > 1500 ? 'vertical' : 'horizontal',
+                                    offsetX: 0,
+                                    position: width > 1500 ? 'right' : 'bottom'
+                                }}
+                                label={false}
+                                interactions={[
+                                    {
+                                        type: 'element-selected'
+                                    },
+                                    {
+                                        type: 'element-active'
+                                    }
+                                ]}
+                            />
+                    }
+                </div>
             }
             {
-                siteField === null ? null :
-                    <div className={css.demographics_graph}>
-                        <Pie
-                            appendPadding={10}
-                            data={obj.SITE.sort((a, b) => a.type.toString().localeCompare(b.type.toString()))}
-                            angleField={'value'}
-                            colorField={'type'}
-                            radius={0.75}
-                            legend={{
-                                itemWidth: 100,
-                                layout: width > 1500 ? 'vertical' : 'horizontal',
-                                offsetX: 0,
-                                position: width > 1500 ? 'right' : 'bottom'
-                            }}
-                            label={false}
-                            interactions={[
-                                {
-                                    type: 'element-selected'
-                                },
-                                {
-                                    type: 'element-active'
-                                }
-                            ]}
-                        />
-                        <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Site</Text></div>
-                    </div>
+                <div className={css.demographics_graph}>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Site</Text></div>
+                    {
+                        siteField === null ? <Empty /> :
+                            <Pie
+                                appendPadding={10}
+                                data={obj.SITE.sort((a, b) => a.type.toString().localeCompare(b.type.toString()))}
+                                angleField={'value'}
+                                colorField={'type'}
+                                radius={0.75}
+                                legend={{
+                                    itemWidth: 100,
+                                    layout: width > 1500 ? 'vertical' : 'horizontal',
+                                    offsetX: 0,
+                                    position: width > 1500 ? 'right' : 'bottom'
+                                }}
+                                label={false}
+                                interactions={[
+                                    {
+                                        type: 'element-selected'
+                                    },
+                                    {
+                                        type: 'element-active'
+                                    }
+                                ]}
+                            />
+                    }
+                </div>
             }
             {
-                ageField === null ? null :
-                    <div className={css.demographics_graph}>
-                        <BidirectionalBar
-                            data={obj.AGE}
-                            xField={'age'}
-                            xAxis={{
-                                position: 'right'
-                            }}
-                            interactions={[
-                                { type: 'active-region' }
-                            ]}
-                            yField={['Male', 'Female']}
-                        />
-                        <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong>Age</Text></div>
-                    </div>
+                <div className={css.demographics_graph}>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong>Age</Text></div>
+                    {
+                        ageField === null ? <Empty /> :
+                            <BidirectionalBar
+                                data={obj.AGE}
+                                xField={'age'}
+                                xAxis={{
+                                    position: 'right'
+                                }}
+                                interactions={[
+                                    { type: 'active-region' }
+                                ]}
+                                yField={['Male', 'Female']}
+                            />
+                    }
+                </div>
             }
         </>
     </Subsection >;
@@ -790,7 +798,7 @@ export const DataDownloadBlock: FunctionComponent<{ project: IProject }> = ({ pr
             An error occured, please contact your administrator
         </p >;
     }
-    const availableFormats: string[] = Array.from(new Set(getStandardizationData.getStandardization.map(el => el.type))) || [];
+    const availableFormats: string[] = project.summary?.standardizationTypes ?? [];
     const dataArray: any[] = [];
     if (getDataRecordsData?.getDataRecords?.data !== undefined) {
         Object.keys(getDataRecordsData.getDataRecords.data).forEach(domain => {

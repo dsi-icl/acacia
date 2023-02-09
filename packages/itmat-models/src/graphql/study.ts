@@ -139,6 +139,8 @@ export const CREATE_NEW_DATA_VERSION = gql`
 export const UPLOAD_DATA_IN_ARRAY = gql`
     mutation uploadDataInArray($studyId: String!, $data: [DataClip]) {
         uploadDataInArray(studyId: $studyId, data: $data) {
+            successful
+            id
             code
             description
         }
@@ -148,6 +150,8 @@ export const UPLOAD_DATA_IN_ARRAY = gql`
 export const DELETE_DATA_RECORDS = gql`
     mutation deleteDataRecords($studyId: String!, $subjectIds: [String], $visitIds: [String], $fieldIds: [String]) {
         deleteDataRecords(studyId: $studyId, subjectIds: $subjectIds, visitIds: $visitIds, fieldIds: $fieldIds) {
+            successful
+            id
             code
             description
         }

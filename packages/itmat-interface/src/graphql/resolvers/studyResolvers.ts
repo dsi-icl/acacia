@@ -13,7 +13,6 @@ import {
     IRole,
     IOntologyTree,
     userTypes,
-    IGeneralError,
     atomicOperation,
     IPermissionManagementOptions,
     IDataEntry,
@@ -857,6 +856,7 @@ export const studyResolvers = {
 
             summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId)));
             summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b));
+            summary['standardizationTypes'] = await db.collections!.standardizations_collection.distinct('type', { studyId: study.id, deleted: null });
             return summary;
         },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {
@@ -919,11 +919,12 @@ export const studyResolvers = {
             const study = await studyCore.editStudy(studyId, description);
             return study;
         },
-        createNewField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any[] }, context: any): Promise<IGeneralError[]> => {
+        createNewField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any[] }, context: any): Promise<IGenericResponse[]> => {
             const requester: IUser = context.req.user;
             /* check privileges */
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasDataWritePermission(
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.WRITE,
                 requester,
                 studyId
             );
@@ -934,7 +935,7 @@ export const studyResolvers = {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
-            const error: IGeneralError[] = [];
+            const response: IGenericResponse[] = [];
             let isError = false;
             const bulk = db.collections!.field_dictionary_collection.initializeUnorderedBulkOp();
             // remove duplicates by fieldId
@@ -946,14 +947,17 @@ export const studyResolvers = {
             for (const oneFieldInput of filteredFieldInput) {
                 isError = false;
                 // check data valid
-                if (!(permissionCore.checkDataEntryValid(hasPermission, oneFieldInput.fieldId))) {
+                if (!(permissionCore.checkDataEntryValid(hasPermission.raw, oneFieldInput.fieldId))) {
                     isError = true;
-                    error.push({ code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have permissions to create this field.' });
+                    response.push({ successful: false, code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have permissions to create this field.' });
+                    continue;
                 }
                 const { fieldEntry, error: thisError } = validateAndGenerateFieldEntry(oneFieldInput, requester);
                 if (thisError.length !== 0) {
-                    error.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
+                    response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Field ${oneFieldInput.fieldId || 'fieldId not defined'}-${oneFieldInput.fieldName || 'fieldName not defined'}: ${JSON.stringify(thisError)}` });
                     isError = true;
+                } else {
+                    response.push({ successful: true, description: `Field ${oneFieldInput.fieldId}-${oneFieldInput.fieldName} is created successfully.` });
                 }
                 // // construct the rest of the fields
                 if (!isError) {
@@ -972,7 +976,7 @@ export const studyResolvers = {
             if (bulk.batches.length > 0) {
                 await bulk.execute();
             }
-            return error;
+            return response;
         },
         editField: async (__unused__parent: Record<string, unknown>, { studyId, fieldInput }: { studyId: string, fieldInput: any }, context: any): Promise<IFieldEntry> => {
             const requester: IUser = context.req.user;
@@ -1002,7 +1006,8 @@ export const studyResolvers = {
         deleteField: async (__unused__parent: Record<string, unknown>, { studyId, fieldId }: { studyId: string, fieldId: string }, context: any): Promise<IFieldEntry> => {
             const requester: IUser = context.req.user;
             /* check privileges */
-            const hasPermission = await permissionCore.userHasDataWritePermission(
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.WRITE,
                 requester,
                 studyId
             );
@@ -1010,7 +1015,7 @@ export const studyResolvers = {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            if (!(await permissionCore.checkDataEntryValid(hasPermission, fieldId))) {
+            if (!(await permissionCore.checkDataEntryValid(hasPermission.raw, fieldId))) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -1047,14 +1052,15 @@ export const studyResolvers = {
             return searchField[0];
 
         },
-        uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, data }: { studyId: string, data: IDataClip[] }, context: any): Promise<IGeneralError> => {
+        uploadDataInArray: async (__unused__parent: Record<string, unknown>, { studyId, data }: { studyId: string, data: IDataClip[] }, context: any): Promise<IGenericResponse[]> => {
             // check study exists
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             const requester: IUser = context.req.user;
             /* check privileges */
             /* user can get study if he has readonly permission */
-            const hasPermission = await permissionCore.userHasDataWritePermission(
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.WRITE,
                 requester,
                 studyId
             );
@@ -1080,17 +1086,18 @@ export const studyResolvers = {
             ]).toArray();
             // filter those that have been deleted
             const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
-            const errors = (await studyCore.uploadOneDataClip(studyId, hasPermission, fieldsList, data, requester));
+            const response = (await studyCore.uploadOneDataClip(studyId, hasPermission.raw, fieldsList, data, requester));
 
-            return errors;
+            return response;
         },
-        deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectIds, visitIds, fieldIds }: { studyId: string, subjectIds: string[], visitIds: string[], fieldIds: string[] }, context: any): Promise<any> => {
+        deleteDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, subjectIds, visitIds, fieldIds }: { studyId: string, subjectIds: string[], visitIds: string[], fieldIds: string[] }, context: any): Promise<IGenericResponse[]> => {
             // check study exists
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
-
+            const response: IGenericResponse[] = [];
             const requester: IUser = context.req.user;
             /* check privileges */
-            const hasPermission = await permissionCore.userHasDataWritePermission(
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.WRITE,
                 requester,
                 studyId
             );
@@ -1098,8 +1105,8 @@ export const studyResolvers = {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
-            let validSubjects: any;
-            let validVisits: any;
+            let validSubjects: string[];
+            let validVisits: string[];
             let validFields: any;
             // filter
             if (subjectIds === undefined || subjectIds === null || subjectIds.length === 0) {
@@ -1122,7 +1129,7 @@ export const studyResolvers = {
             for (const subjectId of validSubjects) {
                 for (const visitId of validVisits) {
                     for (const fieldId of validFields) {
-                        if (!(await permissionCore.checkDataEntryValid(hasPermission, fieldId, subjectId, visitId))) {
+                        if (!(await permissionCore.checkDataEntryValid(hasPermission.raw, fieldId, subjectId, visitId))) {
                             continue;
                         }
                         bulk.find({ m_studyId: studyId, m_subjectId: subjectId, m_visitId: visitId, m_fieldId: fieldId, m_versionId: null }).upsert().updateOne({
@@ -1137,13 +1144,14 @@ export const studyResolvers = {
                                 id: uuid()
                             }
                         });
+                        response.push({ successful: true, description: `SubjectId-${subjectId}:visitId-${visitId}:fieldId-${fieldId} is deleted.` });
                     }
                 }
             }
             if (bulk.batches.length > 0) {
                 await bulk.execute();
             }
-            return [];
+            return response;
         },
         createNewDataVersion: async (__unused__parent: Record<string, unknown>, { studyId, dataVersion, tag }: { studyId: string, dataVersion: string, tag: string }, context: any): Promise<IStudyDataVersion> => {
             // check study exists

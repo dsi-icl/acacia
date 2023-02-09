@@ -10,7 +10,7 @@ import { objStore } from '../../objStore/objStore';
 import { FileUpload } from 'graphql-upload-minimal';
 import crypto from 'crypto';
 import { fileSizeLimit } from '../../utils/definition';
-
+import { IGenericResponse } from '../responses';
 export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
 
@@ -182,8 +182,8 @@ export class StudyCore {
         return newDataVersion;
     }
 
-    public async uploadOneDataClip(studyId: string, permissions: Record<string, string[]>, fieldList: Partial<IFieldEntry>[], data: IDataClip[], requester: IUser): Promise<any> {
-        const errors: any[] = [];
+    public async uploadOneDataClip(studyId: string, permissions: any, fieldList: Partial<IFieldEntry>[], data: IDataClip[], requester: IUser): Promise<any> {
+        const response: IGenericResponse[] = [];
         let bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
         const keysToCheck: Array<keyof IDataClip> = ['visitId', 'subjectId', 'fieldId'];
@@ -193,17 +193,18 @@ export class StudyCore {
         for (const dataClip of filteredData) {
             const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId)[0];
             if (!fieldInDb) {
-                errors.push({ code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: Field Not found` });
+                response.push({ successful: false, code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: Field Not found` });
                 continue;
             }
             // check subjectId
             if (!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
-                errors.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
+                response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
                 continue;
             }
 
             if (!(await permissionCore.checkDataEntryValid(permissions, dataClip.fieldId, dataClip.subjectId, dataClip.visitId))) {
-                errors.push({ code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have access to this field.' });
+                response.push({ successful: false, code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have access to this field.' });
+                continue;
             }
 
             // check value is valid
@@ -311,8 +312,10 @@ export class StudyCore {
                 }
             }
             if (error !== undefined) {
-                errors.push({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: error });
+                response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: error });
                 continue;
+            } else {
+                response.push({ successful: true, description: `${dataClip.subjectId}-${dataClip.visitId}-${dataClip.fieldId}` });
             }
             const obj = {
                 m_studyId: studyId,
@@ -368,8 +371,8 @@ export class StudyCore {
             }
 
         }
-        await bulk.execute();
-        return errors;
+        bulk.batches.length !== 0 && await bulk.execute();
+        return response;
     }
 
     // This file uploading function will not check any metadate of the file

@@ -2459,11 +2459,11 @@ describe('ROLE API', () => {
                             visitIds: []
                         },
                         manage: {
-                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
                             [IPermissionManagementOptions.role]: [],
                             [IPermissionManagementOptions.job]: [],
                             [IPermissionManagementOptions.query]: [],
-                            [IPermissionManagementOptions.ontologyTrees]: []
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                         }
                     },
                     users: []
@@ -2485,11 +2485,11 @@ describe('ROLE API', () => {
                             visitIds: []
                         },
                         manage: {
-                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
                             [IPermissionManagementOptions.role]: [],
                             [IPermissionManagementOptions.job]: [],
                             [IPermissionManagementOptions.query]: [],
-                            [IPermissionManagementOptions.ontologyTrees]: []
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                         }
                     },
                     createdBy: adminId,
@@ -2540,11 +2540,11 @@ describe('ROLE API', () => {
                             visitIds: []
                         },
                         manage: {
-                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
                             [IPermissionManagementOptions.role]: [],
                             [IPermissionManagementOptions.job]: [],
                             [IPermissionManagementOptions.query]: [],
-                            [IPermissionManagementOptions.ontologyTrees]: []
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                         }
                     },
                     users: []
@@ -2566,11 +2566,11 @@ describe('ROLE API', () => {
                             visitIds: []
                         },
                         manage: {
-                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
                             [IPermissionManagementOptions.role]: [],
                             [IPermissionManagementOptions.job]: [],
                             [IPermissionManagementOptions.query]: [],
-                            [IPermissionManagementOptions.ontologyTrees]: []
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                         }
                     },
                     createdBy: adminId,
@@ -2765,11 +2765,11 @@ describe('ROLE API', () => {
                             visitIds: []
                         },
                         manage: {
-                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
                             [IPermissionManagementOptions.role]: [],
                             [IPermissionManagementOptions.job]: [],
                             [IPermissionManagementOptions.query]: [],
-                            [IPermissionManagementOptions.ontologyTrees]: []
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                         }
                     },
                     users: [{
@@ -2796,11 +2796,11 @@ describe('ROLE API', () => {
                             visitIds: []
                         },
                         manage: {
-                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
                             [IPermissionManagementOptions.role]: [],
                             [IPermissionManagementOptions.job]: [],
                             [IPermissionManagementOptions.query]: [],
-                            [IPermissionManagementOptions.ontologyTrees]: []
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                         }
                     },
                     createdBy: adminId,

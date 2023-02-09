@@ -41,7 +41,7 @@ export const standardizationResolvers = {
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(modifiedStudyId);
             // get all dataVersions that are valid (before/equal the current version)
             const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            if (hasStudyLevelPermission && hasStudyLevelPermission.hasVersioned) {
+            if (hasStudyLevelPermission && hasStudyLevelPermission.hasVersioned && versionId === null) {
                 availableDataVersions.push(null);
             }
             const standardizations = await db.collections!.standardizations_collection.aggregate([{
@@ -71,7 +71,8 @@ export const standardizationResolvers = {
         createStandardization: async (__unused__parent: Record<string, unknown>, { studyId, standardization }: { studyId: string, standardization: any }, context: any): Promise<IStandardization> => {
             const requester: IUser = context.req.user;
             /* check permission */
-            const hasPermission = await permissionCore.userHasDataWritePermission(
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.WRITE,
                 requester,
                 studyId
             );
@@ -88,7 +89,7 @@ export const standardizationResolvers = {
             stdRulesWithId.forEach(el => {
                 el.id = uuid();
             });
-            if (!(permissionCore.checkDataEntryValid(hasPermission, standardization.field[0].slice(1)))) {
+            if (!(permissionCore.checkDataEntryValid(hasPermission.raw, standardization.field[0].slice(1)))) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             const standardizationEntry: IStandardization = {
@@ -115,14 +116,15 @@ export const standardizationResolvers = {
         deleteStandardization: async (__unused__parent: Record<string, unknown>, { studyId, type, field }: { studyId: string, type: string, field: string[] }, context: any): Promise<IGenericResponse> => {
             const requester: IUser = context.req.user;
             /* check permission */
-            const hasPermission = await permissionCore.userHasDataWritePermission(
+            const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+                atomicOperation.WRITE,
                 requester,
                 studyId
             );
             if (!hasPermission) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
-            if (!(permissionCore.checkDataEntryValid(hasPermission, field[0].slice(1)))) {
+            if (!(permissionCore.checkDataEntryValid(hasPermission.raw, field[0].slice(1)))) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             /* check study exists */

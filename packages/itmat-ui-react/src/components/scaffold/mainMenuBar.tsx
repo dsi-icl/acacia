@@ -18,7 +18,6 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
     }
     if (whoAmIError)
         return null;
-
     return <div className={css.main_menubar}>
 
         <div>
@@ -34,19 +33,18 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
             </NavLink>
         </div>
         {whoAmIData.whoAmI.type === userTypes.ADMIN ?
-            <>
-                <div>
-                    <NavLink to='/users' title='Users' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
-                        <div className={css.button}><TeamOutlined /> Users</div>
-                    </NavLink>
-                </div>
-
-                <div>
-                    <NavLink to='/logs' title='Logs' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
-                        <div className={css.button}><HistoryOutlined /> Logs</div>
-                    </NavLink>
-                </div>
-            </> : null
+            <div>
+                <NavLink to='/users' title='Users' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
+                    <div className={css.button}><TeamOutlined /> Users</div>
+                </NavLink>
+            </div> : null
+        }
+        {(whoAmIData.whoAmI.type === userTypes.ADMIN || whoAmIData.whoAmI.metadata?.logPermission) ?
+            <div>
+                <NavLink to='/logs' title='Logs' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
+                    <div className={css.button}><HistoryOutlined /> Logs</div>
+                </NavLink>
+            </div> : null
         }
         {/*
         <div>

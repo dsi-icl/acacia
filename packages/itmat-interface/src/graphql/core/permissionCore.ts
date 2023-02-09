@@ -66,14 +66,6 @@ export class PermissionCore {
         return combined;
     }
 
-    public async userHasDataReadPermission(user: IUser, studyId: string, projectId?: string): Promise<Record<string, string[]> | false> {
-        return this.combineUserDataPermissions(atomicOperation.READ, user, studyId, projectId);
-    }
-
-    public async userHasDataWritePermission(user: IUser, studyId: string, projectId?: string): Promise<Record<string, string[]> | false> {
-        return this.combineUserDataPermissions(atomicOperation.WRITE, user, studyId, projectId);
-    }
-
     public checkDataEntryValid(combinedDataPermissions: Record<string, string[]> | false, fieldId: string, subjectId?: string, visitId?: string): boolean {
         if (!combinedDataPermissions) {
             return false;
@@ -195,11 +187,11 @@ export class PermissionCore {
             permissionChanges = {
                 data: { subjectIds: [], visitIds: [], fieldIds: [], hasVersioned: false, operations: [] },
                 manage: {
-                    [IPermissionManagementOptions.own]: [],
+                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
                     [IPermissionManagementOptions.role]: [],
                     [IPermissionManagementOptions.job]: [],
                     [IPermissionManagementOptions.query]: [],
-                    [IPermissionManagementOptions.ontologyTrees]: []
+                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                 }
             };
         }
@@ -309,11 +301,11 @@ export class PermissionCore {
                     operations: []
                 },
                 manage: {
-                    [IPermissionManagementOptions.own]: [],
+                    [IPermissionManagementOptions.own]: [atomicOperation.READ],
                     [IPermissionManagementOptions.role]: [],
                     [IPermissionManagementOptions.job]: [],
                     [IPermissionManagementOptions.query]: [],
-                    [IPermissionManagementOptions.ontologyTrees]: []
+                    [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
                 }
             },
             description: '',

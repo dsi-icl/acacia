@@ -9,7 +9,7 @@ export const logResolvers = {
             const requester: IUser = context.req.user;
 
             /* only admin can access this field */
-            if (requester.type !== userTypes.ADMIN) {
+            if (!(requester.type === userTypes.ADMIN) && !(requester.metadata?.logPermission === true)) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 

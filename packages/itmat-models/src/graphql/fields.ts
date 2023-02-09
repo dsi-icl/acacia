@@ -34,6 +34,8 @@ export const GET_STUDY_FIELDS = gql`
 export const CREATE_NEW_FIELD = gql`
     mutation createNewField($studyId: String!, $fieldInput: [FieldInput]!) {
         createNewField(studyId: $studyId, fieldInput: $fieldInput) {
+            successful
+            id
             code
             description
         }
