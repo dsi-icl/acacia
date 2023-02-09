@@ -20,7 +20,8 @@ export const deviceTypes = {
     SMQ: 'Stress Monitor App Questionnaire',
     VIR: 'Virtual device type',
     CAN: 'Cantab App',
-    WLD: 'Wildkey App'
+    WLD: 'Wildkey App',
+    SOC: 'Wildkey Social App'
 };
 
 export const fileSizeLimit = 8589934592;
