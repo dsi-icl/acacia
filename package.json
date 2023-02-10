@@ -153,6 +153,7 @@
         "uuid": "9.0.0"
     },
     "resolutions": {
+        "**/@jest/create-cache-key-function": "^29",
         "**/@jest/reporters": "^29",
         "**/@jest/test-result": "^29",
         "**/jest-config": "^29",
