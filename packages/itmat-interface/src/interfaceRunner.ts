@@ -45,7 +45,6 @@ class ITMATInterfaceRunner extends Runner {
                             });
                         }
                     });
-
                     _this.router = new Router(this.config);
                     await _this.router.init();
 

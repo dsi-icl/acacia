@@ -487,6 +487,8 @@ describe('USERS API', () => {
                     projects: [],
                     studies: []
                 },
+                emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
             });
@@ -552,6 +554,8 @@ describe('USERS API', () => {
                     projects: [],
                     studies: []
                 },
+                emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
             });
@@ -628,6 +632,8 @@ describe('USERS API', () => {
                     projects: [],
                     studies: []
                 },
+                emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
             });
@@ -653,6 +659,8 @@ describe('USERS API', () => {
                     projects: [],
                     studies: []
                 },
+                emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
             });
@@ -671,6 +679,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am an expired user.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'expiredId0',
@@ -715,6 +724,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am an expired admin.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'expiredId1',
@@ -747,6 +757,8 @@ describe('USERS API', () => {
                     projects: [],
                     studies: []
                 },
+                emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
                 expiredAt: 1501134065000
             });
@@ -784,7 +796,8 @@ describe('USERS API', () => {
                     lastname: 'Ladmin',
                     organisation: 'organisation_system',
                     email: 'admin@example.com',
-                    emailNotificationsActivated: false,
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     description: 'I am an admin user.',
                     id: adminId,
                     createdAt: 1591134065000,
@@ -798,6 +811,7 @@ describe('USERS API', () => {
                     organisation: 'organisation_system',
                     email: 'standard@example.com',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     description: 'I am a standard user.',
                     id: userId,
                     createdAt: 1591134065000,
@@ -817,7 +831,8 @@ describe('USERS API', () => {
                     lastname: 'Ladmin',
                     organisation: 'organisation_system',
                     email: 'admin@example.com',
-                    emailNotificationsActivated: false,
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     description: 'I am an admin user.',
                     id: adminId,
                     access: {
@@ -836,6 +851,7 @@ describe('USERS API', () => {
                     organisation: 'organisation_system',
                     email: 'standard@example.com',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -864,6 +880,7 @@ describe('USERS API', () => {
                     organisation: 'organisation_system',
                     email: 'standard@example.com',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     description: 'I am a standard user.',
                     id: userId,
                     createdAt: 1591134065000,
@@ -890,6 +907,7 @@ describe('USERS API', () => {
                     organisation: 'organisation_system',
                     email: 'standard@example.com',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -960,6 +978,7 @@ describe('USERS API', () => {
                     organisation: 'organisation_system',
                     email: 'standard@example.com',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -1014,6 +1033,7 @@ describe('USERS API', () => {
                     organisation: 'organisation_system',
                     email: 'standard@example.com',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     description: 'I am a standard user.',
                     id: userId,
                     access: {
@@ -1164,6 +1184,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'replaced_at_runtime1',
@@ -1249,6 +1270,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user 3.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'fakeid2222',
@@ -1293,6 +1315,8 @@ describe('USERS API', () => {
                         projects: [],
                         studies: []
                     },
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
                 }
@@ -1312,6 +1336,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user 44444.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'fakeid44444',
@@ -1352,6 +1377,7 @@ describe('USERS API', () => {
                 description: 'I am a new user 4.',
                 email: 'new4@example.com',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'fakeid4',
@@ -1389,6 +1415,8 @@ describe('USERS API', () => {
                     projects: [],
                     studies: []
                 },
+                emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
                 expiredAt: 1991134065000
             });
@@ -1410,6 +1438,7 @@ describe('USERS API', () => {
                 description: 'I am a new user 5.',
                 resetPasswordRequests: [],
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'fakeid5',
@@ -1436,7 +1465,7 @@ describe('USERS API', () => {
             );
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
-            expect(res.body.errors[0].message).toBe('User not updated: Non-admin users are only authorised to change their password or email.');
+            expect(res.body.errors[0].message).toBe('User not updated: Non-admin users are only authorised to change their password, email or email notification.');
             expect(res.body.data.editUser).toEqual(null);
         });
 
@@ -1453,6 +1482,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user 6.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'fakeid6',
@@ -1492,6 +1522,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user 7.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'fakeid7',
@@ -1529,6 +1560,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user 8.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'fakeid8',
@@ -1588,6 +1620,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user 9.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: (new Date()).valueOf(),
                 id: 'fakeid9',
@@ -1643,6 +1676,7 @@ describe('USERS API', () => {
                 resetPasswordRequests: [],
                 description: 'I am a new user 10.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 organisation: 'organisation_system',
                 deleted: null,
                 id: 'fakeid10',
