@@ -6,7 +6,7 @@ import { Query } from '@apollo/client/react/components';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
 import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, EDIT_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { IFile, userTypes, studyType } from '@itmat-broker/itmat-types';
+import { IFile, userTypes, studyType, deviceTypes } from '@itmat-broker/itmat-types';
 import { FileList, formatBytes } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
@@ -23,32 +23,6 @@ type StudyFile = RcFile & {
     startDate?: Dayjs;
     endDate?: Dayjs;
 }
-
-export const deviceTypes = {
-    AX6: 'Axivity',
-    BVN: 'Biovotion',
-    BTF: 'Byteflies',
-    MMM: 'McRoberts',
-    DRM: 'Dreem',
-    VTP: 'VitalPatch',
-    BED: 'VTT Bed Sensor',
-    YSM: 'ZKOne',
-    MBT: 'Mbient',
-    IDE: 'German Interview Transcripts',
-    IEN: 'English Interview Transcripts',
-    INL: 'Dutch Interview Transcripts',
-    TEQ: 'Technology Experience Questionnaire',
-    PSG: 'PSG Study Polysomnography Data',
-    PSR: 'PSG raw data',
-    PSM: 'PSG meta data',
-    SMA: 'Stress Monitor App',
-    TFA: 'ThinkFast App',
-    SMQ: 'Stress Monitor App Questionnaire',
-    VIR: 'Virtual device type',
-    CAN: 'Cantab App',
-    WLD: 'Wildkey App',
-    SOC: 'Wildkey Social App'
-};
 
 const { RangePicker } = DatePicker;
 let progressReports: any[] = [];
