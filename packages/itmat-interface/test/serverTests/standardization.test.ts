@@ -357,6 +357,7 @@ describe('STUDY API', () => {
                     resetPasswordRequests: [],
                     description: 'I am an authorised project user.',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
                     deleted: null,
                     id: `AuthorisedProjectUser_${username}`,
@@ -469,6 +470,7 @@ describe('STUDY API', () => {
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user.',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
                     deleted: null,
                     id: `AuthorisedStudyUser_${username}`,
@@ -584,6 +586,7 @@ describe('STUDY API', () => {
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user managing project.',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
                     deleted: null,
                     id: `AuthorisedStudyUserManageProject_${username}`,
@@ -710,6 +713,8 @@ describe('STUDY API', () => {
                             type: studyType.SENSOR
                         }]
                     },
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
                     metadata: null
@@ -785,6 +790,8 @@ describe('STUDY API', () => {
                         projects: [],
                         studies: []
                     },
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
                     metadata: null

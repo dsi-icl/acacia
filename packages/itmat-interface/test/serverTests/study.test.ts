@@ -155,6 +155,8 @@ if (global.hasMinio) {
                             type: studyType.SENSOR
                         }]
                     },
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
                     metadata: null
@@ -337,6 +339,8 @@ if (global.hasMinio) {
                             type: studyType.SENSOR
                         }]
                     },
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
                     metadata: null
@@ -374,6 +378,8 @@ if (global.hasMinio) {
                         projects: [],
                         studies: []
                     },
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000,
                     metadata: null
@@ -556,6 +562,7 @@ if (global.hasMinio) {
                     resetPasswordRequests: [],
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`,
@@ -671,6 +678,7 @@ if (global.hasMinio) {
                     resetPasswordRequests: [],
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
                     deleted: null,
                     id: `new_user_id_${username}`,
@@ -1240,6 +1248,7 @@ if (global.hasMinio) {
                         resetPasswordRequests: [],
                         description: 'I am an authorised project user.',
                         emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
                         deleted: null,
                         id: `AuthorisedProjectUser_${username}`,
@@ -1352,6 +1361,7 @@ if (global.hasMinio) {
                         resetPasswordRequests: [],
                         description: 'I am an authorised study user.',
                         emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
                         deleted: null,
                         id: `AuthorisedStudyUser_${username}`,
@@ -1467,6 +1477,7 @@ if (global.hasMinio) {
                         resetPasswordRequests: [],
                         description: 'I am an authorised study user managing project.',
                         emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
                         deleted: null,
                         id: `AuthorisedStudyUserManageProject_${username}`,
@@ -1492,6 +1503,7 @@ if (global.hasMinio) {
                         resetPasswordRequests: [],
                         description: 'I am an authorised study user to access self org data.',
                         emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_user',
                         deleted: null,
                         id: `AuthorisedStudyUserAccessSelfData_${username}`,
@@ -1708,6 +1720,8 @@ if (global.hasMinio) {
                                 type: studyType.SENSOR
                             }]
                         },
+                        emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         createdAt: 1591134065000,
                         expiredAt: 1991134065000,
                         metadata: null
@@ -1785,6 +1799,8 @@ if (global.hasMinio) {
                             projects: [],
                             studies: []
                         },
+                        emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         createdAt: 1591134065000,
                         expiredAt: 1991134065000,
                         metadata: null
@@ -2522,6 +2538,7 @@ if (global.hasMinio) {
                     description: 'just a data curator',
                     resetPasswordRequests: [],
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     deleted: null,
                     createdAt: 1591134065000,
                     expiredAt: 1991134065000
@@ -2954,6 +2971,7 @@ if (global.hasMinio) {
                         resetPasswordRequests: [],
                         description: 'I am an authorised study user managing project.',
                         emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
                         deleted: null,
                         id: `AuthorisedStudyUserManageProject_${username}`,
@@ -2979,6 +2997,7 @@ if (global.hasMinio) {
                         resetPasswordRequests: [],
                         description: 'I am an authorised study user managing project.',
                         emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
                         metadata: {
                             wp: 'wp5.1'
@@ -3201,6 +3220,7 @@ if (global.hasMinio) {
                         resetPasswordRequests: [],
                         description: 'I am an authorised project user.',
                         emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         organisation: 'organisation_system',
                         metadata: {
                             wp: 'wp5.2'
@@ -3426,6 +3446,8 @@ if (global.hasMinio) {
                             projects: [],
                             studies: []
                         },
+                        emailNotificationsActivated: true,
+                        emailNotificationsStatus: { expiringNotification: false },
                         createdAt: 1591134065000,
                         expiredAt: 1991134065000,
                         metadata: null

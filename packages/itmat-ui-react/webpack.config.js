@@ -5,14 +5,14 @@ const { version } = require('../../package.json');
 
 const getWebpackConfig = (config, { options }) => {
 
-    // config.externals = [{
-    //     fs: 'empty',
-    //     http: require.resolve('stream-http'),
-    //     https: require.resolve('https-browserify'),
-    //     url: require.resolve('url/'),
-    //     path: require.resolve('path-browserify'),
-    //     stream: require.resolve('stream-browserify')
-    // }];
+    config.externals = [{
+        fs: 'empty',
+        http: require.resolve('stream-http'),
+        https: require.resolve('https-browserify'),
+        url: require.resolve('url/'),
+        path: require.resolve('path-browserify'),
+        stream: require.resolve('stream-browserify')
+    }];
 
     const webpackConfig = getNxReactWebpackConfig(config);
     const baseHref = options?.baseHref ?? '/';

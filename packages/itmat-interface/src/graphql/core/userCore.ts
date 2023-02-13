@@ -33,6 +33,7 @@ export class UserCore {
             password: hashedPassword,
             email,
             emailNotificationsActivated,
+            emailNotificationsStatus: { expiringNotification: false },
             createdAt,
             expiredAt,
             resetPasswordRequests: [],

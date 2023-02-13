@@ -501,8 +501,8 @@ export const userResolvers = {
         },
         editUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Record<string, unknown>> => {
             const requester: IUser = context.req.user;
-            const { id, username, type, firstname, lastname, email, emailNotificationsActivated, password, description, organisation, expiredAt, metadata }: {
-                id: string, username?: string, type?: userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, password?: string, description?: string, organisation?: string, expiredAt?: number, metadata?: any
+            const { id, username, type, firstname, lastname, email, emailNotificationsActivated, emailNotificationsStatus, password, description, organisation, expiredAt, metadata }: {
+                id: string, username?: string, type?: userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, emailNotificationsStatus?: any, password?: string, description?: string, organisation?: string, expiredAt?: number, metadata?: any
             } = args.user;
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -515,7 +515,7 @@ export const userResolvers = {
             }
             let result;
             if (requester.type === userTypes.ADMIN) {
-                result = await db.collections!.users_collection.findOne({ id, deleted: null })!;   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+                result = await db.collections!.users_collection.findOne({ id, deleted: null });   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
                 if (result === null || result === undefined) {
                     throw new GraphQLError('User not found');
                 }
@@ -528,6 +528,7 @@ export const userResolvers = {
                 username,
                 email,
                 emailNotificationsActivated,
+                emailNotificationsStatus,
                 password,
                 description,
                 organisation,
@@ -539,11 +540,10 @@ export const userResolvers = {
             if (email && !/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
                 throw new GraphQLError('User not updated: Email is not the right format.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
-
             if (requester.type !== userTypes.ADMIN && (
                 type || firstname || lastname || username || description || organisation
             )) {
-                throw new GraphQLError('User not updated: Non-admin users are only authorised to change their password or email.');
+                throw new GraphQLError('User not updated: Non-admin users are only authorised to change their password, email or email notification.');
             }
 
             if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
@@ -551,6 +551,11 @@ export const userResolvers = {
                 if (fieldsToUpdate[each] === undefined) {
                     delete fieldsToUpdate[each];
                 }
+            }
+            if (expiredAt) {
+                fieldsToUpdate['emailNotificationsStatus'] = {
+                    expiringNotification: false
+                };
             }
             const updateResult: mongodb.ModifyResult<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
             if (updateResult.ok === 1) {

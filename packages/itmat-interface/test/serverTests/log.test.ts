@@ -73,6 +73,7 @@ describe('LOG API', () => {
                 type: userTypes.ADMIN,
                 description: 'I am an test user.',
                 emailNotificationsActivated: true,
+                emailNotificationsStatus: { expiringNotification: false },
                 deleted: null,
                 password: '$2b$04$ps9ownz6PqJFD/LExsmgR.ZLk11zhtRdcpUwypWVfWJ4ZW6/Zzok2',
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',

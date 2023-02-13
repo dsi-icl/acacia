@@ -132,7 +132,6 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     if (getorgsloading) { return <p>Loading..</p>; }
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
     const orgList: IOrganisation[] = getorgsdata.getOrganisations;
-
     return (
         <Mutation<any, any>
             mutation={EDIT_USER}
@@ -168,12 +167,9 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     <Form.Item name='createdAt' label='Created On'>
                         <DatePicker disabled style={{ width: '100%' }} />
                     </Form.Item>
-                    {
-                        user.type === userTypes.ADMIN ? null :
-                            <Form.Item name='expiredAt' label='Expire On'>
-                                <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
-                            </Form.Item>
-                    }
+                    <Form.Item name='expiredAt' label='Expire On'>
+                        <DatePicker disabledDate={disabledDate} style={{ width: '100%' }} />
+                    </Form.Item>
                     <Form.Item name='type' label='User type'>
                         <Select>
                             <Select.Option value='STANDARD'>System user</Select.Option>
@@ -185,6 +181,9 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     </Form.Item>
                     <Form.Item name='log' label='Logs Permission' valuePropName="checked">
                         <Checkbox></Checkbox>
+                    </Form.Item>
+                    <Form.Item name='emailNotificationsActivated' label='Email Notification' valuePropName='checked'>
+                        <Checkbox disabled>Email Notification</Checkbox>
                     </Form.Item>
                     {error ? (
                         <>

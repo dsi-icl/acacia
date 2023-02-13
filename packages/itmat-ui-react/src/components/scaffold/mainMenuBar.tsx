@@ -1,12 +1,14 @@
 import { FunctionComponent } from 'react';
 import { Mutation } from '@apollo/client/react/components';
+import { useQuery } from '@apollo/client/react/hooks';
 import { NavLink } from 'react-router-dom';
 import { LOGOUT, WHO_AM_I } from '@itmat-broker/itmat-models';
 import { IProject, userTypes } from '@itmat-broker/itmat-types';
 import css from './scaffold.module.css';
-import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined, SettingOutlined, ProjectOutlined, DesktopOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, TeamOutlined, PoweroffOutlined, HistoryOutlined, SettingOutlined, ProjectOutlined, DesktopOutlined, WarningTwoTone } from '@ant-design/icons';
 import LoadSpinner from '../reusable/loadSpinner';
-import { useQuery } from '@apollo/client/react/hooks';
+import dayjs from 'dayjs';
+import { Tooltip } from 'antd';
 
 type MainMenuBarProps = {
     projects: IProject[];
@@ -16,8 +18,11 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
     if (whoAmILoading) {
         return <LoadSpinner />;
     }
-    if (whoAmIError)
-        return null;
+    if (whoAmIError) {
+        return <p>
+            An error occured, please contact your administrator
+        </p>;
+    }
     return <div className={css.main_menubar}>
 
         <div>
@@ -62,9 +67,15 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
 
         <div>
             <NavLink to='/profile' title='My account' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
-                <div className={css.button}><SettingOutlined /> My account</div>
-            </NavLink>
-        </div>
+                <div className={css.button}>
+                    {
+                        (whoAmIData.whoAmI.type !== userTypes.ADMIN && dayjs().add(2, 'week').valueOf() - dayjs(whoAmIData.whoAmI.expiredAt).valueOf() > 0) ?
+                            <><SettingOutlined /><Tooltip title={'Your account will expire soon. You can make a request on the login page.'}> My Account<WarningTwoTone /></Tooltip></> :
+                            <><SettingOutlined /> My Account</>
+                    }
+                </div>
+            </NavLink >
+        </div >
         {((window.location.origin.includes('staging') || window.location.origin.includes('localhost')) && (whoAmIData.whoAmI.type === userTypes.ADMIN || whoAmIData.whoAmI.metadata?.aePermission === true))
             ? <div>
                 <NavLink to='/pun/sys/dashboard' target='_blank' title='Analytical Environment' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
@@ -93,5 +104,5 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
                 </Mutation>
             </NavLink>
         </div>
-    </div>;
+    </div >;
 };
