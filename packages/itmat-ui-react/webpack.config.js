@@ -3,7 +3,7 @@ const webpack = require('webpack');
 const git = require('git-rev-sync');
 const { version } = require('../../package.json');
 
-const getWebpackConfig = (config, { options }) => {
+const getWebpackConfig = (config, context) => {
 
     config.externals = [{
         fs: 'empty',
@@ -14,8 +14,8 @@ const getWebpackConfig = (config, { options }) => {
         stream: require.resolve('stream-browserify')
     }];
 
-    const webpackConfig = getNxReactWebpackConfig(config);
-    const baseHref = options?.baseHref ?? '/';
+    const webpackConfig = getNxReactWebpackConfig(config, context);
+    const baseHref = context?.options?.baseHref ?? '/';
 
     webpackConfig.plugins.splice(0, 0, new webpack.EnvironmentPlugin({
         NX_REACT_APP_VERSION: version,
