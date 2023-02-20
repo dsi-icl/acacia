@@ -6,7 +6,7 @@ import { IFile, userTypes, studyType } from '@itmat-broker/itmat-types';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined, NumberOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
 import dayjs from 'dayjs';
-import { deviceTypes } from '../../datasetDetail/tabContent/files/fileTab';
+import { deviceTypes } from '@itmat-broker/itmat-types';
 import Highlighter from 'react-highlight-words';
 import LoadSpinner from '../loadSpinner';
 

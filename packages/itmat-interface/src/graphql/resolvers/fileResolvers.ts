@@ -9,7 +9,8 @@ import { errorCodes } from '../errors';
 import { IGenericResponse, makeGenericReponse } from '../responses';
 import crypto from 'crypto';
 import { validate } from '@ideafast/idgen';
-import { deviceTypes, fileSizeLimit } from '../../utils/definition';
+import { deviceTypes } from '@itmat-broker/itmat-types';
+import { fileSizeLimit } from '../../utils/definition';
 
 export const fileResolvers = {
     Query: {
