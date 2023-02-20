@@ -1,4 +1,4 @@
-export const deviceTypes = {
+export const deviceTypes: Record<string, string> = {
     AX6: 'Axivity',
     BVN: 'Biovotion',
     BTF: 'Byteflies',

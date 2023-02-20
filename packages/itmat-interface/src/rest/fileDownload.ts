@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { GraphQLError } from 'graphql';
-import { deviceTypes } from '../utils/definition';
+import { deviceTypes } from '@itmat-broker/itmat-types';
 import { errorCodes } from '../graphql/errors';
 
 export const fileDownloadController = async (req: Request, res: Response): Promise<void> => {
