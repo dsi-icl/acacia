@@ -25,6 +25,7 @@ export const USER_FRAGMENT = gql`
                 type
             }
         },
+        metadata,
         createdAt,
         expiredAt
     }
@@ -116,6 +117,7 @@ export const CREATE_USER = gql`
         $emailNotificationsActivated: Boolean
         $email: String!
         $type: USERTYPE
+        $metadata: JSON
     ){
         createUser(user: {
             username: $username
@@ -127,6 +129,7 @@ export const CREATE_USER = gql`
             emailNotificationsActivated: $emailNotificationsActivated
             email: $email
             type: $type
+            metadata: $metadata
         }) {
             successful
         }

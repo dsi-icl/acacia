@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { withFilter } from 'graphql-subscriptions';
-import { task_required_permissions, IJobEntryForDataCuration, IJobEntryForFieldCuration, IJobEntryForQueryCuration, IUser } from '@itmat-broker/itmat-types';
+import { IJobEntryForDataCuration, IJobEntryForFieldCuration, IJobEntryForQueryCuration, IUser, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -23,8 +23,9 @@ export const jobResolvers = {
             const requester: IUser = context.req.user;
 
             /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.job,
+                atomicOperation.WRITE,
                 requester,
                 args.studyId
             );
@@ -78,8 +79,9 @@ export const jobResolvers = {
             const requester: IUser = context.req.user;
 
             /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.manage_study_data,
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.job,
+                atomicOperation.WRITE,
                 requester,
                 args.studyId
             );
@@ -125,13 +127,20 @@ export const jobResolvers = {
             const requester: IUser = context.req.user;
 
             /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                task_required_permissions.access_project_data,
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.job,
+                atomicOperation.WRITE,
+                requester,
+                args.studyId
+            );
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.job,
+                atomicOperation.WRITE,
                 requester,
                 args.studyId,
                 args.projectId
             );
-            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+            if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
             /* check study exists */
             await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);

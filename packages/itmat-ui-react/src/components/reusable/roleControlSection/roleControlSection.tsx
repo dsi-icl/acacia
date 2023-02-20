@@ -2,11 +2,12 @@ import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE, GET_USERS, GET_PROJECT, GET_STUDY, GET_ORGANISATIONS } from '@itmat-broker/itmat-models';
-import { IRoleQL, IUser, permissions, permissionLabels } from '@itmat-broker/itmat-types';
+import { IRoleQL, IUser, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
-import { Tag, Select, Button, Form, Input, Alert, Popconfirm } from 'antd';
-import { LoadingOutlined, TagOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Tag, Select, Button, Form, Input, Alert, Popconfirm, Checkbox, Collapse, Divider, Table, Col, Row } from 'antd';
+import { PlusOutlined, DeleteOutlined, MinusCircleOutlined } from '@ant-design/icons';
+const { Panel } = Collapse;
 
 type RoleControlSectionProps = {
     studyId: string;
@@ -23,16 +24,16 @@ export const RoleControlSection: FunctionComponent<RoleControlSectionProps> = ({
         <>
             <AddRole studyId={studyId} projectId={projectId} />
             <br />
-            {roles.map((el) =>
-                <RoleDescriptor
-                    key={el.id}
-                    role={el}
-                    availablePermissions={
-                        projectId
-                            ? Object.values(permissions.specific_project)
-                            : Object.values(permissions.specific_study)
-                    } />
-            )}
+            <Collapse>
+                {roles.map((el, index) =>
+                    <Panel header={el.name} key={`role-${index}`}>
+                        <RoleDescriptor
+                            key={el.id}
+                            role={el}
+                        />
+                    </Panel>
+                )}
+            </Collapse>
         </>
     );
 };
@@ -41,12 +42,10 @@ export default RoleControlSection;
 
 type RoleDescriptorProps = {
     role: IRoleQL;
-    availablePermissions: string[];
 }
 
 export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
-    role,
-    availablePermissions
+    role
 }) => {
     const isStudyRole = !role.projectId;
     const { data: userData, loading: userFetchLoading } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
@@ -68,12 +67,9 @@ export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
                     </div>
                 }
             </div>
-            <label>Permissions: </label>
             <br />
             <PermissionsControlPanel
-                roleId={role.id}
-                availablePermissions={availablePermissions}
-                originallySelectedPermissions={role.permissions}
+                role={role}
             />
             <br />
             <br />
@@ -85,6 +81,7 @@ export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
                 projectId={role.projectId}
                 availableUserList={userData.getUsers}
                 originallySelectedUsers={role.users}
+                permissions={role.permissions}
             />
         </div>
     );
@@ -170,56 +167,283 @@ export const AddRole: FunctionComponent<AddRoleProps> = ({
 };
 
 type PermissionsControlPanelProps = {
-    roleId: string;
-    availablePermissions: string[];
-    originallySelectedPermissions: string[];
+    role: IRoleQL
 }
 
 const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> = ({
-    roleId,
-    availablePermissions,
-    originallySelectedPermissions
+    role
 }) => {
-
-    return (
-        <>
-            {availablePermissions.map((permission, index) => {
-
-                let isSelected = false;
-                if (originallySelectedPermissions.includes(permission))
-                    isSelected = true;
-
-                return (
-
-                    <Mutation<any, any> mutation={EDIT_ROLE} key={index}>
-                        {(editRole, { loading }) => (
-                            <Button
-                                size='small'
-                                type={isSelected ? 'primary' : 'default'}
-                                icon={loading ? <LoadingOutlined /> : <TagOutlined />}
-                                style={{
-                                    fontSize: '12px',
-                                    cursor: 'pointer',
-                                    marginRight: 3,
-                                    marginBottom: 3
-                                }}
-                                onClick={() => editRole({
-                                    variables: {
-                                        roleId,
-                                        permissionChanges: {
-                                            add: isSelected ? [] : [permission],
-                                            remove: isSelected ? [permission] : []
-                                        }
-                                    }
-                                })}
+    const filterColumns = function (remove) {
+        return [
+            {
+                title: 'Field',
+                width: '50%',
+                dataIndex: 'field',
+                key: 'field',
+                align: 'center' as const,
+                render: (__unused__value, __unused__record, index) => {
+                    return (
+                        <Form.Item
+                            name={[index, 'field']}
+                            rules={[
+                                {
+                                    required: true
+                                }
+                            ]}
+                        >
+                            <Input placeholder='Input Field' />
+                        </Form.Item>
+                    );
+                }
+            },
+            {
+                title: 'Op',
+                width: '20%',
+                dataIndex: 'op',
+                key: 'op',
+                align: 'center' as const,
+                render: (__unused__value, __unused__record, index) => {
+                    return (
+                        <Form.Item
+                            name={[index, 'op']}
+                            rules={[{ required: true }]}
+                        >
+                            <Select
+                                placeholder={'Select Operation'}
+                                getPopupContainer={trigger => trigger.parentElement}
                             >
-                                {permissionLabels[permission]}
-                            </Button>
-                        )}
-                    </Mutation>
-                );
-            })}
-        </>
+                                {
+                                    ops.map(el => {
+                                        return <Select.Option value={el}>{el}</Select.Option>;
+                                    })
+                                }
+                            </Select>
+                        </Form.Item>
+                    );
+                }
+            },
+            {
+                title: 'Threshold',
+                width: '20%',
+                dataIndex: 'threshold',
+                key: 'threshold',
+                align: 'center' as const,
+                render: (__unused__value, __unused__record, index) => {
+                    return (
+                        <Form.Item
+                            name={[index, 'value']}
+                            rules={[
+                                {
+                                    required: true
+                                }
+                            ]}
+                        >
+                            <Input placeholder='Input threshold' />
+                        </Form.Item>
+                    );
+                }
+            },
+            {
+                title: 'Delete',
+                width: '10%',
+                dataIndex: 'delete',
+                key: 'delete',
+                align: 'center' as const,
+                render: (__unused__value, record) => {
+                    return (
+                        <MinusCircleOutlined onClick={() => remove(record.name)} />
+                    );
+                }
+            }
+        ];
+    };
+    const x = {
+        ...role.permissions.data,
+        ...role.permissions.manage,
+        description: role.description
+    };
+    console.log(role);
+    console.log(x);
+    return (
+        <Mutation<any, any>
+            mutation={EDIT_ROLE}
+        // onCompleted={() => setSavedSuccessfully(true)}
+        >
+            {(submit, { loading, error }) =>
+                <Form title='EditUserForm' initialValues={{
+                    ...role.permissions.data,
+                    ...role.permissions.manage,
+                    description: role.description
+                }} layout='vertical' onFinish={(variables) => submit({
+                    variables: {
+                        roleId: role.id,
+                        permissionChanges: {
+                            data: {
+                                subjectIds: variables.subjectIds,
+                                visitIds: variables.visitIds,
+                                fieldIds: variables.fieldIds,
+                                hasVersioned: variables.hasVersioned,
+                                operations: variables.operations,
+                                filters: variables.filters
+                            },
+                            manage: {
+                                own: variables.own,
+                                role: variables.role,
+                                job: variables.job,
+                                query: variables.query,
+                                ontologyTrees: variables.ontologyTrees
+                            }
+                        },
+                        description: variables.description
+                    }
+                })}>
+                    <div>
+                        <div>
+                            <Form.Item name='description' label='Description'>
+                                <Input />
+                            </Form.Item>
+                        </div>
+                        <div className={css.data_permissions}>
+                            <Divider orientation='left'>Data Permissions</Divider>
+                            <Row gutter={16}>
+                                <Col span={5}>
+                                    <Form.Item name='subjectIds' label='Subject Id'>
+                                        <Select
+                                            mode='tags'
+                                            tokenSeparators={[',']}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={5}>
+                                    <Form.Item name='visitIds' label='Visit Id'>
+                                        <Select
+                                            mode='tags'
+                                            tokenSeparators={[',']}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={5}>
+                                    <Form.Item name='fieldIds' label='Field Id'>
+                                        <Select
+                                            mode='tags'
+                                            tokenSeparators={[',']}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={5}>
+                                    <Form.Item name='operations' label='Operations'>
+                                        <Checkbox.Group
+                                            options={Object.keys(atomicOperation).map(el => {
+                                                return { label: el, value: atomicOperation[el] };
+                                            })}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={4}>
+                                    <Form.Item name='hasVersioned' label='Include UnVersioned Data' valuePropName="checked">
+                                        <Checkbox />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+                            <Form.List name='filters'>
+                                {(filters, { add, remove }) => {
+                                    return (
+                                        <div>
+                                            <Divider plain>Variable Filter <PlusOutlined onClick={() => add()} /></Divider>
+                                            {
+                                                filters.length > 0 ?
+                                                    <Table
+                                                        scroll={{ x: 'max-content' }}
+                                                        pagination={false}
+                                                        columns={filterColumns(remove)}
+                                                        dataSource={filters}
+                                                        size='middle'
+                                                    ></Table>
+                                                    :
+                                                    null
+                                            }
+                                        </div>
+                                    );
+                                }}
+                            </Form.List>
+                        </div>
+                        <div className={css.management_permissions}>
+                            <Divider orientation='left'>Management Permissions</Divider>
+                            <Row gutter={16}>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.own} label='Self Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.role} label='Role Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.job} label='Job Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.query} label='Query Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                                <Col span={4}>
+                                    <div>
+                                        <Form.Item name={IPermissionManagementOptions.ontologyTrees} label='OntologyTree Management'>
+                                            <Checkbox.Group
+                                                options={Object.keys(atomicOperation).map(el => {
+                                                    return { label: el, value: atomicOperation[el] };
+                                                })}
+                                            />
+                                        </Form.Item>
+                                    </div>
+                                </Col>
+                            </Row>
+                        </div>
+                        <Button type='primary' disabled={loading} loading={loading} htmlType='submit'>
+                            Save
+                        </Button>
+                        {error ? (
+                            <>
+                                <Alert type='error' message={error.graphQLErrors.map(error => error.message).join()} />
+                                <br />
+                            </>
+                        ) : null}
+                        {loading ? (
+                            <LoadSpinner />
+                        ) : null}
+                    </div>
+                </Form>
+            }
+
+        </Mutation>
     );
 };
 
@@ -229,12 +453,14 @@ type UsersControlPanelProps = {
     projectId?: string;
     availableUserList: IUser[];
     originallySelectedUsers: IUser[];
+    permissions: any;
 }
 
 const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
     roleId,
     availableUserList,
-    originallySelectedUsers
+    originallySelectedUsers,
+    permissions
 }) => {
 
     const [editUsers, { loading }] = useMutation(EDIT_ROLE);
@@ -247,7 +473,8 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                 userChanges: {
                     add: [value],
                     remove: []
-                }
+                },
+                permissionChanges: permissions
             }
         });
     };
@@ -259,7 +486,8 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                 userChanges: {
                     add: [],
                     remove: [value]
-                }
+                },
+                permissionChanges: permissions
             }
         });
     };
@@ -290,7 +518,8 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                             userChanges: {
                                 add: [],
                                 remove: [value]
-                            }
+                            },
+                            permissionChanges: permissions
                         }
                     }).then(() => {
                         onClose();
@@ -338,3 +567,5 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
         </Select >
     );
 };
+
+const ops: string[] = ['=', '!=', '<', '>', '>=', '<='];

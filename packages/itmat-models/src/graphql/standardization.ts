@@ -1,14 +1,15 @@
 import gql from 'graphql-tag';
 
 export const GET_STANDARDIZATION = gql`
-    query getStandardization($studyId: String, $projectId: String, $type: String) {
-        getStandardization(studyId: $studyId, projectId: $projectId, type: $type) {
+    query getStandardization($studyId: String, $projectId: String, $type: String, $versionId: String,) {
+        getStandardization(studyId: $studyId, projectId: $projectId, type: $type, versionId: $versionId) {
             id
             studyId
             type
             field
             path
             joinByKeys
+            uploadedAt
             stdRules {
                 id
                 entry
@@ -16,6 +17,8 @@ export const GET_STANDARDIZATION = gql`
                 parameter
                 filters
             }
+            dataVersion
+            metadata
             deleted
         }
     }
@@ -30,6 +33,7 @@ export const CREATE_STANDARDIZATION = gql`
             field
             path
             joinByKeys
+            uploadedAt
             stdRules {
                 id
                 entry
@@ -37,14 +41,15 @@ export const CREATE_STANDARDIZATION = gql`
                 parameter
                 filters
             }
+            metadata
             deleted
         }
     }
 `;
 
 export const DELETE_STANDARDIZATION = gql`
-    mutation deleteStandardization($studyId: String!, $stdId: String!) {
-        deleteStandardization(studyId: $studyId, stdId: $stdId) {
+    mutation deleteStandardization($studyId: String!, $field: [String]!, $type: String!) {
+        deleteStandardization(studyId: $studyId, field: $field, type: $type) {
             id
             successful
             code

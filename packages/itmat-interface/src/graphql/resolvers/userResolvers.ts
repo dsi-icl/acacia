@@ -294,8 +294,8 @@ export const userResolvers = {
             });
         },
         createUser: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
-            const { username, firstname, lastname, email, emailNotificationsActivated, password, description, organisation }: {
-                username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated?: boolean, password: string, description?: string, organisation: string
+            const { username, firstname, lastname, email, emailNotificationsActivated, password, description, organisation, metadata }: {
+                username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated?: boolean, password: string, description?: string, organisation: string, metadata: any
             } = args.user;
 
             /* check email is valid form */
@@ -337,7 +337,8 @@ export const userResolvers = {
                 lastname,
                 email,
                 organisation,
-                emailNotificationsActivated: !!emailNotificationsActivated
+                emailNotificationsActivated: !!emailNotificationsActivated,
+                metadata
             });
 
             /* send email to the registered user */
@@ -500,8 +501,8 @@ export const userResolvers = {
         },
         editUser: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Record<string, unknown>> => {
             const requester: IUser = context.req.user;
-            const { id, username, type, firstname, lastname, email, emailNotificationsActivated, emailNotificationsStatus, password, description, organisation, expiredAt }: {
-                id: string, username?: string, type?: userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, emailNotificationsStatus?: any, password?: string, description?: string, organisation?: string, expiredAt?: number
+            const { id, username, type, firstname, lastname, email, emailNotificationsActivated, emailNotificationsStatus, password, description, organisation, expiredAt, metadata }: {
+                id: string, username?: string, type?: userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, emailNotificationsStatus?: any, password?: string, description?: string, organisation?: string, expiredAt?: number, metadata?: any
             } = args.user;
             if (password !== undefined && requester.id !== id) { // only the user themself can reset password
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -531,7 +532,8 @@ export const userResolvers = {
                 password,
                 description,
                 organisation,
-                expiredAt
+                expiredAt,
+                metadata
             };
 
             /* check email is valid form */

@@ -10,4 +10,5 @@ export interface IFile {
     uri: string;
     deleted: number | null;
     hash: string;
+    metadata: Record<string, unknown>
 }

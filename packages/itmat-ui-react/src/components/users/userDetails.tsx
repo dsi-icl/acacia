@@ -108,7 +108,13 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     function formatSubmitObj(variables) {
         const final = {
             ...user,
-            ...variables,
+            organisation: variables.organisation,
+            type: variables.type,
+            metadata: {
+                ...user.metadata ?? {},
+                aePermission: variables.ae,
+                logPermission: variables.log
+            },
             expiredAt: variables.expiredAt.valueOf()
         };
         delete final.access;
@@ -134,6 +140,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
             {(submit, { loading, error }) =>
                 <Form initialValues={{
                     ...user,
+                    ae: user.metadata?.aePermission ?? false,
                     createdAt: dayjs(user.createdAt),
                     expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.id
@@ -168,6 +175,12 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                             <Select.Option value='STANDARD'>System user</Select.Option>
                             <Select.Option value='ADMIN'>System admin</Select.Option>
                         </Select>
+                    </Form.Item>
+                    <Form.Item name='ae' label='Analytical Environment Permission' valuePropName="checked">
+                        <Checkbox></Checkbox>
+                    </Form.Item>
+                    <Form.Item name='log' label='Logs Permission' valuePropName="checked">
+                        <Checkbox></Checkbox>
                     </Form.Item>
                     <Form.Item name='emailNotificationsActivated' label='Email Notification' valuePropName='checked'>
                         <Checkbox disabled>Email Notification</Checkbox>

@@ -9,7 +9,7 @@ import { Router } from '../../src/server/router';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { Db, MongoClient } from 'mongodb';
-import { permissions, IJobEntry, IUser, IRole, IStudy, IProject, IQueryEntry, IFile } from '@itmat-broker/itmat-types';
+import { IJobEntry, IUser, IRole, IStudy, IProject, IQueryEntry, IFile, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { CREATE_DATA_CURATION_JOB, CREATE_FIELD_CURATION_JOB, CREATE_QUERY_CURATION_JOB } from '@itmat-broker/itmat-models';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
@@ -58,7 +58,7 @@ beforeAll(async () => { // eslint-disable-line no-undef
 describe('JOB API', () => {
     let adminId: any;
     let createdStudy: { id: any; name?: string; createdBy?: string; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: never[]; };
-    let createdProject: { id: any; name?: string; createdBy?: string; lastModified?: number; studyId?: string; deleted?: null; patientMapping?: Record<string, any>; approvedFields?: Record<string, any>; approvedFiles?: Record<string, any>; };
+    let createdProject: { id: any; name?: string; createdBy?: string; lastModified?: number; studyId?: string; deleted?: null; patientMapping?: Record<string, any>; };
     let createdQuery: { id: any; requester?: string; queryString?: { date_requested: string; }; studyId?: string; projectId?: string; status?: string; error?: null; cancelled?: boolean; data_requested?: never[]; cohort?: never[][]; new_fields?: never[]; queryResult?: never[]; };
     let createdFile: { id: any; fileName?: string; studyId?: string; fileSize?: string; description?: string; uploadedBy?: any; uri?: string; deleted?: null; };
 
@@ -198,9 +198,22 @@ describe('JOB API', () => {
                 projectId: null,
                 studyId: createdStudy.id,
                 name: `${roleId}_rolename`,
-                permissions: [
-                    permissions.specific_study.specific_study_data_management
-                ],
+                permissions: {
+                    data: {
+                        fieldIds: ['^.*$'],
+                        hasVersioned: false,
+                        operations: [atomicOperation.READ],
+                        subjectIds: ['^.*$'],
+                        visitIds: ['^.*$']
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [atomicOperation.READ, atomicOperation.WRITE],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: []
+                    }
+                },
                 users: [authorisedUserProfile.id],
                 deleted: null
             };
@@ -408,9 +421,22 @@ describe('JOB API', () => {
                 projectId: null,
                 studyId: createdStudy.id,
                 name: `${roleId}_rolename`,
-                permissions: [
-                    permissions.specific_study.specific_study_data_management
-                ],
+                permissions: {
+                    data: {
+                        fieldIds: ['^.*$'],
+                        hasVersioned: false,
+                        operations: [atomicOperation.READ],
+                        subjectIds: ['^.*$'],
+                        visitIds: ['^.*$']
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [atomicOperation.READ, atomicOperation.WRITE],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: []
+                    }
+                },
                 users: [authorisedUserProfile.id],
                 deleted: null
             };
@@ -530,9 +556,7 @@ describe('JOB API', () => {
                 lastModified: 200000002,
                 studyId: createdStudy.id,
                 deleted: null,
-                patientMapping: {},
-                approvedFields: {},
-                approvedFiles: {}
+                patientMapping: {}
             };
             await mongoClient.collection<IProject>(config.database.collections.projects_collection).insertOne(createdProject);
 
@@ -633,9 +657,22 @@ describe('JOB API', () => {
                 projectId: createdProject.id,
                 studyId: createdStudy.id,
                 name: `${roleId}_rolename`,
-                permissions: [
-                    permissions.specific_project.specific_project_readonly_access
-                ],
+                permissions: {
+                    data: {
+                        fieldIds: ['^.*$'],
+                        hasVersioned: false,
+                        operations: [atomicOperation.READ],
+                        subjectIds: ['^.*$'],
+                        visitIds: ['^.*$']
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [atomicOperation.READ, atomicOperation.WRITE],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: []
+                    }
+                },
                 users: [authorisedUserProfile.id],
                 deleted: null
             };

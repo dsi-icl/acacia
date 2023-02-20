@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip } from '@itmat-broker/itmat-types';
+import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IFieldEntry } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -61,7 +61,8 @@ export class StudyCore {
             deleted: null,
             description: description,
             type: type,
-            ontologyTrees: []
+            ontologyTrees: [],
+            metadata: {}
         };
         await db.collections!.studies_collection.insertOne(study);
         return study;
@@ -79,52 +80,17 @@ export class StudyCore {
     public async createNewDataVersion(studyId: string, tag: string, dataVersion: string): Promise<IStudyDataVersion | null> {
         const newDataVersionId = uuid();
         const newContentId = uuid();
+
+        // update data
         const resData = await db.collections!.data_collection.updateMany({
             m_studyId: studyId,
             m_versionId: null
         }, {
             $set: {
-                m_versionId: newDataVersionId as any
+                m_versionId: newDataVersionId
             }
         });
-        // if field is modified, need to modified the approved fields of each related project
-        // if the field is updated: update the approved field Id
-        // if the field is deleted: remove the original field Id
-        const newApprovedFieldsInfo = await db.collections!.field_dictionary_collection.find({ studyId: studyId, dataVersion: null }).toArray();
-        const fieldsToDelete: string[] = [];
-        const fieldsToAdd: string[] = [];
-        // delete all influenced fields and then add the new one
-        const projects = await db.collections!.projects_collection.find({ studyId: studyId, deleted: null }).toArray();
-        for (const project of projects) {
-            const originalApprovedFieldsInfo = await db.collections!.field_dictionary_collection.find({ id: { $in: project.approvedFields } }).toArray();
-            const originalApprovedFieldsIds = originalApprovedFieldsInfo.map(el => el.fieldId);
-            for (const each of newApprovedFieldsInfo) {
-                if (originalApprovedFieldsIds.includes(each.fieldId)) {
-                    if (each.dateDeleted === null) {
-                        // delete original and add new one
-                        fieldsToDelete.push(originalApprovedFieldsInfo.filter(el => el.fieldId === each.fieldId)[0].id);
-                        fieldsToAdd.push(each.id);
-                    } else {
-                        fieldsToDelete.push(originalApprovedFieldsInfo.filter(el => el.fieldId === each.fieldId)[0].id);
-                    }
-                }
-            }
-            await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id }, {
-                $pull: {
-                    approvedFields: {
-                        $in: fieldsToDelete
-                    }
-                }
-            });
-            await db.collections!.projects_collection.findOneAndUpdate({ studyId: project.studyId, id: project.id }, {
-                $push: {
-                    approvedFields: {
-                        $each: fieldsToAdd
-                    }
-                }
-            });
-        }
-
+        // update field
         const resField = await db.collections!.field_dictionary_collection.updateMany({
             studyId: studyId,
             dataVersion: null
@@ -133,8 +99,70 @@ export class StudyCore {
                 dataVersion: newDataVersionId
             }
         });
-        if (resData.modifiedCount === 0 && resField.modifiedCount === 0) {
+        // update standardization
+        const resStandardization = await db.collections!.standardizations_collection.updateMany({
+            studyId: studyId,
+            dataVersion: null
+        }, {
+            $set: {
+                dataVersion: newDataVersionId
+            }
+        });
+
+        // update ontology trees
+        const resOntologyTrees = await db.collections!.studies_collection.updateOne({ 'id': studyId, 'deleted': null, 'ontologyTrees.dataVersion': null }, {
+            $set: {
+                'ontologyTrees.$.dataVersion': newDataVersionId
+            }
+        });
+
+        if (resData.modifiedCount === 0 && resField.modifiedCount === 0 && resStandardization.modifiedCount === 0 && resOntologyTrees.modifiedCount === 0) {
             return null;
+        }
+
+        // update permissions based on roles
+        const roles = await db.collections!.roles_collection.find<IRole>({ studyId: studyId, deleted: null }).toArray();
+        for (const role of roles) {
+            const filters: Record<string, string[]> = {
+                subjectIds: role.permissions.data?.subjectIds || [],
+                visitIds: role.permissions.data?.visitIds || [],
+                fieldIds: role.permissions.data?.fieldIds || []
+            };
+            const tag = `metadata.${'role:'.concat(role.id)}`;
+            await db.collections!.data_collection.updateMany({
+                m_studyId: studyId,
+                m_versionId: newDataVersionId,
+                m_subjectId: { $in: filters.subjectIds.map((el: string) => new RegExp(el)) },
+                m_visitId: { $in: filters.visitIds.map((el: string) => new RegExp(el)) },
+                m_fieldId: { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
+            }, {
+                $set: { [tag]: true }
+            });
+            await db.collections!.data_collection.updateMany({
+                m_studyId: studyId,
+                m_versionId: newDataVersionId,
+                $or: [
+                    { m_subjectId: { $nin: filters.subjectIds.map((el: string) => new RegExp(el)) } },
+                    { m_visitId: { $nin: filters.visitIds.map((el: string) => new RegExp(el)) } },
+                    { m_fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) } }
+                ]
+            }, {
+                $set: { [tag]: false }
+            });
+            await db.collections!.field_dictionary_collection.updateMany({
+                studyId: studyId,
+                dataVersion: newDataVersionId,
+                fieldId: { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
+            }, {
+                $set: { [tag as any]: true }
+            });
+            await db.collections!.field_dictionary_collection.updateMany({
+                studyId: studyId,
+                dataVersion: newDataVersionId,
+                fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) }
+            }, {
+                $set: { [tag as any]: false }
+            });
         }
 
         // insert a new version into study
@@ -154,9 +182,9 @@ export class StudyCore {
         return newDataVersion;
     }
 
-    public async uploadOneDataClip(studyId: string, fieldList: any[], data: IDataClip[], user: IUser): Promise<any> {
+    public async uploadOneDataClip(studyId: string, permissions: any, fieldList: Partial<IFieldEntry>[], data: IDataClip[], requester: IUser): Promise<any> {
         const response: IGenericResponse[] = [];
-        // const bulk = db.collections!.data_collection.initializeOrderedBulkOp();
+        let bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
         const keysToCheck: Array<keyof IDataClip> = ['visitId', 'subjectId', 'fieldId'];
         const filteredData = data.filter(
@@ -171,6 +199,11 @@ export class StudyCore {
             // check subjectId
             if (!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
                 response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
+                continue;
+            }
+
+            if (!(await permissionCore.checkDataEntryValid(permissions, dataClip.fieldId, dataClip.subjectId, dataClip.visitId))) {
+                response.push({ successful: false, code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have access to this field.' });
                 continue;
             }
 
@@ -250,7 +283,7 @@ export class StudyCore {
                             break;
                         }
                         // if old file exists, delete it first
-                        const res = await this.uploadFile(studyId, dataClip, user, {});
+                        const res = await this.uploadFile(studyId, dataClip, requester, {});
                         if ('code' in res && 'description' in res) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as file.`;
                             break;
@@ -260,6 +293,10 @@ export class StudyCore {
                         break;
                     }
                     case 'cat': {
+                        if (!fieldInDb.possibleValues) {
+                            error = `Field ${dataClip.fieldId}: Cannot parse as categorical, possible values not defined.`;
+                            break;
+                        }
                         if (!fieldInDb.possibleValues.map((el: any) => el.code).includes(dataClip.value?.toString())) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
                             break;
@@ -283,29 +320,58 @@ export class StudyCore {
             const obj = {
                 m_studyId: studyId,
                 m_subjectId: dataClip.subjectId,
-                m_versionId: undefined,
-                m_visitId: dataClip.visitId
+                m_versionId: null,
+                m_visitId: dataClip.visitId,
+                m_fieldId: dataClip.fieldId
             };
-            const existingMetaData: Record<string, any> = (await db.collections!.data_collection.findOne(obj))?.metadata ?? {};
-            if (dataClip.metadata) {
-                // dmpOrganisation is for DMP only; change it for other platforms
-                existingMetaData[dataClip.fieldId] = { ...dataClip.metadata, dmpOrganisation: user.organisation };
+            let objWithData: Partial<MatchKeysAndValues<IDataEntry>>;
+            // update the file data differently
+            if (fieldInDb.dataType === 'file') {
+                const existing = await db.collections!.data_collection.findOne(obj);
+                if (!existing) {
+                    await db.collections!.data_collection.insertOne({
+                        ...obj,
+                        id: uuid(),
+                        uploadedAt: (new Date()).valueOf(),
+                        value: '',
+                        metadata: {
+                            add: [],
+                            remove: []
+                        }
+                    });
+                }
+
+                objWithData = {
+                    ...obj,
+                    id: uuid(),
+                    value: '',
+                    uploadedAt: (new Date()).valueOf(),
+                    metadata: {
+                        ...dataClip.metadata,
+                        add: ((existing?.metadata as any)?.add || []).concat(parsedValue)
+                    },
+                    uploadedBy: requester.id
+                };
+            } else {
+                objWithData = {
+                    ...obj,
+                    id: uuid(),
+                    value: parsedValue,
+                    uploadedAt: (new Date()).valueOf(),
+                    metadata: {
+                        ...dataClip.metadata
+                    },
+                    uploadedBy: requester.id
+                };
             }
-            const objWithData: Partial<MatchKeysAndValues<IDataEntry>> = {
-                ...obj,
-                id: uuid(),
-                uploadedAt: (new Date()).valueOf(),
-                metadata: existingMetaData
-            };
-            objWithData[dataClip.fieldId] = parsedValue;
-            await db.collections!.data_collection.findOneAndUpdate(obj, {
-                $set: objWithData
-            }, {
-                upsert: true
-            });
-            // bulk.find(obj).upsert().updateOne({ $set: objWithData });
+            bulk.find(obj).upsert().updateOne({ $set: objWithData });
+            if (bulk.batches.length > 999) {
+                await bulk.execute();
+                bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
+            }
+
         }
-        // await bulk.execute();
+        bulk.batches.length !== 0 && await bulk.execute();
         return response;
     }
 
@@ -322,9 +388,8 @@ export class StudyCore {
         const file: FileUpload = await data.file;
 
         // check if old files exist; if so, denote it as deleted
-        const dataEntry = await db.collections!.data_collection.findOne({ m_studyId: studyId, m_visitId: data.visitId, m_subjectId: data.subjectId, m_versionId: null }, { [data.fieldId]: 1 });
-        const oldFileId = dataEntry ? dataEntry[data.fieldId] : null;
-
+        const dataEntry = await db.collections!.data_collection.findOne({ m_studyId: studyId, m_visitId: data.visitId, m_subjectId: data.subjectId, m_versionId: null, m_fieldId: data.fieldId });
+        const oldFileId = dataEntry ? dataEntry.value : null;
         return new Promise<IFile>((resolve, reject) => {
 
             (async () => {
@@ -336,7 +401,8 @@ export class StudyCore {
                         description: JSON.stringify(data.metadata ?? {}),
                         uploadTime: `${Date.now()}`,
                         uploadedBy: uploader.id,
-                        deleted: null
+                        deleted: null,
+                        metadata: {}
                     };
 
                     if (args.fileLength !== undefined && args.fileLength > fileSizeLimit) {
@@ -404,17 +470,16 @@ export class StudyCore {
         });
     }
 
-    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string, approvedFields?: string[], approvedFiles?: string[]): Promise<IProject> {
+    public async createProjectForStudy(studyId: string, projectName: string, requestedBy: string): Promise<IProject> {
         const project: IProject = {
             id: uuid(),
             studyId,
             createdBy: requestedBy,
             name: projectName,
             patientMapping: {},
-            approvedFields: approvedFields ? approvedFields : [],
-            approvedFiles: approvedFiles ? approvedFiles : [],
             lastModified: new Date().valueOf(),
-            deleted: null
+            deleted: null,
+            metadata: {}
         };
 
         const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
@@ -475,26 +540,6 @@ export class StudyCore {
 
         /* delete all roles related to the study */
         await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });
-    }
-
-    public async editProjectApprovedFields(projectId: string, approvedFields: string[]): Promise<IProject> {
-        /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFields: approvedFields } }, { returnDocument: 'after' });
-        if (result.ok === 1 && result.value) {
-            return result.value as IProject;
-        } else {
-            throw new GraphQLError(`Cannot update project "${projectId}"`, { extensions: { code: errorCodes.DATABASE_ERROR } });
-        }
-    }
-
-    public async editProjectApprovedFiles(projectId: string, approvedFiles: string[]): Promise<IProject> {
-        /* PRECONDITION: assuming all the fields to add exist (no need for the same for remove because it just pulls whatever)*/
-        const result = await db.collections!.projects_collection.findOneAndUpdate({ id: projectId }, { $set: { approvedFiles } }, { returnDocument: 'after' });
-        if (result.ok === 1 && result.value) {
-            return result.value as IProject;
-        } else {
-            throw new GraphQLError(`Cannot update project "${projectId}"`, { extensions: { code: errorCodes.DATABASE_ERROR } });
-        }
     }
 
     private createPatientIdMapping(listOfPatientId: string[], prefix?: string): { [originalPatientId: string]: string } {
