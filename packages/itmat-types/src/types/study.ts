@@ -18,6 +18,7 @@ export interface IStudy {
     description: string;
     ontologyTrees?: IOntologyTree[];
     type: studyType;
+    metadata: Record<string, unknown>
 }
 
 export interface IStudyDataVersion {
@@ -28,14 +29,44 @@ export interface IStudyDataVersion {
     updateDate: string;
 }
 
+export enum atomicOperation {
+    READ = 'READ',
+    WRITE = 'WRITE'
+}
+
+export enum IPermissionManagementOptions {
+    own = 'own',
+    role = 'role',
+    job = 'job',
+    query = 'query',
+    ontologyTrees = 'ontologyTrees'
+}
+
 interface IRoleBase {
     id: string;
     projectId?: string;
     studyId: string;
     name: string;
-    permissions: string[];
+    permissions: {
+        data?: {
+            subjectIds?: string[];
+            visitIds?: string[];
+            fieldIds?: string[];
+            hasVersioned?: boolean;
+            operations?: atomicOperation[];
+        },
+        manage?: {
+            [IPermissionManagementOptions.own]?: atomicOperation[];
+            [IPermissionManagementOptions.role]?: atomicOperation[];
+            [IPermissionManagementOptions.job]?: atomicOperation[];
+            [IPermissionManagementOptions.query]?: atomicOperation[];
+            [IPermissionManagementOptions.ontologyTrees]: atomicOperation[];
+        }
+    };
+    description: string;
     createdBy: string;
     deleted: number | null;
+    metadata: Record<string, unknown>
 }
 
 export interface IRole extends IRoleBase {
@@ -54,10 +85,9 @@ export interface IProject {
     dataVersion?: IStudyDataVersion | null;
     summary?: any;
     patientMapping: { [originalId: string]: string };
-    approvedFields: string[];
-    approvedFiles: string[];
     lastModified: number;
     deleted: number | null;
+    metadata: Record<string, unknown>
 }
 
 export interface IDataClip {
@@ -71,14 +101,18 @@ export interface IDataClip {
 
 export interface ISubjectDataRecordSummary {
     subjectId: string,
-    visitId?: string,
-    errorFields: string[]
+    visitId: string,
+    fieldId: string,
+    error: string
 }
 
 export interface IOntologyTree {
     id: string,
     name: string,
-    routes?: IOntologyRoute[]
+    dataVersion: string | null,
+    routes?: IOntologyRoute[],
+    metadata?: JSON,
+    deleted: number
 }
 
 export interface IOntologyRoute {

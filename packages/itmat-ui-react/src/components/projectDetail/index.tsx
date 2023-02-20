@@ -8,13 +8,18 @@ import css_dataset from '../datasetDetail/projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
 import { FileTabContent } from './tabContent/file/fileTab';
 import { AnalysisTabContent } from './tabContent/analysis/analysisTab';
+import { useQuery } from '@apollo/client/react/hooks';
 
 export const ProjectDetailPage: FunctionComponent = () => {
     const { projectId } = useParams();
+    const { loading: whoamiloading, error: whoamierror, data: whoamidata } = useQuery(WHO_AM_I);
+    if (whoamiloading) { return <p>Loading..</p>; }
+    if (whoamierror) { return <p>ERROR: please try again.</p>; }
+
     return (
         <Query<any, any>
             query={GET_PROJECT}
-            variables={{ projectId, admin: true }}
+            variables={{ projectId, admin: whoamidata.whoAmI.type === userTypes.ADMIN }}
         >
             {({ loading, error, data }) => {
                 if (loading) { return <LoadSpinner />; }
@@ -43,7 +48,7 @@ export const ProjectDetailPage: FunctionComponent = () => {
                                         {/* <NavLink to='samples' className={({ isActive }) => isActive ? className={({ isActive }) => isActive ? css.active : undefined}><div>SAMPLE</div></NavLink> */}
                                         <NavLink to='data' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DATA</div></NavLink>
                                         <NavLink to='analysis' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>ANALYSIS</div></NavLink>
-                                        {/* <NavLink to='files' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>FILE REPOSITORY</div></NavLink> */}
+                                        <NavLink to='files' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>FILE REPOSITORY</div></NavLink>
                                     </div>;
                                 }
                             }}

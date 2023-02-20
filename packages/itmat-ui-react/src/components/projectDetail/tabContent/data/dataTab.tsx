@@ -2,7 +2,7 @@ import { FunctionComponent, useState } from 'react';
 import { filterFields, generateCascader, findDmField } from '../../../../utils/tools';
 import { dataTypeMapping } from '../utils/defaultParameters';
 import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
-import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, GET_ONTOLOGY_TREE, GET_STANDARDIZATION } from '@itmat-broker/itmat-models';
+import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, GET_ONTOLOGY_TREE } from '@itmat-broker/itmat-models';
 import { IFieldEntry, IProject, enumValueType, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-types';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../../../reusable/loadSpinner';
@@ -13,7 +13,6 @@ import { Select, Row, Col, Button, Table, Empty, Cascader, Tooltip, Typography, 
 import { Pie, BidirectionalBar, Heatmap, Violin, Column, Box } from '@ant-design/plots';
 import { UserOutlined, DownloadOutlined, QuestionCircleOutlined, TagOutlined, HistoryOutlined, FieldTimeOutlined, EyeOutlined, HddOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
-import React from 'react';
 import { useWindowSize } from '../utils/utils';
 const { Option } = Select;
 const { Text } = Typography;
@@ -51,7 +50,7 @@ export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId
     return <div className={css.tab_page_wrapper}>
         <div className={css.scaffold_wrapper}>
             <div className={css.metadata}>
-                <MetaDataBlock project={getProjectData.getProject} numOfFields={getStudyFieldsData.getStudyFields.length} numOfOntologyRoutes={getOntologyTreeData.getOntologyTree[0].routes.length} />
+                <MetaDataBlock project={getProjectData.getProject} numOfOntologyRoutes={getOntologyTreeData.getOntologyTree[0].routes.length} />
             </div>
             <div className={css.demographics}>
                 <DemographicsBlock ontologyTree={getOntologyTreeData.getOntologyTree[0]} studyId={studyId} projectId={projectId} fields={filterFields(getStudyFieldsData.getStudyFields, getOntologyTreeData.getOntologyTree[0])} />
@@ -69,7 +68,7 @@ export const DataTabContent: FunctionComponent<{ studyId: string }> = ({ studyId
     </div>;
 };
 
-export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: number, numOfOntologyRoutes: number }> = ({ project, numOfFields, numOfOntologyRoutes }) => {
+export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfOntologyRoutes: number }> = ({ project, numOfOntologyRoutes }) => {
     const [width, __unused__height__] = useWindowSize();
     return project ? <SubsectionWithComment title={<Tooltip title={'The metadata of this project.'}>
         <Text className={css.title}>Meta Data</Text> <QuestionCircleOutlined />
@@ -117,8 +116,8 @@ export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: 
                         </Col>
                         <Col span={5}>
                             <div className={css.grid_col_center}>
-                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes} / {numOfFields}</Text>
-                                <Tooltip title={`${numOfOntologyRoutes} of ${numOfFields} fields are in the ontology tree.`}>
+                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes}</Text>
+                                <Tooltip title={`${numOfOntologyRoutes} fields are in the ontology tree.`}>
                                     <QuestionCircleOutlined />
                                 </Tooltip>
                             </div>
@@ -172,8 +171,8 @@ export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfFields: 
                     <Row gutter={16}>
                         <Col span={9}>
                             <div className={css.grid_col_center}>
-                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes} / {numOfFields}</Text>
-                                <Tooltip title={`${numOfOntologyRoutes} of ${numOfFields} fields are in the ontology tree.`}>
+                                <Text style={{ fontSize: '32px' }} strong underline>{numOfOntologyRoutes}</Text>
+                                <Tooltip title={`${numOfOntologyRoutes} fields are in the ontology tree.`}>
                                     <QuestionCircleOutlined />
                                 </Tooltip>
                             </div>
@@ -201,7 +200,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             projectId: projectId,
             queryString: {
                 format: 'grouped',
-                data_requested: [genderField.fieldId, raceField.fieldId, ageField.fieldId, siteField.fieldId],
+                data_requested: [genderField?.fieldId, raceField?.fieldId, ageField?.fieldId, siteField?.fieldId],
                 new_fields: [],
                 cohort: [[]],
                 subjects_requested: null,
@@ -220,7 +219,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
     // process the data
     const obj: any = {};
     const data = getDataRecordsData.getDataRecords.data;
-    if (genderField === null) {
+    if (genderField === null || !data[genderField.fieldId]) {
         obj.SEX = [];
         obj.AGE = [];
     } else {
@@ -272,7 +271,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             });
         }
     }
-    if (siteField === null) {
+    if (siteField === null || !data[siteField.fieldId]) {
         obj.SITE = [];
     } else {
         obj.SITE = (data[siteField.fieldId][siteField.visitRange[0]]?.data || []).reduce((acc, curr) => {
@@ -287,111 +286,118 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
             value: (data[siteField.fieldId][siteField.visitRange[0]]?.totalNumOfRecords || 0) - (data[siteField.fieldId][siteField.visitRange[0]]?.validNumOfRecords || 0)
         });
     }
-
     return <Subsection title={<Tooltip title={'The statistics of several demographics fields.'}>
         <Text className={css.title}>Demographics</Text> <QuestionCircleOutlined />
     </Tooltip>}>
         <>
             {
-                genderField === null ? null :
-                    <div className={css.demographics_graph}>
-                        <Pie
-                            appendPadding={10}
-                            data={obj.SEX}
-                            angleField={'value'}
-                            colorField={'type'}
-                            radius={0.75}
-                            legend={{
-                                itemWidth: 100,
-                                layout: width > 1500 ? 'vertical' : 'horizontal',
-                                offsetX: 0,
-                                position: width > 1500 ? 'right' : 'bottom'
-                            }}
-                            label={false}
-                            interactions={[
-                                {
-                                    type: 'element-selected'
-                                },
-                                {
-                                    type: 'element-active'
-                                }
-                            ]}
-                        />
-                        <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Sex</Text></div>
-                    </div>
+                <div className={css.demographics_graph}>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Sex</Text></div>
+                    {
+                        genderField === null ? <Empty /> :
+                            <Pie
+                                appendPadding={10}
+                                data={obj.SEX}
+                                angleField={'value'}
+                                colorField={'type'}
+                                radius={0.75}
+                                legend={{
+                                    itemWidth: 100,
+                                    layout: width > 1500 ? 'vertical' : 'horizontal',
+                                    offsetX: 0,
+                                    position: width > 1500 ? 'right' : 'bottom'
+                                }}
+                                label={false}
+                                interactions={[
+                                    {
+                                        type: 'element-selected'
+                                    },
+                                    {
+                                        type: 'element-active'
+                                    }
+                                ]}
+                            />
+                    }
+                </div>
             }
             {
-                raceField === null ? null :
-                    <div className={css.demographics_graph}>
-                        <Pie
-                            appendPadding={10}
-                            data={obj.RACE}
-                            angleField={'value'}
-                            colorField={'type'}
-                            radius={0.75}
-                            legend={{
-                                itemWidth: 100,
-                                layout: width > 1500 ? 'vertical' : 'horizontal',
-                                offsetX: 0,
-                                position: width > 1500 ? 'right' : 'bottom'
-                            }}
-                            label={false}
-                            interactions={[
-                                {
-                                    type: 'element-selected'
-                                },
-                                {
-                                    type: 'element-active'
-                                }
-                            ]}
-                        />
-                        <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Race</Text></div>
-                    </div>
+                <div className={css.demographics_graph}>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Race</Text></div>
+                    {
+                        raceField === null ? <Empty /> :
+                            <Pie
+                                appendPadding={10}
+                                data={obj.RACE}
+                                angleField={'value'}
+                                colorField={'type'}
+                                radius={0.75}
+                                legend={{
+                                    itemWidth: 100,
+                                    layout: width > 1500 ? 'vertical' : 'horizontal',
+                                    offsetX: 0,
+                                    position: width > 1500 ? 'right' : 'bottom'
+                                }}
+                                label={false}
+                                interactions={[
+                                    {
+                                        type: 'element-selected'
+                                    },
+                                    {
+                                        type: 'element-active'
+                                    }
+                                ]}
+                            />
+                    }
+                </div>
             }
             {
-                siteField === null ? null :
-                    <div className={css.demographics_graph}>
-                        <Pie
-                            appendPadding={10}
-                            data={obj.SITE}
-                            angleField={'value'}
-                            colorField={'type'}
-                            radius={0.75}
-                            legend={{
-                                itemWidth: 100,
-                                layout: width > 1500 ? 'vertical' : 'horizontal',
-                                offsetX: 0,
-                                position: width > 1500 ? 'right' : 'bottom'
-                            }}
-                            label={false}
-                            interactions={[
-                                {
-                                    type: 'element-selected'
-                                },
-                                {
-                                    type: 'element-active'
-                                }
-                            ]}
-                        />
-                        <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Site</Text></div>
-                    </div>
+                <div className={css.demographics_graph}>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px', marginRight: '90px' }} strong>Site</Text></div>
+                    {
+                        siteField === null ? <Empty /> :
+                            <Pie
+                                appendPadding={10}
+                                data={obj.SITE.sort((a, b) => a.type.toString().localeCompare(b.type.toString()))}
+                                angleField={'value'}
+                                colorField={'type'}
+                                radius={0.75}
+                                legend={{
+                                    itemWidth: 100,
+                                    layout: width > 1500 ? 'vertical' : 'horizontal',
+                                    offsetX: 0,
+                                    position: width > 1500 ? 'right' : 'bottom'
+                                }}
+                                label={false}
+                                interactions={[
+                                    {
+                                        type: 'element-selected'
+                                    },
+                                    {
+                                        type: 'element-active'
+                                    }
+                                ]}
+                            />
+                    }
+                </div>
             }
             {
-                ageField === null ? null :
-                    <div className={css.demographics_graph}>
-                        <BidirectionalBar
-                            data={obj.AGE}
-                            xField={'age'}
-                            xAxis={{
-                                position: 'right'
-                            }}
-                            interactions={[
-                                { type: 'active-region' }
-                            ]}
-                            yField={['Male', 'Female']}
-                        />
-                        <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong>Age</Text></div>
-                    </div>
+                <div className={css.demographics_graph}>
+                    <div className={css.grid_col_center}><Text style={{ fontSize: '32px' }} strong>Age</Text></div>
+                    {
+                        ageField === null ? <Empty /> :
+                            <BidirectionalBar
+                                data={obj.AGE}
+                                xField={'age'}
+                                xAxis={{
+                                    position: 'right'
+                                }}
+                                interactions={[
+                                    { type: 'active-region' }
+                                ]}
+                                yField={['Male', 'Female']}
+                            />
+                    }
+                </div>
             }
         </>
     </Subsection >;
@@ -520,7 +526,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                             </Tooltip >}</Text></div>
                         </Col>
                         <Col xl={3} md={4}>
-                            <div className={css.grid_col_center_large} ><Text strong underline>{dataTypeMapping[field?.fieldId] || 'NA'}</Text></div>
+                            <div className={css.grid_col_center_large} ><Text strong underline>{dataTypeMapping[field?.dataType] || 'NA'}</Text></div>
                         </Col>
                         <Col xl={3} md={0}>
                             <div className={css.grid_col_center_large} ><Text strong underline>{field?.unit || 'NA'}</Text></div>
@@ -649,7 +655,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                 </>);
                         }}
                     </Query>
-                </div>
+                </div >
         }
     </SubsectionWithComment >);
 };
@@ -779,20 +785,15 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
 };
 
 export const DataDownloadBlock: FunctionComponent<{ project: IProject }> = ({ project }) => {
-    const { loading: getStandardizationLoading, error: getStandardizationError, data: getStandardizationData } = useQuery(GET_STANDARDIZATION, { variables: { studyId: project.studyId, projectId: project.id } });
     const [getDataRecordsLazy, { loading: getDataRecordsLoading, data: getDataRecordsData }] = useLazyQuery(GET_DATA_RECORDS, {});
     const [shouldUpdateData, setShouldUpdateData] = useState(true);
     const [selectedDataFormat, setSelectedDataFormat] = useState<string | undefined>(undefined);
     const [selectedOutputType, setSelectedOutputType] = useState('JSON');
-    if (getDataRecordsLoading || getStandardizationLoading) {
+    if (getDataRecordsLoading) {
         return <LoadSpinner />;
     }
-    if (getStandardizationError) {
-        return <p>
-            An error occured, please contact your administrator
-        </p >;
-    }
-    const availableFormats: string[] = Array.from(new Set(getStandardizationData.getStandardization.map(el => el.type))) || [];
+
+    const availableFormats: string[] = project.summary?.standardizationTypes ?? [];
     const dataArray: any[] = [];
     if (getDataRecordsData?.getDataRecords?.data !== undefined) {
         Object.keys(getDataRecordsData.getDataRecords.data).forEach(domain => {

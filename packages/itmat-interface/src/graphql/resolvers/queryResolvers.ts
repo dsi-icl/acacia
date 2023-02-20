@@ -1,4 +1,4 @@
-import { permissions, IQueryEntry, IUser, IProject } from '@itmat-broker/itmat-types';
+import { IQueryEntry, IUser, IProject, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { queryCore } from '../core/queryCore';
 import { permissionCore } from '../core/permissionCore';
 import { GraphQLError } from 'graphql';
@@ -16,15 +16,17 @@ export const queryResolvers = {
                 throw new GraphQLError('Query does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             /* check permission */
-            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_project.specific_project_readonly_access],
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.query,
+                atomicOperation.READ,
                 requester,
                 queryEntry.studyId,
                 queryEntry.projectId
             );
 
-            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.query,
+                atomicOperation.READ,
                 requester,
                 queryEntry.studyId
             );
@@ -37,15 +39,17 @@ export const queryResolvers = {
             const requester: IUser = context.req.user;
 
             /* check permission */
-            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_project.specific_project_readonly_access],
+            const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.query,
+                atomicOperation.READ,
                 requester,
                 args.studyId,
                 args.projectId
             );
 
-            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryPermission(
-                [permissions.specific_study.specific_study_readonly_access],
+            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.query,
+                atomicOperation.READ,
                 requester,
                 args.studyId
             );

@@ -28,6 +28,7 @@ export const GET_USERS = gql`
                     name
                 }
             }
+            metadata @include (if: $fetchDetailsAdminOnly)
         }
     }
 `;
@@ -46,6 +47,7 @@ export const EDIT_USER = gql`
         $description: String
         $organisation: String
         $expiredAt: Float
+        $metadata: JSON
     ) {
         editUser(user: {
             id: $id
@@ -60,6 +62,7 @@ export const EDIT_USER = gql`
             organisation: $organisation
             type: $type
             expiredAt: $expiredAt
+            metadata: $metadata
         }) {
             ...ALL_FOR_USER
         }

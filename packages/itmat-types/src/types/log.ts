@@ -53,8 +53,6 @@ export enum LOG_ACTION {
     // PROJECT
     getProject = 'GET_PROJECT',
     // GET_PROJECT_PATIENT_MAPPING = 'GET_PROJECT_PATIENT_MAPPING',
-    editProjectApprovedFields = 'EDIT_PROJECT_APPROVED_FIELDS',
-    editProjectApprovedFiles = 'EDIT_PROJECT_APPROVED_FILES',
     createProject = 'CREATE_PROJECT',
     deleteProject = 'DELETE_PROJECT',
     setDataversionAsCurrent = 'SET_DATAVERSION_AS_CURRENT',
@@ -82,7 +80,7 @@ export enum LOG_ACTION {
 
     // STUDY & PROJECT
     editRole = 'EDIT_ROLE',
-    addRoleToStudyOrProject = 'ADD_NEW_ROLE',
+    addRole = 'ADD_NEW_ROLE',
     removeRole = 'REMOVE_ROLE',
 
     // FILE

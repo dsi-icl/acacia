@@ -56,7 +56,7 @@ export const AddNewProject: FunctionComponent<{ studyId: string }> = ({ studyId 
                                     setError('Please enter project name.');
                                     return;
                                 }
-                                addNewProject({ variables: { studyId, projectName: projectName, approvedFields: [] } });
+                                addNewProject({ variables: { studyId, projectName: projectName } });
                             }}>Add new project</Button>
                     }
                 </>

@@ -2,10 +2,10 @@
     display: grid;
     height: 100%;
     width: 100%;
-    grid-template-columns: 50% 50%;
+    grid-template-columns: 80% 20%;
     grid-template-rows: 50px calc(100% - 50px);
     grid-template-areas: "ariane ariane"
-                        "leftpanel rightpanel";
+        "leftpanel rightpanel";
 }
 
 .project_detail_left {
@@ -32,7 +32,8 @@
     background: var(--color-dataversions-background);
 }
 
-/* backbutton to project list */ .project_detail_title > a > div {
+/* backbutton to project list */
+.project_detail_title>a>div {
     display: inline-block;
     background: var(--color-ariane-tab-active-background);
     width: 50px;
@@ -41,6 +42,7 @@
     margin-right: 1rem;
 }
 
-/* backbutton to project list */ .project_detail_title > a > div:hover {
+/* backbutton to project list */
+.project_detail_title>a>div:hover {
     background: var(--color-scroll-bar-active);
 }

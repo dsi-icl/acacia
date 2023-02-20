@@ -556,7 +556,6 @@ export const TokenManagement: FunctionComponent<{ userId: string }> = ({ userId 
             associatedUserId: userId
         }
     });
-
     if (getPubkeysloading) {
         return <>
             <div className='page_ariane'>Loading...</div>

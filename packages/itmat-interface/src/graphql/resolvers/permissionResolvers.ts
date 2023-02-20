@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { task_required_permissions, permissions, IUser, IRole } from '@itmat-broker/itmat-types';
+import { IUser, IRole, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { db } from '../../database/database';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
@@ -38,7 +38,7 @@ export const permissionResolvers = {
         }
     },
     Mutation: {
-        addRoleToStudyOrProject: async (__unused__parent: Record<string, unknown>, args: { studyId: string, projectId?: string, roleName: string }, context: any): Promise<IRole> => {
+        addRole: async (__unused__parent: Record<string, unknown>, args: { studyId: string, projectId?: string, roleName: string }, context: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { studyId, projectId, roleName } = args;
 
@@ -48,8 +48,9 @@ export const permissionResolvers = {
             }
 
             /* check the requester has privilege */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                args.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.role,
+                atomicOperation.WRITE,
                 requester,
                 args.studyId,
                 args.projectId
@@ -68,10 +69,10 @@ export const permissionResolvers = {
                 await studyCore.findOneProject_throwErrorIfNotExist(projectId);
             }
 
-            const result = await permissionCore.addRoleToStudyOrProject({ createdBy: requester.id, studyId: studyId!, projectId, roleName });
+            const result = await permissionCore.addRole({ createdBy: requester.id, studyId: studyId!, projectId, roleName });
             return result;
         },
-        editRole: async (__unused__parent: Record<string, unknown>, args: { roleId: string, name?: string, userChanges?: { add: string[], remove: string[] }, permissionChanges?: { add: string[], remove: string[] } }, context: any): Promise<IRole> => {
+        editRole: async (__unused__parent: Record<string, unknown>, args: { roleId: string, name?: string, description?: string, userChanges?: { add: string[], remove: string[] }, permissionChanges?: any }, context: any): Promise<IRole> => {
             const requester: IUser = context.req.user;
             const { roleId, name, permissionChanges, userChanges } = args;
 
@@ -81,24 +82,32 @@ export const permissionResolvers = {
             }
 
             /* check the requester has privilege */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.role,
+                atomicOperation.WRITE,
                 requester,
                 role.studyId,
                 role.projectId
             );
             if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
-            /* check whether all the permissions are valid */
+            /* check whether all the permissions are valid in terms of regular expressions */
             if (permissionChanges) {
-                const allRequestedPermissionChanges: string[] = [...permissionChanges.add, ...permissionChanges.remove];
-                const permittedPermissions: string[] = role.projectId ?
-                    Object.values(permissions.specific_project)
-                    :
-                    Object.values(permissions.specific_study);
-                for (const each of allRequestedPermissionChanges) {
-                    if (!permittedPermissions.includes(each)) {
-                        throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
+                if (permissionChanges.data) {
+                    if (permissionChanges.data.subjectIds) {
+                        for (const subjectId of permissionChanges.data.subjectIds) {
+                            checkReExpIsValid(subjectId);
+                        }
+                    }
+                    if (permissionChanges.data.visitIds) {
+                        for (const visitId of permissionChanges.data.visitIds) {
+                            checkReExpIsValid(visitId);
+                        }
+                    }
+                    if (permissionChanges.data.fieldIds) {
+                        for (const fieldId of permissionChanges.data.fieldIds) {
+                            checkReExpIsValid(fieldId);
+                        }
                     }
                 }
             }
@@ -120,7 +129,7 @@ export const permissionResolvers = {
             }
 
             /* edit the role */
-            const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, name, permissionChanges, userChanges);
+            const modifiedRole = await permissionCore.editRoleFromStudyOrProject(roleId, name, args.description, permissionChanges, userChanges);
             return modifiedRole;
         },
         removeRole: async (__unused__parent: Record<string, unknown>, args: { roleId: string }, context: any): Promise<IGenericResponse> => {
@@ -133,8 +142,9 @@ export const permissionResolvers = {
             }
 
             /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryPermission(
-                role.projectId ? task_required_permissions.manage_project_roles : task_required_permissions.manage_study_roles,
+            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.role,
+                atomicOperation.WRITE,
                 requester,
                 role.studyId,
                 role.projectId
@@ -148,3 +158,11 @@ export const permissionResolvers = {
     },
     Subscription: {}
 };
+
+function checkReExpIsValid(pattern: string) {
+    try {
+        new RegExp(pattern);
+    } catch {
+        throw new GraphQLError(`${pattern} is not a valid regular expression.`, { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+    }
+}

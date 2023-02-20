@@ -79,7 +79,8 @@ describe('LOG API', () => {
                 otpSecret: 'H6BNKKO27DPLCATGEJAZNWQV4LWOTMRA',
                 resetPasswordRequests: [],
                 createdAt: 1591134065000,
-                expiredAt: 2501134065000
+                expiredAt: 2501134065000,
+                metadata: {}
             };
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
             const newloggedoutuser = request.agent(app);

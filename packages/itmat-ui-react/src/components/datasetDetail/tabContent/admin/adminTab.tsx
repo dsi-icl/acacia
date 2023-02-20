@@ -19,7 +19,6 @@ export const AdminTabContent: FunctionComponent = () => {
         return null;
     if (loading)
         return <LoadSpinner />;
-
     return (
         <div className={`${css.tab_page_wrapper_grid} fade_in`}>
             <div className={`${css.tab_page_wrapper} ${css.cover_page}`}>

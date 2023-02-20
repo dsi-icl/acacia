@@ -490,7 +490,8 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
-                expiredAt: 1991134065000
+                expiredAt: 1991134065000,
+                metadata: null
             });
 
             /* cleanup */
@@ -557,7 +558,8 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
-                expiredAt: 1991134065000
+                expiredAt: 1991134065000,
+                metadata: null
             });
 
             /* test */
@@ -635,7 +637,8 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
-                expiredAt: 1991134065000
+                expiredAt: 1991134065000,
+                metadata: null
             });
         });
 
@@ -662,7 +665,8 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
-                expiredAt: 1991134065000
+                expiredAt: 1991134065000,
+                metadata: null
             });
         });
 
@@ -760,7 +764,8 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
-                expiredAt: 1501134065000
+                expiredAt: 1501134065000,
+                metadata: null
             });
             expect(res.body.errors).toBeUndefined();
             await admin.post('/graphql').send(
@@ -801,7 +806,8 @@ describe('USERS API', () => {
                     description: 'I am an admin user.',
                     id: adminId,
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 },
                 {
                     username: 'standardUser',
@@ -815,7 +821,8 @@ describe('USERS API', () => {
                     description: 'I am a standard user.',
                     id: userId,
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 }
             ]);
         });
@@ -841,7 +848,8 @@ describe('USERS API', () => {
                         studies: []
                     },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 },
                 {
                     username: 'standardUser',
@@ -860,7 +868,8 @@ describe('USERS API', () => {
                         studies: []
                     },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 }
             ]);
         });
@@ -884,7 +893,8 @@ describe('USERS API', () => {
                     description: 'I am a standard user.',
                     id: userId,
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 }
             ]);
         });
@@ -916,7 +926,8 @@ describe('USERS API', () => {
                         studies: []
                     },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 }
             ]);
         });
@@ -987,7 +998,8 @@ describe('USERS API', () => {
                         studies: []
                     },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 }
             ]);
         });
@@ -1042,7 +1054,8 @@ describe('USERS API', () => {
                         studies: []
                     },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 }
             ]);
         });
@@ -1318,7 +1331,8 @@ describe('USERS API', () => {
                     emailNotificationsActivated: true,
                     emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 }
             );
         });
@@ -1418,7 +1432,8 @@ describe('USERS API', () => {
                 emailNotificationsActivated: true,
                 emailNotificationsStatus: { expiringNotification: false },
                 createdAt: 1591134065000,
-                expiredAt: 1991134065000
+                expiredAt: 1991134065000,
+                metadata: null
             });
             const modifieduser = await mongoClient.collection<IUser>(config.database.collections.users_collection).findOne({ username: 'new_user_4' });
             expect(modifieduser.password).not.toBe(newUser.password);
