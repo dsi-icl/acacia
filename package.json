@@ -61,7 +61,7 @@
         "@types/react-highlight-words": "0.16.4",
         "@types/supertest": "2.0.12",
         "@types/tmp": "0.2.3",
-        "@types/uuid": "9.0.0",
+        "@types/uuid": "9.0.1",
         "@types/webpack-env": "1.18.0",
         "@typescript-eslint/eslint-plugin": "^5.52.0",
         "@typescript-eslint/parser": "^5.52.0",
