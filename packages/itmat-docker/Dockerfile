@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:18-alpine
 
 LABEL author="Florian Guitton" email="f.guitton@imperial.ac.uk"
 
@@ -9,7 +9,7 @@ WORKDIR /itmat-base
 COPY ./packages/itmat-docker/package.json ./
 COPY ./packages/itmat-docker/.npmrc ./
 
-RUN npm install --production --legacy-peer-deps
+RUN npm install --omit=dev --legacy-peer-deps
 RUN mkdir ./config
 
 COPY ./packages/itmat-docker/launcher.js ./
