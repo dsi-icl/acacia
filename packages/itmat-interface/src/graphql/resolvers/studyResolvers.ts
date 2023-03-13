@@ -512,34 +512,35 @@ export const studyResolvers = {
                 requester,
                 study.id
             );
-            if (!hasPermission) {
-                return [];
-            }
-            const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            if (hasPermission.hasVersioned) {
-                availableDataVersions.push(null);
-            }
-            // we do not use metadata filter because unvesioned data is needed
-            const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
-                $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
-            }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $last: '$$ROOT' }
+            let adds: string[] = [];
+            let removes: string[] = [];
+            if (hasPermission) {
+                const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+                if (hasPermission.hasVersioned) {
+                    availableDataVersions.push(null);
                 }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
-                }
-            }, {
-                $sort: { fieldId: 1 }
-            }]).toArray()).map(el => el.fieldId);
-            const fileRecords = (await db.collections!.data_collection.aggregate([{
-                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
-            }]).toArray());
-            const adds: string[] = fileRecords.map(el => el.metadata?.add || []).flat();
-            const removes: string[] = fileRecords.map(el => el.metadata?.remove || []).flat();
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, id: { $in: adds, $nin: removes } }).toArray();
+                // we do not use metadata filter because unvesioned data is needed
+                const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
+                }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }]).toArray()).map(el => el.fieldId);
+                const fileRecords = (await db.collections!.data_collection.aggregate([{
+                    $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+                }]).toArray());
+                adds = fileRecords.map(el => el.metadata?.add || []).flat();
+                removes = fileRecords.map(el => el.metadata?.remove || []).flat();
+            }
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, $or: [{ id: { $in: adds, $nin: removes } }, { description: JSON.stringify({}) }] }).toArray();
         },
         subjects: async (study: IStudy, __unused__args: never, context: any): Promise<Array<Array<string>>> => {
             const requester: IUser = context.req.user;

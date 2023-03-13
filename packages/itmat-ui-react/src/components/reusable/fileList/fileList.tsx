@@ -2,7 +2,7 @@ import { FunctionComponent, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client/react/hooks';
 import { Table, Button, notification, Tooltip } from 'antd';
 import { DELETE_FILE, WHO_AM_I, GET_ORGANISATIONS, GET_USERS } from '@itmat-broker/itmat-models';
-import { IFile, userTypes, studyType } from '@itmat-broker/itmat-types';
+import { IFile, userTypes } from '@itmat-broker/itmat-types';
 import { DeleteOutlined, CloudDownloadOutlined, SwapRightOutlined, NumberOutlined } from '@ant-design/icons';
 import { ApolloError } from '@apollo/client/errors';
 import dayjs from 'dayjs';
@@ -20,7 +20,7 @@ export function formatBytes(size: number, decimal = 2): string {
     return parseFloat((size / Math.pow(base, order)).toFixed(decimal)) + ' ' + units[order];
 }
 
-export const FileList: FunctionComponent<{ type: studyType, files: IFile[], searchTerm: string | undefined }> = ({ type, files, searchTerm }) => {
+export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | undefined, isStudyLevel?: boolean }> = ({ files, searchTerm, isStudyLevel }) => {
     const [isDeleting, setIsDeleting] = useState<{ [key: string]: boolean }>({});
     const { data: dataWhoAmI, loading: loadingWhoAmI } = useQuery(WHO_AM_I);
     const [deleteFile] = useMutation(DELETE_FILE, {
@@ -203,14 +203,6 @@ export const FileList: FunctionComponent<{ type: studyType, files: IFile[], sear
 
 
     const notVariablesListFiles = files.filter(el => !(el.fileName.indexOf('VariablesList') >= 0));
-    const variablesListFiles = files.filter(el => (
-        el.fileName.indexOf('VariablesList') >= 0
-        || el.fileName.indexOf('Site') >= 0
-        || el.fileName.indexOf('Codes') >= 0
-        || el.fileName.indexOf('SubjectGroup') >= 0
-        || el.fileName.indexOf('Tables') >= 0
-        || el.fileName.indexOf('Visits') >= 0
-    ));
 
     const fileNameColumns = [
         {
@@ -288,30 +280,21 @@ export const FileList: FunctionComponent<{ type: studyType, files: IFile[], sear
             }
         ]);
 
-    return (type === studyType.ANY || type === studyType.CLINICAL) ?
-        <>
-            <Table
-                rowKey={(rec) => rec.id}
-                pagination={
-                    {
-                        defaultPageSize: 50,
-                        showSizeChanger: true,
-                        pageSizeOptions: ['20', '50', '100', '200'],
-                        defaultCurrent: 1,
-                        showQuickJumper: true
-                    }
+    return isStudyLevel ?
+        <Table
+            rowKey={(rec) => rec.id}
+            pagination={
+                {
+                    defaultPageSize: 50,
+                    showSizeChanger: true,
+                    pageSizeOptions: ['20', '50', '100', '200'],
+                    defaultCurrent: 1,
+                    showQuickJumper: true
                 }
-                columns={fileNameColumns}
-                dataSource={files}
-                size='small' />
-            {variablesListFiles.length === 0 ? null :
-                <Table
-                    rowKey={(rec) => rec.id}
-                    columns={fileNameColumns}
-                    dataSource={variablesListFiles}
-                    size='small' />
             }
-        </> :
+            columns={fileNameColumns}
+            dataSource={files}
+            size='small' /> :
         <>
             <br />
             <br />
