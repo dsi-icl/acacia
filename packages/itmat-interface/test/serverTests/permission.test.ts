@@ -8,7 +8,7 @@ import { db } from '../../src/database/database';
 import { Router } from '../../src/server/router';
 import { errorCodes } from '../../src/graphql/errors';
 import { Db, MongoClient } from 'mongodb';
-import { permissions, IUser, IStudy, IProject, IRole } from '@itmat-broker/itmat-types';
+import { IUser, IStudy, IProject, IRole, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE } from '@itmat-broker/itmat-models';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
@@ -66,7 +66,7 @@ describe('ROLE API', () => {
 
     describe('ADDING ROLE', () => {
         let setupStudy: { id: any; name?: string; createdBy?: any; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: never[]; };
-        let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; approvedFields?: Record<string, any>; approvedFiles?: never[]; lastModified?: number; deleted?: null; };
+        let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; lastModified?: number; deleted?: null; };
         let authorisedUser: request.SuperTest<request.Test>;
         let authorisedUserProfile: { otpSecret: any; id: any; username?: string; type?: string; firstname?: string; lastname?: string; password?: string; email?: string; description?: string; emailNotificationsActivated?: boolean; organisation?: string; deleted?: null; };
         beforeEach(async () => {
@@ -89,8 +89,6 @@ describe('ROLE API', () => {
                 createdBy: adminId,
                 patientMapping: {},
                 name: projectName,
-                approvedFields: {},
-                approvedFiles: [],
                 lastModified: 20000002,
                 deleted: null
             };
@@ -138,15 +136,47 @@ describe('ROLE API', () => {
                 projectId: null,
                 studyId: setupStudy.id,
                 name: roleName,
-                permissions: [],
+                description: '',
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 createdBy: adminId,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
-                permissions: [],
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 studyId: setupStudy.id,
                 projectId: null,
                 users: []
@@ -169,7 +199,7 @@ describe('ROLE API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            expect(res.body.data.addRoleToStudyOrProject).toEqual(null);
+            expect(res.body.data.addRole).toEqual(null);
 
             const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
             expect(createdRole).toBe(null);
@@ -183,9 +213,22 @@ describe('ROLE API', () => {
                 projectId: null,
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
-                permissions: [
-                    permissions.specific_study.specific_study_role_management
-                ],
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [],
+                        [IPermissionManagementOptions.role]: [atomicOperation.READ, atomicOperation.WRITE],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: []
+                    }
+                },
                 users: [authorisedUserProfile.id],
                 deleted: null
             };
@@ -211,15 +254,47 @@ describe('ROLE API', () => {
                 projectId: null,
                 studyId: setupStudy.id,
                 name: roleName,
-                permissions: [],
+                description: '',
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 createdBy: authorisedUserProfile.id,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
-                permissions: [],
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 studyId: setupStudy.id,
                 projectId: null,
                 users: []
@@ -249,15 +324,47 @@ describe('ROLE API', () => {
                 projectId: setupProject.id,
                 studyId: setupStudy.id,
                 name: roleName,
-                permissions: [],
+                description: '',
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 createdBy: adminId,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
-                permissions: [],
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 studyId: setupStudy.id,
                 projectId: setupProject.id,
                 users: []
@@ -276,8 +383,6 @@ describe('ROLE API', () => {
                 createdBy: adminId,
                 patientMapping: {},
                 name: anotherProjectName,
-                approvedFields: {},
-                approvedFiles: [],
                 lastModified: 20000002,
                 deleted: null
             };
@@ -290,9 +395,22 @@ describe('ROLE API', () => {
                 projectId: anotherSetupProject.id,
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
-                permissions: [
-                    permissions.specific_project.specific_project_role_management
-                ],
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [],
+                        [IPermissionManagementOptions.role]: [atomicOperation.READ, atomicOperation.WRITE],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: []
+                    }
+                },
                 users: [authorisedUserProfile.id],
                 deleted: null
             };
@@ -311,7 +429,7 @@ describe('ROLE API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            expect(res.body.data.addRoleToStudyOrProject).toEqual(null);
+            expect(res.body.data.addRole).toEqual(null);
 
             const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
             expect(createdRole).toBe(null);
@@ -325,9 +443,22 @@ describe('ROLE API', () => {
                 projectId: setupProject.id,
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
-                permissions: [
-                    permissions.specific_project.specific_project_role_management
-                ],
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [],
+                        [IPermissionManagementOptions.role]: [atomicOperation.READ, atomicOperation.WRITE],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: []
+                    }
+                },
                 users: [authorisedUserProfile.id],
                 deleted: null
             };
@@ -353,15 +484,47 @@ describe('ROLE API', () => {
                 projectId: setupProject.id,
                 studyId: setupStudy.id,
                 name: roleName,
-                permissions: [],
+                description: '',
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 createdBy: authorisedUserProfile.id,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
-                permissions: [],
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 studyId: setupStudy.id,
                 projectId: setupProject.id,
                 users: []
@@ -379,9 +542,22 @@ describe('ROLE API', () => {
                 projectId: null,
                 studyId: setupStudy.id,
                 name: `${roleId}_rolename`,
-                permissions: [
-                    permissions.specific_study.specific_study_role_management
-                ],
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [],
+                        [IPermissionManagementOptions.role]: [atomicOperation.READ, atomicOperation.WRITE],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: []
+                    }
+                },
                 users: [authorisedUserProfile.id],
                 deleted: null
             };
@@ -407,15 +583,47 @@ describe('ROLE API', () => {
                 projectId: setupProject.id,
                 studyId: setupStudy.id,
                 name: roleName,
-                permissions: [],
+                description: '',
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 createdBy: authorisedUserProfile.id,
                 users: [],
-                deleted: null
+                deleted: null,
+                metadata: {}
             });
-            expect(res.body.data.addRoleToStudyOrProject).toEqual({
+            expect(res.body.data.addRole).toEqual({
                 id: createdRole.id,
                 name: roleName,
-                permissions: [],
+                permissions: {
+                    data: {
+                        fieldIds: [],
+                        hasVersioned: false,
+                        operations: [],
+                        subjectIds: [],
+                        visitIds: []
+                    },
+                    manage: {
+                        [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                        [IPermissionManagementOptions.role]: [],
+                        [IPermissionManagementOptions.job]: [],
+                        [IPermissionManagementOptions.query]: [],
+                        [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                    }
+                },
                 studyId: setupStudy.id,
                 projectId: setupProject.id,
                 users: []
@@ -438,7 +646,7 @@ describe('ROLE API', () => {
             expect(res.status).toBe(200);
             expect(res.body.errors).toHaveLength(1);
             expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            expect(res.body.data.addRoleToStudyOrProject).toEqual(null);
+            expect(res.body.data.addRole).toEqual(null);
 
             const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ name: roleName });
             expect(createdRole).toBe(null);
@@ -492,9 +700,22 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: `${roleId[0]}_rolename`,
-                    permissions: [
-                        permissions.specific_study.specific_study_role_management
-                    ],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [atomicOperation.READ, atomicOperation.WRITE],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [authorisedUserProfile.id],
                     deleted: null
@@ -505,7 +726,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: `${roleId[1]}_rolename`,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -533,7 +770,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -560,7 +813,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -573,7 +842,23 @@ describe('ROLE API', () => {
                     query: print(EDIT_ROLE),
                     variables: {
                         roleId: setupRole.id,
-                        name: newRoleName
+                        name: newRoleName,
+                        permissionChanges: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
+                        }
                     }
                 });
                 expect(res.status).toBe(200);
@@ -583,7 +868,23 @@ describe('ROLE API', () => {
                     name: newRoleName,
                     studyId: setupStudy.id,
                     projectId: null,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -593,7 +894,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: newRoleName,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -606,7 +923,23 @@ describe('ROLE API', () => {
                     query: print(EDIT_ROLE),
                     variables: {
                         roleId: setupRole.id,
-                        name: newRoleName
+                        name: newRoleName,
+                        permissionChanges: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
+                        }
                     }
                 });
                 expect(res.status).toBe(200);
@@ -616,7 +949,24 @@ describe('ROLE API', () => {
                     name: newRoleName,
                     studyId: setupStudy.id,
                     projectId: null,
-                    permissions: [],
+                    description: null,
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -626,7 +976,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: newRoleName,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -640,7 +1006,23 @@ describe('ROLE API', () => {
                     query: print(EDIT_ROLE),
                     variables: {
                         roleId: setupRole.id,
-                        name: newRoleName
+                        name: newRoleName,
+                        permissionChanges: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
+                        }
                     }
                 });
                 expect(res.status).toBe(200);
@@ -654,7 +1036,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: oldName,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -673,7 +1071,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -701,7 +1115,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -735,6 +1165,22 @@ describe('ROLE API', () => {
                         userChanges: {
                             add: [newUser.id],
                             remove: []
+                        },
+                        permissionChanges: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         }
                     }
                 });
@@ -745,7 +1191,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
@@ -760,7 +1222,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [newUser.id],
                     deleted: null
@@ -794,6 +1272,22 @@ describe('ROLE API', () => {
                         userChanges: {
                             add: [newUser.id],
                             remove: []
+                        },
+                        permissionChanges: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         }
                     }
                 });
@@ -804,7 +1298,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
@@ -819,7 +1329,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [newUser.id],
                     deleted: null
@@ -853,6 +1379,22 @@ describe('ROLE API', () => {
                         userChanges: {
                             add: [newUser.id],
                             remove: []
+                        },
+                        permissionChanges: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         }
                     }
                 });
@@ -867,7 +1409,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -910,6 +1468,22 @@ describe('ROLE API', () => {
                         userChanges: {
                             add: [],
                             remove: [newUser.id]
+                        },
+                        permissionChanges: {
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         }
                     }
                 });
@@ -920,7 +1494,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -930,7 +1520,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -949,7 +1555,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -961,11 +1583,20 @@ describe('ROLE API', () => {
                     variables: {
                         roleId: setupRole.id,
                         permissionChanges: {
-                            add: [
-                                permissions.specific_study.specific_study_projects_management,
-                                permissions.specific_study.specific_study_readonly_access
-                            ],
-                            remove: []
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.WRITE],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         }
                     }
                 });
@@ -976,10 +1607,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
-                    permissions: [
-                        permissions.specific_study.specific_study_projects_management,
-                        permissions.specific_study.specific_study_readonly_access
-                    ],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.WRITE],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -989,10 +1633,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [
-                        permissions.specific_study.specific_study_projects_management,
-                        permissions.specific_study.specific_study_readonly_access
-                    ],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.WRITE],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1004,14 +1661,49 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnDocument: 'after' });
+                }, {
+                    $set: {
+                        permissions: {
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
+                        }
+                    }
+                }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [permissions.specific_study.specific_study_readonly_access],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1023,10 +1715,20 @@ describe('ROLE API', () => {
                     variables: {
                         roleId: setupRole.id,
                         permissionChanges: {
-                            add: [
-                                permissions.specific_study.specific_study_readonly_access
-                            ],
-                            remove: []
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         }
                     }
                 });
@@ -1037,9 +1739,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
-                    permissions: [
-                        permissions.specific_study.specific_study_readonly_access
-                    ],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1049,9 +1765,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [
-                        permissions.specific_study.specific_study_readonly_access
-                    ],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1070,7 +1800,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1082,11 +1828,20 @@ describe('ROLE API', () => {
                     variables: {
                         roleId: setupRole.id,
                         permissionChanges: {
-                            add: [
-                                permissions.specific_study.specific_study_readonly_access,
-                                permissions.specific_study.specific_study_readonly_access
-                            ],
-                            remove: []
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         }
                     }
                 });
@@ -1097,9 +1852,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
-                    permissions: [
-                        permissions.specific_study.specific_study_readonly_access
-                    ],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1109,107 +1878,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [
-                        permissions.specific_study.specific_study_readonly_access
-                    ],
-                    createdBy: adminId,
-                    users: [],
-                    deleted: null
-                });
-            });
-
-            test('Adding a non-sense permission to role (admin) (should fail)', async () => {
-                /* setup: confirm that role has no permissions yet */
-                const role = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({
-                    id: setupRole.id,
-                    deleted: null
-                });
-                expect(role).toEqual({
-                    _id: setupRole._id,
-                    id: setupRole.id,
-                    projectId: null,
-                    studyId: setupStudy.id,
-                    name: setupRole.name,
-                    permissions: [],
-                    createdBy: adminId,
-                    users: [],
-                    deleted: null
-                });
-
-                /* test */
-                const res = await admin.post('/graphql').send({
-                    query: print(EDIT_ROLE),
-                    variables: {
-                        roleId: setupRole.id,
-                        permissionChanges: {
-                            add: [
-                                'I am a fake permission!'
-                            ],
-                            remove: []
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
                         }
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
-                expect(res.body.data.editRole).toEqual(null);
-                const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
-                expect(createdRole).toEqual({
-                    _id: setupRole._id,
-                    id: setupRole.id,
-                    projectId: null,
-                    studyId: setupStudy.id,
-                    name: setupRole.name,
-                    permissions: [],
-                    createdBy: adminId,
-                    users: [],
-                    deleted: null
-                });
-            });
-
-            test('Adding a project permission to study role (admin) (should fail)', async () => {
-                /* setup: confirm that role has no permissions yet */
-                const role = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({
-                    id: setupRole.id,
-                    deleted: null
-                });
-                expect(role).toEqual({
-                    _id: setupRole._id,
-                    id: setupRole.id,
-                    projectId: null,
-                    studyId: setupStudy.id,
-                    name: setupRole.name,
-                    permissions: [],
-                    createdBy: adminId,
-                    users: [],
-                    deleted: null
-                });
-
-                /* test */
-                const res = await admin.post('/graphql').send({
-                    query: print(EDIT_ROLE),
-                    variables: {
-                        roleId: setupRole.id,
-                        permissionChanges: {
-                            add: [
-                                permissions.specific_project.specific_project_role_management
-                            ],
-                            remove: []
-                        }
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
-                expect(res.body.data.editRole).toEqual(null);
-                const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
-                expect(createdRole).toEqual({
-                    _id: setupRole._id,
-                    id: setupRole.id,
-                    projectId: null,
-                    studyId: setupStudy.id,
-                    name: setupRole.name,
-                    permissions: [],
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1221,14 +1906,49 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access } }, { returnDocument: 'after' });
+                }, {
+                    $set: {
+                        permissions: {
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
+                        }
+                    }
+                }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [permissions.specific_study.specific_study_readonly_access],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1240,10 +1960,20 @@ describe('ROLE API', () => {
                     variables: {
                         roleId: setupRole.id,
                         permissionChanges: {
-                            add: [],
-                            remove: [
-                                permissions.specific_study.specific_study_readonly_access
-                            ]
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         }
                     }
                 });
@@ -1254,7 +1984,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1264,7 +2010,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1283,7 +2045,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1295,10 +2073,20 @@ describe('ROLE API', () => {
                     variables: {
                         roleId: setupRole.id,
                         permissionChanges: {
-                            add: [],
-                            remove: [
-                                permissions.specific_study.specific_study_readonly_access
-                            ]
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         }
                     }
                 });
@@ -1309,7 +2097,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1319,7 +2123,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1349,14 +2169,49 @@ describe('ROLE API', () => {
                 const role = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOneAndUpdate({
                     id: setupRole.id,
                     deleted: null
-                }, { $push: { permissions: permissions.specific_study.specific_study_readonly_access, users: newUser.id } }, { returnDocument: 'after' });
+                }, {
+                    $set: {
+                        permissions: {
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
+                        }, users: [newUser.id]
+                    }
+                }, { returnDocument: 'after' });
                 expect(role.value).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [permissions.specific_study.specific_study_readonly_access],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [newUser.id],
                     deleted: null
@@ -1368,13 +2223,20 @@ describe('ROLE API', () => {
                     variables: {
                         roleId: setupRole.id,
                         permissionChanges: {
-                            add: [
-                                permissions.specific_study.specific_study_projects_management,
-                                permissions.specific_study.specific_study_projects_management
-                            ],
-                            remove: [
-                                permissions.specific_study.specific_study_readonly_access
-                            ]
+                            data: {
+                                fieldIds: [],
+                                hasVersioned: false,
+                                operations: [],
+                                subjectIds: [],
+                                visitIds: []
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: []
+                            }
                         },
                         userChanges: {
                             add: [adminId],
@@ -1389,9 +2251,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupRole.studyId,
                     projectId: null,
-                    permissions: [
-                        permissions.specific_study.specific_study_projects_management
-                    ],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: [{
                         id: adminId,
                         organisation: 'organisation_system',
@@ -1406,9 +2282,23 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [
-                        permissions.specific_study.specific_study_projects_management
-                    ],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ, atomicOperation.WRITE],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     users: [adminId],
                     createdBy: adminId,
                     deleted: null
@@ -1418,7 +2308,7 @@ describe('ROLE API', () => {
 
         describe('EDIT PROJECT ROLE', () => {
             let setupStudy: { id: any; name?: string; createdBy?: any; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: never[]; };
-            let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; approvedFields?: Record<string, any>; approvedFiles?: never[]; lastModified?: number; deleted?: null; };
+            let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; lastModified?: number; deleted?: null; };
             let setupRole: { id: any; _id?: any; name: any; projectId?: string; studyId?: string; permissions?: never[]; createdBy?: any; users?: never[]; deleted?: null; };
             let authorisedUser: request.SuperTest<request.Test>;
             let authorisedUserProfile;
@@ -1444,8 +2334,6 @@ describe('ROLE API', () => {
                     createdBy: adminId,
                     patientMapping: {},
                     name: projectName,
-                    approvedFields: {},
-                    approvedFiles: [],
                     lastModified: 12103214,
                     deleted: null
                 };
@@ -1479,9 +2367,22 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: `${roleId[0]}_rolename`,
-                    permissions: [
-                        permissions.specific_project.specific_project_role_management
-                    ],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [atomicOperation.READ, atomicOperation.WRITE],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [authorisedUserProfile.id],
                     deleted: null
@@ -1492,7 +2393,23 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: `${roleId[1]}_rolename`,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1507,6 +2424,22 @@ describe('ROLE API', () => {
                     variables: {
                         roleId: setupRole.id,
                         name: newRoleName
+                    },
+                    permissionChanges: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
                     }
                 });
                 expect(res.status).toBe(200);
@@ -1516,7 +2449,23 @@ describe('ROLE API', () => {
                     name: newRoleName,
                     studyId: setupStudy.id,
                     projectId: setupProject.id,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1526,7 +2475,23 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: newRoleName,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1540,6 +2505,22 @@ describe('ROLE API', () => {
                     variables: {
                         roleId: setupRole.id,
                         name: newRoleName
+                    },
+                    permissionChanges: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
                     }
                 });
                 expect(res.status).toBe(200);
@@ -1549,7 +2530,23 @@ describe('ROLE API', () => {
                     name: newRoleName,
                     studyId: setupStudy.id,
                     projectId: setupProject.id,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     users: []
                 });
                 const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
@@ -1559,7 +2556,23 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: newRoleName,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1587,7 +2600,23 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: oldName,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1606,7 +2635,23 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1634,7 +2679,23 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1669,6 +2730,22 @@ describe('ROLE API', () => {
                             add: [newUser.id],
                             remove: []
                         }
+                    },
+                    permissionChanges: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
                     }
                 });
                 expect(res.status).toBe(200);
@@ -1678,7 +2755,23 @@ describe('ROLE API', () => {
                     name: setupRole.name,
                     studyId: setupStudy.id,
                     projectId: setupProject.id,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     users: [{
                         id: newUser.id,
                         organisation: newUser.organisation,
@@ -1693,7 +2786,23 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     createdBy: adminId,
                     users: [newUser.id],
                     deleted: null
@@ -1741,56 +2850,23 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: setupRole.name,
-                    permissions: [],
-                    createdBy: adminId,
-                    users: [],
-                    deleted: null
-                });
-            });
-
-            test('Adding a study permission to project role (admin) (should fail)', async () => {
-                /* setup: confirm that role has no permissions yet */
-                const role = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({
-                    id: setupRole.id,
-                    deleted: null
-                });
-                expect(role).toEqual({
-                    _id: setupRole._id,
-                    id: setupRole.id,
-                    projectId: setupProject.id,
-                    studyId: setupStudy.id,
-                    name: setupRole.name,
-                    permissions: [],
-                    createdBy: adminId,
-                    users: [],
-                    deleted: null
-                });
-
-                /* test */
-                const res = await admin.post('/graphql').send({
-                    query: print(EDIT_ROLE),
-                    variables: {
-                        roleId: setupRole.id,
-                        permissionChanges: {
-                            add: [
-                                permissions.specific_study.specific_study_role_management
-                            ],
-                            remove: []
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
                         }
-                    }
-                });
-                expect(res.status).toBe(200);
-                expect(res.body.errors).toHaveLength(1);
-                expect(res.body.errors[0].message).toBe(errorCodes.CLIENT_MALFORMED_INPUT);
-                expect(res.body.data.editRole).toEqual(null);
-                const createdRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOne({ id: setupRole.id });
-                expect(createdRole).toEqual({
-                    _id: setupRole._id,
-                    id: setupRole.id,
-                    projectId: setupProject.id,
-                    studyId: setupStudy.id,
-                    name: setupRole.name,
-                    permissions: [],
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1846,9 +2922,22 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: `${roleId[0]}_rolename`,
-                    permissions: [
-                        permissions.specific_study.specific_study_role_management
-                    ],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [atomicOperation.READ, atomicOperation.WRITE],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [authorisedUserProfile.id],
                     deleted: null
@@ -1859,7 +2948,22 @@ describe('ROLE API', () => {
                     projectId: null,
                     studyId: setupStudy.id,
                     name: `${roleId[1]}_rolename`,
-                    permissions: [],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null
@@ -1954,8 +3058,6 @@ describe('ROLE API', () => {
                     createdBy: adminId,
                     patientMapping: {},
                     name: projectName,
-                    approvedFields: {},
-                    approvedFiles: [],
                     lastModified: 12103214,
                     deleted: null
                 };
@@ -1989,9 +3091,22 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: `${roleId[0]}_rolename`,
-                    permissions: [
-                        permissions.specific_project.specific_project_role_management
-                    ],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [atomicOperation.READ, atomicOperation.WRITE],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [authorisedUserProfile.id],
                     deleted: null
@@ -2002,7 +3117,22 @@ describe('ROLE API', () => {
                     projectId: setupProject.id,
                     studyId: setupStudy.id,
                     name: `${roleId[1]}_rolename`,
-                    permissions: [],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: []
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
                     deleted: null

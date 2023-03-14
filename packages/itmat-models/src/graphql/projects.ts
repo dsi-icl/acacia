@@ -9,8 +9,6 @@ export const GET_PROJECT = gql`
             id
             studyId
             name
-            approvedFields @include(if: $admin)
-            approvedFiles @include(if: $admin)
             dataVersion {
                 id
                 version
@@ -28,6 +26,7 @@ export const GET_PROJECT = gql`
                 permissions
                 projectId
                 studyId
+                description
                 users {
                     id
                     firstname
@@ -61,37 +60,6 @@ export const GET_PROJECT_PATIENT_MAPPING = gql`
         getProject(projectId: $projectId) {
             id
             patientMapping
-        }
-    }
-`;
-
-export const EDIT_PROJECT_APPROVED_FIELDS = gql`
-    mutation editProjectApprovedFields($projectId: String!, $approvedFields: [String]!) {
-        editProjectApprovedFields(projectId: $projectId, approvedFields: $approvedFields) {
-            id
-            approvedFields
-            fields {
-                ...ALL_FOR_FIELD
-            }
-        }
-    }
-    ${FIELD_FRAGMENT}
-`;
-
-export const EDIT_PROJECT_APPROVED_FILES = gql`
-    mutation editProjectApprovedFiles($projectId: String!, $approvedFiles: [String]!) {
-        editProjectApprovedFiles(projectId: $projectId, approvedFiles: $approvedFiles) {
-            id
-            approvedFiles
-            files {
-                id
-                fileName
-                studyId
-                projectId
-                fileSize
-                description
-                uploadedBy
-            }
         }
     }
 `;

@@ -6,7 +6,7 @@ import { Query } from '@apollo/client/react/components';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
 import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, EDIT_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { IFile, userTypes, studyType, deviceTypes } from '@itmat-broker/itmat-types';
+import { IFile, userTypes, deviceTypes } from '@itmat-broker/itmat-types';
 import { FileList, formatBytes } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
@@ -109,55 +109,43 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
 
     const fileFilter = (files: StudyFile[]) => {
         files.forEach((file) => {
-            if (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR) {
-                const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
-                const particules = file.name.match(matcher);
-                if (particules?.length === 8) {
-                    if (Object.keys(sites).includes(particules[1].toUpperCase())
-                        && validate(particules[2].toUpperCase()))
-                        file.participantId = `${particules[1].toUpperCase()}${particules[2].toUpperCase()}`;
-                    if (Object.keys(deviceTypes).includes(particules[3].toUpperCase())
-                        && validate(particules[4].toUpperCase()))
-                        file.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
-                    const startDate = dayjs(particules[5], 'YYYYMMDD');
-                    const endDate = dayjs(particules[6], 'YYYYMMDD');
-                    if (startDate.isSame(endDate) || startDate.isBefore(endDate)) {
-                        if (startDate.isValid())
-                            file.startDate = startDate;
-                        if (endDate.isValid() && (endDate.isSame(dayjs()) || endDate.isBefore(dayjs())))
-                            file.endDate = endDate;
-                    }
+            const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
+            const particules = file.name.match(matcher);
+            if (particules?.length === 8) {
+                if (Object.keys(sites).includes(particules[1].toUpperCase())
+                    && validate(particules[2].toUpperCase()))
+                    file.participantId = `${particules[1].toUpperCase()}${particules[2].toUpperCase()}`;
+                if (Object.keys(deviceTypes).includes(particules[3].toUpperCase())
+                    && validate(particules[4].toUpperCase()))
+                    file.deviceId = `${particules[3].toUpperCase()}${particules[4].toUpperCase()}`;
+                const startDate = dayjs(particules[5], 'YYYYMMDD');
+                const endDate = dayjs(particules[6], 'YYYYMMDD');
+                if (startDate.isSame(endDate) || startDate.isBefore(endDate)) {
+                    if (startDate.isValid())
+                        file.startDate = startDate;
+                    if (endDate.isValid() && (endDate.isSame(dayjs()) || endDate.isBefore(dayjs())))
+                        file.endDate = endDate;
                 }
-                progressReports[`UP_${file.participantId}_${file.deviceId}_${file.startDate?.valueOf()}_${file.endDate?.valueOf()}`] = undefined;
-            } else if (getStudyData.getStudy.type === studyType.CLINICAL || getStudyData.getStudy.type === studyType.ANY) {
-                progressReports[`UP_${file.name}`] = undefined;
             }
+            progressReports[`UP_${file.participantId}_${file.deviceId}_${file.startDate?.valueOf()}_${file.endDate?.valueOf()}`] = undefined;
             file.uuid = uuid();
             fileList.push(file);
         });
         setFileList([...fileList]);
     };
-    const validFile = (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR) ? fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate)
-        : fileList.filter((file) => file.name);
+    const validFile = fileList.filter((file) => file.deviceId && file.participantId && file.startDate && file.endDate);
     const uploadHandler = () => {
 
         const uploads: Promise<any>[] = [];
         setIsUploading(true);
         validFile.forEach(file => {
-            let description: any;
-            let uploadMapHackName: any;
-            if (getStudyData.getStudy.type === undefined || getStudyData.getStudy.type === null || getStudyData.getStudy.type === studyType.SENSOR) {
-                description = {
-                    participantId: file.participantId?.trim().toUpperCase(),
-                    deviceId: file.deviceId?.trim().toUpperCase(),
-                    startDate: file.startDate?.valueOf(),
-                    endDate: file.endDate?.valueOf()
-                };
-                uploadMapHackName = `UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`;
-            } else {
-                description = {};
-                uploadMapHackName = `UP_${file.name}`;
-            }
+            const description = {
+                participantId: file.participantId?.trim().toUpperCase(),
+                deviceId: file.deviceId?.trim().toUpperCase(),
+                startDate: file.startDate?.valueOf(),
+                endDate: file.endDate?.valueOf()
+            };
+            const uploadMapHackName = `UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`;
             if (!(window as any).onUploadProgressHackMap)
                 (window as any).onUploadProgressHackMap = {};
             (window as any).onUploadProgressHackMap[uploadMapHackName] = (progressEvent) => {
@@ -307,40 +295,6 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
             };
         });
 
-    const fileNameColumns = [
-        {
-            title: 'File name',
-            dataIndex: 'name',
-            key: 'fileName',
-            sorter: (a, b) => a.fileName.localeCompare(b.fileName),
-            render: (value, record) => {
-                const progress = progressReports[`UP_${record.participantId}_${record.deviceId}_${record.startDate?.valueOf()}_${record.endDate?.valueOf()}`];
-                if (progress)
-                    return <Fragment key={uploadMovement}>{Math.round(1000 * (progress.loaded - 1) / progress.total) / 10}%</Fragment>;
-                return value;
-            }
-        },
-        {
-            key: 'delete',
-            render: (__unused__value, record) => <Button disabled={isUploading} type='primary' danger icon={<DeleteOutlined />} onClick={() => {
-                removeFile(record);
-            }}></Button>
-        }]
-        .map(col => ({
-            ...col,
-            onCell: record => ({
-                record: {
-                    ...record,
-                    period: [record.startDate, record.endDate]
-                },
-                editable: false,
-                dataIndex: col.dataIndex,
-                title: col.title,
-                handleSave
-            })
-        }
-        ));
-
     if (getOrgsLoading || getStudyLoading || getUsersLoading || whoAmILoading)
         return <LoadSpinner />;
 
@@ -357,28 +311,30 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
     }), {});
 
     function dataSourceFilter(files: IFile[]) {
-        if (getStudyData.getStudy.type === studyType.SENSOR) {
-            return files.filter(file =>
-                file !== null && file !== undefined &&
-                (!searchTerm
-                    || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1
-                    || sites[JSON.parse(file.description).participantId[0]].toUpperCase().indexOf(searchTerm) > -1
-                    || JSON.parse(file.description).deviceId.toUpperCase().indexOf(searchTerm) > -1
-                    || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
-                    || (!userIdNameMapping[file.uploadedBy] || userIdNameMapping[file.uploadedBy].toUpperCase().indexOf(searchTerm) > -1))
-            ).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime));
-        } else {
-            return files.filter(file =>
-                file !== null && file !== undefined &&
-                (!searchTerm
-                    || file.fileName.toUpperCase().indexOf(searchTerm) > -1));
+        const studyLevelFiles: IFile[] = [];
+        const subjectLevelFiles: IFile[] = [];
+        for (const file of files) {
+            if (Object.keys(JSON.parse(file.description)).length !== 0) {
+                if (file !== null && file !== undefined &&
+                    (!searchTerm
+                        || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1
+                        || sites[JSON.parse(file.description).participantId[0]].toUpperCase().indexOf(searchTerm) > -1
+                        || JSON.parse(file.description).deviceId.toUpperCase().indexOf(searchTerm) > -1
+                        || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
+                        || (!userIdNameMapping[file.uploadedBy] || userIdNameMapping[file.uploadedBy].toUpperCase().indexOf(searchTerm) > -1))) {
+                    subjectLevelFiles.push(file);
+                }
+            } else {
+                studyLevelFiles.push(file);
+            }
         }
+        return [subjectLevelFiles, studyLevelFiles];
     }
 
     const sortedFiles = dataSourceFilter(getStudyData.getStudy.files).sort((a, b) => parseInt((b as any).uploadTime) - parseInt((a as any).uploadTime));
-    const numberOfFiles = sortedFiles.length;
-    const sizeOfFiles = sortedFiles.reduce((a, b) => a + (parseInt(b['fileSize'] as any) || 0), 0);
-    const participantOfFiles = sortedFiles.reduce(function (values, v) {
+    const numberOfFiles = sortedFiles[0].length;
+    const sizeOfFiles = sortedFiles[0].reduce((a, b) => a + (parseInt(b['fileSize'] as any) || 0), 0);
+    const participantOfFiles = sortedFiles[0].reduce(function (values, v) {
         if (!values.set[JSON.parse(v['description'])['participantId']]) {
             (values as any).set[JSON.parse(v['description'])['participantId']] = 1;
             values.count++;
@@ -388,17 +344,17 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
     // format the file structure
     const fileSummary: any[] = [];
     const categoryColumns: any[] = [];
-    if (getStudyData.getStudy.type === studyType.SENSOR) {
-        const availableSites: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).participantId[0]).sort()));
-        const availableDeviceTypes: string[] = Array.from(new Set(getStudyData.getStudy.files.map(el => JSON.parse(el.description).deviceId.substr(0, 3)).sort()));
-        categoryColumns.push([
+    if (sortedFiles[0].length > 0) {
+        const availableSites: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description).participantId[0]).sort()));
+        const availableDeviceTypes: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description).deviceId.substr(0, 3)).sort()));
+        categoryColumns.push(
             {
                 title: 'Site',
                 dataIndex: 'site',
                 key: 'site',
                 render: (__unused__value, record) => sites[record.site] ? sites[record.site].concat(' (').concat(record.site).concat(')') : record.site
             }
-        ]);
+        );
         for (const deviceType of availableDeviceTypes) {
             categoryColumns.push({
                 title: deviceType,
@@ -418,18 +374,18 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                 site: site
             };
             for (const deviceType of availableDeviceTypes) {
-                tmpData[deviceType] = getStudyData.getStudy.files.filter(el => (JSON.parse(el.description).participantId[0] === site
+                tmpData[deviceType] = sortedFiles[0].filter(el => (JSON.parse(el.description).participantId[0] === site
                     && JSON.parse(el.description).deviceId.substr(0, 3) === deviceType)).length;
             }
-            tmpData.total = getStudyData.getStudy.files.filter(el => JSON.parse(el.description).participantId[0] === site).length;
+            tmpData.total = sortedFiles[0].filter(el => JSON.parse(el.description).participantId[0] === site).length;
             fileSummary.push(tmpData);
         }
         const tmpData: any = {
             site: 'Total',
-            total: getStudyData.getStudy.files.length
+            total: sortedFiles[0].length
         };
         for (const deviceType of availableDeviceTypes) {
-            tmpData[deviceType] = getStudyData.getStudy.files.filter(el => JSON.parse(el.description).deviceId.substr(0, 3) === deviceType).length;
+            tmpData[deviceType] = sortedFiles[0].filter(el => JSON.parse(el.description).deviceId.substr(0, 3) === deviceType).length;
         }
         fileSummary.push(tmpData);
     }
@@ -448,7 +404,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         rowKey={(rec) => rec.uuid}
                         rowClassName={() => css.editable_row}
                         pagination={false}
-                        columns={(getStudyData.getStudy.type === studyType.ANY || getStudyData.getStudy.type === studyType.CLINICAL) ? fileNameColumns : fileDetailsColumns}
+                        columns={fileDetailsColumns}
                         dataSource={fileList}
                         size='small'
                         components={{ body: { row: EditableRow, cell: EditableCell } }} />
@@ -522,13 +478,10 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         <span>Total Files: {numberOfFiles}</span>
                         <span>Total Size: {formatBytes(sizeOfFiles)}</span>
                         <span>Total Participants: {participantOfFiles}</span>
-                        {
-                            (getStudyData.getStudy.type === studyType.ANY || getStudyData.getStudy.type === studyType.CLINICAL) ? null :
-                                <Button onClick={() => setIsFileSummaryShown(true)}>File Details</Button>
-                        }
+                        <Button onClick={() => setIsFileSummaryShown(true)}>File Details</Button>
                     </Space>}
                 >
-                    <Modal visible={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'100%'}>
+                    <Modal open={isFileSummaryShown} onCancel={() => setIsFileSummaryShown(false)} onOk={() => setIsFileSummaryShown(false)} width={'60%'}>
                         <div>Number of files associated to sites and device types.</div><br />
                         <Table
                             pagination={false}
@@ -541,7 +494,8 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         </Space>
                     </Modal>
                     <Input.Search allowClear placeholder='Search' onChange={({ target: { value } }) => setSearchTerm(value?.toUpperCase())} />
-                    <FileList type={getStudyData.getStudy.type} files={sortedFiles} searchTerm={searchTerm}></FileList>
+                    <FileList files={sortedFiles[0]} searchTerm={searchTerm}></FileList>
+                    <FileList isStudyLevel={true} files={sortedFiles[1]} searchTerm={undefined}></FileList>
                     <br />
                     <br />
                 </SubsectionWithComment>

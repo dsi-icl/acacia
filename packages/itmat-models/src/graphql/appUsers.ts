@@ -11,6 +11,7 @@ export const GET_USERS = gql`
             lastname
             email @include (if: $fetchDetailsAdminOnly)
             emailNotificationsActivated @include (if: $fetchDetailsAdminOnly)
+            emailNotificationsStatus @include (if: $fetchDetailsAdminOnly)
             organisation
             createdAt @include (if: $fetchDetailsAdminOnly)
             expiredAt @include (if: $fetchDetailsAdminOnly)
@@ -27,6 +28,7 @@ export const GET_USERS = gql`
                     name
                 }
             }
+            metadata @include (if: $fetchDetailsAdminOnly)
         }
     }
 `;
@@ -40,10 +42,12 @@ export const EDIT_USER = gql`
         $lastname: String
         $email: String
         $emailNotificationsActivated: Boolean
+        $emailNotificationsStatus: JSON
         $password: String
         $description: String
         $organisation: String
         $expiredAt: Float
+        $metadata: JSON
     ) {
         editUser(user: {
             id: $id
@@ -52,11 +56,13 @@ export const EDIT_USER = gql`
             firstname: $firstname
             lastname: $lastname
             emailNotificationsActivated: $emailNotificationsActivated
+            emailNotificationsStatus: $emailNotificationsStatus
             email: $email
             description: $description
             organisation: $organisation
             type: $type
             expiredAt: $expiredAt
+            metadata: $metadata
         }) {
             ...ALL_FOR_USER
         }

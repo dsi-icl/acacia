@@ -19,14 +19,16 @@ export const EDIT_ROLE = gql`
     mutation editRole(
         $roleId: String!,
         $name: String,
-        $permissionChanges: StringArrayChangesInput,
+        $description: String,
+        $permissionChanges: JSON,
         $userChanges: StringArrayChangesInput
     ) {
-        editRole(roleId: $roleId, name: $name, permissionChanges: $permissionChanges, userChanges: $userChanges) {
+        editRole(roleId: $roleId, name: $name, description: $description, permissionChanges: $permissionChanges, userChanges: $userChanges) {
             id
             name
             studyId
             projectId
+            description
             permissions
             users {
                 id
@@ -34,17 +36,18 @@ export const EDIT_ROLE = gql`
                 firstname
                 lastname
             }
+            description
         }
     }
 `;
 
 export const ADD_NEW_ROLE = gql`
-    mutation addRoleToStudyOrProject(
+    mutation addRole(
         $studyId: String!
         $projectId: String,
         $roleName: String!
     ) {
-        addRoleToStudyOrProject (
+        addRole (
             studyId: $studyId,
             projectId: $projectId,
             roleName: $roleName,

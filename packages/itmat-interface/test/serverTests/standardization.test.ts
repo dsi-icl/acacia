@@ -30,7 +30,7 @@ import {
     DELETE_STANDARDIZATION,
     CREATE_ONTOLOGY_TREE
 } from '@itmat-broker/itmat-models';
-import { permissions, userTypes, IUser, studyType, IStudy, IProject, IRole } from '@itmat-broker/itmat-types';
+import { userTypes, IUser, studyType, IStudy, IProject, IRole, IPermissionManagementOptions, atomicOperation } from '@itmat-broker/itmat-types';
 import { Express } from 'express';
 
 
@@ -137,8 +137,7 @@ describe('STUDY API', () => {
                 expect(res.body.data.createProject).toEqual({
                     id: createdProject.id,
                     studyId: createdStudy.id,
-                    name: projectName,
-                    approvedFields: []
+                    name: projectName
                 });
             }
 
@@ -163,15 +162,47 @@ describe('STUDY API', () => {
                     projectId: null,
                     studyId: createdStudy.id,
                     name: roleName,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
-                    deleted: null
+                    deleted: null,
+                    metadata: {}
                 });
-                expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                expect(res.body.data.addRole).toEqual({
                     id: createdRole_study.id,
                     name: roleName,
-                    permissions: [],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     studyId: createdStudy.id,
                     projectId: null,
                     users: []
@@ -198,15 +229,47 @@ describe('STUDY API', () => {
                     projectId: null,
                     studyId: createdStudy.id,
                     name: roleName,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
-                    deleted: null
+                    deleted: null,
+                    metadata: {}
                 });
-                expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                expect(res.body.data.addRole).toEqual({
                     id: createdRole_study_manageProject.id,
                     name: roleName,
-                    permissions: [],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     studyId: createdStudy.id,
                     projectId: null,
                     users: []
@@ -233,15 +296,47 @@ describe('STUDY API', () => {
                     projectId: createdProject.id,
                     studyId: createdStudy.id,
                     name: roleName,
-                    permissions: [],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     createdBy: adminId,
                     users: [],
-                    deleted: null
+                    deleted: null,
+                    metadata: {}
                 });
-                expect(res.body.data.addRoleToStudyOrProject).toEqual({
+                expect(res.body.data.addRole).toEqual({
                     id: createdRole_project.id,
                     name: roleName,
-                    permissions: [],
+                    permissions: {
+                        data: {
+                            fieldIds: [],
+                            hasVersioned: false,
+                            operations: [],
+                            subjectIds: [],
+                            visitIds: []
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     studyId: createdStudy.id,
                     projectId: createdProject.id,
                     users: []
@@ -262,6 +357,7 @@ describe('STUDY API', () => {
                     resetPasswordRequests: [],
                     description: 'I am an authorised project user.',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
                     deleted: null,
                     id: `AuthorisedProjectUser_${username}`,
@@ -283,8 +379,20 @@ describe('STUDY API', () => {
                             remove: []
                         },
                         permissionChanges: {
-                            add: [permissions.specific_project.specific_project_readonly_access],
-                            remove: []
+                            data: {
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$'],
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ]
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
                         }
                     }
                 });
@@ -295,7 +403,23 @@ describe('STUDY API', () => {
                     name: createdRole_project.name,
                     studyId: createdStudy.id,
                     projectId: createdProject.id,
-                    permissions: [permissions.specific_project.specific_project_readonly_access],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     users: [{
                         id: createdUserAuthorised.id,
                         organisation: 'organisation_system',
@@ -346,6 +470,7 @@ describe('STUDY API', () => {
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user.',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
                     deleted: null,
                     id: `AuthorisedStudyUser_${username}`,
@@ -367,8 +492,20 @@ describe('STUDY API', () => {
                             remove: []
                         },
                         permissionChanges: {
-                            add: [permissions.specific_study.specific_study_readonly_access, permissions.specific_study.specific_study_data_management],
-                            remove: []
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: true,
+                                operations: [atomicOperation.READ, atomicOperation.WRITE],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
                         }
                     }
                 });
@@ -379,7 +516,23 @@ describe('STUDY API', () => {
                     name: createdRole_study.name,
                     studyId: createdStudy.id,
                     projectId: null,
-                    permissions: [permissions.specific_study.specific_study_readonly_access, permissions.specific_study.specific_study_data_management],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: true,
+                            operations: [atomicOperation.READ, atomicOperation.WRITE],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     users: [{
                         id: createdUserAuthorisedStudy.id,
                         organisation: 'organisation_system',
@@ -433,6 +586,7 @@ describe('STUDY API', () => {
                     resetPasswordRequests: [],
                     description: 'I am an authorised study user managing project.',
                     emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     organisation: 'organisation_system',
                     deleted: null,
                     id: `AuthorisedStudyUserManageProject_${username}`,
@@ -455,8 +609,20 @@ describe('STUDY API', () => {
                             remove: []
                         },
                         permissionChanges: {
-                            add: [permissions.specific_study.specific_study_projects_management],
-                            remove: []
+                            data: {
+                                fieldIds: ['^.*$'],
+                                hasVersioned: false,
+                                operations: [atomicOperation.READ, atomicOperation.WRITE],
+                                subjectIds: ['^.*$'],
+                                visitIds: ['^.*$']
+                            },
+                            manage: {
+                                [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                                [IPermissionManagementOptions.role]: [],
+                                [IPermissionManagementOptions.job]: [],
+                                [IPermissionManagementOptions.query]: [],
+                                [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                            }
                         }
                     }
                 });
@@ -467,7 +633,23 @@ describe('STUDY API', () => {
                     name: createdRole_study_manageProject.name,
                     studyId: createdStudy.id,
                     projectId: null,
-                    permissions: [permissions.specific_study.specific_study_projects_management],
+                    description: '',
+                    permissions: {
+                        data: {
+                            fieldIds: ['^.*$'],
+                            hasVersioned: false,
+                            operations: [atomicOperation.READ, atomicOperation.WRITE],
+                            subjectIds: ['^.*$'],
+                            visitIds: ['^.*$']
+                        },
+                        manage: {
+                            [IPermissionManagementOptions.own]: [atomicOperation.READ],
+                            [IPermissionManagementOptions.role]: [],
+                            [IPermissionManagementOptions.job]: [],
+                            [IPermissionManagementOptions.query]: [],
+                            [IPermissionManagementOptions.ontologyTrees]: [atomicOperation.READ]
+                        }
+                    },
                     users: [{
                         id: createdUserAuthorisedStudyManageProjects.id,
                         organisation: 'organisation_system',
@@ -531,8 +713,11 @@ describe('STUDY API', () => {
                             type: studyType.SENSOR
                         }]
                     },
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 });
             }
             /* connecting users */
@@ -605,8 +790,11 @@ describe('STUDY API', () => {
                         projects: [],
                         studies: []
                     },
+                    emailNotificationsActivated: true,
+                    emailNotificationsStatus: { expiringNotification: false },
                     createdAt: 1591134065000,
-                    expiredAt: 1991134065000
+                    expiredAt: 1991134065000,
+                    metadata: null
                 });
 
                 // study data is NOT deleted for audit purposes - unless explicitly requested separately
@@ -633,6 +821,7 @@ describe('STUDY API', () => {
 
         afterEach(async () => {
             await db.collections!.standardizations_collection.deleteMany({});
+            await db.collections!.studies_collection.findOneAndUpdate({ id: createdStudy.id, deleted: null }, { $set: { dataVersions: [], currentDataVersion: -1 } });
         });
 
         test('Create standardization (authorised user)', async () => {
@@ -675,6 +864,8 @@ describe('STUDY API', () => {
                         filters: null
                     }
                 ],
+                metadata: null,
+                uploadedAt: 1591134065000,
                 deleted: null
             });
         });
@@ -726,7 +917,10 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            const std = await db.collections!.standardizations_collection.findOne({});
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_DATA_VERSION),
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            });
             const res = await authorisedUserStudy.post('/graphql').send({
                 query: print(GET_STANDARDIZATION),
                 variables: {
@@ -734,6 +928,7 @@ describe('STUDY API', () => {
                     type: 'fakeType'
                 }
             });
+            const std = await db.collections!.standardizations_collection.findOne({ studyId: createdStudy.id, type: 'fakeType', field: ['$testField'] });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.getStandardization[0]).toEqual({
@@ -752,8 +947,87 @@ describe('STUDY API', () => {
                         filters: null
                     }
                 ],
+                dataVersion: std?.dataVersion,
+                metadata: null,
+                uploadedAt: 1591134065000,
                 deleted: null
             });
+        });
+
+        test('Get standardization with versioning (authorised user)', async () => {
+            await authorisedUserStudy.post('/graphql').send({
+                query: print(CREATE_STANDARDIZATION),
+                variables: {
+                    studyId: createdStudy.id,
+                    standardization: {
+                        type: 'fakeType',
+                        field: ['$testField'],
+                        path: ['testPath'],
+                        joinByKeys: [],
+                        stdRules: [
+                            {
+                                entry: 'fakeEntry',
+                                source: 'value',
+                                parameter: ['fakeValue'],
+                                filters: null
+                            }
+                        ]
+                    }
+                }
+            });
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_DATA_VERSION),
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            });
+            await authorisedUserStudy.post('/graphql').send({
+                query: print(CREATE_STANDARDIZATION),
+                variables: {
+                    studyId: createdStudy.id,
+                    standardization: {
+                        type: 'fakeType',
+                        field: ['$testField'],
+                        path: ['testPath'],
+                        joinByKeys: [],
+                        stdRules: [
+                            {
+                                entry: 'fakeEntryNew',
+                                source: 'value',
+                                parameter: ['fakeValue'],
+                                filters: null
+                            }
+                        ]
+                    }
+                }
+            });
+            // modify the uploadedAt of the second uploading as we use mock
+            await db.collections!.standardizations_collection.findOneAndUpdate({ stdRules: { $elemMatch: { entry: 'fakeEntryNew' } } }, {
+                $set: {
+                    uploadedAt: 1591134065001
+                }
+            });
+            const withNullVersion = await authorisedUserStudy.post('/graphql').send({
+                query: print(GET_STANDARDIZATION),
+                variables: {
+                    studyId: createdStudy.id,
+                    type: 'fakeType',
+                    versionId: null
+                }
+            });
+            expect(withNullVersion.status).toBe(200);
+            expect(withNullVersion.body.errors).toBeUndefined();
+            expect(withNullVersion.body.data.getStandardization).toHaveLength(1);
+            expect(withNullVersion.body.data.getStandardization[0].stdRules[0].entry).toBe('fakeEntryNew');
+            const withVersion = await authorisedUserStudy.post('/graphql').send({
+                query: print(GET_STANDARDIZATION),
+                variables: {
+                    studyId: createdStudy.id,
+                    type: 'fakeType'
+                }
+            });
+            expect(withVersion.status).toBe(200);
+            expect(withVersion.body.errors).toBeUndefined();
+            expect(withVersion.body.data.getStandardization).toHaveLength(1);
+            expect(withVersion.body.data.getStandardization[0].stdRules[0].entry).toBe('fakeEntry');
         });
 
         test('Get standardization (unauthorised user)', async () => {
@@ -815,12 +1089,15 @@ describe('STUDY API', () => {
                 query: print(DELETE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
-                    stdId: std?.id
+                    type: 'fakeType',
+                    field: ['$testField']
                 }
             });
             expect(res.status).toBe(200);
             expect(res.body.errors).toBeUndefined();
             expect(res.body.data.deleteStandardization).toEqual({
+                code: null,
+                description: null,
                 id: std?.id,
                 successful: true
             });
@@ -847,12 +1124,12 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            const std = await db.collections!.standardizations_collection.findOne({});
             const res = await user.post('/graphql').send({
                 query: print(DELETE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
-                    stdId: std?.id
+                    type: 'fakeType',
+                    field: ['$testField']
                 }
             });
             expect(res.status).toBe(200);
@@ -930,7 +1207,7 @@ describe('STUDY API', () => {
                     ]
                 }
             });
-            await authorisedUser.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_ONTOLOGY_TREE),
                 variables: {
                     studyId: createdStudy.id,
@@ -966,10 +1243,6 @@ describe('STUDY API', () => {
                 }
             });
             await admin.post('/graphql').send({
-                query: print(CREATE_NEW_DATA_VERSION),
-                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-            });
-            await authorisedUserStudy.post('/graphql').send({
                 query: print(CREATE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
@@ -1019,7 +1292,7 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            await authorisedUserStudy.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
@@ -1069,7 +1342,7 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            await authorisedUserStudy.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
@@ -1101,7 +1374,7 @@ describe('STUDY API', () => {
                     }
                 }
             });
-            await authorisedUserStudy.post('/graphql').send({
+            await admin.post('/graphql').send({
                 query: print(CREATE_STANDARDIZATION),
                 variables: {
                     studyId: createdStudy.id,
@@ -1136,7 +1409,10 @@ describe('STUDY API', () => {
                     }
                 }
             });
-
+            await admin.post('/graphql').send({
+                query: print(CREATE_NEW_DATA_VERSION),
+                variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
+            });
             const res = await authorisedUserStudy.post('/graphql').send({
                 query: print(GET_DATA_RECORDS),
                 variables: {

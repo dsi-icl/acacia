@@ -16,6 +16,21 @@ export type IQueryEntry = {
     new_fields: INewFieldSelection[];
 }
 
+// we do not reuse the cohort types directly to avoid conflicts
+export type IMetadataSelection = {
+    key: string;
+    op: enumMetadataSelectionOp;
+    parameter: string;
+}
+
+enum enumMetadataSelectionOp {
+    '=' = '=',
+    '!=' = '!=',
+    '>' = '>',
+    '<' = '<',
+    'exists' = 'exists', // not null nor undefined
+}
+
 export type ICohortSelection = {
     field: string;
     value: string;

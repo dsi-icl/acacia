@@ -21,11 +21,6 @@
         "defaultBase": "master"
     },
     "implicitDependencies": {},
-    "pluginsConfig": {
-        "@nrwl/js": {
-            "analyzeSourceFiles": false
-        }
-    },
     "generators": {
         "@nrwl/react": {
             "application": {
@@ -53,7 +48,8 @@
         "lint": {
             "inputs": [
                 "default",
-                "{workspaceRoot}/.eslintrc.json"
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintrc.js"
             ]
         },
         "e2e": {

@@ -103,7 +103,7 @@ export class CSVCurator {
                         this._numOfSubj++;
                         if (this._numOfSubj > 999) {
                             this._numOfSubj = 0;
-                            await bulkInsert.execute((err) => {
+                            await bulkInsert.execute().catch((err) => {
                                 if (err) {
                                     //TODO Handle error recording
                                     console.error(err);
@@ -118,7 +118,7 @@ export class CSVCurator {
 
             uploadWriteStream.on('finish', async () => {
                 if (!this._errored) {
-                    await bulkInsert.execute((err) => {
+                    await bulkInsert.execute().catch((err) => {
                         if (err) {
                             //TODO Handle error recording
                             console.error(err);

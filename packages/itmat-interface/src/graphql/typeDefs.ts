@@ -59,9 +59,12 @@ type Standardization {
     studyId: String!
     type: String!
     field: [String]!
-    path: [String]!
+    path: [String]
     joinByKeys: [String]
     stdRules: [StandardizationRule]
+    dataVersion: String
+    uploadedAt: Float
+    metadata: JSON
     deleted: String
 }
 
@@ -97,6 +100,7 @@ type Field {
     tableName: String
     dataType: FIELD_VALUE_TYPE!
     possibleValues: [ValueCategory]
+    metadata: JSON
     unit: String
     comments: String
     dataVersion: String
@@ -111,11 +115,6 @@ input DataClip {
     visitId: String!
     file: Upload
     metadata: JSON
-}
-
-type GeneralError {
-    code: String!
-    description: String
 }
 
 type UserAccess {
@@ -139,9 +138,11 @@ type User {
     email: String # admin only
     description: String # admin only
     emailNotificationsActivated: Boolean!
+    emailNotificationsStatus: JSON
     createdBy: String
     createdAt: Float!
     expiredAt: Float!
+    metadata: JSON
     # external to mongo documents:
     access: UserAccess # admin or self only
 }
@@ -192,8 +193,10 @@ type StudyOrProjectUserRole {
     name: String!
     studyId: String
     projectId: String
-    permissions: [String]!
+    description: String
+    permissions: JSON
     users: [User]!
+    metadata: JSON
 }
 
 type File {
@@ -207,6 +210,7 @@ type File {
     uploadTime: String!
     uploadedBy: String!
     hash: String!
+    metadata: JSON
 }
 
 type DataVersion {
@@ -221,6 +225,9 @@ type OntologyTree {
     id: String!
     name: String!
     routes: [OntologyRoute]
+    dataVersion: String!
+    metadata: JSON
+    deleted: Float
 }
 
 type OntologyRoute {
@@ -234,6 +241,7 @@ type OntologyRoute {
 input OntologyTreeInput {
     name: String!
     routes: [OntologyRouteInput]
+    metadata: JSON
 }
 
 input OntologyRouteInput {
@@ -259,9 +267,10 @@ type Study {
     roles: [StudyOrProjectUserRole]!
     # fields: [Field]!
     files: [File]!
-    subjects: [String]!
-    visits: [String]!
-    numOfRecords: Int!
+    subjects: JSON!
+    visits: JSON!
+    numOfRecords: [Int]!
+    metadata: JSON
 }
 
 type Project {
@@ -273,15 +282,14 @@ type Project {
 
     #only admin
     patientMapping: JSON!
-    approvedFields: JSON!
-    approvedFiles: [String]!
-
+    
     #external to mongo documents:
     jobs: [Job]!
     roles: [StudyOrProjectUserRole]!
     iCanEdit: Boolean
-    fields: [Field]! # fields of the study current dataversion but filtered to be only those in Project.approvedFields
+    fields: [Field]!
     files: [File]!
+    metadata: JSON
 }
 
 type Job {
@@ -421,7 +429,9 @@ type QueryEntry {
 
 type GenericResponse {
     successful: Boolean!
-    id: String
+    id: String,
+    code: String,
+    description: String
 }
 
 enum JOB_STATUS {
@@ -455,7 +465,8 @@ input CreateUserInput {
     description: String
     organisation: String!
     emailNotificationsActivated: Boolean
-    password: String!
+    password: String!,
+    metadata: JSON
 }
 
 input EditUserInput {
@@ -468,8 +479,10 @@ input EditUserInput {
     description: String
     organisation: String
     emailNotificationsActivated: Boolean
+    emailNotificationsStatus: JSON
     password: String
     expiredAt: Float
+    metadata: JSON
 }
 
 input IntArrayChangesInput {
@@ -495,12 +508,14 @@ input FieldInput {
     possibleValues: [ValueCategoryInput]
     unit: String
     comments: String
+    metadata: JSON
 }
 
 type SubjectDataRecordSummary {
     subjectId: String!
-    visitId: String
-    errorFields: [String]
+    visitId: String!
+    fieldId: String!
+    error: String!
 }
 
 type Query {
@@ -521,8 +536,8 @@ type Query {
     getProject(projectId: String!): Project
     getStudyFields(studyId: String!, projectId: String, versionId: String): [Field]
     getDataRecords(studyId: String!, queryString: JSON, versionId: String, projectId: String): JSON
-    getOntologyTree(studyId: String!, projectId: String, treeId: String): [OntologyTree]
-    getStandardization(studyId: String, projectId: String, type: String): [Standardization]
+    getOntologyTree(studyId: String!, projectId: String, treeName: String, versionId: String): [OntologyTree]
+    getStandardization(studyId: String, projectId: String, type: String, versionId: String): [Standardization]
     checkDataComplete(studyId: String!): [SubjectDataRecordSummary]
     
     # QUERY
@@ -569,27 +584,25 @@ type Mutation {
     deleteStudy(studyId: String!): GenericResponse
     editStudy(studyId: String!, description: String): Study
     createNewDataVersion(studyId: String!, dataVersion: String!, tag: String): DataVersion
-    uploadDataInArray(studyId: String!, data: [DataClip]): [GeneralError]
-    deleteDataRecords(studyId: String!, subjectIds: [String], visitIds: [String], fieldIds: [String]): [GeneralError]
-    createNewField(studyId: String!, fieldInput: [FieldInput]!): [GeneralError]
+    uploadDataInArray(studyId: String!, data: [DataClip]): [GenericResponse]
+    deleteDataRecords(studyId: String!, subjectIds: [String], visitIds: [String], fieldIds: [String]): [GenericResponse]
+    createNewField(studyId: String!, fieldInput: [FieldInput]!): [GenericResponse]
     editField(studyId: String!, fieldInput: FieldInput!): Field
     deleteField(studyId: String!, fieldId: String!): Field
     createOntologyTree(studyId: String!, ontologyTree: OntologyTreeInput!): OntologyTree
-    deleteOntologyTree(studyId: String!, treeId: String!): GenericResponse
+    deleteOntologyTree(studyId: String!, treeName: String!): GenericResponse
 
     # STANDARDIZATION
     createStandardization(studyId: String!, standardization: StandardizationInput): Standardization
-    deleteStandardization(studyId: String!, stdId: String!): GenericResponse
+    deleteStandardization(studyId: String!, type: String, field: [String]!): GenericResponse
 
     # PROJECT
-    createProject(studyId: String!, projectName: String!, approvedFields: [String]): Project
+    createProject(studyId: String!, projectName: String!): Project
     deleteProject(projectId: String!): GenericResponse
-    editProjectApprovedFields(projectId: String!, approvedFields: [String]!): Project
-    editProjectApprovedFiles(projectId: String!, approvedFiles: [String]!): Project
 
     # ACCESS MANAGEMENT
-    addRoleToStudyOrProject(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole
-    editRole(roleId: String!, name: String, permissionChanges: StringArrayChangesInput, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
+    addRole(studyId: String!, projectId: String, roleName: String!): StudyOrProjectUserRole
+    editRole(roleId: String!, name: String, description: String, permissionChanges: JSON, userChanges: StringArrayChangesInput): StudyOrProjectUserRole
     removeRole(roleId: String!): GenericResponse
 
     # FILES

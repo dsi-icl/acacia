@@ -253,8 +253,8 @@ export function findDmField(ontologyTree: IOntologyTree, fields: IFieldEntry[], 
     if (!field) {
         return null;
     }
-    return {
+    return node.visitRange ? {
         ...field,
         visitRange: node.visitRange
-    };
+    } : null;
 }
