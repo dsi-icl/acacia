@@ -295,40 +295,6 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
             };
         });
 
-    const fileNameColumns = [
-        {
-            title: 'File name',
-            dataIndex: 'name',
-            key: 'fileName',
-            sorter: (a, b) => a.fileName.localeCompare(b.fileName),
-            render: (value, record) => {
-                const progress = progressReports[`UP_${record.participantId}_${record.deviceId}_${record.startDate?.valueOf()}_${record.endDate?.valueOf()}`];
-                if (progress)
-                    return <Fragment key={uploadMovement}>{Math.round(1000 * (progress.loaded - 1) / progress.total) / 10}%</Fragment>;
-                return value;
-            }
-        },
-        {
-            key: 'delete',
-            render: (__unused__value, record) => <Button disabled={isUploading} type='primary' danger icon={<DeleteOutlined />} onClick={() => {
-                removeFile(record);
-            }}></Button>
-        }]
-        .map(col => ({
-            ...col,
-            onCell: record => ({
-                record: {
-                    ...record,
-                    period: [record.startDate, record.endDate]
-                },
-                editable: false,
-                dataIndex: col.dataIndex,
-                title: col.title,
-                handleSave
-            })
-        }
-        ));
-
     if (getOrgsLoading || getStudyLoading || getUsersLoading || whoAmILoading)
         return <LoadSpinner />;
 

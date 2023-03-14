@@ -256,15 +256,14 @@ export const fileResolvers = {
             if (!Object.keys(deviceTypes).includes(device)) {
                 throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
-            const targetFieldId = `Device_${deviceTypes[device].replace(' ', '_')}`;
+            const targetFieldId = `Device_${(deviceTypes[device] as string).replace(/ /g, '_')}`;
             if (!permissionCore.checkDataEntryValid(hasStudyLevelPermission.raw, targetFieldId, parsedDescription.subjectId, parsedDescription.visitId)) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
-
             // update data record
             const obj = {
                 m_studyId: file.studyId,
-                m_subjectId: parsedDescription.subjectId,
+                m_subjectId: parsedDescription.participantId,
                 m_versionId: null,
                 m_visitId: targetVisitId,
                 m_fieldId: targetFieldId
@@ -292,10 +291,9 @@ export const fileResolvers = {
                     'remove': ((existing?.metadata as any)?.remove || []).concat(args.fileId)
                 }
             };
+            const updateResult = await db.collections!.data_collection.updateOne(obj, { $set: objWithData }, { upsert: true });
 
-            await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, { upsert: true });
-
-            const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
+            // const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
             if (updateResult.modifiedCount === 1 || updateResult.upsertedCount === 1) {
                 return makeGenericReponse();
             } else {
