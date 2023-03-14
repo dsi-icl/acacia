@@ -57,7 +57,7 @@ export const fileResolvers = {
             if (!parsedDescription) {
                 throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
-            if (!parsedDescription.subjectId) {
+            if (!parsedDescription.participantId) {
                 isStudyLevel = true;
             } else {
                 isStudyLevel = false;
@@ -77,14 +77,14 @@ export const fileResolvers = {
                     targetFieldId = parsedDescription.fieldId;
                 } else {
                     const device = parsedDescription.deviceId?.slice(0, 3);
-                    targetFieldId = `Device_${deviceTypes[device].replace(' ', '_')}`;
+                    targetFieldId = `Device_${deviceTypes[device].replace(/ /g, '_')}`;
                 }
                 // check fieldId exists
                 if (!await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1)) {
                     throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                 }
                 // check field permission
-                if (!permissionCore.checkDataEntryValid(await permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, args.studyId, undefined), targetFieldId, parsedDescription.subjectId, parsedDescription.visitId)) {
+                if (!permissionCore.checkDataEntryValid(await permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, args.studyId, undefined), targetFieldId, parsedDescription.participantId, parsedDescription.visitId)) {
                     throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
                 }
             }
@@ -189,7 +189,7 @@ export const fileResolvers = {
                             // update data record
                             const obj = {
                                 m_studyId: args.studyId,
-                                m_subjectId: parsedDescription.subjectId,
+                                m_subjectId: parsedDescription.participantId,
                                 m_versionId: null,
                                 m_visitId: targetVisitId,
                                 m_fieldId: targetFieldId
@@ -214,10 +214,10 @@ export const fileResolvers = {
                                 uploadedAt: (new Date()).valueOf(),
                                 metadata: {
                                     'uploader:user': requester.id,
-                                    'add': ((existing?.metadata as any)?.add || []).concat(fileEntry.id)
+                                    'add': ((existing?.metadata as any)?.add || []).concat(fileEntry.id),
+                                    'remove': []
                                 }
                             };
-
                             await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, { upsert: true });
                         }
                         const insertResult = await db.collections!.files_collection.insertOne(fileEntry as IFile);
@@ -257,7 +257,7 @@ export const fileResolvers = {
                 throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
             const targetFieldId = `Device_${(deviceTypes[device] as string).replace(/ /g, '_')}`;
-            if (!permissionCore.checkDataEntryValid(hasStudyLevelPermission.raw, targetFieldId, parsedDescription.subjectId, parsedDescription.visitId)) {
+            if (!permissionCore.checkDataEntryValid(hasStudyLevelPermission.raw, targetFieldId, parsedDescription.participantId, parsedDescription.visitId)) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             // update data record
