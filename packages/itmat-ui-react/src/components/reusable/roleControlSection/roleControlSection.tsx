@@ -257,13 +257,6 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
             }
         ];
     };
-    const x = {
-        ...role.permissions.data,
-        ...role.permissions.manage,
-        description: role.description
-    };
-    console.log(role);
-    console.log(x);
     return (
         <Mutation<any, any>
             mutation={EDIT_ROLE}
