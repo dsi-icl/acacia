@@ -512,34 +512,50 @@ export const studyResolvers = {
                 requester,
                 study.id
             );
-            if (!hasPermission) {
-                return [];
-            }
-            const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            if (hasPermission.hasVersioned) {
-                availableDataVersions.push(null);
-            }
-            // we do not use metadata filter because unvesioned data is needed
-            const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
-                $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
-            }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
-                $group: {
-                    _id: '$fieldId',
-                    doc: { $last: '$$ROOT' }
+            let adds: string[] = [];
+            let removes: string[] = [];
+            if (hasPermission) {
+                const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+                if (hasPermission.hasVersioned) {
+                    availableDataVersions.push(null);
                 }
-            }, {
-                $replaceRoot: {
-                    newRoot: '$doc'
+                // we do not use metadata filter because unvesioned data is needed
+                const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
+                    $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
+                }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
+                    $group: {
+                        _id: '$fieldId',
+                        doc: { $last: '$$ROOT' }
+                    }
+                }, {
+                    $replaceRoot: {
+                        newRoot: '$doc'
+                    }
+                }, {
+                    $sort: { fieldId: 1 }
+                }]).toArray()).map(el => el.fieldId);
+                let fileRecords;
+                if (Object.keys(hasPermission.matchObj).length === 0) {
+                    // ADMIN
+                    fileRecords = (await db.collections!.data_collection.aggregate([{
+                        $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+                    }]).toArray());
+                } else {
+                    const subqueries: any = [];
+                    hasPermission.matchObj.forEach((subMetadata: any) => {
+                        subqueries.push(translateMetadata(subMetadata));
+                    });
+                    const metadataFilter = { $or: subqueries };
+                    fileRecords = (await db.collections!.data_collection.aggregate([{
+                        $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+                    }, {
+                        $match: metadataFilter
+                    }]).toArray());
                 }
-            }, {
-                $sort: { fieldId: 1 }
-            }]).toArray()).map(el => el.fieldId);
-            const fileRecords = (await db.collections!.data_collection.aggregate([{
-                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
-            }]).toArray());
-            const adds: string[] = fileRecords.map(el => el.metadata?.add || []).flat();
-            const removes: string[] = fileRecords.map(el => el.metadata?.remove || []).flat();
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, id: { $in: adds, $nin: removes } }).toArray();
+                adds = fileRecords.map(el => el.metadata?.add || []).flat();
+                removes = fileRecords.map(el => el.metadata?.remove || []).flat();
+            }
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, $or: [{ id: { $in: adds, $nin: removes } }, { description: JSON.stringify({}) }] }).toArray();
         },
         subjects: async (study: IStudy, __unused__args: never, context: any): Promise<Array<Array<string>>> => {
             const requester: IUser = context.req.user;
@@ -721,7 +737,8 @@ export const studyResolvers = {
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
                 requester,
-                project.studyId
+                project.studyId,
+                project.id
             );
             if (!hasPermission) {
                 return [];
@@ -758,12 +775,28 @@ export const studyResolvers = {
             }]).toArray()).map(el => el.fieldId);
             let add: string[] = [];
             let remove: string[] = [];
-            (await db.collections!.data_collection.aggregate([{
-                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
-            }]).toArray()).forEach(element => {
-                add = add.concat(element.metadata?.add || []);
-                remove = remove.concat(element.metadata?.remove || []);
-            });
+            if (Object.keys(hasPermission.matchObj).length === 0) {
+                (await db.collections!.data_collection.aggregate([{
+                    $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+                }]).toArray()).forEach(element => {
+                    add = add.concat(element.metadata?.add || []);
+                    remove = remove.concat(element.metadata?.remove || []);
+                });
+            } else {
+                const subqueries: any = [];
+                hasPermission.matchObj.forEach((subMetadata: any) => {
+                    subqueries.push(translateMetadata(subMetadata));
+                });
+                const metadataFilter = { $or: subqueries };
+                (await db.collections!.data_collection.aggregate([{
+                    $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+                }, {
+                    $match: metadataFilter
+                }]).toArray()).forEach(element => {
+                    add = add.concat(element.metadata?.add || []);
+                    remove = remove.concat(element.metadata?.remove || []);
+                });
+            }
             return await db.collections!.files_collection.find({ $and: [{ id: { $in: add } }, { id: { $nin: remove } }] }).toArray();
         },
         dataVersion: async (project: IProject): Promise<IStudyDataVersion | null> => {

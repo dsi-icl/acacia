@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { IFile, studyType, IOrganisation, IUser, atomicOperation, IDataEntry } from '@itmat-broker/itmat-types';
+import { IFile, IOrganisation, IUser, atomicOperation, IPermissionManagementOptions, IDataEntry } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { FileUpload } from 'graphql-upload-minimal';
 import { db } from '../../database/database';
@@ -27,29 +27,22 @@ export const fileResolvers = {
             if (!study) {
                 throw new GraphQLError('Study does not exist.');
             }
-            let targetFieldId: string;
-            if (study.type === studyType.SENSOR || study.type === studyType.CLINICAL || !study.type) {
-                const parsedDescription = JSON.parse(args.description);
-                const device = parsedDescription.deviceId.slice(0, 3);
-                if (!Object.keys(deviceTypes).includes(device)) {
-                    throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-                }
-                targetFieldId = `Device_${deviceTypes[device].replace(' ', '_')}`;
-                // check target field exists
-                if (!permissionCore.checkDataEntryValid(await permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, args.studyId, undefined), targetFieldId, parsedDescription.subjectId, parsedDescription.visitId)) {
-                    throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
-                }
-            }
-            const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
+
+            const hasStudyLevelSubjectPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,
                 requester,
                 args.studyId
             );
-            if (!hasStudyLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
+            const hasStudyLevelStudyDataPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
+                IPermissionManagementOptions.own,
+                atomicOperation.READ,
+                requester,
+                args.studyId
+            );
+            if (!hasStudyLevelSubjectPermission && !hasStudyLevelStudyDataPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
 
-            const file = await args.file;
-            const fileNameParts = file.filename.split('.');
-
+            let targetFieldId: string;
+            let isStudyLevel = false;
             // obtain sitesIDMarker from db
             const sitesIDMarkers = (await db.collections!.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<any>((acc, curr) => {
                 if (curr.metadata?.siteIDMarker) {
@@ -57,11 +50,51 @@ export const fileResolvers = {
                 }
                 return acc;
             }, {});
-            return new Promise<IFile>((resolve, reject) => {
+            // if the description object is empty, then the file is study-level data
+            // otherwise, a subjectId must be provided in the description object
+            // we will check other properties in the decription object (deviceId, startDate, endDate)
+            const parsedDescription = JSON.parse(args.description);
+            if (!parsedDescription) {
+                throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+            }
+            if (!parsedDescription.subjectId) {
+                isStudyLevel = true;
+            } else {
+                isStudyLevel = false;
+                if (!Object.keys(sitesIDMarkers).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase())) {
+                    throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+                }
+                // check deviceId, startDate, endDate if necessary
+                if (parsedDescription.deviceId && parsedDescription.startDate && parsedDescription.endDate) {
+                    if (!Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
+                        !validate(parsedDescription.participantId?.substr(1) ?? '') ||
+                        !validate(parsedDescription.deviceId.substr(3) ?? '')) {
+                        throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+                    }
+                }
+                // if the targetFieldId is in the description object; then use the fieldId, otherwise, infer it from the device types
+                if (parsedDescription.fieldid) {
+                    targetFieldId = parsedDescription.fieldId;
+                } else {
+                    const device = parsedDescription.deviceId?.slice(0, 3);
+                    targetFieldId = `Device_${deviceTypes[device].replace(' ', '_')}`;
+                }
+                // check fieldId exists
+                if (!await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1)) {
+                    throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
+                }
+                // check field permission
+                if (!permissionCore.checkDataEntryValid(await permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, args.studyId, undefined), targetFieldId, parsedDescription.subjectId, parsedDescription.visitId)) {
+                    throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
+                }
+            }
 
+            const file = await args.file;
+            const fileNameParts = file.filename.split('.');
+
+            return new Promise<IFile>((resolve, reject) => {
                 (async () => {
                     try {
-
                         const fileEntry: Partial<IFile> = {
                             id: uuid(),
                             fileName: file.filename,
@@ -75,7 +108,7 @@ export const fileResolvers = {
                         // description varies: SENSOR, CLINICAL (only participantId), ANY (No check)
                         // check filename and description is valid and matches each other
                         const parsedDescription = JSON.parse(args.description);
-                        if (!study.type || study.type === studyType.SENSOR || study.type === studyType.CLINICAL) {
+                        if (!isStudyLevel) {
                             const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
                             if (!matcher.test(file.filename)) {
                                 let startDate;
@@ -152,7 +185,7 @@ export const fileResolvers = {
                         fileEntry.fileSize = readBytes.toString();
                         fileEntry.uri = fileUri;
                         fileEntry.hash = hashString;
-                        if (study.type === studyType.SENSOR || study.type === studyType.CLINICAL || !study.type) {
+                        if (!isStudyLevel) {
                             // update data record
                             const obj = {
                                 m_studyId: args.studyId,
@@ -214,21 +247,23 @@ export const fileResolvers = {
                 file.studyId
             );
             if (!hasStudyLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
-
             const parsedDescription = JSON.parse(file.description);
+            if (Object.keys(parsedDescription).length === 0) {
+                await db.collections!.files_collection.findOneAndUpdate({ deleted: null, id: args.fileId }, { $set: { deleted: Date.now().valueOf() } });
+                return makeGenericReponse();
+            }
             const device = parsedDescription.deviceId.slice(0, 3);
             if (!Object.keys(deviceTypes).includes(device)) {
                 throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
-            const targetFieldId = `Device_${deviceTypes[device].replace(' ', '_')}`;
+            const targetFieldId = `Device_${(deviceTypes[device] as string).replace(/ /g, '_')}`;
             if (!permissionCore.checkDataEntryValid(hasStudyLevelPermission.raw, targetFieldId, parsedDescription.subjectId, parsedDescription.visitId)) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
-
             // update data record
             const obj = {
                 m_studyId: file.studyId,
-                m_subjectId: parsedDescription.subjectId,
+                m_subjectId: parsedDescription.participantId,
                 m_versionId: null,
                 m_visitId: targetVisitId,
                 m_fieldId: targetFieldId
@@ -253,13 +288,12 @@ export const fileResolvers = {
                 uploadedAt: (new Date()).valueOf(),
                 metadata: {
                     'uploader:user': requester.id,
-                    'remove': ((existing?.metadata as any).remove || []).concat(args.fileId)
+                    'remove': ((existing?.metadata as any)?.remove || []).concat(args.fileId)
                 }
             };
+            const updateResult = await db.collections!.data_collection.updateOne(obj, { $set: objWithData }, { upsert: true });
 
-            await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, { upsert: true });
-
-            const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
+            // const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
             if (updateResult.modifiedCount === 1 || updateResult.upsertedCount === 1) {
                 return makeGenericReponse();
             } else {
