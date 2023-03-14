@@ -86,7 +86,7 @@ export class FieldCurator {
                         this._numOfFields++;
                         if (this._numOfFields > 999) {
                             this._numOfFields = 0;
-                            await bulkInsert.execute((err) => {
+                            await bulkInsert.execute().catch((err) => {
                                 if (err) {
                                     //TODO Handle error recording
                                     console.error(err);
@@ -108,7 +108,7 @@ export class FieldCurator {
                 }
 
                 if (!this._errored) {
-                    await bulkInsert.execute((err) => {
+                    await bulkInsert.execute().catch((err) => {
                         if (err) {
                             //TODO Handle error recording
                             console.error(err);

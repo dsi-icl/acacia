@@ -90,10 +90,10 @@ export class JSONCurator {
                     }
                     if (this._numOfSubj > 999) {
                         this._numOfSubj = 0;
-                        await bulkInsert.execute((err, res) => {
+                        await bulkInsert.execute().catch((err) => {
                             if (err) {
                                 //TODO Handle error recording
-                                console.error(err, res?.getWriteErrors());
+                                console.error(err, err?.getWriteErrors?.());
                                 return;
                             }
                         });
@@ -105,7 +105,7 @@ export class JSONCurator {
 
             uploadWriteStream.on('finish', async () => {
                 if (!this._errored) {
-                    await bulkInsert.execute((err) => {
+                    await bulkInsert.execute().catch((err) => {
                         if (err) {
                             //TOTO Handle error recording
                             console.error(err);
