@@ -76,7 +76,7 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
                 </div>
             </NavLink >
         </div >
-        {((window.location.origin.includes('staging') || window.location.origin.includes('localhost')) && (whoAmIData.whoAmI.type === userTypes.ADMIN || whoAmIData.whoAmI.metadata?.aePermission === true))
+        {(whoAmIData.whoAmI.type === userTypes.ADMIN || whoAmIData.whoAmI.metadata?.aePermission === true)
             ? <div>
                 <NavLink to='/pun/sys/dashboard' target='_blank' title='Analytical Environment' className={({ isActive }) => isActive ? css.clickedButton : undefined}>
                     <div className={css.button}><DesktopOutlined /> Analytical Environment</div>

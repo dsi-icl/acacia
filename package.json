@@ -1,6 +1,6 @@
 {
     "name": "itmat-broker",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "private": true,
     "license": "MIT",
     "scripts": {
@@ -48,7 +48,7 @@
         "@types/cors": "2.8.13",
         "@types/express": "4.17.17",
         "@types/express-session": "1.17.6",
-        "@types/jest": "29.4.1",
+        "@types/jest": "29.4.2",
         "@types/json2csv": "5.0.3",
         "@types/jsonwebtoken": "9.0.1",
         "@types/minio": "7.0.17",
@@ -66,7 +66,7 @@
         "@typescript-eslint/eslint-plugin": "^5.55.0",
         "@typescript-eslint/parser": "^5.55.0",
         "css-loader": "^6.7.3",
-        "cypress": "^12.7.0",
+        "cypress": "^12.8.0",
         "eslint": "~8.36.0",
         "eslint-config-prettier": "8.7.0",
         "eslint-plugin-cypress": "2.12.1",
