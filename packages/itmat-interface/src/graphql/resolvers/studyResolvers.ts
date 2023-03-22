@@ -541,15 +541,12 @@ export const studyResolvers = {
                         $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
                     }]).toArray());
                 } else {
-                    const subqueries: any = [];
-                    hasPermission.matchObj.forEach((subMetadata: any) => {
-                        subqueries.push(translateMetadata(subMetadata));
-                    });
-                    const metadataFilter = { $or: subqueries };
                     fileRecords = (await db.collections!.data_collection.aggregate([{
                         $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
                     }, {
-                        $match: metadataFilter
+                        $match: { m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) } }
+                    }, {
+                        $match: { m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) } }
                     }]).toArray());
                 }
                 adds = fileRecords.map(el => el.metadata?.add || []).flat();
@@ -999,6 +996,9 @@ export const studyResolvers = {
                     fieldEntry.dataVersion = null;
                     fieldEntry.dateAdded = (new Date()).valueOf();
                     fieldEntry.dateDeleted = null;
+                    fieldEntry.metadata = {
+                        uploader: requester.id
+                    };
                     bulk.find({
                         fieldId: fieldEntry.fieldId,
                         studyId: studyId,

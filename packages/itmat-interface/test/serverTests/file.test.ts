@@ -196,7 +196,6 @@ if (global.hasMinio) {
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
                         .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
-
                     /* setup: geting the created file Id */
                     const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
