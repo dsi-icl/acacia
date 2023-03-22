@@ -283,7 +283,14 @@ export const userResolvers = {
                 return makeGenericReponse(context.req.user);
             }
             return new Promise((resolve) => {
-                req.logout();
+                req.logout((err) => {
+                    if (err) {
+                        Logger.error(err);
+                        throw new GraphQLError('Cannot log out');
+                    } else {
+                        resolve(makeGenericReponse(context.req.user));
+                    }
+                });
             });
         },
         createUser: async (__unused__parent: Record<string, unknown>, args: any): Promise<IGenericResponse> => {
