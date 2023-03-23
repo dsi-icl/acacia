@@ -81,7 +81,7 @@ export const fileResolvers = {
                     targetFieldId = `Device_${deviceTypes[device].replace(/ /g, '_')}`;
                 }
                 // check fieldId exists
-                if (!await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1)) {
+                if (!(await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length) {
                     throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                 }
                 // check field permission

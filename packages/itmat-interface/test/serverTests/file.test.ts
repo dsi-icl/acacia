@@ -14,7 +14,7 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { Db, MongoClient } from 'mongodb';
-import { studyType, IStudy, IUser, IRole, IFile, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
+import { studyType, IStudy, IUser, IRole, IFile, IFieldEntry, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } from '@itmat-broker/itmat-models';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
@@ -132,6 +132,65 @@ if (global.hasMinio) {
                         type: studyType.ANY
                     });
 
+                    // create field for both studies
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                        fieldId: 'Device_McRoberts',
+                        fieldName: 'Device_McRoberts',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid MMM',
+                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5524',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.61,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }, {
+                        fieldId: 'Device_Axivity',
+                        fieldName: 'Device_Axivity',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid AX6',
+                        id: 'ff0c2e60-5086-4111-91ca-475168977ae6',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.57,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }]);
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                        fieldId: 'Device_McRoberts',
+                        fieldName: 'Device_McRoberts',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid MMM',
+                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5525',
+                        studyId: createANYStudyRes.id,
+                        dateAdded: 1679419198219.61,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }, {
+                        fieldId: 'Device_Axivity',
+                        fieldName: 'Device_Axivity',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid AX6',
+                        id: 'ff0c2e60-5086-4111-91ca-475168977ae5',
+                        studyId: createANYStudyRes.id,
+                        dateAdded: 1679419198219.57,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }]);
                     /* setup: creating a privileged user */
                     const username = uuid();
                     authorisedUserProfile = {
@@ -179,6 +238,12 @@ if (global.hasMinio) {
 
                     authorisedUser = request.agent(app);
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
+                });
+
+                afterEach(async () => {
+                    await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
                 });
 
                 test('Upload file to SENSOR study (admin)', async () => {
@@ -433,7 +498,35 @@ if (global.hasMinio) {
                         description: 'test description',
                         type: studyType.SENSOR
                     });
-
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                        fieldId: 'Device_McRoberts',
+                        fieldName: 'Device_McRoberts',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid MMM',
+                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5524',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.61,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }, {
+                        fieldId: 'Device_Axivity',
+                        fieldName: 'Device_Axivity',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid AX6',
+                        id: 'ff0c2e60-5086-4111-91ca-475168977ae6',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.57,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }]);
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
                     const res = await admin.post('/graphql')
                         .field('operations', JSON.stringify({
@@ -501,6 +594,12 @@ if (global.hasMinio) {
 
                     authorisedUser = request.agent(app);
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
+                });
+
+                afterEach(async () => {
+                    await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
                 });
 
                 test('Download file from study (admin)', async () => {
@@ -583,7 +682,35 @@ if (global.hasMinio) {
                         description: 'test description',
                         type: studyType.SENSOR
                     });
-
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                        fieldId: 'Device_McRoberts',
+                        fieldName: 'Device_McRoberts',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid MMM',
+                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5524',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.61,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }, {
+                        fieldId: 'Device_Axivity',
+                        fieldName: 'Device_Axivity',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid AX6',
+                        id: 'ff0c2e60-5086-4111-91ca-475168977ae6',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.57,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }]);
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
                     await admin.post('/graphql')
                         .field('operations', JSON.stringify({
@@ -656,6 +783,12 @@ if (global.hasMinio) {
 
                     authorisedUser = request.agent(app);
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
+                });
+
+                afterEach(async () => {
+                    await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
                 });
 
                 test('Delete file from study (admin)', async () => {
