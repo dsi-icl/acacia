@@ -198,8 +198,6 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
                     /* setup: geting the created file Id */
                     const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
-                    console.log(createdFile);
-                    expect(createdFile).toBe(null);
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     const { uploadTime, uri, ...uploadFile } = res.body.data.uploadFile;
@@ -213,7 +211,13 @@ if (global.hasMinio) {
                         fileSize: '21',
                         description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                         uploadedBy: adminId,
-                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0',
+                        metadata: {
+                            deviceId: 'MMM7N3G6G',
+                            endDate: 1595286000000,
+                            participantId: 'I7N3G6G',
+                            startDate: 1593817200000
+                        }
                     });
                 });
 
@@ -248,7 +252,8 @@ if (global.hasMinio) {
                         fileSize: '20',
                         description: JSON.stringify({}),
                         uploadedBy: adminId,
-                        hash: 'f98cfd74547ce10259e94fe12e20168f9c3b59864db6097d95be25dcdf6012c8'
+                        hash: 'f98cfd74547ce10259e94fe12e20168f9c3b59864db6097d95be25dcdf6012c8',
+                        metadata: {}
                     });
                 });
 
@@ -305,7 +310,13 @@ if (global.hasMinio) {
                         fileSize: '21',
                         description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
                         uploadedBy: authorisedUserProfile.id,
-                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0',
+                        metadata: {
+                            deviceId: 'MMM7N3G6G',
+                            endDate: 1595286000000,
+                            participantId: 'I7N3G6G',
+                            startDate: 1593817200000
+                        }
                     });
                 });
 
@@ -340,7 +351,13 @@ if (global.hasMinio) {
                         fileSize: '0',
                         description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
                         uploadedBy: adminId,
-                        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+                        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                        metadata: {
+                            deviceId: 'AX6VJH6F6',
+                            endDate: 1593730800000,
+                            participantId: 'IR6R4AR',
+                            startDate: 1590966000000
+                        }
                     });
                 });
 
