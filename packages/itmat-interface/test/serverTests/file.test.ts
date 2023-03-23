@@ -198,6 +198,8 @@ if (global.hasMinio) {
                         .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
                     /* setup: geting the created file Id */
                     const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
+                    console.log(createdFile);
+                    expect(createdFile).toBe(null);
                     expect(res.status).toBe(200);
                     expect(res.body.errors).toBeUndefined();
                     const { uploadTime, uri, ...uploadFile } = res.body.data.uploadFile;

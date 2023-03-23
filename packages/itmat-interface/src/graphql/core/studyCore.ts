@@ -419,7 +419,6 @@ export class StudyCore {
                 !startDate || !endDate ||
                 (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
             ) {
-                console.log('fail');
                 return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File description is invalid' };
             }
         } else {
