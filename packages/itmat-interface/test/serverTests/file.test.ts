@@ -393,7 +393,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
+                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590976000000, endDate: 1593740800000 }),
                                 fileLength: 0,
                                 hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                             }
@@ -414,14 +414,14 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         projectId: null,
                         fileSize: '0',
-                        description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
+                        description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590976000000, endDate: 1593740800000 }),
                         uploadedBy: adminId,
                         hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
                         metadata: {
                             deviceId: 'AX6VJH6F6',
-                            endDate: 1593730800000,
+                            endDate: 1593740800000,
                             participantId: 'IR6R4AR',
-                            startDate: 1590966000000
+                            startDate: 1590976000000
                         }
                     });
                 });
@@ -434,7 +434,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
+                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590976000000, endDate: 1593740800000 }),
                                 fileLength: 21,
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a4'
                             }
