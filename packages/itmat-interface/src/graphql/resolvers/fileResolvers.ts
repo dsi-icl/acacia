@@ -12,6 +12,7 @@ import { validate } from '@ideafast/idgen';
 import { deviceTypes } from '@itmat-broker/itmat-types';
 import { fileSizeLimit } from '../../utils/definition';
 import type { MatchKeysAndValues } from 'mongodb';
+import { studyCore } from '../core/studyCore';
 
 // default visitId for file data
 const targetVisitId = '0';
@@ -24,10 +25,7 @@ export const fileResolvers = {
 
             const requester: IUser = context.req.user;
             // get the target fieldId of this file
-            const study = await db.collections!.studies_collection.findOne({ id: args.studyId });
-            if (!study) {
-                throw new GraphQLError('Study does not exist.');
-            }
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
 
             const hasStudyLevelSubjectPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,
@@ -72,6 +70,8 @@ export const fileResolvers = {
                         !validate(parsedDescription.deviceId.substr(3) ?? '')) {
                         throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                     }
+                } else {
+                    throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                 }
                 // if the targetFieldId is in the description object; then use the fieldId, otherwise, infer it from the device types
                 if (parsedDescription.fieldid) {
@@ -81,11 +81,11 @@ export const fileResolvers = {
                     targetFieldId = `Device_${deviceTypes[device].replace(/ /g, '_')}`;
                 }
                 // check fieldId exists
-                if (!(await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length) {
+                if ((await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length === 0) {
                     throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                 }
                 // check field permission
-                if (!permissionCore.checkDataEntryValid(await permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, args.studyId, undefined), targetFieldId, parsedDescription.participantId, parsedDescription.visitId)) {
+                if (!permissionCore.checkDataEntryValid(await permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, args.studyId, undefined), targetFieldId, parsedDescription.participantId, targetVisitId)) {
                     throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
                 }
             }
@@ -119,18 +119,17 @@ export const fileResolvers = {
                                 endDate = parseInt(parsedDescription.endDate);
                                 participantId = parsedDescription.participantId.toString();
                                 deviceId = parsedDescription.deviceId.toString();
+                            } else if (matcher.test(file.filename)) {
+                                const particles = file.filename.split('-');
+                                participantId = particles[0];
+                                deviceId = particles[1];
+                                startDate = particles[2];
+                                endDate = particles[3];
                             } else {
-                                if (matcher.test(file.filename)) {
-                                    const particles = file.filename.split('-');
-                                    participantId = particles[0];
-                                    deviceId = particles[1];
-                                    startDate = particles[2];
-                                    endDate = particles[3];
-                                } else {
-                                    reject(new GraphQLError('Missing file description', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
-                                    return;
-                                }
+                                reject(new GraphQLError('Missing file description', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
+                                return;
                             }
+
 
                             try {
                                 if (
@@ -279,7 +278,7 @@ export const fileResolvers = {
                 throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
             const targetFieldId = `Device_${(deviceTypes[device] as string).replace(/ /g, '_')}`;
-            if (!permissionCore.checkDataEntryValid(hasStudyLevelPermission.raw, targetFieldId, parsedDescription.participantId, parsedDescription.visitId)) {
+            if (!permissionCore.checkDataEntryValid(hasStudyLevelPermission.raw, targetFieldId, parsedDescription.participantId, targetVisitId)) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             // update data record
