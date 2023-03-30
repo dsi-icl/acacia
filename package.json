@@ -122,7 +122,7 @@
         "express-session": "1.17.3",
         "fs-extra": "11.1.0",
         "graphql": "16.6.0",
-        "graphql-scalars": "1.20.4",
+        "graphql-scalars": "1.21.3",
         "graphql-subscriptions": "2.0.0",
         "graphql-tag": "2.12.6",
         "graphql-type-json": "0.3.2",
