@@ -27,7 +27,7 @@
         "@nrwl/cypress": "15.8.6",
         "@nrwl/esbuild": "15.8.6",
         "@nrwl/eslint-plugin-nx": "15.8.6",
-        "@nrwl/express": "15.8.6",
+        "@nrwl/express": "15.8.9",
         "@nrwl/jest": "15.8.6",
         "@nrwl/js": "15.8.6",
         "@nrwl/linter": "15.8.6",
