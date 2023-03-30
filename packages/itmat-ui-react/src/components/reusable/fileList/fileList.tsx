@@ -69,7 +69,7 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
             dataIndex: 'participantId',
             key: 'participantId',
             render: (__unused__value, record) => {
-                const participantId = JSON.parse(record.description).participantId;
+                const participantId = record.metadata?.participantId;
                 if (searchTerm)
                     return <Highlighter searchWords={[searchTerm]} textToHighlight={participantId} highlightStyle={{
                         backgroundColor: '#FFC733',
@@ -78,13 +78,13 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
                 else
                     return participantId;
             },
-            sorter: (a, b) => JSON.parse(a.description).participantId.localeCompare(JSON.parse(b.description).participantId)
+            sorter: (a, b) => a.metadata?.participantId.localeCompare(b.metadata?.participantId)
         },
         {
             title: 'Site',
             key: 'site',
             render: (__unused__value, record) => {
-                const site = sites[JSON.parse(record.description).participantId[0]];
+                const site = sites[record.metadata.participantId[0]];
                 if (searchTerm)
                     return <Highlighter searchWords={[searchTerm]} textToHighlight={site} highlightStyle={{
                         backgroundColor: '#FFC733',
@@ -93,14 +93,14 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
                 else
                     return site;
             },
-            sorter: (a, b) => JSON.parse(a.description).participantId.localeCompare(JSON.parse(b.description).participantId)
+            sorter: (a, b) => a.metadata.participantId.localeCompare(b.metadta).participantId
         },
         {
             title: 'Device ID',
             dataIndex: 'deviceId',
             key: 'deviceId',
             render: (__unused__value, record) => {
-                const deviceId = JSON.parse(record.description).deviceId;
+                const deviceId = record.metadata?.deviceId ?? 'NA';
                 if (searchTerm)
                     return <Highlighter searchWords={[searchTerm]} textToHighlight={deviceId} highlightStyle={{
                         backgroundColor: '#FFC733',
@@ -109,13 +109,13 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
                 else
                     return deviceId;
             },
-            sorter: (a, b) => JSON.parse(a.description).deviceId.localeCompare(JSON.parse(b.description).deviceId)
+            sorter: (a, b) => (a.metadata?.deviceId ?? 'NA').localeCompare(b.metadata?.deviceId ?? 'NA')
         },
         {
             title: 'Device Type',
             key: 'deviceType',
             render: (__unused__value, record) => {
-                const deviceType = deviceTypes[JSON.parse(record.description).deviceId.substr(0, 3)];
+                const deviceType = deviceTypes[record.metadata?.deviceId?.substr(0, 3) ?? 'NA'] ?? 'NA';
                 if (searchTerm)
                     return <Highlighter searchWords={[searchTerm]} textToHighlight={deviceType} highlightStyle={{
                         backgroundColor: '#FFC733',
@@ -124,7 +124,7 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
                 else
                     return deviceType;
             },
-            sorter: (a, b) => JSON.parse(a.description).deviceId.localeCompare(JSON.parse(b.description).deviceId)
+            sorter: (a, b) => (a.metadata?.deviceId ?? 'NA').localeCompare(b.metadata?.deviceId ?? 'NA')
         },
         {
             title: 'Period',
@@ -201,9 +201,6 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
             }
         ]);
 
-
-    const notVariablesListFiles = files.filter(el => !(el.fileName.indexOf('VariablesList') >= 0));
-
     const fileNameColumns = [
         {
             title: 'File Name',
@@ -279,40 +276,19 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
                 key: 'delete'
             }
         ]);
-
-    return isStudyLevel ?
-        <Table
-            rowKey={(rec) => rec.id}
-            pagination={
-                {
-                    defaultPageSize: 50,
-                    showSizeChanger: true,
-                    pageSizeOptions: ['20', '50', '100', '200'],
-                    defaultCurrent: 1,
-                    showQuickJumper: true
-                }
+    return <Table
+        rowKey={(rec) => rec.id}
+        pagination={
+            {
+                defaultPageSize: 50,
+                showSizeChanger: true,
+                pageSizeOptions: ['20', '50', '100', '200'],
+                defaultCurrent: 1,
+                showQuickJumper: true
             }
-            columns={fileNameColumns}
-            dataSource={files}
-            size='small' /> :
-        <>
-            <br />
-            <br />
-            <Table
-                rowKey={(rec) => rec.id}
-                pagination={
-                    {
-                        defaultPageSize: 50,
-                        showSizeChanger: true,
-                        pageSizeOptions: ['20', '50', '100', '200'],
-                        defaultCurrent: 1,
-                        showQuickJumper: true
-                    }
-                }
-                columns={fileDetailsColumns}
-                dataSource={notVariablesListFiles}
-                size='small' />
-
-        </>;
+        }
+        columns={isStudyLevel ? fileNameColumns : fileDetailsColumns}
+        dataSource={files}
+        size='small' />;
 
 };
