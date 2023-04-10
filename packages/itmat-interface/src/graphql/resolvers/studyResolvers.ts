@@ -391,14 +391,13 @@ export const studyResolvers = {
                 if (versionId === null && aggregatedPermissions.hasVersioned) {
                     availableDataVersions.push(null);
                 }
-                // metadata filter
-                const subqueries: any = [];
-                aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
-                    subqueries.push(translateMetadata(subMetadata));
-                });
-                metadataFilter = { $or: subqueries };
-                // if versionId is null; we will not filter by the ontologytrees
                 if (versionId !== null) {
+                    // metadata filter
+                    const subqueries: any = [];
+                    aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
+                        subqueries.push(translateMetadata(subMetadata));
+                    });
+                    metadataFilter = { $or: subqueries };
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, { $match: metadataFilter }, {
@@ -416,7 +415,9 @@ export const studyResolvers = {
                 } else {
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
-                    }, { $match: metadataFilter }, {
+                    }, {
+                        $match: { fieldId: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) } }
+                    }, {
                         $group: {
                             _id: '$fieldId',
                             doc: { $last: '$$ROOT' }
@@ -430,7 +431,7 @@ export const studyResolvers = {
                     }]).toArray();
                 }
                 if (queryString.metadata) {
-                    metadataFilter = { $and: [{ $or: subqueries }, { $and: queryString.metadata.map((el: any) => translateMetadata(el)) }] };
+                    metadataFilter = { $and: queryString.metadata.map((el: any) => translateMetadata(el)) };
                 }
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false);
                 result = await db.collections!.data_collection.aggregate(pipeline).toArray();
@@ -527,15 +528,12 @@ export const studyResolvers = {
                         $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
                     }]).toArray());
                 } else {
-                    const subqueries: any = [];
-                    hasPermission.matchObj.forEach((subMetadata: any) => {
-                        subqueries.push(translateMetadata(subMetadata));
-                    });
-                    const metadataFilter = { $or: subqueries };
                     fileRecords = (await db.collections!.data_collection.aggregate([{
                         $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
                     }, {
-                        $match: metadataFilter
+                        $match: { m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) } }
+                    }, {
+                        $match: { m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) } }
                     }]).toArray());
                 }
                 adds = fileRecords.map(el => el.metadata?.add || []).flat();
@@ -985,6 +983,9 @@ export const studyResolvers = {
                     fieldEntry.dataVersion = null;
                     fieldEntry.dateAdded = (new Date()).valueOf();
                     fieldEntry.dateDeleted = null;
+                    fieldEntry.metadata = {
+                        uploader: requester.id
+                    };
                     bulk.find({
                         fieldId: fieldEntry.fieldId,
                         studyId: studyId,

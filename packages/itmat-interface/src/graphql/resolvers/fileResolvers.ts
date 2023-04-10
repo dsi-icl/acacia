@@ -12,6 +12,7 @@ import { validate } from '@ideafast/idgen';
 import { deviceTypes } from '@itmat-broker/itmat-types';
 import { fileSizeLimit } from '../../utils/definition';
 import type { MatchKeysAndValues } from 'mongodb';
+import { studyCore } from '../core/studyCore';
 
 // default visitId for file data
 const targetVisitId = '0';
@@ -19,14 +20,12 @@ export const fileResolvers = {
     Query: {
     },
     Mutation: {
+        // this API has the same functions as uploading file data via clinical APIs
         uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: bigint, studyId: string, file: Promise<FileUpload>, description: string, hash?: string }, context: any): Promise<IFile> => {
 
             const requester: IUser = context.req.user;
             // get the target fieldId of this file
-            const study = await db.collections!.studies_collection.findOne({ id: args.studyId });
-            if (!study) {
-                throw new GraphQLError('Study does not exist.');
-            }
+            const study = await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
 
             const hasStudyLevelSubjectPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,
@@ -35,7 +34,7 @@ export const fileResolvers = {
             );
             const hasStudyLevelStudyDataPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.own,
-                atomicOperation.READ,
+                atomicOperation.WRITE,
                 requester,
                 args.studyId
             );
@@ -71,6 +70,8 @@ export const fileResolvers = {
                         !validate(parsedDescription.deviceId.substr(3) ?? '')) {
                         throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                     }
+                } else {
+                    throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                 }
                 // if the targetFieldId is in the description object; then use the fieldId, otherwise, infer it from the device types
                 if (parsedDescription.fieldid) {
@@ -80,11 +81,11 @@ export const fileResolvers = {
                     targetFieldId = `Device_${deviceTypes[device].replace(/ /g, '_')}`;
                 }
                 // check fieldId exists
-                if (!await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1)) {
+                if ((await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length === 0) {
                     throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                 }
                 // check field permission
-                if (!permissionCore.checkDataEntryValid(await permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, args.studyId, undefined), targetFieldId, parsedDescription.participantId, parsedDescription.visitId)) {
+                if (!permissionCore.checkDataEntryValid(await permissionCore.combineUserDataPermissions(atomicOperation.WRITE, requester, args.studyId, undefined), targetFieldId, parsedDescription.participantId, targetVisitId)) {
                     throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
                 }
             }
@@ -105,39 +106,59 @@ export const fileResolvers = {
                             deleted: null,
                             metadata: {}
                         };
-                        // description varies: SENSOR, CLINICAL (only participantId), ANY (No check)
-                        // check filename and description is valid and matches each other
-                        const parsedDescription = JSON.parse(args.description);
                         if (!isStudyLevel) {
                             const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
-                            if (!matcher.test(file.filename)) {
-                                let startDate;
-                                let endDate;
-                                try {
-                                    startDate = parseInt(parsedDescription.startDate);
-                                    endDate = parseInt(parsedDescription.endDate);
-                                    if (
-                                        !Object.keys(sitesIDMarkers).includes(parsedDescription.participantId?.substr(0, 1)?.toUpperCase()) ||
-                                        !Object.keys(deviceTypes).includes(parsedDescription.deviceId?.substr(0, 3)?.toUpperCase()) ||
-                                        !validate(parsedDescription.participantId?.substr(1) ?? '') ||
-                                        !validate(parsedDescription.deviceId.substr(3) ?? '') ||
-                                        !startDate || !endDate ||
-                                        (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
-                                    ) {
-                                        reject(new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
-                                        return;
-                                    }
-                                } catch (e) {
-                                    reject(new GraphQLError('Missing file description', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
+                            let startDate;
+                            let endDate;
+                            let participantId;
+                            let deviceId;
+                            // check description first, then filename
+                            if (args.description) {
+                                const parsedDescription = JSON.parse(args.description);
+                                startDate = parseInt(parsedDescription.startDate);
+                                endDate = parseInt(parsedDescription.endDate);
+                                participantId = parsedDescription.participantId.toString();
+                                deviceId = parsedDescription.deviceId.toString();
+                            } else if (matcher.test(file.filename)) {
+                                const particles = file.filename.split('-');
+                                participantId = particles[0];
+                                deviceId = particles[1];
+                                startDate = particles[2];
+                                endDate = particles[3];
+                            } else {
+                                reject(new GraphQLError('Missing file description', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
+                                return;
+                            }
+
+
+                            try {
+                                if (
+                                    !Object.keys(sitesIDMarkers).includes(participantId.substr(0, 1)?.toUpperCase()) ||
+                                    !Object.keys(deviceTypes).includes(deviceId.substr(0, 3)?.toUpperCase()) ||
+                                    !validate(participantId.substr(1) ?? '') ||
+                                    !validate(deviceId.substr(3) ?? '') ||
+                                    !startDate || !endDate ||
+                                    (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
+                                ) {
+                                    reject(new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
                                     return;
                                 }
-
-                                const typedStartDate = new Date(startDate);
-                                const formattedStartDate = typedStartDate.getFullYear() + `${typedStartDate.getMonth() + 1}`.padStart(2, '0') + `${typedStartDate.getDate()}`.padStart(2, '0');
-                                const typedEndDate = new Date(startDate);
-                                const formattedEndDate = typedEndDate.getFullYear() + `${typedEndDate.getMonth() + 1}`.padStart(2, '0') + `${typedEndDate.getDate()}`.padStart(2, '0');
-                                fileEntry.fileName = `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}`;
+                            } catch (e) {
+                                reject(new GraphQLError('Missing file description', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
+                                return;
                             }
+
+                            const typedStartDate = new Date(startDate);
+                            const formattedStartDate = typedStartDate.getFullYear() + `${typedStartDate.getMonth() + 1}`.padStart(2, '0') + `${typedStartDate.getDate()}`.padStart(2, '0');
+                            const typedEndDate = new Date(endDate);
+                            const formattedEndDate = typedEndDate.getFullYear() + `${typedEndDate.getMonth() + 1}`.padStart(2, '0') + `${typedEndDate.getDate()}`.padStart(2, '0');
+                            fileEntry.fileName = `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}`;
+                            fileEntry.metadata = {
+                                participantId: parsedDescription.participantId,
+                                deviceId: parsedDescription.deviceId,
+                                startDate: parsedDescription.startDate, // should be in milliseconds
+                                endDate: parsedDescription.endDate
+                            };
                         }
 
                         if (args.fileLength !== undefined && args.fileLength > fileSizeLimit) {
@@ -257,7 +278,7 @@ export const fileResolvers = {
                 throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
             }
             const targetFieldId = `Device_${(deviceTypes[device] as string).replace(/ /g, '_')}`;
-            if (!permissionCore.checkDataEntryValid(hasStudyLevelPermission.raw, targetFieldId, parsedDescription.participantId, parsedDescription.visitId)) {
+            if (!permissionCore.checkDataEntryValid(hasStudyLevelPermission.raw, targetFieldId, parsedDescription.participantId, targetVisitId)) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             // update data record
