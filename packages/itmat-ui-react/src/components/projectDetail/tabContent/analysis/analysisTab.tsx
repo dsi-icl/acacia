@@ -1055,14 +1055,20 @@ function divideResults(filters, results, fields, dmFields: any[]) {
             for (let i = 0; i < dataByVisit.length; i++) {
                 valid = true;
                 for (const key of Object.keys(dms)) {
+                    if (!dms[key]) {
+                        continue;
+                    }
                     if (key === 'visit') {
                         continue;
                     }
                     if (es[key].length === 0) {
                         continue;
                     }
+                    if (!results[dms[key]?.fieldId]) {
+                        continue;
+                    }
                     if (key !== 'age') {
-                        if (!es[key].includes(results[dms[key]?.fieldId][dms[key]?.visitRange[0]].data[i])) {
+                        if (!es[key].includes(results[dms[key]?.fieldId][dms[key]?.visitRange[0]]?.data[i])) {
                             valid = false;
                             break;
                         }

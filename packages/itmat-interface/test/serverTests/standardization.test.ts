@@ -1401,8 +1401,8 @@ describe('STUDY API', () => {
                                 source: 'data',
                                 parameter: [],
                                 filters: {
-                                    1: ['convert', 'M'],
-                                    2: ['convert', 'F']
+                                    1: ['convert', { source: 'value', parameter: 'M' }],
+                                    2: ['convert', { source: 'value', parameter: 'F' }]
                                 }
                             }
                         ]

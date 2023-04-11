@@ -366,10 +366,6 @@ export const studyResolvers = {
             let result: any;
             let metadataFilter: any = undefined;
 
-            const availableTrees: IOntologyTree[] = [];
-            const trees: IOntologyTree[] = study.ontologyTrees || [];
-            let ontologyTreeFieldIds: string[] = [];
-
             // we obtain the data by different requests
             if (requester.type === userTypes.ADMIN) {
                 if (versionId === null) {
@@ -395,26 +391,15 @@ export const studyResolvers = {
                 if (versionId === null && aggregatedPermissions.hasVersioned) {
                     availableDataVersions.push(null);
                 }
-                // filter by ontology trees
-                for (let i = trees.length - 1; i >= 0; i--) {
-                    if (availableDataVersions.includes(trees[i].dataVersion || '')
-                        && availableTrees.filter(el => el.name === trees[i].name).length === 0) {
-                        availableTrees.push(trees[i]);
-                    } else {
-                        continue;
-                    }
-                }
-                ontologyTreeFieldIds = (availableTrees[0]?.routes || []).map(el => el.field[0].replace('$', ''));
-                // metadata filter
-                const subqueries: any = [];
-                aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
-                    subqueries.push(translateMetadata(subMetadata));
-                });
-                metadataFilter = { $or: subqueries };
-                // if versionId is null; we will not filter by the ontologytrees
                 if (versionId !== null) {
+                    // metadata filter
+                    const subqueries: any = [];
+                    aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
+                        subqueries.push(translateMetadata(subMetadata));
+                    });
+                    metadataFilter = { $or: subqueries };
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
-                        $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
+                        $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, { $match: metadataFilter }, {
                         $group: {
                             _id: '$fieldId',
@@ -430,7 +415,9 @@ export const studyResolvers = {
                 } else {
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
-                    }, { $match: metadataFilter }, {
+                    }, {
+                        $match: { fieldId: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) } }
+                    }, {
                         $group: {
                             _id: '$fieldId',
                             doc: { $last: '$$ROOT' }
@@ -444,7 +431,7 @@ export const studyResolvers = {
                     }]).toArray();
                 }
                 if (queryString.metadata) {
-                    metadataFilter = { $and: [{ $or: subqueries }, { $and: queryString.metadata.map((el: any) => translateMetadata(el)) }] };
+                    metadataFilter = { $and: queryString.metadata.map((el: any) => translateMetadata(el)) };
                 }
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false);
                 result = await db.collections!.data_collection.aggregate(pipeline).toArray();

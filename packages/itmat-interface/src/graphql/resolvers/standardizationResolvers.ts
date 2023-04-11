@@ -9,7 +9,7 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 
 export const standardizationResolvers = {
     Query: {
-        getStandardization: async (__unused__parent: Record<string, unknown>, { studyId, projectId, type, versionId }: { studyId: string, projectId: string, type: string, versionId: string }, context: any): Promise<IStandardization[]> => {
+        getStandardization: async (__unused__parent: Record<string, unknown>, { studyId, projectId, type, versionId }: { studyId: string, projectId: string, type?: string, versionId: string }, context: any): Promise<IStandardization[]> => {
             const requester: IUser = context.req.user;
             let modifiedStudyId = studyId;
             /* check study exists */
@@ -49,7 +49,7 @@ export const standardizationResolvers = {
             }, {
                 $match: { dataVersion: { $in: availableDataVersions } }
             }, {
-                $match: { studyId: studyId, type: type }
+                $match: { studyId: studyId, type: type ?? /^.*$/ }
             }, {
                 $group: {
                     _id: {
