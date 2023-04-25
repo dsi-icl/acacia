@@ -386,7 +386,7 @@ export const studyResolvers = {
                     $sort: { fieldId: 1 }
                 }]).toArray();
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, undefined, true);
-                result = await db.collections!.data_collection.aggregate(pipeline).toArray();
+                result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             } else {
                 if (versionId === null && aggregatedPermissions.hasVersioned) {
                     availableDataVersions.push(null);
@@ -434,7 +434,7 @@ export const studyResolvers = {
                     metadataFilter = { $and: queryString.metadata.map((el: any) => translateMetadata(el)) };
                 }
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false);
-                result = await db.collections!.data_collection.aggregate(pipeline).toArray();
+                result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             }
 
             // post processing the data
@@ -869,7 +869,7 @@ export const studyResolvers = {
             }
             // fieldRecords = fieldRecords.filter(el => ontologyTreeFieldIds.includes(el.fieldId));
             const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN);
-            const result = await db.collections!.data_collection.aggregate(pipeline).toArray();
+            const result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
 
             summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId)));
             summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b));

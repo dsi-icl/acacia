@@ -74,7 +74,7 @@ export const fileResolvers = {
                     throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                 }
                 // if the targetFieldId is in the description object; then use the fieldId, otherwise, infer it from the device types
-                if (parsedDescription.fieldid) {
+                if (parsedDescription.fieldId) {
                     targetFieldId = parsedDescription.fieldId;
                 } else {
                     const device = parsedDescription.deviceId?.slice(0, 3);
