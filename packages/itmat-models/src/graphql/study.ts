@@ -51,6 +51,7 @@ export const GET_STUDY = gql`
                 uploadTime
                 uploadedBy
                 hash
+                metadata
             }
             subjects
             visits

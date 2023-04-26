@@ -15,7 +15,8 @@
                 "tsConfig": "packages/itmat-types/tsconfig.lib.json",
                 "assets": [
                     "packages/itmat-types/*.md"
-                ]
+                ],
+                "generatePackageJson": true
             }
         },
         "lint": {

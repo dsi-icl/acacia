@@ -14,7 +14,7 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../../src/graphql/errors';
 import { Db, MongoClient } from 'mongodb';
-import { studyType, IStudy, IUser, IRole, IFile, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
+import { studyType, IStudy, IUser, IRole, IFile, IFieldEntry, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } from '@itmat-broker/itmat-models';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
@@ -132,6 +132,65 @@ if (global.hasMinio) {
                         type: studyType.ANY
                     });
 
+                    // create field for both studies
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                        fieldId: 'Device_McRoberts',
+                        fieldName: 'Device_McRoberts',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid MMM',
+                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5524',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.61,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }, {
+                        fieldId: 'Device_Axivity',
+                        fieldName: 'Device_Axivity',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid AX6',
+                        id: 'ff0c2e60-5086-4111-91ca-475168977ae6',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.57,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }]);
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                        fieldId: 'Device_McRoberts',
+                        fieldName: 'Device_McRoberts',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid MMM',
+                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5525',
+                        studyId: createANYStudyRes.id,
+                        dateAdded: 1679419198219.61,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }, {
+                        fieldId: 'Device_Axivity',
+                        fieldName: 'Device_Axivity',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid AX6',
+                        id: 'ff0c2e60-5086-4111-91ca-475168977ae5',
+                        studyId: createANYStudyRes.id,
+                        dateAdded: 1679419198219.57,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }]);
                     /* setup: creating a privileged user */
                     const username = uuid();
                     authorisedUserProfile = {
@@ -181,6 +240,12 @@ if (global.hasMinio) {
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
                 });
 
+                afterEach(async () => {
+                    await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
+                });
+
                 test('Upload file to SENSOR study (admin)', async () => {
                     /* test: upload file */
                     const res = await admin.post('/graphql')
@@ -189,14 +254,13 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
                                 fileLength: 21,
                                 hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
                             }
                         }))
                         .field('map', JSON.stringify({ 1: ['variables.file'] }))
                         .attach('1', path.join(__dirname, '../filesForTests/I7N3G6G-MMM7N3G6G-20200704-20200721.txt'));
-
                     /* setup: geting the created file Id */
                     const createdFile = await mongoClient.collection<IFile>(config.database.collections.files_collection).findOne({ fileName: 'I7N3G6G-MMM7N3G6G-20200704-20200721.txt', studyId: createdStudy.id });
                     expect(res.status).toBe(200);
@@ -210,9 +274,15 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         projectId: null,
                         fileSize: '21',
-                        description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
+                        description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
                         uploadedBy: adminId,
-                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0',
+                        metadata: {
+                            deviceId: 'MMM7N3G6G',
+                            endDate: 1595296000000,
+                            participantId: 'I7N3G6G',
+                            startDate: 1593827200000
+                        }
                     });
                 });
 
@@ -247,7 +317,8 @@ if (global.hasMinio) {
                         fileSize: '20',
                         description: JSON.stringify({}),
                         uploadedBy: adminId,
-                        hash: 'f98cfd74547ce10259e94fe12e20168f9c3b59864db6097d95be25dcdf6012c8'
+                        hash: 'f98cfd74547ce10259e94fe12e20168f9c3b59864db6097d95be25dcdf6012c8',
+                        metadata: {}
                     });
                 });
 
@@ -259,7 +330,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
                                 fileLength: 21,
                                 hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
                             }
@@ -281,7 +352,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
                                 fileLength: 21,
                                 hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
                             }
@@ -302,9 +373,15 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         projectId: null,
                         fileSize: '21',
-                        description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
+                        description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
                         uploadedBy: authorisedUserProfile.id,
-                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
+                        hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0',
+                        metadata: {
+                            deviceId: 'MMM7N3G6G',
+                            endDate: 1595296000000,
+                            participantId: 'I7N3G6G',
+                            startDate: 1593827200000
+                        }
                     });
                 });
 
@@ -316,7 +393,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
+                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590976000000, endDate: 1593740800000 }),
                                 fileLength: 0,
                                 hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
                             }
@@ -337,9 +414,15 @@ if (global.hasMinio) {
                         studyId: createdStudy.id,
                         projectId: null,
                         fileSize: '0',
-                        description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
+                        description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590976000000, endDate: 1593740800000 }),
                         uploadedBy: adminId,
-                        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+                        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                        metadata: {
+                            deviceId: 'AX6VJH6F6',
+                            endDate: 1593740800000,
+                            participantId: 'IR6R4AR',
+                            startDate: 1590976000000
+                        }
                     });
                 });
 
@@ -351,7 +434,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590966000000, endDate: 1593730800000 }),
+                                description: JSON.stringify({ participantId: 'IR6R4AR', deviceId: 'AX6VJH6F6', startDate: 1590976000000, endDate: 1593740800000 }),
                                 fileLength: 21,
                                 hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a4'
                             }
@@ -375,7 +458,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
                                 fileLength: 10
                             }
                         }))
@@ -415,7 +498,35 @@ if (global.hasMinio) {
                         description: 'test description',
                         type: studyType.SENSOR
                     });
-
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                        fieldId: 'Device_McRoberts',
+                        fieldName: 'Device_McRoberts',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid MMM',
+                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5524',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.61,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }, {
+                        fieldId: 'Device_Axivity',
+                        fieldName: 'Device_Axivity',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid AX6',
+                        id: 'ff0c2e60-5086-4111-91ca-475168977ae6',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.57,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }]);
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
                     const res = await admin.post('/graphql')
                         .field('operations', JSON.stringify({
@@ -423,7 +534,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
                                 fileLength: 21,
                                 hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
                             }
@@ -483,6 +594,12 @@ if (global.hasMinio) {
 
                     authorisedUser = request.agent(app);
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
+                });
+
+                afterEach(async () => {
+                    await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
                 });
 
                 test('Download file from study (admin)', async () => {
@@ -565,7 +682,35 @@ if (global.hasMinio) {
                         description: 'test description',
                         type: studyType.SENSOR
                     });
-
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).insertMany([{
+                        fieldId: 'Device_McRoberts',
+                        fieldName: 'Device_McRoberts',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid MMM',
+                        id: '8e3fac1d-fa19-44fc-8250-7709d7af5524',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.61,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }, {
+                        fieldId: 'Device_Axivity',
+                        fieldName: 'Device_Axivity',
+                        dataType: 'file',
+                        possibleValues: null,
+                        unit: '',
+                        comments: 'Field for deviceid AX6',
+                        id: 'ff0c2e60-5086-4111-91ca-475168977ae6',
+                        studyId: createdStudy.id,
+                        dateAdded: 1679419198219.57,
+                        dateDeleted: null,
+                        dataVersion: null,
+                        metadata: {
+                        }
+                    }]);
                     /* setup: upload file (would be better to upload not via app api but will do for now) */
                     await admin.post('/graphql')
                         .field('operations', JSON.stringify({
@@ -573,7 +718,7 @@ if (global.hasMinio) {
                             variables: {
                                 studyId: createdStudy.id,
                                 file: null,
-                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593817200000, endDate: 1595286000000 }),
+                                description: JSON.stringify({ participantId: 'I7N3G6G', deviceId: 'MMM7N3G6G', startDate: 1593827200000, endDate: 1595296000000 }),
                                 fileLength: 21,
                                 hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
                             }
@@ -638,6 +783,12 @@ if (global.hasMinio) {
 
                     authorisedUser = request.agent(app);
                     await connectAgent(authorisedUser, username, 'admin', authorisedUserProfile.otpSecret);
+                });
+
+                afterEach(async () => {
+                    await mongoClient.collection<IStudy>(config.database.collections.studies_collection).deleteMany({});
+                    await mongoClient.collection<IFieldEntry>(config.database.collections.field_dictionary_collection).deleteMany({});
+                    await mongoClient.collection<IFile>(config.database.collections.files_collection).deleteMany({});
                 });
 
                 test('Delete file from study (admin)', async () => {
