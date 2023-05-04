@@ -39,14 +39,6 @@ export const fileDownloadController = async (req: Request, res: Response): Promi
             return;
         }
 
-        const parsedDescription = JSON.parse(file.description);
-        const device = parsedDescription.deviceId.slice(0, 3);
-        if (!Object.keys(deviceTypes).includes(device)) {
-            throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-        }
-
-        const targetFieldId = `Device_${deviceTypes[device].replace(' ', '_')}`;
-
         // check target field exists
         const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
             atomicOperation.READ,
@@ -57,13 +49,6 @@ export const fileDownloadController = async (req: Request, res: Response): Promi
             res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
             return;
         }
-
-        if (!(hasStudyLevelPermission.raw.fieldIds.some((el: string) => (new RegExp(el)).test(targetFieldId) === true)
-            && hasStudyLevelPermission.raw.subjectIds.some((el: string) => (new RegExp(el).test(parsedDescription.subjectId) === true)))) {
-            res.status(404).json({ error: 'File not found or you do not have the necessary permission.' });
-            return;
-        }
-
 
         const stream = await objStore.downloadFile(file.studyId, file.uri);
         res.set('Content-Type', 'application/octet-stream');
