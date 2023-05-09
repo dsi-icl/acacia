@@ -1,4 +1,4 @@
-const getNxReactWebpackConfig = require('@nrwl/react/plugins/webpack');
+const getNxReactWebpackConfig = require('@nx/react/plugins/webpack');
 const webpack = require('webpack');
 const git = require('git-rev-sync');
 const { version } = require('../../package.json');
