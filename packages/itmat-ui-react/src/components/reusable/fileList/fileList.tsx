@@ -288,7 +288,7 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
             }
         }
         columns={isStudyLevel ? fileNameColumns : fileDetailsColumns}
-        dataSource={files}
+        dataSource={files.sort((a, b) => { return parseFloat(b.uploadTime) - parseFloat(a.uploadTime); })}
         size='small' />;
 
 };

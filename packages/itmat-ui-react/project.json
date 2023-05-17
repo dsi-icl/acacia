@@ -1,11 +1,11 @@
 {
-    "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "name": "itmat-ui-react",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-ui-react/src",
     "projectType": "application",
     "targets": {
         "build": {
-            "executor": "@nrwl/webpack:webpack",
+            "executor": "@nx/webpack:webpack",
             "outputs": [
                 "{options.outputPath}"
             ],
@@ -52,7 +52,7 @@
             }
         },
         "serve": {
-            "executor": "@nrwl/webpack:dev-server",
+            "executor": "@nx/webpack:dev-server",
             "defaultConfiguration": "development",
             "options": {
                 "buildTarget": "itmat-ui-react:build",
@@ -70,7 +70,7 @@
             }
         },
         "lint": {
-            "executor": "@nrwl/linter:eslint",
+            "executor": "@nx/linter:eslint",
             "outputs": [
                 "{options.outputFile}"
             ],
@@ -81,7 +81,7 @@
             }
         },
         "test": {
-            "executor": "@nrwl/jest:jest",
+            "executor": "@nx/jest:jest",
             "outputs": [
                 "{workspaceRoot}/coverage/packages/itmat-ui-react"
             ],

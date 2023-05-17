@@ -1,6 +1,6 @@
 {
     "name": "@itmat-broker/itmat-setup",
-    "version": "2.1.1",
+    "version": "2.2.0",
     "description": "ITMAT Broker",
     "keywords": [
         "itmat",
@@ -20,8 +20,8 @@
         "express": "4.18.2",
         "express-rate-limit": "6.7.0",
         "isobject": "4.0.0",
-        "minio": "7.0.33",
-        "mongodb": "5.3.0",
+        "minio": "7.1.0",
+        "mongodb": "5.5.0",
         "sanitize-filename": "1.6.3"
     }
 }

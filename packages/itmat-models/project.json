@@ -1,11 +1,11 @@
 {
-    "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "name": "itmat-models",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-models/src",
     "projectType": "library",
     "targets": {
         "build": {
-            "executor": "@nrwl/esbuild:esbuild",
+            "executor": "@nx/esbuild:esbuild",
             "outputs": [
                 "{options.outputPath}"
             ],
@@ -16,11 +16,12 @@
                 "assets": [
                     "packages/itmat-models/*.md"
                 ],
-                "generatePackageJson": true
+                "generatePackageJson": true,
+                "thirdParty": true
             }
         },
         "lint": {
-            "executor": "@nrwl/linter:eslint",
+            "executor": "@nx/linter:eslint",
             "outputs": [
                 "{options.outputFile}"
             ],
@@ -31,7 +32,7 @@
             }
         },
         "test": {
-            "executor": "@nrwl/jest:jest",
+            "executor": "@nx/jest:jest",
             "outputs": [
                 "{workspaceRoot}/coverage/packages/itmat-models"
             ],
