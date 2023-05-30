@@ -85,7 +85,7 @@
         "nx": "16.2.1",
         "nx-cloud": "16.0.5",
         "react-refresh": "^0.14.0",
-        "style-loader": "^3.3.2",
+        "style-loader": "^3.3.3",
         "stylus": "^0.59.0",
         "stylus-loader": "^7.1.0",
         "supertest": "6.3.3",
