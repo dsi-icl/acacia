@@ -96,7 +96,7 @@
         "typescript": "5.0.4",
         "url-loader": "^4.1.1",
         "webpack": "^5.83.0",
-        "webpack-merge": "^5.8.0"
+        "webpack-merge": "^5.9.0"
     },
     "dependencies": {
         "@ant-design/icons": "5.1.0",
