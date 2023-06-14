@@ -141,6 +141,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -165,6 +166,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -217,6 +219,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -259,6 +262,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -283,6 +287,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -329,6 +334,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -353,6 +359,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -399,6 +406,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -447,6 +455,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -489,6 +498,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -513,6 +523,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -546,6 +557,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -588,6 +600,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -612,6 +625,7 @@ describe('ROLE API', () => {
                     data: {
                         fieldIds: [],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [],
                         subjectIds: [],
                         visitIds: []
@@ -704,6 +718,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -731,6 +746,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -775,6 +791,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -818,6 +835,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -847,6 +865,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -873,6 +892,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -899,6 +919,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -928,6 +949,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -955,6 +977,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -981,6 +1004,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1011,6 +1035,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1041,6 +1066,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1076,6 +1102,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1120,6 +1147,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1170,6 +1198,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1196,6 +1225,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1227,6 +1257,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1277,6 +1308,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1303,6 +1335,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1334,6 +1367,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1384,6 +1418,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1414,6 +1449,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1473,6 +1509,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1499,6 +1536,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1525,6 +1563,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1560,6 +1599,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1586,6 +1626,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -1612,6 +1653,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -1638,6 +1680,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -1667,6 +1710,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -1692,6 +1736,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -1718,6 +1763,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -1744,6 +1790,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -1770,6 +1817,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -1805,6 +1853,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -1831,6 +1880,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -1857,6 +1907,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -1883,6 +1934,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -1912,6 +1964,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -1937,6 +1990,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -1963,6 +2017,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1989,6 +2044,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2015,6 +2071,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2050,6 +2107,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2076,6 +2134,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -2102,6 +2161,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2128,6 +2188,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2175,6 +2236,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -2200,6 +2262,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -2226,6 +2289,7 @@ describe('ROLE API', () => {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -2256,6 +2320,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2287,6 +2352,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2371,6 +2437,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2398,6 +2465,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2429,6 +2497,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2454,6 +2523,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2480,6 +2550,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2510,6 +2581,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2535,6 +2607,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2561,6 +2634,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2605,6 +2679,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2640,6 +2715,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2684,6 +2760,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2735,6 +2812,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2760,6 +2838,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2791,6 +2870,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2855,6 +2935,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2926,6 +3007,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -2952,6 +3034,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -3095,6 +3178,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -3121,6 +3205,7 @@ describe('ROLE API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []

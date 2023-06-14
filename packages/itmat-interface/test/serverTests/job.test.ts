@@ -202,6 +202,7 @@ describe('JOB API', () => {
                     data: {
                         fieldIds: ['^.*$'],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [atomicOperation.READ],
                         subjectIds: ['^.*$'],
                         visitIds: ['^.*$']
@@ -425,6 +426,7 @@ describe('JOB API', () => {
                     data: {
                         fieldIds: ['^.*$'],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [atomicOperation.READ],
                         subjectIds: ['^.*$'],
                         visitIds: ['^.*$']
@@ -661,6 +663,7 @@ describe('JOB API', () => {
                     data: {
                         fieldIds: ['^.*$'],
                         hasVersioned: false,
+                        uploaders: ['^.*$'],
                         operations: [atomicOperation.READ],
                         subjectIds: ['^.*$'],
                         visitIds: ['^.*$']

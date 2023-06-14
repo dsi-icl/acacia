@@ -52,8 +52,10 @@ interface IRoleBase {
             subjectIds?: string[];
             visitIds?: string[];
             fieldIds?: string[];
+            uploaders?: string[]; // only works for downloading data; for file data, it will check IFile instead of data clip
             hasVersioned?: boolean;
             operations?: atomicOperation[];
+            filters?: any[]
         },
         manage?: {
             [IPermissionManagementOptions.own]?: atomicOperation[];

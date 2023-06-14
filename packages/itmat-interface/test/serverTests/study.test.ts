@@ -581,6 +581,7 @@ if (global.hasMinio) {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: ['^.*$'],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -697,6 +698,7 @@ if (global.hasMinio) {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -857,7 +859,7 @@ if (global.hasMinio) {
                             possibleValues: [],
                             unit: 'person',
                             comments: 'mockComments1',
-                            dateAdded: '2021-05-16T16:32:10.226Z',
+                            dateAdded: '10000',
                             dateDeleted: null,
                             dataVersion: 'mockDataVersionId'
                         },
@@ -870,7 +872,7 @@ if (global.hasMinio) {
                             possibleValues: [],
                             unit: 'person',
                             comments: 'mockComments2',
-                            dateAdded: '2022-06-18T17:35:15.226Z',
+                            dateAdded: '20000',
                             dateDeleted: null,
                             dataVersion: 'mockDataVersionId'
                         }
@@ -989,6 +991,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1014,6 +1017,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1056,6 +1060,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1081,6 +1086,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1124,6 +1130,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1149,6 +1156,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1191,6 +1199,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1216,6 +1225,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1273,6 +1283,7 @@ if (global.hasMinio) {
                                 data: {
                                     fieldIds: ['^.*$'],
                                     hasVersioned: false,
+                                    uploaders: ['^.*$'],
                                     operations: [atomicOperation.READ],
                                     subjectIds: ['^.*$'],
                                     visitIds: ['^.*$']
@@ -1299,6 +1310,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -1386,6 +1398,7 @@ if (global.hasMinio) {
                                 data: {
                                     fieldIds: ['^.*$'],
                                     hasVersioned: true,
+                                    uploaders: ['^.*$'],
                                     operations: [atomicOperation.READ],
                                     subjectIds: ['^.*$'],
                                     visitIds: ['^.*$']
@@ -1412,6 +1425,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: true,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -1529,6 +1543,7 @@ if (global.hasMinio) {
                                 data: {
                                     fieldIds: [],
                                     hasVersioned: false,
+                                    uploaders: ['^.*$'],
                                     operations: [],
                                     subjectIds: [],
                                     visitIds: []
@@ -1555,6 +1570,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -1619,6 +1635,7 @@ if (global.hasMinio) {
                                 data: {
                                     fieldIds: ['^.*$'],
                                     hasVersioned: false,
+                                    uploaders: ['^.*$'],
                                     operations: [atomicOperation.READ],
                                     subjectIds: ['^K.*$'],
                                     visitIds: ['^.*$']
@@ -1645,6 +1662,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^K.*$'],
                                 visitIds: ['^.*$']
@@ -1881,6 +1899,7 @@ if (global.hasMinio) {
                                     data: {
                                         fieldIds: ['^.*$'],
                                         hasVersioned: true,
+                                        uploaders: ['^.*$'],
                                         operations: [atomicOperation.READ],
                                         subjectIds: ['^.*$'],
                                         visitIds: ['^.*$']
@@ -1911,6 +1930,7 @@ if (global.hasMinio) {
                                     data: {
                                         fieldIds: [],
                                         hasVersioned: false,
+                                        uploaders: ['^.*$'],
                                         operations: [],
                                         subjectIds: [],
                                         visitIds: []
@@ -1941,6 +1961,7 @@ if (global.hasMinio) {
                                     data: {
                                         fieldIds: ['^.*$'],
                                         hasVersioned: false,
+                                        uploaders: ['^.*$'],
                                         operations: [atomicOperation.READ],
                                         subjectIds: ['^K.*$'],
                                         visitIds: ['^.*$']
@@ -2041,6 +2062,7 @@ if (global.hasMinio) {
                                     data: {
                                         fieldIds: ['^.*$'],
                                         hasVersioned: false,
+                                        uploaders: ['^.*$'],
                                         operations: [atomicOperation.READ],
                                         subjectIds: ['^.*$'],
                                         visitIds: ['^.*$']
@@ -2235,7 +2257,7 @@ if (global.hasMinio) {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments2',
-                        dateAdded: '2022-06-18T17:35:15.226Z',
+                        dateAdded: '20000',
                         dateDeleted: null,
                         dataVersion: 'mockDataVersionId',
                         metadata: {
@@ -2255,7 +2277,7 @@ if (global.hasMinio) {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        dateAdded: '10000',
                         dateDeleted: null,
                         dataVersion: 'mockDataVersionId',
                         metadata: {
@@ -2289,7 +2311,7 @@ if (global.hasMinio) {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        dateAdded: '10000',
                         dateDeleted: null,
                         dataVersion: 'mockDataVersionId',
                         metadata: null
@@ -2304,7 +2326,7 @@ if (global.hasMinio) {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments2',
-                        dateAdded: '2022-06-18T17:35:15.226Z',
+                        dateAdded: '20000',
                         dateDeleted: null,
                         dataVersion: 'mockDataVersionId',
                         metadata: null
@@ -2338,8 +2360,8 @@ if (global.hasMinio) {
                     possibleValues: [],
                     unit: 'person',
                     comments: 'mockComments1',
-                    dateAdded: '2021-05-18T16:32:10.226Z',
-                    dateDeleted: '2021-05-18T16:32:10.226Z',
+                    dateAdded: '30000',
+                    dateDeleted: '30000',
                     dataVersion: null
                 });
 
@@ -2353,7 +2375,7 @@ if (global.hasMinio) {
                     possibleValues: [],
                     unit: 'kg',
                     comments: 'mockComments3',
-                    dateAdded: '2021-05-18T16:32:10.226Z',
+                    dateAdded: '30000',
                     dateDeleted: null,
                     dataVersion: null
                 });
@@ -2391,7 +2413,7 @@ if (global.hasMinio) {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments2',
-                        dateAdded: '2022-06-18T17:35:15.226Z',
+                        dateAdded: '20000',
                         dateDeleted: null,
                         dataVersion: 'mockDataVersionId',
                         metadata: null
@@ -2406,7 +2428,7 @@ if (global.hasMinio) {
                         possibleValues: [],
                         unit: 'person',
                         comments: 'mockComments1',
-                        dateAdded: '2021-05-16T16:32:10.226Z',
+                        dateAdded: '10000',
                         dateDeleted: null,
                         dataVersion: 'mockDataVersionId',
                         metadata: null
@@ -2554,6 +2576,7 @@ if (global.hasMinio) {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: true,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ, atomicOperation.WRITE],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -2914,6 +2937,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -2939,6 +2963,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -3026,6 +3051,7 @@ if (global.hasMinio) {
                                 data: {
                                     fieldIds: ['^.*$'],
                                     hasVersioned: true,
+                                    uploaders: ['^.*$'],
                                     operations: [atomicOperation.READ, atomicOperation.WRITE],
                                     subjectIds: ['^.*$'],
                                     visitIds: ['^.*$']
@@ -3052,6 +3078,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: true,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ, atomicOperation.WRITE],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -3259,6 +3286,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -3283,6 +3311,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: [],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [],
                                 subjectIds: [],
                                 visitIds: []
@@ -3315,6 +3344,7 @@ if (global.hasMinio) {
                                 data: {
                                     fieldIds: ['^.*$'],
                                     hasVersioned: false,
+                                    uploaders: ['^.*$'],
                                     operations: [atomicOperation.READ],
                                     subjectIds: ['^.*$'],
                                     visitIds: ['^.*$']
@@ -3341,6 +3371,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -3955,6 +3986,7 @@ if (global.hasMinio) {
                         ]
                     }
                 });
+                console.log(await db.collections!.data_collection.find({}).toArray());
                 const getRes = await authorisedProjectUser.post('/graphql').send({
                     query: print(GET_DATA_RECORDS),
                     variables: {

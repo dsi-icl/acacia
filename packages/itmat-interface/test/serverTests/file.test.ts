@@ -160,6 +160,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: true,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ, atomicOperation.WRITE],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -464,6 +465,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -619,6 +621,7 @@ if (global.hasMinio) {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: true,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ, atomicOperation.WRITE],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']

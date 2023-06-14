@@ -95,7 +95,8 @@ export class PermissionCore {
                     subjectIds: [matchAnyString],
                     visitIds: [matchAnyString],
                     fieldIds: [matchAnyString]
-                }
+                },
+                uploaders: []
             };
         }
 
@@ -110,6 +111,7 @@ export class PermissionCore {
             visitIds: [],
             fieldIds: []
         };
+        let uploaders: string[] = [];
         for (const role of roles) {
             roleObj.push([{
                 key: `role:${role.id}`,
@@ -119,7 +121,9 @@ export class PermissionCore {
             raw.subjectIds = raw.subjectIds.concat(role.permissions.data?.subjectIds || []);
             raw.visitIds = raw.visitIds.concat(role.permissions.data?.visitIds || []);
             raw.fieldIds = raw.fieldIds.concat(role.permissions.data?.fieldIds || []);
-
+            if (role.permissions.data?.uploaders) {
+                uploaders = uploaders.concat(role.permissions.data?.uploaders || []);
+            }
             if (role.permissions.data?.hasVersioned) {
                 hasVersioned = hasVersioned || role.permissions.data.hasVersioned;
             }
@@ -127,7 +131,7 @@ export class PermissionCore {
         if (Object.keys(roleObj).length === 0) {
             return false;
         }
-        return { matchObj: roleObj, hasVersioned: hasVersioned, raw: raw };
+        return { matchObj: roleObj, hasVersioned: hasVersioned, uploaders: uploaders, raw: raw };
     }
 
     public combineMultiplePermissions(permissions: any[]): any {
@@ -185,7 +189,7 @@ export class PermissionCore {
     public async editRoleFromStudyOrProject(roleId: string, name?: string, description?: string, permissionChanges?: any, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
         if (permissionChanges === undefined) {
             permissionChanges = {
-                data: { subjectIds: [], visitIds: [], fieldIds: [], hasVersioned: false, operations: [] },
+                data: { subjectIds: [], visitIds: [], fieldIds: [], uploaders: ['^.*$'], hasVersioned: false, operations: [] },
                 manage: {
                     [IPermissionManagementOptions.own]: [atomicOperation.READ],
                     [IPermissionManagementOptions.role]: [],
@@ -298,7 +302,8 @@ export class PermissionCore {
                     visitIds: [],
                     fieldIds: [],
                     hasVersioned: false,
-                    operations: []
+                    operations: [],
+                    uploaders: ['^.*$']
                 },
                 manage: {
                     [IPermissionManagementOptions.own]: [atomicOperation.READ],
@@ -328,7 +333,7 @@ export class PermissionCore {
 export const permissionCore = new PermissionCore();
 
 
-function translateCohort(cohort: any) {
+export function translateCohort(cohort: any) {
     const queries: any[] = [];
     cohort.forEach(function (select: any) {
         const match: any = {
