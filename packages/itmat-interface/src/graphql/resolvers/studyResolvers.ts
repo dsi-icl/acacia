@@ -453,44 +453,20 @@ export const studyResolvers = {
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false);
                 result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             }
-
             // post processing the data
             // 2. update to the latest data; start from first record
             const groupedResult: any = {};
-            // process files first
-            const record: any = {};
             for (let i = 0; i < result.length; i++) {
-                for (const key of Object.keys(result[i])) {
-                    if (key.startsWith('Device')) {
-                        if (record[result[i]['m_subjectId']] === undefined) {
-                            record[result[i]['m_subjectId']] = {};
-                        }
-                        if (record[result[i]['m_subjectId']][result[i]['m_visitId']] === undefined) {
-                            record[result[i]['m_subjectId']][result[i]['m_visitId']] = { add: [], remove: [] };
-                        }
-                        record[result[i]['m_subjectId']][result[i]['m_visitId']].add.push(...result[i][key].add);
-                        record[result[i]['m_subjectId']][result[i]['m_visitId']].remove.push(...result[i][key].remove);
-                    } else {
-                        continue;
-                    }
+                const { m_subjectId, m_visitId } = result[i];
+                if (!groupedResult[m_subjectId]) {
+                    groupedResult[m_subjectId] = {};
                 }
+                if (!groupedResult[m_subjectId][m_visitId]) {
+                    groupedResult[m_subjectId][m_visitId] = {};
+                }
+                groupedResult[m_subjectId][m_visitId] = result[i];
             }
-            for (let i = 0; i < result.length; i++) {
-                if (groupedResult[result[i]['m_subjectId']] === undefined) {
-                    groupedResult[result[i]['m_subjectId']] = {};
-                }
-                if (groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']] === undefined) {
-                    groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']] = {};
-                }
-                for (const field of Object.keys(result[i])) {
-                    if (field.startsWith('Device') && !groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field]) {
-                        groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] = record[result[i]['m_subjectId']][result[i]['m_visitId']].add.filter((el: string) => !record[result[i]['m_subjectId']][result[i]['m_visitId']].remove.includes(el));
-                    }
-                    if (groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] === undefined || groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] === null) {
-                        groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] = result[i][field];
-                    }
-                }
-            }
+
             // 2. adjust format: 1) original(exists) 2) standardized - $name 3) grouped
             // when standardized data, versionId should not be specified
             const standardizations = versionId === null ? null : await db.collections!.standardizations_collection.find({ studyId: studyId, type: queryString['format'].split('-')[1], delete: null, dataVersion: { $in: availableDataVersions } }).toArray();
@@ -903,9 +879,9 @@ export const studyResolvers = {
             const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN);
             const result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
 
-            summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId)));
-            summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b));
-            summary['standardizationTypes'] = await db.collections!.standardizations_collection.distinct('type', { studyId: study.id, deleted: null });
+            summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId))).sort();
+            summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b)).sort();
+            summary['standardizationTypes'] = (await db.collections!.standardizations_collection.distinct('type', { studyId: study.id, deleted: null })).sort();
             return summary;
         },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {
