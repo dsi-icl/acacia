@@ -107,9 +107,11 @@ export const studyResolvers = {
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
+                    $sort: { dateAdded: -1 }
+                }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -126,13 +128,15 @@ export const studyResolvers = {
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
+                    $sort: { dateAdded: -1 }
+                }, {
                     $match: {
                         fieldId: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) }
                     }
                 }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -151,10 +155,12 @@ export const studyResolvers = {
                 const metadataFilter = { $or: subqueries };
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                }, {
+                    $sort: { dateAdded: -1 }
                 }, { $match: metadataFilter }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -374,9 +380,11 @@ export const studyResolvers = {
                 fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
+                    $sort: { dateAdded: -1 }
+                }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -391,6 +399,13 @@ export const studyResolvers = {
                 if (versionId === null && aggregatedPermissions.hasVersioned) {
                     availableDataVersions.push(null);
                 }
+                // metadata filter
+                const subqueries: any = [];
+                aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
+                    subqueries.push(translateMetadata(subMetadata));
+                });
+                metadataFilter = { $or: subqueries };
+                // if versionId is null; we will not filter by the ontologytrees
                 if (versionId !== null) {
                     // metadata filter
                     const subqueries: any = [];
@@ -400,10 +415,12 @@ export const studyResolvers = {
                     metadataFilter = { $or: subqueries };
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                    }, {
+                        $sort: { dateAdded: -1 }
                     }, { $match: metadataFilter }, {
                         $group: {
                             _id: '$fieldId',
-                            doc: { $last: '$$ROOT' }
+                            doc: { $first: '$$ROOT' }
                         }
                     }, {
                         $replaceRoot: {
@@ -416,11 +433,11 @@ export const studyResolvers = {
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, {
-                        $match: { fieldId: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) } }
-                    }, {
+                        $sort: { dateAdded: -1 }
+                    }, { $match: metadataFilter }, {
                         $group: {
                             _id: '$fieldId',
-                            doc: { $last: '$$ROOT' }
+                            doc: { $first: '$$ROOT' }
                         }
                     }, {
                         $replaceRoot: {
@@ -510,9 +527,11 @@ export const studyResolvers = {
                 const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
                 }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
+                    $sort: { dateAdded: -1 }
+                }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -531,15 +550,28 @@ export const studyResolvers = {
                     fileRecords = (await db.collections!.data_collection.aggregate([{
                         $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
                     }, {
-                        $match: { m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) } }
-                    }, {
-                        $match: { m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) } }
+                        $match: {
+                            m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                            m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                            m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+                            m_versionId: { $in: availableDataVersions }
+                        }
                     }]).toArray());
                 }
                 adds = fileRecords.map(el => el.metadata?.add || []).flat();
                 removes = fileRecords.map(el => el.metadata?.remove || []).flat();
             }
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, $or: [{ id: { $in: adds, $nin: removes } }, { description: JSON.stringify({}) }] }).toArray();
+            // filter by uploaders if necessary
+            const uploaders: any[] = [new RegExp(`^${requester.id}$`)];
+            if (hasPermission && hasPermission.uploaders) {
+                for (const uploader of hasPermission.uploaders) {
+                    uploaders.push(new RegExp(uploader));
+                }
+            }
+            if (requester.type === userTypes.ADMIN) {
+                uploaders.push(new RegExp('^.*$'));
+            }
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, uploadedBy: { $in: uploaders }, $or: [{ id: { $in: adds, $nin: removes } }, { description: JSON.stringify({}) }] }).sort({ uploadTime: -1 }).toArray();
         },
         subjects: async (study: IStudy, __unused__args: never, context: any): Promise<Array<Array<string>>> => {
             const requester: IUser = context.req.user;

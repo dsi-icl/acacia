@@ -25,20 +25,6 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
             (fields as any)[field] = 1;
         });
     }
-    // const addFields = {};
-    // We send back the newly created derived fields by default
-    // if (query['new_fields'] !== undefined && query['new_fields'] !== null) {
-    //     if (query.new_fields.length > 0) {
-    //         query.new_fields.forEach((field: any) => {
-    //             if (field.op === 'derived') {
-    //                 (fields as any)[field.name] = 1;
-    //                 (addFields as any)[field.name] = createNewField(field.value);
-    //             } else {
-    //                 return 'Error';
-    //             }
-    //         });
-    //     }
-    // }
     let match = {};
     // We send back the filtered fields values
     if (query['cohort'] !== undefined && query['cohort'] !== null) {

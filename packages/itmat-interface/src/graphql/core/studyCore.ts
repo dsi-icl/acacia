@@ -3,7 +3,7 @@ import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntr
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
-import { PermissionCore, permissionCore } from './permissionCore';
+import { PermissionCore, permissionCore, translateCohort } from './permissionCore';
 import { validate } from '@ideafast/idgen';
 import type { MatchKeysAndValues } from 'mongodb';
 import { objStore } from '../../objStore/objStore';
@@ -120,6 +120,8 @@ export class StudyCore {
             return null;
         }
 
+
+
         // update permissions based on roles
         const roles = await db.collections!.roles_collection.find<IRole>({ studyId: studyId, deleted: null }).toArray();
         for (const role of roles) {
@@ -128,11 +130,28 @@ export class StudyCore {
                 visitIds: role.permissions.data?.visitIds || [],
                 fieldIds: role.permissions.data?.fieldIds || []
             };
+            // deal with data filters
+            let validSubjects: Array<string | RegExp> | null = null;
+            if (role.permissions.data?.filters) {
+                if (role.permissions.data.filters.length > 0) {
+                    validSubjects = [];
+                    const subqueries = translateCohort(role.permissions.data.filters);
+                    validSubjects = (await db.collections!.data_collection.aggregate([{
+                        $match: { $and: subqueries }
+                    }]).toArray()).map(el => el.m_subjectId);
+                }
+            }
+            if (validSubjects === null) {
+                validSubjects = [/^.*$/];
+            }
             const tag = `metadata.${'role:'.concat(role.id)}`;
             await db.collections!.data_collection.updateMany({
                 m_studyId: studyId,
                 m_versionId: newDataVersionId,
-                m_subjectId: { $in: filters.subjectIds.map((el: string) => new RegExp(el)) },
+                $and: [
+                    { m_subjectId: { $in: filters.subjectIds.map((el: string) => new RegExp(el)) } },
+                    { m_subjectId: { $in: validSubjects } }
+                ],
                 m_visitId: { $in: filters.visitIds.map((el: string) => new RegExp(el)) },
                 m_fieldId: { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
             }, {
@@ -143,6 +162,7 @@ export class StudyCore {
                 m_versionId: newDataVersionId,
                 $or: [
                     { m_subjectId: { $nin: filters.subjectIds.map((el: string) => new RegExp(el)) } },
+                    { m_subjectId: { $nin: validSubjects } },
                     { m_visitId: { $nin: filters.visitIds.map((el: string) => new RegExp(el)) } },
                     { m_fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) } }
                 ]

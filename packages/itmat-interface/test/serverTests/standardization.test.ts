@@ -167,6 +167,7 @@ describe('STUDY API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -191,6 +192,7 @@ describe('STUDY API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -234,6 +236,7 @@ describe('STUDY API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -258,6 +261,7 @@ describe('STUDY API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -301,6 +305,7 @@ describe('STUDY API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -325,6 +330,7 @@ describe('STUDY API', () => {
                         data: {
                             fieldIds: [],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [],
                             subjectIds: [],
                             visitIds: []
@@ -384,6 +390,7 @@ describe('STUDY API', () => {
                                 visitIds: ['^.*$'],
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ]
                             },
                             manage: {
@@ -408,6 +415,7 @@ describe('STUDY API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -495,6 +503,7 @@ describe('STUDY API', () => {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: true,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ, atomicOperation.WRITE],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -521,6 +530,7 @@ describe('STUDY API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: true,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ, atomicOperation.WRITE],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
@@ -612,6 +622,7 @@ describe('STUDY API', () => {
                             data: {
                                 fieldIds: ['^.*$'],
                                 hasVersioned: false,
+                                uploaders: ['^.*$'],
                                 operations: [atomicOperation.READ, atomicOperation.WRITE],
                                 subjectIds: ['^.*$'],
                                 visitIds: ['^.*$']
@@ -638,6 +649,7 @@ describe('STUDY API', () => {
                         data: {
                             fieldIds: ['^.*$'],
                             hasVersioned: false,
+                            uploaders: ['^.*$'],
                             operations: [atomicOperation.READ, atomicOperation.WRITE],
                             subjectIds: ['^.*$'],
                             visitIds: ['^.*$']
