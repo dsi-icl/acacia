@@ -344,7 +344,11 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                     continue;
                 }
                 const dataClip: any = {};
-                for (const rule of standardization.stdRules) {
+                let isSkip = false;
+                if (!standardization.stdRules) {
+                    continue;
+                }
+                for (const rule of (standardization.stdRules as any)) {
                     if (!rule.parameter) {
                         continue;
                     }
@@ -354,12 +358,12 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                     }
                     switch (rule.source) {
                         case 'data': {
-                            const chain = rule.parameter || [];
-                            let tmpData = data[subjectId][visitId][field.fieldId] || '';
-                            chain.forEach(el => {
-                                tmpData = tmpData[el] || '';
-                            });
-                            dataClip[rule.entry] = tmpData;
+                            if (rule.parameter.length === 0) {
+                                dataClip[rule.entry] = data[subjectId][visitId][field.fieldId] || '';
+                            } else {
+                                const selectedFieldId = rule.parameter[0];
+                                dataClip[rule.entry] = data[subjectId][visitId][selectedFieldId] || '';
+                            }
                             break;
                         }
                         case 'fieldDef': {
@@ -397,6 +401,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                             break;
                         }
                         default: {
+                            isSkip = true;
                             break;
                         }
                     }
@@ -408,20 +413,39 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                                 continue;
                             }
                             switch (rule.filters[dataClip[rule.entry]][0]) {
+                                // add patch to allow to convert to another field value
                                 case 'convert': {
-                                    dataClip[rule.entry] = rule.filters[dataClip[rule.entry]][1];
+                                    const options: Record<string, any> = rule.filters[dataClip[rule.entry]][1];
+                                    if (options.source === 'value') {
+                                        dataClip[rule.entry] = options.parameter;
+                                    } else if (options.source === 'data') {
+                                        const tmpData = data[subjectId][visitId][options.parameter];
+                                        // the replaced value can be converted again
+                                        if (options.filters && Object.keys(options.filters).includes(tmpData)) {
+                                            dataClip[rule.entry] = options.filters[tmpData];
+                                        }
+                                    }
                                     break;
                                 }
                                 case 'delete': {
-                                    continue;
+                                    isSkip = true;
+                                    break;
                                 }
                                 default: {
+                                    isSkip = true;
                                     break;
                                 }
                             }
                         }
                     }
                 }
+
+                if (isSkip) {
+                    continue;
+                }
+                // if (Object.keys(dataClip).includes('CMTRT') && dataClip['CMTRT'] === '') {
+                //     console.log(field.fieldId, subjectId, visitId, console.log(data[subjectId][visitId][field.fieldId]));
+                // }
                 // deal with join
                 if (standardization.path) {
                     let pointer = insertInObj(records, standardization.path, undefined, true, subjectId, visitId);

@@ -13,6 +13,7 @@ export const UPLOAD_FILE = gql`
             uploadTime
             uploadedBy
             hash
+            metadata
         }
     }
 `;

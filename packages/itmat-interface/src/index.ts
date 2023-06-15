@@ -127,5 +127,5 @@ async function emailNotification() {
             $set: { emailNotificationsStatus: { expiringNotification: true } }
         });
     }
-    setTimeout(emailNotification, 24 * 60 * 60 * 1000);
+    setInterval(emailNotification, 24 * 60 * 60 * 1000);
 }

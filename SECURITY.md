@@ -7,10 +7,10 @@ currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 2.0.2   | :white_check_mark: |
-| < 1     | :x:                |
+| 2.2.0   | :white_check_mark: |
+| < 2     | :x:                |
 
 ## Reporting a Vulnerability
 
-Please use ideafast@imperial.ac.uk to report security issues to you deem sensitive.
+Please use <ideafast@imperial.ac.uk> to report security issues to you deem sensitive.
 Otherwise, please feel free to use GitHub issues to let us know of any potential problem.

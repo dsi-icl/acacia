@@ -1,11 +1,11 @@
 {
-    "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "name": "itmat-commons",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-commons/src",
     "projectType": "library",
     "targets": {
         "build": {
-            "executor": "@nrwl/esbuild:esbuild",
+            "executor": "@nx/esbuild:esbuild",
             "outputs": [
                 "{options.outputPath}"
             ],
@@ -15,11 +15,13 @@
                 "tsConfig": "packages/itmat-commons/tsconfig.lib.json",
                 "assets": [
                     "packages/itmat-commons/*.md"
-                ]
+                ],
+                "generatePackageJson": true,
+                "thirdParty": true
             }
         },
         "lint": {
-            "executor": "@nrwl/linter:eslint",
+            "executor": "@nx/linter:eslint",
             "outputs": [
                 "{options.outputFile}"
             ],
@@ -30,7 +32,7 @@
             }
         },
         "test": {
-            "executor": "@nrwl/jest:jest",
+            "executor": "@nx/jest:jest",
             "outputs": [
                 "{workspaceRoot}/coverage/packages/itmat-commons"
             ],

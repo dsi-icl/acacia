@@ -1,6 +1,6 @@
 {
-    "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "name": "itmat-docker",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-docker/src",
     "projectType": "application",
     "targets": {
@@ -9,7 +9,7 @@
                 {
                     "target": "build",
                     "params": "forward",
-                    "projects": "dependencies"
+                    "dependencies": true
                 }
             ],
             "executor": "nx:run-commands",

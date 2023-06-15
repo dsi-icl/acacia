@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IFieldEntry } from '@itmat-broker/itmat-types';
+import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IFieldEntry, deviceTypes, IOrganisation } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -211,13 +211,15 @@ export class StudyCore {
             (s => o => (k => !s.has(k) && s.add(k))(keysToCheck.map(k => o[k]).join('|')))(new Set())
         );
         for (const dataClip of filteredData) {
+            // remove the '-' if there exists
+            dataClip.subjectId = dataClip.subjectId.replace('-', '');
             const fieldInDb = fieldList.filter(el => el.fieldId === dataClip.fieldId)[0];
             if (!fieldInDb) {
                 response.push({ successful: false, code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: `Field ${dataClip.fieldId}: Field Not found` });
                 continue;
             }
             // check subjectId
-            if (!validate(dataClip.subjectId?.replace('-', '').substr(1) ?? '')) {
+            if (!validate(dataClip.subjectId.substr(1) ?? '')) {
                 response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
                 continue;
             }
@@ -368,7 +370,9 @@ export class StudyCore {
                     uploadedAt: (new Date()).valueOf(),
                     metadata: {
                         ...dataClip.metadata,
-                        add: ((existing?.metadata as any)?.add || []).concat(parsedValue)
+                        participantId: dataClip.subjectId,
+                        add: ((existing?.metadata as any)?.add || []).concat(parsedValue),
+                        uploader: requester.id
                     },
                     uploadedBy: requester.id
                 };
@@ -379,7 +383,8 @@ export class StudyCore {
                     value: parsedValue,
                     uploadedAt: (new Date()).valueOf(),
                     metadata: {
-                        ...dataClip.metadata
+                        ...dataClip.metadata,
+                        uploader: requester.id
                     },
                     uploadedBy: requester.id
                 };
@@ -397,7 +402,6 @@ export class StudyCore {
 
     // This file uploading function will not check any metadate of the file
     public async uploadFile(studyId: string, data: IDataClip, uploader: IUser, args: { fileLength?: number, fileHash?: string }): Promise<IFile | { code: errorCodes, description: string }> {
-
         if (!data.file || typeof (data.file) === 'string') {
             return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Invalid File Stream' };
         }
@@ -405,6 +409,43 @@ export class StudyCore {
         if (!study) {
             return { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: 'Study does not exist.' };
         }
+        const sitesIDMarkers = (await db.collections!.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<any>((acc, curr) => {
+            if (curr.metadata?.siteIDMarker) {
+                acc[curr.metadata.siteIDMarker] = curr.shortname;
+            }
+            return acc;
+        }, {});
+        // check file metadata
+        if (data.metadata) {
+            let parsedDescription: Record<string, any>;
+            let startDate;
+            let endDate;
+            let deviceId;
+            let participantId;
+            try {
+                parsedDescription = data.metadata;
+                startDate = parseInt(parsedDescription.startDate);
+                endDate = parseInt(parsedDescription.endDate);
+                participantId = data.subjectId.toString();
+                deviceId = parsedDescription.deviceId.toString();
+            } catch (e) {
+                return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File description is invalid' };
+            }
+            if (
+                !Object.keys(sitesIDMarkers).includes(participantId.substr(0, 1)?.toUpperCase()) ||
+                !Object.keys(deviceTypes).includes(deviceId.substr(0, 3)?.toUpperCase()) ||
+                !validate(participantId.substr(1) ?? '') ||
+                !validate(deviceId.substr(3) ?? '') ||
+                !startDate || !endDate ||
+                (new Date(endDate).setHours(0, 0, 0, 0).valueOf()) > (new Date().setHours(0, 0, 0, 0).valueOf())
+            ) {
+                return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File description is invalid' };
+            }
+        } else {
+            return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File description is invalid' };
+        }
+
+
         const file: FileUpload = await data.file;
 
         // check if old files exist; if so, denote it as deleted
@@ -416,13 +457,13 @@ export class StudyCore {
                 try {
                     const fileEntry: Partial<IFile> = {
                         id: uuid(),
-                        fileName: file.fieldName,
+                        fileName: file.filename,
                         studyId: studyId,
-                        description: JSON.stringify(data.metadata ?? {}),
+                        description: JSON.stringify({}),
                         uploadTime: `${Date.now()}`,
                         uploadedBy: uploader.id,
                         deleted: null,
-                        metadata: {}
+                        metadata: (data.metadata as Record<string, any>)
                     };
 
                     if (args.fileLength !== undefined && args.fileLength > fileSizeLimit) {
@@ -472,7 +513,6 @@ export class StudyCore {
                     fileEntry.fileSize = readBytes.toString();
                     fileEntry.uri = fileUri;
                     fileEntry.hash = hashString;
-
                     const insertResult = await db.collections!.files_collection.insertOne(fileEntry as IFile);
                     if (insertResult.acknowledged) {
                         // delete old file if existing
@@ -567,7 +607,7 @@ export class StudyCore {
         if (prefix === undefined) {
             prefix = uuid().substring(0, 10);
         }
-        rangeArray = rangeArray.map((e) => `${prefix}${e}`);
+        rangeArray = rangeArray.map((e) => `${prefix}${e} `);
         rangeArray = this.shuffle(rangeArray);
         const mapping: { [originalPatientId: string]: string } = {};
         for (let i = 0, length = listOfPatientId.length; i < length; i++) {
