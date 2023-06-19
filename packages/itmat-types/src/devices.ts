@@ -21,5 +21,6 @@ export const deviceTypes: Record<string, string> = {
     VIR: 'Virtual device type',
     CAN: 'Cantab App',
     WLD: 'Wildkey App',
-    SOC: 'Wildkey Social App'
+    SOC: 'Wildkey Social App',
+    SLP: 'Bed Sleep Data'
 };
