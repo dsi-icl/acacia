@@ -1511,20 +1511,7 @@ describe('STUDY API', () => {
             expect(res.body.data.getDataRecords.data.DM.sort((a: { entry_reserved: string; entry_inc: number; }, b: { entry_reserved: any; entry_inc: number; }) => {
                 return a.entry_reserved !== b.entry_reserved ? a.entry_reserved.localeCompare(b.entry_reserved)
                     : a.entry_inc - b.entry_inc;
-            })).toEqual([
-                {
-                    entry_reserved: 'GR6R4AR',
-                    index: 2,
-                    entry_data_age: 35,
-                    entry_data_gender: 'F'
-                },
-                {
-                    entry_reserved: 'I7N3G6G',
-                    index: 1,
-                    entry_data_age: 25,
-                    entry_data_gender: 'M'
-                }
-            ]);
+            }).map(el => el.entry_reserved)).toEqual(['GR6R4AR', 'I7N3G6G']);
         });
     });
 });

@@ -1985,30 +1985,6 @@ if (global.hasMinio) {
                                 }]
                             }
                         ],
-                        // files: [
-                        //     {
-                        //         id: 'mockfile1_id',
-                        //         fileName: 'I7N3G6G-MMM7N3G6G-20200704-20210429.txt',
-                        //         studyId: createdStudy.id,
-                        //         projectId: null,
-                        //         fileSize: '1000',
-                        //         description: 'Just a test file1',
-                        //         uploadTime: '1599345644000',
-                        //         uploadedBy: adminId,
-                        //         hash: 'b0dc2ae76cdea04dcf4be7fcfbe36e2ce8d864fe70a1895c993ce695274ba7a0'
-                        //     },
-                        //     {
-                        //         id: 'mockfile2_id',
-                        //         fileName: 'GR6R4AR-MMMS3JSPP-20200601-20200703.json',
-                        //         studyId: createdStudy.id,
-                        //         projectId: null,
-                        //         fileSize: '1000',
-                        //         description: 'Just a test file2',
-                        //         uploadTime: '1599345644000',
-                        //         uploadedBy: adminId,
-                        //         hash: '4ae25be36354ee0aec8dc8deac3f279d2e9d6415361da996cf57eb6142cfb1a3'
-                        //     }
-                        // ],
                         files: [],
                         numOfRecords: [4, 0],
                         subjects: [['mock_patient1', 'mock_patient2'], []],
@@ -2044,8 +2020,8 @@ if (global.hasMinio) {
                         },
                         summary: {
                             subjects: [
-                                'mock_patient2',
-                                'mock_patient1'
+                                'mock_patient1',
+                                'mock_patient2'
                             ],
                             visits: [
                                 'mockvisitId'
@@ -2225,8 +2201,8 @@ if (global.hasMinio) {
                         },
                         summary: {
                             subjects: [
-                                'mock_patient2',
-                                'mock_patient1'
+                                'mock_patient1',
+                                'mock_patient2'
                             ],
                             visits: [
                                 'mockvisitId'
@@ -3986,7 +3962,6 @@ if (global.hasMinio) {
                         ]
                     }
                 });
-                console.log(await db.collections!.data_collection.find({}).toArray());
                 const getRes = await authorisedProjectUser.post('/graphql').send({
                     query: print(GET_DATA_RECORDS),
                     variables: {

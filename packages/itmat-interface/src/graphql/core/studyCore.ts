@@ -223,12 +223,10 @@ export class StudyCore {
                 response.push({ successful: false, code: errorCodes.CLIENT_MALFORMED_INPUT, description: `Subject ID ${dataClip.subjectId} is illegal.` });
                 continue;
             }
-
             if (!(await permissionCore.checkDataEntryValid(permissions, dataClip.fieldId, dataClip.subjectId, dataClip.visitId))) {
                 response.push({ successful: false, code: errorCodes.NO_PERMISSION_ERROR, description: 'You do not have access to this field.' });
                 continue;
             }
-
             // check value is valid
             let error;
             let parsedValue;
@@ -341,8 +339,8 @@ export class StudyCore {
             }
             const obj = {
                 m_studyId: studyId,
-                m_subjectId: dataClip.subjectId,
                 m_versionId: null,
+                m_subjectId: dataClip.subjectId,
                 m_visitId: dataClip.visitId,
                 m_fieldId: dataClip.fieldId
             };
@@ -376,6 +374,7 @@ export class StudyCore {
                     },
                     uploadedBy: requester.id
                 };
+                bulk.find(obj).updateOne({ $set: objWithData });
             } else {
                 objWithData = {
                     ...obj,
@@ -388,13 +387,12 @@ export class StudyCore {
                     },
                     uploadedBy: requester.id
                 };
+                bulk.insert(objWithData);
             }
-            bulk.find(obj).upsert().updateOne({ $set: objWithData });
             if (bulk.batches.length > 999) {
                 await bulk.execute();
                 bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
             }
-
         }
         bulk.batches.length !== 0 && await bulk.execute();
         return response;
@@ -614,7 +612,6 @@ export class StudyCore {
             mapping[listOfPatientId[i]] = (rangeArray as string[])[i];
         }
         return mapping;
-
     }
 
     private shuffle(array: Array<number | string>) {  // source: Fisher–Yates Shuffle; https://bost.ocks.org/mike/shuffle/
