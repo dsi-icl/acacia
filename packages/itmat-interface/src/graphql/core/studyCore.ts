@@ -389,7 +389,7 @@ export class StudyCore {
                 };
                 bulk.insert(objWithData);
             }
-            if (bulk.batches.length > 99) {
+            if (bulk.batches.length > 999) {
                 await bulk.execute();
                 bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
             }
