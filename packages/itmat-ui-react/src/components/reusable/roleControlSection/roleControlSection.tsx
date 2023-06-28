@@ -275,6 +275,7 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
                                 subjectIds: variables.subjectIds,
                                 visitIds: variables.visitIds,
                                 fieldIds: variables.fieldIds,
+                                uploaders: variables.uploaders,
                                 hasVersioned: variables.hasVersioned,
                                 operations: variables.operations,
                                 filters: variables.filters
@@ -317,6 +318,14 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
                                 </Col>
                                 <Col span={5}>
                                     <Form.Item name='fieldIds' label='Field Id'>
+                                        <Select
+                                            mode='tags'
+                                            tokenSeparators={[',']}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={5}>
+                                    <Form.Item name='uploaders' label='Uploaders'>
                                         <Select
                                             mode='tags'
                                             tokenSeparators={[',']}

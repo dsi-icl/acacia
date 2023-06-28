@@ -107,9 +107,11 @@ export const studyResolvers = {
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
+                    $sort: { dateAdded: -1 }
+                }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -126,13 +128,15 @@ export const studyResolvers = {
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
+                    $sort: { dateAdded: -1 }
+                }, {
                     $match: {
                         fieldId: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) }
                     }
                 }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -151,10 +155,12 @@ export const studyResolvers = {
                 const metadataFilter = { $or: subqueries };
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                }, {
+                    $sort: { dateAdded: -1 }
                 }, { $match: metadataFilter }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -374,9 +380,11 @@ export const studyResolvers = {
                 fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
+                    $sort: { dateAdded: -1 }
+                }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -391,6 +399,13 @@ export const studyResolvers = {
                 if (versionId === null && aggregatedPermissions.hasVersioned) {
                     availableDataVersions.push(null);
                 }
+                // metadata filter
+                const subqueries: any = [];
+                aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
+                    subqueries.push(translateMetadata(subMetadata));
+                });
+                metadataFilter = { $or: subqueries };
+                // if versionId is null; we will not filter by the ontologytrees
                 if (versionId !== null) {
                     // metadata filter
                     const subqueries: any = [];
@@ -400,10 +415,12 @@ export const studyResolvers = {
                     metadataFilter = { $or: subqueries };
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                    }, {
+                        $sort: { dateAdded: -1 }
                     }, { $match: metadataFilter }, {
                         $group: {
                             _id: '$fieldId',
-                            doc: { $last: '$$ROOT' }
+                            doc: { $first: '$$ROOT' }
                         }
                     }, {
                         $replaceRoot: {
@@ -416,11 +433,11 @@ export const studyResolvers = {
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, {
-                        $match: { fieldId: { $in: aggregatedPermissions.raw.fieldIds.map((el: string) => new RegExp(el)) } }
-                    }, {
+                        $sort: { dateAdded: -1 }
+                    }, { $match: metadataFilter }, {
                         $group: {
                             _id: '$fieldId',
-                            doc: { $last: '$$ROOT' }
+                            doc: { $first: '$$ROOT' }
                         }
                     }, {
                         $replaceRoot: {
@@ -436,44 +453,20 @@ export const studyResolvers = {
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false);
                 result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             }
-
             // post processing the data
             // 2. update to the latest data; start from first record
             const groupedResult: any = {};
-            // process files first
-            const record: any = {};
             for (let i = 0; i < result.length; i++) {
-                for (const key of Object.keys(result[i])) {
-                    if (key.startsWith('Device')) {
-                        if (record[result[i]['m_subjectId']] === undefined) {
-                            record[result[i]['m_subjectId']] = {};
-                        }
-                        if (record[result[i]['m_subjectId']][result[i]['m_visitId']] === undefined) {
-                            record[result[i]['m_subjectId']][result[i]['m_visitId']] = { add: [], remove: [] };
-                        }
-                        record[result[i]['m_subjectId']][result[i]['m_visitId']].add.push(...result[i][key].add);
-                        record[result[i]['m_subjectId']][result[i]['m_visitId']].remove.push(...result[i][key].remove);
-                    } else {
-                        continue;
-                    }
+                const { m_subjectId, m_visitId } = result[i];
+                if (!groupedResult[m_subjectId]) {
+                    groupedResult[m_subjectId] = {};
                 }
+                if (!groupedResult[m_subjectId][m_visitId]) {
+                    groupedResult[m_subjectId][m_visitId] = {};
+                }
+                groupedResult[m_subjectId][m_visitId] = result[i];
             }
-            for (let i = 0; i < result.length; i++) {
-                if (groupedResult[result[i]['m_subjectId']] === undefined) {
-                    groupedResult[result[i]['m_subjectId']] = {};
-                }
-                if (groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']] === undefined) {
-                    groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']] = {};
-                }
-                for (const field of Object.keys(result[i])) {
-                    if (field.startsWith('Device') && !groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field]) {
-                        groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] = record[result[i]['m_subjectId']][result[i]['m_visitId']].add.filter((el: string) => !record[result[i]['m_subjectId']][result[i]['m_visitId']].remove.includes(el));
-                    }
-                    if (groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] === undefined || groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] === null) {
-                        groupedResult[result[i]['m_subjectId']][result[i]['m_visitId']][field] = result[i][field];
-                    }
-                }
-            }
+
             // 2. adjust format: 1) original(exists) 2) standardized - $name 3) grouped
             // when standardized data, versionId should not be specified
             const standardizations = versionId === null ? null : await db.collections!.standardizations_collection.find({ studyId: studyId, type: queryString['format'].split('-')[1], delete: null, dataVersion: { $in: availableDataVersions } }).toArray();
@@ -510,9 +503,11 @@ export const studyResolvers = {
                 const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
                 }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
+                    $sort: { dateAdded: -1 }
+                }, {
                     $group: {
                         _id: '$fieldId',
-                        doc: { $last: '$$ROOT' }
+                        doc: { $first: '$$ROOT' }
                     }
                 }, {
                     $replaceRoot: {
@@ -531,15 +526,28 @@ export const studyResolvers = {
                     fileRecords = (await db.collections!.data_collection.aggregate([{
                         $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
                     }, {
-                        $match: { m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) } }
-                    }, {
-                        $match: { m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) } }
+                        $match: {
+                            m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
+                            m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
+                            m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
+                            m_versionId: { $in: availableDataVersions }
+                        }
                     }]).toArray());
                 }
                 adds = fileRecords.map(el => el.metadata?.add || []).flat();
                 removes = fileRecords.map(el => el.metadata?.remove || []).flat();
             }
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, $or: [{ id: { $in: adds, $nin: removes } }, { description: JSON.stringify({}) }] }).toArray();
+            // filter by uploaders if necessary
+            const uploaders: any[] = [new RegExp(`^${requester.id}$`)];
+            if (hasPermission && hasPermission.uploaders) {
+                for (const uploader of hasPermission.uploaders) {
+                    uploaders.push(new RegExp(uploader));
+                }
+            }
+            if (requester.type === userTypes.ADMIN) {
+                uploaders.push(new RegExp('^.*$'));
+            }
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, uploadedBy: { $in: uploaders }, $or: [{ id: { $in: adds, $nin: removes } }, { description: JSON.stringify({}) }] }).sort({ uploadTime: -1 }).toArray();
         },
         subjects: async (study: IStudy, __unused__args: never, context: any): Promise<Array<Array<string>>> => {
             const requester: IUser = context.req.user;
@@ -871,9 +879,9 @@ export const studyResolvers = {
             const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN);
             const result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
 
-            summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId)));
-            summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b));
-            summary['standardizationTypes'] = await db.collections!.standardizations_collection.distinct('type', { studyId: study.id, deleted: null });
+            summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId))).sort();
+            summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b)).sort();
+            summary['standardizationTypes'] = (await db.collections!.standardizations_collection.distinct('type', { studyId: study.id, deleted: null })).sort();
             return summary;
         },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<any> => {

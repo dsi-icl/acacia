@@ -309,6 +309,7 @@ export const fileResolvers = {
                 uploadedAt: (new Date()).valueOf(),
                 metadata: {
                     'uploader:user': requester.id,
+                    'add': existing?.metadata?.add ?? [],
                     'remove': ((existing?.metadata as any)?.remove || []).concat(args.fileId)
                 }
             };

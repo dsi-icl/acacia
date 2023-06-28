@@ -25,20 +25,6 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
             (fields as any)[field] = 1;
         });
     }
-    // const addFields = {};
-    // We send back the newly created derived fields by default
-    // if (query['new_fields'] !== undefined && query['new_fields'] !== null) {
-    //     if (query.new_fields.length > 0) {
-    //         query.new_fields.forEach((field: any) => {
-    //             if (field.op === 'derived') {
-    //                 (fields as any)[field.name] = 1;
-    //                 (addFields as any)[field.name] = createNewField(field.value);
-    //             } else {
-    //                 return 'Error';
-    //             }
-    //         });
-    //     }
-    // }
     let match = {};
     // We send back the filtered fields values
     if (query['cohort'] !== undefined && query['cohort'] !== null) {
@@ -53,12 +39,26 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
         }
     }
 
-    // group results into one object by subjectId, visitId
     const groupFilter: any = [{
+        $sort: { uploadedAt: -1 }
+    }, {
+        $group: {
+            _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId', m_fieldId: '$m_fieldId' },
+            doc: { $first: '$$ROOT' }
+        }
+    }, {
+        $project: {
+            m_subjectId: '$doc.m_subjectId',
+            m_visitId: '$doc.m_visitId',
+            m_fieldId: '$doc.m_fieldId',
+            value: '$doc.value',
+            _id: 0
+        }
+    }, {
         $group: {
             _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId' },
             result: {
-                $addToSet: { k: '$m_fieldId', v: { $cond: [{ $regexMatch: { input: '$m_fieldId', regex: /^Device.*$/ } }, { add: '$metadata.add', remove: '$metadata.remove' }, '$value'] } }
+                $addToSet: { k: '$m_fieldId', v: '$value' }
             }
         }
     }, {
@@ -73,33 +73,28 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
         $unset: ['_id', 'result']
     }
     ];
+
     if (isAdmin) {
         return [
-            { $match: { m_versionId: { $in: permittedVersions } } },
-            { $match: { m_studyId: studyId } },
-            { $match: match },
+            { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
             ...groupFilter,
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+            { $match: match },
             { $project: fields }
         ];
     }
     if (metadataFilter) {
         return [
-            { $match: { m_versionId: { $in: permittedVersions } } },
-            { $match: { m_studyId: studyId } },
-            { $match: match },
+            { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
             { $match: metadataFilter },
             ...groupFilter,
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+            { $match: match },
             { $project: fields }
         ];
     } else {
         return [
-            { $match: { m_versionId: { $in: permittedVersions } } },
-            { $match: { m_studyId: studyId } },
-            { $match: match },
+            { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
             ...groupFilter,
-            { $sort: { m_subjectId: -1, m_visitId: -1, uploadedAt: -1 } },
+            { $match: match },
             { $project: fields }
         ];
     }
