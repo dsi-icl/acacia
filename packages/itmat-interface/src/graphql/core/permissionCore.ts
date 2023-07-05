@@ -96,7 +96,8 @@ export class PermissionCore {
                     visitIds: [matchAnyString],
                     fieldIds: [matchAnyString]
                 },
-                uploaders: []
+                uploaders: [],
+                roles: []
             };
         }
 
@@ -111,6 +112,7 @@ export class PermissionCore {
             visitIds: [],
             fieldIds: []
         };
+        const roleraw = [];
         let uploaders: string[] = [];
         for (const role of roles) {
             roleObj.push([{
@@ -127,11 +129,18 @@ export class PermissionCore {
             if (role.permissions.data?.hasVersioned) {
                 hasVersioned = hasVersioned || role.permissions.data.hasVersioned;
             }
+            roleraw.push({
+                subjectIds: role.permissions.data?.subjectIds || [],
+                visitIds: role.permissions.data?.visitIds || [],
+                fieldIds: role.permissions.data?.fieldIds || [],
+                uploaders: role.permissions.data?.uploaders || [],
+                hasVersioned: role.permissions.data.hasVersioned
+            });
         }
         if (Object.keys(roleObj).length === 0) {
             return false;
         }
-        return { matchObj: roleObj, hasVersioned: hasVersioned, uploaders: uploaders, raw: raw };
+        return { matchObj: roleObj, hasVersioned: hasVersioned, uploaders: uploaders, raw: raw, roleraw: roleraw };
     }
 
     public combineMultiplePermissions(permissions: any[]): any {
