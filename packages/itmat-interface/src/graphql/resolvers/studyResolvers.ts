@@ -47,7 +47,6 @@ export const studyResolvers = {
             if (study === null || study === undefined) {
                 throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-
             return study;
         },
         getProject: async (__unused__parent: Record<string, unknown>, args: any, context: any): Promise<Omit<IProject, 'patientMapping'> | null> => {
@@ -492,62 +491,76 @@ export const studyResolvers = {
                 requester,
                 study.id
             );
-            let adds: string[] = [];
-            let removes: string[] = [];
-            if (hasPermission) {
-                const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-                if (hasPermission.hasVersioned) {
-                    availableDataVersions.push(null);
+
+            if (!hasPermission) {
+                return [];
+            }
+
+            const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
+                $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
+            }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
+                $sort: { dateAdded: -1 }
+            }, {
+                $group: {
+                    _id: '$fieldId',
+                    doc: { $first: '$$ROOT' }
                 }
-                // we do not use metadata filter because unvesioned data is needed
-                const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
-                    $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
-                }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
-                    $sort: { dateAdded: -1 }
-                }, {
-                    $group: {
-                        _id: '$fieldId',
-                        doc: { $first: '$$ROOT' }
-                    }
-                }, {
-                    $replaceRoot: {
-                        newRoot: '$doc'
-                    }
-                }, {
-                    $sort: { fieldId: 1 }
-                }]).toArray()).map(el => el.fieldId);
-                let fileRecords;
-                if (Object.keys(hasPermission.matchObj).length === 0) {
-                    // ADMIN
-                    fileRecords = (await db.collections!.data_collection.aggregate([{
-                        $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
-                    }]).toArray());
-                } else {
-                    fileRecords = (await db.collections!.data_collection.aggregate([{
-                        $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
-                    }, {
-                        $match: {
-                            m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
-                            m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
-                            m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
-                            m_versionId: { $in: availableDataVersions }
-                        }
-                    }]).toArray());
+            }, {
+                $replaceRoot: {
+                    newRoot: '$doc'
                 }
+            }, {
+                $sort: { fieldId: 1 }
+            }]).toArray()).map(el => el.fieldId);
+            let adds = [];
+            let removes = [];
+
+            // versioned data
+            if (requester.type === userTypes.ADMIN) {
+                const fileRecords = await db.collections!.data_collection.aggregate([{
+                    $match: { m_studyId: study.id, m_fieldId: { $in: fileFieldIds } }
+                }]).toArray();
                 adds = fileRecords.map(el => el.metadata?.add || []).flat();
                 removes = fileRecords.map(el => el.metadata?.remove || []).flat();
-            }
-            // filter by uploaders if necessary
-            const uploaders: any[] = [new RegExp(`^${requester.id}$`)];
-            if (hasPermission && hasPermission.uploaders) {
-                for (const uploader of hasPermission.uploaders) {
-                    uploaders.push(new RegExp(uploader));
+            } else {
+                const subqueries: any = [];
+                hasPermission.matchObj.forEach((subMetadata: any) => {
+                    subqueries.push(translateMetadata(subMetadata));
+                });
+                const metadataFilter = { $or: subqueries };
+                const versionedFileRecors = await db.collections!.data_collection.aggregate([{
+                    $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
+                }, {
+                    $match: metadataFilter
+                }]).toArray();
+
+                const filters = [];
+                for (const role of hasPermission.roleraw) {
+                    if (!(role.hasVersioned)) {
+                        continue;
+                    }
+                    filters.push({
+                        m_subjectId: { $in: role.subjectIds.map((el: string) => new RegExp(el)) },
+                        m_visitId: { $in: role.visitIds.map((el: string) => new RegExp(el)) },
+                        m_fieldId: { $in: role.fieldIds.map((el: string) => new RegExp(el)) },
+                        m_versionId: null
+                    });
                 }
+                let unversionedFileRecords: any[] = [];
+                if (filters.length !== 0) {
+                    unversionedFileRecords = await db.collections!.data_collection.aggregate([{
+                        $match: { m_studyId: study.id, m_versionId: null, m_fieldId: { $in: fileFieldIds } }
+                    }, {
+                        $match: { $or: filters }
+                    }]).toArray();
+                }
+                adds = versionedFileRecors.map(el => el.metadata?.add || []).flat();
+                removes = versionedFileRecors.map(el => el.metadata?.remove || []).flat();
+                adds = adds.concat(unversionedFileRecords.map(el => el.metadata?.add || []).flat());
+                removes = removes.concat(unversionedFileRecords.map(el => el.metadata?.remove || []).flat());
             }
-            if (requester.type === userTypes.ADMIN) {
-                uploaders.push(new RegExp('^.*$'));
-            }
-            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, uploadedBy: { $in: uploaders }, $or: [{ id: { $in: adds, $nin: removes } }, { description: JSON.stringify({}) }] }).sort({ uploadTime: -1 }).toArray();
+            return await db.collections!.files_collection.find({ studyId: study.id, deleted: null, $or: [{ id: { $in: adds, $nin: removes } }, { description: JSON.stringify({}) }] }).sort({ uploadTime: -1 }).toArray();
         },
         subjects: async (study: IStudy, __unused__args: never, context: any): Promise<Array<Array<string>>> => {
             const requester: IUser = context.req.user;
