@@ -133,7 +133,7 @@
         "hi-base32": "0.5.1",
         "http-proxy-middleware": "2.0.6",
         "https-browserify": "1.0.0",
-        "jsonwebtoken": "9.0.0",
+        "jsonwebtoken": "9.0.1",
         "jstat": "1.9.6",
         "minio": "7.1.1",
         "mongodb": "5.6.0",
