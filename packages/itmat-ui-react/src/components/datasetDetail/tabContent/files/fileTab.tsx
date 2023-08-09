@@ -22,6 +22,7 @@ type StudyFile = RcFile & {
     deviceId?: string;
     startDate?: Dayjs;
     endDate?: Dayjs;
+    tup?: string;
 }
 
 const { RangePicker } = DatePicker;
@@ -143,7 +144,8 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                 participantId: file.participantId?.trim().toUpperCase(),
                 deviceId: file.deviceId?.trim().toUpperCase(),
                 startDate: file.startDate?.valueOf(),
-                endDate: file.endDate?.valueOf()
+                endDate: file.endDate?.valueOf(),
+                tup: file.tup?.trim().toUpperCase()
             };
             const uploadMapHackName = `UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`;
             if (!(window as any).onUploadProgressHackMap)
@@ -219,6 +221,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
             newFile.deviceId = record.deviceId;
             newFile.startDate = record.startDate;
             newFile.endDate = record.endDate;
+            newFile.tup = record.tup;
             newFileList.splice(index, 1, newFile);
             return newFileList;
         });
@@ -267,6 +270,13 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
             title: 'Period',
             dataIndex: 'period',
             key: 'period',
+            editable: true,
+            width: '24rem'
+        },
+        {
+            title: 'TUP',
+            dataIndex: 'tup',
+            key: 'tup',
             editable: true,
             width: '24rem'
         },
