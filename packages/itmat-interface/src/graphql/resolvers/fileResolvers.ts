@@ -157,7 +157,8 @@ export const fileResolvers = {
                                 participantId: parsedDescription.participantId,
                                 deviceId: parsedDescription.deviceId,
                                 startDate: parsedDescription.startDate, // should be in milliseconds
-                                endDate: parsedDescription.endDate
+                                endDate: parsedDescription.endDate,
+                                tup: parsedDescription.tup
                             };
                         }
 

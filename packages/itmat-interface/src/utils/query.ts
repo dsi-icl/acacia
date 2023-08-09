@@ -11,14 +11,20 @@ import { IStudy, IFieldEntry, IStandardization } from '@itmat-broker/itmat-types
 
 
 export function buildPipeline(query: any, studyId: string, permittedVersions: Array<string | null>, permittedFields: IFieldEntry[], metadataFilter: any, isAdmin: boolean) {
-    const fieldIds: string[] = permittedFields.map(el => el.fieldId);
+    let fieldIds: string[] = permittedFields.map(el => el.fieldId);
     const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
     // We send back the requested fields, by default send all fields
     if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
+        fieldIds = permittedFields.filter(el => query['data_requested'].includes(el.fieldId)).map(el => el.fieldId);
         query.data_requested.forEach((field: string) => {
             if (fieldIds.includes(field)) {
                 (fields as any)[field] = 1;
             }
+        });
+    } else if (query['table_requested'] !== undefined && query['table_requested'] !== undefined) {
+        fieldIds = permittedFields.filter(el => el.tableName === query['table_requested']).map(el => el.fieldId);
+        fieldIds.forEach((field: string) => {
+            (fields as any)[field] = 1;
         });
     } else {
         fieldIds.forEach((field: string) => {
@@ -40,6 +46,8 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
     }
 
     const groupFilter: any = [{
+        $match: { m_fieldId: { $in: fieldIds } }
+    }, {
         $sort: { uploadedAt: -1 }
     }, {
         $group: {
@@ -54,32 +62,14 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
             value: '$doc.value',
             _id: 0
         }
-    }, {
-        $group: {
-            _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId' },
-            result: {
-                $addToSet: { k: '$m_fieldId', v: '$value' }
-            }
-        }
-    }, {
-        $set: {
-            result: { $arrayToObject: '$result' }
-        }
-    }, {
-        $replaceRoot: {
-            newRoot: { $mergeObjects: ['$$ROOT', '$_id', '$result'] }
-        }
-    }, {
-        $unset: ['_id', 'result']
     }
     ];
-
     if (isAdmin) {
         return [
             { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
             ...groupFilter,
-            { $match: match },
-            { $project: fields }
+            { $match: match }
+            // { $project: fields }
         ];
     }
     if (metadataFilter) {
@@ -87,15 +77,15 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
             { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
             { $match: metadataFilter },
             ...groupFilter,
-            { $match: match },
-            { $project: fields }
+            { $match: match }
+            // { $project: fields }
         ];
     } else {
         return [
             { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
             ...groupFilter,
-            { $match: match },
-            { $project: fields }
+            { $match: match }
+            // { $project: fields }
         ];
     }
 }

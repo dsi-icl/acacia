@@ -198,6 +198,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
         variables: {
             studyId: studyId,
             projectId: projectId,
+            versionId: '-1',
             queryString: {
                 format: 'grouped',
                 data_requested: [genderField?.fieldId, raceField?.fieldId, ageField?.fieldId, siteField?.fieldId],
@@ -543,6 +544,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                     <Query<any, any> query={GET_DATA_RECORDS} variables={{
                         studyId: project.studyId,
                         projectId: project.id,
+                        versionId: '-1',
                         queryString: {
                             format: 'grouped',
                             data_requested: [ontologyTree.routes?.filter(el => el.name === selectedPath[selectedPath.length - 1])[0]?.field[0]?.replace('$', '') || ''],
@@ -673,6 +675,7 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
         variables: {
             studyId: studyId,
             projectId: projectId,
+            versionId: '-1',
             queryString: {
                 format: 'summary',
                 data_requested: requestedFields,

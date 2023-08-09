@@ -366,7 +366,7 @@ export const studyResolvers = {
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             const aggregatedPermissions: any = permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
 
-            const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
+            let availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             let fieldRecords: any[];
             let result: any;
             let metadataFilter: any = undefined;
@@ -392,6 +392,9 @@ export const studyResolvers = {
                 }, {
                     $sort: { fieldId: 1 }
                 }]).toArray();
+                if (versionId === '-1') {
+                    availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
+                }
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, undefined, true);
                 result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             } else {
@@ -405,7 +408,7 @@ export const studyResolvers = {
                 });
                 metadataFilter = { $or: subqueries };
                 // if versionId is null; we will not filter by the ontologytrees
-                if (versionId !== null) {
+                if (versionId && versionId !== null) {
                     // metadata filter
                     const subqueries: any = [];
                     aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
@@ -449,6 +452,9 @@ export const studyResolvers = {
                 if (queryString.metadata) {
                     metadataFilter = { $and: queryString.metadata.map((el: any) => translateMetadata(el)) };
                 }
+                if (versionId === '-1') {
+                    availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
+                }
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false);
                 result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             }
@@ -456,14 +462,14 @@ export const studyResolvers = {
             // 2. update to the latest data; start from first record
             const groupedResult: any = {};
             for (let i = 0; i < result.length; i++) {
-                const { m_subjectId, m_visitId } = result[i];
+                const { m_subjectId, m_visitId, m_fieldId, value } = result[i];
                 if (!groupedResult[m_subjectId]) {
                     groupedResult[m_subjectId] = {};
                 }
                 if (!groupedResult[m_subjectId][m_visitId]) {
                     groupedResult[m_subjectId][m_visitId] = {};
                 }
-                groupedResult[m_subjectId][m_visitId] = result[i];
+                groupedResult[m_subjectId][m_visitId][m_fieldId] = value;
             }
 
             // 2. adjust format: 1) original(exists) 2) standardized - $name 3) grouped
@@ -660,7 +666,7 @@ export const studyResolvers = {
         }
     },
     Project: {
-        fields: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<Array<IFieldEntry>> => {
+        fields: async (project: Omit<IProject, 'patientMapping'>, __unused__args: never, context: any): Promise<Array<Partial<IFieldEntry>>> => {
             const requester: IUser = context.req.user;
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
@@ -690,8 +696,9 @@ export const studyResolvers = {
                 return [];
             }
             const ontologyTreeFieldIds: string[] = (availableTrees[0].routes || []).map(el => el.field[0].replace('$', ''));
+            let fieldRecords: any[] = [];
             if (requester.type === userTypes.ADMIN) {
-                const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
+                fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
                 }, {
                     $group: {
@@ -707,7 +714,6 @@ export const studyResolvers = {
                 }, {
                     $set: { metadata: null }
                 }]).toArray();
-                return fieldRecords;
             } else {
                 // metadata filter
                 const subqueries: any = [];
@@ -715,7 +721,7 @@ export const studyResolvers = {
                     subqueries.push(translateMetadata(subMetadata));
                 });
                 const metadataFilter = { $or: subqueries };
-                const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
+                fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
                 }, { $match: metadataFilter }, {
                     $group: {
@@ -731,8 +737,8 @@ export const studyResolvers = {
                 }, {
                     $set: { metadata: null }
                 }]).toArray();
-                return fieldRecords;
             }
+            return fieldRecords;
         },
         jobs: async (project: Omit<IProject, 'patientMapping'>): Promise<Array<IJobEntry<any>>> => {
             return await db.collections!.jobs_collection.find({ studyId: project.studyId, projectId: project.id }).toArray();
@@ -852,7 +858,7 @@ export const studyResolvers = {
                     continue;
                 }
             }
-            const ontologyTreeFieldIds = (availableTrees[0]?.routes || []).map(el => el.field[0].replace('$', ''));
+            // const ontologyTreeFieldIds = (availableTrees[0]?.routes || []).map(el => el.field[0].replace('$', ''));
 
             let fieldRecords;
             if (requester.type === userTypes.ADMIN) {
@@ -874,9 +880,8 @@ export const studyResolvers = {
                     subqueries.push(translateMetadata(subMetadata));
                 });
                 metadataFilter = { $or: subqueries };
-
                 fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
-                    $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
+                    $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, { $match: metadataFilter }, {
                     $group: {
                         _id: '$fieldId',
@@ -891,7 +896,6 @@ export const studyResolvers = {
             // fieldRecords = fieldRecords.filter(el => ontologyTreeFieldIds.includes(el.fieldId));
             const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN);
             const result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
-
             summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId))).sort();
             summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b)).sort();
             summary['standardizationTypes'] = (await db.collections!.standardizations_collection.distinct('type', { studyId: study.id, deleted: null })).sort();
