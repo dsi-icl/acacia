@@ -136,6 +136,14 @@ export const FileList: FunctionComponent<{ files: IFile[], searchTerm: string | 
             }
         },
         {
+            title: 'TUP',
+            dataIndex: 'tup',
+            key: 'tup',
+            render: (__unused__value, record) => {
+                return record.metadata.tup ?? 'NA';
+            }
+        },
+        {
             title: 'Uploaded',
             dataIndex: 'uploadTime',
             key: 'uploadTime',

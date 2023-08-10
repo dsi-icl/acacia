@@ -20,6 +20,7 @@ export const deviceTypes: Record<string, string> = {
     SMQ: 'Stress Monitor App Questionnaire',
     VIR: 'Virtual device type',
     CAN: 'Cantab App',
+    TUP: 'Cantab TUP data',
     WLD: 'Wildkey App',
     SOC: 'Wildkey Social App',
     SLP: 'Bed Sleep Data'
