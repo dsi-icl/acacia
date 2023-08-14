@@ -65,7 +65,7 @@
         "@types/uuid": "9.0.2",
         "@types/webpack-env": "1.18.1",
         "@typescript-eslint/eslint-plugin": "5.60.1",
-        "@typescript-eslint/parser": "5.60.1",
+        "@typescript-eslint/parser": "5.62.0",
         "css-loader": "^6.8.1",
         "cypress": "12.16.0",
         "eslint": "~8.44.0",
