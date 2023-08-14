@@ -115,7 +115,7 @@
         "core-js": "^3.31.0",
         "cors": "2.8.5",
         "csv-parse": "5.4.0",
-        "dayjs": "1.11.8",
+        "dayjs": "1.11.9",
         "deepmerge": "4.3.1",
         "esbuild": "0.18.10",
         "export-from-json": "1.7.2",
