@@ -208,39 +208,21 @@ export const fileResolvers = {
                         fileEntry.uri = fileUri;
                         fileEntry.hash = hashString;
                         if (!isStudyLevel) {
-                            // update data record
-                            const obj = {
+                            await db.collections!.data_collection.insertOne({
+                                id: uuid(),
                                 m_studyId: args.studyId,
                                 m_subjectId: parsedDescription.participantId,
                                 m_versionId: null,
                                 m_visitId: targetVisitId,
-                                m_fieldId: targetFieldId
-                            };
-                            const existing = await db.collections!.data_collection.findOne(obj);
-                            if (!existing) {
-                                await db.collections!.data_collection.insertOne({
-                                    ...obj,
-                                    id: uuid(),
-                                    uploadedAt: (new Date()).valueOf(),
-                                    value: '',
-                                    metadata: {
-                                        add: [],
-                                        remove: []
-                                    }
-                                });
-                            }
-                            const objWithData: Partial<MatchKeysAndValues<IDataEntry>> = {
-                                ...obj,
-                                id: uuid(),
+                                m_fieldId: targetFieldId,
                                 value: '',
                                 uploadedAt: (new Date()).valueOf(),
                                 metadata: {
                                     'uploader:user': requester.id,
-                                    'add': ((existing?.metadata as any)?.add || []).concat(fileEntry.id),
+                                    'add': [fileEntry.id],
                                     'remove': []
                                 }
-                            };
-                            await db.collections!.data_collection.findOneAndUpdate(obj, { $set: objWithData }, { upsert: true });
+                            });
                         }
                         const insertResult = await db.collections!.files_collection.insertOne(fileEntry as IFile);
                         if (insertResult.acknowledged) {
