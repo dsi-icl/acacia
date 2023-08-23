@@ -82,7 +82,9 @@ rs0 [direct: primary] admin> rs.status().ok
 1
 ```
 
-Depending on your DNS configuration you may need to add the container hostname to your `/etc/hosts` file.
+Depending on your DNS configuration you may need to add the container hostname map to IP (MongoDB listening)  to your `/etc/hosts` file.
+`127.0.0.1  [hostname of MongoDB container]`
+(If your dmp service is running on the host machine, you need to add this line to the hosts file on your host machine, because the MongoDB client in the host machine will try to connect to the MongoDB server by its hostname of the container)
 
 You can figure the hostname out using the following command
 
