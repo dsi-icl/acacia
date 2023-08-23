@@ -5,7 +5,9 @@
         "module": "commonjs",
         "types": [
             "jest",
-            "node"
+            "node",
+            "@nx/react/typings/cssmodule.d.ts",
+            "@nx/react/typings/image.d.ts"
         ]
     },
     "include": [
