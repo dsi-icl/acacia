@@ -114,7 +114,7 @@
         "connect-timeout": "1.9.0",
         "core-js": "^3.32.1",
         "cors": "2.8.5",
-        "csv-parse": "5.4.0",
+        "csv-parse": "5.5.0",
         "dayjs": "1.11.9",
         "deepmerge": "4.3.1",
         "esbuild": "0.19.2",
