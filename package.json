@@ -128,7 +128,7 @@
         "graphql-subscriptions": "2.0.0",
         "graphql-tag": "2.12.6",
         "graphql-type-json": "0.3.2",
-        "graphql-upload-minimal": "1.5.4",
+        "graphql-upload-minimal": "1.5.5",
         "graphql-ws": "5.14.0",
         "hi-base32": "0.5.1",
         "http-proxy-middleware": "2.0.6",
