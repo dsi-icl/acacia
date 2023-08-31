@@ -7264,10 +7264,10 @@ expect@^29.0.0, expect@^29.6.3:
     jest-message-util "^29.6.3"
     jest-util "^29.6.3"
 
-export-from-json@1.7.2:
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/export-from-json/-/export-from-json-1.7.2.tgz#574424eede06687d53c9a8127a706285cfa5c49e"
-  integrity sha512-AvjenglU3qqiXWnNz69KvTbZ6m1XhBiauSvyR+0KayPHCiWWhR0dQmaHJCHLWcFHPXeZ3/2PlgPKtGLLMApYmg==
+export-from-json@1.7.3:
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/export-from-json/-/export-from-json-1.7.3.tgz#b67f42c9a492e5513ef2a8f7f856ed3531a80c67"
+  integrity sha512-Xg0L0saYz+CBz2MnaZvSEAHr17hWtHAfFWXw/frllG9t6aijuQukiU40ElOeM9nDTrtQPhLJMLN0q8lo897FYg==
 
 express-rate-limit@6.7.0:
   version "6.7.0"
