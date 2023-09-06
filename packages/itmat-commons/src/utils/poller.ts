@@ -11,7 +11,7 @@ export interface IJobPollerConfig {
 }
 
 export class JobPoller {
-    private intervalObj?: NodeJS.Timer;
+    private intervalObj?: NodeJS.Timeout;
     private readonly matchObj: any;
 
     private readonly identity: string;
@@ -45,29 +45,30 @@ export class JobPoller {
 
     private async checkForJobs() {
         // Logger.log(`${this.identity} polling for new jobs of type ${this.jobType || 'ALL'}.`);
-        let updateResult: mongodb.ModifyResult<IJobEntry<any>>;
         try {
-            updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {
+            const updateResult = await this.jobCollection.findOneAndUpdate(this.matchObj, {
                 $set: {
                     claimedBy: this.identity,
                     lastClaimed: new Date().valueOf(),
                     status: 'PROCESSING'
                 }
             });
+
+            if (updateResult !== null) {
+                Logger.log(`${this.identity} Claimed job of type ${updateResult.jobType} - id: ${updateResult.id}`);
+                if (this.intervalObj)
+                    clearInterval(this.intervalObj);
+                await this.action(updateResult);
+                Logger.log(`${this.identity} Finished processing job of type ${updateResult.jobType} - id: ${updateResult.id}.`);
+                this.setInterval();
+            } else {
+                Logger.error(`${this.identity} Errored during database update: ${updateResult}`);
+            }
+
         } catch (err) {
             //TODO Handle error recording
             Logger.error(`${this.identity} Errored picking up a job: ${err}`);
             return;
-        }
-
-        if (updateResult !== undefined && updateResult.ok === 1 && updateResult.value !== null) {
-            Logger.log(`${this.identity} Claimed job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}`);
-            clearInterval(this.intervalObj!);
-            await this.action(updateResult.value);
-            Logger.log(`${this.identity} Finished processing job of type ${updateResult.value.jobType} - id: ${updateResult.value.id}.`);
-            this.setInterval();
-        } else if (updateResult.ok !== 1) {
-            Logger.error(`${this.identity} Errored during database update: ${updateResult}`);
         }
     }
 }

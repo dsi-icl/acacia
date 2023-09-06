@@ -98,7 +98,7 @@ export class UserCore {
         }, {
             upsert: true
         });
-        if (result.ok) {
+        if (result) {
             return entry;
         } else {
             throw new GraphQLError('Database error', { extensions: { code: errorCodes.DATABASE_ERROR } });

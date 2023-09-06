@@ -851,7 +851,7 @@ export const DataDownloadBlock: FunctionComponent<{ project: IProject }> = ({ pr
                 availableFormats.map(el => <Option value={'standardized-' + el}>{el.toString()}</Option>)
             }
         </ Select>
-        <Button type={shouldUpdateData ? 'primary' : 'ghost'} onClick={() => {
+        <Button type={shouldUpdateData ? 'primary' : 'dashed'} onClick={() => {
             getDataRecordsLazy({
                 variables: {
                     studyId: project.studyId,

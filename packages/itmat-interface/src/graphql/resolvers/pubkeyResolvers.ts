@@ -3,7 +3,6 @@ import { GraphQLError } from 'graphql';
 import { mailer } from '../../emailer/emailer';
 import { IUser, IPubkey, AccessToken, KeyPairwSignature, Signature } from '@itmat-broker/itmat-types';
 //import { v4 as uuid } from 'uuid';
-import mongodb from 'mongodb';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { userCore } from '../core/userCore';
@@ -86,7 +85,7 @@ export const pubkeyResolvers = {
                 refreshCounter: (pubkeyrec.refreshCounter + 1)
             };
             const updateResult = await db.collections!.pubkeys_collection.findOneAndUpdate({ pubkey, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
-            if (updateResult.ok !== 1) {
+            if (updateResult === null) {
                 throw new GraphQLError('Server error; cannot fulfil the JWT request.');
             }
             // return the acccess token
@@ -134,8 +133,8 @@ export const pubkeyResolvers = {
                         jwtPubkey: keypair.publicKey,
                         jwtSeckey: keypair.privateKey
                     };
-                    const updateResult: mongodb.ModifyResult<any> = await db.collections!.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
-                    if (updateResult.ok === 1) {
+                    const updateResult = await db.collections!.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
+                    if (updateResult) {
                         await mailer.sendMail({
                             from: `${config.appName} <${config.nodemailer.auth.user}>`,
                             to: requester.email,
@@ -158,7 +157,7 @@ export const pubkeyResolvers = {
                             `
                         });
 
-                        return updateResult.value;
+                        return updateResult;
                     } else {
                         throw new GraphQLError('Server error; no entry or more than one entry has been updated.');
                     }

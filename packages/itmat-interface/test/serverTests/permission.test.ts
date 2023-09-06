@@ -1494,7 +1494,7 @@ describe('ROLE API', () => {
                         users: newUser.id
                     }
                 }, { returnDocument: 'after' });
-                expect(updatedRole.value.users).toEqual([newUser.id]);
+                expect(updatedRole.users).toEqual([newUser.id]);
 
                 /* test */
                 const res = await admin.post('/graphql').send({
@@ -1725,7 +1725,7 @@ describe('ROLE API', () => {
                         }
                     }
                 }, { returnDocument: 'after' });
-                expect(role.value).toEqual({
+                expect(role).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
                     projectId: null,
@@ -1979,7 +1979,7 @@ describe('ROLE API', () => {
                         }
                     }
                 }, { returnDocument: 'after' });
-                expect(role.value).toEqual({
+                expect(role).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
                     projectId: null,
@@ -2251,7 +2251,7 @@ describe('ROLE API', () => {
                         }, users: [newUser.id]
                     }
                 }, { returnDocument: 'after' });
-                expect(role.value).toEqual({
+                expect(role).toEqual({
                     _id: setupRole._id,
                     id: setupRole.id,
                     projectId: null,

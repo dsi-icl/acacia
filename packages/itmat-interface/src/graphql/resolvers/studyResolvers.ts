@@ -1315,7 +1315,7 @@ export const studyResolvers = {
                     'ontologyTrees.$.routes': undefined
                 }
             });
-            if ((resultAdd.ok === 1 && resultAdd.value) || (resultUpdate.ok === 1 && resultUpdate.value)) {
+            if (resultAdd || resultUpdate) {
                 return makeGenericReponse(treeName);
             } else {
                 throw new GraphQLError(errorCodes.DATABASE_ERROR);
@@ -1420,8 +1420,8 @@ export const studyResolvers = {
                 returnDocument: 'after'
             });
 
-            if (result.ok === 1 && result.value) {
-                return result.value;
+            if (result) {
+                return result;
             } else {
                 throw new GraphQLError(errorCodes.DATABASE_ERROR);
             }

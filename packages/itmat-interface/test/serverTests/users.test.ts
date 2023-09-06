@@ -199,7 +199,7 @@ describe('USERS API', () => {
             const updateResult = await db.collections!.users_collection.findOneAndUpdate({
                 username: SEED_STANDARD_USER_USERNAME
             }, { $set: { email: TEMP_USER_TEST_EMAIL } });
-            expect(updateResult.ok).toBe(1);
+            expect(updateResult).not.toBeNull();
 
             /* test */
             const res = await loggedoutUser
@@ -225,8 +225,8 @@ describe('USERS API', () => {
 
             /* cleanup: changing the user's email back */
             const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnDocument: 'after' });
-            expect(cleanupResult.ok).toBe(1);
-            expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
+            expect(cleanupResult).not.toBeNull();
+            expect(cleanupResult.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
 
         test('Request reset password with existing user providing username', async () => {
@@ -234,7 +234,7 @@ describe('USERS API', () => {
             const updateResult = await db.collections!.users_collection.findOneAndUpdate({
                 username: SEED_STANDARD_USER_USERNAME
             }, { $set: { email: TEMP_USER_TEST_EMAIL } });
-            expect(updateResult.ok).toBe(1);
+            expect(updateResult).not.toBeNull();
 
             /* test */
             const res = await loggedoutUser
@@ -260,8 +260,8 @@ describe('USERS API', () => {
 
             /* cleanup: changing the user's email back */
             const cleanupResult = await db.collections!.users_collection.findOneAndUpdate({ username: SEED_STANDARD_USER_USERNAME }, { $set: { email: SEED_STANDARD_USER_EMAIL, resetPasswordRequests: [] } }, { returnDocument: 'after' });
-            expect(cleanupResult.ok).toBe(1);
-            expect(cleanupResult.value.email).toBe(SEED_STANDARD_USER_EMAIL);
+            expect(cleanupResult).not.toBeNull();
+            expect(cleanupResult.email).toBe(SEED_STANDARD_USER_EMAIL);
         }, 30000);
 
         test('Reset password with password length < 8', async () => {
@@ -292,7 +292,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
-            expect(updateResult.ok).toBe(1);
+            expect(updateResult).not.toBeNull();
 
             /* test */
             const res = await loggedoutUser
@@ -315,7 +315,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [] } }
             );
-            expect(updateResult2.ok).toBe(1);
+            expect(updateResult2).not.toBeNull();
         });
 
         test('Reset password with incorrect token length < 16 (should fail)', async () => {
@@ -331,7 +331,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
-            expect(updateResult.ok).toBe(1);
+            expect(updateResult).not.toBeNull();
 
             /* test */
             const res = await loggedoutUser
@@ -354,7 +354,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [] } }
             );
-            expect(updateResult2.ok).toBe(1);
+            expect(updateResult2).not.toBeNull();
         });
 
         test('Reset password with expired token (should fail)', async () => {
@@ -368,7 +368,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
-            expect(updateResult.ok).toBe(1);
+            expect(updateResult).not.toBeNull();
 
             /* test */
             const res = await loggedoutUser
@@ -391,7 +391,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [] } }
             );
-            expect(updateResult2.ok).toBe(1);
+            expect(updateResult2).not.toBeNull();
         });
 
         test('Reset password with expired token (making sure id and expiry date belong to the same token) (should fail)', async () => {
@@ -413,7 +413,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: resetPWrequests } }
             );
-            expect(updateResult.ok).toBe(1);
+            expect(updateResult).not.toBeNull();
 
             /* test */
             const res = await loggedoutUser
@@ -436,7 +436,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [] } }
             );
-            expect(updateResult2.ok).toBe(1);
+            expect(updateResult2).not.toBeNull();
         });
 
         test('Reset password with valid token', async () => {
@@ -450,7 +450,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [resetPWrequest] } }
             );
-            expect(updateResult.ok).toBe(1);
+            expect(updateResult).not.toBeNull();
 
             /* test */
             const newloggedoutuser = request.agent(app);
@@ -499,7 +499,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [], password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi' } }
             );
-            expect(updateResult2.ok).toBe(1);
+            expect(updateResult2).not.toBeNull();
         });
 
         test('Reset password with used token (should fail)', async () => {
@@ -520,7 +520,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: resetPWrequest } }
             );
-            expect(updateResult.ok).toBe(1);
+            expect(updateResult).not.toBeNull();
             const newloggedoutuser = request.agent(app);
             const res = await newloggedoutuser
                 .post('/graphql')
@@ -583,7 +583,7 @@ describe('USERS API', () => {
                 { username: SEED_STANDARD_USER_USERNAME },
                 { $set: { resetPasswordRequests: [], password: '$2b$04$j0aSK.Dyq7Q9N.r6d0uIaOGrOe7sI4rGUn0JNcaXcPCv.49Otjwpi' } }
             );
-            expect(updateResult2.ok).toBe(1);
+            expect(updateResult2).not.toBeNull();
         });
     });
 

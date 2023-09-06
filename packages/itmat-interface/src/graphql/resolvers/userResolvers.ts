@@ -6,7 +6,6 @@ import { mailer } from '../../emailer/emailer';
 import { IProject, IStudy, IUser, IUserWithoutToken, IResetPasswordRequest, userTypes, IOrganisation } from '@itmat-broker/itmat-types';
 import { Logger } from '@itmat-broker/itmat-commons';
 import { v4 as uuid } from 'uuid';
-import mongodb from 'mongodb';
 import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { userCore } from '../core/userCore';
@@ -190,7 +189,7 @@ export const userResolvers = {
                         }
                     }
                 );
-                if (invalidateAllTokens.ok !== 1) {
+                if (invalidateAllTokens === null) {
                     throw new GraphQLError(errorCodes.DATABASE_ERROR);
                 }
                 const updateResult = await db.collections!.users_collection.findOneAndUpdate(
@@ -201,7 +200,7 @@ export const userResolvers = {
                         }
                     }
                 );
-                if (updateResult.ok !== 1) {
+                if (updateResult === null) {
                     throw new GraphQLError(errorCodes.DATABASE_ERROR);
                 }
 
@@ -455,7 +454,7 @@ export const userResolvers = {
                     }
                 },
                 { $set: { 'password': hashedPw, 'otpSecret': otpSecret, 'resetPasswordRequests.$.used': true } });
-            if (updateResult.ok !== 1) {
+            if (updateResult === null) {
                 throw new GraphQLError(errorCodes.DATABASE_ERROR);
             }
 
@@ -557,8 +556,8 @@ export const userResolvers = {
                     expiringNotification: false
                 };
             }
-            const updateResult: mongodb.ModifyResult<any> = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
-            if (updateResult.ok === 1) {
+            const updateResult = await db.collections!.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
+            if (updateResult) {
                 // New expiry date has been updated successfully.
                 if (expiredAt && result) {
                     /* send email to client */
@@ -567,7 +566,7 @@ export const userResolvers = {
                         username: result.username
                     }));
                 }
-                return updateResult.value;
+                return updateResult;
             } else {
                 throw new GraphQLError('Server error; no entry or more than one entry has been updated.');
             }
@@ -605,8 +604,8 @@ export const userResolvers = {
                 returnDocument: 'after'
             });
 
-            if (res.ok === 1 && res.value) {
-                return res.value;
+            if (res) {
+                return res;
             } else {
                 throw new GraphQLError('Delete organisation failed.');
             }
