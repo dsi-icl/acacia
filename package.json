@@ -112,7 +112,7 @@
         "bcrypt": "5.1.1",
         "connect-mongo": "5.0.0",
         "connect-timeout": "1.9.0",
-        "core-js": "^3.32.1",
+        "core-js": "^3.32.2",
         "cors": "2.8.5",
         "csv-parse": "5.5.0",
         "dayjs": "1.11.9",
