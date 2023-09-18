@@ -10,10 +10,10 @@ try {
     console.error(chalk.red('Cannot parse configuration file. Using default configuration.'));
     config = {
         database: {
-            mongo_url: "mongodb://localhost:27017",
-            database: "itmat"
+            mongo_url: 'mongodb://localhost:27017',
+            database: 'itmat'
         }
-    }
+    };
 }
 
 setupDatabase(config.database.mongo_url, config.database.database)
