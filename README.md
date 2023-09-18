@@ -105,6 +105,22 @@ These config files need to be editted accordingly for Mongodb database (`databas
 
 `nodemailer{ }` in `packages/itmat-interface/config/config.json` is also required to configure for email service.
 
+### Database setup
+
+You will need to setup the database and its collections if your database is empty.
+
+Copy your configuration file you setup in last step to root directory. Only database configuration is required.
+
+```bash
+cp packages/itmat-interface/config/config.json ./
+```
+
+Then run the following command to setup the database. This will create the database and its collections with indexes for you.
+
+```bash
+yarn setupDatabase
+```
+
 ### Start developing
 
 Once all that is done, you only need to use `yarn dev` to start the software in development mode.
