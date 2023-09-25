@@ -48,7 +48,7 @@
             ],
             "executor": "nx:run-commands",
             "options": {
-                "command": "node dist/packages/itmat-setup/runSetup.js"
+                "command": "node dist/packages/itmat-setup/src/runSetup.js"
             }
         }
     },
