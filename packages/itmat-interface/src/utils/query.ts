@@ -10,7 +10,7 @@ import { IStudy, IFieldEntry, IStandardization } from '@itmat-broker/itmat-types
 // if has study-level permission, non versioned data will also be returned
 
 
-export function buildPipeline(query: any, studyId: string, permittedVersions: Array<string | null>, permittedFields: IFieldEntry[], metadataFilter: any, isAdmin: boolean) {
+export function buildPipeline(query: any, studyId: string, permittedVersions: Array<string | null>, permittedFields: IFieldEntry[], metadataFilter: any, isAdmin: boolean, includeUnversioned: boolean) {
     let fieldIds: string[] = permittedFields.map(el => el.fieldId);
     const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
     // We send back the requested fields, by default send all fields
@@ -71,22 +71,24 @@ export function buildPipeline(query: any, studyId: string, permittedVersions: Ar
             { $match: match }
             // { $project: fields }
         ];
-    }
-    if (metadataFilter) {
-        return [
-            { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
-            { $match: metadataFilter },
-            ...groupFilter,
-            { $match: match }
-            // { $project: fields }
-        ];
     } else {
-        return [
-            { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
-            ...groupFilter,
-            { $match: match }
-            // { $project: fields }
-        ];
+        if (includeUnversioned) {
+            return [
+                { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
+                { $match: { $or: [metadataFilter, { m_versionId: null }] } },
+                ...groupFilter,
+                { $match: match }
+                // { $project: fields }
+            ];
+        } else {
+            return [
+                { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
+                { $match: metadataFilter },
+                ...groupFilter,
+                { $match: match }
+                // { $project: fields }
+            ];
+        }
     }
 }
 

@@ -347,7 +347,7 @@ export const studyResolvers = {
 
             return summary;
         },
-        getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: any, studyId: string, versionId: string, projectId?: string }, context: any): Promise<any> => {
+        getDataRecords: async (__unused__parent: Record<string, unknown>, { studyId, queryString, versionId, projectId }: { queryString: any, studyId: string, versionId: string | null | undefined, projectId?: string }, context: any): Promise<any> => {
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
@@ -367,15 +367,19 @@ export const studyResolvers = {
             const aggregatedPermissions: any = permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
 
             let availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            let fieldRecords: any[];
+            let fieldRecords: any[] = [];
             let result: any;
             let metadataFilter: any = undefined;
-
             // we obtain the data by different requests
+            // admin used will not filtered by metadata filters
             if (requester.type === userTypes.ADMIN) {
                 if (versionId === null) {
                     availableDataVersions.push(null);
                 }
+                if (versionId === '-1') {
+                    availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
+                }
+
                 fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
@@ -392,34 +396,32 @@ export const studyResolvers = {
                 }, {
                     $sort: { fieldId: 1 }
                 }]).toArray();
-                if (versionId === '-1') {
-                    availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
+                if (queryString.data_requested?.length > 0) {
+                    fieldRecords = fieldRecords.filter(el => queryString.data_requested.includes(el.fieldId));
                 }
-                const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, undefined, true);
+                const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, undefined, true, versionId === null);
                 result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             } else {
-                if (versionId === null && aggregatedPermissions.hasVersioned) {
-                    availableDataVersions.push(null);
-                }
-                // metadata filter
                 const subqueries: any = [];
                 aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
                     subqueries.push(translateMetadata(subMetadata));
                 });
                 metadataFilter = { $or: subqueries };
-                // if versionId is null; we will not filter by the ontologytrees
-                if (versionId && versionId !== null) {
-                    // metadata filter
-                    const subqueries: any = [];
-                    aggregatedPermissions.matchObj.forEach((subMetadata: any) => {
-                        subqueries.push(translateMetadata(subMetadata));
-                    });
-                    metadataFilter = { $or: subqueries };
+                // unversioned data: metadatafilter for versioned data and all unversioned tags
+                if (versionId === null && aggregatedPermissions.hasVersioned) {
+                    availableDataVersions.push(null);
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, {
                         $sort: { dateAdded: -1 }
-                    }, { $match: metadataFilter }, {
+                    }, {
+                        $match: {
+                            $or: [
+                                metadataFilter,
+                                { m_versionId: null }
+                            ]
+                        }
+                    }, {
                         $group: {
                             _id: '$fieldId',
                             doc: { $first: '$$ROOT' }
@@ -431,12 +433,24 @@ export const studyResolvers = {
                     }, {
                         $sort: { fieldId: 1 }
                     }]).toArray();
-                } else {
+                    if (queryString.data_requested?.length > 0) {
+                        fieldRecords = fieldRecords.filter(el => queryString.data_requested.includes(el.fieldId));
+                    }
+                } else if (versionId === undefined || versionId === '-1') {
+                    if (versionId === '-1') {
+                        availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
+                    }
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, {
                         $sort: { dateAdded: -1 }
-                    }, { $match: metadataFilter }, {
+                    }, {
+                        $match: {
+                            $or: [
+                                metadataFilter
+                            ]
+                        }
+                    }, {
                         $group: {
                             _id: '$fieldId',
                             doc: { $first: '$$ROOT' }
@@ -448,14 +462,16 @@ export const studyResolvers = {
                     }, {
                         $sort: { fieldId: 1 }
                     }]).toArray();
+                    if (queryString.data_requested?.length > 0) {
+                        fieldRecords = fieldRecords.filter(el => queryString.data_requested.includes(el.fieldId));
+                    }
                 }
-                if (queryString.metadata) {
-                    metadataFilter = { $and: queryString.metadata.map((el: any) => translateMetadata(el)) };
-                }
-                if (versionId === '-1') {
-                    availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
-                }
-                const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false);
+
+                // TODO: placeholder for metadata filter
+                // if (queryString.metadata) {
+                //     metadataFilter = { $and: queryString.metadata.map((el: any) => translateMetadata(el)) };
+                // }
+                const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, metadataFilter, false, versionId === null && aggregatedPermissions.hasVersioned);
                 result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             }
             // post processing the data
@@ -894,7 +910,7 @@ export const studyResolvers = {
                 }]).toArray();
             }
             // fieldRecords = fieldRecords.filter(el => ontologyTreeFieldIds.includes(el.fieldId));
-            const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN);
+            const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN, false);
             const result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId))).sort();
             summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b)).sort();
