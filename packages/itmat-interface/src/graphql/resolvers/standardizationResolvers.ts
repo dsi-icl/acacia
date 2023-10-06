@@ -151,7 +151,7 @@ export const standardizationResolvers = {
             }, {
                 upsert: true
             });
-            return makeGenericReponse(result.value?.id || '');
+            return makeGenericReponse(result?.id || '');
         }
     },
     Subscription: {}

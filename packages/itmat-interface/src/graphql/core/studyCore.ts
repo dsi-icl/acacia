@@ -70,8 +70,8 @@ export class StudyCore {
 
     public async editStudy(studyId: string, description: string): Promise<IStudy> {
         const res = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId }, { $set: { description: description } }, { returnDocument: 'after' });
-        if (res.ok === 1 && res.value) {
-            return res.value;
+        if (res) {
+            return res;
         } else {
             throw new GraphQLError('Edit study failed');
         }

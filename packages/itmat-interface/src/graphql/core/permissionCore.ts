@@ -168,7 +168,7 @@ export class PermissionCore {
 
     public async removeRole(roleId: string): Promise<void> {
         const updateResult = await db.collections!.roles_collection.findOneAndUpdate({ id: roleId, deleted: null }, { $set: { deleted: new Date().valueOf() } });
-        if (updateResult.ok === 1) {
+        if (updateResult) {
             return;
         } else {
             throw new GraphQLError('Cannot delete role.', { extensions: { code: errorCodes.DATABASE_ERROR } });
