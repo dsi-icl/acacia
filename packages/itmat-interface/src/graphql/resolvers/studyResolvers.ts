@@ -104,7 +104,7 @@ export const studyResolvers = {
                     availableDataVersions.push(null);
                 }
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
-                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
                 }, {
@@ -119,13 +119,13 @@ export const studyResolvers = {
                 }, {
                     $sort: { fieldId: 1 }
                 }]).toArray();
-                return fieldRecords;
+                return fieldRecords.filter(el => el.dateDeleted === null);
             }
             // unversioned data could not be returned by metadata filters
             if (versionId === null && aggregatedPermissions.hasVersioned) {
                 availableDataVersions.push(null);
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
-                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
                 }, {
@@ -144,7 +144,7 @@ export const studyResolvers = {
                 }, {
                     $sort: { fieldId: 1 }
                 }]).toArray();
-                return fieldRecords;
+                return fieldRecords.filter(el => el.dateDeleted === null);
             } else {
                 // metadata filter
                 const subqueries: any = [];
@@ -153,7 +153,7 @@ export const studyResolvers = {
                 });
                 const metadataFilter = { $or: subqueries };
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
-                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
                 }, { $match: metadataFilter }, {
@@ -170,7 +170,7 @@ export const studyResolvers = {
                 }, {
                     $set: { metadata: null }
                 }]).toArray();
-                return fieldRecords;
+                return fieldRecords.filter(el => el.dateDeleted === null);
             }
         },
         getOntologyTree: async (__unused__parent: Record<string, unknown>, { studyId, projectId, treeName, versionId }: { studyId: string, projectId?: string, treeName?: string, versionId?: string }, context: any): Promise<IOntologyTree[]> => {
@@ -1081,7 +1081,7 @@ export const studyResolvers = {
             }
 
             // check fieldId exist
-            const searchField = await db.collections!.field_dictionary_collection.find({ studyId: studyId, fieldId: fieldId }).limit(1).sort({ dateAdded: -1 }).toArray();
+            const searchField = await db.collections!.field_dictionary_collection.find({ studyId: studyId, fieldId: fieldId, dateDeleted: null }).limit(1).sort({ dateAdded: -1 }).toArray();
             if (searchField.length === 0 || searchField[0].dateDeleted !== null) {
                 throw new GraphQLError('Field does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
@@ -1100,16 +1100,7 @@ export const studyResolvers = {
                 dateAdded: (new Date()).valueOf(),
                 dateDeleted: (new Date()).valueOf()
             };
-            await db.collections!.field_dictionary_collection.findOneAndUpdate({
-                fieldId: searchField[0].fieldId,
-                studyId: studyId,
-                dataVersion: null
-            }, {
-                $set: fieldEntry
-            }, {
-                upsert: true
-            });
-
+            await db.collections!.field_dictionary_collection.insertOne(fieldEntry);
             return searchField[0];
 
         },

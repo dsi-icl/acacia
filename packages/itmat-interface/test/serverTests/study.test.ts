@@ -2367,7 +2367,7 @@ if (global.hasMinio) {
                 });
                 expect(res.status).toBe(200);
                 expect(res.body.errors).toBeUndefined();
-                expect(res.body.data.getStudyFields.map(el => el.id).sort()).toEqual(['mockfield1', 'mockfield2_deleted', 'mockfield3']);
+                expect(res.body.data.getStudyFields.map(el => el.id).sort()).toEqual(['mockfield1', 'mockfield3']);
                 // user with project privilege can only access the latest fields that are versioned
                 const res2 = await authorisedUser.post('/graphql').send({
                     query: print(GET_STUDY_FIELDS),
