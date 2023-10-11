@@ -125,7 +125,7 @@ export const studyResolvers = {
             if (versionId === null && aggregatedPermissions.hasVersioned) {
                 availableDataVersions.push(null);
                 const fieldRecords: any[] = await db.collections!.field_dictionary_collection.aggregate([{
-                    $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
+                    $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
                 }, {
