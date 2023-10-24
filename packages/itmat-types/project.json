@@ -1,46 +1,46 @@
 {
-  "name": "itmat-types",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/itmat-types/src",
-  "projectType": "library",
-  "targets": {
-    "build": {
-      "executor": "@nx/esbuild:esbuild",
-      "outputs": [
-        "{options.outputPath}"
-      ],
-      "options": {
-        "outputPath": "dist/packages/itmat-types",
-        "main": "packages/itmat-types/src/index.ts",
-        "tsConfig": "packages/itmat-types/tsconfig.lib.json",
-        "assets": [
-          "packages/itmat-types/*.md"
-        ],
-        "generatePackageJson": true,
-        "thirdParty": true
-      }
+    "name": "itmat-types",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/itmat-types/src",
+    "projectType": "library",
+    "targets": {
+        "build": {
+            "executor": "@nx/esbuild:esbuild",
+            "outputs": [
+                "{options.outputPath}"
+            ],
+            "options": {
+                "outputPath": "dist/packages/itmat-types",
+                "main": "packages/itmat-types/src/index.ts",
+                "tsConfig": "packages/itmat-types/tsconfig.lib.json",
+                "assets": [
+                    "packages/itmat-types/*.md"
+                ],
+                "generatePackageJson": true,
+                "thirdParty": true
+            }
+        },
+        "lint": {
+            "executor": "@nx/eslint:lint",
+            "outputs": [
+                "{options.outputFile}"
+            ],
+            "options": {
+                "lintFilePatterns": [
+                    "packages/itmat-types/**/*.ts"
+                ]
+            }
+        },
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": [
+                "{workspaceRoot}/coverage/packages/itmat-types"
+            ],
+            "options": {
+                "jestConfig": "packages/itmat-types/jest.config.ts",
+                "passWithNoTests": true
+            }
+        }
     },
-    "lint": {
-      "executor": "@nx/linter:eslint",
-      "outputs": [
-        "{options.outputFile}"
-      ],
-      "options": {
-        "lintFilePatterns": [
-          "packages/itmat-types/**/*.ts"
-        ]
-      }
-    },
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": [
-        "{workspaceRoot}/coverage/packages/itmat-types"
-      ],
-      "options": {
-        "jestConfig": "packages/itmat-types/jest.config.ts",
-        "passWithNoTests": true
-      }
-    }
-  },
-  "tags": []
+    "tags": []
 }

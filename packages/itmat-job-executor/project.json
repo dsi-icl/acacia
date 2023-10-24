@@ -33,7 +33,7 @@
             }
         },
         "serve": {
-            "executor": "@nrwl/js:node",
+            "executor": "@nx/js:node",
             "options": {
                 "buildTarget": "itmat-job-executor:build",
                 "port": 9228
@@ -45,7 +45,7 @@
             }
         },
         "lint": {
-            "executor": "@nrwl/linter:eslint",
+            "executor": "@nx/eslint:lint",
             "outputs": [
                 "{options.outputFile}"
             ],
@@ -56,7 +56,7 @@
             }
         },
         "test": {
-            "executor": "@nrwl/jest:jest",
+            "executor": "@nx/jest:jest",
             "outputs": [
                 "{workspaceRoot}/coverage/packages/itmat-job-executor"
             ],

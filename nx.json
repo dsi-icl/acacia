@@ -1,16 +1,7 @@
 {
     "tasksRunnerOptions": {
         "default": {
-            "runner": "nx-cloud",
             "options": {
-                "cacheableOperations": [
-                    "build",
-                    "test",
-                    "lint",
-                    "package",
-                    "prepare"
-                ],
-                "accessToken": "ZDQ1NzgyNGEtZTAzMC00MWE2LWIxZTAtOTRmYzhjMzdjYWYyfHJlYWQtd3JpdGU=",
                 "skipNxCache": true
             }
         }
@@ -41,22 +32,34 @@
                 "default",
                 "^default",
                 "{workspaceRoot}/jest.preset.js"
-            ]
+            ],
+            "cache": true
         },
         "lint": {
             "inputs": [
                 "default",
                 "{workspaceRoot}/.eslintrc.json",
                 "{workspaceRoot}/.eslintrc.js"
-            ]
+            ],
+            "cache": true
         },
         "e2e": {
             "inputs": [
                 "default",
                 "^default"
             ]
+        },
+        "build": {
+            "cache": true
+        },
+        "package": {
+            "cache": true
+        },
+        "prepare": {
+            "cache": true
         }
     },
     "defaultProject": "itmat-ui-react",
-    "$schema": "./node_modules/nx/schemas/nx-schema.json"
+    "$schema": "./node_modules/nx/schemas/nx-schema.json",
+    "nxCloudAccessToken": "ZDQ1NzgyNGEtZTAzMC00MWE2LWIxZTAtOTRmYzhjMzdjYWYyfHJlYWQtd3JpdGU="
 }
