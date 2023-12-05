@@ -6474,10 +6474,10 @@ export-from-json@1.7.3:
   resolved "https://registry.yarnpkg.com/export-from-json/-/export-from-json-1.7.3.tgz#b67f42c9a492e5513ef2a8f7f856ed3531a80c67"
   integrity sha512-Xg0L0saYz+CBz2MnaZvSEAHr17hWtHAfFWXw/frllG9t6aijuQukiU40ElOeM9nDTrtQPhLJMLN0q8lo897FYg==
 
-express-rate-limit@7.1.2:
-  version "7.1.2"
-  resolved "https://registry.yarnpkg.com/express-rate-limit/-/express-rate-limit-7.1.2.tgz#42156c9135ca7b77d4e0d74b06162bfe02cd45f7"
-  integrity sha512-uvkFt5JooXDhUhrfgqXLyIsAMRCtU1o8W/p0Q2p5U2ude7fEOfFaP0kSYbHOHmPbA9ZEm1JqrRne3vL9pVCBXA==
+express-rate-limit@7.1.5:
+  version "7.1.5"
+  resolved "https://registry.yarnpkg.com/express-rate-limit/-/express-rate-limit-7.1.5.tgz#af4c81143a945ea97f2599d13957440a0ddbfcfe"
+  integrity sha512-/iVogxu7ueadrepw1bS0X0kaRC/U0afwiYRSLg68Ts+p4Dc85Q5QKsOnPS/QUjPMHvOJQtBDrZgvkOzf8ejUYw==
 
 express-session@1.17.3:
   version "1.17.3"
