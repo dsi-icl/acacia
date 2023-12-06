@@ -57,7 +57,7 @@
         "@types/nodemailer": "6.4.13",
         "@types/passport": "1.0.14",
         "@types/qrcode": "1.5.4",
-        "@types/react": "18.2.31",
+        "@types/react": "18.2.42",
         "@types/react-dom": "18.2.14",
         "@types/react-highlight-words": "0.16.6",
         "@types/supertest": "2.0.15",
