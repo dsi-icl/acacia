@@ -48,12 +48,7 @@
             "executor": "@nx/eslint:lint",
             "outputs": [
                 "{options.outputFile}"
-            ],
-            "options": {
-                "lintFilePatterns": [
-                    "packages/itmat-interface/**/*.ts"
-                ]
-            }
+            ]
         },
         "test": {
             "executor": "@nx/jest:jest",
@@ -61,8 +56,7 @@
                 "{workspaceRoot}/coverage/packages/itmat-interface"
             ],
             "options": {
-                "jestConfig": "packages/itmat-interface/jest.config.ts",
-                "passWithNoTests": true
+                "jestConfig": "packages/itmat-interface/jest.config.ts"
             }
         }
     },

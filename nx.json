@@ -27,14 +27,6 @@
         }
     },
     "targetDefaults": {
-        "test": {
-            "inputs": [
-                "default",
-                "^default",
-                "{workspaceRoot}/jest.preset.js"
-            ],
-            "cache": true
-        },
         "lint": {
             "inputs": [
                 "default",
@@ -52,11 +44,22 @@
         "build": {
             "cache": true
         },
-        "package": {
-            "cache": true
-        },
-        "prepare": {
-            "cache": true
+        "@nx/jest:jest": {
+            "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/jest.preset.js"
+            ],
+            "cache": true,
+            "options": {
+                "passWithNoTests": true
+            },
+            "configurations": {
+                "ci": {
+                    "ci": true,
+                    "codeCoverage": true
+                }
+            }
         }
     },
     "defaultProject": "itmat-ui-react",
