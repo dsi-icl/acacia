@@ -137,8 +137,26 @@ export class StudyCore {
                     validSubjects = [];
                     const subqueries = translateCohort(role.permissions.data.filters);
                     validSubjects = (await db.collections!.data_collection.aggregate([{
+                        $match: { m_fieldId: { $in: role.permissions.data.filters.map(el => el.field) } }
+                    },
+                    {
+                        $sort: { uploadedAt: -1 }
+                    }, {
+                        $group: {
+                            _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId', m_fieldId: '$m_fieldId' },
+                            doc: { $first: '$$ROOT' }
+                        }
+                    }, {
+                        $project: {
+                            m_subjectId: '$doc.m_subjectId',
+                            m_visitId: '$doc.m_visitId',
+                            m_fieldId: '$doc.m_fieldId',
+                            value: '$doc.value',
+                            _id: 0
+                        }
+                    }, {
                         $match: { $and: subqueries }
-                    }]).toArray()).map(el => el.m_subjectId);
+                    }], { allowDiskUse: true }).toArray()).map(el => el.m_subjectId);
                 }
             }
             if (validSubjects === null) {
