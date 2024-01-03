@@ -61,6 +61,9 @@ export class JobPoller {
                 await this.action(updateResult);
                 Logger.log(`${this.identity} Finished processing job of type ${updateResult.jobType} - id: ${updateResult.id}.`);
                 this.setInterval();
+            } else {
+                // Logger.error(`${this.identity} Errored during database update: ${updateResult}`);
+                this.setInterval();
             }
 
         } catch (err) {

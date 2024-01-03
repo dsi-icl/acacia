@@ -21,15 +21,10 @@
             }
         },
         "lint": {
-            "executor": "@nx/linter:eslint",
+            "executor": "@nx/eslint:lint",
             "outputs": [
                 "{options.outputFile}"
-            ],
-            "options": {
-                "lintFilePatterns": [
-                    "packages/itmat-models/**/*.ts"
-                ]
-            }
+            ]
         },
         "test": {
             "executor": "@nx/jest:jest",
@@ -37,8 +32,7 @@
                 "{workspaceRoot}/coverage/packages/itmat-models"
             ],
             "options": {
-                "jestConfig": "packages/itmat-models/jest.config.ts",
-                "passWithNoTests": true
+                "jestConfig": "packages/itmat-models/jest.config.ts"
             }
         }
     },
