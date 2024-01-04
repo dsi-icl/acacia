@@ -856,6 +856,7 @@ export const DataDownloadBlock: FunctionComponent<{ project: IProject }> = ({ pr
                 variables: {
                     studyId: project.studyId,
                     projectId: project.id,
+                    versionId: '-1',
                     queryString: {
                         data_requested: null,
                         cnew_fields: [],

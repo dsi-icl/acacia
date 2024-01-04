@@ -517,7 +517,6 @@ export const studyResolvers = {
             if (!hasPermission) {
                 return [];
             }
-
             const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             const fileFieldIds: string[] = (await db.collections!.field_dictionary_collection.aggregate([{
                 $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
@@ -537,7 +536,6 @@ export const studyResolvers = {
             }]).toArray()).map(el => el.fieldId);
             let adds = [];
             let removes = [];
-
             // versioned data
             if (requester.type === userTypes.ADMIN) {
                 const fileRecords = await db.collections!.data_collection.aggregate([{
@@ -597,7 +595,7 @@ export const studyResolvers = {
             const availableDataVersions: Array<string> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             const versionedSubjects = (await db.collections!.data_collection.distinct('m_subjectId', {
                 m_studyId: study.id,
-                m_versionId: { $in: availableDataVersions },
+                m_versionId: availableDataVersions[availableDataVersions.length - 1],
                 m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
                 m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
                 m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
@@ -605,7 +603,7 @@ export const studyResolvers = {
             })).sort() || [];
             const unVersionedSubjects = hasPermission.hasVersioned ? (await db.collections!.data_collection.distinct('m_subjectId', {
                 m_studyId: study.id,
-                m_versionId: { $in: [null] },
+                m_versionId: null,
                 m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
                 m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
                 m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
@@ -626,7 +624,7 @@ export const studyResolvers = {
             const availableDataVersions: Array<string> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             const versionedVisits = (await db.collections!.data_collection.distinct('m_visitId', {
                 m_studyId: study.id,
-                m_versionId: { $in: availableDataVersions },
+                m_versionId: availableDataVersions[availableDataVersions.length - 1],
                 m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
                 m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
                 m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
@@ -634,7 +632,7 @@ export const studyResolvers = {
             })).sort((a, b) => parseFloat(a) - parseFloat(b));
             const unVersionedVisits = hasPermission.hasVersioned ? (await db.collections!.data_collection.distinct('m_visitId', {
                 m_studyId: study.id,
-                m_versionId: { $in: [null] },
+                m_versionId: null,
                 m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
                 m_visitId: { $in: hasPermission.raw.visitIds.map((el: string) => new RegExp(el)) },
                 m_fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) },
@@ -654,7 +652,7 @@ export const studyResolvers = {
             }
             const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             const numberOfVersioned: number = (await db.collections!.data_collection.aggregate([{
-                $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, value: { $ne: null } }
+                $match: { m_studyId: study.id, m_versionId: availableDataVersions[availableDataVersions.length - 1], value: { $ne: null } }
             }, {
                 $match: {
                     m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
@@ -665,7 +663,7 @@ export const studyResolvers = {
                 $count: 'count'
             }]).toArray())[0]?.count || 0;
             const numberOfUnVersioned: number = hasPermission.hasVersioned ? (await db.collections!.data_collection.aggregate([{
-                $match: { m_studyId: study.id, m_versionId: { $in: [null] }, value: { $ne: null } }
+                $match: { m_studyId: study.id, m_versionId: null, value: { $ne: null } }
             }, {
                 $match: {
                     m_subjectId: { $in: hasPermission.raw.subjectIds.map((el: string) => new RegExp(el)) },
@@ -842,7 +840,6 @@ export const studyResolvers = {
             if (study === undefined || study === null || study.currentDataVersion === -1) {
                 return summary;
             }
-
             const requester: IUser = context.req.user;
             /* user can get study if he has readonly permission */
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
@@ -910,7 +907,7 @@ export const studyResolvers = {
                 }]).toArray();
             }
             // fieldRecords = fieldRecords.filter(el => ontologyTreeFieldIds.includes(el.fieldId));
-            const pipeline = buildPipeline({}, project.studyId, availableDataVersions, fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN, false);
+            const pipeline = buildPipeline({}, project.studyId, [availableDataVersions[availableDataVersions.length - 1]], fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN, false);
             const result = await db.collections!.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             summary['subjects'] = Array.from(new Set(result.map((el: any) => el.m_subjectId))).sort();
             summary['visits'] = Array.from(new Set(result.map((el: any) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b)).sort();
