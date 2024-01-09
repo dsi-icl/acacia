@@ -23,5 +23,10 @@ export const deviceTypes: Record<string, string> = {
     TUP: 'Cantab TUP data',
     WLD: 'Wildkey App',
     SOC: 'Wildkey Social App',
-    SLP: 'Bed Sleep Data'
+    SLP: 'Derived Sleep Features',
+    REC: 'Derived Recover Metrics',
+    KIN: 'Derived Kinematic Features',
+    CCL: 'Derived Cognitive Performance Metrics',
+    WKT: 'Derived Typing Features',
+    WKS: 'Derived Social Features'
 };
