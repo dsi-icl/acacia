@@ -23,11 +23,12 @@ export const deviceTypes: Record<string, string> = {
     TUP: 'Cantab TUP data',
     WLD: 'Wildkey App',
     SOC: 'Wildkey Social App',
-    SLP: 'Derived Sleep Features',
-    REC: 'Derived Recover Metrics',
-    KIN: 'Derived Kinematic Features',
-    CCL: 'Derived Cognitive Performance Metrics',
-    WKT: 'Derived Typing Features',
-    WKS: 'Derived Social Features',
-    HRV: 'Derived HRV Features'
+    SLP: 'Derived BED Sleep Features',
+    STS: 'Derived AX6 Kinematic Features',
+    COG: 'Derived CAN Cognitive Performance Metrics',
+    WKT: 'Derived WLD Typing Features',
+    WKS: 'Derived SOC Social Features',
+    HRV: 'Derived VTP HRV Features',
+    VIT: 'Derived VTP Basic Features',
+    GVA: 'Derived AX6 Gait Features'
 };
