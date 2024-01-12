@@ -24,11 +24,11 @@ export const deviceTypes: Record<string, string> = {
     WLD: 'Wildkey App',
     SOC: 'Wildkey Social App',
     SLP: 'Derived BED Sleep Features',
-    REC: 'Derived AX6 VTP Recover Metrics',
-    KIN: 'Derived AX6 Kinematic Features',
+    STS: 'Derived AX6 Kinematic Features',
     CCL: 'Derived CAN Cognitive Performance Metrics',
     WKT: 'Derived WLD Typing Features',
     WKS: 'Derived SOC Social Features',
     HRV: 'Derived VTP HRV Features',
-    VIT: 'Derived VTP Basic Features'
+    VIT: 'Derived VTP Basic Features',
+    GVA: 'Derived AX6 Gait Features'
 };
