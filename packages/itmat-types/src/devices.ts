@@ -28,5 +28,6 @@ export const deviceTypes: Record<string, string> = {
     KIN: 'Derived Kinematic Features',
     CCL: 'Derived Cognitive Performance Metrics',
     WKT: 'Derived Typing Features',
-    WKS: 'Derived Social Features'
+    WKS: 'Derived Social Features',
+    HRV: 'Derived HRV Features'
 };
