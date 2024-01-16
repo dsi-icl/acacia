@@ -1,7 +1,7 @@
 import { InMemoryCache } from '@apollo/client/cache';
 import { ApolloClient, from, ApolloLink } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
-import { createUploadLink } from 'apollo-upload-client';
+import createUploadLink from 'apollo-upload-client/createUploadLink.mjs';
 import axios from 'axios';
 
 const customFetch = (uri, options): any => {

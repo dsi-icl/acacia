@@ -70,15 +70,10 @@
             }
         },
         "lint": {
-            "executor": "@nx/linter:eslint",
+            "executor": "@nx/eslint:lint",
             "outputs": [
                 "{options.outputFile}"
-            ],
-            "options": {
-                "lintFilePatterns": [
-                    "packages/itmat-ui-react/**/*.{ts,tsx,js,jsx}"
-                ]
-            }
+            ]
         },
         "test": {
             "executor": "@nx/jest:jest",
@@ -86,8 +81,7 @@
                 "{workspaceRoot}/coverage/packages/itmat-ui-react"
             ],
             "options": {
-                "jestConfig": "packages/itmat-ui-react/jest.config.ts",
-                "passWithNoTests": true
+                "jestConfig": "packages/itmat-ui-react/jest.config.ts"
             }
         }
     },
