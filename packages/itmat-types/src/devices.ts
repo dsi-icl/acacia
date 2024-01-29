@@ -30,5 +30,6 @@ export const deviceTypes: Record<string, string> = {
     WKS: 'Derived SOC Social Features',
     HRV: 'Derived VTP HRV Features',
     VIT: 'Derived VTP Basic Features',
-    GVA: 'Derived AX6 Gait Features'
+    GVA: 'Derived AX6 Gait Features',
+    MCR: 'Derived McRoberts Classification'
 };
