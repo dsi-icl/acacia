@@ -89,5 +89,6 @@ kubernetes/*.yaml
 
 itmat-client-old/
 .idea/
+.nx/
 
 target

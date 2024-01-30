@@ -341,7 +341,7 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
         }
         for (const subjectId of Object.keys(data)) {
             for (const visitId of Object.keys(data[subjectId])) {
-                if (!data[subjectId][visitId][field.fieldId]) {
+                if (data[subjectId][visitId][field.fieldId] === null) {
                     continue;
                 }
                 const dataClip: any = {};
@@ -363,7 +363,8 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                                 dataClip[rule.entry] = data[subjectId][visitId][field.fieldId] || '';
                             } else {
                                 const selectedFieldId = rule.parameter[0];
-                                dataClip[rule.entry] = data[subjectId][visitId][selectedFieldId] || '';
+                                const selectedVistId = rule.parameter.length === 2 ? rule.parameter[1] : visitId;
+                                dataClip[rule.entry] = data[subjectId][selectedVistId][selectedFieldId] || '';
                             }
                             break;
                         }
@@ -424,6 +425,8 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                                         // the replaced value can be converted again
                                         if (options.filters && Object.keys(options.filters).includes(tmpData)) {
                                             dataClip[rule.entry] = options.filters[tmpData];
+                                        } else {
+                                            dataClip[rule.entry] = tmpData;
                                         }
                                     }
                                     break;
@@ -440,7 +443,6 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: any, sta
                         }
                     }
                 }
-
                 if (isSkip) {
                     continue;
                 }

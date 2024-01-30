@@ -1,21 +1,35 @@
 const path = require('node:path');
+const webpack = require('webpack');
+const { composePlugins, withNx } = require('@nx/webpack');
+const git = require('git-rev-sync');
+const { version } = require('../../package.json');
 
-const getWebpackConfig = (config) => {
+module.exports = composePlugins(
+    withNx(),
+    (config, context) => {
 
-    config.entry.interface = [path.resolve(__dirname, 'src/interfaceRunner.ts')];
+        config.entry.interface = [path.resolve(__dirname, 'src/interfaceRunner.ts')];
 
-    config.externals = [{
-        'bcrypt': 'commonjs bcrypt',
-        'express': 'commonjs express',
-        'isobject': 'commonjs isobject',
-        'minio': 'commonjs minio',
-        'mongodb': 'commonjs mongodb',
-        'bufferutil': 'commonjs bufferutil',
-        'utf-8-validate': 'commonjs utf-8-validate',
-        'require_optional': 'commonjs require_optional'
-    }];
+        config.externals = [{
+            'bcrypt': 'commonjs bcrypt',
+            'express': 'commonjs express',
+            'isobject': 'commonjs isobject',
+            'minio': 'commonjs minio',
+            'mongodb': 'commonjs mongodb',
+            'bufferutil': 'commonjs bufferutil',
+            'utf-8-validate': 'commonjs utf-8-validate',
+            'require_optional': 'commonjs require_optional'
+        }];
 
-    return config;
-};
+        const baseHref = context?.options?.baseHref ?? '/';
 
-module.exports = getWebpackConfig;
+        config.plugins.splice(0, 0, new webpack.EnvironmentPlugin({
+            NX_NODE_APP_VERSION: version,
+            NX_NODE_APP_COMMIT: git.short(),
+            NX_NODE_APP_BRANCH: git.branch(),
+            NX_NODE_APP_BASEHREF: baseHref
+        }));
+
+        return config;
+    }
+);
