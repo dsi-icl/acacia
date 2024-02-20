@@ -120,7 +120,20 @@ export class StudyCore {
             return null;
         }
 
-
+        // insert a new version into study
+        const newDataVersion: IStudyDataVersion = {
+            id: newDataVersionId,
+            contentId: newContentId, // same content = same id - used in reverting data, version control
+            version: dataVersion,
+            tag: tag,
+            updateDate: (new Date().valueOf()).toString()
+        };
+        await db.collections!.studies_collection.updateOne({ id: studyId }, {
+            $push: { dataVersions: newDataVersion },
+            $inc: {
+                currentDataVersion: 1
+            }
+        });
 
         // update permissions based on roles
         const roles = await db.collections!.roles_collection.find<IRole>({ studyId: studyId, deleted: null }).toArray();
@@ -202,21 +215,6 @@ export class StudyCore {
                 $set: { [tag as any]: false }
             });
         }
-
-        // insert a new version into study
-        const newDataVersion: IStudyDataVersion = {
-            id: newDataVersionId,
-            contentId: newContentId, // same content = same id - used in reverting data, version control
-            version: dataVersion,
-            tag: tag,
-            updateDate: (new Date().valueOf()).toString()
-        };
-        await db.collections!.studies_collection.updateOne({ id: studyId }, {
-            $push: { dataVersions: newDataVersion },
-            $inc: {
-                currentDataVersion: 1
-            }
-        });
         return newDataVersion;
     }
 
