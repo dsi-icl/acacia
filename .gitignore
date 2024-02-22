@@ -62,7 +62,7 @@ typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+.env*local
 
 # Certificate files
 server.crt
