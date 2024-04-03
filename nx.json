@@ -63,6 +63,5 @@
         }
     },
     "defaultProject": "itmat-ui-react",
-    "$schema": "./node_modules/nx/schemas/nx-schema.json",
-    "nxCloudAccessToken": "ZDQ1NzgyNGEtZTAzMC00MWE2LWIxZTAtOTRmYzhjMzdjYWYyfHJlYWQtd3JpdGU="
+    "$schema": "./node_modules/nx/schemas/nx-schema.json"
 }
