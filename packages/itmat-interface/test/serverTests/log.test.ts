@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import { v4 as uuid } from 'uuid';
 import request from 'supertest';
 import { print } from 'graphql';

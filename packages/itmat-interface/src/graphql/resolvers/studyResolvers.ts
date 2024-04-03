@@ -373,11 +373,14 @@ export const studyResolvers = {
             // we obtain the data by different requests
             // admin used will not filtered by metadata filters
             if (requester.type === userTypes.ADMIN) {
-                if (versionId === null) {
-                    availableDataVersions.push(null);
-                }
-                if (versionId === '-1') {
-                    availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
+                if (versionId !== undefined) {
+                    if (versionId === null) {
+                        availableDataVersions.push(null);
+                    } else if (versionId === '-1') {
+                        availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
+                    } else {
+                        availableDataVersions = [versionId];
+                    }
                 }
 
                 fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
@@ -440,6 +443,33 @@ export const studyResolvers = {
                     if (versionId === '-1') {
                         availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
                     }
+                    fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
+                        $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
+                    }, {
+                        $sort: { dateAdded: -1 }
+                    }, {
+                        $match: {
+                            $or: [
+                                metadataFilter
+                            ]
+                        }
+                    }, {
+                        $group: {
+                            _id: '$fieldId',
+                            doc: { $first: '$$ROOT' }
+                        }
+                    }, {
+                        $replaceRoot: {
+                            newRoot: '$doc'
+                        }
+                    }, {
+                        $sort: { fieldId: 1 }
+                    }]).toArray();
+                    if (queryString.data_requested?.length > 0) {
+                        fieldRecords = fieldRecords.filter(el => queryString.data_requested.includes(el.fieldId));
+                    }
+                } else if (versionId !== undefined) {
+                    availableDataVersions = [versionId];
                     fieldRecords = await db.collections!.field_dictionary_collection.aggregate([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, {

@@ -27,14 +27,6 @@
         }
     },
     "targetDefaults": {
-        "lint": {
-            "inputs": [
-                "default",
-                "{workspaceRoot}/.eslintrc.json",
-                "{workspaceRoot}/.eslintrc.js"
-            ],
-            "cache": true
-        },
         "e2e": {
             "inputs": [
                 "default",
@@ -60,9 +52,16 @@
                     "codeCoverage": true
                 }
             }
+        },
+        "@nx/eslint:lint": {
+            "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintrc.js"
+            ],
+            "cache": true
         }
     },
     "defaultProject": "itmat-ui-react",
-    "$schema": "./node_modules/nx/schemas/nx-schema.json",
-    "nxCloudAccessToken": "ZDQ1NzgyNGEtZTAzMC00MWE2LWIxZTAtOTRmYzhjMzdjYWYyfHJlYWQtd3JpdGU="
+    "$schema": "./node_modules/nx/schemas/nx-schema.json"
 }
