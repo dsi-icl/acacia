@@ -77,6 +77,19 @@ module.exports = {
             }
         },
         {
+            files: ['*.test.ts', '*.test.tsx', '*.spec.ts', '*.spec.tsx'],
+            extends: ['plugin:@nx/typescript'],
+            rules: {
+                ...typescriptRules,
+                '@typescript-eslint/no-explicit-any': 'warn'
+            },
+            parserOptions: {
+                project: [
+                    './tsconfig.eslint.json'
+                ]
+            }
+        },
+        {
             files: ['*.js', '*.jsx'],
             extends: ['plugin:@nx/javascript'],
             rules: javascriptRules
