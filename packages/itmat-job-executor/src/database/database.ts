@@ -1,11 +1,10 @@
-import type { IFile, IJobEntry, IProject, IQueryEntry, IDataEntry } from '@itmat-broker/itmat-types';
+import type { IFile, IJobEntry, IProject, IQueryEntry, IDataEntry, IFieldEntry } from '@itmat-broker/itmat-types';
 import { Database as DatabaseBase, IDatabaseBaseConfig } from '@itmat-broker/itmat-commons';
 import type { Collection } from 'mongodb';
 
 export interface IDatabaseConfig extends IDatabaseBaseConfig {
     collections: {
         jobs_collection: string,
-        UKB_coding_collection: string,
         field_dictionary_collection: string,
         files_collection: string,
         data_collection: string,
@@ -15,9 +14,8 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
 }
 
 export interface IDatabaseCollectionConfig {
-    jobs_collection: Collection<IJobEntry<any>>,
-    UKB_coding_collection: Collection,
-    field_dictionary_collection: Collection,
+    jobs_collection: Collection<IJobEntry>,
+    field_dictionary_collection: Collection<IFieldEntry>,
     files_collection: Collection<IFile>,
     data_collection: Collection<IDataEntry>,
     queries_collection: Collection<IQueryEntry>,

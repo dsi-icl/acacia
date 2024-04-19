@@ -1,7 +1,7 @@
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import JSONStream from 'JSONStream';
-import { IFieldDescriptionObject, IDataEntry, IJobEntry } from '@itmat-broker/itmat-types';
+import { IFieldDescriptionObject, IDataEntry, IJobEntry, IFieldEntry } from '@itmat-broker/itmat-types';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -24,8 +24,8 @@ export class JSONCurator {
     constructor(
         private readonly dataCollection: Collection<IDataEntry>,
         private readonly incomingWebStream: Readable,
-        private readonly job: IJobEntry<never>,
-        private readonly fieldsList: any[]
+        private readonly job: IJobEntry<unknown>,
+        private readonly fieldsList: IFieldEntry[]
     ) {
         this._header = [null]; // the first element is subject id
         this._numOfSubj = 0;
@@ -45,75 +45,79 @@ export class JSONCurator {
             const jsonstream = JSONStream.parse([{}]);
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
-                write: async (chunk, _, callback) => {
-                    objectNum++;
-                    if (isHeader) {
+                write: (chunk, _, callback) => {
+                    (async () => {
                         objectNum++;
-                        const { error, parsedHeader, subjectIdIndex, visitIdIndex } = processJSONHeader(chunk, this.fieldsList);
-                        if (error) {
-                            this._errored = true;
-                            this._errors.push(...error);
-                        }
-                        this._header = parsedHeader;
-                        this._subjectIdIndex = subjectIdIndex;
-                        this._visitIdIndex = visitIdIndex;
-                        isHeader = false;
+                        if (isHeader) {
+                            objectNum++;
+                            const { error, parsedHeader, subjectIdIndex, visitIdIndex } = processJSONHeader(chunk, this.fieldsList);
+                            if (error) {
+                                this._errored = true;
+                                this._errors.push(...error);
+                            }
+                            this._header = parsedHeader;
+                            this._subjectIdIndex = subjectIdIndex;
+                            this._visitIdIndex = visitIdIndex;
+                            isHeader = false;
 
-                    } else {
-                        subjectString.push(chunk[0]);
-                        const { error, dataEntry } = processEachSubject({
-                            subjectIdIndex: this._subjectIdIndex,
-                            visitIdIndex: this._visitIdIndex,
-                            objectNum: objectNum,
-                            subject: chunk,
-                            parsedHeader: this._header,
-                            job: this.job
-                        });
-                        if (error) {
-                            this._errored = true;
-                            this._errors.push(...error);
-                        }
+                        } else {
+                            subjectString.push(chunk[0]);
+                            const { error, dataEntry } = processEachSubject({
+                                subjectIdIndex: this._subjectIdIndex,
+                                visitIdIndex: this._visitIdIndex,
+                                objectNum: objectNum,
+                                subject: chunk,
+                                parsedHeader: this._header,
+                                job: this.job
+                            });
+                            if (error) {
+                                this._errored = true;
+                                this._errors.push(...error);
+                            }
 
-                        if (this._errored) {
-                            callback();
-                            return;
-                        }
-                        const matchObj = {
-                            m_subjectId: dataEntry.m_subjectId,
-                            m_visitId: dataEntry.m_visitId,
-                            m_versionId: dataEntry.m_versionId,
-                            m_studyId: dataEntry.m_studyId
-                        };
-                        bulkInsert.find(matchObj).upsert().updateOne({ $set: dataEntry });
-                        this._numOfSubj++;
-
-                    }
-                    if (this._numOfSubj > 999) {
-                        this._numOfSubj = 0;
-                        await bulkInsert.execute().catch((err) => {
-                            if (err) {
-                                //TODO Handle error recording
-                                console.error(err, err?.getWriteErrors?.());
+                            if (this._errored) {
+                                callback();
                                 return;
                             }
-                        });
-                        bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
-                    }
-                    callback();
+                            const matchObj = {
+                                m_subjectId: dataEntry.m_subjectId,
+                                m_visitId: dataEntry.m_visitId,
+                                m_versionId: dataEntry.m_versionId,
+                                m_studyId: dataEntry.m_studyId
+                            };
+                            bulkInsert.find(matchObj).upsert().updateOne({ $set: dataEntry });
+                            this._numOfSubj++;
+
+                        }
+                        if (this._numOfSubj > 999) {
+                            this._numOfSubj = 0;
+                            await bulkInsert.execute().catch((err) => {
+                                if (err) {
+                                    //TODO Handle error recording
+                                    console.error(err, err?.getWriteErrors?.());
+                                    return;
+                                }
+                            });
+                            bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+                        }
+                        callback();
+                    })().catch(() => { return; });
                 }
             });
 
-            uploadWriteStream.on('finish', async () => {
-                if (!this._errored) {
-                    await bulkInsert.execute().catch((err) => {
-                        if (err) {
-                            //TOTO Handle error recording
-                            console.error(err);
-                            return;
-                        }
-                    });
-                }
-                resolve(this._errors);
+            uploadWriteStream.on('finish', () => {
+                (async () => {
+                    if (!this._errored) {
+                        await bulkInsert.execute().catch((err) => {
+                            if (err) {
+                                //TOTO Handle error recording
+                                console.error(err);
+                                return;
+                            }
+                        });
+                    }
+                    resolve(this._errors);
+                })().catch(() => { return; });
             });
             this.incomingWebStream.pipe(jsonstream);
             jsonstream.pipe(uploadWriteStream);
@@ -122,14 +126,14 @@ export class JSONCurator {
 }
 
 
-export function processJSONHeader(header: string[], fieldsList: any[]): { error?: string[], parsedHeader: any[], subjectIdIndex: number, visitIdIndex: number } {
+export function processJSONHeader(header: string[], fieldsList: IFieldEntry[]) {
     /* pure function */
     /* headerObject is ['eid', 1@0.0, 2@0.1:c] */
     /* returns a parsed object array and error (undefined if no error) */
 
     // const fieldstrings: string[] = [];
     const error: string[] = [];
-    const parsedHeader: any[] = Array(header.length);
+    const parsedHeader = Array(header.length);
     let colNum = 0;
     const fields: string[] = [];
     const validatedFieldNames = fieldsList.map(el => el.fieldName);
@@ -170,11 +174,11 @@ export function processJSONHeader(header: string[], fieldsList: any[]): { error?
     return ({ parsedHeader: filteredParsedHeader, error: error.length === 0 ? undefined : error, subjectIdIndex, visitIdIndex });
 }
 
-export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, subject, parsedHeader, job }: { subjectIdIndex: number, visitIdIndex: number, objectNum: number, subject: string[], parsedHeader: any[], job: IJobEntry<never> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
+export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, subject, parsedHeader, job }: { subjectIdIndex: number, visitIdIndex: number, objectNum: number, subject: string[], parsedHeader: IFieldDescriptionObject[], job: IJobEntry<unknown> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;
-    const dataEntry: any = {
+    const dataEntry: Partial<IDataEntry> = {
         m_studyId: job.studyId,
         deleted: null
     };
@@ -217,7 +221,7 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
             continue;
         }
         /* adding value to dataEntry */
-        let value: any;
+        let value;
         try {
             if (each.toString() === '99999') {
                 value = '99999';
@@ -225,7 +229,7 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                 switch (dataType) {
                     case 'cat': {// categorical
                         const code = parseInt(each, 10).toString();
-                        if (!possibleValues.map((el: any) => el.code).includes(code)) {
+                        if (!possibleValues.map((el) => el.code).includes(code)) {
                             error.push(`Object ${objectNum} column ${colIndex + 1}: Cannot parse '${each}' as categorical, value is illegal.`);
                             colIndex++;
                             continue;
@@ -289,7 +293,7 @@ export function processEachSubject({ subjectIdIndex, visitIdIndex, objectNum, su
                     }
                 }
             }
-        } catch (e: any) {
+        } catch (e) {
             error.push(e.toString());
             continue;
         }

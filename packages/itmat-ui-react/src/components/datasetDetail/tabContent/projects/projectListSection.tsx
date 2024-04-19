@@ -26,10 +26,10 @@ export const AddNewProject: FunctionComponent<{ studyId: string }> = ({ studyId 
     return <div>
         <span>Project Name: </span>
         <Input value={projectName} style={{ width: '50%' }} onChange={(e) => { setError(''); setProjectName(e.target.value); }} type='text' placeholder='Enter name' /> <br /><br />
-        <Mutation<any, any> mutation={CREATE_PROJECT}
+        <Mutation<never, never> mutation={CREATE_PROJECT}
         // update={(store, { data: { createProject } }) => {
         //     // Read the data from our cache for this query.
-        //     const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId, admin: true } });
+        //     const data = store.readQuery<never>({ query: GET_STUDY, variables: { studyId, admin: true } });
         //     // Add our comment from the mutation to the end.
         //     const newProjects = data.getStudy.projects.concat(createProject);
         //     data.getStudy.projects = newProjects;
@@ -37,7 +37,7 @@ export const AddNewProject: FunctionComponent<{ studyId: string }> = ({ studyId 
         //     store.writeQuery({ query: GET_STUDY, variables: { studyId, admin: true }, data });
 
         //     // Read the data from our cache for this query.
-        //     const whoAmI: any = store.readQuery({ query: WHO_AM_I });
+        //     const whoAmI = store.readQuery<never>({ query: WHO_AM_I });
         //     // Add our comment from the mutation to the end.
         //     // const newWhoAmIProjects = whoAmI.whoAmI.access.projects.concat(createProject);
         //     whoAmI.whoAmI.access.projects = newProjects;
@@ -56,7 +56,7 @@ export const AddNewProject: FunctionComponent<{ studyId: string }> = ({ studyId 
                                     setError('Please enter project name.');
                                     return;
                                 }
-                                addNewProject({ variables: { studyId, projectName: projectName } });
+                                addNewProject({ variables: { studyId, projectName: projectName } }).catch(() => { return; });
                             }}>Add new project</Button>
                     }
                 </>

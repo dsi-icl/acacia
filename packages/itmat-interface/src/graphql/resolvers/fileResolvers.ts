@@ -1,29 +1,30 @@
 import { GraphQLError } from 'graphql';
-import { IFile, IOrganisation, IUser, atomicOperation, IPermissionManagementOptions, IDataEntry } from '@itmat-broker/itmat-types';
+import { IFile, IOrganisation, atomicOperation, IPermissionManagementOptions, IDataEntry } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { FileUpload } from 'graphql-upload-minimal';
 import { db } from '../../database/database';
 import { objStore } from '../../objStore/objStore';
 import { permissionCore } from '../core/permissionCore';
 import { errorCodes } from '../errors';
-import { IGenericResponse, makeGenericReponse } from '../responses';
+import { makeGenericReponse } from '../responses';
 import crypto from 'crypto';
 import { validate } from '@ideafast/idgen';
 import { deviceTypes } from '@itmat-broker/itmat-types';
 import { fileSizeLimit } from '../../utils/definition';
 import type { MatchKeysAndValues } from 'mongodb';
 import { studyCore } from '../core/studyCore';
+import { DMPResolversMap } from './context';
 
 // default visitId for file data
 const targetVisitId = '0';
-export const fileResolvers = {
+export const fileResolvers: DMPResolversMap = {
     Query: {
     },
     Mutation: {
         // this API has the same functions as uploading file data via clinical APIs
-        uploadFile: async (__unused__parent: Record<string, unknown>, args: { fileLength?: bigint, studyId: string, file: Promise<FileUpload>, description: string, hash?: string }, context: any): Promise<IFile> => {
+        uploadFile: async (parent, args: { fileLength?: bigint, studyId: string, file: Promise<FileUpload>, description: string, hash?: string }, context) => {
 
-            const requester: IUser = context.req.user;
+            const requester = context.req.user;
             // get the target fieldId of this file
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
 
@@ -43,7 +44,7 @@ export const fileResolvers = {
             let targetFieldId: string;
             let isStudyLevel = false;
             // obtain sitesIDMarker from db
-            const sitesIDMarkers = (await db.collections!.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<any>((acc, curr) => {
+            const sitesIDMarkers = (await db.collections.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<never>((acc, curr) => {
                 if (curr.metadata?.siteIDMarker) {
                     acc[curr.metadata.siteIDMarker] = curr.shortname;
                 }
@@ -81,7 +82,7 @@ export const fileResolvers = {
                     targetFieldId = `Device_${deviceTypes[device].replace(/ /g, '_')}`;
                 }
                 // check fieldId exists
-                if ((await db.collections!.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length === 0) {
+                if ((await db.collections.field_dictionary_collection.find({ studyId: study.id, fieldId: targetFieldId, dateDeleted: null }).sort({ dateAdded: -1 }).limit(1).toArray()).length === 0) {
                     throw new GraphQLError('File description is invalid', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
                 }
                 // check field permission
@@ -208,7 +209,7 @@ export const fileResolvers = {
                         fileEntry.uri = fileUri;
                         fileEntry.hash = hashString;
                         if (!isStudyLevel) {
-                            await db.collections!.data_collection.insertOne({
+                            await db.collections.data_collection.insertOne({
                                 id: uuid(),
                                 m_studyId: args.studyId,
                                 m_subjectId: parsedDescription.participantId,
@@ -224,7 +225,7 @@ export const fileResolvers = {
                                 }
                             });
                         }
-                        const insertResult = await db.collections!.files_collection.insertOne(fileEntry as IFile);
+                        const insertResult = await db.collections.files_collection.insertOne(fileEntry as IFile);
                         if (insertResult.acknowledged) {
                             resolve(fileEntry as IFile);
                         } else {
@@ -234,13 +235,13 @@ export const fileResolvers = {
                     } catch (error) {
                         reject(new GraphQLError('General upload error', { extensions: { code: errorCodes.UNQUALIFIED_ERROR, error } }));
                     }
-                })();
+                })().catch((e) => reject(e));
             });
         },
-        deleteFile: async (__unused__parent: Record<string, unknown>, args: { fileId: string }, context: any): Promise<IGenericResponse> => {
-            const requester: IUser = context.req.user;
+        deleteFile: async (parent, args: { fileId: string }, context) => {
+            const requester = context.req.user;
 
-            const file = await db.collections!.files_collection.findOne({ deleted: null, id: args.fileId });
+            const file = await db.collections.files_collection.findOne({ deleted: null, id: args.fileId });
 
             if (!file) {
                 throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -253,7 +254,7 @@ export const fileResolvers = {
             if (!hasStudyLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
             const parsedDescription = JSON.parse(file.description);
             if (Object.keys(parsedDescription).length === 0) {
-                await db.collections!.files_collection.findOneAndUpdate({ deleted: null, id: args.fileId }, { $set: { deleted: Date.now().valueOf() } });
+                await db.collections.files_collection.findOneAndUpdate({ deleted: null, id: args.fileId }, { $set: { deleted: Date.now().valueOf() } });
                 return makeGenericReponse();
             }
             const device = parsedDescription.deviceId.slice(0, 3);
@@ -272,9 +273,9 @@ export const fileResolvers = {
                 m_visitId: targetVisitId,
                 m_fieldId: targetFieldId
             };
-            const existing = await db.collections!.data_collection.findOne(obj);
+            const existing = await db.collections.data_collection.findOne(obj);
             if (!existing) {
-                await db.collections!.data_collection.insertOne({
+                await db.collections.data_collection.insertOne({
                     ...obj,
                     id: uuid(),
                     uploadedAt: (new Date()).valueOf(),
@@ -293,12 +294,12 @@ export const fileResolvers = {
                 metadata: {
                     'uploader:user': requester.id,
                     'add': existing?.metadata?.add ?? [],
-                    'remove': ((existing?.metadata as any)?.remove || []).concat(args.fileId)
+                    'remove': (existing?.metadata?.remove || []).concat(args.fileId)
                 }
             };
-            const updateResult = await db.collections!.data_collection.updateOne(obj, { $set: objWithData }, { upsert: true });
+            const updateResult = await db.collections.data_collection.updateOne(obj, { $set: objWithData }, { upsert: true });
 
-            // const updateResult = await db.collections!.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
+            // const updateResult = await db.collections.files_collection.updateOne({ deleted: null, id: args.fileId }, { $set: { deleted: new Date().valueOf() } });
             if (updateResult.modifiedCount === 1 || updateResult.upsertedCount === 1) {
                 return makeGenericReponse();
             } else {

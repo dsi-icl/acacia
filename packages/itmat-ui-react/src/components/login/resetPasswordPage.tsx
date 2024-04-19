@@ -59,7 +59,7 @@ export const ResetPasswordPage: FunctionComponent = () => {
     }
 
     return (
-        <Mutation<any, any>
+        <Mutation<never, never>
             mutation={RESET_PASSWORD}
             onCompleted={() => {
                 setPasswordSuccessfullyChanged(true);
@@ -75,13 +75,15 @@ export const ResetPasswordPage: FunctionComponent = () => {
                             <h1>Reset your password</h1>
                             <br />
                             <div>
-                                <Form onFinish={async (variables) => resetPassword({
-                                    variables: {
-                                        ...variables,
-                                        encryptedEmail,
-                                        token
-                                    }
-                                })}>
+                                <Form onFinish={(variables) => {
+                                    resetPassword({
+                                        variables: {
+                                            ...variables,
+                                            encryptedEmail,
+                                            token
+                                        }
+                                    }).catch(() => { return; });
+                                }}>
                                     <Form.Item name='newPassword' hasFeedback rules={[{ required: true, message: ' ' }]}>
                                         <Input.Password placeholder='Password' />
                                     </Form.Item>

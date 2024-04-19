@@ -12,7 +12,7 @@ export const UploadNewData: FunctionComponent<{ studyId: string; cancelButton?: 
         <p>To upload a new version of the dataset, please make sure you have <NavLink to={`/datasets/${studyId}/files`}><span style={{ color: 'var(--color-primary-color)', textDecoration: 'underline' }}>uploaded the data file to the file repository</span></NavLink>.</p>
         <br /><br />
 
-        <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+        <Query<never, never> query={GET_STUDY} variables={{ studyId }}>
             {({ loading, data, error }) => {
                 if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>{error.toString()}</p>; }
@@ -47,7 +47,7 @@ const UploadNewDataForm: FunctionComponent<{ studyId: string; files: IFile[]; ca
             mode='multiple'
             onChange={(value) => {
                 const newArr: string[] = [];
-                for (let i = 0; i < (value as any).length; i++) {
+                for (let i = 0; i < value.length; i++) {
                     newArr.push(value[i].toString());
                 }
                 setSelectedFile(newArr);
@@ -62,12 +62,12 @@ const UploadNewDataForm: FunctionComponent<{ studyId: string; files: IFile[]; ca
             })}
         </Select><br /><br />
 
-        <Mutation<any, any>
+        <Mutation<never, never>
             mutation={CREATE_DATA_CURATION_JOB}
             onCompleted={() => setSuccessfullySaved(true)}
         // update={(store, { data: { createDataCurationJob } }) => {
         //     // Read the data from our cache for this query.
-        //     const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
+        //     const data = store.readQuery<never>({ query: GET_STUDY, variables: { studyId } });
         //     // Add our comment from the mutation to the end.
         //     const newjobs = data.getStudy.jobs.concat(createDataCurationJob);
         //     data.getStudy.jobs = newjobs;
@@ -89,7 +89,7 @@ const UploadNewDataForm: FunctionComponent<{ studyId: string; files: IFile[]; ca
                             file: selectedFile,
                             studyId
                         }
-                    });
+                    }).catch(e => setError(e.message));
 
                 }}>Submit</Button>;
             }}

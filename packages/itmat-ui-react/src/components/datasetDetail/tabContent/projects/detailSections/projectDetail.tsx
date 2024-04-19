@@ -19,7 +19,7 @@ export const ProjectDetail: FunctionComponent = () => {
 
     if (!projectId || !studyId)
         return null;
-    return <Query<any, any>
+    return <Query<never, never>
         query={GET_PROJECT}
         variables={{ projectId, admin: whoamidata.whoAmI.type === userTypes.ADMIN }}
     >

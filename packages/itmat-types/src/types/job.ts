@@ -9,8 +9,8 @@ export interface IJobEntry<dataobj = unknown> {
     requester: string;
     requestTime: number;
     receivedFiles: string[];
-    status: string;
-    error: null | Record<string, unknown>;
+    status: 'QUEUED' | 'PROCESSING' | 'FINISHED' | 'ERROR';
+    error: null | Error | Error[] | Record<string, unknown> | Record<string, unknown>[];
     cancelled: boolean;
     cancelledTime?: number;
     claimedBy?: string;
@@ -18,6 +18,6 @@ export interface IJobEntry<dataobj = unknown> {
     data?: dataobj;
 }
 
-export type IJobEntryForDataCuration = IJobEntry<never>;
+export type IJobEntryForDataCuration = IJobEntry<unknown>;
 export type IJobEntryForFieldCuration = IJobEntry<{ tag: string }>;
 export type IJobEntryForQueryCuration = IJobEntry<{ queryId: string[], projectId: string, studyId: string }>;

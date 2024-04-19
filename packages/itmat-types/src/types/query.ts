@@ -1,6 +1,11 @@
 export type IQueryEntry = {
     id: string;
-    queryString: any;
+    queryString: {
+        data_requested: string[];
+        cohort: ICohortSelection[][];
+        new_fields: INewFieldSelection[];
+        table_requested?: string;
+    };
     studyId: string;
     projectId?: string;
     requester: string;

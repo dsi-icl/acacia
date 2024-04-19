@@ -6,12 +6,12 @@ export class FieldCore {
         /* ASSUMING projectId and studyId match*/
         /* if detailed=false, only returns the fieldid in an array */
         /* constructing queryObj; if projectId is provided then only those in the approved fields are returned */
-        let queryObj: any = { studyId };
+        let queryObj = { studyId };
         if (getOnlyTheseFields) {  // if both study id and project id are provided then just make sure they belong to each other
             queryObj = { studyId, fieldId: { $in: getOnlyTheseFields } };
         }
 
-        const aggregatePipeline: any = [
+        const aggregatePipeline = [
             { $match: queryObj }
         ];
         /* if detailed=false, only returns the fieldid in an array */
@@ -19,14 +19,14 @@ export class FieldCore {
             aggregatePipeline.push({ $group: { _id: null, array: { $addToSet: '$fieldId' } } });
         }
 
-        const cursor = db.collections!.field_dictionary_collection.aggregate<IFieldEntry>(aggregatePipeline);
+        const cursor = db.collections.field_dictionary_collection.aggregate<IFieldEntry>(aggregatePipeline);
         return cursor.toArray();
     }
 
 }
 
 
-export function validateAndGenerateFieldEntry(fieldEntry: any, requester: IUser) {
+export function validateAndGenerateFieldEntry(fieldEntry, requester: IUser) {
     // duplicates with existing fields are checked by caller function
     const error: string[] = [];
     const complusoryField = [
@@ -63,7 +63,7 @@ export function validateAndGenerateFieldEntry(fieldEntry: any, requester: IUser)
         }
     }
 
-    const newField: any = {
+    const newField = {
         fieldId: fieldEntry.fieldId,
         fieldName: fieldEntry.fieldName,
         tableName: fieldEntry.tableName,

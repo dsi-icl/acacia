@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 export const LogListSection: FunctionComponent = () => {
 
     return (
-        <Query<any, any>
+        <Query<never, never>
             query={GET_LOGS}
             variables={{}}
         >
@@ -44,12 +44,12 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
         status: [],
         dateRange: ['', '']
     };
-    const [inputs, setInputs]: [{ [key: string]: any }, any] = useState(initInputs);
+    const [inputs, setInputs] = useState(initInputs);
     const [verbose, setVerbose] = useState(false);
     const [verboseInfo, setVerboseInfo] = useState(({ actionData: JSON.stringify({}) }));
     const [advancedSearch, setAdvancedSearch] = useState(false);
     const dateFormat = 'YYYY-MM-DD';
-    function formatActionData(data: any) {
+    function formatActionData(data) {
         const obj = JSON.parse(data.actionData);
         const keys = Object.keys(obj);
         const keysMap = keys.map((el) => <><span>{el}</span><br /></>);
@@ -61,21 +61,21 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
 
     const inputControl = (property: string) => ({
         value: inputs[property],
-        onChange: (e: any) => {
+        onChange: (e) => {
             setInputs({ ...inputs, [property]: property === 'requesterName' ? e.target.value : e });
         }
     });
 
     const checkboxControl = (property: string) => ({
         value: inputs[property],
-        onChange: (e: any) => {
+        onChange: (e) => {
             setInputs({ ...inputs, [property]: e });
         }
     });
     function dataSourceFilter(logList: ILogEntry[]) {
         return logList.filter((log) => {
             // convert the contest of log to be string (except for value), as null could not be parsed
-            const logCopy: any = { ...log };
+            const logCopy = { ...log };
             Object.keys(logCopy).forEach(item => {
                 logCopy[item] = (logCopy[item] || '').toString();
             });

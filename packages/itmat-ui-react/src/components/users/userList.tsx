@@ -11,7 +11,7 @@ import { IUserWithoutToken } from '@itmat-broker/itmat-types';
 
 export const UserListSection: FunctionComponent = () => {
     return (
-        <Query<any, any>
+        <Query<never, never>
             query={GET_USERS}
             variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
         >

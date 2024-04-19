@@ -36,7 +36,7 @@ export const DataManagementTabContentFetch: FunctionComponent = () => {
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     const [createNewDataVersion] = useMutation(CREATE_NEW_DATA_VERSION);
     const [setDataVersion, { loading }] = useMutation(SET_DATAVERSION_AS_CURRENT);
-    const [selectedPath, setSelectedPath] = useState<any[]>([]);
+    const [selectedPath, setSelectedPath] = useState<never[]>([]);
     const [selectedVersion, setSelectedVersion] = useState(getStudyData.getStudy.currentDataVersion);
     const [isModalOn, setIsModalOn] = useState(false);
     const [treeId, setTreeId] = useState<string>('');
@@ -69,13 +69,13 @@ export const DataManagementTabContentFetch: FunctionComponent = () => {
         }
     ];
 
-    const versions: any = [];
+    const versions = [];
     for (const item of getStudyData.getStudy.dataVersions) {
         versions[item['version']] = item['id'];
     }
 
     //construct the cascader
-    const fieldPathOptions: any = [];
+    const fieldPathOptions = [];
     getOntologyTreeData.getOntologyTree.filter(el => el.id === treeId)[0]?.routes.forEach(el => {
         generateCascader(el, fieldPathOptions, false);
     });
@@ -163,7 +163,7 @@ export const DataManagementTabContentFetch: FunctionComponent = () => {
                         onOk={() => setIsModalOn(false)}
                         onCancel={() => setIsModalOn(false)}
                     >
-                        <Query<any, any> query={GET_DATA_RECORDS} variables={{
+                        <Query<never, never> query={GET_DATA_RECORDS} variables={{
                             studyId: studyId, versionId: null, queryString: {
                                 data_requested: null,
                                 new_fields: null,
@@ -175,7 +175,7 @@ export const DataManagementTabContentFetch: FunctionComponent = () => {
                                 if (error) { return <p>{JSON.stringify(error)}</p>; }
                                 if (!data) { return <p>Not executed.</p>; }
                                 const parsedData = getDataRecordsData.getDataRecords.data;
-                                const groupedData: any = {};
+                                const groupedData = {};
                                 for (const key in parsedData) {
                                     if (!(key in groupedData)) {
                                         groupedData[key] = [];
@@ -207,7 +207,7 @@ export const DataManagementTabContentFetch: FunctionComponent = () => {
                                 withUnversionedData: variables.withUnversionedData === 'true' ? true : false,
                                 studyId: studyId
                             }
-                        });
+                        }).catch(() => { return; });
                     }}>
                         <Form.Item name='dataVersion' hasFeedback rules={[{ required: true, message: ' ' }]}>
                             <Input placeholder='Data Version' />

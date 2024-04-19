@@ -87,7 +87,7 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
 
         <div>
             <NavLink title='Logout' to='/'>
-                <Mutation<any, any>
+                <Mutation<never, never>
                     mutation={LOGOUT}
                     update={(cache, { data: { logout } }) => {
                         if (logout.successful === true) {
@@ -99,7 +99,7 @@ export const MainMenuBar: FunctionComponent<MainMenuBarProps> = ({ projects }) =
                     }}
                 >
                     {(logout) => (
-                        <div className={css.button} onClick={() => { logout(); }}><PoweroffOutlined /> Logout</div>
+                        <div className={css.button} onClick={() => { logout().catch(() => { return; }); }}><PoweroffOutlined /> Logout</div>
                     )}
                 </Mutation>
             </NavLink>

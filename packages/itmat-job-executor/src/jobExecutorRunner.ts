@@ -45,7 +45,7 @@ class ITMATJobExecutorRunner extends Runner {
 
                     const poller = new JobPoller({
                         identity: uuid(),
-                        jobCollection: db.collections!.jobs_collection,
+                        jobCollection: db.collections.jobs_collection,
                         pollingInterval: this.config.pollingInterval,
                         action: jobDispatcher.dispatch
                     });
@@ -54,7 +54,7 @@ class ITMATJobExecutorRunner extends Runner {
                     // Return the Express application
                     return resolve(_this.router);
 
-                }).catch((err: any) => reject(err));
+                }).catch((err) => reject(err));
         });
     }
 

@@ -16,18 +16,18 @@ export class UKB_JSON_UPLOAD_Handler extends JobHandler {
         return this._instance;
     }
 
-    public async execute(job: IJobEntry<never>) {
+    public async execute(job: IJobEntry<unknown>) {
         const errorsList: Array<{
             fileId: string;
             fileName?: string;
             error: string | string[];
         }> = [];
         // get fieldid info from database
-        const fieldsList = await db.collections!.field_dictionary_collection.find({ studyId: job.studyId }).toArray();
+        const fieldsList = await db.collections.field_dictionary_collection.find({ studyId: job.studyId }).toArray();
 
         for (const fileId of job.receivedFiles) {
             try {
-                const file = await db.collections!.files_collection.findOne({ id: fileId, deleted: null })!;
+                const file = await db.collections.files_collection.findOne({ id: fileId, deleted: null });
                 if (!file) {
                     errorsList.push({ fileId: fileId, error: 'file does not exist' });
                     continue;
@@ -38,7 +38,7 @@ export class UKB_JSON_UPLOAD_Handler extends JobHandler {
                 const filteredFieldsList = fieldsList.filter(el => el.tableName === tableName);
                 const fileStream: Readable = await objStore.downloadFile(job.studyId, file.uri);
                 const jsoncurator = new JSONCurator(
-                    db.collections!.data_collection,
+                    db.collections.data_collection,
                     fileStream,
                     job,
                     filteredFieldsList
@@ -46,9 +46,9 @@ export class UKB_JSON_UPLOAD_Handler extends JobHandler {
                 const errors = await jsoncurator.processIncomingStreamAndUploadToMongo();
                 if (errors.length !== 0) {
                     errorsList.push({ fileId: file.id, fileName: file.fileName, error: errors });
-                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errorsList as any } });
+                    await db.collections.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'ERROR', error: errorsList } });
                 } else {
-                    await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
+                    await db.collections.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'FINISHED' } });
                 }
             } catch (e) {
                 throw new Error();

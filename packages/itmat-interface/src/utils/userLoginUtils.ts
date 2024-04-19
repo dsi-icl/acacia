@@ -7,17 +7,20 @@ export class UserLoginUtils {
         this.deserialiseUser = this.deserialiseUser.bind(this);
     }
 
-    public serialiseUser(user: Express.User, done: (__unused__err: any, __unused__id?: any) => void): void {
+    public serialiseUser(user: Express.User, done: (__unused__err: unknown, __unused__id: string) => void) {
         done(null, (user as IUser).username);
     }
 
-    public async deserialiseUser(username: string, done: (__unused__err: any, __unused__id?: any) => void): Promise<void> {
-        const user = await this._getUser(username);
-        done(null, user);
+    public deserialiseUser(username: string, done: (__unused__err: unknown, __unused__id: IUserWithoutToken | null) => void) {
+        this._getUser(username)
+            .then(user => {
+                done(null, user);
+            })
+            .catch(() => { return; });
     }
 
     private async _getUser(username: string): Promise<IUserWithoutToken | null> {
-        return await db.collections!.users_collection.findOne<IUserWithoutToken>({ deleted: null, username }, { projection: { _id: 0, deleted: 0, password: 0 } })!;
+        return await db.collections.users_collection.findOne<IUserWithoutToken>({ deleted: null, username }, { projection: { _id: 0, deleted: 0, password: 0 } });
     }
 }
 

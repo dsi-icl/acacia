@@ -1,7 +1,7 @@
 import * as csvparse from 'csv-parse';
 import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
-import { IFieldDescriptionObject, IDataEntry, IJobEntry } from '@itmat-broker/itmat-types';
+import { IFieldDescriptionObject, IDataEntry, IJobEntry, IFieldEntry } from '@itmat-broker/itmat-types';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -25,8 +25,8 @@ export class CSVCurator {
         private readonly dataCollection: Collection<IDataEntry>,
         private readonly incomingWebStream: Readable,
         private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_records_with_error: true },
-        private readonly job: IJobEntry<never>,
-        private readonly fieldsList: any[]
+        private readonly job: IJobEntry<unknown>,
+        private readonly fieldsList: IFieldEntry[]
     ) {
         this._header = [null]; // the first element is subject id
         this._numOfSubj = 0;
@@ -46,7 +46,7 @@ export class CSVCurator {
             const csvparseStream = csvparse.parse(this.parseOptions);
             const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
 
-            csvparseStream.on('skip', (error: any) => {
+            csvparseStream.on('skip', (error) => {
                 lineNum++;
                 this._errored = true;
                 this._errors.push(error.toString());
@@ -54,79 +54,83 @@ export class CSVCurator {
 
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
-                write: async (line, _, next) => {
-                    if (isHeader) {
-                        lineNum++;
-                        const { error, parsedHeader, subjectIdIndex, visitIdIndex } = processHeader(line, this.fieldsList);
-                        if (error) {
-                            this._errored = true;
-                            this._errors.push(...error);
-                        }
-                        this._header = parsedHeader;
-                        this._subjectIdIndex = subjectIdIndex;
-                        this._visitIdIndex = visitIdIndex;
-                        isHeader = false;
-                        next();
-                    } else {
-                        const currentLineNum = ++lineNum;
-                        subjectString.push(line[this._subjectIdIndex]);
-                        const { error, dataEntry } = processDataRow({
-                            subjectIdIndex: this._subjectIdIndex,
-                            visitIdIndex: this._visitIdIndex,
-                            lineNum: currentLineNum,
-                            row: line,
-                            parsedHeader: this._header,
-                            job: this.job
-                        });
-
-                        if (error) {
-                            this._errored = true;
-                            this._errors.push(...error);
-                        }
-
-                        if (this._errored) {
+                write: (line, _, next) => {
+                    (async () => {
+                        if (isHeader) {
+                            lineNum++;
+                            const { error, parsedHeader, subjectIdIndex, visitIdIndex } = processHeader(line, this.fieldsList);
+                            if (error) {
+                                this._errored = true;
+                                this._errors.push(...error);
+                            }
+                            this._header = parsedHeader;
+                            this._subjectIdIndex = subjectIdIndex;
+                            this._visitIdIndex = visitIdIndex;
+                            isHeader = false;
                             next();
-                            return;
-                        }
-
-                        // // TO_DO {
-                        //     curator-defined constraints for values
-                        // }
-                        const matchObj = {
-                            m_subjectId: dataEntry.m_subjectId,
-                            m_visitId: dataEntry.m_visitId,
-                            m_versionId: dataEntry.m_versionId,
-                            m_studyId: dataEntry.m_studyId
-                        };
-                        bulkInsert.find(matchObj).upsert().updateOne({ $set: dataEntry });
-
-                        this._numOfSubj++;
-                        if (this._numOfSubj > 999) {
-                            this._numOfSubj = 0;
-                            await bulkInsert.execute().catch((err) => {
-                                if (err) {
-                                    //TODO Handle error recording
-                                    console.error(err);
-                                }
+                        } else {
+                            const currentLineNum = ++lineNum;
+                            subjectString.push(line[this._subjectIdIndex]);
+                            const { error, dataEntry } = processDataRow({
+                                subjectIdIndex: this._subjectIdIndex,
+                                visitIdIndex: this._visitIdIndex,
+                                lineNum: currentLineNum,
+                                row: line,
+                                parsedHeader: this._header,
+                                job: this.job
                             });
-                            bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+
+                            if (error) {
+                                this._errored = true;
+                                this._errors.push(...error);
+                            }
+
+                            if (this._errored) {
+                                next();
+                                return;
+                            }
+
+                            // // TO_DO {
+                            //     curator-defined constraints for values
+                            // }
+                            const matchObj = {
+                                m_subjectId: dataEntry.m_subjectId,
+                                m_visitId: dataEntry.m_visitId,
+                                m_versionId: dataEntry.m_versionId,
+                                m_studyId: dataEntry.m_studyId
+                            };
+                            bulkInsert.find(matchObj).upsert().updateOne({ $set: dataEntry });
+
+                            this._numOfSubj++;
+                            if (this._numOfSubj > 999) {
+                                this._numOfSubj = 0;
+                                await bulkInsert.execute().catch((err) => {
+                                    if (err) {
+                                        //TODO Handle error recording
+                                        console.error(err);
+                                    }
+                                });
+                                bulkInsert = this.dataCollection.initializeUnorderedBulkOp();
+                            }
+                            next();
                         }
-                        next();
-                    }
+                    })().catch(() => { return; });
                 }
             });
 
-            uploadWriteStream.on('finish', async () => {
-                if (!this._errored) {
-                    await bulkInsert.execute().catch((err) => {
-                        if (err) {
-                            //TODO Handle error recording
-                            console.error(err);
-                        }
-                    });
-                }
+            uploadWriteStream.on('finish', () => {
+                (async () => {
+                    if (!this._errored) {
+                        await bulkInsert.execute().catch((err) => {
+                            if (err) {
+                                //TODO Handle error recording
+                                console.error(err);
+                            }
+                        });
+                    }
 
-                resolve(this._errors);
+                    resolve(this._errors);
+                })().catch(() => { return; });
             });
 
             parseStream.pipe(uploadWriteStream);
@@ -135,14 +139,14 @@ export class CSVCurator {
 }
 
 
-export function processHeader(header: string[], fieldsList: any[]): { error?: string[], parsedHeader: any[], subjectIdIndex: number, visitIdIndex: number } {
+export function processHeader(header: string[], fieldsList: IFieldEntry[]) {
     /* pure function */
     /* headerline is ['eid', 1@0.0, 2@0.1:c] */
     /* returns a parsed object array and error (undefined if no error) */
 
     // const fieldstrings: string[] = [];
     const error: string[] = [];
-    const parsedHeader: any[] = Array(header.length);
+    const parsedHeader = Array(header.length);
     let colNum = 0;
     const fields: string[] = [];
     const validatedFieldNames = fieldsList.map(el => el.fieldName);
@@ -183,11 +187,11 @@ export function processHeader(header: string[], fieldsList: any[]): { error?: st
     return ({ parsedHeader: filteredParsedHeader, error: error.length === 0 ? undefined : error, subjectIdIndex, visitIdIndex });
 }
 
-export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, parsedHeader, job }: { subjectIdIndex: number, visitIdIndex: number, lineNum: number, row: string[], parsedHeader: any[], job: IJobEntry<never> }): { error?: string[], dataEntry: Partial<IDataEntry> } {
+export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, parsedHeader, job }: { subjectIdIndex: number, visitIdIndex: number, lineNum: number, row: string[], parsedHeader: (IFieldDescriptionObject | null)[], job: IJobEntry<unknown> }) {
     /* pure function */
     const error: string[] = [];
     let colIndex = 0;
-    const dataEntry: any = {
+    const dataEntry: Partial<IDataEntry> = {
         m_studyId: job.studyId,
         m_versionId: null,
         deleted: null
@@ -225,13 +229,13 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
             colIndex++;
             continue;
         }
-        const { fieldId, dataType, possibleValues } = parsedHeader[colIndex - 1];
+        const { fieldId, dataType, possibleValues } = parsedHeader[colIndex - 1] ?? {};
         if (fieldId === undefined) {
             colIndex++;
             continue;
         }
         /* adding value to dataEntry */
-        let value: any;
+        let value;
         try {
             if (each.toString() === '99999') {
                 value = '99999';
@@ -239,7 +243,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                 switch (dataType) {
                     case 'cat': {// categorical
                         const code = parseInt(each, 10).toString();
-                        if (!possibleValues.map((el: any) => el.code).includes(code)) {
+                        if (!possibleValues.map((el) => el.code).includes(code)) {
                             error.push(`Line ${lineNum} column ${colIndex + 1}: Cannot parse '${each}' as categorical, value is illegal.`);
                             colIndex++;
                             continue;
@@ -303,7 +307,7 @@ export function processDataRow({ subjectIdIndex, visitIdIndex, lineNum, row, par
                     }
                 }
             }
-        } catch (e: any) {
+        } catch (e) {
             error.push(e.toString());
             continue;
         }

@@ -17,7 +17,7 @@ export const ProjectDetailPage: FunctionComponent = () => {
     if (whoamierror) { return <p>ERROR: please try again.</p>; }
 
     return (
-        <Query<any, any>
+        <Query<never, never>
             query={GET_PROJECT}
             variables={{ projectId, admin: whoamidata.whoAmI.type === userTypes.ADMIN }}
         >
@@ -29,7 +29,7 @@ export const ProjectDetailPage: FunctionComponent = () => {
                 return <div className={css_dataset.page_container}>
                     <div className={css_dataset.ariane}>
                         <h2>{data.getProject.name.toUpperCase()}</h2>
-                        <Query<any, any> query={WHO_AM_I}>
+                        <Query<never, never> query={WHO_AM_I}>
                             {({ loading, error, data: sessionData }) => {
                                 if (loading) return <LoadSpinner />;
                                 if (error) return <p>{error.toString()}</p>;

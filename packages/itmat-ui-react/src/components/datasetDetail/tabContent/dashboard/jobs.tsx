@@ -6,10 +6,9 @@ import type { IJobEntry } from '@itmat-broker/itmat-types';
 import { GET_STUDY, SUBSCRIBE_TO_JOB_STATUS } from '@itmat-broker/itmat-models';
 import { Table, Button } from 'antd';
 
-const STATUSES: { [status: string]: any } = {
-    finished: () => <td className={css.finishedStatus_td}><span>Finished</span></td>,
-    // error: (errors: string[]) => <><span className={css.errorStatus_span}>Errored</span><InfoCircle/></>,
-    error: (errors: string[]) => <td className={css.errorStatus_td}>
+const STATUSES = {
+    FINISHED: () => <td className={css.finishedStatus_td}><span>Finished</span></td>,
+    ERRROR: (errors: string[]) => <td className={css.errorStatus_td}>
         <span>Errored</span>
         <InfoCircleOutlined />
         <div className={css.error_wrapper}>
@@ -25,21 +24,21 @@ const STATUSES: { [status: string]: any } = {
     CANCELLED: () => <td className={css.cancelledStatus_td}><span>Cancelled</span></td>
 };
 
-// const JOBTYPES: { [type: string]: any } = {
+// const JOBTYPES: { [type: string] } = {
 //     DATA_UPLOAD_CSV: <span>Data upload</span>,
 //     DATA_UPLOAD_JSON: <span>Data upload json</span>,
 //     FIELD_INFO_UPLOAD: <span>Field annotation upload</span>
 // };
 
-export const JobSection: FunctionComponent<{ studyId: string; jobs: Array<IJobEntry<any>> }> = ({ studyId, jobs }) => {
+export const JobSection: FunctionComponent<{ studyId: string; jobs: Array<IJobEntry> }> = ({ studyId, jobs }) => {
     useSubscription(
         SUBSCRIBE_TO_JOB_STATUS,
         {
             variables: { studyId }, onSubscriptionData: ({ client: store, subscriptionData }) => {
                 if (subscriptionData.data.subscribeToJobStatusChange !== null) {
-                    const olddata: any = store.readQuery({ query: GET_STUDY, variables: { studyId } });
+                    const olddata = store.readQuery<never>({ query: GET_STUDY, variables: { studyId } });
                     const oldjobs = olddata.getStudy.jobs;
-                    const newjobs = oldjobs.map((el: any) => {
+                    const newjobs = oldjobs.map((el) => {
                         if (el.id === subscriptionData.data.subscribeToJobStatusChange.jobId) {
                             el.status = subscriptionData.data.subscribeToJobStatusChange.newStatus;
                             if (el.status === 'error') {

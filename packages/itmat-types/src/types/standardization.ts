@@ -22,11 +22,13 @@ export enum StandardizationRuleSource {
     inc = 'inc'
 }
 
+type StandardizationRuleFilter = unknown;
+
 export interface IStandardizationRule {
     id: string,
     entry: string,
     source: StandardizationRuleSource,
     parameter: string[],
     // further processings for a value: delete, convert, etc.
-    filters?: any
+    filters?: StandardizationRuleFilter
 }

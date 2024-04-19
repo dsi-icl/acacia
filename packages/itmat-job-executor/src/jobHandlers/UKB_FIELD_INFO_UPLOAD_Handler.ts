@@ -1,6 +1,6 @@
 import { db } from '../database/database';
 import { objStore } from '../objStore/objStore';
-import { JobHandler } from './jobHandlerInterface';
+import { CodeRecords, JobHandler } from './jobHandlerInterface';
 import { IJobEntryForFieldCuration } from '@itmat-broker/itmat-types';
 import { FieldCurator } from '../curation/FieldCurator';
 import { Readable, Writable } from 'stream';
@@ -17,34 +17,34 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     }
 
     public async execute(job: IJobEntryForFieldCuration) {
-        const file = await db.collections!.files_collection.findOne({ id: job.receivedFiles[0], deleted: null })!;
+        const file = await db.collections.files_collection.findOne({ id: job.receivedFiles[0], deleted: null });
         if (!file) {
             throw new Error('File does not exists.');
         }
 
-        const codesFile = await db.collections!.files_collection.findOne({ fileName: 'prolific_Codes.csv' });
+        const codesFile = await db.collections.files_collection.findOne({ fileName: 'prolific_Codes.csv' });
         if (!codesFile) {
             throw new Error('Codes File does not exists.');
         }
 
         const codesStream: Readable = await objStore.downloadFile(job.studyId, codesFile.uri);
-        const codesObj = processCodesFileStreamAndReturnList(codesStream);
+        const codesObj = await processCodesFileStreamAndReturnList(codesStream);
 
         const fileStream: Readable = await objStore.downloadFile(job.studyId, file.uri);
         const fieldcurator = new FieldCurator(
-            db.collections!.field_dictionary_collection,
+            db.collections.field_dictionary_collection,
             fileStream,
             undefined,
             job,
             codesObj
         );
-        const errors = await fieldcurator.processIncomingStreamAndUploadToMongo();
+        const errors = (await fieldcurator.processIncomingStreamAndUploadToMongo()).map(err => new Error(err));
 
         if (errors.length !== 0) {
-            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'error', error: errors as any } });
+            await db.collections.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'ERROR', error: errors } });
             return;
         } else {
-            await db.collections!.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'finished' } });
+            await db.collections.jobs_collection.updateOne({ id: job.id }, { $set: { status: 'FINISHED' } });
             // await this.updateFieldTreesInMongo(job, fieldTreeId);
         }
 
@@ -53,11 +53,11 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     // public async updateFieldTreesInMongo(job: IJobEntryForFieldCuration, fieldTreeId: string) {
     //     const queryObject = { 'id': job.studyId, 'deleted': null, 'dataVersions.id': job.data!.dataVersionId };
     //     const updateObject = { $push: { 'dataVersions.$.fieldTrees': fieldTreeId } };
-    //     return await db.collections!.studies_collection.findOneAndUpdate(queryObject, updateObject);
+    //     return await db.collections.studies_collection.findOneAndUpdate(queryObject, updateObject);
     // }
 }
 
-async function processCodesFileStreamAndReturnList(incomingStream: Readable): Promise<any> {
+async function processCodesFileStreamAndReturnList(incomingStream: Readable): Promise<CodeRecords> {
     const parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_records_with_error: true };
     const csvparseStream = csvparse.parse(parseOptions);
     const parseStream = incomingStream.pipe(csvparseStream);
@@ -66,12 +66,12 @@ async function processCodesFileStreamAndReturnList(incomingStream: Readable): Pr
     // });
 
     let isHeader = true;
-    const codes: any = {};
+    const codes: CodeRecords = {};
 
     const CORRECT_NUMBER_OF_COLUMN = 4;
     const uploadWriteStream: NodeJS.WritableStream = new Writable({
         objectMode: true,
-        write: async (line, _, next) => {
+        write: (line, _, next) => {
             if (isHeader) {
                 if (line.length !== CORRECT_NUMBER_OF_COLUMN) {
                     throw console.error('Line length not equal to 4.');
@@ -93,7 +93,7 @@ async function processCodesFileStreamAndReturnList(incomingStream: Readable): Pr
         }
     });
 
-    uploadWriteStream.on('finish', async () => {
+    uploadWriteStream.on('finish', () => {
         //TODO
         /* check for subject Id duplicate */
     });

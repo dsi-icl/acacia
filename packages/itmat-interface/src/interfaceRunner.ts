@@ -26,7 +26,7 @@ class ITMATInterfaceRunner extends Runner {
                 .then(async () => objStore.connect(this.config.objectStore))
                 .then(async () => {
 
-                    const jobChangestream = db.collections!.jobs_collection.watch([
+                    const jobChangestream = db.collections.jobs_collection.watch([
                         { $match: { operationType: { $in: ['update', 'insert'] } } }
                     ], { fullDocument: 'updateLookup' });
                     jobChangestream.on('change', data => {
@@ -40,9 +40,9 @@ class ITMATInterfaceRunner extends Runner {
                                     jobId: data.fullDocument?.id,
                                     studyId: data.fullDocument?.studyId,
                                     newStatus: data.fullDocument?.status,
-                                    errors: data.fullDocument?.status === 'error' ? data.fullDocument.error : null
+                                    errors: data.fullDocument?.status === 'ERROR' ? data.fullDocument.error : null
                                 }
-                            });
+                            }).catch(() => { return; });
                         }
                     });
                     _this.router = new Router(this.config);

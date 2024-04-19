@@ -38,12 +38,12 @@ export const FieldListSelectionSection: FunctionComponent<{ studyId: string; sel
     </>;
 };
 
-const FieldListSelectionState: FunctionComponent<{ studyId: string; fieldTreeIds: string[], studyData: any }> = ({ studyId, fieldTreeIds, studyData }) => {
+const FieldListSelectionState: FunctionComponent<{ studyId: string; fieldTreeIds: string[], studyData }> = ({ studyId, fieldTreeIds, studyData }) => {
     const [selectedTree, setSelectedTree] = useState(fieldTreeIds[0]);
 
     return <>
         <label>Select field tree: </label><select title='Field Tree' onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
-        <Query<any, any> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
+        <Query<never, never> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
             {({ data, loading, error }) => {
                 if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>{JSON.stringify(error)}</p>; }

@@ -8,7 +8,7 @@ export interface IFieldEntry {
     possibleValues?: IValueDescription[];
     unit?: string;
     comments?: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
     dateAdded: string;
     dateDeleted: string | null;
     dataVersion: string | null;

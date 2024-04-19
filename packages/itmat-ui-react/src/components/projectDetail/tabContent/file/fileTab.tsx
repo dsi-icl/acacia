@@ -11,7 +11,7 @@ export const FileTabContent: FunctionComponent<{ studyId: string }> = () => {
     const { projectId } = useParams();
     return <div className={css.tab_page_wrapper}>
         <Subsection title='Files'>
-            <Query<any, any> query={GET_PROJECT} variables={{ projectId, admin: false }}>
+            <Query<never, never> query={GET_PROJECT} variables={{ projectId, admin: false }}>
                 {({ loading, data, error }) => {
                     if (loading) { return <LoadSpinner />; }
                     if (error) { return <p>Error {JSON.stringify(error)}</p>; }

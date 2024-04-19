@@ -5,12 +5,13 @@ import { IObjectStoreConfig, IDatabaseBaseConfig } from '@itmat-broker/itmat-com
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
 import chalk from 'chalk';
+import type nodemailer from 'nodemailer';
 
 export interface IConfiguration extends IServerConfig {
     appName: string;
     database: IDatabaseBaseConfig;
     objectStore: IObjectStoreConfig;
-    nodemailer: any;
+    nodemailer: Parameters<typeof nodemailer.createTransport>[0];
     aesSecret: string;
     sessionsSecret: string;
     adminEmail: string;

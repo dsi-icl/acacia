@@ -189,10 +189,10 @@ export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfOntology
 export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IFieldEntry[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
     const [width, __unused__height__] = useWindowSize();
     // process the data
-    const genderField: any = findDmField(ontologyTree, fields, 'SEX');
-    const raceField: any = findDmField(ontologyTree, fields, 'RACE');
-    const ageField: any = findDmField(ontologyTree, fields, 'AGE');
-    const siteField: any = findDmField(ontologyTree, fields, 'SITE');
+    const genderField = findDmField(ontologyTree, fields, 'SEX');
+    const raceField = findDmField(ontologyTree, fields, 'RACE');
+    const ageField = findDmField(ontologyTree, fields, 'AGE');
+    const siteField = findDmField(ontologyTree, fields, 'SITE');
 
     const { loading: getDataRecordsLoading, error: getDataRecordsError, data: getDataRecordsData } = useQuery(GET_DATA_RECORDS, {
         variables: {
@@ -218,7 +218,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
         </div>;
     }
     // process the data
-    const obj: any = {};
+    const obj = {};
     const data = getDataRecordsData.getDataRecords.data;
     if (genderField === null || !data[genderField.fieldId]) {
         obj.SEX = [];
@@ -405,7 +405,7 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
 };
 
 export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyTree, fields: IFieldEntry[], project: IProject }> = ({ ontologyTree, fields, project }) => {
-    const [selectedPath, setSelectedPath] = useState<any[]>([]);
+    const [selectedPath, setSelectedPath] = useState<never[]>([]);
     const [selectedGraphType, setSelectedGraphType] = useState<string | undefined>(undefined);
     const routes: IOntologyRoute[] = ontologyTree.routes?.filter(es => {
         return JSON.stringify([...es.path, es.name]) === JSON.stringify(selectedPath);
@@ -414,7 +414,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
         return el.fieldId.toString() === routes[0]?.field[0]?.replace('$', '');
     })[0];
     //construct the cascader
-    const fieldPathOptions: any = [];
+    const fieldPathOptions = [];
     ontologyTree.routes?.forEach(el => {
         generateCascader(el, fieldPathOptions, true);
     });
@@ -541,7 +541,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                             <div className={css.grid_col_center_large} ><Text strong underline>{(routes[0].path.slice(0, routes[0].path.length) || '').concat(fieldNameEllipsis).join(' => ')}</Text></div>
                         </Col><br />
                     </Row><br />
-                    <Query<any, any> query={GET_DATA_RECORDS} variables={{
+                    <Query<never, never> query={GET_DATA_RECORDS} variables={{
                         studyId: project.studyId,
                         projectId: project.id,
                         versionId: '-1',
@@ -571,7 +571,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                         acc.push({ x: curr, y: el });
                                     });
                                     return acc;
-                                }, ([] as any));
+                                }, []);
                             } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
                                 data = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
                                     let count = 0;
@@ -590,7 +590,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                         acc.push({ visit: curr, value: 'No Record', count: project.summary.subjects.length - count });
                                     }
                                     return acc;
-                                }, ([] as any)).sort((a, b) => { return parseFloat(a.value) - parseFloat(b.value); });
+                                }, []).sort((a, b) => { return parseFloat(a.value) - parseFloat(b.value); });
                             } else {
                                 return null;
                             }
@@ -612,15 +612,16 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                 };
                             });
                             if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType))
-                                return (<>
-                                    {
-                                        selectedGraphType === 'violin' ? <Violin
-                                            data={data}
-                                            xField={'x'}
-                                            yField={'y'}
-                                            xAxis={axisConfig.xAxis}
-                                            yAxis={axisConfig.yAxisNum}
-                                        /> : selectedGraphType === 'box' ? <Box
+                                return selectedGraphType === 'violin'
+                                    ? <Violin
+                                        data={data}
+                                        xField={'x'}
+                                        yField={'y'}
+                                        xAxis={axisConfig.xAxis}
+                                        yAxis={axisConfig.yAxisNum}
+                                    />
+                                    : selectedGraphType === 'box'
+                                        ? <Box
                                             data={boxData}
                                             xField={'x'}
                                             yField={['low', 'q1', 'median', 'q3', 'high']}
@@ -631,30 +632,25 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                                 fill: '#1890FF',
                                                 fillOpacity: 0.3
                                             }}
-                                        /> : <Empty />
-                                    }
-                                </>);
+                                        />
+                                        : <Empty />;
                             else
-                                return (<>
-                                    {
-                                        selectedGraphType === 'stackedColumn' || selectedGraphType === 'groupedColumn' ?
-                                            <Column
-                                                data={data}
-                                                xField={'visit'}
-                                                yField={'count'}
-                                                xAxis={axisConfig.xAxis}
-                                                yAxis={axisConfig.yAxisNum}
-                                                seriesField={'value'}
-                                                isPercent={false}
-                                                isStack={selectedGraphType === 'stackedColumn'}
-                                                isGroup={selectedGraphType === 'groupedColumn'}
-                                                interactions={[
-                                                    { type: 'element-highlight-by-color' },
-                                                    { type: 'element-link' }
-                                                ]}
-                                            /> : <Empty />
-                                    }
-                                </>);
+                                return selectedGraphType === 'stackedColumn' || selectedGraphType === 'groupedColumn'
+                                    ? <Column
+                                        data={data}
+                                        xField={'visit'}
+                                        yField={'count'}
+                                        xAxis={axisConfig.xAxis}
+                                        yAxis={axisConfig.yAxisNum}
+                                        seriesField={'value'}
+                                        isPercent={false}
+                                        isStack={selectedGraphType === 'stackedColumn'}
+                                        isGroup={selectedGraphType === 'groupedColumn'}
+                                        interactions={[
+                                            { type: 'element-highlight-by-color' },
+                                            { type: 'element-link' }
+                                        ]}
+                                    /> : <Empty />;
                         }}
                     </Query>
                 </div >
@@ -663,7 +659,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
 };
 
 export const DataCompletenessBlock: FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree, fields: IFieldEntry[] }> = ({ studyId, projectId, ontologyTree, fields }) => {
-    const [selectedPath, setSelectedPath] = useState<any[]>([]);
+    const [selectedPath, setSelectedPath] = useState<never[]>([]);
     const requestedFields = ontologyTree.routes?.filter(el => {
         if (JSON.stringify(el.path) === JSON.stringify(selectedPath)) {
             return true;
@@ -696,7 +692,7 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
     }
     // process the data
     const data = getDataRecordsData.getDataRecords.data;
-    const obj: any[] = [];
+    const obj = [];
     for (const fieldId of Object.keys(data)) {
         for (const visitId of Object.keys(data[fieldId])) {
             obj.push({
@@ -727,10 +723,10 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
             }
         }
     };
-    const tooltipConfig: any = {
+    const tooltipConfig = {
         showTitle: false,
         fields: ['visit', 'field', 'percentage'],
-        formatter: (datum: any) => {
+        formatter: (datum) => {
             const field: IFieldEntry | undefined = fields.filter(el => el.fieldId === datum.field)[0];
             let name;
             if (field) {
@@ -745,7 +741,7 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
         }
     };
     //construct the cascader
-    const fieldPathOptions: any = [];
+    const fieldPathOptions = [];
     ontologyTree.routes?.forEach(el => {
         generateCascader(el, fieldPathOptions, false);
     });
@@ -774,7 +770,7 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
                         renderer={'svg'}
                         colorField={'percentage'}
                         label={{
-                            formatter: (datum: any) => {
+                            formatter: (datum) => {
                                 return datum.percentage + '%';
                             }
                         }}
@@ -797,7 +793,7 @@ export const DataDownloadBlock: FunctionComponent<{ project: IProject }> = ({ pr
     }
 
     const availableFormats: string[] = project.summary?.standardizationTypes ?? [];
-    const dataArray: any[] = [];
+    const dataArray = [];
     if (getDataRecordsData?.getDataRecords?.data !== undefined) {
         Object.keys(getDataRecordsData.getDataRecords.data).forEach(domain => {
             dataArray.push({
@@ -868,7 +864,7 @@ export const DataDownloadBlock: FunctionComponent<{ project: IProject }> = ({ pr
                     setShouldUpdateData(false);
                 },
                 notifyOnNetworkStatusChange: true
-            });
+            }).catch(() => { return; });
         }}>Fetch data</Button>
         <Select
             value={selectedOutputType}

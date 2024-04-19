@@ -22,7 +22,7 @@ export const AddNewDataSet: FunctionComponent = () => {
     });
 
     return (
-        <Query<any, any> query={WHO_AM_I}>
+        <Query<never, never> query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <p>Loading...</p>; }
                 if (error) { return <p>Error {error.name}: {error.message}</p>; }
@@ -33,7 +33,7 @@ export const AddNewDataSet: FunctionComponent = () => {
                             :
                             <div>
                                 <Subsection title='Add new dataset'>
-                                    <Form onFinish={async (variables) => createStudy({ variables })}>
+                                    <Form onFinish={(variables) => { createStudy({ variables }).catch(() => { return; }); }}>
                                         <Form.Item name='name' >
                                             <Input placeholder='Dataset name' />
                                         </Form.Item>

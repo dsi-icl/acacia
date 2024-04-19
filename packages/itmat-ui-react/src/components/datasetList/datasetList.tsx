@@ -9,7 +9,7 @@ import LoadSpinner from '../reusable/loadSpinner';
 
 export const DatasetList: FunctionComponent = () => {
     return (
-        <Query<any, any>
+        <Query<never, never>
             query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <LoadSpinner />; }

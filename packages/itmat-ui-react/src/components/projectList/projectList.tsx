@@ -7,7 +7,7 @@ import { Button } from 'antd';
 
 export const ProjectList: FunctionComponent = () => {
     return (
-        <Query<any, any> query={WHO_AM_I}>
+        <Query<never, never> query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <p>Loading...</p>; }
                 if (error) { return <p>Error {error.name}: {error.message}</p>; }

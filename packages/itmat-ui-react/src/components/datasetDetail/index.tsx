@@ -13,7 +13,7 @@ export const DatasetDetailPage: FunctionComponent = () => {
     if (!studyId)
         return <LoadSpinner />;
     return (
-        <Query<any, any>
+        <Query<never, never>
             query={GET_STUDY}
             variables={{ studyId }}
             errorPolicy='ignore' // quick fix ; TO_DO change to split graphql requests coupled with UI
@@ -26,7 +26,7 @@ export const DatasetDetailPage: FunctionComponent = () => {
                     <div className={css.ariane}>
                         <h2>{data.getStudy.name.toUpperCase()}</h2>
                         <div className={css.tabs}>
-                            <Query<any, any> query={WHO_AM_I}>
+                            <Query<never, never> query={WHO_AM_I}>
                                 {({ loading, error, data: sessionData }) => {
                                     if (loading) return <LoadSpinner />;
                                     if (error) return <p>{error.toString()}</p>;

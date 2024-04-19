@@ -12,7 +12,7 @@ export const UploadNewFields: FunctionComponent<{ studyId: string }> = ({ studyI
     const [expanded, setExpanded] = useState(false);
     const [error, setError] = useState('');
     const [uploadFileTabSelected, setUploadFileTabSelected] = useState(true);
-    const fileRef = createRef();
+    const fileRef = createRef<HTMLInputElement>();
 
     if (!expanded) {
         return <Button onClick={() => setExpanded(true)}>Upload new annotations</Button>;
@@ -26,18 +26,18 @@ export const UploadNewFields: FunctionComponent<{ studyId: string }> = ({ studyI
             uploadFileTabSelected ?
                 <>
                     <br />
-                    <input title='file' type='file' ref={fileRef as any} />
-                    <Mutation<any, any> mutation={CREATE_FIELD_CURATION_JOB}>
+                    <input title='file' type='file' ref={fileRef} />
+                    <Mutation<never, never> mutation={CREATE_FIELD_CURATION_JOB}>
                         {(createCurationJob, { loading }) => {
                             if (loading) { return <button>Loading...</button>; }
                             return (
                                 <button onClick={() => {
-                                    if ((fileRef.current as any).files.length === 1) {
+                                    if (fileRef.current?.files?.length === 1) {
                                         setError('');
                                         createCurationJob({
                                             variables: {
                                             }
-                                        });
+                                        }).catch(e => setError(e.message));
                                     } else {
                                         setError('Please select file.');
                                     }
@@ -56,7 +56,7 @@ export const UploadNewFields: FunctionComponent<{ studyId: string }> = ({ studyI
 
 
 const UploadFieldBySelectingFileFormFetch: FunctionComponent<{ studyId: string; cancel: (__unused__expanded: boolean) => void }> = ({ studyId, cancel }) => {
-    return <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+    return <Query<never, never> query={GET_STUDY} variables={{ studyId }}>
         {({ loading, data, error }) => {
             if (loading) return <LoadSpinner />;
             if (error) return <p>{error.toString()}</p>;
@@ -79,7 +79,7 @@ const UploadFieldBySelectingFileForm: FunctionComponent<{ studyId: string; files
         <Select style={{ width: '50%' }} value={selectedFile} onChange={(value) => { setSuccessfullySaved(false); setSelectedFile(value); setError(''); }}>{files.filter(el => el.fileName.indexOf('VariablesList') >= 0).map((el: IFile) => <Option key={el.id} value={el.id}>{el.fileName}</Option>)}</Select><br /><br />
         <label>Tag:</label>
         <input value={tag} onChange={(e) => { setTag(e.target.value); setError(''); setSuccessfullySaved(false); }} placeholder='e.g main tree' type='text' /><br /><br />
-        <Mutation<any, any> mutation={CREATE_FIELD_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
+        <Mutation<never, never> mutation={CREATE_FIELD_CURATION_JOB} onCompleted={() => setSuccessfullySaved(true)}>
             {(createCurationJob, { loading }) => {
                 if (loading) { return <button style={{ width: '45%', display: 'inline-block' }}>Loading..</button>; }
                 return <button style={{ width: '45%', display: 'inline-block' }} onClick={() => {
@@ -100,7 +100,7 @@ const UploadFieldBySelectingFileForm: FunctionComponent<{ studyId: string; files
                             studyId,
                             tag
                         }
-                    });
+                    }).catch(e => setError(e.message));
 
                 }}>Submit</button>;
             }}

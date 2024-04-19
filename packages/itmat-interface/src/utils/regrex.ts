@@ -1,5 +1,8 @@
 // whether passwords can contain spaces remains to be determined by the resolver functions
 // the format doesnt allow extra spaces for any kinds of names, but whether spaces are not allowed is
+
+import { VariableValues } from '@apollo/server/dist/esm/externalTypes/graphql';
+
 // determined by the resolver functions
 const omitOperationsAndFields = {
     login: [],
@@ -11,7 +14,7 @@ const omitOperationsAndFields = {
 // By default, only one space is allowed between adjacent letters
 // this function only format the parameters, other requirement, such as duplicate check
 // relies on the resolver functions
-export function spaceFixing(operation: keyof typeof omitOperationsAndFields, actionData: any) {
+export function spaceFixing(operation: string, actionData: VariableValues | undefined) {
     if (Object.keys(omitOperationsAndFields).includes(operation)) {
         if (!omitOperationsAndFields[operation].length) {
             return actionData;
@@ -21,7 +24,7 @@ export function spaceFixing(operation: keyof typeof omitOperationsAndFields, act
     return actionData;
 }
 
-export function recursiveFix(operation: keyof typeof omitOperationsAndFields, obj: any): void {
+export function recursiveFix(operation: string, obj: VariableValues | undefined): void {
     if (obj !== null && obj !== undefined) {
         // keep it original if it is a promise
         if (obj instanceof Promise) {

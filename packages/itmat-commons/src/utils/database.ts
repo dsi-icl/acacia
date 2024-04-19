@@ -10,8 +10,8 @@ export interface IDatabaseBaseConfig {
     };
 }
 
-export interface IDatabase<Conf, Coll> {
-    collections?: Coll;
+export interface IDatabase<Conf, Colls> {
+    collections?: Colls;
     connect: (
         config: Conf,
         mongoClient: typeof MongoClient
@@ -21,7 +21,7 @@ export interface IDatabase<Conf, Coll> {
     closeConnection: () => Promise<void>;
 }
 
-export class Database<configType extends IDatabaseBaseConfig, C = { [name in keyof configType['collections']]: Collection }> implements IDatabase<configType, C> {
+export class Database<configType extends IDatabaseBaseConfig, C = Record<keyof configType['collections'], Collection>> implements IDatabase<configType, C> {
 
     get db(): Db {
         return this.localClient!.db(this.config!.database);
@@ -30,7 +30,10 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
     get client(): MongoClient | undefined {
         return this.localClient;
     }
-    public collections?: C;
+
+    // This assumes that the collections are already present in the database
+    // This assumes the server will never proceed if the database is not connected
+    public collections: C = {} as C;
     private localClient?: MongoClient;
     private config?: configType;
 
@@ -59,16 +62,19 @@ export class Database<configType extends IDatabaseBaseConfig, C = { [name in key
         try {
             if (this.localClient)
                 await this.localClient.close();
-        } catch (e: any) {
-            Logger.error(new CustomError('Cannot close Mongo connection', e));
+        } catch (e) {
+            if (e instanceof Error)
+                Logger.error(new CustomError('Cannot close Mongo connection', e));
+            else
+                Logger.error(new CustomError('Cannot close Mongo connection - unknown error'));
         }
     }
 
     private assignCollections(): void {
-        const collections: C = Object.entries(this.config!.collections).reduce((a: any, e: [string, string]) => {
+        const collections = Object.entries(this.config!.collections).reduce((a, e) => {
             a[e[0]] = this.db.collection(e[1]);
             return a;
-        }, {});
+        }, {} as Record<string, Collection>) as C;
         this.collections = collections;
     }
 

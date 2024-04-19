@@ -42,6 +42,8 @@ export enum IPermissionManagementOptions {
     ontologyTrees = 'ontologyTrees'
 }
 
+type RoleBaseFilter = unknown;
+
 interface IRoleBase {
     id: string;
     projectId?: string;
@@ -55,7 +57,7 @@ interface IRoleBase {
             uploaders?: string[]; // only works for downloading data; for file data, it will check IFile instead of data clip
             hasVersioned?: boolean;
             operations?: atomicOperation[];
-            filters?: any[]
+            filters?: RoleBaseFilter[]
         },
         manage?: {
             [IPermissionManagementOptions.own]?: atomicOperation[];
@@ -85,7 +87,7 @@ export interface IProject {
     createdBy: string;
     name: string;
     dataVersion?: IStudyDataVersion | null;
-    summary?: any;
+    summary?: string;
     patientMapping: { [originalId: string]: string };
     lastModified: number;
     deleted: number | null;

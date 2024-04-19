@@ -3,6 +3,7 @@ import { Collection } from 'mongodb';
 import { Writable, Readable } from 'stream';
 import { v4 as uuid } from 'uuid';
 import { IJobEntryForFieldCuration, IFieldEntry, enumValueType } from '@itmat-broker/itmat-types';
+import { CodeRecords } from '../jobHandlers/jobHandlerInterface';
 
 /* update should be audit trailed */
 /* eid is not checked whether it is unique in the file: this is assumed to be enforced by database */
@@ -15,11 +16,11 @@ export class FieldCurator {
     private _numOfFields: number;
 
     constructor(
-        private readonly fieldCollection: Collection,
+        private readonly fieldCollection: Collection<IFieldEntry>,
         private readonly incomingWebStream: Readable,
         private readonly parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_records_with_error: true },
         private readonly job: IJobEntryForFieldCuration,
-        private readonly codesObj: any
+        private readonly codesObj: CodeRecords
     ) {
         this._errored = false;
         this._errors = [];
@@ -41,7 +42,7 @@ export class FieldCurator {
             const csvparseStream = csvparse.parse(this.parseOptions);
             const parseStream = this.incomingWebStream.pipe(csvparseStream); // piping the incoming stream to a parser stream
 
-            csvparseStream.on('skip', (error: any) => {
+            csvparseStream.on('skip', (error) => {
                 lineNum++;
                 this._errored = true;
                 this._errors.push(error.toString());
@@ -49,74 +50,78 @@ export class FieldCurator {
 
             const uploadWriteStream: NodeJS.WritableStream = new Writable({
                 objectMode: true,
-                write: async (line, _, next) => {
-                    if (isHeader) {
-                        if (line.length !== CORRECT_NUMBER_OF_COLUMN) {
-                            this._errored = true;
-                            this._errors.push(`Line ${lineNum}: expected ${CORRECT_NUMBER_OF_COLUMN} fields but got ${line.length}`);
-                        }
-                        isHeader = false;
-                        lineNum++;
-                        next();
-                    } else {
-                        const currentLineNum = ++lineNum;
-                        fieldIdString.push(line[0]);
-                        const { error, dataEntry } = processFieldRow({
-                            lineNum: currentLineNum,
-                            row: line,
-                            job: this.job,
-                            codes: this.codesObj
-                        });
-
-                        if (error) {
-                            this._errored = true;
-                            this._errors.push(...error);
-                        }
-
-                        if (this._errored) {
+                write: (line, _, next) => {
+                    (async () => {
+                        if (isHeader) {
+                            if (line.length !== CORRECT_NUMBER_OF_COLUMN) {
+                                this._errored = true;
+                                this._errors.push(`Line ${lineNum}: expected ${CORRECT_NUMBER_OF_COLUMN} fields but got ${line.length}`);
+                            }
+                            isHeader = false;
+                            lineNum++;
                             next();
-                            return;
-                        }
-
-                        // // TO_DO {
-                        //     curator-defined constraints for values
-                        // }
-
-                        bulkInsert.insert(dataEntry);
-                        this._numOfFields++;
-                        if (this._numOfFields > 999) {
-                            this._numOfFields = 0;
-                            await bulkInsert.execute().catch((err) => {
-                                if (err) {
-                                    //TODO Handle error recording
-                                    console.error(err);
-                                }
+                        } else {
+                            const currentLineNum = ++lineNum;
+                            fieldIdString.push(line[0]);
+                            const { error, dataEntry } = processFieldRow({
+                                lineNum: currentLineNum,
+                                row: line,
+                                job: this.job,
+                                codes: this.codesObj
                             });
-                            bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
+
+                            if (error) {
+                                this._errored = true;
+                                this._errors.push(...error);
+                            }
+
+                            if (this._errored) {
+                                next();
+                                return;
+                            }
+
+                            // // TO_DO {
+                            //     curator-defined constraints for values
+                            // }
+
+                            bulkInsert.insert(dataEntry);
+                            this._numOfFields++;
+                            if (this._numOfFields > 999) {
+                                this._numOfFields = 0;
+                                await bulkInsert.execute().catch((err) => {
+                                    if (err) {
+                                        //TODO Handle error recording
+                                        console.error(err);
+                                    }
+                                });
+                                bulkInsert = this.fieldCollection.initializeUnorderedBulkOp();
+                            }
+                            next();
                         }
-                        next();
-                    }
+                    })().catch(() => { return; });
                 }
             });
 
-            uploadWriteStream.on('finish', async () => {
-                /* check for subject Id duplicate */
-                const set = new Set(fieldIdString);
-                if (set.size !== fieldIdString.length) {
-                    this._errors.push('Data Error: There is duplicate field id.');
-                    this._errored = true;
-                }
+            uploadWriteStream.on('finish', () => {
+                (async () => {
+                    /* check for subject Id duplicate */
+                    const set = new Set(fieldIdString);
+                    if (set.size !== fieldIdString.length) {
+                        this._errors.push('Data Error: There is duplicate field id.');
+                        this._errored = true;
+                    }
 
-                if (!this._errored) {
-                    await bulkInsert.execute().catch((err) => {
-                        if (err) {
-                            //TODO Handle error recording
-                            console.error(err);
-                        }
-                    });
-                }
+                    if (!this._errored) {
+                        await bulkInsert.execute().catch((err) => {
+                            if (err) {
+                                //TODO Handle error recording
+                                console.error(err);
+                            }
+                        });
+                    }
 
-                resolve(this._errors);
+                    resolve(this._errors);
+                })().catch(() => { return; });
             });
 
             parseStream.pipe(uploadWriteStream);
@@ -124,10 +129,10 @@ export class FieldCurator {
     }
 }
 
-export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, codes: any }): { error?: string[], dataEntry: IFieldEntry } {
+export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number, row: string[], job: IJobEntryForFieldCuration, codes: CodeRecords }): { error?: string[], dataEntry: IFieldEntry } {
     /* pure function */
     const error: string[] = [];
-    const dataEntry_nouse: any = {};
+    const dataEntry_nouse: Partial<IFieldEntry> = {};
     const THESE_COL_CANT_BE_EMPTY: Record<number, string> = {
         0: 'FieldID',
         6: 'Field Name',
@@ -169,7 +174,7 @@ export function processFieldRow({ lineNum, row, job, codes }: { lineNum: number,
 
     // datatypes: if fieldid exist in codes, then convert datatype to categorical
     let dataType;
-    let possibleValues: any[] = [];
+    let possibleValues = [];
     if (codes[row[0].toString()] !== undefined) {
         dataType = dataTypeNames.categorical;
         possibleValues = codes[row[0].toString()];

@@ -25,7 +25,7 @@ export const DataSummaryVisual: FunctionComponent<{ studyId: string; selectedVer
 };
 
 ////////////////////////// COMPONENTS WITHIN THE PAGE//////////////////////////////////////
-const NumberOfPatients: FunctionComponent<{ data: any }> = ({ data }) => {
+const NumberOfPatients: FunctionComponent<{ data }> = ({ data }) => {
     return <div style={{ gridArea: 'patients' }}>
         <div>
             <p>Number of subjects</p>
@@ -38,7 +38,7 @@ const NumberOfPatients: FunctionComponent<{ data: any }> = ({ data }) => {
     </div>;
 };
 
-const NumberOfRecords: FunctionComponent<{ data: any }> = ({ data }) => {
+const NumberOfRecords: FunctionComponent<{ data }> = ({ data }) => {
     return <div style={{ gridArea: 'records' }}>
         <div>
             <p>Number of records</p>
@@ -59,7 +59,7 @@ const NewestVersionOfData: FunctionComponent<{ version: string, tag: string }> =
     </div>;
 };
 
-const NumberOfVisits: FunctionComponent<{ data: any }> = ({ data }) => {
+const NumberOfVisits: FunctionComponent<{ data }> = ({ data }) => {
     return <div style={{ gridArea: 'visits' }}>
         <div>
             <p>Number of visits</p>
@@ -75,7 +75,7 @@ const NumberOfVisits: FunctionComponent<{ data: any }> = ({ data }) => {
 const DateOfUpload: FunctionComponent<{ date: string | number /* UNIX timestamp */ }> = ({ date }) => {
     return <div style={{ gridArea: 'date' }}><div>
         <p>Data were uploaded on</p>
-        <span className={css.number_highlight}>{date ? (new Date(parseInt(date as any))).toLocaleString() : 'n/a'}</span>
+        <span className={css.number_highlight}>{date ? (new Date(parseInt(`${date}`))).toLocaleString() : 'n/a'}</span>
     </div></div>;
 };
 

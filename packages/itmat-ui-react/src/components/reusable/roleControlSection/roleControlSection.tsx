@@ -61,7 +61,10 @@ export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
                         <LoadSpinner />
                     </span>
                     : <div className={css.right_aligned}>
-                        <Popconfirm title={<>Are you sure about deleting role <i>{role.name}</i>?</>} onConfirm={async () => removeRole({ variables: { roleId: role.id } })} okText='Yes' cancelText='No'>
+                        <Popconfirm title={<>Are you sure about deleting role <i>{role.name}</i>?</>} onConfirm={() => {
+                            removeRole({ variables: { roleId: role.id } })
+                                .catch(() => { return; });
+                        }} okText='Yes' cancelText='No'>
                             <Button icon={<DeleteOutlined />} danger ></Button>
                         </Popconfirm>
                     </div>
@@ -130,13 +133,15 @@ export const AddRole: FunctionComponent<AddRoleProps> = ({
 
     return (
         <div className={css.add_new_role_section}>
-            <Form onFinish={async (variables) => addNewRole({
-                variables: {
-                    ...variables,
-                    studyId,
-                    projectId
-                }
-            })}>
+            <Form onFinish={(variables) => {
+                addNewRole({
+                    variables: {
+                        ...variables,
+                        studyId,
+                        projectId
+                    }
+                }).catch(() => { return; });
+            }}>
                 <Form.Item name='roleName' >
                     <Input placeholder='Role name' />
                 </Form.Item>
@@ -258,7 +263,7 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
         ];
     };
     return (
-        <Mutation<any, any>
+        <Mutation<never, never>
             mutation={EDIT_ROLE}
         // onCompleted={() => setSavedSuccessfully(true)}
         >
@@ -267,30 +272,32 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
                     ...role.permissions.data,
                     ...role.permissions.manage,
                     description: role.description
-                }} layout='vertical' onFinish={async (variables) => submit({
-                    variables: {
-                        roleId: role.id,
-                        permissionChanges: {
-                            data: {
-                                subjectIds: variables.subjectIds,
-                                visitIds: variables.visitIds,
-                                fieldIds: variables.fieldIds,
-                                uploaders: variables.uploaders,
-                                hasVersioned: variables.hasVersioned,
-                                operations: variables.operations,
-                                filters: variables.filters
+                }} layout='vertical' onFinish={(variables) => {
+                    submit({
+                        variables: {
+                            roleId: role.id,
+                            permissionChanges: {
+                                data: {
+                                    subjectIds: variables.subjectIds,
+                                    visitIds: variables.visitIds,
+                                    fieldIds: variables.fieldIds,
+                                    uploaders: variables.uploaders,
+                                    hasVersioned: variables.hasVersioned,
+                                    operations: variables.operations,
+                                    filters: variables.filters
+                                },
+                                manage: {
+                                    own: variables.own,
+                                    role: variables.role,
+                                    job: variables.job,
+                                    query: variables.query,
+                                    ontologyTrees: variables.ontologyTrees
+                                }
                             },
-                            manage: {
-                                own: variables.own,
-                                role: variables.role,
-                                job: variables.job,
-                                query: variables.query,
-                                ontologyTrees: variables.ontologyTrees
-                            }
-                        },
-                        description: variables.description
-                    }
-                })}>
+                            description: variables.description
+                        }
+                    }).catch(() => { return; });
+                }}>
                     <div>
                         <div>
                             <Form.Item name='description' label='Description'>
@@ -455,7 +462,7 @@ type UsersControlPanelProps = {
     projectId?: string;
     availableUserList: IUser[];
     originallySelectedUsers: IUser[];
-    permissions: any;
+    permissions;
 }
 
 const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
@@ -468,8 +475,8 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
     const [editUsers, { loading }] = useMutation(EDIT_ROLE);
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
 
-    const handleSelect = async (value: string) => {
-        return editUsers({
+    const handleSelect = (value: string) => {
+        editUsers({
             variables: {
                 roleId,
                 userChanges: {
@@ -478,11 +485,11 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                 },
                 permissionChanges: permissions
             }
-        });
+        }).catch(() => { return; });
     };
 
-    const handleDeselect = async (value: string) => {
-        return editUsers({
+    const handleDeselect = (value: string) => {
+        editUsers({
             variables: {
                 roleId,
                 userChanges: {
@@ -491,10 +498,10 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                 },
                 permissionChanges: permissions
             }
-        });
+        }).catch(() => { return; });
     };
 
-    const handleFilter = (value: string, option: any) => {
+    const handleFilter = (value: string, option) => {
         const searchTerm = value?.trim()?.toLocaleLowerCase();
         const user = availableUserList.filter(user => user.id === option.value)?.[0];
         if (!user || !searchTerm || searchTerm === '')
@@ -525,7 +532,7 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
                         }
                     }).then(() => {
                         onClose();
-                    });
+                    }).catch(() => { return; });
                 }}
             >
                 {label}
@@ -547,7 +554,7 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
     }), {});
 
     return (
-        <Select<any>
+        <Select<Array<string>>
             mode='multiple'
             loading={loading}
             style={{ width: '100%' }}

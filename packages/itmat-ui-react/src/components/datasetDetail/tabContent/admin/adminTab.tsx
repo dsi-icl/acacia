@@ -29,12 +29,12 @@ export const AdminTabContent: FunctionComponent = () => {
                 <br />
                 <Subsection title='Dataset Deletion'>
                     <p>Be careful to check all related projects and files before deleting this dataset!</p>
-                    <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+                    <Query<never, never> query={GET_STUDY} variables={{ studyId }}>
                         {({ loading, data, error }) => {
                             if (loading) { return <LoadSpinner />; }
                             if (error) { return <p>{error.toString()}</p>; }
 
-                            return <Mutation<any, any>
+                            return <Mutation<never, never>
                                 mutation={DELETE_STUDY}
                                 refetchQueries={[
                                     { query: WHO_AM_I, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }
@@ -48,11 +48,12 @@ export const AdminTabContent: FunctionComponent = () => {
                                     if (error) return <p>{error.message}</p>;
                                     if (loading)
                                         return <LoadSpinner />;
-                                    return (
+                                    return !deleteButtonShown
+                                        ? <Button onClick={() => setDeleteButtonShown(true)}>Delete the dataset</Button> :
                                         <>
-                                            {!deleteButtonShown ? <Button onClick={() => setDeleteButtonShown(true)}>Delete the dataset</Button> : <><Button danger type='primary' onClick={() => { deleteStudy({ variables: { studyId: data.getStudy.id } }); }}>Delete&nbsp;<i>{data.getStudy.name}</i></Button>&nbsp;&nbsp;&nbsp;&nbsp;<Button onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </Button></>}
-                                        </>
-                                    );
+                                            <Button danger type='primary' onClick={() => { deleteStudy({ variables: { studyId: data.getStudy.id } }).catch(() => { return; }); }}>Delete&nbsp;<i>{data.getStudy.name}</i></Button>&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <Button onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </Button>
+                                        </>;
                                 }}
 
                             </Mutation>;

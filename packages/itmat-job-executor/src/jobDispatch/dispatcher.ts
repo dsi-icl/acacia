@@ -19,7 +19,7 @@ export class JobDispatcher {
         delete this._handlerCollection[jobType];
     }
 
-    public async dispatch(job: IJobEntry<any>): Promise<void> {
+    public async dispatch(job: IJobEntry): Promise<void> {
         if (!this._handlerCollection[job.jobType]) {
             //TODO set job to UNPROCESSED
             return;

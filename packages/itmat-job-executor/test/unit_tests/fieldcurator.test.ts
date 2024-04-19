@@ -336,7 +336,7 @@ describe('FieldCuratorClass', () => {
     it('fieldcurator catches mixed errors', async () => {
         const readStream = fs.createReadStream(path.join(__dirname, '../testFiles/FieldCurator_error5.tsv'));
         const mongoStub = new (MongoStub as any)();
-        const jobEntry = stub<IJobEntry<any>>({  // subset of the IJobEntry interface
+        const jobEntry = stub<IJobEntry>({  // subset of the IJobEntry interface
             id: 'mockJobId',
             studyId: 'mockStudyId',
             data: {

@@ -27,7 +27,7 @@ export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ stu
         fetchPolicy: 'network-only'
     });
     const [currentStep, setCurrentStep] = useState(-1);
-    const [filters, setFilters] = useState<any>({
+    const [filters, setFilters] = useState<never>({
         groups: [],
         comparedFields: []
     });
@@ -60,15 +60,15 @@ export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ stu
         return <span>Ontology Tree Missing!</span>;
     }
 
-    const fieldPathOptions: any = [];
+    const fieldPathOptions = [];
     getOntologyTreeData.getOntologyTree[0]?.routes.forEach(el => {
         generateCascader(el, fieldPathOptions, true);
     });
 
-    const genderField: any = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'SEX');
-    const raceField: any = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'RACE');
-    const ageField: any = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'AGE');
-    const siteField: any = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'SITE');
+    const genderField = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'SEX');
+    const raceField = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'RACE');
+    const ageField = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'AGE');
+    const siteField = findDmField(getOntologyTreeData.getOntologyTree[0], getStudyFieldsData.getStudyFields, 'SITE');
     const results = divideResults(filters, getDataRecordsData?.getDataRecords.data, getStudyFieldsData.getStudyFields,
         [genderField, raceField, ageField, siteField]);
     return (<div className={css.tab_page_wrapper}>
@@ -85,7 +85,7 @@ export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ stu
     </div>);
 };
 
-const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fields: IFieldEntry[], project: IProject, query: any, ontologyTree: IOntologyTree, fieldPathOptions: any, dmFields: any[] }> = ({ guideTool, filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
+const FilterSelector: FunctionComponent<{ guideTool, filtersTool, fields: IFieldEntry[], project: IProject, query, ontologyTree: IOntologyTree, fieldPathOptions, dmFields }> = ({ guideTool, filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
     const [isModalOn, setIsModalOn] = useState(false);
     const [isTemplateModalOn, setIsTemplateModalOn] = useState(false);
     const [templateType, setTemplateType] = useState<string | undefined>('NA');
@@ -182,7 +182,7 @@ const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fiel
                             onClick={() => {
                                 if (currentGroupIndex === -1) {
                                     if (guideTool[0] === popoverContents[guideTool[0] - 1]?.step) {
-                                        message.error('You havn\'t copy that.');
+                                        new Promise((resolve, reject) => { message.error('You havn\'t copy that.').then(resolve, reject); }).catch(() => { return; });
                                     }
                                     return;
                                 } else {
@@ -255,7 +255,7 @@ const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fiel
                     style={{ top: 200 }}
                     onOk={() => {
                         if (form.getFieldsValue().visit === null) {
-                            message.error('You must select a specific visit.');
+                            new Promise((resolve, reject) => { message.error('You must select a specific visit.').then(resolve, reject); }).catch(() => { return; });
                             return;
                         }
                         if (guideTool[0] === popoverContents[2].step || guideTool[0] === popoverContents[4].step) {
@@ -450,7 +450,7 @@ const FilterSelector: FunctionComponent<{ guideTool: any, filtersTool: any, fiel
     </div >);
 };
 
-const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFieldEntry[], data: any }> = ({ project, fields, data }) => {
+const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFieldEntry[], data }> = ({ project, fields, data }) => {
     const [statisticsType, setStatisticsType] = useState('ttest');
     const [signifianceLevel, setSignigicanceLevel] = useState<number | undefined>(undefined);
     if (data === undefined) {
@@ -482,7 +482,7 @@ const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFiel
             key: 'field',
             render: (__unused__value, record) => {
                 const thisField = fields.filter(el => el.fieldId === record.field)[0];
-                const data: any = [];
+                const data = [];
                 data.push({
                     key: 'Field Name',
                     value: <Tooltip title={thisField.fieldName}>
@@ -709,7 +709,7 @@ const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFiel
     </div>);
 };
 
-function variableFilterColumns(guideTool: any, fields: IFieldEntry[], remove: any, fieldPathOptions: any) {
+function variableFilterColumns(guideTool, fields: IFieldEntry[], remove, fieldPathOptions) {
     return [
         {
             title: 'Field',
@@ -793,7 +793,7 @@ function variableFilterColumns(guideTool: any, fields: IFieldEntry[], remove: an
     ];
 }
 
-function filterTableColumns(guideTool: any, fields: IFieldEntry[], dmFields: any[], filtersTool?: any, setIsModalOn?: any, setCurrentGroupIndex?: any) {
+function filterTableColumns(guideTool, fields: IFieldEntry[], dmFields, filtersTool, setIsModalOn, setCurrentGroupIndex) {
     if (filtersTool[0].groups.length === 0) {
         return [];
     }
@@ -890,7 +890,7 @@ function filterTableColumns(guideTool: any, fields: IFieldEntry[], dmFields: any
                         return null;
                     }
                     const filterFields: string[] = Array.from(new Set(record.filters.map(el => {
-                        const field: any = fields.filter(es => es.fieldId === el.field)[0];
+                        const field = fields.filter(es => es.fieldId === el.field)[0];
                         return field.fieldId.concat('-').concat(field.fieldName).concat(' ').concat(el.op).concat(' ').concat(el.value);
                     })));
                     return <div>
@@ -964,7 +964,7 @@ function filterTableColumns(guideTool: any, fields: IFieldEntry[], dmFields: any
                             filtersTool[1](tmpArr);
                         }}
                         onCancel={() => {
-                            message.error('Cancelled!');
+                            new Promise((resolve, reject) => { message.error('Cancelled!').then(resolve, reject); }).catch(() => { return; });
                         }}
                         okText='Yes'
                         cancelText='No'
@@ -978,7 +978,7 @@ function filterTableColumns(guideTool: any, fields: IFieldEntry[], dmFields: any
     return columns;
 }
 
-function formInitialValues(form: any, filters: any, index: number) {
+function formInitialValues(form, filters, index: number) {
     if (index === -1) {
         return {
             visit: null,
@@ -995,8 +995,8 @@ function formInitialValues(form: any, filters: any, index: number) {
 }
 
 // // we sent the union of the filters as the filters in the request body
-function combineFilters(fields: IFieldEntry[], filters: any, dmFields: any[]) {
-    const queryString: any = {};
+function combineFilters(fields: IFieldEntry[], filters, dmFields) {
+    const queryString = {};
     queryString.data_requested = Array.from(new Set((filters.groups.map(el => el.filters).flat().map(es => es.field).concat(filters.comparedFields)
         .concat(dmFields.filter(el => (el !== undefined && el !== null)).map(el => el.fieldId)))));
     queryString.newFields = [];
@@ -1019,12 +1019,12 @@ function combineFilters(fields: IFieldEntry[], filters: any, dmFields: any[]) {
     return queryString;
 }
 
-function divideResults(filters, results, fields, dmFields: any[]) {
+function divideResults(filters, results, fields, dmFields) {
     if (filters === undefined || results === undefined || fields === undefined) {
         return;
     }
-    const data: any = [];
-    const dms: any = {
+    const data = [];
+    const dms = {
         genderID: dmFields[0],
         race: dmFields[1],
         age: dmFields[2],
@@ -1038,7 +1038,7 @@ function divideResults(filters, results, fields, dmFields: any[]) {
         if (fieldDef.tableName === 'Participants') {
             return;
         }
-        const dataClip: any = {};
+        const dataClip = {};
         dataClip.field = el;
         dataClip.data = {};
         filters.groups.forEach((es, index) => {
@@ -1132,7 +1132,7 @@ function divideResults(filters, results, fields, dmFields: any[]) {
         });
         // construct data for visualization
         if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fieldDef.dataType)) {
-            const dataForGraph: any = Object.keys(dataClip.data).reduce((acc, curr) => {
+            const dataForGraph = Object.keys(dataClip.data).reduce((acc, curr) => {
                 dataClip.data[curr].forEach(el => {
                     acc.push({
                         x: curr,
@@ -1140,10 +1140,10 @@ function divideResults(filters, results, fields, dmFields: any[]) {
                     });
                 });
                 return acc;
-            }, ([] as any));
+            }, []);
             dataClip.dataForGraph = dataForGraph;
         } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fieldDef.dataType)) {
-            const dataForGraph: any = Object.keys(dataClip.data).reduce((acc, curr) => {
+            const dataForGraph = Object.keys(dataClip.data).reduce((acc, curr) => {
                 if (fieldDef.possibleValues !== undefined) {
                     fieldDef.possibleValues.forEach(ek => {
                         acc.push({
@@ -1156,7 +1156,7 @@ function divideResults(filters, results, fields, dmFields: any[]) {
                     return acc;
                 }
                 return acc;
-            }, ([] as any));
+            }, []);
             dataClip.dataForGraph = dataForGraph;
         }
         // construct data for statistics
