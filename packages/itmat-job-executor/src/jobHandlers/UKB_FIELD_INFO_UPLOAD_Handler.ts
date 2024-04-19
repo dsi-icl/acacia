@@ -57,7 +57,7 @@ export class UKB_FIELD_INFO_UPLOAD_Handler extends JobHandler {
     // }
 }
 
-function processCodesFileStreamAndReturnList(incomingStream: Readable): Promise<any> {
+async function processCodesFileStreamAndReturnList(incomingStream: Readable): Promise<any> {
     const parseOptions: csvparse.Options = { delimiter: ',', quote: '"', relax_column_count: true, skip_records_with_error: true };
     const csvparseStream = csvparse.parse(parseOptions);
     const parseStream = incomingStream.pipe(csvparseStream);

@@ -37,7 +37,7 @@ export class CSVCurator {
     }
 
     /* return list of errors. [] if no error */
-    public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
+    public async processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         return new Promise((resolve) => {
             let lineNum = 0;
             let isHeader = true;

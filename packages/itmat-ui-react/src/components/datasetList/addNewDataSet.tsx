@@ -33,7 +33,7 @@ export const AddNewDataSet: FunctionComponent = () => {
                             :
                             <div>
                                 <Subsection title='Add new dataset'>
-                                    <Form onFinish={(variables) => createStudy({ variables })}>
+                                    <Form onFinish={async (variables) => createStudy({ variables })}>
                                         <Form.Item name='name' >
                                             <Input placeholder='Dataset name' />
                                         </Form.Item>

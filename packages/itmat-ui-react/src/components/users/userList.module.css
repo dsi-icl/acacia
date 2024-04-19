@@ -3,7 +3,7 @@
     grid-template-rows: 100%;
     display: grid;
     height: 100%;
-    grid-template-areas: "userList userDetail"
+    grid-template-areas: "userList userDetail";
 }
 
 .user_list_section {

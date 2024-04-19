@@ -4,7 +4,8 @@
     width: 100%;
     grid-template-columns: 80% 20%;
     grid-template-rows: 50px calc(100% - 50px);
-    grid-template-areas: "ariane ariane"
+    grid-template-areas:
+        "ariane ariane"
         "leftpanel rightpanel";
 }
 
@@ -33,7 +34,7 @@
 }
 
 /* backbutton to project list */
-.project_detail_title>a>div {
+.project_detail_title > a > div {
     display: inline-block;
     background: var(--color-ariane-tab-active-background);
     width: 50px;
@@ -43,6 +44,6 @@
 }
 
 /* backbutton to project list */
-.project_detail_title>a>div:hover {
+.project_detail_title > a > div:hover {
     background: var(--color-scroll-bar-active);
 }

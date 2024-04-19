@@ -61,7 +61,7 @@ export const RoleDescriptor: FunctionComponent<RoleDescriptorProps> = ({
                         <LoadSpinner />
                     </span>
                     : <div className={css.right_aligned}>
-                        <Popconfirm title={<>Are you sure about deleting role <i>{role.name}</i>?</>} onConfirm={() => removeRole({ variables: { roleId: role.id } })} okText='Yes' cancelText='No'>
+                        <Popconfirm title={<>Are you sure about deleting role <i>{role.name}</i>?</>} onConfirm={async () => removeRole({ variables: { roleId: role.id } })} okText='Yes' cancelText='No'>
                             <Button icon={<DeleteOutlined />} danger ></Button>
                         </Popconfirm>
                     </div>
@@ -130,7 +130,7 @@ export const AddRole: FunctionComponent<AddRoleProps> = ({
 
     return (
         <div className={css.add_new_role_section}>
-            <Form onFinish={(variables) => addNewRole({
+            <Form onFinish={async (variables) => addNewRole({
                 variables: {
                     ...variables,
                     studyId,
@@ -267,7 +267,7 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
                     ...role.permissions.data,
                     ...role.permissions.manage,
                     description: role.description
-                }} layout='vertical' onFinish={(variables) => submit({
+                }} layout='vertical' onFinish={async (variables) => submit({
                     variables: {
                         roleId: role.id,
                         permissionChanges: {
@@ -468,7 +468,7 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
     const [editUsers, { loading }] = useMutation(EDIT_ROLE);
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
 
-    const handleSelect = (value: string) => {
+    const handleSelect = async (value: string) => {
         return editUsers({
             variables: {
                 roleId,
@@ -481,7 +481,7 @@ const UsersControlPanel: FunctionComponent<UsersControlPanelProps> = ({
         });
     };
 
-    const handleDeselect = (value: string) => {
+    const handleDeselect = async (value: string) => {
         return editUsers({
             variables: {
                 roleId,

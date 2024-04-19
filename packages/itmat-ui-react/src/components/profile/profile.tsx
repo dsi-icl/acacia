@@ -143,7 +143,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     createdAt: dayjs(user.createdAt),
                     expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.name
-                }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
+                }} layout='vertical' onFinish={async (variables) => submit({ variables: formatSubmitObj(variables) })}>
                     <Form.Item name='username' label='Username'>
                         <Input disabled />
                     </Form.Item>
@@ -318,7 +318,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
                 {(submit, { loading, error }) =>
                     <Form title='RegisterPublicKeyCompletedKeyPai' initialValues={{
                         associatedUserId: userId
-                    }} layout='vertical' onFinish={(variables) => submit({ variables })}>
+                    }} layout='vertical' onFinish={async (variables) => submit({ variables })}>
 
                         <Form.Item name='associatedUserId' label='User ID'>
                             <Input disabled />
@@ -414,7 +414,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
                 <>
                     <Form title='RegisterPublicKey' initialValues={{
                         associatedUserId: userId
-                    }} layout='vertical' onFinish={(variables) => submit({ variables })}>
+                    }} layout='vertical' onFinish={async (variables) => submit({ variables })}>
 
                         <Form.Item name='associatedUserId' label='User ID'>
                             <Input disabled />
@@ -462,7 +462,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
                     </Form>
 
                     <br />
-                    <Button type='primary' onClick={() => keyGenInBrowser()}>
+                    <Button type='primary' onClick={async () => keyGenInBrowser()}>
                         Do not have public/private keypair? Generate one (In-browser)!
                     </Button>
 
@@ -534,7 +534,7 @@ export const RsaSigner: FunctionComponent = () => {
             <p>Public Key: </p>
             <textarea cols={120} rows={10} name='privateKey' value={publicKey} onChange={handlePublicKey} required> </textarea>
             <br />
-            <Button type='primary' onClick={() => signGen()}>
+            <Button type='primary' onClick={async () => signGen()}>
                 Generate Signature (In-Browser)
             </Button>
         </div>
@@ -593,7 +593,7 @@ export const TokenManagement: FunctionComponent<{ userId: string }> = ({ userId 
     return (
         <Form title='TokenManagement' initialValues={{
             pubkey: ipubkey?.pubkey.replace(/\n/g, '\\n')
-        }} layout='vertical' onFinish={(variables) => tokenGen({ variables })}>
+        }} layout='vertical' onFinish={async (variables) => tokenGen({ variables })}>
             <p>To generate an access token, you need to enter the signature signed by your private-key</p>
             <p>Current refresh counter: <strong>{ipubkey?.refreshCounter}</strong></p>
             <Form.Item name='pubkey' label='Your registered public key'>

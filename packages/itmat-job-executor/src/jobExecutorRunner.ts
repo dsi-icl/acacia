@@ -23,13 +23,13 @@ class ITMATJobExecutorRunner extends Runner {
      * @return {Promise} Resolve to a native Express.js router ready to use on success.
      * In case of error, an ErrorStack is rejected.
      */
-    public start(): Promise<Router> {
+    public async start(): Promise<Router> {
         const _this = this;
         return new Promise((resolve, reject) => {
 
             // Operate database migration if necessary
             db.connect(this.config.database, MongoClient)
-                .then(() => objStore.connect(this.config.objectStore))
+                .then(async () => objStore.connect(this.config.objectStore))
                 .then(() => {
 
                     _this.router = new Router();

@@ -615,7 +615,7 @@ const EditableCell: FunctionComponent<EditableCellProps> = ({
                     rules={[
                         { required: true, message: <></> },
                         ({ getFieldValue }) => ({
-                            validator() {
+                            async validator() {
                                 if (getFieldValue('startDate') && getFieldValue('endDate'))
                                     return Promise.resolve();
                                 return Promise.reject('Missing dates');
@@ -639,7 +639,7 @@ const EditableCell: FunctionComponent<EditableCellProps> = ({
                 name={dataIndex}
                 hasFeedback
                 rules={[{
-                    required: true, message: <></>, validator: (__unused__rule, value) => {
+                    required: true, message: <></>, validator: async (__unused__rule, value) => {
                         if (dataIndex === 'participantId') {
                             if (!Object.keys(sites).includes(value?.[0]))
                                 throw new Error('Invalid site marker');

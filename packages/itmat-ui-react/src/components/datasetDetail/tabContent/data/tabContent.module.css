@@ -6,7 +6,7 @@
     height: 100%;
 }
 
-.scaffold_wrapper>div {
+.scaffold_wrapper > div {
     height: 100%;
     overflow: auto;
 }
@@ -18,7 +18,7 @@
     grid-template-areas:
         "a a"
         "left right"
-        "c d"
+        "c d";
 }
 
 .left_panel {
@@ -48,7 +48,7 @@
     cursor: pointer;
     font-size: 1rem;
     padding: 0.5rem;
-    border-bottom: 1px solid var(--color-primary-color)
+    border-bottom: 1px solid var(--color-primary-color);
 }
 
 .add_new_fields_section .selected_tab {
@@ -59,26 +59,26 @@
     display: grid;
     grid-template-columns: 30% 5% 30% 5% 30%;
     /* grid-template-rows: 150px 150px; */
-    grid-template-areas: "patients empty1 records empty2 unversioned"
+    grid-template-areas:
+        "patients empty1 records empty2 unversioned"
         "version empty1  visits empty2 empty3"
         "date date date empty5 dummy"
         "filename filename filename filename filename";
     height: 100%;
 }
 
-.data_summary_section>div {
+.data_summary_section > div {
     background-color: var(--color-ariane-tab-active-background);
     padding: 1rem;
     margin-bottom: 2rem;
     overflow: hidden;
 }
 
-.data_summary_section>div>div {
+.data_summary_section > div > div {
     height: 100%;
     width: 100%;
     overflow: hidden;
 }
-
 
 .top_panel h5 {
     font-size: 1rem;
@@ -127,17 +127,16 @@
     width: unset;
     display: inline-block;
     font-weight: normal;
-
 }
 
 .switchButton {
     display: inline-block;
     width: 3rem;
-    transform: scale(0.7)
+    transform: scale(0.7);
 }
 
 .switchButton:hover {
-    background: rgb(90, 90, 90)
+    background: rgb(90, 90, 90);
 }
 
 .infocircle {

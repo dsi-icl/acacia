@@ -47,7 +47,7 @@ export const RegisterNewUser: FunctionComponent = () => {
                 <h1>Register an Account</h1>
                 <br />
                 <div>
-                    <Form layout='vertical' onFinish={(variables) => createUser({ variables })}>
+                    <Form layout='vertical' onFinish={async (variables) => createUser({ variables })}>
                         <Form.Item name='username' hasFeedback rules={[{ required: true, message: 'Please enter a username' }]}>
                             <Input placeholder='Username' />
                         </Form.Item>
@@ -57,7 +57,7 @@ export const RegisterNewUser: FunctionComponent = () => {
                         <Form.Item name='passwordConfirm' hasFeedback dependencies={['password']} rules={[
                             { required: true, message: 'Please confirm the password' },
                             ({ getFieldValue }) => ({
-                                validator(rule, value) {
+                                async validator(rule, value) {
                                     if (!value || getFieldValue('password') === value) {
                                         return Promise.resolve();
                                     }

@@ -47,7 +47,7 @@
 .errorStatus_td > svg {
     height: 1rem;
     width: 1rem;
-    cursor: context-menu
+    cursor: context-menu;
 }
 
 .error_wrapper > div {

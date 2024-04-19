@@ -27,7 +27,7 @@ export class FieldCurator {
     }
 
     /* return list of errors. [] if no error */
-    public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
+    public async processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         /**
          *     ID	Database	TableName	TableID	SequentialOrder	QuestionNumber	Fieldname	Label	Label_DE	Label_NL	Label_IT	Label_ES	Label_PL
          *     Label_F	EligibleAnswer	IneligibleAnswer	Validation	DataType	ControlType	SystemGenerated	ValueList	Length	DisplayFormat	Nullable	Required

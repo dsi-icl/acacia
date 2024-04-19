@@ -102,14 +102,15 @@ export class Key {
     }
 
     static async createRSAKey(): Promise<CryptoKeyPair> {
-        return await crypto.subtle.generateKey({
-            name: 'RSA-PSS',
-            modulusLength: 4096,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: 'SHA-256'
-        },
-        true,
-        ['sign', 'verify']
+        return await crypto.subtle.generateKey(
+            {
+                name: 'RSA-PSS',
+                modulusLength: 4096,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: 'SHA-256'
+            },
+            true,
+            ['sign', 'verify']
         );
     }
 

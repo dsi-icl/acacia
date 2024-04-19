@@ -317,7 +317,7 @@ describe('JSONCuratorClass', () => {
             return this;
         };
         this.upsert = () => { return this; };
-        this.execute = () => new Promise<void>((resolve) => {
+        this.execute = async () => new Promise<void>((resolve) => {
             setTimeout(() => {
                 this._executeCalled.push(this._insertArray.length);
                 resolve();

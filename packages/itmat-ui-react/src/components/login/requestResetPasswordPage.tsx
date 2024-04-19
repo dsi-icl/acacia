@@ -46,7 +46,7 @@ export const RequestResetPassword: FunctionComponent = () => {
                             <h1>Forgot your {forgotUsername ? 'username' : 'password'}?</h1>
                             <br />
                             <div>
-                                <Form onFinish={(variables) => requestPasswordReset({
+                                <Form onFinish={async (variables) => requestPasswordReset({
                                     variables: {
                                         ...variables,
                                         forgotUsername,

@@ -27,7 +27,7 @@ export const LoginBox: FunctionComponent = () => {
                             <h1>Welcome</h1>
                             <br />
                             <div>
-                                <Form onFinish={(variables) => login({ variables })}>
+                                <Form onFinish={async (variables) => login({ variables })}>
                                     <Form.Item name='username' hasFeedback rules={[{ required: true, message: ' ' }]}>
                                         <Input placeholder='Username' />
                                     </Form.Item>

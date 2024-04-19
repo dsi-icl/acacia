@@ -99,7 +99,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
             'sdfsad0fjds0fafdsj21'
         );
 
-        const streamToString = (inputStream: Readable) => {
+        const streamToString = async (inputStream: Readable) => {
             return new Promise((resolve, reject) => {
                 let string = '';
                 inputStream

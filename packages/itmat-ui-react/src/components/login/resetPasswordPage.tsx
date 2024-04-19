@@ -75,7 +75,7 @@ export const ResetPasswordPage: FunctionComponent = () => {
                             <h1>Reset your password</h1>
                             <br />
                             <div>
-                                <Form onFinish={(variables) => resetPassword({
+                                <Form onFinish={async (variables) => resetPassword({
                                     variables: {
                                         ...variables,
                                         encryptedEmail,
@@ -88,7 +88,7 @@ export const ResetPasswordPage: FunctionComponent = () => {
                                     <Form.Item name='newPasswordConfirm' hasFeedback dependencies={['newPassword']} rules={[
                                         { required: true, message: ' ' },
                                         ({ getFieldValue }) => ({
-                                            validator(rule, value) {
+                                            async validator(rule, value) {
                                                 if (!value || getFieldValue('newPassword') === value) {
                                                     return Promise.resolve();
                                                 }

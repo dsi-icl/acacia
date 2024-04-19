@@ -35,7 +35,7 @@ const customFetch = (uri, options): any => {
         type: response.headers?.['Content-Type'],
         body: response.data,
         url: uri,
-        text: () => {
+        text: async () => {
             return Promise.resolve(JSON.stringify(response.data));
         }
     }));

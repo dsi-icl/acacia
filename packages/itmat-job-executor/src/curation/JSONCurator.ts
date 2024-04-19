@@ -36,7 +36,7 @@ export class JSONCurator {
     }
 
     /* return list of errors. [] if no error */
-    public processIncomingStreamAndUploadToMongo(): Promise<string[]> {
+    public async processIncomingStreamAndUploadToMongo(): Promise<string[]> {
         return new Promise((resolve) => {
             let isHeader = true;
             let objectNum = 0;

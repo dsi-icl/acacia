@@ -5,7 +5,7 @@
 .one_project h5 {
     font-size: 1.1rem;
     color: var(--color-primary-color);
-    font-weight: bold
+    font-weight: bold;
 }
 
 .one_project h5:hover {

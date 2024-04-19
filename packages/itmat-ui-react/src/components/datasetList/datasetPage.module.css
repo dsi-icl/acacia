@@ -1,8 +1,7 @@
 .page_container {
     grid-template-columns: 50% 50%;
     grid-template-rows: 100%;
-    grid-template-areas: 
-        "projectListPanel -";
+    grid-template-areas: "projectListPanel -";
     display: grid;
     height: 100%;
 }

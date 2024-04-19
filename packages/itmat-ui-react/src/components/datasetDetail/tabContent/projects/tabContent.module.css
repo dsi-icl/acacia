@@ -10,7 +10,8 @@
     padding: 2rem;
     height: 100%;
 }
-/* right panel*/ .tab_page_wrapper > div:nth-child(2) {
+/* right panel*/
+.tab_page_wrapper > div:nth-child(2) {
     background: var(--color-additional-panel-background);
 }
 

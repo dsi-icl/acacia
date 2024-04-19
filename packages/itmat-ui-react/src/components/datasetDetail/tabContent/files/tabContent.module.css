@@ -9,7 +9,7 @@
     grid-template-columns: 65% 35%;
     grid-template-rows: 100%;
     height: 100%;
-    grid-template-areas: "leftPanel rightPanel"
+    grid-template-areas: "leftPanel rightPanel";
 }
 
 .left_panel {
@@ -52,7 +52,7 @@
     color: white;
     font-size: 1rem;
     padding: 0.5rem;
-    border-bottom: 1px solid var(--color-primary-color)
+    border-bottom: 1px solid var(--color-primary-color);
 }
 
 .add_new_fields_section .selected_tab {
@@ -60,7 +60,7 @@
 }
 
 .drop_overlay::after {
-    content: '';
+    content: "";
     position: absolute;
     border: 0.5rem dashed #555;
     z-index: 10000;
@@ -70,6 +70,6 @@
     left: 0.5rem;
 }
 
-.editable_row [class*=ant-form-item-explain] {
+.editable_row [class*="ant-form-item-explain"] {
     display: none;
 }

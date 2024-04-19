@@ -144,7 +144,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                     createdAt: dayjs(user.createdAt),
                     expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.id
-                }} layout='vertical' onFinish={(variables) => submit({ variables: formatSubmitObj(variables) })}>
+                }} layout='vertical' onFinish={async (variables) => submit({ variables: formatSubmitObj(variables) })}>
                     <Form.Item name='username' label='Username'>
                         <Input disabled />
                     </Form.Item>
