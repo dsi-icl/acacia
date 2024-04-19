@@ -7,9 +7,6 @@
         }
     },
     "extends": "nx/presets/npm.json",
-    "affected": {
-        "defaultBase": "master"
-    },
     "generators": {
         "@nx/react": {
             "application": {
@@ -63,5 +60,7 @@
         }
     },
     "defaultProject": "itmat-ui-react",
-    "$schema": "./node_modules/nx/schemas/nx-schema.json"
+    "$schema": "./node_modules/nx/schemas/nx-schema.json",
+    "defaultBase": "master",
+    "useInferencePlugins": false
 }

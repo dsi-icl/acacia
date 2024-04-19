@@ -3,6 +3,7 @@
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-ui-react/src",
     "projectType": "application",
+    "tags": [],
     "targets": {
         "build": {
             "executor": "@nx/webpack:webpack",
@@ -84,6 +85,5 @@
                 "jestConfig": "packages/itmat-ui-react/jest.config.ts"
             }
         }
-    },
-    "tags": []
+    }
 }

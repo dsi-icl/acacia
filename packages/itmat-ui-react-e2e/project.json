@@ -3,6 +3,10 @@
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/itmat-ui-react-e2e/src",
     "projectType": "application",
+    "tags": [],
+    "implicitDependencies": [
+        "itmat-ui-react"
+    ],
     "targets": {
         "e2e": {
             "executor": "@nx/cypress:cypress",
@@ -23,9 +27,5 @@
                 "{options.outputFile}"
             ]
         }
-    },
-    "tags": [],
-    "implicitDependencies": [
-        "itmat-ui-react"
-    ]
+    }
 }
