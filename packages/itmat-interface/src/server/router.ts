@@ -12,6 +12,7 @@ import MongoStore from 'connect-mongo';
 // import cors from 'cors';
 import express from 'express';
 import { Express } from 'express';
+import { Request, Response, RequestHandler as NativeRequestHandler } from 'express-serve-static-core';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
 import http from 'node:http';
@@ -40,7 +41,7 @@ export class Router {
     private readonly app: Express;
     private readonly server: http.Server;
     private readonly config: IConfiguration;
-    public readonly proxies: Array<RequestHandler> = [];
+    public readonly proxies: Array<RequestHandler<Request, Response>> = [];
 
     constructor(config: IConfiguration) {
 
@@ -168,37 +169,39 @@ export class Router {
             // logLevel: 'debug',
             autoRewrite: true,
             changeOrigin: true,
-            onProxyReq: function (preq, req, res) {
-                if (!req.user)
-                    return res.status(403).redirect('/');
-                res.cookie('ae_proxy', req.headers['host']);
-                const data = (req.user as IUser).username + ':token';
-                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-                if (req.body && Object.keys(req.body).length) {
-                    const contentType = preq.getHeader('Content-Type');
-                    preq.setHeader('origin', _this.config.aeEndpoint);
-                    const writeBody = (bodyData: string) => {
-                        preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-                        preq.write(bodyData);
-                        preq.end();
-                    };
+            on: {
+                proxyReq: function (preq, req: Request, res: Response) {
+                    if (!req.user)
+                        return res.status(403).redirect('/');
+                    res.cookie('ae_proxy', req.headers['host']);
+                    const data = (req.user as IUser).username + ':token';
+                    preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+                    if (req.body && Object.keys(req.body).length) {
+                        const contentType = preq.getHeader('Content-Type');
+                        preq.setHeader('origin', _this.config.aeEndpoint);
+                        const writeBody = (bodyData: string) => {
+                            preq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                            preq.write(bodyData);
+                            preq.end();
+                        };
 
-                    if (contentType === 'application/json') {  // contentType.includes('application/json')
-                        writeBody(JSON.stringify(req.body));
+                        if (contentType === 'application/json') {  // contentType.includes('application/json')
+                            writeBody(JSON.stringify(req.body));
+                        }
+
+                        if (contentType === 'application/x-www-form-urlencoded') {
+                            writeBody(qs.stringify(req.body));
+                        }
+
                     }
-
-                    if (contentType === 'application/x-www-form-urlencoded') {
-                        writeBody(qs.stringify(req.body));
-                    }
-
+                },
+                proxyReqWs: function (preq) {
+                    const data = 'username:token';
+                    preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
+                },
+                error: function (err, req, res, target) {
+                    console.error(err, target);
                 }
-            },
-            onProxyReqWs: function (preq) {
-                const data = 'username:token';
-                preq.setHeader('authorization', `Basic ${Buffer.from(data).toString('base64')}`);
-            },
-            onError: function (err, req, res, target) {
-                console.error(err, target);
             }
         });
 
@@ -211,7 +214,7 @@ export class Router {
         const proxy_routers = ['/pun', '/node', '/rnode', '/public'];
 
         proxy_routers.forEach(router => {
-            this.app.use(router, ae_proxy);
+            this.app.use(router, ae_proxy as NativeRequestHandler);
         });
 
         await gqlServer.start();
@@ -280,7 +283,7 @@ export class Router {
         return this.app;
     }
 
-    public getProxy(): RequestHandler {
+    public getProxy(): RequestHandler<Request, Response> {
         return this.proxies[0];
     }
 
