@@ -38,7 +38,6 @@ Building the library is easy. First run `yarn install && yarn build`, to build t
 -   itmat-setup
 -   itmat-types
 -   itmat-ui-react
--   itmat-ui-react-e2e
 
 ### Requirements bootstrap (quick treatment)
 
