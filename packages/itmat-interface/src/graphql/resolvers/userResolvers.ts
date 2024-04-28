@@ -11,24 +11,25 @@ import { db } from '../../database/database';
 import config from '../../utils/configManager';
 import { userCore } from '../core/userCore';
 import { errorCodes } from '../errors';
-import { makeGenericReponse } from '../responses';
+import { IGenericResponse, makeGenericReponse } from '../responses';
 import * as mfa from '../../utils/mfa';
 import QRCode from 'qrcode';
 import tmp from 'tmp';
 import { DMPResolversMap } from './context';
+import { UpdateFilter } from 'mongodb';
 
 export const userResolvers: DMPResolversMap = {
     Query: {
-        whoAm: (parent, args, context) => {
+        whoAmI: (parent, args, context) => {
             return context.req.user;
         },
-        getUsers: async (parent, args) => {
+        getUsers: async (parent, args: { userId?: string }) => {
             // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
             const queryObj = args.userId === undefined ? { deleted: null } : { deleted: null, id: args.userId };
             const cursor = db.collections.users_collection.find<IUser>(queryObj, { projection: { _id: 0 } });
             return cursor.toArray();
         },
-        validateResetPassword: async (parent, args) => {
+        validateResetPassword: async (parent, args: { token: string, encryptedEmail: string }) => {
             /* decrypt email */
             const salt = makeAESKeySalt(args.token);
             const iv = makeAESIv(args.token);
@@ -66,7 +67,9 @@ export const userResolvers: DMPResolversMap = {
     User: {
         access: async (user: IUser, args, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* only admin can access this field */
             if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -104,8 +107,11 @@ export const userResolvers: DMPResolversMap = {
         },
         username: async (user: IUser, args, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* only admin can access this field */
-            if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
+            if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -113,8 +119,11 @@ export const userResolvers: DMPResolversMap = {
         },
         description: async (user: IUser, args, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* only admin can access this field */
-            if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
+            if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -122,8 +131,11 @@ export const userResolvers: DMPResolversMap = {
         },
         email: async (user: IUser, args, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* only admin can access this field */
-            if (context.req.user.type !== userTypes.ADMIN && user.id !== requester.id) {
+            if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
@@ -223,7 +235,7 @@ export const userResolvers: DMPResolversMap = {
             }
             return makeGenericReponse();
         },
-        login: async (parent: Record<string, unknown>, args: unknown, context) => {
+        login: async (parent: Record<string, unknown>, args: { username: string, password: string, totp: string, requestexpirydate?: boolean }, context) => {
             const { req }: { req: Express.Request } = context;
             const result = await db.collections.users_collection.findOne({ deleted: null, username: args.username });
             if (!result) {
@@ -238,7 +250,7 @@ export const userResolvers: DMPResolversMap = {
             // validate the TOTP
             const totpValidated = mfa.verifyTOTP(args.totp, result.otpSecret);
             if (!totpValidated) {
-                if (process.env.NODE_ENV === 'development')
+                if (process.env['NODE_ENV'] === 'development')
                     console.warn('Incorrect One-Time password. Continuing in development ...');
                 else
                     throw new GraphQLError('Incorrect One-Time password.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
@@ -263,15 +275,14 @@ export const userResolvers: DMPResolversMap = {
                 throw new GraphQLError('Account Expired. Please request a new expiry date!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
             }
 
-            const filteredResult: Partial<IUser> = { ...result };
-            delete filteredResult.password;
-            delete filteredResult.deleted;
+            const filteredResult: IUserWithoutToken = { ...result };
 
-            return new Promise((resolve) => {
+            return new Promise<IUserWithoutToken>((resolve, reject) => {
                 req.login(filteredResult, (err: unknown) => {
                     if (err) {
                         Logger.error(err);
-                        throw new GraphQLError('Cannot log in. Please try again later.');
+                        reject(new GraphQLError('Cannot log in. Please try again later.'));
+                        return;
                     }
                     resolve(filteredResult);
                 });
@@ -279,22 +290,26 @@ export const userResolvers: DMPResolversMap = {
         },
         logout: async (parent: Record<string, unknown>, args: unknown, context) => {
             const requester = context.req.user;
-            const req: Express.Request = context.req;
-            if (requester === undefined || requester === null) {
-                return makeGenericReponse(context.req.user);
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }
-            return new Promise((resolve) => {
+            const req: Express.Request = context.req;
+            return new Promise<IGenericResponse>((resolve) => {
                 req.logout((err) => {
                     if (err) {
                         Logger.error(err);
                         throw new GraphQLError('Cannot log out');
                     } else {
-                        resolve(makeGenericReponse(context.req.user));
+                        resolve(makeGenericReponse(requester.id));
                     }
                 });
             });
         },
-        createUser: async (parent, args: unknown) => {
+        createUser: async (parent, args: {
+            user: {
+                username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated?: boolean, password: string, description?: string, organisation: string, metadata: unknown
+            }
+        }) => {
             const { username, firstname, lastname, email, emailNotificationsActivated, password, description, organisation, metadata }: {
                 username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated?: boolean, password: string, description?: string, organisation: string, metadata: unknown
             } = args.user;
@@ -353,7 +368,7 @@ export const userResolvers: DMPResolversMap = {
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
             await mailer.sendMail({
-                from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                from: `${config.appName} <${config.nodemailer.auth?.user}>`,
                 to: email,
                 subject: `[${config.appName}] Registration Successful`,
                 html: `
@@ -380,10 +395,12 @@ export const userResolvers: DMPResolversMap = {
             tmpobj.removeCallback();
             return makeGenericReponse();
         },
-        deleteUser: async (parent, args: unknown, context) => {
+        deleteUser: async (parent, args: { userId: string }, context) => {
             /* only admin can delete users */
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             // user (admin type) cannot delete itself
             if (requester.id === args.userId) {
                 throw new GraphQLError('User cannot delete itself');
@@ -474,7 +491,7 @@ export const userResolvers: DMPResolversMap = {
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
             await mailer.sendMail({
-                from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                from: `${config.appName} <${config.nodemailer.auth?.user}>`,
                 to: email,
                 subject: `[${config.appName}] Password reset`,
                 html: `
@@ -500,8 +517,15 @@ export const userResolvers: DMPResolversMap = {
             tmpobj.removeCallback();
             return makeGenericReponse();
         },
-        editUser: async (parent, args: unknown, context) => {
+        editUser: async (parent, args: {
+            user: {
+                id: string, username?: string, type?: userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, emailNotificationsStatus?: unknown, password?: string, description?: string, organisation?: string, expiredAt?: number, metadata?: unknown
+            }
+        }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const { id, username, type, firstname, lastname, email, emailNotificationsActivated, emailNotificationsStatus, password, description, organisation, expiredAt, metadata }: {
                 id: string, username?: string, type?: userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, emailNotificationsStatus?: unknown, password?: string, description?: string, organisation?: string, expiredAt?: number, metadata?: unknown
             } = args.user;
@@ -522,7 +546,7 @@ export const userResolvers: DMPResolversMap = {
                 }
             }
 
-            const fieldsToUpdate = {
+            const fieldsToUpdate: UpdateFilter<IUser> = {
                 type,
                 firstname,
                 lastname,
@@ -547,7 +571,7 @@ export const userResolvers: DMPResolversMap = {
                 throw new GraphQLError('User not updated: Non-admin users are only authorised to change their password, email or email notification.');
             }
 
-            if (password) { fieldsToUpdate.password = await bcrypt.hash(password, config.bcrypt.saltround); }
+            if (password) { fieldsToUpdate['password'] = await bcrypt.hash(password, config.bcrypt.saltround); }
             for (const each of (Object.keys(fieldsToUpdate) as Array<keyof typeof fieldsToUpdate>)) {
                 if (fieldsToUpdate[each] === undefined) {
                     delete fieldsToUpdate[each];
@@ -575,7 +599,9 @@ export const userResolvers: DMPResolversMap = {
         },
         createOrganisation: async (parent, { name, shortname, containOrg, metadata }: { name: string, shortname: string, containOrg: string, metadata: unknown }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -592,7 +618,9 @@ export const userResolvers: DMPResolversMap = {
         },
         deleteOrganisation: async (parent, { id }: { id: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -663,7 +691,7 @@ async function formatEmailForForgottenPassword({ username, firstname, to, resetP
 
     const link = `${origin}/reset/${encryptedEmail}/${resetPasswordToken}`;
     return ({
-        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
         to,
         subject: `[${config.appName}] password reset`,
         html: `
@@ -687,7 +715,7 @@ async function formatEmailForForgottenPassword({ username, firstname, to, resetP
 
 function formatEmailForFogettenUsername({ username, to }: { username: string, to: string }) {
     return ({
-        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
         to,
         subject: `[${config.appName}] password reset`,
         html: `
@@ -707,7 +735,7 @@ function formatEmailForFogettenUsername({ username, to }: { username: string, to
 
 function formatEmailRequestExpiryDatetoClient({ username, to }: { username: string, to: string }) {
     return ({
-        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
         to,
         subject: `[${config.appName}] New expiry date has been requested!`,
         html: `
@@ -728,7 +756,7 @@ function formatEmailRequestExpiryDatetoClient({ username, to }: { username: stri
 
 function formatEmailRequestExpiryDatetoAdmin({ username, userEmail }: { username: string, userEmail: string }) {
     return ({
-        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
         to: `${config.adminEmail}`,
         subject: `[${config.appName}] New expiry date has been requested from ${username} account!`,
         html: `
@@ -749,7 +777,7 @@ function formatEmailRequestExpiryDatetoAdmin({ username, userEmail }: { username
 
 function formatEmailRequestExpiryDateNotification({ username, to }: { username: string, to: string }) {
     return ({
-        from: `${config.appName} <${config.nodemailer.auth.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
         to,
         subject: `[${config.appName}] New expiry date has been updated!`,
         html: `

@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
-import { atomicOperation, IPermissionManagementOptions, IRole, IUser, userTypes } from '@itmat-broker/itmat-types';
-import { BulkWriteResult } from 'mongodb';
+import { atomicOperation, IDataEntry, IDataPermission, IManagementPermission, IPermissionManagementOptions, IRole, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
+import { BulkWriteResult, Document } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -12,12 +12,24 @@ interface ICreateRoleInput {
     createdBy: string;
 }
 
+export interface ICombinedPermissions {
+    subjectIds: string[],
+    visitIds: string[],
+    fieldIds: string[]
+}
+
+export interface QueryMatcher {
+    key: string,
+    op: string,
+    parameter: number | string | boolean
+}
+
 export class PermissionCore {
     public async getAllRolesOfStudyOrProject(studyId: string, projectId?: string): Promise<IRole[]> {
         return db.collections.roles_collection.find({ studyId, projectId }).toArray();
     }
 
-    public async userHasTheNeccessaryManagementPermission(type: string, operation: string, user: IUser, studyId: string, projectId?: string): Promise<boolean> {
+    public async userHasTheNeccessaryManagementPermission(type: string, operation: string, user: IUserWithoutToken, studyId: string, projectId?: string) {
         if (user === undefined) {
             return false;
         }
@@ -37,7 +49,7 @@ export class PermissionCore {
         return true;
     }
 
-    public async combineUserDataPermissions(operation: string, user: IUser, studyId: string, projectId?: string): Promise<Record<string, string[]> | false> {
+    public async combineUserDataPermissions(operation: string, user: IUserWithoutToken, studyId: string, projectId?: string) {
         if (user.type === userTypes.ADMIN) {
             const matchAnyString = '^.*$';
             return {
@@ -46,14 +58,14 @@ export class PermissionCore {
                 fieldIds: [matchAnyString]
             };
         }
-        const roles = await db.collections.roles_collection.aggregate([
+        const roles = await db.collections.roles_collection.aggregate<IRole>([
             { $match: { studyId, projectId: { $in: [projectId, null] }, users: user.id, deleted: null } }, // matches all the role documents where the study and project matches and has the user inside
             { $match: { 'permissions.data.operations': operation } }
         ]).toArray();
         if (roles.length === 0) {
             return false;
         }
-        const combined: Record<string, string[]> = {
+        const combined: ICombinedPermissions = {
             subjectIds: [],
             visitIds: [],
             fieldIds: []
@@ -66,7 +78,7 @@ export class PermissionCore {
         return combined;
     }
 
-    public checkDataEntryValid(combinedDataPermissions: Record<string, string[]> | false, fieldId: string, subjectId?: string, visitId?: string): boolean {
+    public checkDataEntryValid(combinedDataPermissions: ICombinedPermissions | false, fieldId: string, subjectId?: string, visitId?: string): boolean {
         if (!combinedDataPermissions) {
             return false;
         }
@@ -81,7 +93,7 @@ export class PermissionCore {
         }
     }
 
-    public async userHasTheNeccessaryDataPermission(operation: string, user: IUser, studyId: string, projectId?: string): Promise<Record<string, unknown> | false> {
+    public async userHasTheNeccessaryDataPermission(operation: string, user: IUserWithoutToken, studyId: string, projectId?: string) {
         if (user === undefined) {
             return false;
         }
@@ -89,30 +101,31 @@ export class PermissionCore {
         /* if user is an admin then return true if admin privileges includes needed permissions */
         if (user.type === userTypes.ADMIN) {
             return {
-                matchObj: {
-
-                }, hasVersioned: true, raw: {
+                matchObj: [],
+                hasVersioned: true,
+                raw: {
                     subjectIds: [matchAnyString],
                     visitIds: [matchAnyString],
                     fieldIds: [matchAnyString]
                 },
                 uploaders: [],
-                roles: []
+                roles: [],
+                roleraw: []
             };
         }
 
-        const roles = await db.collections.roles_collection.aggregate([
+        const roles = await db.collections.roles_collection.aggregate<IRole>([
             { $match: { studyId, projectId: { $in: [projectId, null] }, users: user.id, deleted: null } }, // matches all the role documents where the study and project matches and has the user inside
             { $match: { 'permissions.data.operations': operation } }
         ]).toArray();
         let hasVersioned = false;
         const roleObj: Array<{ key: string; op: string, parameter: boolean }>[] = [];
-        const raw: Record<string, string[]> = {
+        const raw: ICombinedPermissions = {
             subjectIds: [],
             visitIds: [],
             fieldIds: []
         };
-        const roleraw = [];
+        const roleraw: { subjectIds: string[], visitIds: string[], fieldIds: string[], uploaders: string[], hasVersioned: boolean }[] = [];
         let uploaders: string[] = [];
         for (const role of roles) {
             roleObj.push([{
@@ -134,7 +147,7 @@ export class PermissionCore {
                 visitIds: role.permissions.data?.visitIds || [],
                 fieldIds: role.permissions.data?.fieldIds || [],
                 uploaders: role.permissions.data?.uploaders || [],
-                hasVersioned: role.permissions.data.hasVersioned
+                hasVersioned: role.permissions.data?.hasVersioned || false
             });
         }
         if (Object.keys(roleObj).length === 0) {
@@ -144,7 +157,7 @@ export class PermissionCore {
     }
 
     public combineMultiplePermissions(permissions) {
-        const res = {
+        const res: { matchObj: QueryMatcher[][], hasVersioned: boolean, raw: ICombinedPermissions } = {
             matchObj: [],
             hasVersioned: false,
             raw: {
@@ -195,7 +208,7 @@ export class PermissionCore {
         }
     }
 
-    public async editRoleFromStudyOrProject(roleId: string, name?: string, description?: string, permissionChanges, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
+    public async editRoleFromStudyOrProject(roleId: string, name?: string, description?: string, permissionChanges?: { data?: IDataPermission, manage?: IManagementPermission }, userChanges?: { add: string[], remove: string[] }): Promise<IRole> {
         if (permissionChanges === undefined) {
             permissionChanges = {
                 data: { subjectIds: [], visitIds: [], fieldIds: [], uploaders: ['^.*$'], hasVersioned: false, operations: [] },
@@ -231,7 +244,7 @@ export class PermissionCore {
         if (permissionChanges.data?.filters) {
             if (permissionChanges.data.filters.length > 0) {
                 const subqueries = translateCohort(permissionChanges.data.filters);
-                validSubjects = (await db.collections.data_collection.aggregate([{
+                validSubjects = (await db.collections.data_collection.aggregate<IDataEntry>([{
                     $match: { $and: subqueries }
                 }]).toArray()).map(el => el.m_subjectId);
             }
@@ -240,7 +253,7 @@ export class PermissionCore {
 
         // update the data and field records
         const dataBulkOp = db.collections.data_collection.initializeUnorderedBulkOp();
-        const filters: Record<string, string[]> = {
+        const filters: ICombinedPermissions = {
             subjectIds: permissionChanges.data?.subjectIds || [],
             visitIds: permissionChanges.data?.visitIds || [],
             fieldIds: permissionChanges.data?.fieldIds || []
@@ -343,7 +356,7 @@ export const permissionCore = new PermissionCore();
 
 
 export function translateCohort(cohort) {
-    const queries = [];
+    const queries: Document[] = [];
     cohort.forEach(function (select) {
         const match = {
             m_fieldId: select.field

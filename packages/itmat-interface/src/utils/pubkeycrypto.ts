@@ -16,7 +16,7 @@ export function rsasigner(privateKey: string, message: string, scheme = 'RSA-SHA
         return signature;
     }
     catch (err) {
-        return err;
+        return err instanceof Error ? err.message : String(err);
     }
 }
 
@@ -43,7 +43,7 @@ export function reGenPkfromSk(privateKey: string, passphrase = 'idea-fast'): str
         return reGenPk.toString('base64');
     }
     catch (err) {
-        return err;
+        return err instanceof Error ? err.message : String(err);
     }
 }
 

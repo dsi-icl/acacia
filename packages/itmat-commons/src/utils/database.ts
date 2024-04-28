@@ -24,10 +24,16 @@ export interface IDatabase<Conf, Colls> {
 export class Database<configType extends IDatabaseBaseConfig, C = Record<keyof configType['collections'], Collection>> implements IDatabase<configType, C> {
 
     get db(): Db {
-        return this.localClient!.db(this.config!.database);
+        if (!this.localClient || !this.config) {
+            throw new Error('Client error.');
+        }
+        return this.localClient.db(this.config.database);
     }
 
-    get client(): MongoClient | undefined {
+    get client(): MongoClient {
+        if (!this.localClient) {
+            throw new Error('Client error.');
+        }
         return this.localClient;
     }
 
@@ -71,7 +77,10 @@ export class Database<configType extends IDatabaseBaseConfig, C = Record<keyof c
     }
 
     private assignCollections(): void {
-        const collections = Object.entries(this.config!.collections).reduce((a, e) => {
+        if (!this.config) {
+            throw new Error('Config Missing.');
+        }
+        const collections = Object.entries(this.config.collections).reduce((a, e) => {
             a[e[0]] = this.db.collection(e[1]);
             return a;
         }, {} as Record<string, Collection>) as C;
@@ -79,8 +88,11 @@ export class Database<configType extends IDatabaseBaseConfig, C = Record<keyof c
     }
 
     private async checkAllCollectionsArePresent(): Promise<void> {
+        if (!this.config) {
+            throw new Error('Config Missing.');
+        }
         const collectionList: string[] = (await this.db.listCollections({}).toArray()).map((el) => el.name);
-        for (const each of Object.values(this.config!.collections)) {
+        for (const each of Object.values(this.config.collections)) {
             if (!collectionList.includes(each)) {
                 throw new CustomError(`Collection ${each} does not exist.`);
             }

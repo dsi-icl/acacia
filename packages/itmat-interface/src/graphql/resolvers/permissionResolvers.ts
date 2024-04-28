@@ -6,16 +6,20 @@ import { studyCore } from '../core/studyCore';
 import { errorCodes } from '../errors';
 import { makeGenericReponse } from '../responses';
 import { DMPResolversMap } from './context';
+import { Filter } from 'mongodb';
 
 export const permissionResolvers: DMPResolversMap = {
     Query: {
         getGrantedPermissions: async (parent, { studyId, projectId }: { studyId?: string, projectId?: string }, context) => {
             const requester = context.req.user;
-            const matchClause: Record<string, unknown> = { users: requester.id };
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+            const matchClause: Filter<IRole> = { users: requester.id };
             if (studyId)
                 matchClause.studyId = studyId;
             if (projectId)
-                matchClause.projectId = { $in: [projectId, null] };
+                matchClause.projectId = { $in: [projectId, undefined] };
             const aggregationPipeline = [
                 { $match: matchClause }
                 // { $group: { _id: requester.id, arrArrPrivileges: { $addToSet: '$permissions' } } },
@@ -38,6 +42,9 @@ export const permissionResolvers: DMPResolversMap = {
     Mutation: {
         addRole: async (parent, args: { studyId: string, projectId?: string, roleName: string }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const { studyId, projectId, roleName } = args;
 
             /* check whether user has at least provided one id */
@@ -72,6 +79,9 @@ export const permissionResolvers: DMPResolversMap = {
         },
         editRole: async (parent, args: { roleId: string, name?: string, description?: string, userChanges?: { add: string[], remove: string[] }, permissionChanges }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const { roleId, name, permissionChanges, userChanges } = args;
 
             const role = await db.collections.roles_collection.findOne({ id: roleId, deleted: null });
@@ -132,6 +142,9 @@ export const permissionResolvers: DMPResolversMap = {
         },
         removeRole: async (parent, args: { roleId: string }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const { roleId } = args;
 
             const role = await db.collections.roles_collection.findOne({ id: roleId, deleted: null });

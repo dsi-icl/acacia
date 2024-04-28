@@ -17,11 +17,29 @@ export class QueryHandler extends JobHandler {
 
     public async execute(job: IJobEntry<{ queryId: string[], projectId: string, studyId: string }>) {
         // get available data versions
-        const thisProject = await db.collections.projects_collection.findOne({ id: job.data?.projectId });
-        const availableDataVersions = [thisProject!.dataVersion];
         const queryId = job.data?.queryId[0];
-        const queryString = await db.collections.queries_collection.findOne({ id: queryId });
-        const pipeline = pipelineGenerator.buildPipeline(queryString.queryString, job.studyId, availableDataVersions);
+        const thisProject = await db.collections.projects_collection.findOne({ id: job.data?.projectId });
+        if (!thisProject) {
+            await db.collections.queries_collection.findOneAndUpdate({ queryId }, {
+                $set: {
+                    error: 'Project does not exist.',
+                    status: 'FINISHED WITH ERROR'
+                }
+            });
+            return;
+        }
+        const availableDataVersions = [thisProject.dataVersion];
+        const query = await db.collections.queries_collection.findOne({ id: queryId });
+        if (!query) {
+            await db.collections.queries_collection.findOneAndUpdate({ queryId }, {
+                $set: {
+                    error: 'Query does not exist.',
+                    status: 'FINISHED WITH ERROR'
+                }
+            });
+            return;
+        }
+        const pipeline = pipelineGenerator.buildPipeline(query.queryString, job.studyId, availableDataVersions);
         if (!pipeline) {
             /* update query status */
             await db.collections.queries_collection.findOneAndUpdate({ queryId }, {

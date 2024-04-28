@@ -1,5 +1,5 @@
 import { FunctionComponent, useState, useEffect, useRef, useContext, Fragment, HTMLAttributes, createContext, ReactNode } from 'react';
-import { Button, Upload, notification, Tag, Table, Form, Input, InputRef, DatePicker, Space, Modal } from 'antd';
+import { Button, Upload, notification, Tag, Table, Form, Input, InputRef, DatePicker, Space, Modal, FormInstance } from 'antd';
 import type { PickerRef } from 'rc-picker';
 import { RcFile } from 'antd/es/upload';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
@@ -7,7 +7,7 @@ import { Query } from '@apollo/client/react/components';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
 import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, EDIT_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { IFile, userTypes, deviceTypes } from '@itmat-broker/itmat-types';
+import { IFile, userTypes, deviceTypes, IStudy } from '@itmat-broker/itmat-types';
 import { FileList, formatBytes } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
@@ -16,6 +16,7 @@ import { ApolloError } from '@apollo/client/errors';
 import { validate } from '@ideafast/idgen';
 import dayjs, { Dayjs } from 'dayjs';
 import { v4 as uuid } from 'uuid';
+import { ColumnProps } from 'antd/es/table';
 
 type StudyFile = RcFile & {
     uuid: string;
@@ -37,7 +38,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
     const [isUploading, setIsUploading] = useState(false);
     const store = useApolloClient();
     const { loading: getOrgsLoading, error: getOrgsError, data: getOrgsData } = useQuery(GET_ORGANISATIONS);
-    const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery(GET_STUDY, { variables: { studyId: studyId } });
+    const { loading: getStudyLoading, error: getStudyError, data: getStudyData } = useQuery<{ getStudy: IStudy & { files: IFile[] } }>(GET_STUDY, { variables: { studyId: studyId } });
     const { loading: getUsersLoading, error: getUsersError, data: getUsersData } = useQuery(GET_USERS, { variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } });
     const { loading: whoAmILoading, error: whoAmIError, data: whoAmIData } = useQuery(WHO_AM_I);
     const [searchTerm, setSearchTerm] = useState('');
@@ -50,7 +51,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
     });
     const [uploadFile] = useMutation(UPLOAD_FILE, {
         onCompleted: ({ uploadFile }) => {
-            const cachedata = store.readQuery<never>({
+            const cachedata = store.readQuery<{ getStudy: IStudy & { files: IFile[] } }, { studyId: string }>({
                 query: GET_STUDY,
                 variables: { studyId }
             });
@@ -316,6 +317,10 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
             An error occured, please contact your administrator
         </div>;
 
+    if (!getStudyData) {
+        return null;
+    }
+
     const userIdNameMapping = getUsersData.getUsers.reduce((a, b) => { a[b['id']] = b['firstname'].concat(' ').concat(b['lastname']); return a; }, {});
 
     const sites = getOrgsData.getOrganisations.filter(org => org.metadata?.siteIDMarker).reduce((prev, current) => ({
@@ -341,12 +346,14 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                 studyLevelFiles.push(file);
             }
         }
+        subjectLevelFiles.sort((a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime));
+        studyLevelFiles.sort((a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime));
         return [subjectLevelFiles, studyLevelFiles];
     }
 
-    const sortedFiles = dataSourceFilter(getStudyData.getStudy.files).sort((a, b) => parseInt(b.uploadTime) - parseInt(a.uploadTime));
+    const sortedFiles = dataSourceFilter(getStudyData.getStudy.files);
     const numberOfFiles = sortedFiles[0].length;
-    const sizeOfFiles = sortedFiles[0].reduce((a, b) => a + (parseInt(b.fileSize) || 0), 0);
+    const sizeOfFiles = sortedFiles[0].reduce((a, b) => a + (parseInt(b.fileSize || '0') || 0), 0);
     const participantOfFiles = sortedFiles[0].reduce(function (values, v) {
         if (!values.set[JSON.parse(v['description'])['participantId']]) {
             values.set[JSON.parse(v['description'])['participantId']] = 1;
@@ -355,8 +362,8 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
         return values;
     }, { set: {}, count: 0 }).count;
     // format the file structure
-    const fileSummary = [];
-    const categoryColumns = [];
+    const fileSummary: { site: string, total: number }[] = [];
+    const categoryColumns: ColumnProps<{ site: string, total: number }>[] = [];
     if (sortedFiles[0].length > 0) {
         const availableSites: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description).participantId[0]).sort()));
         const availableDeviceTypes: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description).deviceId.substr(0, 3)).sort()));
@@ -384,7 +391,8 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
         });
         for (const site of availableSites) {
             const tmpData = {
-                site: site
+                site: site,
+                total: 0
             };
             for (const deviceType of availableDeviceTypes) {
                 tmpData[deviceType] = sortedFiles[0].filter(el => (JSON.parse(el.description).participantId[0] === site
@@ -467,11 +475,11 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                     <br />
                 </SubsectionWithComment>
                 <Subsection title='Upload files'>
-                    <Query<never, never> query={GET_STUDY} variables={{ studyId }}>
+                    <Query<{ getStudy: IStudy }, { studyId: string }> query={GET_STUDY} variables={{ studyId }}>
                         {({ loading, data, error }) => {
                             if (loading || error)
                                 return <>To upload files you can click on the button below or drag and drop files directly from your hard drive.</>;
-                            return <>To upload files to <i>{data.getStudy.name}</i> you can click on the button below or drag and drop files directly from your hard drive.</>;
+                            return <>To upload files to <i>{data?.getStudy.name}</i> you can click on the button below or drag and drop files directly from your hard drive.</>;
                         }}
                     </Query>
                     <br />
@@ -516,7 +524,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
     </div >;
 };
 
-const EditableContext = createContext({});
+const EditableContext = createContext<FormInstance | null>(null);
 
 type EditableRowProps = {
     index: number;
@@ -562,10 +570,14 @@ const EditableCell: FunctionComponent<EditableCellProps> = ({
 
     useEffect(() => {
         if (editable && !editing) {
-            form.setFieldsValue(record);
+            form !== null && form.setFieldsValue(record);
             setEditing(true);
         }
     }, [editable, editing, form, record]);
+    if (form === null) {
+        return null;
+    }
+
 
     const save = () => {
         (async () => {

@@ -6,7 +6,24 @@
 //  * @constructor
 //  */
 
-import { ICohortSelection, IEquationDescription, IQueryEntry, IStudyDataVersion } from '@itmat-broker/itmat-types';
+import { ICohortSelection, IEquationDescription, IQueryString, IStudyDataVersion } from '@itmat-broker/itmat-types';
+import { Filter } from 'mongodb';
+
+type MongoAggregationOperand = MongoAggregationExpression | string | number;
+
+type MongoAggregationExpression =
+    | { $multiply: [MongoAggregationOperand, MongoAggregationOperand] }
+    | { $add: [MongoAggregationOperand, MongoAggregationOperand] }
+    | { $subtract: [MongoAggregationOperand, MongoAggregationOperand] }
+    | { $divide: [MongoAggregationOperand, MongoAggregationOperand] }
+    | { $pow: [string, number] } // MongoDB expects field name and a number for $pow
+    | number
+    | string;
+
+interface AddFields {
+    [key: string]: MongoAggregationExpression;
+}
+
 
 class PipelineGenerator {
     constructor(private readonly config = {}) { }
@@ -47,7 +64,7 @@ class PipelineGenerator {
         }
     }
     */
-    public buildPipeline(query: IQueryEntry['queryString'], studyId: string, availableDataVersions: Array<IStudyDataVersion | null | undefined>) {
+    public buildPipeline(query: IQueryString, studyId: string, availableDataVersions: Array<IStudyDataVersion | null | undefined>) {
         // check query, then decide whether to parse the query
         if (query['data_requested'] === undefined || query['cohort'] === undefined || query['new_fields'] === undefined) {
             return null;
@@ -56,18 +73,26 @@ class PipelineGenerator {
             return null;
         }
 
-        const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
+        const fields: {
+            _id: 0;
+            m_subjectId: 1;
+            m_visitId: 1;
+            [key: string]: 1 | 0
+        } = { _id: 0, m_subjectId: 1, m_visitId: 1 };
         // We send back the requested fields
         query.data_requested.forEach((field) => {
             fields[field] = 1;
         });
-        const addFields = {};
+        const addFields: AddFields = {};
         // We send back the newly created derived fields by default
         if (query.new_fields.length > 0) {
             query.new_fields.forEach((field) => {
                 if (field.op === 'derived') {
                     fields[field.name] = 1;
-                    addFields[field.name] = this._createNewField(field.value);
+                    const newField = this._createNewField(field.value);
+                    if (Object.keys(newField).length !== 0) {
+                        addFields[field.name] = newField as MongoAggregationExpression;
+                    }
                 } else {
                     return 'Error';
                 }
@@ -75,7 +100,7 @@ class PipelineGenerator {
         }
         let match = {};
         if (query.cohort.length > 1) {
-            const subqueries = [];
+            const subqueries: Filter<unknown>[] = [];
             query.cohort.forEach((subcohort) => {
                 // addFields.
                 subqueries.push(this._translateCohort(subcohort));
@@ -122,41 +147,37 @@ class PipelineGenerator {
      */
     private _createNewField(expression: IEquationDescription) {
         let newField = {};
-        switch (expression.op) {
-            case '*':
+
+        if (typeof expression.left === 'object' && typeof expression.right === 'object') {
+            if (expression.op === '*') {
                 newField = {
                     $multiply: [this._createNewField(expression.left), this._createNewField(expression.right)]
                 };
-                break;
-            case '/':
+            } else if (expression.op === '/') {
                 newField = {
                     $divide: [this._createNewField(expression.left), this._createNewField(expression.right)]
                 };
-                break;
-            case '-':
+            } else if (expression.op === '-') {
                 newField = {
                     $subtract: [this._createNewField(expression.left), this._createNewField(expression.right)]
                 };
-                break;
-            case '+':
+            } else if (expression.op === '+') {
                 newField = {
                     $add: [this._createNewField(expression.left), this._createNewField(expression.right)]
                 };
-                break;
-            case '^':
-                // NB the right side my be an integer while the left must be a field !
+            }
+        } else if (typeof expression.left === 'object' && typeof expression.right === 'string') {
+            if (expression.op === '^') {
                 newField = {
                     $pow: ['$' + expression.left, parseInt(expression.right, 10)]
                 };
-                break;
-            case 'val':
+            }
+        } else if (typeof expression.left === 'string') {
+            if (expression.op === 'val') {
                 newField = parseFloat(expression.left);
-                break;
-            case 'field':
+            } else if (expression.op === 'field') {
                 newField = '$' + expression.left;
-                break;
-            default:
-                break;
+            }
         }
 
         return newField;
@@ -181,7 +202,6 @@ class PipelineGenerator {
      */
     private _translateCohort(cohorts: ICohortSelection[]) {
         const match: Record<string, unknown> = {};
-
         cohorts.forEach(function (select) {
 
             switch (select.op) {

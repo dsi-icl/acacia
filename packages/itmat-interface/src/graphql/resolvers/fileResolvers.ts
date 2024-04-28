@@ -23,8 +23,10 @@ export const fileResolvers: DMPResolversMap = {
     Mutation: {
         // this API has the same functions as uploading file data via clinical APIs
         uploadFile: async (parent, args: { fileLength?: bigint, studyId: string, file: Promise<FileUpload>, description: string, hash?: string }, context) => {
-
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             // get the target fieldId of this file
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
 
@@ -44,7 +46,7 @@ export const fileResolvers: DMPResolversMap = {
             let targetFieldId: string;
             let isStudyLevel = false;
             // obtain sitesIDMarker from db
-            const sitesIDMarkers = (await db.collections.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<never>((acc, curr) => {
+            const sitesIDMarkers = (await db.collections.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<Record<string, string | null>>((acc, curr) => {
                 if (curr.metadata?.siteIDMarker) {
                     acc[curr.metadata.siteIDMarker] = curr.shortname;
                 }
@@ -97,7 +99,7 @@ export const fileResolvers: DMPResolversMap = {
             return new Promise<IFile>((resolve, reject) => {
                 (async () => {
                     try {
-                        const fileEntry: Partial<IFile> = {
+                        const fileEntry: IFile = {
                             id: uuid(),
                             fileName: file.filename,
                             studyId: args.studyId,
@@ -105,7 +107,9 @@ export const fileResolvers: DMPResolversMap = {
                             uploadTime: `${Date.now()}`,
                             uploadedBy: requester.id,
                             deleted: null,
-                            metadata: {}
+                            metadata: {},
+                            uri: '',
+                            hash: ''
                         };
                         if (!isStudyLevel) {
                             const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
@@ -225,9 +229,9 @@ export const fileResolvers: DMPResolversMap = {
                                 }
                             });
                         }
-                        const insertResult = await db.collections.files_collection.insertOne(fileEntry as IFile);
+                        const insertResult = await db.collections.files_collection.insertOne(fileEntry);
                         if (insertResult.acknowledged) {
-                            resolve(fileEntry as IFile);
+                            resolve(fileEntry);
                         } else {
                             throw new GraphQLError(errorCodes.DATABASE_ERROR);
                         }
@@ -240,7 +244,9 @@ export const fileResolvers: DMPResolversMap = {
         },
         deleteFile: async (parent, args: { fileId: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const file = await db.collections.files_collection.findOne({ deleted: null, id: args.fileId });
 
             if (!file) {

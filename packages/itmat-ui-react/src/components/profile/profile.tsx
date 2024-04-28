@@ -133,7 +133,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     const orgList: IOrganisation[] = getorgsdata.getOrganisations;
 
     return (
-        <Mutation<never, never>
+        <Mutation<never, { id: string, emailNotificationsActivated: boolean }>
             mutation={EDIT_USER}
             onCompleted={() => setSavedSuccessfully(true)}
         >
@@ -270,7 +270,7 @@ export const RegisterPublicKey: FunctionComponent<{ userId: string }> = ({ userI
         const exportedKeyPair = await Key.exportRSAKey(keyPair);
         setExportedKeyPair(exportedKeyPair);
         const message = exportedKeyPair.publicKey;
-        const signature = await cryptoInBrowser.signGen(message, keyPair.privateKey!);
+        const signature = await cryptoInBrowser.signGen(message, keyPair.privateKey);
         setSignature(signature);
         setcompletedKeypairGen(true);
     };

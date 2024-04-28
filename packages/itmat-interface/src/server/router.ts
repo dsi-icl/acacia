@@ -9,7 +9,6 @@ import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import MongoStore from 'connect-mongo';
-// import cors from 'cors';
 import express from 'express';
 import { Express } from 'express';
 import { Request, Response, RequestHandler as NativeRequestHandler } from 'express-serve-static-core';
@@ -50,9 +49,6 @@ export class Router {
             max: 500
         }));
 
-        // if (process.env.NODE_ENV === 'development')
-        //     this.app.use(cors({ credentials: true }));
-
         this.app.use(express.json({ limit: '50mb' }));
         this.app.use(express.urlencoded({ extended: true }));
 
@@ -83,13 +79,12 @@ export class Router {
         passport.deserializeUser(userLoginUtils.deserialiseUser);
 
         this.server = http.createServer({
-            allowHTTP1: true,
             keepAlive: true,
             keepAliveInitialDelay: 0,
             requestTimeout: 0,
-            headersTimeout: 0,
             noDelay: true
         }, this.app);
+        this.server.headersTimeout = 0;
 
         this.server.timeout = 0;
         this.server.headersTimeout = 0;
@@ -105,6 +100,7 @@ export class Router {
 
     async init() {
 
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const _this = this;
 
         /* putting schema together */
@@ -182,7 +178,7 @@ export class Router {
                             preq.end();
                         };
 
-                        if (contentType === 'application/json') {  // contentType.includes('application/json')
+                        if (contentType === 'application/json') {
                             writeBody(JSON.stringify(req.body));
                         }
 
@@ -221,18 +217,18 @@ export class Router {
             express.json(),
             graphqlUploadExpress(),
             expressMiddleware(gqlServer, {
-                // context: async({ req }) => ({ token: req.headers.token })
                 context: async ({ req, res }): Promise<DMPContext> => {
-                    /* Bounce all unauthenticated graphql requests */
-                    // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
-                    //     throw new ForbiddenError('not logged in');
-                    // }
                     const token: string = req.headers.authorization || '';
                     if ((token !== '') && (req.user === undefined)) {
                         // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
                         const decodedPayload = jwt.decode(token);
                         // obtain the public-key of the robot user in the JWT payload
-                        const pubkey = decodedPayload.publicKey;
+                        let pubkey;
+                        if (decodedPayload !== null && typeof decodedPayload === 'object') {
+                            pubkey = decodedPayload['publicKey'];
+                        } else {
+                            throw new GraphQLError('JWT verification failed. ', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+                        }
 
                         // verify the JWT
                         jwt.verify(token, pubkey, function (error) {

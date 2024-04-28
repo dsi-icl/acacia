@@ -13,7 +13,7 @@ import { DMPResolversMap } from './context';
 
 export const pubkeyResolvers: DMPResolversMap = {
     Query: {
-        getPubkeys: async (parent, args) => {
+        getPubkeys: async (parent, args: { pubkeyId?: string, associatedUserId?: string }) => {
             // a user is allowed to obtain his/her registered public key.
             let queryObj;
             if (args.pubkeyId === undefined) {
@@ -107,6 +107,9 @@ export const pubkeyResolvers: DMPResolversMap = {
             }
 
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* Check whether requester is the same as the associated user*/
             if (associatedUserId && (requester.id !== associatedUserId)) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -138,7 +141,7 @@ export const pubkeyResolvers: DMPResolversMap = {
                     const updateResult = await db.collections.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
                     if (updateResult) {
                         await mailer.sendMail({
-                            from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                            from: `${config.appName} <${config.nodemailer.auth?.user}>`,
                             to: requester.email,
                             subject: `[${config.appName}] New public-key has sucessfully registered!`,
                             html: `
@@ -175,7 +178,7 @@ export const pubkeyResolvers: DMPResolversMap = {
             });
 
             await mailer.sendMail({
-                from: `${config.appName} <${config.nodemailer.auth.user}>`,
+                from: `${config.appName} <${config.nodemailer.auth?.user}>`,
                 to: requester.email,
                 subject: `[${config.appName}] Public-key Registration!`,
                 html: `

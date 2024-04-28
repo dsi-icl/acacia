@@ -1,7 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
-import { IOrganisation, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
+import { IGenericResponse, IOrganisation, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
 import { WHO_AM_I, DELETE_USER, EDIT_USER, GET_USERS, REQUEST_USERNAME_OR_RESET_PASSWORD, GET_ORGANISATIONS, GET_STUDY } from '@itmat-broker/itmat-models';
 import { Subsection } from '../reusable';
 import LoadSpinner from '../reusable/loadSpinner';
@@ -96,6 +96,17 @@ export const UserDetailsSection: FunctionComponent = () => {
     );
 };
 
+type EditUser = IUserWithoutToken & {
+    organisation: string,
+    type: userTypes,
+    metadata: {
+        [key: string]: unknown,
+        aePermission: boolean,
+        logPermission: boolean
+    },
+    expiredAt: number
+}
+
 export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { access?: { id: string, projects: { id: string, name: string, studyId: string }[], studies: { id: string, name: string }[] } }) }> = ({ user }) => {
 
     const [userIsDeleted, setUserIsDeleted] = useState(false);
@@ -133,7 +144,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
     if (getorgserror) { return <p>ERROR: please try again.</p>; }
     const orgList: IOrganisation[] = getorgsdata.getOrganisations;
     return (
-        <Mutation<never, never>
+        <Mutation<never, EditUser>
             mutation={EDIT_USER}
             onCompleted={() => setSavedSuccessfully(true)}
         >
@@ -225,13 +236,13 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
                             : null
                         }
                         &nbsp;&nbsp;&nbsp;
-                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN
-                            ? <Mutation<never, never>
+                        {whoamidata.whoAmI.id !== user.id && whoamidata.whoAmI.type === userTypes.ADMIN && user.access
+                            ? <Mutation<{ deleteUser: IGenericResponse }, { userId: string }>
                                 mutation={DELETE_USER}
                                 refetchQueries={[
                                     { query: GET_USERS, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } },
                                     /* quick fix: TO_DO, change to cache modification later */
-                                    ...(user.access!.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
+                                    ...(user.access.studies.map(el => ({ query: GET_STUDY, variables: { studyId: el.id } })))
                                 ]}
                             >
 

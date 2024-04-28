@@ -1,9 +1,9 @@
-import { FunctionComponent, useEffect, useState } from 'react';
+import { Dispatch, FunctionComponent, SetStateAction, useEffect, useState } from 'react';
 import { statisticsTypes, analysisTemplate, options, dataTypeMapping } from '../utils/defaultParameters';
 import { get_t_test, get_z_test, mannwhitneyu, findDmField, generateCascader } from '../../../../utils/tools';
 import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
 import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, GET_ONTOLOGY_TREE } from '@itmat-broker/itmat-models';
-import { IFieldEntry, IProject, enumValueType, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-types';
+import { IFieldEntry, IProject, enumValueType, IOntologyTree, IOntologyRoute, IQueryString, ICohortSelection, enumCohortSelectionOp } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { SubsectionWithComment } from '../../../reusable/subsection/subsection';
 import css from './tabContent.module.css';
@@ -18,6 +18,18 @@ const { SHOW_CHILD } = Cascader;
 const { Panel } = Collapse;
 const { Title, Text } = Typography;
 
+interface Filter {
+    groups: {
+        visit: string | null,
+        race: string[],
+        siteID: string[],
+        genderID: string[],
+        age: [0, 100],
+        mh: string[],
+        filters: ICohortSelection[]
+    }[], comparedFields: string[]
+}
+
 export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ studyId }) => {
     const { projectId } = useParams();
 
@@ -27,7 +39,7 @@ export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ stu
         fetchPolicy: 'network-only'
     });
     const [currentStep, setCurrentStep] = useState(-1);
-    const [filters, setFilters] = useState<never>({
+    const [filters, setFilters] = useState<Filter>({
         groups: [],
         comparedFields: []
     });
@@ -77,7 +89,7 @@ export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ stu
             ontologyTree={getOntologyTreeData.getOntologyTree[0]} fieldPathOptions={fieldPathOptions} dmFields={[genderField, raceField, ageField, siteField]} />
         <br />
         {
-            (results && results.length) > 0 ?
+            results ?
                 <ResultsVisualization project={getProjectData.getProject} fields={getStudyFieldsData.getStudyFields} data={results} />
                 :
                 null
@@ -85,7 +97,7 @@ export const AnalysisTabContent: FunctionComponent<{ studyId: string }> = ({ stu
     </div>);
 };
 
-const FilterSelector: FunctionComponent<{ guideTool, filtersTool, fields: IFieldEntry[], project: IProject, query, ontologyTree: IOntologyTree, fieldPathOptions, dmFields }> = ({ guideTool, filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
+const FilterSelector: FunctionComponent<{ guideTool, filtersTool: [Filter, Dispatch<SetStateAction<Filter>>], fields: IFieldEntry[], project: IProject, query, ontologyTree: IOntologyTree, fieldPathOptions, dmFields }> = ({ guideTool, filtersTool, fields, project, query, ontologyTree, fieldPathOptions, dmFields }) => {
     const [isModalOn, setIsModalOn] = useState(false);
     const [isTemplateModalOn, setIsTemplateModalOn] = useState(false);
     const [templateType, setTemplateType] = useState<string | undefined>('NA');
@@ -226,7 +238,7 @@ const FilterSelector: FunctionComponent<{ guideTool, filtersTool, fields: IField
                             return;
                         } else {
                             const newFilters = analysisTemplate[templateType];
-                            delete newFilters.description;
+                            delete newFilters.descripftion;
                             filtersTool[1](newFilters);
                             setCurrentGroupIndex(newFilters.groups.length - 1);
                         }
@@ -331,7 +343,7 @@ const FilterSelector: FunctionComponent<{ guideTool, filtersTool, fields: IField
                                 placeholder='Select Visit'
                                 getPopupContainer={trigger => trigger.parentElement}
                             >
-                                {[...project.summary.visits].filter(el => el.toString() !== '0').sort((a, b) => { return parseFloat(a) - parseFloat(b); }).map((es) => {
+                                {[...project.summary?.visits || []].filter(el => el.toString() !== '0').sort((a, b) => { return parseFloat(a) - parseFloat(b); }).map((es) => {
                                     return <Option value={es}>{es.toString()}</Option>;
                                 })}
                             </Select>
@@ -453,6 +465,9 @@ const FilterSelector: FunctionComponent<{ guideTool, filtersTool, fields: IField
 const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFieldEntry[], data }> = ({ project, fields, data }) => {
     const [statisticsType, setStatisticsType] = useState('ttest');
     const [signifianceLevel, setSignigicanceLevel] = useState<number | undefined>(undefined);
+    if (data.length === 0) {
+        return;
+    }
     if (data === undefined) {
         return null;
     }
@@ -482,8 +497,7 @@ const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFiel
             key: 'field',
             render: (__unused__value, record) => {
                 const thisField = fields.filter(el => el.fieldId === record.field)[0];
-                const data = [];
-                data.push({
+                const data = [{
                     key: 'Field Name',
                     value: <Tooltip title={thisField.fieldName}>
                         <span>{thisField?.fieldName ? thisField.fieldName.length > maxShowLength ? thisField.fieldName.substring(0, maxShowLength) + '...' :
@@ -501,7 +515,7 @@ const ResultsVisualization: FunctionComponent<{ project: IProject, fields: IFiel
                 }, {
                     key: 'Comments',
                     value: thisField.comments || 'NA'
-                });
+                }];
                 return <Tooltip
                     placement='topLeft'
                     arrowPointAtCenter
@@ -758,10 +772,10 @@ function variableFilterColumns(guideTool, fields: IFieldEntry[], remove, fieldPa
             }
         },
         {
-            title: 'Field',
+            title: 'Value',
             width: '20%',
-            dataIndex: 'field',
-            key: 'field',
+            dataIndex: 'value',
+            key: 'value',
             align: 'center' as const,
             render: (__unused__value, __unused__record, index) => {
                 return (
@@ -995,35 +1009,53 @@ function formInitialValues(form, filters, index: number) {
 }
 
 // // we sent the union of the filters as the filters in the request body
-function combineFilters(fields: IFieldEntry[], filters, dmFields) {
-    const queryString = {};
+function combineFilters(fields: IFieldEntry[], filters: Filter, dmFields) {
+    const queryString: Partial<IQueryString> & { format?: string, subjects_requested?: string[] | null, cohort?: ICohortSelection[][] } = {};
     queryString.data_requested = Array.from(new Set((filters.groups.map(el => el.filters).flat().map(es => es.field).concat(filters.comparedFields)
         .concat(dmFields.filter(el => (el !== undefined && el !== null)).map(el => el.fieldId)))));
-    queryString.newFields = [];
+    queryString.new_fields = [];
     queryString.cohort = [];
     for (const field of dmFields) {
         if (field === undefined || field === null) {
             continue;
         }
-        queryString.cohort.push([{ field: 'm_visitId', op: '=', value: field.visitRange[0] || '0' }]);
+        queryString.cohort.push([{ field: 'm_visitId', op: enumCohortSelectionOp['='], value: field.visitRange[0] || '0' }]);
     }
     queryString.format = 'grouped';
     queryString.subjects_requested = null;
     for (const eachVisit of Array.from(new Set(filters.groups.map(el => el.visit)))) {
-        queryString.cohort.push([{
+        eachVisit && queryString.cohort.push([{
             field: 'm_visitId',
-            op: '=',
+            op: enumCohortSelectionOp['='],
             value: eachVisit
         }]);
     }
     return queryString;
 }
 
+interface IStatisticsTestGroup {
+    score: IStatisticsTest[];
+    pvalue: IStatisticsTest[];
+}
+interface IStatisticsTest {
+    xLabel: string;
+    yLabel: string;
+    score?: number;
+    pvalue?: number;
+}
+
 function divideResults(filters, results, fields, dmFields) {
     if (filters === undefined || results === undefined || fields === undefined) {
         return;
     }
-    const data = [];
+    const data: {
+        field: string,
+        data: Record<string, number[]>,
+        dataForGraph?: unknown,
+        ztest?: IStatisticsTestGroup,
+        ttest?: IStatisticsTestGroup,
+        utest?: IStatisticsTestGroup
+    }[] = [];
     const dms = {
         genderID: dmFields[0],
         race: dmFields[1],
@@ -1038,9 +1070,17 @@ function divideResults(filters, results, fields, dmFields) {
         if (fieldDef.tableName === 'Participants') {
             return;
         }
-        const dataClip = {};
-        dataClip.field = el;
-        dataClip.data = {};
+        const dataClip: {
+            field: string,
+            data: Record<string, number[]>,
+            dataForGraph?: unknown,
+            ztest?: IStatisticsTestGroup,
+            ttest?: IStatisticsTestGroup,
+            utest?: IStatisticsTestGroup
+        } = {
+            field: el,
+            data: {}
+        };
         filters.groups.forEach((es, index) => {
             if (fieldDef === undefined) {
                 return;
@@ -1134,13 +1174,13 @@ function divideResults(filters, results, fields, dmFields) {
         if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fieldDef.dataType)) {
             const dataForGraph = Object.keys(dataClip.data).reduce((acc, curr) => {
                 dataClip.data[curr].forEach(el => {
-                    acc.push({
+                    typeof el === 'number' && acc.push({
                         x: curr,
                         y: el
                     });
                 });
                 return acc;
-            }, []);
+            }, [] as { x: string, y: number }[]);
             dataClip.dataForGraph = dataForGraph;
         } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fieldDef.dataType)) {
             const dataForGraph = Object.keys(dataClip.data).reduce((acc, curr) => {
@@ -1148,7 +1188,7 @@ function divideResults(filters, results, fields, dmFields) {
                     fieldDef.possibleValues.forEach(ek => {
                         acc.push({
                             x: curr,
-                            y: dataClip.data[curr].filter(es => es.toString() === ek.code.toString()).length,
+                            y: dataClip.data[curr].filter(es => String(es) === ek.code.toString()).length,
                             type: ek.description
                         });
                     });
@@ -1156,7 +1196,7 @@ function divideResults(filters, results, fields, dmFields) {
                     return acc;
                 }
                 return acc;
-            }, []);
+            }, [] as { x: string, y: number, type: string }[]);
             dataClip.dataForGraph = dataForGraph;
         }
         // construct data for statistics

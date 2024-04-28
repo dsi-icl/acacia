@@ -4,15 +4,16 @@ import { LOGIN, WHO_AM_I } from '@itmat-broker/itmat-models';
 import { NavLink } from 'react-router-dom';
 import css from './login.module.css';
 import { Input, Form, Button, Alert, Checkbox } from 'antd';
+import { IUserWithoutToken } from '@itmat-broker/itmat-types';
 
 export const LoginBox: FunctionComponent = () => {
 
-    return <Mutation<never, never>
+    return <Mutation<{ login: IUserWithoutToken }, never>
         mutation={LOGIN}
-        update={(cache, { data: { login } }) => {
-            cache.writeQuery({
+        update={(cache, { data }) => {
+            data && data.login && cache.writeQuery({
                 query: WHO_AM_I,
-                data: { whoAmI: login }
+                data: { whoAmI: data.login }
             });
         }}
         onError={() => { return; }}

@@ -12,6 +12,9 @@ export const standardizationResolvers: DMPResolversMap = {
     Query: {
         getStandardization: async (parent, { studyId, projectId, type, versionId }: { studyId: string, projectId: string, type?: string, versionId: string }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             let modifiedStudyId = studyId;
             /* check study exists */
             if (!studyId && !projectId) {
@@ -71,6 +74,9 @@ export const standardizationResolvers: DMPResolversMap = {
     Mutation: {
         createStandardization: async (parent, { studyId, standardization }: { studyId: string, standardization }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,
@@ -116,6 +122,9 @@ export const standardizationResolvers: DMPResolversMap = {
         },
         deleteStandardization: async (parent, { studyId, type, field }: { studyId: string, type: string, field: string[] }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,

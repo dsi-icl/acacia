@@ -1,9 +1,9 @@
 import { GraphQLError } from 'graphql';
-import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IFieldEntry, deviceTypes, IOrganisation } from '@itmat-broker/itmat-types';
+import { IFile, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IFieldEntry, deviceTypes, IOrganisation, IUserWithoutToken } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
-import { PermissionCore, permissionCore, translateCohort } from './permissionCore';
+import { ICombinedPermissions, PermissionCore, permissionCore, translateCohort } from './permissionCore';
 import { validate } from '@ideafast/idgen';
 import type { MatchKeysAndValues } from 'mongodb';
 import { objStore } from '../../objStore/objStore';
@@ -32,7 +32,7 @@ export class StudyCore {
 
     public async createNewStudy(studyName: string, description: string, type: studyType, requestedBy: string): Promise<IStudy> {
         /* check if study already  exist (lowercase because S3 minio buckets cant be mixed case) */
-        const existingStudies = await db.collections.studies_collection.aggregate(
+        const existingStudies = await db.collections.studies_collection.aggregate<{ name: string }>(
             [
                 { $match: { deleted: null } },
                 {
@@ -138,7 +138,7 @@ export class StudyCore {
         // update permissions based on roles
         const roles = await db.collections.roles_collection.find<IRole>({ studyId: studyId, deleted: null }).toArray();
         for (const role of roles) {
-            const filters: Record<string, string[]> = {
+            const filters: ICombinedPermissions = {
                 subjectIds: role.permissions.data?.subjectIds || [],
                 visitIds: role.permissions.data?.visitIds || [],
                 fieldIds: role.permissions.data?.fieldIds || []
@@ -149,7 +149,9 @@ export class StudyCore {
                 if (role.permissions.data.filters.length > 0) {
                     validSubjects = [];
                     const subqueries = translateCohort(role.permissions.data.filters);
-                    validSubjects = (await db.collections.data_collection.aggregate([{
+                    validSubjects = (await db.collections.data_collection.aggregate<{
+                        m_subjectId: string, m_visitId: string, m_fieldId: string, value: string | number | boolean | { [key: string]: unknown }
+                    }>([{
                         $match: { m_fieldId: { $in: role.permissions.data.filters.map(el => el.field) } }
                     },
                     {
@@ -218,7 +220,7 @@ export class StudyCore {
         return newDataVersion;
     }
 
-    public async uploadOneDataClip(studyId: string, permissions, fieldList: Partial<IFieldEntry>[], data: IDataClip[], requester: IUser): Promise<unknown> {
+    public async uploadOneDataClip(studyId: string, permissions, fieldList: Partial<IFieldEntry>[], data: IDataClip[], requester: IUserWithoutToken): Promise<unknown> {
         const response: IGenericResponse[] = [];
         let bulk = db.collections.data_collection.initializeUnorderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
@@ -333,7 +335,7 @@ export class StudyCore {
                             error = `Field ${dataClip.fieldId}: Cannot parse as categorical, possible values not defined.`;
                             break;
                         }
-                        if (!fieldInDb.possibleValues.map((el) => el.code).includes(dataClip.value?.toString())) {
+                        if (dataClip.value && !fieldInDb.possibleValues.map((el) => el.code).includes(dataClip.value?.toString())) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
                             break;
                         } else {
@@ -363,7 +365,7 @@ export class StudyCore {
             let objWithData: Partial<MatchKeysAndValues<IDataEntry>>;
             // update the file data differently
             if (fieldInDb.dataType === 'file') {
-                const existing = await db.collections.data_collection.findOne(obj);
+                const existing = await db.collections.data_collection.findOne<IDataEntry>(obj);
                 if (!existing) {
                     await db.collections.data_collection.insertOne({
                         ...obj,
@@ -415,7 +417,7 @@ export class StudyCore {
     }
 
     // This file uploading function will not check any metadate of the file
-    public async uploadFile(studyId: string, data: IDataClip, uploader: IUser, args: { fileLength?: number, fileHash?: string }): Promise<IFile | { code: errorCodes, description: string }> {
+    public async uploadFile(studyId: string, data: IDataClip, uploader: IUserWithoutToken, args: { fileLength?: number, fileHash?: string }): Promise<IFile | { code: errorCodes, description: string }> {
         if (!data.file || typeof (data.file) === 'string') {
             return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Invalid File Stream' };
         }
@@ -423,7 +425,7 @@ export class StudyCore {
         if (!study) {
             return { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: 'Study does not exist.' };
         }
-        const sitesIDMarkers = (await db.collections.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<never>((acc, curr) => {
+        const sitesIDMarkers = (await db.collections.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<{ [key: string]: string | null }>((acc, curr) => {
             if (curr.metadata?.siteIDMarker) {
                 acc[curr.metadata.siteIDMarker] = curr.shortname;
             }
@@ -432,16 +434,19 @@ export class StudyCore {
         // check file metadata
         if (data.metadata) {
             let parsedDescription: Record<string, unknown>;
-            let startDate;
-            let endDate;
-            let deviceId;
-            let participantId;
+            let startDate: number;
+            let endDate: number;
+            let deviceId: string;
+            let participantId: string;
             try {
                 parsedDescription = data.metadata;
-                startDate = parseInt(parsedDescription.startDate);
-                endDate = parseInt(parsedDescription.endDate);
-                participantId = data.subjectId.toString();
-                deviceId = parsedDescription.deviceId.toString();
+                if (!parsedDescription['startDate'] || !parsedDescription['endDate'] || !parsedDescription['deviceId'] || !parsedDescription['participantId']) {
+                    return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File description is invalid' };
+                }
+                startDate = parseInt(parsedDescription['startDate'].toString());
+                endDate = parseInt(parsedDescription['endDate'].toString());
+                participantId = parsedDescription['participantId'].toString();
+                deviceId = parsedDescription['deviceId'].toString();
             } catch (e) {
                 return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File description is invalid' };
             }
@@ -529,7 +534,7 @@ export class StudyCore {
                     const insertResult = await db.collections.files_collection.insertOne(fileEntry as IFile);
                     if (insertResult.acknowledged) {
                         // delete old file if existing
-                        await db.collections.files_collection.findOneAndUpdate({ studyId: studyId, id: oldFileId }, { $set: { deleted: Date.now().valueOf() } });
+                        oldFileId && await db.collections.files_collection.findOneAndUpdate({ studyId: studyId, id: oldFileId }, { $set: { deleted: Date.now().valueOf() } });
                         resolve(fileEntry as IFile);
                     } else {
                         throw new GraphQLError(errorCodes.DATABASE_ERROR);
@@ -566,7 +571,7 @@ export class StudyCore {
         }
 
         if (getListOfPatientsResult[0] !== undefined) {
-            project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+            project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0]['array']);
         }
 
         await db.collections.projects_collection.insertOne(project);

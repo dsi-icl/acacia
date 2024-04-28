@@ -32,7 +32,7 @@ export const FieldManagementTabContentFetch: FunctionComponent<{ studyId: string
             notification.open({
                 message: 'Failed',
                 description:
-                    `Field ${selectedStd.field.toString()} failed to update.`,
+                    `Field ${selectedStd?.field?.toString()} failed to update.`,
                 icon: <FrownTwoTone twoToneColor='#FC100D' />
             });
         }
@@ -40,7 +40,7 @@ export const FieldManagementTabContentFetch: FunctionComponent<{ studyId: string
 
     const [editMode, setEditMode] = useState(false);
     const [format, setFormat] = useState<string | undefined>(undefined);
-    const [selectedStd, setSelectedStd] = useState<never>({
+    const [selectedStd, setSelectedStd] = useState<Partial<IStandardization>>({
         id: '',
         studyId: studyId,
         type: format || '',
@@ -119,7 +119,7 @@ export const FieldManagementTabContentFetch: FunctionComponent<{ studyId: string
             name={'standard'}
             initialValues={selectedStd}
             onFinish={(value) => {
-                const stdRules = [];
+                const stdRules: unknown[] = [];
                 [...value.stdRules].forEach(el => {
                     delete el.__typename;
                     delete el.id;

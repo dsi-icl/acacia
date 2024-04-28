@@ -1,11 +1,5 @@
 export type IQueryEntry = {
     id: string;
-    queryString: {
-        data_requested: string[];
-        cohort: ICohortSelection[][];
-        new_fields: INewFieldSelection[];
-        table_requested?: string;
-    };
     studyId: string;
     projectId?: string;
     requester: string;
@@ -19,6 +13,14 @@ export type IQueryEntry = {
     data_requested: string[];
     cohort: ICohortSelection[][];
     new_fields: INewFieldSelection[];
+    queryString: IQueryString;
+}
+
+export interface IQueryString {
+    data_requested?: string[];
+    cohort: ICohortSelection[][];
+    new_fields: INewFieldSelection[];
+    table_requested?: string;
 }
 
 // we do not reuse the cohort types directly to avoid conflicts

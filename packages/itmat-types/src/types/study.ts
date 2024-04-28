@@ -42,7 +42,29 @@ export enum IPermissionManagementOptions {
     ontologyTrees = 'ontologyTrees'
 }
 
-type RoleBaseFilter = unknown;
+type RoleBaseFilter = {
+    field: string;
+    op: string;
+    value: string | number;
+};
+
+export interface IDataPermission {
+    subjectIds?: string[];
+    visitIds?: string[];
+    fieldIds?: string[];
+    uploaders?: string[]; // only works for downloading data; for file data, it will check IFile instead of data clip
+    hasVersioned?: boolean;
+    operations?: atomicOperation[];
+    filters?: RoleBaseFilter[]
+}
+
+export interface IManagementPermission {
+    [IPermissionManagementOptions.own]?: atomicOperation[];
+    [IPermissionManagementOptions.role]?: atomicOperation[];
+    [IPermissionManagementOptions.job]?: atomicOperation[];
+    [IPermissionManagementOptions.query]?: atomicOperation[];
+    [IPermissionManagementOptions.ontologyTrees]: atomicOperation[];
+}
 
 interface IRoleBase {
     id: string;
@@ -50,22 +72,8 @@ interface IRoleBase {
     studyId: string;
     name: string;
     permissions: {
-        data?: {
-            subjectIds?: string[];
-            visitIds?: string[];
-            fieldIds?: string[];
-            uploaders?: string[]; // only works for downloading data; for file data, it will check IFile instead of data clip
-            hasVersioned?: boolean;
-            operations?: atomicOperation[];
-            filters?: RoleBaseFilter[]
-        },
-        manage?: {
-            [IPermissionManagementOptions.own]?: atomicOperation[];
-            [IPermissionManagementOptions.role]?: atomicOperation[];
-            [IPermissionManagementOptions.job]?: atomicOperation[];
-            [IPermissionManagementOptions.query]?: atomicOperation[];
-            [IPermissionManagementOptions.ontologyTrees]: atomicOperation[];
-        }
+        data?: IDataPermission,
+        manage?: IManagementPermission
     };
     description: string;
     createdBy: string;
@@ -87,7 +95,11 @@ export interface IProject {
     createdBy: string;
     name: string;
     dataVersion?: IStudyDataVersion | null;
-    summary?: string;
+    summary?: {
+        subjects: string[];
+        visits: string[];
+        standardizationTypes: string[]
+    };
     patientMapping: { [originalId: string]: string };
     lastModified: number;
     deleted: number | null;
@@ -100,7 +112,12 @@ export interface IDataClip {
     subjectId: string;
     visitId: string;
     file?: FileUpload;
-    metadata?: JSON
+    metadata?: {
+        startDate?: number;
+        endDate?: number;
+        deviceId?: string;
+        [key: string]: unknown
+    }
 }
 
 export interface ISubjectDataRecordSummary {

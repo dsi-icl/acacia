@@ -29,7 +29,7 @@ function serverStart() {
                 socket.setKeepAlive(true);
                 socket.setNoDelay(true);
                 socket.setTimeout(0);
-                (socket as unknown as Record<string, unknown>).timeout = 0;
+                (socket as unknown as Record<string, unknown>)['timeout'] = 0;
                 interfaceSockets.push(socket);
             })
             .on('error', (error) => {
@@ -106,7 +106,7 @@ async function emailNotification() {
     }).toArray();
     for (const user of users) {
         await mailer.sendMail({
-            from: `${config.appName} <${config.nodemailer.auth.user}>`,
+            from: `${config.appName} <${config.nodemailer.auth?.user}>`,
             to: user.email,
             subject: `[${config.appName}] Account is going to expire!`,
             html: `

@@ -1,16 +1,17 @@
 import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Navigate } from 'react-router-dom';
-import { IProject } from '@itmat-broker/itmat-types';
+import { IProject, IStudy, IUserWithoutToken } from '@itmat-broker/itmat-types';
 import { WHO_AM_I } from '@itmat-broker/itmat-models';
 import { Button } from 'antd';
 
 export const ProjectList: FunctionComponent = () => {
     return (
-        <Query<never, never> query={WHO_AM_I}>
+        <Query<{ whoAmI: IUserWithoutToken & { access: { id: string, studies: IStudy[], projects: IProject[] } } }, never> query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <p>Loading...</p>; }
                 if (error) { return <p>Error {error.name}: {error.message}</p>; }
+                if (!data) { return null; }
                 if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.projects) {
                     const projects = data.whoAmI.access.projects;
                     if (projects.length === 1) {

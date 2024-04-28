@@ -63,7 +63,7 @@ export const client = new ApolloClient({
     link: from([
         onError(({ response, graphQLErrors, networkError }) => {
             if (graphQLErrors) {
-                if (response.errors[0].message === 'NOT_LOGGED_IN') {
+                if (response && response.errors && response.errors[0].message === 'NOT_LOGGED_IN') {
                     window.location.reload();
                 }
                 graphQLErrors.map((error) =>

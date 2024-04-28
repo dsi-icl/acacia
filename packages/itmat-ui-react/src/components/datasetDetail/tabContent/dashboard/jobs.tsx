@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import css from './tabContent.module.css';
 import { useSubscription } from '@apollo/client/react/hooks';
-import type { IJobEntry } from '@itmat-broker/itmat-types';
+import type { IJobEntry, IStudy } from '@itmat-broker/itmat-types';
 import { GET_STUDY, SUBSCRIBE_TO_JOB_STATUS } from '@itmat-broker/itmat-models';
 import { Table, Button } from 'antd';
 
@@ -36,18 +36,18 @@ export const JobSection: FunctionComponent<{ studyId: string; jobs: Array<IJobEn
         {
             variables: { studyId }, onSubscriptionData: ({ client: store, subscriptionData }) => {
                 if (subscriptionData.data.subscribeToJobStatusChange !== null) {
-                    const olddata = store.readQuery<never>({ query: GET_STUDY, variables: { studyId } });
-                    const oldjobs = olddata.getStudy.jobs;
-                    const newjobs = oldjobs.map((el) => {
+                    const olddata = store.readQuery<{ getStudy: IStudy & { jobs: IJobEntry[] } }, { studyId: string }>({ query: GET_STUDY, variables: { studyId } });
+                    const oldjobs = olddata?.getStudy.jobs;
+                    const newjobs = (oldjobs ?? []).map((el) => {
                         if (el.id === subscriptionData.data.subscribeToJobStatusChange.jobId) {
                             el.status = subscriptionData.data.subscribeToJobStatusChange.newStatus;
-                            if (el.status === 'error') {
+                            if (el.status === 'ERROR') {
                                 el.error = subscriptionData.data.subscribeToJobStatusChange.errors;
                             }
                         }
                         return el;
                     });
-                    const tmp = { ...olddata.getStudy, jobs: newjobs };
+                    const tmp = { ...olddata?.getStudy, jobs: newjobs };
                     store.writeQuery({ query: GET_STUDY, variables: { studyId }, data: { getStudy: tmp } });
                 }
             }

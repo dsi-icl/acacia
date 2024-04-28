@@ -1,4 +1,6 @@
-import { IStudy, IFieldEntry, IStandardization, IQueryEntry } from '@itmat-broker/itmat-types';
+import { IStudy, IFieldEntry, IStandardization, ICohortSelection, IQueryString, IGroupedData, StandardizationFilterOptionParameters, StandardizationFilterOptions } from '@itmat-broker/itmat-types';
+import { Filter } from 'mongodb';
+import { QueryMatcher } from '../graphql/core/permissionCore';
 /*
     queryString:
         format: string                  # returned foramt: raw, standardized, grouped, summary
@@ -10,12 +12,13 @@ import { IStudy, IFieldEntry, IStandardization, IQueryEntry } from '@itmat-broke
 // if has study-level permission, non versioned data will also be returned
 
 
-export function buildPipeline(query: IQueryEntry['queryString'], studyId: string, permittedVersions: Array<string | null>, permittedFields: IFieldEntry[], metadataFilter, isAdmin: boolean, includeUnversioned: boolean) {
+export function buildPipeline(query: IQueryString, studyId: string, permittedVersions: Array<string | null>, permittedFields: IFieldEntry[], metadataFilter, isAdmin: boolean, includeUnversioned: boolean) {
     let fieldIds: string[] = permittedFields.map(el => el.fieldId);
     const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
     // We send back the requested fields, by default send all fields
-    if (query['data_requested'] !== undefined && query['data_requested'] !== null) {
-        fieldIds = permittedFields.filter(el => query['data_requested'].includes(el.fieldId)).map(el => el.fieldId);
+    if (query.data_requested) {
+        const data_requested = query.data_requested;
+        fieldIds = permittedFields.filter(el => data_requested.includes(el.fieldId)).map(el => el.fieldId);
         query.data_requested.forEach((field: string) => {
             if (fieldIds.includes(field)) {
                 fields[field] = 1;
@@ -35,7 +38,7 @@ export function buildPipeline(query: IQueryEntry['queryString'], studyId: string
     // We send back the filtered fields values
     if (query['cohort'] !== undefined && query['cohort'] !== null) {
         if (query.cohort.length > 1) {
-            const subqueries = [];
+            const subqueries: Filter<{ [key: string]: unknown }>[] = [];
             query.cohort.forEach((subcohort) => {
                 subqueries.push(translateCohort(subcohort));
             });
@@ -92,111 +95,7 @@ export function buildPipeline(query: IQueryEntry['queryString'], studyId: string
     }
 }
 
-// function createNewField(expression) {
-//     let newField = {};
-//     // if any parameters === '99999', then ignore this calculation
-//     switch (expression.op) {
-//         case '*':
-//             newField = {
-//                 $cond: [
-//                     {
-//                         $or: [
-//                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-//                             { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
-//                         ]
-//                     },
-//                     '99999',
-//                     {
-//                         $multiply: [createNewField(expression.left), createNewField(expression.right)]
-//                     }
-//                 ]
-//             };
-//             break;
-//         case '/':
-//             newField = {
-//                 $cond: [
-//                     {
-//                         $or: [
-//                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-//                             { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
-//                         ]
-//                     },
-//                     '99999',
-//                     {
-//                         $divide: [createNewField(expression.left), createNewField(expression.right)]
-//                     }
-//                 ]
-//             };
-//             break;
-//         case '-':
-//             newField = {
-//                 $cond: [
-//                     {
-//                         $or: [
-//                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-//                             { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
-//                         ]
-//                     },
-//                     '99999',
-//                     {
-//                         $subtract: [createNewField(expression.left), createNewField(expression.right)]
-//                     }
-//                 ]
-//             };
-//             break;
-//         case '+':
-//             newField = {
-//                 $cond: [
-//                     {
-//                         $or: [
-//                             { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-//                             { $eq: [{ $type: createNewField(expression.right) }, 'string'] }
-//                         ]
-//                     },
-//                     '99999',
-//                     {
-//                         $add: [createNewField(expression.left), createNewField(expression.right)]
-//                     }
-//                 ]
-//             };
-//             break;
-//         case '^':
-//             newField = {
-//                 $cond: [
-//                     { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-//                     '99999',
-//                     {
-//                         $pow: [createNewField(expression.left), createNewField(expression.right)]
-//                     }
-//                 ]
-//             };
-//             break;
-//         case 'val':
-//             newField = parseFloat(expression.left);
-//             break;
-//         case 'field':
-//             newField = {
-//                 $cond: [
-//                     { $eq: [{ $type: createNewField(expression.left) }, 'string'] },
-//                     '99999',
-//                     '$' + expression.left
-//                 ]
-//             };
-//             break;
-//         default:
-//             break;
-//     }
-
-//     return newField;
-// }
-
-
-// function isEmptyObject(obj) {
-//     return !Object.keys(obj).length;
-// }
-
-
-function translateCohort(cohort) {
+function translateCohort(cohort: ICohortSelection[]) {
     const match: Record<string, unknown> = {};
     cohort.forEach(function (select) {
 
@@ -259,8 +158,8 @@ function translateCohort(cohort) {
     return match;
 }
 
-export function translateMetadata(metadata) {
-    const match: Record<string, unknown> = {};
+export function translateMetadata(metadata: QueryMatcher[]) {
+    const match: Filter<{ [key: string]: string | number | boolean }> = {};
     metadata.forEach(function (select) {
         switch (select.op) {
             case '=':
@@ -273,11 +172,11 @@ export function translateMetadata(metadata) {
                 break;
             case '<':
                 // select.parameter must be a float
-                match['metadata.'.concat(select.key)] = { $lt: parseFloat(select.parameter) };
+                match['metadata.'.concat(select.key)] = { $lt: parseFloat(select.parameter.toString()) };
                 break;
             case '>':
                 // select.parameter must be a float
-                match['metadata.'.concat(select.key)] = { $gt: parseFloat(select.parameter) };
+                match['metadata.'.concat(select.key)] = { $gt: parseFloat(select.parameter.toString()) };
                 break;
             case 'exists':
                 // We check if the field exists. This is to be used for checking if a patient
@@ -292,26 +191,24 @@ export function translateMetadata(metadata) {
     return match;
 }
 
-export function dataStandardization(study: IStudy, fields: IFieldEntry[], data, queryString, standardizations: IStandardization[] | null) {
+export function dataStandardization(study: IStudy, fields: IFieldEntry[], data: IGroupedData, queryString: IQueryString, standardizations: IStandardization[] | null) {
     if (!queryString['format'] || queryString['format'] === 'raw') {
         return data;
     } else if (queryString['format'] === 'grouped' || queryString['format'] === 'summary') {
         return dataGrouping(data, queryString['format']);
     } else if (standardizations && queryString['format'].startsWith('standardized')) {
-        return standardize(study, fields, data, standardizations, queryString['new_fields'] || []);
+        return standardize(study, fields, data, standardizations);
     }
     return { error: 'Format not recognized.' };
 }
 
 // fields are obtained from called functions, providing the valid fields
-export function standardize(study: IStudy, fields: IFieldEntry[], data: unknown, standardizations: IStandardization[], newFields) {
+
+
+
+export function standardize(study: IStudy, fields: IFieldEntry[], data: IGroupedData, standardizations: IStandardization[]) {
     const records = {};
-    const mergedFields = [...fields];
-    [...newFields].forEach(el => {
-        const emptyArr: string[] = [];
-        preOrderTraversal(el, emptyArr);
-        mergedFields.push({ fieldId: emptyArr });
-    });
+    const mergedFields: IFieldEntry[] = [...fields];
     const seqNumMap: Map<string, number> = new Map();
     for (const field of mergedFields) {
         let fieldDef = {};
@@ -353,8 +250,14 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: unknown,
                     if (!rule.parameter) {
                         continue;
                     }
-                    if (rule.filters !== undefined && rule.filters !== null && rule.filters[dataClip[rule.entry]] !== undefined
-                        && rule.filters[dataClip[rule.entry]][0] === 'delete') {
+                    let filterKey = '';
+                    if (typeof dataClip[rule.entry] === 'string') {
+                        filterKey = dataClip[rule.entry] as string; // Safe after type check
+                    } else if (typeof dataClip[rule.entry] === 'number') {
+                        filterKey = (dataClip[rule.entry] as number).toString();
+                    }
+                    if (rule.filters !== undefined && rule.filters !== null && rule.filters[filterKey] !== undefined
+                        && rule.filters[filterKey][0] === 'delete') {
                         continue;
                     }
                     switch (rule.source) {
@@ -410,23 +313,28 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: unknown,
                     // deal with filters
                     // support two ways: convert to another value, delete this value; input should be [delete/convert, $value]
                     if (rule.filters) {
-                        if (Object.keys(rule.filters).includes(dataClip[rule.entry].toString())) {
-                            if (rule.filters[dataClip[rule.entry]].length !== 2) {
+                        let filterKey = '';
+                        if (typeof dataClip[rule.entry] === 'string') {
+                            filterKey = dataClip[rule.entry] as string; // Safe after type check
+                        } else if (typeof dataClip[rule.entry] === 'number') {
+                            filterKey = (dataClip[rule.entry] as number).toString();
+                        }
+                        if (Object.keys(rule.filters).includes(filterKey)) {
+                            if (rule.filters[filterKey].length !== 2) {
                                 continue;
                             }
-                            switch (rule.filters[dataClip[rule.entry]][0]) {
+                            switch (rule.filters[filterKey][0]) {
                                 // add patch to allow to convert to another field value
                                 case 'convert': {
-                                    const options: Record<string, unknown> = rule.filters[dataClip[rule.entry]][1];
-                                    if (options.source === 'value') {
-                                        dataClip[rule.entry] = options.parameter;
-                                    } else if (options.source === 'data') {
-                                        const tmpData = data[subjectId][visitId][options.parameter];
-                                        // the replaced value can be converted again
-                                        if (options.filters && Object.keys(options.filters).includes(tmpData)) {
-                                            dataClip[rule.entry] = options.filters[tmpData];
-                                        } else {
-                                            dataClip[rule.entry] = tmpData;
+                                    const options: StandardizationFilterOptionParameters | StandardizationFilterOptions = rule.filters[filterKey][1];
+                                    if (typeof options !== 'object') {
+                                        break;
+                                    }
+                                    if ('source' in options) {
+                                        if (options.source === 'value') {
+                                            dataClip[rule.entry] = options.parameter;
+                                        } else if (options.source === 'data') {
+                                            dataClip[rule.entry] = data[subjectId][visitId][options.parameter];
                                         }
                                     }
                                     break;
@@ -446,9 +354,6 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: unknown,
                 if (isSkip) {
                     continue;
                 }
-                // if (Object.keys(dataClip).includes('CMTRT') && dataClip['CMTRT'] === '') {
-                //     console.log(field.fieldId, subjectId, visitId, console.log(data[subjectId][visitId][field.fieldId]));
-                // }
                 // deal with join
                 if (standardization.path) {
                     let pointer = insertInObj(records, standardization.path, undefined, true, subjectId, visitId);
@@ -486,8 +391,16 @@ export function standardize(study: IStudy, fields: IFieldEntry[], data: unknown,
 }
 
 // ignore the subjectId, join values with same visitId and fieldId; with extra info
-export function dataGrouping(data: unknown, format: string) {
-    const joinedData: Record<string, unknown> = {};
+export function dataGrouping(data: IGroupedData, format: string) {
+    const joinedData: {
+        [key: string]: {
+            [key: string]: {
+                totalNumOfRecords: number,
+                validNumOfRecords: number,
+                data: unknown[]
+            }
+        }
+    } = {};
     for (const subjectId of Object.keys(data)) {
         for (const visitId of Object.keys(data[subjectId])) {
             for (const fieldId of Object.keys(data[subjectId][visitId])) {
@@ -565,28 +478,3 @@ function insertInObj(obj, levels: string[], lastValue: unknown, join: boolean, s
     return pointer;
 }
 
-// array[0] should be the name of the new field; array[-1] should be 'derived'
-function preOrderTraversal(node: unknown, array: string[]) {
-    if (!node) {
-        return false;
-    }
-    if (node.name) {
-        // first level
-        array.push(node.name);
-        preOrderTraversal(node.value, array);
-    }
-    // node must have a value of left/right children
-    if (node instanceof Object) {
-        array.push(node.op);
-        if (node.op === 'field') {
-            array.push('$' + node.left);
-            array.push('');
-        } else {
-            preOrderTraversal(node.left, array);
-            preOrderTraversal(node.right, array);
-        }
-    } else {
-        array.push(node);
-    }
-    return true;
-}

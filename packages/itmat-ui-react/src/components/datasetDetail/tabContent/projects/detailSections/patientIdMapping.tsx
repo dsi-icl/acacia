@@ -3,6 +3,7 @@ import { Query } from '@apollo/client/react/components';
 import { GET_PROJECT_PATIENT_MAPPING } from '@itmat-broker/itmat-models';
 import LoadSpinner from '../../../../reusable/loadSpinner';
 import { Button } from 'antd';
+import { IProject } from '@itmat-broker/itmat-types';
 
 export const PatientIdMappingSection: FunctionComponent<{ projectId: string }> = ({ projectId }) => {
     const [clickedFetch, setClickedFetch] = useState(false);
@@ -14,7 +15,7 @@ export const PatientIdMappingSection: FunctionComponent<{ projectId: string }> =
     }
 
     if (!clickedFetch) { return <Button onClick={() => setClickedFetch(true)}>Fetch mapping</Button>; }
-    return <Query<never, never> query={GET_PROJECT_PATIENT_MAPPING} variables={{ projectId }}>
+    return <Query<{ getProject: IProject }, { projectId: string }> query={GET_PROJECT_PATIENT_MAPPING} variables={{ projectId }}>
         {({ data, loading, error }) => {
             if (loading) { return <LoadSpinner />; }
             if (error) { return <p>{error.toString()}</p>; }

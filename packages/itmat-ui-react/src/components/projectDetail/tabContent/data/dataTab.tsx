@@ -3,7 +3,7 @@ import { filterFields, generateCascader, findDmField } from '../../../../utils/t
 import { dataTypeMapping } from '../utils/defaultParameters';
 import { useQuery, useLazyQuery } from '@apollo/client/react/hooks';
 import { GET_STUDY_FIELDS, GET_PROJECT, GET_DATA_RECORDS, GET_ONTOLOGY_TREE } from '@itmat-broker/itmat-models';
-import { IFieldEntry, IProject, enumValueType, IOntologyTree, IOntologyRoute } from '@itmat-broker/itmat-types';
+import { IFieldEntry, IProject, enumValueType, IOntologyTree, IOntologyRoute, ICohortSelection } from '@itmat-broker/itmat-types';
 import { Query } from '@apollo/client/react/components';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
@@ -186,6 +186,11 @@ export const MetaDataBlock: FunctionComponent<{ project: IProject, numOfOntology
     </SubsectionWithComment > : null;
 };
 
+interface IDemographicsReport {
+    type: string;
+    value: number;
+}
+
 export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree, studyId: string, projectId: string, fields: IFieldEntry[] }> = ({ ontologyTree, studyId, projectId, fields }) => {
     const [width, __unused__height__] = useWindowSize();
     // process the data
@@ -218,7 +223,17 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
         </div>;
     }
     // process the data
-    const obj = {};
+    const obj: {
+        SEX: IDemographicsReport[],
+        AGE: IDemographicsReport[],
+        RACE: IDemographicsReport[],
+        SITE: IDemographicsReport[]
+    } = {
+        SEX: [],
+        AGE: [],
+        RACE: [],
+        SITE: []
+    };
     const data = getDataRecordsData.getDataRecords.data;
     if (genderField === null || !data[genderField.fieldId]) {
         obj.SEX = [];
@@ -404,8 +419,18 @@ export const DemographicsBlock: FunctionComponent<{ ontologyTree: IOntologyTree,
     </Subsection >;
 };
 
+interface GroupedData {
+    [key: string]: {
+        [key: string]: {
+            totalNumOfRecords: number,
+            validNumOfRecords: number,
+            data: unknown[]
+        }
+    }
+}
+
 export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyTree, fields: IFieldEntry[], project: IProject }> = ({ ontologyTree, fields, project }) => {
-    const [selectedPath, setSelectedPath] = useState<never[]>([]);
+    const [selectedPath, setSelectedPath] = useState<(string | number)[]>([]);
     const [selectedGraphType, setSelectedGraphType] = useState<string | undefined>(undefined);
     const routes: IOntologyRoute[] = ontologyTree.routes?.filter(es => {
         return JSON.stringify([...es.path, es.name]) === JSON.stringify(selectedPath);
@@ -541,7 +566,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                             <div className={css.grid_col_center_large} ><Text strong underline>{(routes[0].path.slice(0, routes[0].path.length) || '').concat(fieldNameEllipsis).join(' => ')}</Text></div>
                         </Col><br />
                     </Row><br />
-                    <Query<never, never> query={GET_DATA_RECORDS} variables={{
+                    <Query<{ getDataRecords: GroupedData }, { studyId: string, projectId: string, versionId: string, queryString: { format: string, data_requested: string[], cohort: ICohortSelection[][], subjects_requested: string[] | null, visits_requested: string[] | null } }> query={GET_DATA_RECORDS} variables={{
                         studyId: project.studyId,
                         projectId: project.id,
                         versionId: '-1',
@@ -562,8 +587,9 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                             if (fieldIdFromData === undefined) {
                                 return <Empty />;
                             }
+                            let processedData: Array<{ x: string, y: number } | { visit: string, value: string, count: number }> = [];
                             if ([enumValueType.INTEGER, enumValueType.DECIMAL].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
-                                data = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
+                                processedData = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
                                     data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
                                         if (el === '99999') {
                                             return;
@@ -571,9 +597,9 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                         acc.push({ x: curr, y: el });
                                     });
                                     return acc;
-                                }, []);
+                                }, [] as { x: string, y: number }[]);
                             } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fields.filter(el => el.fieldId === fieldIdFromData)[0].dataType)) {
-                                data = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
+                                processedData = Object.keys(data.getDataRecords.data[fieldIdFromData]).reduce((acc, curr) => {
                                     let count = 0;
                                     data.getDataRecords.data[fieldIdFromData][curr].data.forEach(el => {
                                         if (acc.filter(es => (es.visit === curr && es.value === el)).length === 0) {
@@ -586,21 +612,24 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                                         acc[acc.findIndex(es => (es.visit === curr && es.value === el))].count += 1;
                                     });
                                     // if no mising (either no missing or missing is considered as an option)
-                                    if (project.summary.subjects.length - count !== 0) {
-                                        acc.push({ visit: curr, value: 'No Record', count: project.summary.subjects.length - count });
+                                    if ((project.summary?.subjects || []).length - count !== 0) {
+                                        acc.push({ visit: curr, value: 'No Record', count: (project.summary?.subjects || []).length - count });
                                     }
                                     return acc;
-                                }, []).sort((a, b) => { return parseFloat(a.value) - parseFloat(b.value); });
+                                }, [] as { visit: string, value: string, count: number }[]).sort((a, b) => { return parseFloat(a.value) - parseFloat(b.value); });
                             } else {
                                 return null;
                             }
-                            const boxData = data.reduce((acc, curr) => {
+                            const boxData = processedData.reduce((acc, curr) => {
+                                if (!('x' in curr)) {
+                                    return acc;
+                                }
                                 if (acc.filter(el => el.x === curr.x)[0] === undefined) {
                                     acc.push({ x: curr.x, y: [] });
                                 }
                                 acc.filter(el => el.x === curr.x)[0].y.push(curr.y);
                                 return acc;
-                            }, []).map(el => {
+                            }, [] as { x: string, y: number[] }[]).map(el => {
                                 const sortedY = [...el.y].sort();
                                 return {
                                     x: el.x,
@@ -637,7 +666,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
                             else
                                 return selectedGraphType === 'stackedColumn' || selectedGraphType === 'groupedColumn'
                                     ? <Column
-                                        data={data}
+                                        data={processedData}
                                         xField={'visit'}
                                         yField={'count'}
                                         xAxis={axisConfig.xAxis}
@@ -659,7 +688,7 @@ export const DataDistributionBlock: FunctionComponent<{ ontologyTree: IOntologyT
 };
 
 export const DataCompletenessBlock: FunctionComponent<{ studyId: string, projectId: string, ontologyTree: IOntologyTree, fields: IFieldEntry[] }> = ({ studyId, projectId, ontologyTree, fields }) => {
-    const [selectedPath, setSelectedPath] = useState<never[]>([]);
+    const [selectedPath, setSelectedPath] = useState<(string | number)[]>([]);
     const requestedFields = ontologyTree.routes?.filter(el => {
         if (JSON.stringify(el.path) === JSON.stringify(selectedPath)) {
             return true;
@@ -692,7 +721,7 @@ export const DataCompletenessBlock: FunctionComponent<{ studyId: string, project
     }
     // process the data
     const data = getDataRecordsData.getDataRecords.data;
-    const obj = [];
+    const obj: Array<{ visit: string, field: string, percentage: number }> = [];
     for (const fieldId of Object.keys(data)) {
         for (const visitId of Object.keys(data[fieldId])) {
             obj.push({
@@ -793,7 +822,7 @@ export const DataDownloadBlock: FunctionComponent<{ project: IProject }> = ({ pr
     }
 
     const availableFormats: string[] = project.summary?.standardizationTypes ?? [];
-    const dataArray = [];
+    const dataArray: Array<{ path: string, data: unknown[] }> = [];
     if (getDataRecordsData?.getDataRecords?.data !== undefined) {
         Object.keys(getDataRecordsData.getDataRecords.data).forEach(domain => {
             dataArray.push({

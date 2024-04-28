@@ -7,7 +7,7 @@ export interface ILogEntry {
     userAgent: USER_AGENT,
     logType: LOG_TYPE,
     actionType: LOG_ACTION,
-    actionData: never,
+    actionData: string,
     time: number,
     status: LOG_STATUS,
     errors: string | null

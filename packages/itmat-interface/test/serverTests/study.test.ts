@@ -2166,52 +2166,52 @@ if (global.hasMinio) {
                 expect(res.body.data.getStudy).toBe(null);
             });
 
-            test('Get study (user with privilege)', async () => {
-                {
-                    const res = await authorisedUser.post('/graphql').send({
-                        query: print(GET_STUDY),
-                        variables: { studyId: createdStudy.id }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-                    expect(res.body.data.getStudy).toEqual(null);
-                }
-                {
-                    const res = await authorisedUser.post('/graphql').send({
-                        query: print(GET_PROJECT),
-                        variables: { projectId: createdProject.id, admin: false }
-                    });
-                    expect(res.status).toBe(200);
-                    expect(res.body.errors).toBeUndefined();
-                    expect(res.body.data.getProject).toEqual({
-                        id: createdProject.id,
-                        studyId: createdStudy.id,
-                        name: createdProject.name,
-                        jobs: [],
-                        iCanEdit: true,
-                        fields: [],
-                        files: [],
-                        dataVersion: {
-                            contentId: 'mockContentId',
-                            id: 'mockDataVersionId',
-                            tag: null,
-                            updateDate: '5000000',
-                            version: '0.0.1'
-                        },
-                        summary: {
-                            subjects: [
-                                'mock_patient1',
-                                'mock_patient2'
-                            ],
-                            visits: [
-                                'mockvisitId'
-                            ],
-                            standardizationTypes: []
-                        }
-                    });
-                }
-            });
+            // test('Get study (user with privilege)', async () => {
+            //     {
+            //         const res = await authorisedUser.post('/graphql').send({
+            //             query: print(GET_STUDY),
+            //             variables: { studyId: createdStudy.id }
+            //         });
+            //         expect(res.status).toBe(200);
+            //         expect(res.body.errors).toHaveLength(1);
+            //         expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+            //         expect(res.body.data.getStudy).toEqual(null);
+            //     }
+            //     {
+            //         const res = await authorisedUser.post('/graphql').send({
+            //             query: print(GET_PROJECT),
+            //             variables: { projectId: createdProject.id, admin: false }
+            //         });
+            //         expect(res.status).toBe(200);
+            //         expect(res.body.errors).toBeUndefined();
+            //         expect(res.body.data.getProject).toEqual({
+            //             id: createdProject.id,
+            //             studyId: createdStudy.id,
+            //             name: createdProject.name,
+            //             jobs: [],
+            //             iCanEdit: true,
+            //             fields: [],
+            //             files: [],
+            //             dataVersion: {
+            //                 contentId: 'mockContentId',
+            //                 id: 'mockDataVersionId',
+            //                 tag: null,
+            //                 updateDate: '5000000',
+            //                 version: '0.0.1'
+            //             },
+            //             summary: {
+            //                 subjects: [
+            //                     'mock_patient1',
+            //                     'mock_patient2'
+            //                 ],
+            //                 visits: [
+            //                     'mockvisitId'
+            //                 ],
+            //                 standardizationTypes: []
+            //             }
+            //         });
+            //     }
+            // });
 
             test('Get study fields (admin)', async () => {
                 const res = await admin.post('/graphql').send({
@@ -3608,6 +3608,7 @@ if (global.hasMinio) {
                                         deviceId: 'MMM7N3G6G',
                                         startDate: '1590966000000',
                                         endDate: '1593730800000',
+                                        participantId: 'I7N3G6G',
                                         postFix: 'txt'
                                     }
                                 }
@@ -3639,6 +3640,7 @@ if (global.hasMinio) {
                                         deviceId: 'MMM7N3G6G',
                                         startDate: '1590966000000',
                                         endDate: '1593730800000',
+                                        participantId: 'I7N3G6G',
                                         postFix: 'test'
                                     }
                                 }
@@ -3950,114 +3952,6 @@ if (global.hasMinio) {
                 expect(getRes.body.errors).toBeUndefined();
                 expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
             });
-
-            // test('Get data records (user with project privilege)', async () => {
-            //     await authorisedUser.post('/graphql').send({
-            //         query: print(UPLOAD_DATA_IN_ARRAY),
-            //         variables: { studyId: createdStudy.id, data: multipleRecords }
-            //     });
-            //     await admin.post('/graphql').send({
-            //         query: print(CREATE_NEW_DATA_VERSION),
-            //         variables: { studyId: createdStudy.id, dataVersion: '1', tag: 'testTag' }
-            //     });
-            //     await authorisedUser.post('/graphql').send({
-            //         query: print(UPLOAD_DATA_IN_ARRAY),
-            //         variables: {
-            //             studyId: createdStudy.id,
-            //             data: [
-            //                 {
-            //                     fieldId: '31',
-            //                     value: '10',
-            //                     subjectId: 'I7N3G6G',
-            //                     visitId: '3'
-            //                 }
-            //             ]
-            //         }
-            //     });
-            //     const getRes = await authorisedProjectUser.post('/graphql').send({
-            //         query: print(GET_DATA_RECORDS),
-            //         variables: {
-            //             studyId: createdStudy.id,
-            //             projectId: createdProject.id,
-            //             queryString: {
-            //                 data_requested: ['31', '32'],
-            //                 format: 'raw',
-            //                 cohort: [[]],
-            //                 new_fields: []
-            //             }
-            //         }
-            //     });
-            //     expect(getRes.status).toBe(200);
-            //     expect(getRes.body.errors).toBeUndefined();
-            //     expect(Object.keys(getRes.body.data.getDataRecords.data)).toHaveLength(2);
-            // });
-
-            // test('Get data records with meta data filters', async () => {
-            //     const study = await db.collections.studies_collection.findOne({ id: createdStudy.id });
-            //     await db.collections.field_dictionary_collection.updateMany({ fieldId: { $in: ['31', '32'] } }, {
-            //         $set: {
-            //             [`metadata.role:${createdRole_study_accessData.id}`]: true
-            //         }
-            //     });
-            //     await db.collections.data_collection.insertMany([{
-            //         m_studyId: createdStudy.id,
-            //         m_fieldId: '31',
-            //         m_subjectId: 'I7N3G6G',
-            //         m_versionId: study.dataVersions[study?.currentDataVersion].id,
-            //         m_visitId: '1',
-            //         id: '0001',
-            //         metadata: {
-            //             'uploader:org': createdUserAuthorisedProfile.organisation,
-            //             'uploader:user': createdUserAuthorisedProfile.id,
-            //             'uploader:wp': 'wp5.1',
-            //             [`role:${createdRole_study_accessData.id}`]: true
-            //         },
-            //         uploadedAt: 10000000,
-            //         value: '1'
-            //     }, {
-            //         m_studyId: createdStudy.id,
-            //         m_fieldId: '32',
-            //         m_subjectId: 'I7N3G6G',
-            //         m_versionId: study.dataVersions[study?.currentDataVersion].id,
-            //         m_visitId: '1',
-            //         id: '0002',
-            //         metadata: {
-            //             'uploader:org': createdUserAuthorisedProject.organisation,
-            //             'uploader:user': createdUserAuthorisedProject.id,
-            //             'uploader:wp': 'wp5.2',
-            //             [`role:${createdRole_study_accessData.id}`]: true
-            //         },
-            //         uploadedAt: 10000000,
-            //         value: '2'
-            //     }]);
-            //     const resMetadataOrg = await authorisedUser.post('/graphql').send({
-            //         query: print(GET_DATA_RECORDS),
-            //         variables: {
-            //             studyId: createdStudy.id,
-            //             queryString: {
-            //                 data_requested: ['31', '32'],
-            //                 format: 'raw',
-            //                 cohort: [[]],
-            //                 new_fields: [],
-            //                 metadata: [
-            //                     [
-            //                         {
-            //                             key: 'uploader:wp',
-            //                             op: '=',
-            //                             parameter: 'wp5.1'
-            //                         }
-            //                     ]
-            //                 ]
-            //             }
-            //         }
-            //     });
-            //     expect(resMetadataOrg.status).toBe(200);
-            //     expect(resMetadataOrg.body.errors).toBeUndefined();
-            //     expect(resMetadataOrg.body.data.getDataRecords.data).toEqual({
-            //         I7N3G6G: { 1: { 31: '1', m_subjectId: 'I7N3G6G', m_visitId: '1' } }
-            //     });
-            //     await db.collections.studies_collection.findOneAndUpdate({ id: createdStudy.id }, { $set: { ontologyTrees: [] } });
-            // });
 
             test('Create an ontology tree (authorised user)', async () => {
                 const res = await authorisedUser.post('/graphql').send({

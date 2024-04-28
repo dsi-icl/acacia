@@ -26,23 +26,20 @@ const modules = [
     standardizationResolvers
 ];
 
-// const loggingDecorator = (reducerFunction: Function) => {
-//     return async (parent, args, context, info) => {
-//         return await reducerFunction(parent, args, context, info);
-//     };
-// };
-
-const bounceNotLoggedInDecorator = (reducerFunction: DMPResolver): DMPResolver => {
+const bounceNotLoggedInDecorator = (funcName: string, reducerFunction: DMPResolver): DMPResolver => {
     return (parent, args, context, info) => {
         const uncheckedFunctionWhitelist = ['login', 'rsaSigner', 'keyPairGenwSignature', 'issueAccessToken', 'whoAmI', 'getOrganisations', 'requestUsernameOrResetPassword', 'resetPassword', 'createUser', 'writeLog', 'validateResetPassword'];
         const requester = context.req.user;
 
-        if (!requester) {
-            if (!uncheckedFunctionWhitelist.includes(reducerFunction.name)) {
-                throw new GraphQLError(errorCodes.NOT_LOGGED_IN);
-            }
+        if (!requester && !uncheckedFunctionWhitelist.includes(funcName)) {
+            throw new GraphQLError(errorCodes.NOT_LOGGED_IN);
         }
-        return reducerFunction(parent, args, context, info);
+
+        if (typeof reducerFunction === 'function') {
+            return reducerFunction(parent, args, context, info);
+        } else {
+            throw new Error('Attempted to call a non-callable resolver');
+        }
     };
 };
 
@@ -58,7 +55,7 @@ export const resolvers = modules.reduce((a, e) => {
             if (each === 'Subscription') {
                 a[each][funcName] = e[each][funcName];
             } else {
-                a[each][funcName] = bounceNotLoggedInDecorator(e[each][funcName]);
+                a[each][funcName] = bounceNotLoggedInDecorator(funcName, e[each][funcName]);
             }
         }
     }

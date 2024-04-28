@@ -22,7 +22,9 @@ export const jobResolvers: DMPResolversMap = {
     Mutation: {
         createDataCurationJob: async (parent, args: { file: string[], studyId: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.job,
@@ -78,7 +80,9 @@ export const jobResolvers: DMPResolversMap = {
         },
         createFieldCurationJob: async (parent, args: { file: string, studyId: string, tag: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.job,
@@ -126,7 +130,9 @@ export const jobResolvers: DMPResolversMap = {
         },
         createQueryCurationJob: async (parent, args: { queryId: string[], studyId: string, projectId: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check permission */
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.job,

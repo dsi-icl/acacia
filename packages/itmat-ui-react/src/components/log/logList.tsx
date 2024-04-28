@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 export const LogListSection: FunctionComponent = () => {
 
     return (
-        <Query<never, never>
+        <Query<{ getLogs: ILogEntry[] }, object>
             query={GET_LOGS}
             variables={{}}
         >
@@ -23,6 +23,9 @@ export const LogListSection: FunctionComponent = () => {
                         </p>
                     );
                 }
+                if (!data) {
+                    return null;
+                }
                 const logList: ILogEntry[] = data.getLogs;
                 return (
                     <LogList list={logList} />
@@ -34,7 +37,16 @@ export const LogListSection: FunctionComponent = () => {
 
 const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const initInputs = {
+    const initInputs: {
+        requesterName: string,
+        requesterType: userTypes[],
+        userAgent: string[],
+        logType: LOG_TYPE[],
+        actionType: LOG_ACTION[],
+        time: string,
+        status: LOG_STATUS[],
+        dateRange: dayjs.Dayjs[]
+    } = {
         requesterName: '',
         requesterType: [],
         userAgent: [],
@@ -42,7 +54,7 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
         actionType: [],
         time: '',
         status: [],
-        dateRange: ['', '']
+        dateRange: [dayjs().subtract(7, 'days'), dayjs()]
     };
     const [inputs, setInputs] = useState(initInputs);
     const [verbose, setVerbose] = useState(false);
@@ -75,10 +87,11 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
     function dataSourceFilter(logList: ILogEntry[]) {
         return logList.filter((log) => {
             // convert the contest of log to be string (except for value), as null could not be parsed
-            const logCopy = { ...log };
+            const logCopy: ILogEntry = { ...log };
             Object.keys(logCopy).forEach(item => {
                 logCopy[item] = (logCopy[item] || '').toString();
             });
+            console.log(inputs);
             return (searchTerm === '' || (logCopy.requesterName.toUpperCase().search(searchTerm) > -1 || logCopy.requesterType.toUpperCase().search(searchTerm) > -1
                 || logCopy.logType.toUpperCase().search(searchTerm) > -1 || logCopy.actionType.toUpperCase().search(searchTerm) > -1
                 || logCopy.status.toUpperCase().search(searchTerm) > -1 || logCopy.userAgent.toUpperCase().search(searchTerm) > -1
@@ -89,8 +102,8 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
                 && (inputs.logType.length === 0 || inputs.logType.includes(logCopy.logType))
                 && (inputs.actionType.length === 0 || inputs.actionType.includes(logCopy.actionType))
                 && (inputs.status.length === 0 || inputs.status.includes(logCopy.status))
-                && (inputs.dateRange[0] === '' || (dayjs(inputs.dateRange[0].startOf('day')).valueOf() - timeOffset) < logCopy.time)
-                && (inputs.dateRange[1] === '' || (dayjs(inputs.dateRange[1].startOf('day')).valueOf() + 24 * 60 * 60 * 1000 /* ONE DAY IN MILLSEC */ - timeOffset) > logCopy.time);
+                && ((dayjs(inputs.dateRange[0].startOf('day')).valueOf() - timeOffset) < logCopy.time)
+                && ((dayjs(inputs.dateRange[1].startOf('day')).valueOf() + 24 * 60 * 60 * 1000 /* ONE DAY IN MILLSEC */ - timeOffset) > logCopy.time);
         });
     }
 

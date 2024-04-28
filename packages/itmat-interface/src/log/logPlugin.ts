@@ -28,20 +28,21 @@ export class LogPlugin {
     }
 
     public async requestDidStartLogPlugin(requestContext: GraphQLRequestContextWillSendResponse<ApolloServerContext>): Promise<null> {
-        if (!logActionRecordWhiteList.includes(requestContext.operationName)) {
+        if (!requestContext.operationName || !logActionRecordWhiteList.includes(requestContext.operationName)) {
             return null;
         }
         if (LOG_ACTION[requestContext.operationName] === undefined || LOG_ACTION[requestContext.operationName] === null) {
             return null;
         }
+        const variables = requestContext.request.variables ?? {}; // Add null check
         await db.collections.log_collection.insertOne({
             id: uuid(),
             requesterName: requestContext.contextValue?.req?.user?.username ?? 'NA',
             requesterType: requestContext.contextValue?.req?.user?.type ?? userTypes.SYSTEM,
-            userAgent: (requestContext.contextValue.req.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
+            userAgent: (requestContext.contextValue.req?.headers['user-agent'] as string)?.startsWith('Mozilla') ? USER_AGENT.MOZILLA : USER_AGENT.OTHER,
             logType: LOG_TYPE.REQUEST_LOG,
             actionType: LOG_ACTION[requestContext.operationName],
-            actionData: JSON.stringify(ignoreFieldsHelper(requestContext.request.variables, requestContext.operationName)),
+            actionData: JSON.stringify(ignoreFieldsHelper(variables, requestContext.operationName)), // Use the null-checked variables
             time: Date.now(),
             status: requestContext.errors === undefined ? LOG_STATUS.SUCCESS : LOG_STATUS.FAIL,
             errors: requestContext.errors === undefined ? '' : requestContext.errors[0].message
@@ -50,7 +51,44 @@ export class LogPlugin {
     }
 }
 
-function ignoreFieldsHelper(dataObj: unknown, operationName: string) {
+type LogOperationName = 'login' | 'createUser' | 'registerPubkey' | 'issueAccessToken' | 'editUser' | 'uploadDataInArray' | 'uploadFile' | string;
+
+interface LoginData {
+    passpord?: string;
+    totp?: string;
+}
+
+interface CreateUserData {
+    user?: {
+        password?: string;
+    };
+}
+
+interface registerPubkeyData {
+    signature?: string;
+}
+
+interface EditUserData {
+    user?: {
+        password?: string;
+    };
+}
+
+interface UploadDataInArrayData {
+    data?: {
+        value?: string;
+        file?: string;
+        metadata?: string;
+    }[];
+}
+
+interface UploadFileData {
+    file?: string;
+}
+
+type DataObj = LoginData | CreateUserData | registerPubkeyData | EditUserData | UploadDataInArrayData | UploadFileData;
+
+function ignoreFieldsHelper(dataObj: DataObj, operationName: LogOperationName) {
     if (operationName === 'login') {
         delete dataObj['password'];
         delete dataObj['totp'];

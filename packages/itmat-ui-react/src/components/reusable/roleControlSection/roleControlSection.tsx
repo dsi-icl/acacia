@@ -2,7 +2,7 @@ import { FunctionComponent, useState } from 'react';
 import { Mutation } from '@apollo/client/react/components';
 import { useQuery, useMutation } from '@apollo/client/react/hooks';
 import { ADD_NEW_ROLE, EDIT_ROLE, REMOVE_ROLE, GET_USERS, GET_PROJECT, GET_STUDY, GET_ORGANISATIONS } from '@itmat-broker/itmat-models';
-import { IRoleQL, IUser, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
+import { IRoleQL, IUser, atomicOperation, IPermissionManagementOptions, ICohortSelection } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../loadSpinner';
 import css from './roleControlSection.module.css';
 import { Tag, Select, Button, Form, Input, Alert, Popconfirm, Checkbox, Collapse, Divider, Table, Col, Row } from 'antd';
@@ -175,6 +175,29 @@ type PermissionsControlPanelProps = {
     role: IRoleQL
 }
 
+type EditRole = {
+    roleId: string;
+    permissionChanges: {
+        data: {
+            subjectIds: string[],
+            visitIds: string[],
+            fieldIds: string[],
+            uploaders: string[],
+            hasVersioned: boolean,
+            operations: string[],
+            filters: ICohortSelection[][]
+        },
+        manage: {
+            own: atomicOperation[],
+            role: atomicOperation[],
+            job: atomicOperation[],
+            query: atomicOperation[],
+            ontologyTrees: atomicOperation[]
+        }
+    },
+    description: string
+}
+
 const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> = ({
     role
 }) => {
@@ -263,7 +286,7 @@ const PermissionsControlPanel: FunctionComponent<PermissionsControlPanelProps> =
         ];
     };
     return (
-        <Mutation<never, never>
+        <Mutation<never, EditRole>
             mutation={EDIT_ROLE}
         // onCompleted={() => setSavedSuccessfully(true)}
         >

@@ -11,14 +11,19 @@ import { GraphQLError } from 'graphql';
 export const fileDownloadController = (req: Request, res: Response) => {
     (async () => {
         const requester = req.user as IUser;
-        const requestedFile = req.params.fileId;
+        const requestedFile = req.params['fileId'];
         const token = req.headers.authorization || '';
         let associatedUser = requester;
         if ((token !== '') && (req.user === undefined)) {
             // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
             const decodedPayload = jwt.decode(token);
             // obtain the public-key of the robot user in the JWT payload
-            const pubkey = decodedPayload.publicKey;
+            let pubkey: string;
+            if (decodedPayload !== null && !(typeof decodedPayload === 'string')) {
+                pubkey = decodedPayload['publicKey'];
+            } else {
+                throw new GraphQLError('JWT verification failed.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+            }
             // verify the JWT
             jwt.verify(token, pubkey, function (error) {
                 if (error) {

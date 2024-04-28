@@ -11,6 +11,9 @@ export const queryResolvers: DMPResolversMap = {
         getQueryById: async (parent, args: { queryId: string }, context) => {
             const queryId = args.queryId;
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check query exists */
             const queryEntry = await db.collections.queries_collection.findOne({ id: queryId }, { projection: { _id: 0, claimedBy: 0 } });
             if (queryEntry === null || queryEntry === undefined) {
@@ -38,7 +41,9 @@ export const queryResolvers: DMPResolversMap = {
         },
         getQueries: async (parent, args: { studyId: string, projectId: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check permission */
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.query,

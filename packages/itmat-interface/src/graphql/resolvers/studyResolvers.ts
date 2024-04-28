@@ -11,7 +11,10 @@ import {
     atomicOperation,
     IPermissionManagementOptions,
     IDataEntry,
-    enumValueType
+    enumValueType,
+    IQueryString,
+    IGroupedData,
+    IValueDescription
 } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
@@ -23,11 +26,25 @@ import { IGenericResponse, makeGenericReponse } from '../responses';
 import { buildPipeline, translateMetadata } from '../../utils/query';
 import { dataStandardization } from '../../utils/query';
 import { DMPResolversMap } from './context';
+import { Filter } from 'mongodb';
+
+interface EditFieldInput {
+    fieldId: string;
+    fieldName: string;
+    tableName?: string;
+    dataType: enumValueType;
+    possibleValues?: IValueDescription[]
+    unit?: string
+    comments?: string
+}
 
 export const studyResolvers: DMPResolversMap = {
     Query: {
-        getStudy: async (parent, args: Record<string, string>, context) => {
+        getStudy: async (parent, args: { studyId: string }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const studyId: string = args.studyId;
 
             /* user can get study if he has readonly permission */
@@ -45,8 +62,11 @@ export const studyResolvers: DMPResolversMap = {
             }
             return study;
         },
-        getProject: async (parent, args, context) => {
+        getProject: async (parent, args: { projectId: string }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const projectId: string = args.projectId;
 
             /* get project */ // defer patientMapping since it's costly and not available to all users
@@ -75,6 +95,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         getStudyFields: async (parent, { studyId, projectId, versionId }: { studyId: string, projectId?: string, versionId?: string | null }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* user can get study if he has readonly permission */
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
@@ -99,7 +122,7 @@ export const studyResolvers: DMPResolversMap = {
                 if (versionId === null) {
                     availableDataVersions.push(null);
                 }
-                const fieldRecords = await db.collections.field_dictionary_collection.aggregate([{
+                const fieldRecords = await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                     $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
@@ -120,7 +143,7 @@ export const studyResolvers: DMPResolversMap = {
             // unversioned data could not be returned by metadata filters
             if (versionId === null && aggregatedPermissions.hasVersioned) {
                 availableDataVersions.push(null);
-                const fieldRecords = await db.collections.field_dictionary_collection.aggregate([{
+                const fieldRecords = await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                     $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
@@ -143,12 +166,12 @@ export const studyResolvers: DMPResolversMap = {
                 return fieldRecords.filter(el => el.dateDeleted === null);
             } else {
                 // metadata filter
-                const subqueries = [];
+                const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
                 aggregatedPermissions.matchObj.forEach((subMetadata) => {
                     subqueries.push(translateMetadata(subMetadata));
                 });
                 const metadataFilter = { $or: subqueries };
-                const fieldRecords = await db.collections.field_dictionary_collection.aggregate([{
+                const fieldRecords = await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                     $match: { studyId: studyId, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
@@ -170,13 +193,16 @@ export const studyResolvers: DMPResolversMap = {
             }
         },
         getOntologyTree: async (parent, { studyId, projectId, treeName, versionId }: { studyId: string, projectId?: string, treeName?: string, versionId?: string }, context) => {
+            const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
             /* get studyId by parameter or project */
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             if (projectId) {
                 await studyCore.findOneProject_throwErrorIfNotExist(projectId);
             }
-
-            const requester = context.req.user;
 
             // we dont filters fields of an ontology tree by fieldIds
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
@@ -237,6 +263,10 @@ export const studyResolvers: DMPResolversMap = {
         },
         checkDataComplete: async (parent, { studyId }: { studyId: string }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
@@ -266,7 +296,7 @@ export const studyResolvers: DMPResolversMap = {
                     doc: { $last: '$$ROOT' }
                 }
             }
-            ]).toArray()).map(el => el.doc).filter(eh => eh.dateDeleted === null).reduce((acc, curr) => {
+            ]).toArray()).map(el => el['doc']).filter(eh => eh.dateDeleted === null).reduce((acc, curr) => {
                 acc[curr.fieldId] = curr;
                 return acc;
             }, {});
@@ -277,21 +307,31 @@ export const studyResolvers: DMPResolversMap = {
                 if (fieldMapping[record.m_fieldId] !== undefined && fieldMapping[record.m_fieldId] !== null) {
                     switch (fieldMapping[record.m_fieldId].dataType) {
                         case 'dec': {// decimal
-                            if (!/^\d+(.\d+)?$/.test(record.value)) {
+                            if (typeof record.value === 'number') {
+                                if (!/^\d+(.\d+)?$/.test(record.value.toString())) {
+                                    error = `Field ${record.m_fieldId}: Cannot parse as decimal.`;
+                                    break;
+                                }
+                            } else {
                                 error = `Field ${record.m_fieldId}: Cannot parse as decimal.`;
                                 break;
                             }
                             break;
                         }
                         case 'int': {// integer
-                            if (!/^-?\d+$/.test(record.value)) {
+                            if (typeof record.value === 'number') {
+                                if (!/^-?\d+$/.test(record.value.toString())) {
+                                    error = `Field ${record.m_fieldId}: Cannot parse as integer.`;
+                                    break;
+                                }
+                            } else {
                                 error = `Field ${record.m_fieldId}: Cannot parse as integer.`;
                                 break;
                             }
                             break;
                         }
                         case 'bool': {// boolean
-                            if (record.value.toLowerCase() !== 'true' && record.value.toLowerCase() !== 'false') {
+                            if (typeof record.value !== 'boolean') {
                                 error = `Field ${record.m_fieldId}: Cannot parse as boolean.`;
                                 break;
                             }
@@ -302,8 +342,13 @@ export const studyResolvers: DMPResolversMap = {
                         }
                         // 01/02/2021 00:00:00
                         case 'date': {
-                            const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
-                            if (!record.value.match(matcher)) {
+                            if (typeof record.value === 'string') {
+                                const matcher = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?/;
+                                if (!record.value.match(matcher)) {
+                                    error = `Field ${record.m_fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
+                                    break;
+                                }
+                            } else {
                                 error = `Field ${record.m_fieldId}: Cannot parse as data. Value for date type must be in ISO format.`;
                                 break;
                             }
@@ -313,15 +358,25 @@ export const studyResolvers: DMPResolversMap = {
                             break;
                         }
                         case 'file': {
-                            const file = await db.collections.files_collection.findOne({ id: record.value });
-                            if (!file) {
+                            if (typeof record.value === 'string') {
+                                const file = await db.collections.files_collection.findOne({ id: record.value });
+                                if (!file) {
+                                    error = `Field ${record.m_fieldId}: Cannot parse as file or file does not exist.`;
+                                    break;
+                                }
+                            } else {
                                 error = `Field ${record.m_fieldId}: Cannot parse as file or file does not exist.`;
                                 break;
                             }
                             break;
                         }
                         case 'cat': {
-                            if (!fieldMapping[record.m_fieldId].possibleValues.map((el) => el.code).includes(record.value.toString())) {
+                            if (typeof record.value === 'string') {
+                                if (!fieldMapping[record.m_fieldId].possibleValues.map((el) => el.code).includes(record.value.toString())) {
+                                    error = `Field ${record.m_fieldId}: Cannot parse as categorical, value not in value list.`;
+                                    break;
+                                }
+                            } else {
                                 error = `Field ${record.m_fieldId}: Cannot parse as categorical, value not in value list.`;
                                 break;
                             }
@@ -345,6 +400,10 @@ export const studyResolvers: DMPResolversMap = {
         },
         getDataRecords: async (parent, { studyId, queryString, versionId, projectId }: { queryString, studyId: string, versionId: string | null | undefined, projectId?: string }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
+
             /* user can get study if he has readonly permission */
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
@@ -363,9 +422,9 @@ export const studyResolvers: DMPResolversMap = {
             const aggregatedPermissions = permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
 
             let availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            let fieldRecords = [];
+            let fieldRecords: IFieldEntry[] = [];
             let result;
-            let metadataFilter = undefined;
+            let metadataFilter;
             // we obtain the data by different requests
             // admin used will not filtered by metadata filters
             if (requester.type === userTypes.ADMIN) {
@@ -379,7 +438,7 @@ export const studyResolvers: DMPResolversMap = {
                     }
                 }
 
-                fieldRecords = await db.collections.field_dictionary_collection.aggregate([{
+                fieldRecords = await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                     $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                 }, {
                     $sort: { dateAdded: -1 }
@@ -401,7 +460,7 @@ export const studyResolvers: DMPResolversMap = {
                 const pipeline = buildPipeline(queryString, studyId, availableDataVersions, fieldRecords, undefined, true, versionId === null);
                 result = await db.collections.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
             } else {
-                const subqueries = [];
+                const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
                 aggregatedPermissions.matchObj.forEach((subMetadata) => {
                     subqueries.push(translateMetadata(subMetadata));
                 });
@@ -409,7 +468,7 @@ export const studyResolvers: DMPResolversMap = {
                 // unversioned data: metadatafilter for versioned data and all unversioned tags
                 if (versionId === null && aggregatedPermissions.hasVersioned) {
                     availableDataVersions.push(null);
-                    fieldRecords = await db.collections.field_dictionary_collection.aggregate([{
+                    fieldRecords = await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, {
                         $sort: { dateAdded: -1 }
@@ -439,7 +498,7 @@ export const studyResolvers: DMPResolversMap = {
                     if (versionId === '-1') {
                         availableDataVersions = availableDataVersions.length !== 0 ? [availableDataVersions[availableDataVersions.length - 1]] : [];
                     }
-                    fieldRecords = await db.collections.field_dictionary_collection.aggregate([{
+                    fieldRecords = await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, {
                         $sort: { dateAdded: -1 }
@@ -466,7 +525,7 @@ export const studyResolvers: DMPResolversMap = {
                     }
                 } else if (versionId !== undefined) {
                     availableDataVersions = [versionId];
-                    fieldRecords = await db.collections.field_dictionary_collection.aggregate([{
+                    fieldRecords = await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                         $match: { studyId: studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions } }
                     }, {
                         $sort: { dateAdded: -1 }
@@ -502,7 +561,7 @@ export const studyResolvers: DMPResolversMap = {
             }
             // post processing the data
             // 2. update to the latest data; start from first record
-            const groupedResult = {};
+            const groupedResult: IGroupedData = {};
             for (let i = 0; i < result.length; i++) {
                 const { m_subjectId, m_visitId, m_fieldId, value } = result[i];
                 if (!groupedResult[m_subjectId]) {
@@ -534,6 +593,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         files: async (study: IStudy, args: never, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
                 requester,
@@ -544,7 +606,7 @@ export const studyResolvers: DMPResolversMap = {
                 return [];
             }
             const availableDataVersions: Array<string | null> = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
-            const fileFieldIds: string[] = (await db.collections.field_dictionary_collection.aggregate([{
+            const fileFieldIds: string[] = (await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                 $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
             }, { $match: { fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } } }, {
                 $sort: { dateAdded: -1 }
@@ -560,28 +622,28 @@ export const studyResolvers: DMPResolversMap = {
             }, {
                 $sort: { fieldId: 1 }
             }]).toArray()).map(el => el.fieldId);
-            let adds = [];
-            let removes = [];
+            let adds: string[] = [];
+            let removes: string[] = [];
             // versioned data
             if (requester.type === userTypes.ADMIN) {
-                const fileRecords = await db.collections.data_collection.aggregate([{
+                const fileRecords = await db.collections.data_collection.aggregate<IDataEntry>([{
                     $match: { m_studyId: study.id, m_fieldId: { $in: fileFieldIds } }
                 }]).toArray();
                 adds = fileRecords.map(el => el.metadata?.add || []).flat();
                 removes = fileRecords.map(el => el.metadata?.remove || []).flat();
             } else {
-                const subqueries = [];
+                const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
                 hasPermission.matchObj.forEach((subMetadata) => {
                     subqueries.push(translateMetadata(subMetadata));
                 });
                 const metadataFilter = { $or: subqueries };
-                const versionedFileRecors = await db.collections.data_collection.aggregate([{
+                const versionedFileRecors = await db.collections.data_collection.aggregate<IDataEntry>([{
                     $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
                 }, {
                     $match: metadataFilter
                 }]).toArray();
 
-                const filters = [];
+                const filters: Filter<IDataEntry>[] = [];
                 for (const role of hasPermission.roleraw) {
                     if (!(role.hasVersioned)) {
                         continue;
@@ -593,9 +655,9 @@ export const studyResolvers: DMPResolversMap = {
                         m_versionId: null
                     });
                 }
-                let unversionedFileRecords = [];
+                let unversionedFileRecords: IDataEntry[] = [];
                 if (filters.length !== 0) {
-                    unversionedFileRecords = await db.collections.data_collection.aggregate([{
+                    unversionedFileRecords = await db.collections.data_collection.aggregate<IDataEntry>([{
                         $match: { m_studyId: study.id, m_versionId: null, m_fieldId: { $in: fileFieldIds } }
                     }, {
                         $match: { $or: filters }
@@ -610,6 +672,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         subjects: async (study: IStudy, args: never, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
                 requester,
@@ -639,6 +704,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         visits: async (study: IStudy, args: never, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
                 requester,
@@ -668,6 +736,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         numOfRecords: async (study: IStudy, args: never, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
                 requester,
@@ -687,7 +758,7 @@ export const studyResolvers: DMPResolversMap = {
                 }
             }, {
                 $count: 'count'
-            }]).toArray())[0]?.count || 0;
+            }]).toArray())[0]?.['count'] || 0;
             const numberOfUnVersioned: number = hasPermission.hasVersioned ? (await db.collections.data_collection.aggregate([{
                 $match: { m_studyId: study.id, m_versionId: null, value: { $ne: null } }
             }, {
@@ -698,7 +769,7 @@ export const studyResolvers: DMPResolversMap = {
                 }
             }, {
                 $count: 'count'
-            }]).toArray())[0]?.count || 0 : 0;
+            }]).toArray())[0]?.['count'] || 0 : 0;
             return [numberOfVersioned, numberOfUnVersioned];
         },
         currentDataVersion: async (study: IStudy) => {
@@ -708,6 +779,9 @@ export const studyResolvers: DMPResolversMap = {
     Project: {
         fields: async (project: Omit<IProject, 'patientMapping'>, args: never, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
                 requester,
@@ -736,9 +810,9 @@ export const studyResolvers: DMPResolversMap = {
                 return [];
             }
             const ontologyTreeFieldIds: string[] = (availableTrees[0].routes || []).map(el => el.field[0].replace('$', ''));
-            let fieldRecords = [];
+            let fieldRecords: IFieldEntry[] = [];
             if (requester.type === userTypes.ADMIN) {
-                fieldRecords = await db.collections.field_dictionary_collection.aggregate([{
+                fieldRecords = await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                     $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
                 }, {
                     $group: {
@@ -756,12 +830,12 @@ export const studyResolvers: DMPResolversMap = {
                 }]).toArray();
             } else {
                 // metadata filter
-                const subqueries = [];
+                const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
                 hasProjectLevelPermission.matchObj.forEach((subMetadata) => {
                     subqueries.push(translateMetadata(subMetadata));
                 });
                 const metadataFilter = { $or: subqueries };
-                fieldRecords = await db.collections.field_dictionary_collection.aggregate([{
+                fieldRecords = await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                     $match: { studyId: project.studyId, dateDeleted: null, dataVersion: { $in: availableDataVersions }, fieldId: { $in: ontologyTreeFieldIds } }
                 }, { $match: metadataFilter }, {
                     $group: {
@@ -785,6 +859,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         files: async (project: Omit<IProject, 'patientMapping'>, args: never, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
                 requester,
@@ -810,7 +887,7 @@ export const studyResolvers: DMPResolversMap = {
                 return [];
             }
             const ontologyTreeFieldIds: string[] = (availableTrees[0].routes || []).map(el => el.field[0].replace('$', ''));
-            const fileFieldIds: string[] = (await db.collections.field_dictionary_collection.aggregate([{
+            const fileFieldIds: string[] = (await db.collections.field_dictionary_collection.aggregate<IFieldEntry>([{
                 $match: { studyId: study.id, dateDeleted: null, dataVersion: { $in: availableDataVersions }, dataType: enumValueType.FILE }
             }, { $match: { $and: [{ fieldId: { $in: hasPermission.raw.fieldIds.map((el: string) => new RegExp(el)) } }, { fieldId: { $in: ontologyTreeFieldIds } }] } }, {
                 $group: {
@@ -827,19 +904,19 @@ export const studyResolvers: DMPResolversMap = {
             let add: string[] = [];
             let remove: string[] = [];
             if (Object.keys(hasPermission.matchObj).length === 0) {
-                (await db.collections.data_collection.aggregate([{
+                (await db.collections.data_collection.aggregate<IDataEntry>([{
                     $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
                 }]).toArray()).forEach(element => {
                     add = add.concat(element.metadata?.add || []);
                     remove = remove.concat(element.metadata?.remove || []);
                 });
             } else {
-                const subqueries = [];
+                const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
                 hasPermission.matchObj.forEach((subMetadata) => {
                     subqueries.push(translateMetadata(subMetadata));
                 });
                 const metadataFilter = { $or: subqueries };
-                (await db.collections.data_collection.aggregate([{
+                (await db.collections.data_collection.aggregate<IDataEntry>([{
                     $match: { m_studyId: study.id, m_versionId: { $in: availableDataVersions }, m_fieldId: { $in: fileFieldIds } }
                 }, {
                     $match: metadataFilter
@@ -867,6 +944,9 @@ export const studyResolvers: DMPResolversMap = {
                 return summary;
             }
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* user can get study if he has readonly permission */
             const hasStudyLevelPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,
@@ -883,7 +963,7 @@ export const studyResolvers: DMPResolversMap = {
             // get all dataVersions that are valid (before the current version)
             const aggregatedPermissions = permissionCore.combineMultiplePermissions([hasStudyLevelPermission, hasProjectLevelPermission]);
 
-            let metadataFilter = undefined;
+            let metadataFilter;
 
             const availableDataVersions = (study.currentDataVersion === -1 ? [] : study.dataVersions.filter((__unused__el, index) => index <= study.currentDataVersion)).map(el => el.id);
             // ontology trees
@@ -914,7 +994,7 @@ export const studyResolvers: DMPResolversMap = {
                     }
                 }]).toArray();
             } else {
-                const subqueries = [];
+                const subqueries: Filter<{ [key: string]: string | number | boolean }>[] = [];
                 aggregatedPermissions.matchObj.forEach((subMetadata) => {
                     subqueries.push(translateMetadata(subMetadata));
                 });
@@ -933,8 +1013,12 @@ export const studyResolvers: DMPResolversMap = {
                 }]).toArray();
             }
             // fieldRecords = fieldRecords.filter(el => ontologyTreeFieldIds.includes(el.fieldId));
-            const pipeline = buildPipeline({}, project.studyId, [availableDataVersions[availableDataVersions.length - 1]], fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN, false);
-            const result = await db.collections.data_collection.aggregate(pipeline, { allowDiskUse: true }).toArray();
+            const emptyQueryString: IQueryString = {
+                cohort: [[]],
+                new_fields: []
+            };
+            const pipeline = buildPipeline(emptyQueryString, project.studyId, [availableDataVersions[availableDataVersions.length - 1]], fieldRecords as IFieldEntry[], metadataFilter, requester.type === userTypes.ADMIN, false);
+            const result = await db.collections.data_collection.aggregate<{ m_subjectId: string, m_visitId: string, m_fieldId: string, value: unknown }>(pipeline, { allowDiskUse: true }).toArray();
             summary['subjects'] = Array.from(new Set(result.map((el) => el.m_subjectId))).sort();
             summary['visits'] = Array.from(new Set(result.map((el) => el.m_visitId))).sort((a, b) => parseFloat(a) - parseFloat(b)).sort();
             summary['standardizationTypes'] = (await db.collections.standardizations_collection.distinct('type', { studyId: study.id, deleted: null })).sort();
@@ -942,6 +1026,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         patientMapping: async (project: Omit<IProject, 'patientMapping'>, args: never, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.READ,  // patientMapping is not visible to project users; only to study users.
@@ -978,7 +1065,9 @@ export const studyResolvers: DMPResolversMap = {
     Mutation: {
         createStudy: async (parent, { name, description, type }: { name: string, description: string, type: studyType }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -990,7 +1079,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         editStudy: async (parent, { studyId, description }: { studyId: string, description: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -1002,6 +1093,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         createNewField: async (parent, { studyId, fieldInput }: { studyId: string, fieldInput }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
@@ -1042,19 +1136,22 @@ export const studyResolvers: DMPResolversMap = {
                 }
                 // // construct the rest of the fields
                 if (!isError) {
-                    fieldEntry.id = uuid();
-                    fieldEntry.studyId = studyId;
-                    fieldEntry.dataVersion = null;
-                    fieldEntry.dateAdded = (new Date()).valueOf();
-                    fieldEntry.dateDeleted = null;
-                    fieldEntry.metadata = {
-                        uploader: requester.id
+                    const newFieldEntry: IFieldEntry = {
+                        ...fieldEntry,
+                        id: uuid(),
+                        studyId: studyId,
+                        dataVersion: null,
+                        dateAdded: Date.now(),
+                        dateDeleted: null,
+                        metadata: {
+                            uploader: requester.id
+                        }
                     };
                     bulk.find({
                         fieldId: fieldEntry.fieldId,
                         studyId: studyId,
                         dataVersion: null
-                    }).upsert().updateOne({ $set: fieldEntry });
+                    }).upsert().updateOne({ $set: newFieldEntry });
                 }
             }
             if (bulk.batches.length > 0) {
@@ -1062,21 +1159,40 @@ export const studyResolvers: DMPResolversMap = {
             }
             return response;
         },
-        editField: async (parent, { studyId, fieldInput }: { studyId: string, fieldInput }, context) => {
+        editField: async (parent, { studyId, fieldInput }: { studyId: string, fieldInput: EditFieldInput }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
 
             // check fieldId exist
-            const searchField = await db.collections.field_dictionary_collection.findOne({ studyId: studyId, fieldId: fieldInput.fieldId, dateDeleted: null });
+            const searchField = await db.collections.field_dictionary_collection.findOne<IFieldEntry>({ studyId: studyId, fieldId: fieldInput.fieldId, dateDeleted: null });
             if (!searchField) {
                 throw new GraphQLError('Field does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
-            for (const each of Object.keys(fieldInput) as Array<keyof IFieldEntry>) {
-                searchField[each] = fieldInput[each];
+            searchField.fieldId = fieldInput.fieldId;
+            searchField.fieldName = fieldInput.fieldName;
+            searchField.dataType = fieldInput.dataType;
+            if (fieldInput.tableName) {
+                searchField.tableName = fieldInput.tableName;
             }
+            if (fieldInput.unit) {
+                searchField.unit = fieldInput.unit;
+            }
+            if (fieldInput.possibleValues) {
+                searchField.possibleValues = fieldInput.possibleValues;
+            }
+            if (fieldInput.tableName) {
+                searchField.tableName = fieldInput.tableName;
+            }
+            if (fieldInput.comments) {
+                searchField.comments = fieldInput.comments;
+            }
+
             const { fieldEntry, error } = validateAndGenerateFieldEntry(searchField, requester);
             if (error.length !== 0) {
                 throw new GraphQLError(JSON.stringify(error), { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
@@ -1089,6 +1205,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         deleteField: async (parent, { studyId, fieldId }: { studyId: string, fieldId: string }, context) => {
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,
@@ -1132,6 +1251,9 @@ export const studyResolvers: DMPResolversMap = {
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
@@ -1160,7 +1282,7 @@ export const studyResolvers: DMPResolversMap = {
             }
             ]).toArray();
             // filter those that have been deleted
-            const fieldsList = fieldRecords.map(el => el.doc).filter(eh => eh.dateDeleted === null);
+            const fieldsList = fieldRecords.map(el => el['doc']).filter(eh => eh.dateDeleted === null);
             const response = (await studyCore.uploadOneDataClip(studyId, hasPermission.raw, fieldsList, data, requester));
 
             return response;
@@ -1170,6 +1292,9 @@ export const studyResolvers: DMPResolversMap = {
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
             const response: IGenericResponse[] = [];
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,
@@ -1233,6 +1358,9 @@ export const studyResolvers: DMPResolversMap = {
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
 
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
@@ -1255,7 +1383,9 @@ export const studyResolvers: DMPResolversMap = {
             const study = await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.ontologyTrees,
@@ -1308,7 +1438,9 @@ export const studyResolvers: DMPResolversMap = {
             await studyCore.findOneStudy_throwErrorIfNotExist(studyId);
 
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* user can get study if he has readonly permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.ontologyTrees,
@@ -1354,7 +1486,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         createProject: async (parent, { studyId, projectName }: { studyId: string, projectName: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.own,
@@ -1374,7 +1508,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         deleteProject: async (parent, { projectId }: { projectId: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             const project = await studyCore.findOneProject_throwErrorIfNotExist(projectId);
 
             /* check privileges */
@@ -1393,7 +1529,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         deleteStudy: async (parent, { studyId }: { studyId: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             if (requester.type !== userTypes.ADMIN) {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -1412,7 +1550,9 @@ export const studyResolvers: DMPResolversMap = {
         },
         setDataversionAsCurrent: async (parent, { studyId, dataVersionId }: { studyId: string, dataVersionId: string }, context) => {
             const requester = context.req.user;
-
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check privileges */
             if (!(await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.own,

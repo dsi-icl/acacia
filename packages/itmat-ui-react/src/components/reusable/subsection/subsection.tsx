@@ -10,7 +10,7 @@ export const Subsection: FunctionComponent<{ title; children }> = ({ title, chil
     </div>;
 };
 
-export const SubsectionWithComment: FunctionComponent<{ title; comment; children; float }> = ({ title, comment, children, float }) => {
+export const SubsectionWithComment: FunctionComponent<{ title; comment; children; float?}> = ({ title, comment, children, float }) => {
     return <div className={css.content_section}>
         <h5>{title} <span style={{ float: float ? float : 'right', whiteSpace: 'pre' }}>{comment}</span></h5>
         <div>

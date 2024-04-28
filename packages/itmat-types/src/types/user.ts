@@ -19,7 +19,10 @@ export interface IUserWithoutToken {
     createdAt: number;
     expiredAt: number;
     resetPasswordRequests: IResetPasswordRequest[];
-    metadata?: Record<string, unknown>;
+    metadata?: {
+        logPermission: boolean;
+        [key: string]: unknown
+    };
 }
 
 export interface IResetPasswordRequest {

@@ -61,7 +61,7 @@ function serverSpinning() {
 serverSpinning();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const module;
+declare const module: any;
 if (module.hot) {
     module.hot.accept('./index', serverSpinning);
     module.hot.accept('./jobExecutorRunner', serverSpinning);

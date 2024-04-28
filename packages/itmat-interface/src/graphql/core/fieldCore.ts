@@ -1,17 +1,18 @@
-import { IFieldEntry, enumValueType, IUser } from '@itmat-broker/itmat-types';
+import { IFieldEntry, enumValueType, IUserWithoutToken } from '@itmat-broker/itmat-types';
 import { db } from '../../database/database';
 import { v4 as uuid } from 'uuid';
+import { Document, Filter } from 'mongodb';
 export class FieldCore {
     public async getFieldsOfStudy(studyId: string, detailed: boolean, getOnlyTheseFields?: string[]): Promise<IFieldEntry[]> {
         /* ASSUMING projectId and studyId match*/
         /* if detailed=false, only returns the fieldid in an array */
         /* constructing queryObj; if projectId is provided then only those in the approved fields are returned */
-        let queryObj = { studyId };
+        let queryObj: Filter<IFieldEntry> = { studyId };
         if (getOnlyTheseFields) {  // if both study id and project id are provided then just make sure they belong to each other
             queryObj = { studyId, fieldId: { $in: getOnlyTheseFields } };
         }
 
-        const aggregatePipeline = [
+        const aggregatePipeline: Document[] = [
             { $match: queryObj }
         ];
         /* if detailed=false, only returns the fieldid in an array */
@@ -26,7 +27,7 @@ export class FieldCore {
 }
 
 
-export function validateAndGenerateFieldEntry(fieldEntry, requester: IUser) {
+export function validateAndGenerateFieldEntry(fieldEntry, requester: IUserWithoutToken) {
     // duplicates with existing fields are checked by caller function
     const error: string[] = [];
     const complusoryField = [

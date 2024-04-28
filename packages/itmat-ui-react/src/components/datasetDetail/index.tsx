@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Route, Routes, useParams, Navigate } from 'react-router-dom';
 import { GET_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { userTypes } from '@itmat-broker/itmat-types';
+import { IJobEntry, IProject, IStudy, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../reusable/loadSpinner';
 import css from './projectPage.module.css';
 import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent, FieldManagementTabContentFetch } from './tabContent';
@@ -13,7 +13,7 @@ export const DatasetDetailPage: FunctionComponent = () => {
     if (!studyId)
         return <LoadSpinner />;
     return (
-        <Query<never, never>
+        <Query<{ getStudy: IStudy & { projects: IProject[], jobs: IJobEntry[] } }, { studyId: string }>
             query={GET_STUDY}
             variables={{ studyId }}
             errorPolicy='ignore' // quick fix ; TO_DO change to split graphql requests coupled with UI
@@ -26,10 +26,11 @@ export const DatasetDetailPage: FunctionComponent = () => {
                     <div className={css.ariane}>
                         <h2>{data.getStudy.name.toUpperCase()}</h2>
                         <div className={css.tabs}>
-                            <Query<never, never> query={WHO_AM_I}>
+                            <Query<{ whoAmI: IUserWithoutToken }, never> query={WHO_AM_I}>
                                 {({ loading, error, data: sessionData }) => {
                                     if (loading) return <LoadSpinner />;
                                     if (error) return <p>{error.toString()}</p>;
+                                    if (!sessionData) { return null; }
                                     if (sessionData.whoAmI.type === userTypes.ADMIN) {
                                         return (
                                             <>

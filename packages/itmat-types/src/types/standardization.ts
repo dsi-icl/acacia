@@ -22,7 +22,21 @@ export enum StandardizationRuleSource {
     inc = 'inc'
 }
 
-type StandardizationRuleFilter = unknown;
+export enum StandardizationFilterOptions {
+    convert = 'convert',
+    delete = 'delete'
+}
+
+export interface StandardizationFilterOptionParameters {
+    source: 'value' | 'data';
+    parameter: string;
+}
+
+interface StandardizationRuleFilter {
+    [key: string]: Array<StandardizationFilterOptions | StandardizationFilterOptionParameters>
+}
+
+
 
 export interface IStandardizationRule {
     id: string,

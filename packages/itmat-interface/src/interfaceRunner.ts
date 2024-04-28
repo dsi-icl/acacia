@@ -18,6 +18,7 @@ class ITMATInterfaceRunner extends Runner {
      * In case of error, an ErrorStack is rejected.
      */
     public async start(): Promise<Router> {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const _this = this;
         return new Promise((resolve, reject) => {
 

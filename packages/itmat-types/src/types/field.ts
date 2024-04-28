@@ -9,8 +9,8 @@ export interface IFieldEntry {
     unit?: string;
     comments?: string;
     metadata?: Record<string, unknown>;
-    dateAdded: string;
-    dateDeleted: string | null;
+    dateAdded: number;
+    dateDeleted: number | null;
     dataVersion: string | null;
 }
 
