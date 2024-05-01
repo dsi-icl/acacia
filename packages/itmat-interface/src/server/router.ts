@@ -84,7 +84,6 @@ export class Router {
             requestTimeout: 0,
             noDelay: true
         }, this.app);
-        this.server.headersTimeout = 0;
 
         this.server.timeout = 0;
         this.server.headersTimeout = 0;

@@ -26,8 +26,7 @@ export class FieldCore {
 
 }
 
-
-export function validateAndGenerateFieldEntry(fieldEntry, requester: IUserWithoutToken) {
+export function validateAndGenerateFieldEntry(fieldEntry: Partial<IFieldEntry>, requester: IUserWithoutToken) {
     // duplicates with existing fields are checked by caller function
     const error: string[] = [];
     const complusoryField = [
@@ -47,7 +46,7 @@ export function validateAndGenerateFieldEntry(fieldEntry, requester: IUserWithou
         error.push('FieldId should contain letters, numbers and _ only.');
     }
     // data types
-    if (!Object.values(enumValueType).includes(fieldEntry.dataType)) {
+    if (!fieldEntry.dataType || !Object.values(enumValueType).includes(fieldEntry.dataType)) {
         error.push(`Data type shouldn't be ${fieldEntry.dataType}: use 'int' for integer, 'dec' for decimal, 'str' for string, 'bool' for boolean, 'date' for datetime, 'file' for FILE, 'json' for json.`);
     }
     // check possiblevalues to be not-empty if datatype is categorical

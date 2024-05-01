@@ -96,10 +96,8 @@ describe('LOG API', () => {
                     totp: otp
                 }
             });
-            console.log(res.body);
             expect(res.status).toBe(200);
             const findLogInMongo = await db.collections.log_collection.find({}).toArray();
-            console.log(findLogInMongo);
             const lastLog = findLogInMongo.pop();
             expect(lastLog).toBeDefined();
             if (!lastLog)

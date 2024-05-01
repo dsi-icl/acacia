@@ -18,6 +18,36 @@ import tmp from 'tmp';
 import { DMPResolversMap } from './context';
 import { UpdateFilter } from 'mongodb';
 
+type CreateUserInput = {
+    username: string,
+    firstname: string,
+    lastname: string,
+    email: string,
+    emailNotificationsActivated?: boolean,
+    password: string,
+    description?: string,
+    organisation: string,
+    metadata: unknown
+}
+
+type EditUserInput = {
+    id: string,
+    username?: string,
+    type?: userTypes,
+    firstname?: string,
+    lastname?: string,
+    email?: string,
+    emailNotificationsActivated?: boolean,
+    emailNotificationsStatus?: unknown,
+    password?: string,
+    description?: string,
+    organisation?: string,
+    expiredAt?: number,
+    metadata?: unknown
+}
+
+
+
 export const userResolvers: DMPResolversMap = {
     Query: {
         whoAmI: (parent, args, context) => {
@@ -305,11 +335,7 @@ export const userResolvers: DMPResolversMap = {
                 });
             });
         },
-        createUser: async (parent, args: {
-            user: {
-                username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated?: boolean, password: string, description?: string, organisation: string, metadata: unknown
-            }
-        }) => {
+        createUser: async (parent, args: { user: CreateUserInput }) => {
             const { username, firstname, lastname, email, emailNotificationsActivated, password, description, organisation, metadata }: {
                 username: string, firstname: string, lastname: string, email: string, emailNotificationsActivated?: boolean, password: string, description?: string, organisation: string, metadata: unknown
             } = args.user;
@@ -368,7 +394,7 @@ export const userResolvers: DMPResolversMap = {
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
             await mailer.sendMail({
-                from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+                from: `${config.appName} <${config.nodemailer.auth.user}>`,
                 to: email,
                 subject: `[${config.appName}] Registration Successful`,
                 html: `
@@ -491,7 +517,7 @@ export const userResolvers: DMPResolversMap = {
 
             const attachments = [{ filename: 'qrcode.png', path: tmpobj.name, cid: 'qrcode_cid' }];
             await mailer.sendMail({
-                from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+                from: `${config.appName} <${config.nodemailer.auth.user}>`,
                 to: email,
                 subject: `[${config.appName}] Password reset`,
                 html: `
@@ -517,11 +543,7 @@ export const userResolvers: DMPResolversMap = {
             tmpobj.removeCallback();
             return makeGenericReponse();
         },
-        editUser: async (parent, args: {
-            user: {
-                id: string, username?: string, type?: userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, emailNotificationsStatus?: unknown, password?: string, description?: string, organisation?: string, expiredAt?: number, metadata?: unknown
-            }
-        }, context) => {
+        editUser: async (parent, args: { user: EditUserInput }, context) => {
             const requester = context.req.user;
             if (!requester) {
                 throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -691,7 +713,7 @@ async function formatEmailForForgottenPassword({ username, firstname, to, resetP
 
     const link = `${origin}/reset/${encryptedEmail}/${resetPasswordToken}`;
     return ({
-        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
         subject: `[${config.appName}] password reset`,
         html: `
@@ -715,7 +737,7 @@ async function formatEmailForForgottenPassword({ username, firstname, to, resetP
 
 function formatEmailForFogettenUsername({ username, to }: { username: string, to: string }) {
     return ({
-        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
         subject: `[${config.appName}] password reset`,
         html: `
@@ -735,7 +757,7 @@ function formatEmailForFogettenUsername({ username, to }: { username: string, to
 
 function formatEmailRequestExpiryDatetoClient({ username, to }: { username: string, to: string }) {
     return ({
-        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
         subject: `[${config.appName}] New expiry date has been requested!`,
         html: `
@@ -756,7 +778,7 @@ function formatEmailRequestExpiryDatetoClient({ username, to }: { username: stri
 
 function formatEmailRequestExpiryDatetoAdmin({ username, userEmail }: { username: string, userEmail: string }) {
     return ({
-        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to: `${config.adminEmail}`,
         subject: `[${config.appName}] New expiry date has been requested from ${username} account!`,
         html: `
@@ -777,7 +799,7 @@ function formatEmailRequestExpiryDatetoAdmin({ username, userEmail }: { username
 
 function formatEmailRequestExpiryDateNotification({ username, to }: { username: string, to: string }) {
     return ({
-        from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+        from: `${config.appName} <${config.nodemailer.auth.user}>`,
         to,
         subject: `[${config.appName}] New expiry date has been updated!`,
         html: `

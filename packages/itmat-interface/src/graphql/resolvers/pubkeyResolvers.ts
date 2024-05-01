@@ -141,7 +141,7 @@ export const pubkeyResolvers: DMPResolversMap = {
                     const updateResult = await db.collections.pubkeys_collection.findOneAndUpdate({ associatedUserId, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
                     if (updateResult) {
                         await mailer.sendMail({
-                            from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+                            from: `${config.appName} <${config.nodemailer.auth.user}>`,
                             to: requester.email,
                             subject: `[${config.appName}] New public-key has sucessfully registered!`,
                             html: `
@@ -178,7 +178,7 @@ export const pubkeyResolvers: DMPResolversMap = {
             });
 
             await mailer.sendMail({
-                from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+                from: `${config.appName} <${config.nodemailer.auth.user}>`,
                 to: requester.email,
                 subject: `[${config.appName}] Public-key Registration!`,
                 html: `

@@ -99,18 +99,8 @@ export const fileResolvers: DMPResolversMap = {
             return new Promise<IFile>((resolve, reject) => {
                 (async () => {
                     try {
-                        const fileEntry: IFile = {
-                            id: uuid(),
-                            fileName: file.filename,
-                            studyId: args.studyId,
-                            description: args.description,
-                            uploadTime: `${Date.now()}`,
-                            uploadedBy: requester.id,
-                            deleted: null,
-                            metadata: {},
-                            uri: '',
-                            hash: ''
-                        };
+                        let fileName: string = file.filename;
+                        let metadata: Record<string, unknown> = {};
                         if (!isStudyLevel) {
                             const matcher = /(.{1})(.{6})-(.{3})(.{6})-(\d{8})-(\d{8})\.(.*)/;
                             let startDate;
@@ -157,8 +147,8 @@ export const fileResolvers: DMPResolversMap = {
                             const formattedStartDate = typedStartDate.getFullYear() + `${typedStartDate.getMonth() + 1}`.padStart(2, '0') + `${typedStartDate.getDate()}`.padStart(2, '0');
                             const typedEndDate = new Date(endDate);
                             const formattedEndDate = typedEndDate.getFullYear() + `${typedEndDate.getMonth() + 1}`.padStart(2, '0') + `${typedEndDate.getDate()}`.padStart(2, '0');
-                            fileEntry.fileName = `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}`;
-                            fileEntry.metadata = {
+                            fileName = `${parsedDescription.participantId.toUpperCase()}-${parsedDescription.deviceId.toUpperCase()}-${formattedStartDate}-${formattedEndDate}.${fileNameParts[fileNameParts.length - 1]}`;
+                            metadata = {
                                 participantId: parsedDescription.participantId,
                                 deviceId: parsedDescription.deviceId,
                                 startDate: parsedDescription.startDate, // should be in milliseconds
@@ -208,7 +198,19 @@ export const fileResolvers: DMPResolversMap = {
                             reject(new GraphQLError('File size mismatch', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } }));
                             return;
                         }
-
+                        const fileEntry: IFile = {
+                            id: uuid(),
+                            fileName: fileName,
+                            studyId: args.studyId,
+                            description: args.description,
+                            uploadTime: `${Date.now()}`,
+                            uploadedBy: requester.id,
+                            deleted: null,
+                            metadata: metadata,
+                            fileSize: readBytes.toString(),
+                            uri: fileUri,
+                            hash: hashString
+                        };
                         fileEntry.fileSize = readBytes.toString();
                         fileEntry.uri = fileUri;
                         fileEntry.hash = hashString;

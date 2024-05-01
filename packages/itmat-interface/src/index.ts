@@ -106,7 +106,7 @@ async function emailNotification() {
     }).toArray();
     for (const user of users) {
         await mailer.sendMail({
-            from: `${config.appName} <${config.nodemailer.auth?.user}>`,
+            from: `${config.appName} <${config.nodemailer.auth.user}>`,
             to: user.email,
             subject: `[${config.appName}] Account is going to expire!`,
             html: `

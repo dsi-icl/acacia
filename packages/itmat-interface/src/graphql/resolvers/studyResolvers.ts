@@ -28,6 +28,17 @@ import { dataStandardization } from '../../utils/query';
 import { DMPResolversMap } from './context';
 import { Filter } from 'mongodb';
 
+interface CreateFieldInput {
+    fieldId: string;
+    fieldName: string
+    tableName: string
+    dataType: enumValueType
+    possibleValues?: IValueDescription[]
+    unit?: string
+    comments?: string
+    metadata: Record<string, unknown>
+}
+
 interface EditFieldInput {
     fieldId: string;
     fieldName: string;
@@ -1091,7 +1102,7 @@ export const studyResolvers: DMPResolversMap = {
             const study = await studyCore.editStudy(studyId, description);
             return study;
         },
-        createNewField: async (parent, { studyId, fieldInput }: { studyId: string, fieldInput }, context) => {
+        createNewField: async (parent, { studyId, fieldInput }: { studyId: string, fieldInput: CreateFieldInput[] }, context) => {
             const requester = context.req.user;
             if (!requester) {
                 throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -1138,6 +1149,9 @@ export const studyResolvers: DMPResolversMap = {
                 if (!isError) {
                     const newFieldEntry: IFieldEntry = {
                         ...fieldEntry,
+                        fieldId: oneFieldInput.fieldId,
+                        fieldName: oneFieldInput.fieldName,
+                        dataType: oneFieldInput.dataType,
                         id: uuid(),
                         studyId: studyId,
                         dataVersion: null,

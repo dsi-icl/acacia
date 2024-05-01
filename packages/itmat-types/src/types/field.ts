@@ -5,7 +5,7 @@ export interface IFieldEntry {
     fieldName: string;
     tableName?: string;
     dataType: enumValueType;
-    possibleValues?: IValueDescription[];
+    possibleValues?: IValueDescription[] | null;
     unit?: string;
     comments?: string;
     metadata?: Record<string, unknown>;

@@ -2166,52 +2166,52 @@ if (global.hasMinio) {
                 expect(res.body.data.getStudy).toBe(null);
             });
 
-            // test('Get study (user with privilege)', async () => {
-            //     {
-            //         const res = await authorisedUser.post('/graphql').send({
-            //             query: print(GET_STUDY),
-            //             variables: { studyId: createdStudy.id }
-            //         });
-            //         expect(res.status).toBe(200);
-            //         expect(res.body.errors).toHaveLength(1);
-            //         expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
-            //         expect(res.body.data.getStudy).toEqual(null);
-            //     }
-            //     {
-            //         const res = await authorisedUser.post('/graphql').send({
-            //             query: print(GET_PROJECT),
-            //             variables: { projectId: createdProject.id, admin: false }
-            //         });
-            //         expect(res.status).toBe(200);
-            //         expect(res.body.errors).toBeUndefined();
-            //         expect(res.body.data.getProject).toEqual({
-            //             id: createdProject.id,
-            //             studyId: createdStudy.id,
-            //             name: createdProject.name,
-            //             jobs: [],
-            //             iCanEdit: true,
-            //             fields: [],
-            //             files: [],
-            //             dataVersion: {
-            //                 contentId: 'mockContentId',
-            //                 id: 'mockDataVersionId',
-            //                 tag: null,
-            //                 updateDate: '5000000',
-            //                 version: '0.0.1'
-            //             },
-            //             summary: {
-            //                 subjects: [
-            //                     'mock_patient1',
-            //                     'mock_patient2'
-            //                 ],
-            //                 visits: [
-            //                     'mockvisitId'
-            //                 ],
-            //                 standardizationTypes: []
-            //             }
-            //         });
-            //     }
-            // });
+            test('Get study (user with privilege)', async () => {
+                {
+                    const res = await authorisedUser.post('/graphql').send({
+                        query: print(GET_STUDY),
+                        variables: { studyId: createdStudy.id }
+                    });
+                    expect(res.status).toBe(200);
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0].message).toBe(errorCodes.NO_PERMISSION_ERROR);
+                    expect(res.body.data.getStudy).toEqual(null);
+                }
+                {
+                    const res = await authorisedUser.post('/graphql').send({
+                        query: print(GET_PROJECT),
+                        variables: { projectId: createdProject.id, admin: false }
+                    });
+                    expect(res.status).toBe(200);
+                    expect(res.body.errors).toBeUndefined();
+                    expect(res.body.data.getProject).toEqual({
+                        id: createdProject.id,
+                        studyId: createdStudy.id,
+                        name: createdProject.name,
+                        jobs: [],
+                        iCanEdit: true,
+                        fields: [],
+                        files: [],
+                        dataVersion: {
+                            contentId: 'mockContentId',
+                            id: 'mockDataVersionId',
+                            tag: null,
+                            updateDate: '5000000',
+                            version: '0.0.1'
+                        },
+                        summary: {
+                            subjects: [
+                                'mock_patient1',
+                                'mock_patient2'
+                            ],
+                            visits: [
+                                'mockvisitId'
+                            ],
+                            standardizationTypes: []
+                        }
+                    });
+                }
+            });
 
             test('Get study fields (admin)', async () => {
                 const res = await admin.post('/graphql').send({

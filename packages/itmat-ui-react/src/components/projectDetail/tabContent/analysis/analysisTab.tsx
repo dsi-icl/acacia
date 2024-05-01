@@ -1184,7 +1184,7 @@ function divideResults(filters, results, fields, dmFields) {
             dataClip.dataForGraph = dataForGraph;
         } else if ([enumValueType.CATEGORICAL, enumValueType.BOOLEAN].includes(fieldDef.dataType)) {
             const dataForGraph = Object.keys(dataClip.data).reduce((acc, curr) => {
-                if (fieldDef.possibleValues !== undefined) {
+                if (fieldDef.possibleValues) {
                     fieldDef.possibleValues.forEach(ek => {
                         acc.push({
                             x: curr,

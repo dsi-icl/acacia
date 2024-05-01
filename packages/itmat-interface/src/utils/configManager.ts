@@ -11,7 +11,7 @@ export interface IConfiguration extends IServerConfig {
     appName: string;
     database: IDatabaseBaseConfig;
     objectStore: IObjectStoreConfig;
-    nodemailer: SMTPTransport.Options;
+    nodemailer: SMTPTransport.Options & { auth: { user: string, pass: string } };
     aesSecret: string;
     sessionsSecret: string;
     adminEmail: string;

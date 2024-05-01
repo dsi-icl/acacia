@@ -15,14 +15,6 @@ export interface IDataEntry {
     uploadedAt: number;
 }
 
-export interface IFieldDescriptionObject {
-    fieldId: string;
-    fieldName: string;
-    timepoint: number;
-    measurement: number;
-    dataType: 'cat' | 'int' | 'dec' | 'bool' | 'file' | 'json' | 'str' | 'date';
-}
-
 export interface IGroupedData {
     [key: string]: {
         [key: string]: {
