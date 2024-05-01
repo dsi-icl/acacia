@@ -367,8 +367,6 @@ enum LOG_ACTION {
     GET_STUDY_FIELDS
     CREATE_STUDY
     EDIT_STUDY
-    CREATE_DATA_CURATION_JOB
-    CREATE_FIELD_CURATION_JOB
     GET_DATA_RECORDS
     GET_ONTOLOGY_TREE
     CHECK_DATA_COMPLETE
@@ -613,8 +611,6 @@ type Mutation {
     createQuery(query: QueryObjInput!): QueryEntry
 
     # CURATION
-    createDataCurationJob(file: [String]!, studyId: String!): [Job]
-    createFieldCurationJob(file: String!, studyId: String!, tag: String!): Job
     createQueryCurationJob(queryId: [String], studyId: String, projectId: String): Job
     setDataversionAsCurrent(studyId: String!, dataVersionId: String!): Study
 

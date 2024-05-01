@@ -1,6 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { withFilter } from 'graphql-subscriptions';
-import { IJobEntryForDataCuration, IJobEntryForFieldCuration, IJobEntryForQueryCuration, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
+import { IJobEntryForQueryCuration, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
@@ -20,114 +20,6 @@ enum JOB_TYPE {
 export const jobResolvers: DMPResolversMap = {
     Query: {},
     Mutation: {
-        createDataCurationJob: async (parent, args: { file: string[], studyId: string }, context) => {
-            const requester = context.req.user;
-            if (!requester) {
-                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-            }
-            /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
-                IPermissionManagementOptions.job,
-                atomicOperation.WRITE,
-                requester,
-                args.studyId
-            );
-            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
-
-            const dataFormatToJobType = {
-                json: JOB_TYPE.DATA_UPLOAD_JSON,
-                csv: JOB_TYPE.DATA_UPLOAD_CSV
-                // tsv: JOB_TYPE.DATA_UPLOAD_CSV
-            };
-
-            const jobList: IJobEntryForDataCuration[] = [];
-            for (const oneFile of args.file) {
-                /* check if the file exists */
-                const file = await db.collections.files_collection.findOne({ deleted: null, id: oneFile });
-                if (!file) {
-                    throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-                }
-
-                /* check study exists */
-                await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
-
-                /* create job */
-                const parts = file.fileName.split('.');
-                const dataFormat = parts[parts.length - 1] as keyof typeof dataFormatToJobType;
-
-                if (!dataFormatToJobType[dataFormat]) {
-                    throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-                }
-                const job: IJobEntryForDataCuration = {
-                    id: uuid(),
-                    jobType: dataFormatToJobType[dataFormat],
-                    studyId: args.studyId,
-                    requester: requester.id,
-                    requestTime: new Date().valueOf(),
-                    receivedFiles: [oneFile],
-                    error: null,
-                    status: 'QUEUED',
-                    cancelled: false
-                };
-
-                const result = await db.collections.jobs_collection.insertOne(job);
-                jobList.push(job);
-                if (!result.acknowledged) {
-                    throw new GraphQLError(errorCodes.DATABASE_ERROR);
-                }
-            }
-            return jobList;
-        },
-        createFieldCurationJob: async (parent, args: { file: string, studyId: string, tag: string }, context) => {
-            const requester = context.req.user;
-            if (!requester) {
-                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-            }
-            /* check permission */
-            const hasPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
-                IPermissionManagementOptions.job,
-                atomicOperation.WRITE,
-                requester,
-                args.studyId
-            );
-            if (!hasPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
-
-            /* check if the file exists */
-            const file = await db.collections.files_collection.findOne({ deleted: null, id: args.file });
-            if (!file) {
-                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
-            }
-
-            /* check study exists */
-            await studyCore.findOneStudy_throwErrorIfNotExist(args.studyId);
-
-            /* check tag not undefined */
-            if (args.tag === undefined) {
-                throw new GraphQLError('Tag is not provided', { extensions: { code: errorCodes.CLIENT_MALFORMED_INPUT } });
-            }
-
-            /* create job */
-            const job: IJobEntryForFieldCuration = {
-                id: uuid(),
-                jobType: JOB_TYPE.FIELD_INFO_UPLOAD,
-                studyId: args.studyId,
-                requester: requester.id,
-                requestTime: new Date().valueOf(),
-                receivedFiles: [args.file],
-                error: null,
-                status: 'QUEUED',
-                cancelled: false,
-                data: {
-                    tag: args.tag
-                }
-            };
-
-            const result = await db.collections.jobs_collection.insertOne(job);
-            if (!result.acknowledged) {
-                throw new GraphQLError(errorCodes.DATABASE_ERROR);
-            }
-            return job;
-        },
         createQueryCurationJob: async (parent, args: { queryId: string[], studyId: string, projectId: string }, context) => {
             const requester = context.req.user;
             if (!requester) {
