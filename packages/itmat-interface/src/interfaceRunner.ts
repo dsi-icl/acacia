@@ -4,7 +4,8 @@ import { objStore } from './objStore/objStore';
 import { MongoClient } from 'mongodb';
 import { Router } from './server/router';
 import { Runner } from './server/server';
-import { pubsub, subscriptionEvents } from './graphql/pubsub';
+import { pubsub } from './graphql/pubsub';
+import { subscriptionEvents } from '@itmat-broker/itmat-cores';
 
 class ITMATInterfaceRunner extends Runner {
 

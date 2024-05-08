@@ -1,7 +1,7 @@
 import merge from 'deepmerge';
 import fs from 'fs-extra';
 import path from 'path';
-import { IObjectStoreConfig, IDatabaseBaseConfig } from '@itmat-broker/itmat-commons';
+import { IObjectStoreConfig, IDatabaseBaseConfig, Logger } from '@itmat-broker/itmat-commons';
 import configDefaults from '../../config/config.sample.json';
 import { IServerConfig } from '../server/server.js';
 
@@ -15,17 +15,17 @@ class ConfigurationManager {
     public static expand(configurationFiles: string[]): IConfiguration {
 
         let config = configDefaults;
-        console.log('Applied default configuration.');
+        Logger.log('Applied default configuration.');
 
         configurationFiles.forEach((configurationFile) => {
             try {
                 if (fs.existsSync(configurationFile)) {
                     const content = fs.readFileSync(configurationFile, 'utf8');
                     config = merge(config, JSON.parse(content));
-                    console.log(`Applied configuration from ${path.resolve(configurationFile)}.`);
+                    Logger.log(`Applied configuration from ${path.resolve(configurationFile)}.`);
                 }
             } catch (e) {
-                console.error('Could not parse configuration file.');
+                Logger.error('Could not parse configuration file.');
             }
         });
 

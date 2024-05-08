@@ -6,15 +6,13 @@ import request, { SuperAgentTest } from 'supertest';
 import { print } from 'graphql';
 import { connectAdmin, connectUser, connectAgent } from './_loginHelper';
 import { db } from '../../src/database/database';
-import { makeAESIv, makeAESKeySalt, encryptEmail } from '../../src/graphql/resolvers/userResolvers';
 import { v4 as uuid } from 'uuid';
 import { Router } from '../../src/server/router';
-import { errorCodes } from '../../src/graphql/errors';
 import { MongoClient, Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { setupDatabase } from '@itmat-broker/itmat-setup';
 import config from '../../config/config.sample.json';
-import * as mfa from '../../src/utils/mfa';
+import { errorCodes, generateTOTP, encryptEmail, makeAESKeySalt, makeAESIv } from '@itmat-broker/itmat-cores';
 import {
     WHO_AM_I,
     GET_USERS,
@@ -109,7 +107,7 @@ describe('USERS API', () => {
         beforeAll(async () => {
             loggedoutUser = request.agent(app);
             encryptedEmailForStandardUser =
-                await encryptEmail(SEED_STANDARD_USER_EMAIL, makeAESKeySalt(presetToken), makeAESIv(presetToken));
+                await encryptEmail(config.aesSecret, SEED_STANDARD_USER_EMAIL, makeAESKeySalt(presetToken), makeAESIv(presetToken));
         });
 
         test('Request reset password with non-existent user providing username', async () => {
@@ -692,7 +690,7 @@ describe('USERS API', () => {
             };
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
             const newloggedoutuser = request.agent(app);
-            const otp = mfa.generateTOTP(userSecret).toString();
+            const otp = generateTOTP(userSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),
                 variables: {
@@ -737,7 +735,7 @@ describe('USERS API', () => {
             };
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
             const newloggedoutuser = request.agent(app);
-            const otp = mfa.generateTOTP(adminSecret).toString();
+            const otp = generateTOTP(adminSecret).toString();
             const res = await newloggedoutuser.post('/graphql').set('Content-type', 'application/json').send({
                 query: print(LOGIN),
                 variables: {
@@ -1104,7 +1102,7 @@ describe('USERS API', () => {
                 .collection<IUser>(config.database.collections.users_collection)
                 .findOne({ username: 'testuser0' }));
 
-            const incorrectTotp = mfa.generateTOTP(createdUser.otpSecret) + 1;
+            const incorrectTotp = generateTOTP(createdUser.otpSecret) + 1;
             const res_login = await admin.post('/graphql')
                 .set('Content-type', 'application/json')
                 .send({
