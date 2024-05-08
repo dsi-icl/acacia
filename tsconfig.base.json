@@ -33,6 +33,9 @@
             ],
             "@itmat-broker/itmat-types": [
                 "packages/itmat-types/src/index.ts"
+            ],
+            "@itmat-broker/itmat-cores": [
+                "packages/itmat-cores/src/index.ts"
             ]
         }
     },

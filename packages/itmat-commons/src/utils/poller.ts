@@ -60,11 +60,7 @@ export class JobPoller {
                 await this.action(updateResult).catch(() => { return; });
                 Logger.log(`${this.identity} Finished processing job of type ${updateResult.jobType} - id: ${updateResult.id}.`);
                 this.setInterval();
-            } else {
-                Logger.log(`${this.identity} No job found.`);
-                // this.setInterval();
             }
-
         } catch (err) {
             //TODO Handle error recording
             Logger.error(`${this.identity} Errored picking up a job: ${err}`);

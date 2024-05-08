@@ -7,3 +7,4 @@ export type { IObjectStoreConfig } from './objStore';
 export { ObjectStore } from './objStore';
 export { Logger } from './logger';
 export { JobPoller } from './poller';
+export { Mailer } from './emailer';
