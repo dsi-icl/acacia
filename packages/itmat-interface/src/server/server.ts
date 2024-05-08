@@ -1,5 +1,5 @@
 import { CustomError, IServerBaseConfig, Logger, ServerBase } from '@itmat-broker/itmat-commons';
-import { IConfiguration } from '../utils/configManager';
+import { IConfiguration } from '@itmat-broker/itmat-cores';
 
 export interface IServerConfig extends IServerBaseConfig {
     bcrypt: {

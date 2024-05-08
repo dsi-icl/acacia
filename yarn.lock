@@ -63,7 +63,7 @@
 
 "@ant-design/plots@2.2.0":
   version "2.2.0"
-  resolved "https://registry.npmjs.org/@ant-design/plots/-/plots-2.2.0.tgz"
+  resolved "https://registry.yarnpkg.com/@ant-design/plots/-/plots-2.2.0.tgz#9606de1dfd5ca0297c38a77ea483815d7417c2f5"
   integrity sha512-tCsOyPwxQ8xr5wMOWrFO3CEgdboXxMzMPrydZ7szXULi8LzztO9HHrg5WClwjAr9Zgfit0fHjmPd1FkIBP4k7A==
   dependencies:
     "@ant-design/charts-util" "0.0.1-alpha.5"

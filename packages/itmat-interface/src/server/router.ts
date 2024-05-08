@@ -19,19 +19,17 @@ import passport from 'passport';
 import { db } from '../database/database';
 import { resolvers } from '../graphql/resolvers';
 import { typeDefs } from '../graphql/typeDefs';
-import { fileDownloadController } from '../rest/fileDownload';
-import { userLoginUtils } from '../utils/userLoginUtils';
-import { IConfiguration } from '../utils/configManager';
-import { logPlugin } from '../log/logPlugin';
-import { spaceFixing } from '../utils/regrex';
+import { fileDownloadControllerInstance } from '../rest/fileDownload';
 import { BigIntResolver as scalarResolvers } from 'graphql-scalars';
 import jwt from 'jsonwebtoken';
-import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
 import { IUser } from '@itmat-broker/itmat-types';
 import { ApolloServerContext } from '../graphql/ApolloServerContext';
 import { DMPContext } from '../graphql/resolvers/context';
+import { logPluginInstance } from '../log/logPlugin';
+import { IConfiguration, spaceFixing, userRetrieval } from '@itmat-broker/itmat-cores';
+import { userLoginUtils } from '../utils/userLoginUtils';
 
 export class Router {
     private readonly app: Express;
@@ -122,7 +120,7 @@ export class Router {
             plugins: [
                 {
                     async serverWillStart() {
-                        await logPlugin.serverWillStartLogPlugin();
+                        await logPluginInstance.serverWillStartLogPlugin();
                         return {
                             async drainServer() {
                                 await serverCleanup.dispose();
@@ -137,7 +135,7 @@ export class Router {
                                 requestContext.request.variables = operation ? spaceFixing(operation, actionData) : undefined;
                             },
                             async willSendResponse(requestContext) {
-                                await logPlugin.requestDidStartLogPlugin(requestContext);
+                                await logPluginInstance.requestDidStartLogPlugin(requestContext);
                             }
                         };
                     }
@@ -236,7 +234,7 @@ export class Router {
                             }
                         });
                         // store the associated user with the JWT to context
-                        const associatedUser = await userRetrieval(pubkey);
+                        const associatedUser = await userRetrieval(db, pubkey);
                         req.user = associatedUser;
                     }
                     return ({ req, res });
@@ -267,7 +265,7 @@ export class Router {
         //     next();
         // });
 
-        this.app.get('/file/:fileId', fileDownloadController);
+        this.app.get('/file/:fileId', fileDownloadControllerInstance.fileDownloadController);
 
     }
 

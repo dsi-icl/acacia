@@ -91,7 +91,6 @@ const LogList: FunctionComponent<{ list: ILogEntry[] }> = ({ list }) => {
             Object.keys(logCopy).forEach(item => {
                 logCopy[item] = (logCopy[item] || '').toString();
             });
-            console.log(inputs);
             return (searchTerm === '' || (logCopy.requesterName.toUpperCase().search(searchTerm) > -1 || logCopy.requesterType.toUpperCase().search(searchTerm) > -1
                 || logCopy.logType.toUpperCase().search(searchTerm) > -1 || logCopy.actionType.toUpperCase().search(searchTerm) > -1
                 || logCopy.status.toUpperCase().search(searchTerm) > -1 || logCopy.userAgent.toUpperCase().search(searchTerm) > -1

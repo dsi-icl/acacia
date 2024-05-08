@@ -12,7 +12,7 @@ import { objStore } from '../../src/objStore/objStore';
 import { Router } from '../../src/server/router';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
-import { errorCodes } from '../../src/graphql/errors';
+import { errorCodes } from '@itmat-broker/itmat-cores';
 import { Db, MongoClient } from 'mongodb';
 import { studyType, IStudy, IUser, IRole, IFile, IFieldEntry, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { UPLOAD_FILE, CREATE_STUDY, DELETE_FILE } from '@itmat-broker/itmat-models';

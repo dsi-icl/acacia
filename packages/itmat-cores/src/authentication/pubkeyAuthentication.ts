@@ -1,10 +1,10 @@
 import { GraphQLError } from 'graphql';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
-import { db } from '../database/database';
+import { DBType } from '../database/database';
 import { IUser } from '@itmat-broker/itmat-types';
 
 
-export async function userRetrieval(pubkey: string): Promise<IUser> {
+export async function userRetrieval(db: DBType, pubkey: string): Promise<IUser> {
     // retrieve userId associated with the token
     const pubkeyrec = await db.collections.pubkeys_collection.findOne({ jwtPubkey: pubkey, deleted: null });
     if (pubkeyrec === null || pubkeyrec === undefined) {

@@ -7,11 +7,11 @@ import { userResolvers } from './userResolvers';
 import { organisationResolvers } from './organisationResolvers';
 import { pubkeyResolvers } from './pubkeyResolvers';
 import { GraphQLError } from 'graphql';
-import { errorCodes } from '../errors';
 import { logResolvers } from './logResolvers';
 import { standardizationResolvers } from './standardizationResolvers';
 import { IResolvers } from '@graphql-tools/utils';
 import { DMPResolver } from './context';
+import { errorCodes } from '@itmat-broker/itmat-cores';
 
 const modules = [
     studyResolvers,
