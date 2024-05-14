@@ -1,10 +1,10 @@
 import { InMemoryCache } from '@apollo/client/cache';
-import { ApolloClient, from, ApolloLink } from '@apollo/client';
+import { ApolloClient, from } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import createUploadLink from 'apollo-upload-client/createUploadLink.mjs';
 import axios from 'axios';
 
-const customFetch = (uri, options): any => {
+const customFetch = async (uri, options) => {
     options.url = uri;
     options.data = options.body;
     if (options.body instanceof FormData) {
@@ -13,10 +13,10 @@ const customFetch = (uri, options): any => {
             if (currentOperation.operationName === 'uploadFile') {
                 const description = JSON.parse(currentOperation.variables.description);
                 options.onUploadProgress = (progressEvent) => {
-                    (window as any).onUploadProgressHackMap?.[`UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`]?.(progressEvent);
+                    window.onUploadProgressHackMap?.[`UP_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`]?.(progressEvent);
                 };
                 options.onDownloadProgress = (progressEvent) => {
-                    (window as any).onUploadProgressHackMap?.[`DOWN_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`]?.(progressEvent);
+                    window.onUploadProgressHackMap?.[`DOWN_${description.participantId}_${description.deviceId}_${description.startDate}_${description.endDate}`]?.(progressEvent);
                 };
             }
         }
@@ -45,7 +45,7 @@ const uploadLink = createUploadLink({
     uri: `${window.location.origin}/graphql`,
     credentials: 'include',
     fetch: customFetch
-}) as any as ApolloLink;
+});
 
 const cache = new InMemoryCache({
     dataIdFromObject: (object) => {
@@ -63,7 +63,7 @@ export const client = new ApolloClient({
     link: from([
         onError(({ response, graphQLErrors, networkError }) => {
             if (graphQLErrors) {
-                if ((response as any).errors[0].message === 'NOT_LOGGED_IN') {
+                if (response?.errors?.[0].message === 'NOT_LOGGED_IN') {
                     window.location.reload();
                 }
                 graphQLErrors.map((error) =>

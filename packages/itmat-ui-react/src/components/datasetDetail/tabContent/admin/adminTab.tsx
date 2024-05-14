@@ -8,6 +8,7 @@ import { GET_STUDY, DELETE_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
 import { Mutation, Query } from '@apollo/client/react/components';
 import { Navigate, useParams } from 'react-router-dom';
 import { Button } from 'antd';
+import { IStudy } from '@itmat-broker/itmat-types';
 
 export const AdminTabContent: FunctionComponent = () => {
 
@@ -29,32 +30,31 @@ export const AdminTabContent: FunctionComponent = () => {
                 <br />
                 <Subsection title='Dataset Deletion'>
                     <p>Be careful to check all related projects and files before deleting this dataset!</p>
-                    <Query<any, any> query={GET_STUDY} variables={{ studyId }}>
+                    <Query<{ getStudy: IStudy }, { studyId: string }> query={GET_STUDY} variables={{ studyId }}>
                         {({ loading, data, error }) => {
                             if (loading) { return <LoadSpinner />; }
                             if (error) { return <p>{error.toString()}</p>; }
+                            if (!data) { return null; }
 
-                            return <Mutation<any, any>
+                            return <Mutation<{ deleteStudy: { successful: boolean } }, { studyId: string }>
                                 mutation={DELETE_STUDY}
                                 refetchQueries={[
                                     { query: WHO_AM_I, variables: { fetchDetailsAdminOnly: false, fetchAccessPrivileges: false } }
                                 ]}
                             >
-
                                 {(deleteStudy, { loading, error, data: StudyDeletedData }) => {
                                     if (StudyDeletedData && StudyDeletedData.deleteStudy && StudyDeletedData.deleteStudy.successful) {
                                         return <Navigate to={'/datasets'} />;
                                     }
                                     if (error) return <p>{error.message}</p>;
-                                    if (loading)
-                                        return <LoadSpinner />;
-                                    return (
+                                    if (loading) return <LoadSpinner />;
+                                    return !deleteButtonShown
+                                        ? <Button onClick={() => setDeleteButtonShown(true)}>Delete the dataset</Button> :
                                         <>
-                                            {!deleteButtonShown ? <Button onClick={() => setDeleteButtonShown(true)}>Delete the dataset</Button> : <><Button danger type='primary' onClick={() => { deleteStudy({ variables: { studyId: data.getStudy.id } }); }}>Delete&nbsp;<i>{data.getStudy.name}</i></Button>&nbsp;&nbsp;&nbsp;&nbsp;<Button onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </Button></>}
-                                        </>
-                                    );
+                                            <Button danger type='primary' onClick={() => { deleteStudy({ variables: { studyId: data.getStudy.id } }).catch(() => { return; }); }}>Delete&nbsp;<i>{data.getStudy.name}</i></Button>
+                                            <Button onClick={() => { setDeleteButtonShown(false); }} style={{ cursor: 'pointer' }}> Cancel </Button>
+                                        </>;
                                 }}
-
                             </Mutation>;
                         }}
                     </Query>

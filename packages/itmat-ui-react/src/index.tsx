@@ -18,6 +18,7 @@ const mountApp = () => {
 mountApp();
 registerServiceWorker();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const module: any;
 if (module.hot) {
     module.hot.accept('./index', mountApp);

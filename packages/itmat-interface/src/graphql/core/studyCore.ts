@@ -1,9 +1,9 @@
 import { GraphQLError } from 'graphql';
-import { IFile, IUser, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IFieldEntry, deviceTypes, IOrganisation } from '@itmat-broker/itmat-types';
+import { IFile, IProject, IStudy, studyType, IStudyDataVersion, IDataEntry, IDataClip, IRole, IFieldEntry, deviceTypes, IOrganisation, IUserWithoutToken } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 import { errorCodes } from '../errors';
-import { PermissionCore, permissionCore, translateCohort } from './permissionCore';
+import { ICombinedPermissions, PermissionCore, permissionCore, translateCohort } from './permissionCore';
 import { validate } from '@ideafast/idgen';
 import type { MatchKeysAndValues } from 'mongodb';
 import { objStore } from '../../objStore/objStore';
@@ -15,7 +15,7 @@ export class StudyCore {
     constructor(private readonly localPermissionCore: PermissionCore) { }
 
     public async findOneStudy_throwErrorIfNotExist(studyId: string): Promise<IStudy> {
-        const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null })!;
+        const studySearchResult = await db.collections.studies_collection.findOne({ id: studyId, deleted: null });
         if (studySearchResult === null || studySearchResult === undefined) {
             throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
@@ -23,7 +23,7 @@ export class StudyCore {
     }
 
     public async findOneProject_throwErrorIfNotExist(projectId: string): Promise<IProject> {
-        const projectSearchResult = await db.collections!.projects_collection.findOne({ id: projectId, deleted: null })!;
+        const projectSearchResult = await db.collections.projects_collection.findOne({ id: projectId, deleted: null });
         if (projectSearchResult === null || projectSearchResult === undefined) {
             throw new GraphQLError('Project does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
@@ -32,7 +32,7 @@ export class StudyCore {
 
     public async createNewStudy(studyName: string, description: string, type: studyType, requestedBy: string): Promise<IStudy> {
         /* check if study already  exist (lowercase because S3 minio buckets cant be mixed case) */
-        const existingStudies = await db.collections!.studies_collection.aggregate(
+        const existingStudies = await db.collections.studies_collection.aggregate<{ name: string }>(
             [
                 { $match: { deleted: null } },
                 {
@@ -64,12 +64,12 @@ export class StudyCore {
             ontologyTrees: [],
             metadata: {}
         };
-        await db.collections!.studies_collection.insertOne(study);
+        await db.collections.studies_collection.insertOne(study);
         return study;
     }
 
     public async editStudy(studyId: string, description: string): Promise<IStudy> {
-        const res = await db.collections!.studies_collection.findOneAndUpdate({ id: studyId }, { $set: { description: description } }, { returnDocument: 'after' });
+        const res = await db.collections.studies_collection.findOneAndUpdate({ id: studyId }, { $set: { description: description } }, { returnDocument: 'after' });
         if (res) {
             return res;
         } else {
@@ -82,7 +82,7 @@ export class StudyCore {
         const newContentId = uuid();
 
         // update data
-        const resData = await db.collections!.data_collection.updateMany({
+        const resData = await db.collections.data_collection.updateMany({
             m_studyId: studyId,
             m_versionId: null
         }, {
@@ -91,7 +91,7 @@ export class StudyCore {
             }
         });
         // update field
-        const resField = await db.collections!.field_dictionary_collection.updateMany({
+        const resField = await db.collections.field_dictionary_collection.updateMany({
             studyId: studyId,
             dataVersion: null
         }, {
@@ -100,7 +100,7 @@ export class StudyCore {
             }
         });
         // update standardization
-        const resStandardization = await db.collections!.standardizations_collection.updateMany({
+        const resStandardization = await db.collections.standardizations_collection.updateMany({
             studyId: studyId,
             dataVersion: null
         }, {
@@ -110,7 +110,7 @@ export class StudyCore {
         });
 
         // update ontology trees
-        const resOntologyTrees = await db.collections!.studies_collection.updateOne({ 'id': studyId, 'deleted': null, 'ontologyTrees.dataVersion': null }, {
+        const resOntologyTrees = await db.collections.studies_collection.updateOne({ 'id': studyId, 'deleted': null, 'ontologyTrees.dataVersion': null }, {
             $set: {
                 'ontologyTrees.$.dataVersion': newDataVersionId
             }
@@ -128,7 +128,7 @@ export class StudyCore {
             tag: tag,
             updateDate: (new Date().valueOf()).toString()
         };
-        await db.collections!.studies_collection.updateOne({ id: studyId }, {
+        await db.collections.studies_collection.updateOne({ id: studyId }, {
             $push: { dataVersions: newDataVersion },
             $inc: {
                 currentDataVersion: 1
@@ -136,9 +136,9 @@ export class StudyCore {
         });
 
         // update permissions based on roles
-        const roles = await db.collections!.roles_collection.find<IRole>({ studyId: studyId, deleted: null }).toArray();
+        const roles = await db.collections.roles_collection.find<IRole>({ studyId: studyId, deleted: null }).toArray();
         for (const role of roles) {
-            const filters: Record<string, string[]> = {
+            const filters: ICombinedPermissions = {
                 subjectIds: role.permissions.data?.subjectIds || [],
                 visitIds: role.permissions.data?.visitIds || [],
                 fieldIds: role.permissions.data?.fieldIds || []
@@ -149,7 +149,9 @@ export class StudyCore {
                 if (role.permissions.data.filters.length > 0) {
                     validSubjects = [];
                     const subqueries = translateCohort(role.permissions.data.filters);
-                    validSubjects = (await db.collections!.data_collection.aggregate([{
+                    validSubjects = (await db.collections.data_collection.aggregate<{
+                        m_subjectId: string, m_visitId: string, m_fieldId: string, value: string | number | boolean | { [key: string]: unknown }
+                    }>([{
                         $match: { m_fieldId: { $in: role.permissions.data.filters.map(el => el.field) } }
                     },
                     {
@@ -176,7 +178,7 @@ export class StudyCore {
                 validSubjects = [/^.*$/];
             }
             const tag = `metadata.${'role:'.concat(role.id)}`;
-            await db.collections!.data_collection.updateMany({
+            await db.collections.data_collection.updateMany({
                 m_studyId: studyId,
                 m_versionId: newDataVersionId,
                 $and: [
@@ -188,7 +190,7 @@ export class StudyCore {
             }, {
                 $set: { [tag]: true }
             });
-            await db.collections!.data_collection.updateMany({
+            await db.collections.data_collection.updateMany({
                 m_studyId: studyId,
                 m_versionId: newDataVersionId,
                 $or: [
@@ -200,27 +202,27 @@ export class StudyCore {
             }, {
                 $set: { [tag]: false }
             });
-            await db.collections!.field_dictionary_collection.updateMany({
+            await db.collections.field_dictionary_collection.updateMany({
                 studyId: studyId,
                 dataVersion: newDataVersionId,
                 fieldId: { $in: filters.fieldIds.map((el: string) => new RegExp(el)) }
             }, {
-                $set: { [tag as any]: true }
+                $set: { [tag]: true }
             });
-            await db.collections!.field_dictionary_collection.updateMany({
+            await db.collections.field_dictionary_collection.updateMany({
                 studyId: studyId,
                 dataVersion: newDataVersionId,
                 fieldId: { $nin: filters.fieldIds.map((el: string) => new RegExp(el)) }
             }, {
-                $set: { [tag as any]: false }
+                $set: { [tag]: false }
             });
         }
         return newDataVersion;
     }
 
-    public async uploadOneDataClip(studyId: string, permissions: any, fieldList: Partial<IFieldEntry>[], data: IDataClip[], requester: IUser): Promise<any> {
+    public async uploadOneDataClip(studyId: string, permissions, fieldList: Partial<IFieldEntry>[], data: IDataClip[], requester: IUserWithoutToken): Promise<unknown> {
         const response: IGenericResponse[] = [];
-        let bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
+        let bulk = db.collections.data_collection.initializeUnorderedBulkOp();
         // remove duplicates by subjectId, visitId and fieldId
         const keysToCheck: Array<keyof IDataClip> = ['visitId', 'subjectId', 'fieldId'];
         const filteredData = data.filter(
@@ -333,7 +335,7 @@ export class StudyCore {
                             error = `Field ${dataClip.fieldId}: Cannot parse as categorical, possible values not defined.`;
                             break;
                         }
-                        if (!fieldInDb.possibleValues.map((el: any) => el.code).includes(dataClip.value?.toString())) {
+                        if (dataClip.value && !fieldInDb.possibleValues.map((el) => el.code).includes(dataClip.value?.toString())) {
                             error = `Field ${dataClip.fieldId}: Cannot parse as categorical, value not in value list.`;
                             break;
                         } else {
@@ -363,9 +365,9 @@ export class StudyCore {
             let objWithData: Partial<MatchKeysAndValues<IDataEntry>>;
             // update the file data differently
             if (fieldInDb.dataType === 'file') {
-                const existing = await db.collections!.data_collection.findOne(obj);
+                const existing = await db.collections.data_collection.findOne<IDataEntry>(obj);
                 if (!existing) {
-                    await db.collections!.data_collection.insertOne({
+                    await db.collections.data_collection.insertOne({
                         ...obj,
                         id: uuid(),
                         uploadedAt: (new Date()).valueOf(),
@@ -385,7 +387,7 @@ export class StudyCore {
                     metadata: {
                         ...dataClip.metadata,
                         participantId: dataClip.subjectId,
-                        add: ((existing?.metadata as any)?.add || []).concat(parsedValue),
+                        add: (existing?.metadata?.add || []).concat(parsedValue),
                         uploader: requester.id
                     },
                     uploadedBy: requester.id
@@ -407,7 +409,7 @@ export class StudyCore {
             }
             if (bulk.batches.length > 999) {
                 await bulk.execute();
-                bulk = db.collections!.data_collection.initializeUnorderedBulkOp();
+                bulk = db.collections.data_collection.initializeUnorderedBulkOp();
             }
         }
         bulk.batches.length !== 0 && await bulk.execute();
@@ -415,15 +417,15 @@ export class StudyCore {
     }
 
     // This file uploading function will not check any metadate of the file
-    public async uploadFile(studyId: string, data: IDataClip, uploader: IUser, args: { fileLength?: number, fileHash?: string }): Promise<IFile | { code: errorCodes, description: string }> {
+    public async uploadFile(studyId: string, data: IDataClip, uploader: IUserWithoutToken, args: { fileLength?: number, fileHash?: string }): Promise<IFile | { code: errorCodes, description: string }> {
         if (!data.file || typeof (data.file) === 'string') {
             return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Invalid File Stream' };
         }
-        const study = await db.collections!.studies_collection.findOne({ id: studyId });
+        const study = await db.collections.studies_collection.findOne({ id: studyId });
         if (!study) {
             return { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY, description: 'Study does not exist.' };
         }
-        const sitesIDMarkers = (await db.collections!.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<any>((acc, curr) => {
+        const sitesIDMarkers = (await db.collections.organisations_collection.find<IOrganisation>({ deleted: null }).toArray()).reduce<{ [key: string]: string | null }>((acc, curr) => {
             if (curr.metadata?.siteIDMarker) {
                 acc[curr.metadata.siteIDMarker] = curr.shortname;
             }
@@ -431,17 +433,20 @@ export class StudyCore {
         }, {});
         // check file metadata
         if (data.metadata) {
-            let parsedDescription: Record<string, any>;
-            let startDate;
-            let endDate;
-            let deviceId;
-            let participantId;
+            let parsedDescription: Record<string, unknown>;
+            let startDate: number;
+            let endDate: number;
+            let deviceId: string;
+            let participantId: string;
             try {
                 parsedDescription = data.metadata;
-                startDate = parseInt(parsedDescription.startDate);
-                endDate = parseInt(parsedDescription.endDate);
-                participantId = data.subjectId.toString();
-                deviceId = parsedDescription.deviceId.toString();
+                if (!parsedDescription['startDate'] || !parsedDescription['endDate'] || !parsedDescription['deviceId'] || !parsedDescription['participantId']) {
+                    return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File description is invalid' };
+                }
+                startDate = parseInt(parsedDescription['startDate'].toString());
+                endDate = parseInt(parsedDescription['endDate'].toString());
+                participantId = parsedDescription['participantId'].toString();
+                deviceId = parsedDescription['deviceId'].toString();
             } catch (e) {
                 return { code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'File description is invalid' };
             }
@@ -463,10 +468,9 @@ export class StudyCore {
         const file: FileUpload = await data.file;
 
         // check if old files exist; if so, denote it as deleted
-        const dataEntry = await db.collections!.data_collection.findOne({ m_studyId: studyId, m_visitId: data.visitId, m_subjectId: data.subjectId, m_versionId: null, m_fieldId: data.fieldId });
+        const dataEntry = await db.collections.data_collection.findOne({ m_studyId: studyId, m_visitId: data.visitId, m_subjectId: data.subjectId, m_versionId: null, m_fieldId: data.fieldId });
         const oldFileId = dataEntry ? dataEntry.value : null;
         return new Promise<IFile>((resolve, reject) => {
-
             (async () => {
                 try {
                     const fileEntry: Partial<IFile> = {
@@ -477,7 +481,7 @@ export class StudyCore {
                         uploadTime: `${Date.now()}`,
                         uploadedBy: uploader.id,
                         deleted: null,
-                        metadata: (data.metadata as Record<string, any>)
+                        metadata: (data.metadata as Record<string, unknown>)
                     };
 
                     if (args.fileLength !== undefined && args.fileLength > fileSizeLimit) {
@@ -527,10 +531,10 @@ export class StudyCore {
                     fileEntry.fileSize = readBytes.toString();
                     fileEntry.uri = fileUri;
                     fileEntry.hash = hashString;
-                    const insertResult = await db.collections!.files_collection.insertOne(fileEntry as IFile);
+                    const insertResult = await db.collections.files_collection.insertOne(fileEntry as IFile);
                     if (insertResult.acknowledged) {
                         // delete old file if existing
-                        await db.collections!.files_collection.findOneAndUpdate({ studyId: studyId, id: oldFileId }, { $set: { deleted: Date.now().valueOf() } });
+                        oldFileId && await db.collections.files_collection.findOneAndUpdate({ studyId: studyId, id: oldFileId }, { $set: { deleted: Date.now().valueOf() } });
                         resolve(fileEntry as IFile);
                     } else {
                         throw new GraphQLError(errorCodes.DATABASE_ERROR);
@@ -540,7 +544,7 @@ export class StudyCore {
                     reject({ code: errorCodes.CLIENT_MALFORMED_INPUT, description: 'Missing file metadata.', error });
                     return;
                 }
-            })();
+            })().catch(() => { return; });
         });
     }
 
@@ -556,7 +560,7 @@ export class StudyCore {
             metadata: {}
         };
 
-        const getListOfPatientsResult = await db.collections!.data_collection.aggregate([
+        const getListOfPatientsResult = await db.collections.data_collection.aggregate([
             { $match: { m_studyId: studyId } },
             { $group: { _id: null, array: { $addToSet: '$m_subjectId' } } },
             { $project: { array: 1 } }
@@ -567,41 +571,41 @@ export class StudyCore {
         }
 
         if (getListOfPatientsResult[0] !== undefined) {
-            project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0].array);
+            project.patientMapping = this.createPatientIdMapping(getListOfPatientsResult[0]['array']);
         }
 
-        await db.collections!.projects_collection.insertOne(project);
+        await db.collections.projects_collection.insertOne(project);
         return project;
     }
 
     public async deleteStudy(studyId: string): Promise<void> {
         /* PRECONDITION: CHECKED THAT STUDY INDEED EXISTS */
-        const session = db.client!.startSession();
+        const session = db.client.startSession();
         session.startTransaction();
 
         const timestamp = new Date().valueOf();
 
         try {
             /* delete the study */
-            await db.collections!.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
+            await db.collections.studies_collection.findOneAndUpdate({ id: studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
 
             /* delete all projects related to the study */
-            await db.collections!.projects_collection.updateMany({ studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
+            await db.collections.projects_collection.updateMany({ studyId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } });
 
             /* delete all roles related to the study */
             await this.localPermissionCore.removeRoleFromStudyOrProject({ studyId });
 
             /* delete all files belong to the study*/
-            await db.collections!.files_collection.updateMany({ studyId, deleted: null }, { $set: { deleted: timestamp } });
+            await db.collections.files_collection.updateMany({ studyId, deleted: null }, { $set: { deleted: timestamp } });
 
             await session.commitTransaction();
-            session.endSession();
+            session.endSession().catch(() => { return; });
 
         } catch (error) {
             // If an error occurred, abort the whole transaction and
             // undo any changes that might have happened
             await session.abortTransaction();
-            session.endSession();
+            session.endSession().catch(() => { return; });
             throw error; // Rethrow so calling function sees error
         }
     }
@@ -610,7 +614,7 @@ export class StudyCore {
         const timestamp = new Date().valueOf();
 
         /* delete all projects related to the study */
-        await db.collections!.projects_collection.findOneAndUpdate({ id: projectId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } }, { returnDocument: 'after' });
+        await db.collections.projects_collection.findOneAndUpdate({ id: projectId, deleted: null }, { $set: { lastModified: timestamp, deleted: timestamp } }, { returnDocument: 'after' });
 
         /* delete all roles related to the study */
         await this.localPermissionCore.removeRoleFromStudyOrProject({ projectId });

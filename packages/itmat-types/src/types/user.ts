@@ -14,12 +14,15 @@ export interface IUserWithoutToken {
     type: userTypes;
     description: string;
     emailNotificationsActivated: boolean;
-    emailNotificationsStatus: any;
+    emailNotificationsStatus: { expiringNotification: boolean } | null;
     deleted: number | null;
     createdAt: number;
     expiredAt: number;
     resetPasswordRequests: IResetPasswordRequest[];
-    metadata?: any
+    metadata?: {
+        logPermission: boolean;
+        [key: string]: unknown
+    };
 }
 
 export interface IResetPasswordRequest {

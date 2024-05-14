@@ -9,7 +9,6 @@ import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import MongoStore from 'connect-mongo';
-// import cors from 'cors';
 import express from 'express';
 import { Express } from 'express';
 import { Request, Response, RequestHandler as NativeRequestHandler } from 'express-serve-static-core';
@@ -31,11 +30,8 @@ import { userRetrieval } from '../authentication/pubkeyAuthentication';
 import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import qs from 'qs';
 import { IUser } from '@itmat-broker/itmat-types';
-
-interface ApolloServerContext {
-    token?: string;
-}
-
+import { ApolloServerContext } from '../graphql/ApolloServerContext';
+import { DMPContext } from '../graphql/resolvers/context';
 
 export class Router {
     private readonly app: Express;
@@ -53,9 +49,6 @@ export class Router {
             max: 500
         }));
 
-        // if (process.env.NODE_ENV === 'development')
-        //     this.app.use(cors({ credentials: true }));
-
         this.app.use(express.json({ limit: '50mb' }));
         this.app.use(express.urlencoded({ extended: true }));
 
@@ -63,9 +56,9 @@ export class Router {
         /* save persistent sessions in mongo */
         this.app.use(
             session({
-                store: process.env.NODE_ENV === 'test' ? undefined : MongoStore.create({
+                store: process.env['NODE_ENV'] === 'test' ? undefined : MongoStore.create({
                     client: db.client,
-                    collectionName: config.database.collections.sessions_collection
+                    collectionName: config.database.collections['sessions_collection']
                 }),
                 secret: this.config.sessionsSecret,
                 saveUninitialized: false,
@@ -86,13 +79,11 @@ export class Router {
         passport.deserializeUser(userLoginUtils.deserialiseUser);
 
         this.server = http.createServer({
-            allowHTTP1: true,
             keepAlive: true,
             keepAliveInitialDelay: 0,
             requestTimeout: 0,
-            headersTimeout: 0,
             noDelay: true
-        } as any, this.app);
+        }, this.app);
 
         this.server.timeout = 0;
         this.server.headersTimeout = 0;
@@ -102,12 +93,13 @@ export class Router {
             socket.setKeepAlive(true);
             socket.setNoDelay(true);
             socket.setTimeout(0);
-            (socket as any).timeout = 0;
+            (socket as unknown as Record<string, unknown>)['timeout'] = 0;
         });
     }
 
     async init() {
 
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const _this = this;
 
         /* putting schema together */
@@ -130,10 +122,10 @@ export class Router {
             plugins: [
                 {
                     async serverWillStart() {
-                        logPlugin.serverWillStartLogPlugin();
+                        await logPlugin.serverWillStartLogPlugin();
                         return {
                             async drainServer() {
-                                serverCleanup.dispose();
+                                await serverCleanup.dispose();
                             }
                         };
                     },
@@ -142,10 +134,10 @@ export class Router {
                             async executionDidStart(requestContext) {
                                 const operation = requestContext.operationName;
                                 const actionData = requestContext.request.variables;
-                                (requestContext as any).request.variables = spaceFixing(operation as any, actionData);
+                                requestContext.request.variables = operation ? spaceFixing(operation, actionData) : undefined;
                             },
                             async willSendResponse(requestContext) {
-                                logPlugin.requestDidStartLogPlugin(requestContext);
+                                await logPlugin.requestDidStartLogPlugin(requestContext);
                             }
                         };
                     }
@@ -185,7 +177,7 @@ export class Router {
                             preq.end();
                         };
 
-                        if (contentType === 'application/json') {  // contentType.includes('application/json')
+                        if (contentType === 'application/json') {
                             writeBody(JSON.stringify(req.body));
                         }
 
@@ -224,21 +216,21 @@ export class Router {
             express.json(),
             graphqlUploadExpress(),
             expressMiddleware(gqlServer, {
-                // context: async({ req }) => ({ token: req.headers.token })
-                context: async ({ req, res }) => {
-                    /* Bounce all unauthenticated graphql requests */
-                    // if (req.user === undefined && req.body.operationName !== 'login' && req.body.operationName !== 'IntrospectionQuery' ) {  // login and schema introspection doesn't need authentication
-                    //     throw new ForbiddenError('not logged in');
-                    // }
+                context: async ({ req, res }): Promise<DMPContext> => {
                     const token: string = req.headers.authorization || '';
                     if ((token !== '') && (req.user === undefined)) {
                         // get the decoded payload ignoring signature, no symmetric secret or asymmetric key needed
                         const decodedPayload = jwt.decode(token);
                         // obtain the public-key of the robot user in the JWT payload
-                        const pubkey = (decodedPayload as any).publicKey;
+                        let pubkey;
+                        if (decodedPayload !== null && typeof decodedPayload === 'object') {
+                            pubkey = decodedPayload['publicKey'];
+                        } else {
+                            throw new GraphQLError('JWT verification failed. ', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
+                        }
 
                         // verify the JWT
-                        jwt.verify(token, pubkey, function (error: any) {
+                        jwt.verify(token, pubkey, function (error) {
                             if (error) {
                                 throw new GraphQLError('JWT verification failed. ' + error, { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT, error } });
                             }

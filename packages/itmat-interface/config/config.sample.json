@@ -37,7 +37,10 @@
     "sessionsSecret": "Change_Me",
     "aesSecret": "change_this",
     "nodemailer": {
-        "auth": {}
+        "auth": {
+            "user": "change_this",
+            "pass": "change_this"
+        }
     },
     "adminEmail": "admin@example.com",
     "aeEndpoint": "http://localhost:9090"

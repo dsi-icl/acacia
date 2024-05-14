@@ -4,6 +4,7 @@ import { NavLink, Navigate } from 'react-router-dom';
 import { CREATE_PROJECT } from '@itmat-broker/itmat-models';
 import css from './tabContent.module.css';
 import { Button, Input } from 'antd';
+import { IProject } from '@itmat-broker/itmat-types';
 
 export const ProjectListSection: FunctionComponent<{ studyId: string; projectList: Array<{ id: string; name: string }> }> = ({ studyId, projectList }) => {
     return <div>
@@ -26,24 +27,7 @@ export const AddNewProject: FunctionComponent<{ studyId: string }> = ({ studyId 
     return <div>
         <span>Project Name: </span>
         <Input value={projectName} style={{ width: '50%' }} onChange={(e) => { setError(''); setProjectName(e.target.value); }} type='text' placeholder='Enter name' /> <br /><br />
-        <Mutation<any, any> mutation={CREATE_PROJECT}
-        // update={(store, { data: { createProject } }) => {
-        //     // Read the data from our cache for this query.
-        //     const data: any = store.readQuery({ query: GET_STUDY, variables: { studyId, admin: true } });
-        //     // Add our comment from the mutation to the end.
-        //     const newProjects = data.getStudy.projects.concat(createProject);
-        //     data.getStudy.projects = newProjects;
-        //     // Write our data back to the cache.
-        //     store.writeQuery({ query: GET_STUDY, variables: { studyId, admin: true }, data });
-
-        //     // Read the data from our cache for this query.
-        //     const whoAmI: any = store.readQuery({ query: WHO_AM_I });
-        //     // Add our comment from the mutation to the end.
-        //     // const newWhoAmIProjects = whoAmI.whoAmI.access.projects.concat(createProject);
-        //     whoAmI.whoAmI.access.projects = newProjects;
-        //     // Write our data back to the cache.
-        //     store.writeQuery({ query: WHO_AM_I, data: whoAmI });
-        // }}
+        <Mutation<{ createProject: IProject }, { studyId: string, projectName: string }> mutation={CREATE_PROJECT}
         >
             {(addNewProject, { loading, data }) =>
                 <>
@@ -56,7 +40,7 @@ export const AddNewProject: FunctionComponent<{ studyId: string }> = ({ studyId 
                                     setError('Please enter project name.');
                                     return;
                                 }
-                                addNewProject({ variables: { studyId, projectName: projectName } });
+                                addNewProject({ variables: { studyId, projectName: projectName } }).catch(() => { return; });
                             }}>Add new project</Button>
                     }
                 </>

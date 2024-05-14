@@ -666,7 +666,7 @@ if (global.hasMinio) {
                 let authorisedUserProfile;
                 beforeEach(async () => {
                     /* Clear old values */
-                    await db.collections!.roles_collection.deleteMany({});
+                    await db.collections.roles_collection.deleteMany({});
                     /* setup: create a study to upload file to */
                     const studyname = uuid();
                     const createStudyRes = await admin.post('/graphql').send({

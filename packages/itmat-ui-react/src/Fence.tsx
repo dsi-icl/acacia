@@ -27,7 +27,7 @@ export const Fence: FunctionComponent = () => {
         </p>;
     else if (data.whoAmI !== null && data.whoAmI !== undefined && data.whoAmI.username !== null) {
         component = <div className={css.app + ' dark_theme'}>
-            <Query<any, any> query={RECOVER_SESSION_EXPIRE_TIME} pollInterval={30 * 60 * 1000 /* 30 minutes */}>
+            <Query<never, never> query={RECOVER_SESSION_EXPIRE_TIME} pollInterval={30 * 60 * 1000 /* 30 minutes */}>
                 {() => {
                     return null;
                 }}

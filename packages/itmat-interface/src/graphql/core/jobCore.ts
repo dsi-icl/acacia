@@ -3,8 +3,8 @@ import { v4 as uuid } from 'uuid';
 import { db } from '../../database/database';
 
 export class JobCore {
-    public async createJob(userId: string, jobType: string, files: string[], studyId: string, projectId?: string, jobId?: string): Promise<IJobEntry<any>> {
-        const job: IJobEntry<any> = {
+    public async createJob(userId: string, jobType: string, files: string[], studyId: string, projectId?: string, jobId?: string): Promise<IJobEntry> {
+        const job: IJobEntry = {
             requester: userId,
             id: jobId || uuid(),
             studyId,
@@ -16,7 +16,7 @@ export class JobCore {
             error: null,
             cancelled: false
         };
-        await db.collections!.jobs_collection.insertOne(job);
+        await db.collections.jobs_collection.insertOne(job);
         return job;
     }
 }

@@ -74,7 +74,7 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
         );
 
         let uploadResult;
-        let error: any;
+        let error: unknown;
         try {
             uploadResult = await client.uploadFile(
                 fs.createReadStream(path.join(__dirname, '../files/fakefile.txt')),
@@ -85,7 +85,9 @@ if (global.hasMinio) describe('OBJECT STORE CLASS TESTS', () => {
             error = e;
         }
         expect(uploadResult).toBeUndefined();
-        expect(error.toString()).toBe('Error: File "jkfljsdkfjij042rjio2-fi0-ds9a" of study "fakeStudy3" already exists.');
+        expect(error).toBeInstanceOf(Error);
+        if (error instanceof Error)
+            expect(error.toString()).toBe('Error: File "jkfljsdkfjij042rjio2-fi0-ds9a" of study "fakeStudy3" already exists.');
     });
 
     test('Download file', async () => {

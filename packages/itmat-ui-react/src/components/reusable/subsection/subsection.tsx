@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import css from './subsection.module.css';
 
-export const Subsection: FunctionComponent<{ title: any; children: any }> = ({ title, children }) => {
+export const Subsection: FunctionComponent<{ title; children }> = ({ title, children }) => {
     return <div className={css.content_section}>
         <h5>{title}</h5>
         <div>
@@ -10,7 +10,7 @@ export const Subsection: FunctionComponent<{ title: any; children: any }> = ({ t
     </div>;
 };
 
-export const SubsectionWithComment: FunctionComponent<{ title: any; comment: any; children: any; float?: any }> = ({ title, comment, children, float }) => {
+export const SubsectionWithComment: FunctionComponent<{ title; comment; children; float?}> = ({ title, comment, children, float }) => {
     return <div className={css.content_section}>
         <h5>{title} <span style={{ float: float ? float : 'right', whiteSpace: 'pre' }}>{comment}</span></h5>
         <div>

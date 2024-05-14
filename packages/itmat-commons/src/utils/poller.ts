@@ -5,20 +5,19 @@ import { Logger } from './logger';
 export interface IJobPollerConfig {
     identity: string; // a string identifying the server; this is just to keep track in mongo
     jobType?: string; // if undefined, matches all jobs
-    jobCollection: mongodb.Collection<IJobEntry<any>>; // collection to poll
+    jobCollection: mongodb.Collection<IJobEntry>; // collection to poll
     pollingInterval: number; // in ms
-    action: (document: any) => void; // gets called every time there is new document
+    action: (document: IJobEntry<unknown>) => Promise<void>; // gets called every time there is new document
 }
 
 export class JobPoller {
     private intervalObj?: NodeJS.Timeout;
-    private readonly matchObj: any;
-
+    private readonly matchObj: Partial<IJobEntry>;
     private readonly identity: string;
     private readonly jobType?: string;
-    private readonly jobCollection: mongodb.Collection<IJobEntry<any>>;
+    private readonly jobCollection: mongodb.Collection<IJobEntry>;
     private readonly pollingInterval: number;
-    private readonly action: (document: any) => void;
+    private readonly action: (document: IJobEntry<unknown>) => Promise<void>;
 
     constructor(config: IJobPollerConfig) {
         this.identity = config.identity;
@@ -40,7 +39,7 @@ export class JobPoller {
     }
 
     public setInterval(): void {
-        this.intervalObj = setInterval(this.checkForJobs, this.pollingInterval);
+        this.intervalObj = setInterval(() => { this.checkForJobs().catch(() => { return; }); }, this.pollingInterval);
     }
 
     private async checkForJobs() {
@@ -58,7 +57,7 @@ export class JobPoller {
                 Logger.log(`${this.identity} Claimed job of type ${updateResult.jobType} - id: ${updateResult.id}`);
                 if (this.intervalObj)
                     clearInterval(this.intervalObj);
-                await this.action(updateResult);
+                await this.action(updateResult).catch(() => { return; });
                 Logger.log(`${this.identity} Finished processing job of type ${updateResult.jobType} - id: ${updateResult.id}.`);
                 this.setInterval();
             } else {

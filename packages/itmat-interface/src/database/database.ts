@@ -22,7 +22,7 @@ export interface IDatabaseConfig extends IDatabaseBaseConfig {
 
 export interface IDatabaseCollectionConfig {
     users_collection: Collection<IUser>,
-    jobs_collection: Collection<IJobEntry<any>>,
+    jobs_collection: Collection<IJobEntry>,
     studies_collection: Collection<IStudy>,
     projects_collection: Collection<IProject>,
     queries_collection: Collection<IQueryEntry>,

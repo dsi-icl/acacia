@@ -84,10 +84,10 @@ const rank = {
         }
         return array;
     },
-    rank: function (x, y) {
+    rank: function (x: Array<never>, y: Array<never>) {
         let nx = x.length;
         let ny = y.length;
-        const combined: any[] = [];
+        const combined: Array<{ set: 'x' | 'y', val: (typeof x)[number] }> = [];
         while (nx--) {
             combined.push({
                 set: 'x',
@@ -222,17 +222,17 @@ export function mannwhitneyu(x, y, alt, corr) {
     return { U: u.small, p: p };
 }
 
-export function generateCascader(root: any, array: any, includeEnd: boolean) {
+export function generateCascader(root, array, includeEnd: boolean) {
     if (!root) {
         return;
     }
-    let arrPointer: any = array;
+    let arrPointer = array;
     const path = [...root.path];
     if (includeEnd) {
         path.push(root.name);
     }
     for (const node of path) {
-        const obj = arrPointer.filter((el: { value: any; }) => el.value === node)[0];
+        const obj = arrPointer.filter((el: { value; }) => el.value === node)[0];
         if (!obj) {
             arrPointer.push({
                 value: node,
@@ -240,7 +240,7 @@ export function generateCascader(root: any, array: any, includeEnd: boolean) {
                 children: []
             });
         }
-        arrPointer = arrPointer.filter((el: { value: any; }) => el.value === node)[0].children;
+        arrPointer = arrPointer.filter((el: { value; }) => el.value === node)[0].children;
     }
 }
 

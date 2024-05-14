@@ -37,9 +37,15 @@ const javascriptRules = {
 const typescriptRules = {
     ...javascriptRules,
     'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': ['error', { args: 'after-used', varsIgnorePattern: '^__unused' }],
-    '@typescript-eslint/no-this-alias': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn'
+    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-non-null-assertion': 'error',
+    '@typescript-eslint/no-unused-vars': [
+        'error',
+        { args: 'after-used', varsIgnorePattern: '^__unused' }
+    ],
+    '@typescript-eslint/no-floating-promises': 'error',
+    '@typescript-eslint/promise-function-async': 'error',
+    '@typescript-eslint/no-misused-promises': 'error'
 };
 
 module.exports = {
@@ -65,6 +71,19 @@ module.exports = {
             files: ['*.ts', '*.tsx', '*.mts'],
             extends: ['plugin:@nx/typescript'],
             rules: typescriptRules,
+            parserOptions: {
+                project: [
+                    './tsconfig.eslint.json'
+                ]
+            }
+        },
+        {
+            files: ['*.test.ts', '*.test.tsx', '*.spec.ts', '*.spec.tsx'],
+            extends: ['plugin:@nx/typescript'],
+            rules: {
+                ...typescriptRules,
+                '@typescript-eslint/no-explicit-any': 'warn'
+            },
             parserOptions: {
                 project: [
                     './tsconfig.eslint.json'

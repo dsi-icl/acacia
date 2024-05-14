@@ -47,7 +47,7 @@ export const RegisterNewUser: FunctionComponent = () => {
                 <h1>Register an Account</h1>
                 <br />
                 <div>
-                    <Form layout='vertical' onFinish={async (variables) => createUser({ variables })}>
+                    <Form layout='vertical' onFinish={(variables) => { createUser({ variables }).catch(() => { return; }); }}>
                         <Form.Item name='username' hasFeedback rules={[{ required: true, message: 'Please enter a username' }]}>
                             <Input placeholder='Username' />
                         </Form.Item>

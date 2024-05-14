@@ -1,17 +1,21 @@
-import { IQueryEntry, IUser, IProject, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
+import { IProject, atomicOperation, IPermissionManagementOptions } from '@itmat-broker/itmat-types';
 import { queryCore } from '../core/queryCore';
 import { permissionCore } from '../core/permissionCore';
 import { GraphQLError } from 'graphql';
 import { errorCodes } from '../errors';
 import { db } from '../../database/database';
+import { DMPResolversMap } from './context';
 
-export const queryResolvers = {
+export const queryResolvers: DMPResolversMap = {
     Query: {
-        getQueryById: async (__unused__parent: Record<string, unknown>, args: { queryId: string }, context: any): Promise<IQueryEntry> => {
+        getQueryById: async (parent, args: { queryId: string }, context) => {
             const queryId = args.queryId;
-            const requester: IUser = context.req.user;
+            const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check query exists */
-            const queryEntry = await db.collections!.queries_collection.findOne({ id: queryId }, { projection: { _id: 0, claimedBy: 0 } });
+            const queryEntry = await db.collections.queries_collection.findOne({ id: queryId }, { projection: { _id: 0, claimedBy: 0 } });
             if (queryEntry === null || queryEntry === undefined) {
                 throw new GraphQLError('Query does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
@@ -35,9 +39,11 @@ export const queryResolvers = {
             }
             return queryEntry;
         },
-        getQueries: async (__unused__parent: Record<string, unknown>, args: { studyId: string, projectId: string }, context: any): Promise<IQueryEntry[]> => {
-            const requester: IUser = context.req.user;
-
+        getQueries: async (parent, args: { studyId: string, projectId: string }, context) => {
+            const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check permission */
             const hasProjectLevelPermission = await permissionCore.userHasTheNeccessaryManagementPermission(
                 IPermissionManagementOptions.query,
@@ -54,19 +60,19 @@ export const queryResolvers = {
                 args.studyId
             );
             if (!hasStudyLevelPermission && !hasProjectLevelPermission) { throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR); }
-            const entries = await db.collections!.queries_collection.find({ studyId: args.studyId, projectId: args.projectId }).toArray();
+            const entries = await db.collections.queries_collection.find({ studyId: args.studyId, projectId: args.projectId }).toArray();
             return entries;
         }
     },
     Mutation: {
-        createQuery: async (__unused__parent: Record<string, unknown>, args: { query: { userId: string, queryString: any, studyId: string, projectId?: string } }): Promise<IQueryEntry> => {
+        createQuery: async (parent, args: { query: { userId: string, queryString, studyId: string, projectId?: string } }) => {
             /* check study exists */
-            const studySearchResult = await db.collections!.studies_collection.findOne({ id: args.query.studyId, deleted: null });
+            const studySearchResult = await db.collections.studies_collection.findOne({ id: args.query.studyId, deleted: null });
             if (studySearchResult === null || studySearchResult === undefined) {
                 throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
             /* check project exists */
-            const project = await db.collections!.projects_collection.findOne<Omit<IProject, 'patientMapping'>>({ id: args.query.projectId, deleted: null }, { projection: { patientMapping: 0 } })!;
+            const project = await db.collections.projects_collection.findOne<Omit<IProject, 'patientMapping'>>({ id: args.query.projectId, deleted: null }, { projection: { patientMapping: 0 } });
             if (project === null) {
                 throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
             }

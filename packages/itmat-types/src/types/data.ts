@@ -5,15 +5,20 @@ export interface IDataEntry {
     m_visitId: string; // visit Id
     m_versionId: string | null; // data version Id
     m_fieldId: string;
-    metadata?: any;
-    value: any;
+    metadata?: {
+        add?: string[];
+        remove?: string[];
+        [key: string]: unknown;
+    };
+    value: unknown;
     uploadedBy?: string;
     uploadedAt: number;
 }
 
-export interface IFieldDescriptionObject {
-    fieldId: string;
-    timepoint: number;
-    measurement: number;
-    datatype: 'c' | 'i' | 'd' | 'b' | 't';
+export interface IGroupedData {
+    [key: string]: {
+        [key: string]: {
+            [key: string]: unknown
+        }
+    }
 }

@@ -1,23 +1,14 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { SendMailOptions } from 'nodemailer';
 import appConfig from '../utils/configManager';
-import { Attachment } from 'nodemailer/lib/mailer';
-
-export interface IMail {
-    from: string,
-    to: string,
-    subject: string,
-    html: string,
-    attachments?: Attachment[];
-}
 
 class Mailer {
     private readonly _client: nodemailer.Transporter;
 
-    constructor(config: any) {
+    constructor(config: Parameters<typeof nodemailer.createTransport>[0]) {
         this._client = nodemailer.createTransport(config);
     }
 
-    public async sendMail(mail: IMail): Promise<void> {
+    public async sendMail(mail: SendMailOptions): Promise<void> {
         await this._client.sendMail(mail);
     }
 }

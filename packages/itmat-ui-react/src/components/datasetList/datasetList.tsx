@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useNavigate } from 'react-router-dom';
-import { IStudy } from '@itmat-broker/itmat-types';
+import { IProject, IStudy, IUserWithoutToken } from '@itmat-broker/itmat-types';
 import { WHO_AM_I } from '@itmat-broker/itmat-models';
 import { Button, Table } from 'antd';
 import { ContainerOutlined } from '@ant-design/icons';
@@ -9,12 +9,12 @@ import LoadSpinner from '../reusable/loadSpinner';
 
 export const DatasetList: FunctionComponent = () => {
     return (
-        <Query<any, any>
+        <Query<{ whoAmI: IUserWithoutToken & { access: { id: string, studies: IStudy[], projects: IProject[] } } }, never>
             query={WHO_AM_I}>
             {({ loading, error, data }) => {
                 if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>Error {error.name}: {error.message}</p>; }
-                if (data.whoAmI && data.whoAmI.access && data.whoAmI.access.studies) {
+                if (data && data.whoAmI && data.whoAmI.access && data.whoAmI.access.studies) {
                     const datasets = data.whoAmI.access.studies;
                     if (datasets.length > 0) {
                         return <PickDatasetSection datasets={datasets} />;

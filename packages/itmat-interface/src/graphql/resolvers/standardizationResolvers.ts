@@ -1,16 +1,20 @@
-import { IProject, IStandardization, IUser, atomicOperation } from '@itmat-broker/itmat-types';
+import { IProject, IStandardization, atomicOperation } from '@itmat-broker/itmat-types';
 import { permissionCore } from '../core/permissionCore';
 import { studyCore } from '../core/studyCore';
 import { GraphQLError } from 'graphql';
 import { errorCodes } from '../errors';
 import { db } from '../../database/database';
 import { v4 as uuid } from 'uuid';
-import { IGenericResponse, makeGenericReponse } from '../responses';
+import { makeGenericReponse } from '../responses';
+import { DMPResolversMap } from './context';
 
-export const standardizationResolvers = {
+export const standardizationResolvers: DMPResolversMap = {
     Query: {
-        getStandardization: async (__unused__parent: Record<string, unknown>, { studyId, projectId, type, versionId }: { studyId: string, projectId: string, type?: string, versionId: string }, context: any): Promise<IStandardization[]> => {
-            const requester: IUser = context.req.user;
+        getStandardization: async (parent, { studyId, projectId, type, versionId }: { studyId: string, projectId: string, type?: string, versionId: string }, context) => {
+            const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             let modifiedStudyId = studyId;
             /* check study exists */
             if (!studyId && !projectId) {
@@ -44,7 +48,7 @@ export const standardizationResolvers = {
             if (hasStudyLevelPermission && hasStudyLevelPermission.hasVersioned && versionId === null) {
                 availableDataVersions.push(null);
             }
-            const standardizations = await db.collections!.standardizations_collection.aggregate([{
+            const standardizations = await db.collections.standardizations_collection.aggregate([{
                 $sort: { uploadedAt: -1 }
             }, {
                 $match: { dataVersion: { $in: availableDataVersions } }
@@ -68,8 +72,11 @@ export const standardizationResolvers = {
         }
     },
     Mutation: {
-        createStandardization: async (__unused__parent: Record<string, unknown>, { studyId, standardization }: { studyId: string, standardization: any }, context: any): Promise<IStandardization> => {
-            const requester: IUser = context.req.user;
+        createStandardization: async (parent, { studyId, standardization }: { studyId: string, standardization }, context) => {
+            const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,
@@ -81,11 +88,11 @@ export const standardizationResolvers = {
             }
 
             /* check study exists */
-            const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
+            const studySearchResult = await db.collections.studies_collection.findOne({ id: studyId, deleted: null });
             if (studySearchResult === null || studySearchResult === undefined) {
                 throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
-            const stdRulesWithId: any[] = [...standardization.stdRules];
+            const stdRulesWithId = [...standardization.stdRules];
             stdRulesWithId.forEach(el => {
                 el.id = uuid();
             });
@@ -106,15 +113,18 @@ export const standardizationResolvers = {
                 deleted: null
             };
 
-            await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, type: standardization.type, field: standardization.field, dataVersion: null }, {
+            await db.collections.standardizations_collection.findOneAndUpdate({ studyId: studyId, type: standardization.type, field: standardization.field, dataVersion: null }, {
                 $set: { ...standardizationEntry }
             }, {
                 upsert: true
             });
             return standardizationEntry;
         },
-        deleteStandardization: async (__unused__parent: Record<string, unknown>, { studyId, type, field }: { studyId: string, type: string, field: string[] }, context: any): Promise<IGenericResponse> => {
-            const requester: IUser = context.req.user;
+        deleteStandardization: async (parent, { studyId, type, field }: { studyId: string, type: string, field: string[] }, context) => {
+            const requester = context.req.user;
+            if (!requester) {
+                throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
+            }
             /* check permission */
             const hasPermission = await permissionCore.userHasTheNeccessaryDataPermission(
                 atomicOperation.WRITE,
@@ -128,17 +138,17 @@ export const standardizationResolvers = {
                 throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
             }
             /* check study exists */
-            const studySearchResult = await db.collections!.studies_collection.findOne({ id: studyId, deleted: null });
+            const studySearchResult = await db.collections.studies_collection.findOne({ id: studyId, deleted: null });
             if (studySearchResult === null || studySearchResult === undefined) {
                 throw new GraphQLError('Study does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
 
             // check type exists
-            const types: string[] = await db.collections!.standardizations_collection.distinct('type', { studyId: studyId, deleted: null });
+            const types: string[] = await db.collections.standardizations_collection.distinct('type', { studyId: studyId, deleted: null });
             if (!types.includes(type)) {
                 throw new GraphQLError('Type does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
             }
-            const result = await db.collections!.standardizations_collection.findOneAndUpdate({ studyId: studyId, field: field, type: type, dataVersion: null }, {
+            const result = await db.collections.standardizations_collection.findOneAndUpdate({ studyId: studyId, field: field, type: type, dataVersion: null }, {
                 $set: {
                     id: uuid(),
                     studyId: studyId,

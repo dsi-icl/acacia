@@ -11,7 +11,7 @@ import { IUserWithoutToken } from '@itmat-broker/itmat-types';
 
 export const UserListSection: FunctionComponent = () => {
     return (
-        <Query<any, any>
+        <Query<{ getUsers: IUserWithoutToken[] }, { fetchDetailsAdminOnly: boolean, fetchAccessPrivileges: boolean }>
             query={GET_USERS}
             variables={{ fetchDetailsAdminOnly: true, fetchAccessPrivileges: false }}
         >
@@ -25,7 +25,7 @@ export const UserListSection: FunctionComponent = () => {
                         </p>
                     );
                 }
-                const userList: IUserWithoutToken[] = data.getUsers;
+                const userList: IUserWithoutToken[] = data?.getUsers ?? [];
                 return (
                     <UserList users={userList} />
                 );
