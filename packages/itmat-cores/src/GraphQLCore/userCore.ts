@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { GraphQLError } from 'graphql';
-import { IUser, IUserWithoutToken, userTypes, IPubkey, IProject, IStudy, IResetPasswordRequest } from '@itmat-broker/itmat-types';
+import { IUser, IUserWithoutToken, enumUserTypes, IPubkey, IProject, IStudy, IResetPasswordRequest, enumReservedUsers } from '@itmat-broker/itmat-types';
 import { v4 as uuid } from 'uuid';
 import { errorCodes } from '../utils/errors';
 import { MarkOptional } from 'ts-essentials';
@@ -31,7 +31,7 @@ export interface CreateUserInput {
 export interface EditUserInput {
     id: string,
     username?: string,
-    type?: userTypes,
+    type?: enumUserTypes,
     firstname?: string,
     lastname?: string,
     email?: string,
@@ -66,7 +66,7 @@ export class UserCore {
     }
 
     public async getOneUser_throwErrorIfNotExists(username: string): Promise<IUser> {
-        const user = await this.db.collections.users_collection.findOne({ deleted: null, username });
+        const user = await this.db.collections.users_collection.findOne({ 'life.deletedTime': null, username });
         if (user === undefined || user === null) {
             throw new GraphQLError('User does not exist.', { extensions: { code: errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY } });
         }
@@ -75,8 +75,17 @@ export class UserCore {
 
     public async getUsers(userId?: string) {
         // everyone is allowed to see all the users in the app. But only admin can access certain fields, like emails, etc - see resolvers for User type.
-        const queryObj = userId === undefined ? { deleted: null } : { deleted: null, id: userId };
-        return await this.db.collections.users_collection.find<IUser>(queryObj, { projection: { _id: 0 } }).toArray();
+        const queryObj = userId === undefined ? { 'life.deletedTime': null } : { 'life.deletedTime': null, 'id': userId };
+        const users = await this.db.collections.users_collection.find<IUserWithoutToken>(queryObj, { projection: { _id: 0, password: 0, otpSecret: 0 } }).toArray();
+        const modifiedUsers: Record<string, unknown>[] = [];
+        for (const user of users) {
+            modifiedUsers.push({
+                ...user,
+                createdAt: user.life.createdTime,
+                deleted: user.life.deletedTime
+            });
+        }
+        return modifiedUsers;
     }
 
     public async validateResetPassword(token: string, encryptedEmail: string) {
@@ -96,14 +105,14 @@ export class UserCore {
         const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
         const user: IUserWithoutToken | null = await this.db.collections.users_collection.findOne({
             email,
-            resetPasswordRequests: {
+            'resetPasswordRequests': {
                 $elemMatch: {
                     id: token,
                     timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
                     used: false
                 }
             },
-            deleted: null
+            'life.deletedTime': null
         });
         if (!user) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -120,14 +129,14 @@ export class UserCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* only admin can access this field */
-        if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
+        if (requester.type !== enumUserTypes.ADMIN && user.id !== requester.id) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
         /* if requested user is admin, then he has access to all studies */
-        if (user.type === userTypes.ADMIN) {
+        if (user.type === enumUserTypes.ADMIN) {
             const allprojects: IProject[] = await this.db.collections.projects_collection.find({ deleted: null }).toArray();
-            const allstudies: IStudy[] = await this.db.collections.studies_collection.find({ deleted: null }).toArray();
+            const allstudies: IStudy[] = await this.db.collections.studies_collection.find({ 'life.deletedTime': null }).toArray();
             return { id: `user_access_obj_user_id_${user.id}`, projects: allprojects, studies: allstudies };
         }
 
@@ -151,7 +160,7 @@ export class UserCore {
                 { studyId: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }
             ]
         }).toArray();
-        const studies = await this.db.collections.studies_collection.find({ id: { $in: studiesAndProjectThatUserCanSee.studies }, deleted: null }).toArray();
+        const studies = await this.db.collections.studies_collection.find({ 'id': { $in: studiesAndProjectThatUserCanSee.studies }, 'life.deletedTime': null }).toArray();
         return { id: `user_access_obj_user_id_${user.id}`, projects, studies };
     }
 
@@ -160,7 +169,7 @@ export class UserCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* only admin can access this field */
-        if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
+        if (requester.type !== enumUserTypes.ADMIN && user.id !== requester.id) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -172,7 +181,7 @@ export class UserCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* only admin can access this field */
-        if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
+        if (requester.type !== enumUserTypes.ADMIN && user.id !== requester.id) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -184,7 +193,7 @@ export class UserCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* only admin can access this field */
-        if (requester.type !== userTypes.ADMIN && user.id !== requester.id) {
+        if (requester.type !== enumUserTypes.ADMIN && user.id !== requester.id) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -193,7 +202,7 @@ export class UserCore {
 
     public async requestExpiryDate(username?: string, email?: string) {
         /* double-check user existence */
-        const queryObj = email ? { deleted: null, email } : { deleted: null, username };
+        const queryObj = email ? { 'life.deletedTime': null, email } : { 'life.deletedTime': null, username };
         const user: IUser | null = await this.db.collections.users_collection.findOne(queryObj);
         if (!user) {
             /* even user is null. send successful response: they should know that a user doesn't exist */
@@ -217,7 +226,7 @@ export class UserCore {
         return makeGenericReponse();
     }
 
-    public async requestUsernameOrResetPassword(forgotUsername: boolean, forgotPassword: boolean, origin: unknown, email?: string, username?: string) {
+    public async requestUsernameOrResetPassword(forgotUsername: boolean, forgotPassword: boolean, origin: string, email?: string, username?: string) {
         /* checking the args are right */
         if ((forgotUsername && !email) // should provide email if no username
             || (forgotUsername && username) // should not provide username if it's forgotten..
@@ -230,7 +239,7 @@ export class UserCore {
         }
 
         /* check user existence */
-        const queryObj = email ? { deleted: null, email } : { deleted: null, username };
+        const queryObj = email ? { 'life.deletedTime': null, email } : { 'life.deletedTime': null, username };
         const user = await this.db.collections.users_collection.findOne(queryObj);
         if (!user) {
             /* even user is null. send successful response: they should know that a user doesn't exist */
@@ -292,7 +301,7 @@ export class UserCore {
 
     public async login(request: Express.Request, username: string, password: string, totp: string, requestexpirydate?: boolean) {
         // const { req }: { req: Express.Request } = context;
-        const result = await this.db.collections.users_collection.findOne({ deleted: null, username: username });
+        const result = await this.db.collections.users_collection.findOne({ 'life.deletedTime': null, 'username': username });
         if (!result) {
             throw new GraphQLError('User does not exist.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
         }
@@ -312,7 +321,7 @@ export class UserCore {
         }
 
         /* validate if account expired */
-        if (result.expiredAt < Date.now() && result.type === userTypes.STANDARD) {
+        if (result.expiredAt < Date.now() && result.type === enumUserTypes.STANDARD) {
             if (requestexpirydate) {
                 /* send email to the DMP admin mailing-list */
                 await this.mailer.sendMail(formatEmailRequestExpiryDatetoAdmin({
@@ -334,14 +343,19 @@ export class UserCore {
 
         const filteredResult: IUserWithoutToken = { ...result };
 
-        return new Promise<IUserWithoutToken>((resolve, reject) => {
+        return new Promise<unknown>((resolve, reject) => {
             request.login(filteredResult, (err: unknown) => {
                 if (err) {
                     Logger.error(err);
                     reject(new GraphQLError('Cannot log in. Please try again later.'));
                     return;
                 }
-                resolve(filteredResult);
+
+                resolve({
+                    ...filteredResult,
+                    createdAt: filteredResult.life.createdTime,
+                    deleted: filteredResult.life.deletedTime
+                });
             });
         });
     }
@@ -378,13 +392,13 @@ export class UserCore {
             throw new GraphQLError('Username or password cannot have spaces.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
         }
 
-        const alreadyExist = await this.db.collections.users_collection.findOne({ username: user.username, deleted: null }); // since bycrypt is CPU expensive let's check the username is not taken first
+        const alreadyExist = await this.db.collections.users_collection.findOne({ 'username': user.username, 'life.deletedTime': null }); // since bycrypt is CPU expensive let's check the username is not taken first
         if (alreadyExist !== null && alreadyExist !== undefined) {
             throw new GraphQLError('User already exists.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
         }
 
         /* check if email has been used to register */
-        const emailExist = await this.db.collections.users_collection.findOne({ email: user.email, deleted: null });
+        const emailExist = await this.db.collections.users_collection.findOne({ 'email': user.email, 'life.deletedTime': null });
         if (emailExist !== null && emailExist !== undefined) {
             throw new GraphQLError('This email has been registered. Please sign-in or register with another email!', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
         }
@@ -398,7 +412,7 @@ export class UserCore {
             id: uuid(),
             username: user.username,
             otpSecret,
-            type: userTypes.STANDARD,
+            type: enumUserTypes.STANDARD,
             description: user.description ?? '',
             organisation: user.organisation,
             firstname: user.firstname,
@@ -407,11 +421,15 @@ export class UserCore {
             email: user.email,
             emailNotificationsActivated: user.emailNotificationsActivated ?? false,
             emailNotificationsStatus: { expiringNotification: false },
-            createdAt,
             expiredAt,
             resetPasswordRequests: [],
-            metadata: user.metadata,
-            deleted: null
+            metadata: {},
+            life: {
+                createdTime: createdAt,
+                createdUser: enumReservedUsers.SYSTEM,
+                deletedTime: null,
+                deletedUser: null
+            }
         };
 
         const result = await this.db.collections.users_collection.insertOne(entry);
@@ -470,7 +488,7 @@ export class UserCore {
             throw new GraphQLError('User cannot delete itself');
         }
 
-        if (requester.type !== userTypes.ADMIN) {
+        if (requester.type !== enumUserTypes.ADMIN) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 
@@ -478,7 +496,7 @@ export class UserCore {
         session.startTransaction();
         try {
             /* delete the user */
-            await this.db.collections.users_collection.findOneAndUpdate({ id: userId, deleted: null }, { $set: { deleted: new Date().valueOf(), password: 'DeletedUserDummyPassword' } }, { returnDocument: 'after', projection: { deleted: 1 } });
+            await this.db.collections.users_collection.findOneAndUpdate({ 'id': userId, 'life.deletedTime': null }, { $set: { 'life.deletedTime': Date.now(), 'password': 'DeletedUserDummyPassword' } }, { returnDocument: 'after', projection: { 'life.deletedTime': 1 } });
 
             /* delete all user records in roles related to the study */
             await this.db.collections.roles_collection.updateMany(
@@ -533,14 +551,14 @@ export class UserCore {
         const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
         const user: IUserWithoutToken | null = await this.db.collections.users_collection.findOne({
             email,
-            resetPasswordRequests: {
+            'resetPasswordRequests': {
                 $elemMatch: {
                     id: token,
                     timeOfRequest: { $gt: TIME_NOW - ONE_HOUR_IN_MILLISEC },
                     used: false
                 }
             },
-            deleted: null
+            'life.deletedTime': null
         });
         if (!user) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
@@ -613,7 +631,7 @@ export class UserCore {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         const { id, username, type, firstname, lastname, email, emailNotificationsActivated, emailNotificationsStatus, password, description, organisation, expiredAt, metadata }: {
-            id: string, username?: string, type?: userTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, emailNotificationsStatus?: unknown, password?: string, description?: string, organisation?: string, expiredAt?: number, metadata?: unknown
+            id: string, username?: string, type?: enumUserTypes, firstname?: string, lastname?: string, email?: string, emailNotificationsActivated?: boolean, emailNotificationsStatus?: unknown, password?: string, description?: string, organisation?: string, expiredAt?: number, metadata?: unknown
         } = user;
         if (password !== undefined && requester.id !== id) { // only the user themself can reset password
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
@@ -621,12 +639,12 @@ export class UserCore {
         if (password && !passwordIsGoodEnough(password)) {
             throw new GraphQLError('Password has to be at least 8 character long.');
         }
-        if (requester.type !== userTypes.ADMIN && requester.id !== id) {
+        if (requester.type !== enumUserTypes.ADMIN && requester.id !== id) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
         let result;
-        if (requester.type === userTypes.ADMIN) {
-            result = await this.db.collections.users_collection.findOne({ id, deleted: null });   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
+        if (requester.type === enumUserTypes.ADMIN) {
+            result = await this.db.collections.users_collection.findOne({ id, 'life.deletedTime': null });   // just an extra guard before going to bcrypt cause bcrypt is CPU intensive.
             if (result === null || result === undefined) {
                 throw new GraphQLError('User not found');
             }
@@ -644,14 +662,14 @@ export class UserCore {
             description,
             organisation,
             expiredAt,
-            metadata
+            metadata: metadata ?? {}
         };
 
         /* check email is valid form */
         if (email && !/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/.test(email)) {
             throw new GraphQLError('User not updated: Email is not the right format.', { extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT } });
         }
-        if (requester.type !== userTypes.ADMIN && (
+        if (requester.type !== enumUserTypes.ADMIN && (
             type || firstname || lastname || username || description || organisation
         )) {
             throw new GraphQLError('User not updated: Non-admin users are only authorised to change their password, email or email notification.');
@@ -668,7 +686,7 @@ export class UserCore {
                 expiringNotification: false
             };
         }
-        const updateResult = await this.db.collections.users_collection.findOneAndUpdate({ id, deleted: null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
+        const updateResult = await this.db.collections.users_collection.findOneAndUpdate({ id, 'life.deletedTime': null }, { $set: fieldsToUpdate }, { returnDocument: 'after' });
         if (updateResult) {
             // New expiry date has been updated successfully.
             if (expiredAt && result) {
@@ -685,7 +703,7 @@ export class UserCore {
         }
     }
 
-    public async registerPubkey(pubkeyobj: { pubkey: string, associatedUserId: string | null, jwtPubkey: string, jwtSeckey: string }): Promise<IPubkey> {
+    public async registerPubkey(pubkeyobj: { pubkey: string, associatedUserId: string, jwtPubkey: string, jwtSeckey: string }): Promise<IPubkey> {
         const { pubkey, associatedUserId, jwtPubkey, jwtSeckey } = pubkeyobj;
         const entry: IPubkey = {
             id: uuid(),
@@ -694,7 +712,13 @@ export class UserCore {
             jwtPubkey,
             jwtSeckey,
             refreshCounter: 0,
-            deleted: null
+            life: {
+                createdTime: Date.now(),
+                createdUser: associatedUserId,
+                deletedTime: null,
+                deletedUser: null
+            },
+            metadata: {}
         };
 
         const result = await this.db.collections.pubkeys_collection.insertOne(entry);

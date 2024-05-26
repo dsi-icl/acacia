@@ -140,7 +140,7 @@ export const EditUserForm: FunctionComponent<{ user: (IUserWithoutToken & { acce
             {(submit, { loading, error }) =>
                 <Form title='EditUserForm' initialValues={{
                     ...user,
-                    createdAt: dayjs(user.createdAt),
+                    createdAt: dayjs(user.life.createdTime),
                     expiredAt: dayjs(user.expiredAt),
                     organisation: orgList.find(org => org.id === user.organisation)?.name
                 }} layout='vertical' onFinish={(variables) => { submit({ variables: formatSubmitObj(variables) }).catch(() => { return; }); }}>

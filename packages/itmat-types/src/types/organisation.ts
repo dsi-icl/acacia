@@ -1,12 +1,7 @@
-export type OrganisationMetadata = {
-    siteIDMarker?: string;
-}
+import { IBase } from './base';
 
-export interface IOrganisation {
-    id: string;
+export interface IOrganisation extends IBase {
     name: string;
-    shortname: string | null;
-    containOrg: string | null;
-    deleted: number | null;
-    metadata: OrganisationMetadata;
+    shortname?: string;
+    profile?: string;
 }

@@ -1,28 +1,31 @@
-export enum userTypes {
+import { IBase } from './base';
+
+export enum enumUserTypes {
     ADMIN = 'ADMIN',
     STANDARD = 'STANDARD',
+    SYSTEM = 'SYSTEM',
+    OBSERVER = 'OBSERVER'
+}
+
+export enum enumReservedUsers {
     SYSTEM = 'SYSTEM'
 }
 
-export interface IUserWithoutToken {
-    id: string;
+export interface IUserWithoutToken extends IBase {
     username: string;
     email: string;
     firstname: string;
     lastname: string;
     organisation: string;
-    type: userTypes;
-    description: string;
+    type: enumUserTypes;
     emailNotificationsActivated: boolean;
-    emailNotificationsStatus: { expiringNotification: boolean } | null;
-    deleted: number | null;
-    createdAt: number;
-    expiredAt: number;
-    resetPasswordRequests: IResetPasswordRequest[];
-    metadata?: {
-        logPermission: boolean;
-        [key: string]: unknown
+    emailNotificationsStatus: {
+        expiringNotification: boolean
     };
+    resetPasswordRequests: IResetPasswordRequest[];
+    profile?: string;
+    expiredAt: number;
+    description?: string;
 }
 
 export interface IResetPasswordRequest {

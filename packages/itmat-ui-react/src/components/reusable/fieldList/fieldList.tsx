@@ -1,8 +1,8 @@
 import { FunctionComponent } from 'react';
-import { enumValueType, IFieldEntry } from '@itmat-broker/itmat-types';
+import { enumDataTypes, IField } from '@itmat-broker/itmat-types';
 import { Table, Tooltip } from 'antd';
 
-export const FieldListSection: FunctionComponent<{ studyData, onCheck?; checkedList?: string[]; checkable: boolean; fieldList: IFieldEntry[]; verbal?: boolean }> = ({ onCheck, checkedList, checkable, fieldList, verbal }) => {
+export const FieldListSection: FunctionComponent<{ studyData, onCheck?; checkedList?: string[]; checkable: boolean; fieldList: IField[]; verbal?: boolean }> = ({ onCheck, checkedList, checkable, fieldList, verbal }) => {
     const possibleValuesColumns = [
         {
             title: 'Code',
@@ -54,10 +54,10 @@ export const FieldListSection: FunctionComponent<{ studyData, onCheck?; checkedL
             dataIndex: 'dataType',
             key: 'dataType',
             render: (__unused__value, record) => {
-                if (record.dataType === enumValueType.CATEGORICAL) {
+                if (record.dataType === enumDataTypes.CATEGORICAL) {
                     return <Tooltip placement='topLeft' title={<Table
                         columns={possibleValuesColumns}
-                        dataSource={record.possibleValues}
+                        dataSource={record.categoricalOptions}
                     >
                     </Table>}>
                         {record.dataType}

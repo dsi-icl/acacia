@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Route, Routes, useParams, Navigate } from 'react-router-dom';
 import { GET_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { IJobEntry, IProject, IStudy, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
+import { IJobEntry, IProject, IStudy, IUserWithoutToken, enumUserTypes } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../reusable/loadSpinner';
 import css from './projectPage.module.css';
 import { DashboardTabContent, DataManagementTabContentFetch, ProjectsTabContent, AdminTabContent, FieldManagementTabContentFetch } from './tabContent';
@@ -31,7 +31,7 @@ export const DatasetDetailPage: FunctionComponent = () => {
                                     if (loading) return <LoadSpinner />;
                                     if (error) return <p>{error.toString()}</p>;
                                     if (!sessionData) { return null; }
-                                    if (sessionData.whoAmI.type === userTypes.ADMIN) {
+                                    if (sessionData.whoAmI.type === enumUserTypes.ADMIN) {
                                         return (
                                             <>
                                                 <NavLink to='dashboard' className={({ isActive }) => isActive ? css.active : undefined}>DASHBOARD</NavLink>
