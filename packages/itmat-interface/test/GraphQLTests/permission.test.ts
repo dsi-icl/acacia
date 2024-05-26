@@ -68,7 +68,7 @@ describe('ROLE API', () => {
         let setupStudy: { id: any; name?: string; createdBy?: any; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: never[]; };
         let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; lastModified?: number; deleted?: null; };
         let authorisedUser: request.SuperTest<request.Test>;
-        let authorisedUserProfile: { otpSecret: any; id: any; username?: string; type?: string; firstname?: string; lastname?: string; password?: string; email?: string; description?: string; emailNotificationsActivated?: boolean; organisation?: string; deleted?: null; };
+        let authorisedUserProfile: IUser;
         beforeEach(async () => {
             const studyName = uuid();
             setupStudy = {
@@ -107,8 +107,14 @@ describe('ROLE API', () => {
                 description: 'I am a new user.',
                 emailNotificationsActivated: true,
                 organisation: 'organisation_system',
-                deleted: null,
-                id: `new_user_id_${username}`
+                id: `new_user_id_${username}`,
+                life: {
+                    createdTime: 1591134065000,
+                    createdUserId: adminId,
+                    deletedTime: null,
+                    deletedUserId: null
+                },
+                metadata: {}
             };
             await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -672,7 +678,7 @@ describe('ROLE API', () => {
             let setupStudy: { id: any; name?: string; createdBy?: any; lastModified?: number; deleted?: null; currentDataVersion?: number; dataVersions?: never[]; };
             let setupRole: { id: any; _id?: any; name: any; studyId: any; projectId?: null; permissions?: never[]; createdBy?: any; users?: never[]; deleted?: null; };
             let authorisedUser: request.SuperTest<request.Test>;
-            let authorisedUserProfile;
+            let authorisedUserProfile: IUser;
             beforeEach(async () => {
                 const studyName = uuid();
                 setupStudy = {
@@ -699,8 +705,14 @@ describe('ROLE API', () => {
                     description: 'I am a new user.',
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
-                    deleted: null,
-                    id: `new_user_id_${username}`
+                    id: `new_user_id_${username}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -1169,7 +1181,7 @@ describe('ROLE API', () => {
             test('Add user to role (admin)', async () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
-                const newUser = {
+                const newUser: IUser = {
                     username: newUsername,
                     type: 'STANDARD',
                     firstname: `${newUsername}_firstname`,
@@ -1181,7 +1193,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${newUsername}`
+                    id: `new_user_id_${newUsername}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1279,7 +1298,7 @@ describe('ROLE API', () => {
             test('Add user to role (privileged user)', async () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
-                const newUser = {
+                const newUser: IUser = {
                     username: newUsername,
                     type: 'STANDARD',
                     firstname: `${newUsername}_firstname`,
@@ -1291,7 +1310,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${newUsername}`
+                    id: `new_user_id_${newUsername}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1389,7 +1415,7 @@ describe('ROLE API', () => {
             test('Add user to role (user without privilege) (should fail)', async () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
-                const newUser = {
+                const newUser: IUser = {
                     username: newUsername,
                     type: 'STANDARD',
                     firstname: `${newUsername}_firstname`,
@@ -1401,7 +1427,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${newUsername}`
+                    id: `new_user_id_${newUsername}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
 
@@ -1471,7 +1504,7 @@ describe('ROLE API', () => {
             test('Remove user from role (admin)', async () => {
                 /* setup: create a user to be removed from role */
                 const newUsername = uuid();
-                const newUser = {
+                const newUser: IUser = {
                     username: newUsername,
                     type: 'STANDARD',
                     firstname: `${newUsername}_firstname`,
@@ -1483,7 +1516,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${newUsername}`
+                    id: `new_user_id_${newUsername}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
                 const updatedRole = await mongoClient.collection<IRole>(config.database.collections.roles_collection).findOneAndUpdate({
@@ -2210,7 +2250,7 @@ describe('ROLE API', () => {
             test('Combination of edits (admin)', async () => {
                 /* setup: create a user to be removed from role */
                 const newUsername = uuid();
-                const newUser = {
+                const newUser: IUser = {
                     username: newUsername,
                     type: 'STANDARD',
                     firstname: `${newUsername}_firstname`,
@@ -2222,7 +2262,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${newUsername}`
+                    id: `new_user_id_${newUsername}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
 
@@ -2377,7 +2424,7 @@ describe('ROLE API', () => {
             let setupProject: { id: any; studyId?: string; createdBy?: any; patientMapping?: Record<string, any>; name?: string; lastModified?: number; deleted?: null; };
             let setupRole: { id: any; _id?: any; name: any; projectId?: string; studyId?: string; permissions?: never[]; createdBy?: any; users?: never[]; deleted?: null; };
             let authorisedUser: request.SuperTest<request.Test>;
-            let authorisedUserProfile;
+            let authorisedUserProfile: IUser;
             beforeEach(async () => {
                 /* setup: creating a setup study */
                 const studyName = uuid();
@@ -2419,7 +2466,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${username}`
+                    id: `new_user_id_${username}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -2782,7 +2836,7 @@ describe('ROLE API', () => {
             test('Add user to role (privileged user)', async () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
-                const newUser = {
+                const newUser: IUser = {
                     username: newUsername,
                     type: 'STANDARD',
                     firstname: `${newUsername}_firstname`,
@@ -2794,7 +2848,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${newUsername}`
+                    id: `new_user_id_${newUsername}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
 
@@ -2892,7 +2953,7 @@ describe('ROLE API', () => {
             test('Add user to role (user without privilege) (should fail)', async () => {
                 /* setup: create a user to be added to role */
                 const newUsername = uuid();
-                const newUser = {
+                const newUser: IUser = {
                     username: newUsername,
                     type: 'STANDARD',
                     firstname: `${newUsername}_firstname`,
@@ -2904,7 +2965,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${newUsername}`
+                    id: `new_user_id_${newUsername}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(newUser);
 
@@ -2961,7 +3029,7 @@ describe('ROLE API', () => {
             let setupStudy;
             let setupRole: { id: any; projectId?: null; studyId?: string; name?: string; permissions?: never[]; createdBy?: any; users?: never[]; deleted?: null; };
             let authorisedUser: request.SuperTest<request.Test>;
-            let authorisedUserProfile;
+            let authorisedUserProfile: IUser;
             beforeEach(async () => {
                 const studyName = uuid();
                 setupStudy = {
@@ -2989,7 +3057,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${username}`
+                    id: `new_user_id_${username}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 
@@ -3118,7 +3193,7 @@ describe('ROLE API', () => {
             let setupProject;
             let setupRole: { id: any; projectId?: string; studyId?: string; name?: string; permissions?: never[]; createdBy?: any; users?: never[]; deleted?: null; };
             let authorisedUser: request.SuperTest<request.Test>;
-            let authorisedUserProfile;
+            let authorisedUserProfile: IUser;
             beforeEach(async () => {
                 /* setup: creating a setup study */
                 const studyName = uuid();
@@ -3160,7 +3235,14 @@ describe('ROLE API', () => {
                     emailNotificationsActivated: true,
                     organisation: 'organisation_system',
                     deleted: null,
-                    id: `new_user_id_${username}`
+                    id: `new_user_id_${username}`,
+                    life: {
+                        createdTime: 1591134065000,
+                        createdUserId: adminId,
+                        deletedTime: null,
+                        deletedUserId: null
+                    },
+                    metadata: {}
                 };
                 await mongoClient.collection<IUser>(config.database.collections.users_collection).insertOne(authorisedUserProfile);
 

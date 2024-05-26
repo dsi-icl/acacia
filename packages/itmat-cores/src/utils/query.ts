@@ -1,6 +1,6 @@
-import { IStudy, IFieldEntry, IStandardization, ICohortSelection, IQueryString, IGroupedData, StandardizationFilterOptionParameters, StandardizationFilterOptions } from '@itmat-broker/itmat-types';
+import { IStudy, IField, IStandardization, ICohortSelection, IQueryString, IGroupedData, StandardizationFilterOptionParameters, StandardizationFilterOptions } from '@itmat-broker/itmat-types';
 import { Filter } from 'mongodb';
-import { QueryMatcher } from '../core/permissionCore';
+import { QueryMatcher } from '../GraphQLCore/permissionCore';
 /*
     queryString:
         format: string                  # returned foramt: raw, standardized, grouped, summary
@@ -12,7 +12,7 @@ import { QueryMatcher } from '../core/permissionCore';
 // if has study-level permission, non versioned data will also be returned
 
 
-export function buildPipeline(query: IQueryString, studyId: string, permittedVersions: Array<string | null>, permittedFields: IFieldEntry[], metadataFilter, isAdmin: boolean, includeUnversioned: boolean) {
+export function buildPipeline(query: IQueryString, studyId: string, permittedVersions: Array<string | null>, permittedFields: IField[], metadataFilter, isAdmin: boolean, includeUnversioned: boolean) {
     let fieldIds: string[] = permittedFields.map(el => el.fieldId);
     const fields = { _id: 0, m_subjectId: 1, m_visitId: 1 };
     // We send back the requested fields, by default send all fields
@@ -25,7 +25,7 @@ export function buildPipeline(query: IQueryString, studyId: string, permittedVer
             }
         });
     } else if (query['table_requested'] !== undefined && query['table_requested'] !== undefined) {
-        fieldIds = permittedFields.filter(el => el.tableName === query['table_requested']).map(el => el.fieldId);
+        fieldIds = permittedFields.filter(el => el.metadata['tableName'] === query['table_requested']).map(el => el.fieldId);
         fieldIds.forEach((field: string) => {
             fields[field] = 1;
         });
@@ -49,19 +49,19 @@ export function buildPipeline(query: IQueryString, studyId: string, permittedVer
     }
 
     const groupFilter = [{
-        $match: { m_fieldId: { $in: fieldIds } }
+        $match: { fieldId: { $in: fieldIds } }
     }, {
-        $sort: { uploadedAt: -1 }
+        $sort: { 'life.createdTime': -1 }
     }, {
         $group: {
-            _id: { m_subjectId: '$m_subjectId', m_visitId: '$m_visitId', m_fieldId: '$m_fieldId' },
+            _id: { m_subjectId: '$properties.m_subjectId', m_visitId: '$properties.m_visitId', m_fieldId: '$fieldId' },
             doc: { $first: '$$ROOT' }
         }
     }, {
         $project: {
-            m_subjectId: '$doc.m_subjectId',
-            m_visitId: '$doc.m_visitId',
-            m_fieldId: '$doc.m_fieldId',
+            m_subjectId: '$_id.m_subjectId',
+            m_visitId: '$_id.m_visitId',
+            m_fieldId: '$_id.m_fieldId',
             value: '$doc.value',
             _id: 0
         }
@@ -69,7 +69,7 @@ export function buildPipeline(query: IQueryString, studyId: string, permittedVer
     ];
     if (isAdmin) {
         return [
-            { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
+            { $match: { fieldId: { $regex: /^(?!Device)\w+$/ }, dataVersion: { $in: permittedVersions }, studyId: studyId } },
             ...groupFilter,
             { $match: match }
             // { $project: fields }
@@ -77,7 +77,7 @@ export function buildPipeline(query: IQueryString, studyId: string, permittedVer
     } else {
         if (includeUnversioned) {
             return [
-                { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
+                { $match: { fieldId: { $regex: /^(?!Device)\w+$/ }, dataVersion: { $in: permittedVersions }, studyId: studyId } },
                 { $match: { $or: [metadataFilter, { m_versionId: null }] } },
                 ...groupFilter,
                 { $match: match }
@@ -85,7 +85,7 @@ export function buildPipeline(query: IQueryString, studyId: string, permittedVer
             ];
         } else {
             return [
-                { $match: { m_fieldId: { $regex: /^(?!Device)\w+$/ }, m_versionId: { $in: permittedVersions }, m_studyId: studyId } },
+                { $match: { fieldId: { $regex: /^(?!Device)\w+$/ }, dataVersion: { $in: permittedVersions }, studyId: studyId } },
                 { $match: metadataFilter },
                 ...groupFilter,
                 { $match: match }
@@ -191,7 +191,7 @@ export function translateMetadata(metadata: QueryMatcher[]) {
     return match;
 }
 
-export function dataStandardization(study: IStudy, fields: IFieldEntry[], data: IGroupedData, queryString: IQueryString, standardizations: IStandardization[] | null) {
+export function dataStandardization(study: IStudy, fields: IField[], data: IGroupedData, queryString: IQueryString, standardizations: IStandardization[] | null) {
     if (!queryString['format'] || queryString['format'] === 'raw') {
         return data;
     } else if (queryString['format'] === 'grouped' || queryString['format'] === 'summary') {
@@ -206,9 +206,9 @@ export function dataStandardization(study: IStudy, fields: IFieldEntry[], data: 
 
 
 
-export function standardize(study: IStudy, fields: IFieldEntry[], data: IGroupedData, standardizations: IStandardization[]) {
+export function standardize(study: IStudy, fields: IField[], data: IGroupedData, standardizations: IStandardization[]) {
     const records = {};
-    const mergedFields: IFieldEntry[] = [...fields];
+    const mergedFields: IField[] = [...fields];
     const seqNumMap: Map<string, number> = new Map();
     for (const field of mergedFields) {
         let fieldDef = {};

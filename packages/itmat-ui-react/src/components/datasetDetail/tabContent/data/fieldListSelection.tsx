@@ -2,7 +2,7 @@ import { FunctionComponent, useState } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { useQuery } from '@apollo/client/react/hooks';
 import { GET_STUDY_FIELDS, GET_STUDY } from '@itmat-broker/itmat-models';
-import { IFieldEntry, IStudyDataVersion } from '@itmat-broker/itmat-types';
+import { IField, IStudyDataVersion } from '@itmat-broker/itmat-types';
 import { FieldListSection } from '../../../reusable/fieldList/fieldList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 // number of patients
@@ -43,7 +43,7 @@ const FieldListSelectionState: FunctionComponent<{ studyId: string; fieldTreeIds
 
     return <>
         <label>Select field tree: </label><select title='Field Tree' onChange={(e) => setSelectedTree(e.target.value)} value={selectedTree}>{fieldTreeIds.map((el) => <option key={el} value={el}>{el}</option>)}</select><br /><br />
-        <Query<{ getStudyFields: IFieldEntry[] }, { studyId: string, fieldTreeId: string }> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
+        <Query<{ getStudyFields: IField[] }, { studyId: string, fieldTreeId: string }> query={GET_STUDY_FIELDS} variables={{ studyId, fieldTreeId: selectedTree }}>
             {({ data, loading, error }) => {
                 if (loading) { return <LoadSpinner />; }
                 if (error) { return <p>{JSON.stringify(error)}</p>; }

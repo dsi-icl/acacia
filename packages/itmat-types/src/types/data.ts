@@ -1,3 +1,5 @@
+import { IBase } from './base';
+
 export interface IDataEntry {
     id: string;
     m_studyId: string;
@@ -13,6 +15,14 @@ export interface IDataEntry {
     value: unknown;
     uploadedBy?: string;
     uploadedAt: number;
+}
+
+export interface IData extends IBase {
+    studyId: string;
+    fieldId: string;
+    dataVersion: string | null;
+    value: unknown;
+    properties: Record<string, unknown>;
 }
 
 export interface IGroupedData {

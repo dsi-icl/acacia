@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { atomicOperation, IDataEntry, IDataPermission, IManagementPermission, IPermissionManagementOptions, IRole, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
+import { atomicOperation, IDataEntry, IDataPermission, IManagementPermission, IPermissionManagementOptions, IRole, IUserWithoutToken, enumUserTypes } from '@itmat-broker/itmat-types';
 import { BulkWriteResult, Document, Filter } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 import { DBType } from '../database/database';
@@ -62,7 +62,7 @@ export class PermissionCore {
         }
 
         /* if user is an admin then return true if admin privileges includes needed permissions */
-        if (user.type === userTypes.ADMIN) {
+        if (user.type === enumUserTypes.ADMIN) {
             return true;
         }
         const tag = `permissions.manage.${type}`;
@@ -77,7 +77,7 @@ export class PermissionCore {
     }
 
     public async combineUserDataPermissions(operation: string, user: IUserWithoutToken, studyId: string, projectId?: string) {
-        if (user.type === userTypes.ADMIN) {
+        if (user.type === enumUserTypes.ADMIN) {
             const matchAnyString = '^.*$';
             return {
                 subjectIds: [matchAnyString],
@@ -126,7 +126,7 @@ export class PermissionCore {
         }
         const matchAnyString = '^.*$';
         /* if user is an admin then return true if admin privileges includes needed permissions */
-        if (user.type === userTypes.ADMIN) {
+        if (user.type === enumUserTypes.ADMIN) {
             return {
                 matchObj: [],
                 hasVersioned: true,
@@ -299,7 +299,7 @@ export class PermissionCore {
             const testedUser: string[] = [];
             for (const each of allRequestedUserChanges) {
                 if (!testedUser.includes(each)) {
-                    const user = await this.db.collections.users_collection.findOne({ id: each, deleted: null });
+                    const user = await this.db.collections.users_collection.findOne({ 'id': each, 'life.deletedTime': null });
                     if (user === null) {
                         throw new GraphQLError(errorCodes.CLIENT_MALFORMED_INPUT);
                     } else {

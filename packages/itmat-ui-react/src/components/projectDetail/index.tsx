@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react';
 import { Query } from '@apollo/client/react/components';
 import { NavLink, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { GET_PROJECT, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { IJobEntry, IProject, IRoleQL, IUserWithoutToken, userTypes } from '@itmat-broker/itmat-types';
+import { IJobEntry, IProject, IRoleQL, IUserWithoutToken, enumUserTypes } from '@itmat-broker/itmat-types';
 import LoadSpinner from '../reusable/loadSpinner';
 import css_dataset from '../datasetDetail/projectPage.module.css';
 import { AdminTabContent, DashboardTabContent, DataTabContent } from './tabContent';
@@ -19,7 +19,7 @@ export const ProjectDetailPage: FunctionComponent = () => {
     return (
         <Query<{ getProject: IProject & { roles: IRoleQL[], jobs: IJobEntry[] } }, { projectId?: string, admin: boolean }>
             query={GET_PROJECT}
-            variables={{ projectId, admin: whoamidata.whoAmI.type === userTypes.ADMIN }}
+            variables={{ projectId, admin: whoamidata.whoAmI.type === enumUserTypes.ADMIN }}
         >
             {({ loading, error, data }) => {
                 if (loading) { return <LoadSpinner />; }
@@ -34,7 +34,7 @@ export const ProjectDetailPage: FunctionComponent = () => {
                                 if (loading) return <LoadSpinner />;
                                 if (error) return <p>{error.toString()}</p>;
                                 if (!sessionData) { return null; }
-                                if (sessionData.whoAmI.type === userTypes.ADMIN) {
+                                if (sessionData.whoAmI.type === enumUserTypes.ADMIN) {
                                     return <div className={css_dataset.tabs}>
                                         <NavLink to='dashboard' className={({ isActive }) => isActive ? css_dataset.active : undefined}><div>DASHBOARD</div></NavLink>
                                         {/* <NavLink to='samples' className={({ isActive }) => isActive ? className={({ isActive }) => isActive ? css.active : undefined}><div>SAMPLE</div></NavLink> */}

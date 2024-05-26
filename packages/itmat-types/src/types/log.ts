@@ -1,9 +1,9 @@
-import { userTypes } from './user';
+import { enumUserTypes } from './user';
 
 export interface ILogEntry {
     id: string,
     requesterName: string,
-    requesterType: userTypes,
+    requesterType: enumUserTypes,
     userAgent: USER_AGENT,
     logType: LOG_TYPE,
     actionType: LOG_ACTION,

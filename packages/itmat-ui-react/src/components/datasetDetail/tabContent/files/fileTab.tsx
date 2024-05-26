@@ -7,7 +7,7 @@ import { Query } from '@apollo/client/react/components';
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react/hooks';
 import { useDropzone } from 'react-dropzone';
 import { GET_STUDY, UPLOAD_FILE, GET_ORGANISATIONS, GET_USERS, EDIT_STUDY, WHO_AM_I } from '@itmat-broker/itmat-models';
-import { IFile, userTypes, deviceTypes, IStudy } from '@itmat-broker/itmat-types';
+import { IFile, enumUserTypes, deviceTypes, IStudy } from '@itmat-broker/itmat-types';
 import { FileList, formatBytes } from '../../../reusable/fileList/fileList';
 import LoadSpinner from '../../../reusable/loadSpinner';
 import { Subsection, SubsectionWithComment } from '../../../reusable/subsection/subsection';
@@ -332,30 +332,30 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
         const studyLevelFiles: IFile[] = [];
         const subjectLevelFiles: IFile[] = [];
         for (const file of files) {
-            if (Object.keys(JSON.parse(file.description)).length !== 0) {
+            if (file.description && Object.keys(JSON.parse(file.description)).length !== 0) {
                 if (file !== null && file !== undefined &&
                     (!searchTerm
                         || (JSON.parse(file.description).participantId).toUpperCase().indexOf(searchTerm) > -1
                         || sites[JSON.parse(file.description).participantId[0]].toUpperCase().indexOf(searchTerm) > -1
                         || JSON.parse(file.description).deviceId.toUpperCase().indexOf(searchTerm) > -1
                         || deviceTypes[JSON.parse(file.description).deviceId.substr(0, 3)].toUpperCase().indexOf(searchTerm) > -1
-                        || (!userIdNameMapping[file.uploadedBy] || userIdNameMapping[file.uploadedBy].toUpperCase().indexOf(searchTerm) > -1))) {
+                        || (!userIdNameMapping[file.life.createdTime] || userIdNameMapping[file.life.createdTime].toUpperCase().indexOf(searchTerm) > -1))) {
                     subjectLevelFiles.push(file);
                 }
             } else {
                 studyLevelFiles.push(file);
             }
         }
-        subjectLevelFiles.sort((a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime));
-        studyLevelFiles.sort((a, b) => parseInt(a.uploadTime) - parseInt(b.uploadTime));
+        subjectLevelFiles.sort((a, b) => a.life.createdTime - b.life.createdTime);
+        studyLevelFiles.sort((a, b) => a.life.createdTime - b.life.createdTime);
         return [subjectLevelFiles, studyLevelFiles];
     }
 
     const sortedFiles = dataSourceFilter(getStudyData.getStudy.files);
     const numberOfFiles = sortedFiles[0].length;
-    const sizeOfFiles = sortedFiles[0].reduce((a, b) => a + (parseInt(b.fileSize || '0') || 0), 0);
+    const sizeOfFiles = sortedFiles[0].reduce((a, b) => a + (b.fileSize || 0), 0);
     const participantOfFiles = sortedFiles[0].reduce(function (values, v) {
-        if (!values.set[JSON.parse(v['description'])['participantId']]) {
+        if (v.description && !values.set[JSON.parse(v['description'])['participantId']]) {
             values.set[JSON.parse(v['description'])['participantId']] = 1;
             values.count++;
         }
@@ -365,8 +365,8 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
     const fileSummary: { site: string, total: number }[] = [];
     const categoryColumns: ColumnProps<{ site: string, total: number }>[] = [];
     if (sortedFiles[0].length > 0) {
-        const availableSites: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description).participantId[0]).sort()));
-        const availableDeviceTypes: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description).deviceId.substr(0, 3)).sort()));
+        const availableSites: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description ?? '').participantId[0]).sort()));
+        const availableDeviceTypes: string[] = Array.from(new Set(sortedFiles[0].map(el => JSON.parse(el.description ?? '').deviceId.substr(0, 3)).sort()));
         categoryColumns.push(
             {
                 title: 'Site',
@@ -395,10 +395,10 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                 total: 0
             };
             for (const deviceType of availableDeviceTypes) {
-                tmpData[deviceType] = sortedFiles[0].filter(el => (JSON.parse(el.description).participantId[0] === site
-                    && JSON.parse(el.description).deviceId.substr(0, 3) === deviceType)).length;
+                tmpData[deviceType] = sortedFiles[0].filter(el => (JSON.parse(el.description ?? '').participantId[0] === site
+                    && JSON.parse(el.description ?? '').deviceId.substr(0, 3) === deviceType)).length;
             }
-            tmpData.total = sortedFiles[0].filter(el => JSON.parse(el.description).participantId[0] === site).length;
+            tmpData.total = sortedFiles[0].filter(el => JSON.parse(el.description ?? '').participantId[0] === site).length;
             fileSummary.push(tmpData);
         }
         const tmpData = {
@@ -406,7 +406,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
             total: sortedFiles[0].length
         };
         for (const deviceType of availableDeviceTypes) {
-            tmpData[deviceType] = sortedFiles[0].filter(el => JSON.parse(el.description).deviceId.substr(0, 3) === deviceType).length;
+            tmpData[deviceType] = sortedFiles[0].filter(el => JSON.parse(el.description ?? '').deviceId.substr(0, 3) === deviceType).length;
         }
         fileSummary.push(tmpData);
     }
@@ -445,7 +445,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
             </div>
             : <div className={`${css.tab_page_wrapper} ${css.both_panel} fade_in`}>
                 <SubsectionWithComment title='Dataset Description' comment={
-                    whoAmIData.whoAmI.type === userTypes.ADMIN ?
+                    whoAmIData.whoAmI.type === enumUserTypes.ADMIN ?
                         isEditingDescription ?
                             <>
                                 <Button
@@ -467,7 +467,7 @@ export const FileRepositoryTabContent: FunctionComponent<{ studyId: string }> = 
                         : null
                 }>
                     {
-                        (isEditingDescription && whoAmIData.whoAmI.type === userTypes.ADMIN) ? <Input onChange={(e) => { setDatasetDescription(e.target.value); }}>
+                        (isEditingDescription && whoAmIData.whoAmI.type === enumUserTypes.ADMIN) ? <Input onChange={(e) => { setDatasetDescription(e.target.value); }}>
                         </Input> :
                             (getStudyData.getStudy.description === null || getStudyData.getStudy.description === '') ? 'No descriptions.' : getStudyData.getStudy.description
                     }

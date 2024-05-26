@@ -1,4 +1,4 @@
-import { ILogEntry, IUserWithoutToken, LOG_ACTION, LOG_STATUS, LOG_TYPE, userTypes } from '@itmat-broker/itmat-types';
+import { ILogEntry, IUserWithoutToken, LOG_ACTION, LOG_STATUS, LOG_TYPE, enumUserTypes } from '@itmat-broker/itmat-types';
 import { DBType } from '../database/database';
 import { GraphQLError } from 'graphql';
 import { errorCodes } from '../utils/errors';
@@ -15,12 +15,12 @@ export class LogCore {
         UPLOAD_FILE: ['file', 'description']
     };
 
-    public async getLogs(requester: IUserWithoutToken | undefined, requesterName?: string, requesterType?: userTypes, logType?: LOG_TYPE, actionType?: LOG_ACTION, status?: LOG_STATUS) {
+    public async getLogs(requester: IUserWithoutToken | undefined, requesterName?: string, requesterType?: enumUserTypes, logType?: LOG_TYPE, actionType?: LOG_ACTION, status?: LOG_STATUS) {
         if (!requester) {
             throw new GraphQLError(errorCodes.CLIENT_ACTION_ON_NON_EXISTENT_ENTRY);
         }
         /* only admin can access this field */
-        if (!(requester.type === userTypes.ADMIN) && !(requester.metadata?.logPermission === true)) {
+        if (!(requester.type === enumUserTypes.ADMIN) && !(requester.metadata?.['logPermission'] === true)) {
             throw new GraphQLError(errorCodes.NO_PERMISSION_ERROR);
         }
 

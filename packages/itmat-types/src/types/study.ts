@@ -1,3 +1,4 @@
+import { IBase } from './base';
 import { IUser } from './user';
 import { FileUpload } from 'graphql-upload-minimal';
 
@@ -7,26 +8,19 @@ export enum studyType {
     ANY = 'ANY'
 }
 
-export interface IStudy {
-    id: string;
+export interface IStudy extends IBase {
     name: string;
-    createdBy: string;
-    lastModified: number;
-    deleted: number | null;
     currentDataVersion: number; // index; dataVersions[currentDataVersion] gives current version; // -1 if no data
     dataVersions: IStudyDataVersion[];
-    description: string;
+    description?: string;
+    profile?: string;
     ontologyTrees?: IOntologyTree[];
-    type: studyType;
-    metadata: Record<string, unknown>
 }
 
-export interface IStudyDataVersion {
-    id: string; // uuid
-    contentId: string; // same contentId = same data
+export interface IStudyDataVersion extends IBase {
+    id: string;
     version: string;
     tag?: string;
-    updateDate: string;
 }
 
 export enum atomicOperation {
